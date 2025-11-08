@@ -92,7 +92,11 @@ const PropertySearchBar = () => {
 
         {/* Search Button */}
         <div className="md:col-span-1">
-          <Button size="lg" className="w-full glow-effect h-[42px]">
+          <Button 
+            size="lg" 
+            className="w-full glow-effect h-[42px]"
+            onClick={() => window.location.href = '/map'}
+          >
             <Search className="h-5 w-5" />
           </Button>
         </div>

@@ -13,6 +13,7 @@ import Transactions from "./pages/Transactions";
 import TrustScore from "./pages/TrustScore";
 import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
+import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
 import BuilderDashboard from "./pages/BuilderDashboard";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/trustscore" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
+          <Route path="/map" element={<Map />} />
           <Route
             path="/buyer-dashboard"
             element={
