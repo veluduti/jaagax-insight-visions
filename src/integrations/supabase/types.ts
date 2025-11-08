@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_reviews: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          feedback: string
+          id: string
+          property_type: string | null
+          rating: number
+          reviewer_id: string
+          transaction_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          feedback: string
+          id?: string
+          property_type?: string | null
+          rating: number
+          reviewer_id: string
+          transaction_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          feedback?: string
+          id?: string
+          property_type?: string | null
+          rating?: number
+          reviewer_id?: string
+          transaction_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_reviews_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          agency_name: string | null
+          avg_response_time: string | null
+          bio: string | null
+          cities_served: string[] | null
+          created_at: string | null
+          id: string
+          languages: string[] | null
+          license_id: string | null
+          rent_count: number | null
+          sales_count: number | null
+          specialization: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agency_name?: string | null
+          avg_response_time?: string | null
+          bio?: string | null
+          cities_served?: string[] | null
+          created_at?: string | null
+          id?: string
+          languages?: string[] | null
+          license_id?: string | null
+          rent_count?: number | null
+          sales_count?: number | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agency_name?: string | null
+          avg_response_time?: string | null
+          bio?: string | null
+          cities_served?: string[] | null
+          created_at?: string | null
+          id?: string
+          languages?: string[] | null
+          license_id?: string | null
+          rent_count?: number | null
+          sales_count?: number | null
+          specialization?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       amenities: {
         Row: {
           created_at: string | null
@@ -390,6 +482,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          area_unit: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          language: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          area_unit?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          area_unit?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          language?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

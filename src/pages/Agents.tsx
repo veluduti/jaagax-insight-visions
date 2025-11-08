@@ -34,6 +34,8 @@ interface Agent {
   specialties?: string[];
   rating?: number;
   deals_closed?: number;
+  languages?: string[];
+  agency_name?: string;
 }
 
 const Agents = () => {
@@ -44,8 +46,12 @@ const Agents = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedRating, setSelectedRating] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedTransactionType, setSelectedTransactionType] = useState<string>("all");
 
   const cities = ["all", "Hyderabad", "Vijayawada"];
+  const agentTypes = ["all", "Residential", "Commercial", "Rental"];
+  const transactionTypes = ["all", "Buy", "Rent", "Ready", "Under Construction"];
   const ratings = [
     { label: "All Ratings", value: "all" },
     { label: "4.5+ Stars", value: "4.5" },
@@ -59,7 +65,7 @@ const Agents = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, selectedCity, selectedRating, agents]);
+  }, [searchQuery, selectedCity, selectedRating, selectedType, selectedTransactionType, agents]);
 
   const fetchAgents = async () => {
     try {
@@ -91,12 +97,14 @@ const Agents = () => {
 
       if (agentsError) throw agentsError;
 
-      // Enrich with mock data for demo (in production, this would come from a real agents table)
+      // Enrich with mock data for demo (in production, this would come from agents table)
       const enrichedAgents = (agentsData || []).map((agent) => ({
         ...agent,
         trust_score: Math.floor(Math.random() * 20) + 80, // 80-100
         rating: parseFloat((Math.random() * 1 + 4).toFixed(1)), // 4.0-5.0
         deals_closed: Math.floor(Math.random() * 50) + 10,
+        languages: ["English", "Hindi", "Telugu"].slice(0, Math.floor(Math.random() * 2) + 1),
+        agency_name: ["Prestige Realty", "Lodha Associates", "DLF Partners", null][Math.floor(Math.random() * 4)],
         specialties: [
           ["Residential", "Luxury Homes"],
           ["Commercial", "Office Spaces"],
@@ -160,14 +168,14 @@ const Agents = () => {
           </p>
         </motion.div>
 
-        {/* Search & Filters */}
+        /* Filters */
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="glass-panel p-6 mb-8 rounded-xl"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -178,6 +186,39 @@ const Agents = () => {
               />
             </div>
 
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Agent Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {agentTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedTransactionType} onValueChange={setSelectedTransactionType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Transaction Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {transactionTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Input
+              placeholder="Location (e.g., Kokapet)"
+              className="w-full"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select value={selectedCity} onValueChange={setSelectedCity}>
               <SelectTrigger>
                 <SelectValue placeholder="Select City" />
@@ -203,6 +244,10 @@ const Agents = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <Button variant="outline" className="w-full">
+              Advanced Filters
+            </Button>
           </div>
         </motion.div>
 
@@ -232,9 +277,19 @@ const Agents = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card
-                  className="glass-panel border-border/50 overflow-hidden group hover:border-primary/50 transition-all duration-300 cursor-pointer h-full"
+                  className="glass-panel border-border/50 overflow-hidden group hover:border-primary/50 transition-all duration-300 cursor-pointer h-full relative"
                   onClick={() => navigate(`/agent/${agent.id}`)}
                 >
+                  {/* TruBroker Badge */}
+                  {agent.verified && agent.trust_score && agent.trust_score >= 85 && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg animate-pulse">
+                        <Shield className="h-3 w-3 mr-1" />
+                        TruBroker™
+                      </Badge>
+                    </div>
+                  )}
+                  
                   <CardHeader className="pb-3">
                     <div className="flex items-start gap-4">
                       {/* Avatar */}
@@ -304,6 +359,20 @@ const Agents = () => {
                           </Badge>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Languages & Agency */}
+                    <div className="mb-4 space-y-2">
+                      {agent.languages && agent.languages.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Languages:</span> {agent.languages.join(", ")}
+                        </div>
+                      )}
+                      {agent.agency_name && (
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Agency:</span> {agent.agency_name}
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
