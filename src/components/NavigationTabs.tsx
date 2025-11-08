@@ -7,7 +7,7 @@ const tabs = [
   { id: "projects", label: "New Projects", icon: Building2, path: "/projects" },
   { id: "transactions", label: "Transactions", icon: FileText, path: "/transactions" },
   { id: "trustscore", label: "TrustScore™", icon: Shield, path: "/trustscore" },
-  { id: "agents", label: "Agents", icon: Users, path: "#agents" },
+  { id: "agents", label: "Agents", icon: Users, path: "/agents" },
 ];
 
 const NavigationTabs = () => {

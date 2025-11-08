@@ -139,7 +139,12 @@ const FindMyAgent = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary/50 hover:bg-primary/10"
+            onClick={() => window.location.href = '/agents'}
+          >
             View All Agents
           </Button>
         </motion.div>
