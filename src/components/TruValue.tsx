@@ -104,7 +104,7 @@ const TruValue = () => {
                   </Select>
                 </div>
 
-                <Button className="w-full glow-effect mt-6">
+                <Button className="w-full glow-effect mt-6" onClick={() => window.location.href = '/valuation'}>
                   <Sparkles className="h-4 w-4 mr-2" />
                   Get AI Valuation
                 </Button>

@@ -188,11 +188,19 @@ const Navigation = () => {
                 </h3>
                 
                 <a
-                  href="/market-insights"
+                  href="/valuation"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
                 >
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Market Intelligence</span>
+                  <span className="font-medium group-hover:text-primary">TruValue™</span>
+                </a>
+
+                <a
+                  href="/communities"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <HomeIcon className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">Communities</span>
                 </a>
 
                 <a
@@ -204,11 +212,11 @@ const Navigation = () => {
                 </a>
 
                 <a
-                  href="/floorplans"
+                  href="/events"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
                 >
-                  <HomeIcon className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Floor Plans</span>
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">Events</span>
                 </a>
 
                 <a
@@ -217,14 +225,6 @@ const Navigation = () => {
                 >
                   <User className="h-5 w-5 text-primary" />
                   <span className="font-medium group-hover:text-primary">Agent Portal</span>
-                </a>
-
-                <a
-                  href="/events"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Events</span>
                 </a>
               </div>
 

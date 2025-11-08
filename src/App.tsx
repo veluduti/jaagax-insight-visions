@@ -14,6 +14,10 @@ import Transactions from "./pages/Transactions";
 import TrustScore from "./pages/TrustScore";
 import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
+import PropertyValuation from "./pages/PropertyValuation";
+import Communities from "./pages/Communities";
+import Guides from "./pages/Guides";
+import Events from "./pages/Events";
 import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
@@ -40,6 +44,10 @@ const App = () => (
           <Route path="/trustscore" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
+          <Route path="/valuation" element={<PropertyValuation />} />
+          <Route path="/communities" element={<Communities />} />
+          <Route path="/guides" element={<Guides />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/map" element={<Map />} />
           <Route
             path="/buyer-dashboard"
