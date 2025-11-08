@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Transactions from "./pages/Transactions";
+import TrustScore from "./pages/TrustScore";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
 import BuilderDashboard from "./pages/BuilderDashboard";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/trustscore" element={<TrustScore />} />
           <Route
             path="/buyer-dashboard"
             element={
