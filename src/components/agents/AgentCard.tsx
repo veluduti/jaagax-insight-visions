@@ -17,8 +17,8 @@ interface AgentCardProps {
   agent: {
     id: string;
     agency_name: string;
-    languages: string[];
-    cities_served: string[];
+    languages: string;
+    cities_served: string;
     sales_count: number;
     rent_count: number;
     specialization: string;
@@ -84,14 +84,14 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Languages */}
         <div className="flex items-center gap-2 mb-2 text-sm">
           <Languages className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{agent.languages.join(", ")}</span>
+          <span className="text-muted-foreground">{agent.languages}</span>
         </div>
 
         {/* Cities */}
         <div className="flex items-center gap-2 mb-4 text-sm">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground line-clamp-1">
-            {agent.cities_served.join(", ")}
+            {agent.cities_served}
           </span>
         </div>
 

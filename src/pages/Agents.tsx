@@ -23,8 +23,8 @@ interface Agent {
   id: string;
   user_id: string;
   agency_name: string;
-  languages: string[];
-  cities_served: string[];
+  languages: string;
+  cities_served: string;
   sales_count: number;
   rent_count: number;
   specialization: string;
@@ -100,16 +100,14 @@ const Agents = () => {
       filtered = filtered.filter(
         (agent) =>
           agent.users.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          agent.cities_served.some((city) =>
-            city.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+          agent.cities_served.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // City filter
     if (cityFilter !== "all") {
       filtered = filtered.filter((agent) =>
-        agent.cities_served.includes(cityFilter)
+        agent.cities_served.toLowerCase().includes(cityFilter.toLowerCase())
       );
     }
 
@@ -132,7 +130,12 @@ const Agents = () => {
   };
 
   const cities = Array.from(
-    new Set(agents.flatMap((agent) => agent.cities_served))
+    new Set(
+      agents
+        .map((agent) => agent.cities_served?.split(',').map(c => c.trim()) || [])
+        .flat()
+        .filter(Boolean)
+    )
   );
 
   return (
