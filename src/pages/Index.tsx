@@ -7,6 +7,7 @@ import AISpotlight from "@/components/AISpotlight";
 import MarketIntelligence from "@/components/MarketIntelligence";
 import FindMyAgent from "@/components/FindMyAgent";
 import TruValue from "@/components/TruValue";
+import FeaturedCommunities from "@/components/FeaturedCommunities";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -21,6 +22,7 @@ const Index = () => {
       <MarketIntelligence />
       <FindMyAgent />
       <TruValue />
+      <FeaturedCommunities />
       <Footer />
     </div>
   );
