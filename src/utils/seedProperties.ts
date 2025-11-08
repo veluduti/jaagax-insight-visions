@@ -185,6 +185,16 @@ export const propertyData = [
 
 export async function seedProperties() {
   try {
+    // First check if properties already exist
+    const { count } = await supabase
+      .from("properties")
+      .select("*", { count: "exact", head: true });
+
+    if (count && count > 0) {
+      console.log("Properties already seeded");
+      return { success: true, message: "Properties already exist" };
+    }
+
     const { data, error } = await supabase
       .from("properties")
       .insert(propertyData)

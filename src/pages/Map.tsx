@@ -366,38 +366,43 @@ const Map = () => {
           {is3DMode ? "3D View" : "2D View"}
         </Button>
         
-        <Button
-          onClick={handleSeedProperties}
-          variant="outline"
-          size="lg"
-          disabled={isSeeding}
-          className="glass-panel glow-effect"
-        >
-          <Database className="h-5 w-5 mr-2" />
-          {isSeeding ? "..." : "Properties"}
-        </Button>
+        <div className="glass-panel p-3 rounded-lg">
+          <p className="text-xs text-muted-foreground mb-2 font-semibold">Seed Data:</p>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleSeedProperties}
+              variant="outline"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2"
+            >
+              <Database className="h-4 w-4" />
+              {isSeeding ? "..." : "Properties (10)"}
+            </Button>
 
-        <Button
-          onClick={handleSeedAgents}
-          variant="outline"
-          size="lg"
-          disabled={isSeeding}
-          className="glass-panel glow-effect"
-        >
-          <Users className="h-5 w-5 mr-2" />
-          {isSeeding ? "..." : "Agents"}
-        </Button>
+            <Button
+              onClick={handleSeedAgents}
+              variant="outline"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2"
+            >
+              <Users className="h-4 w-4" />
+              {isSeeding ? "..." : "Agents (5)"}
+            </Button>
 
-        <Button
-          onClick={handleSeedProjects}
-          variant="outline"
-          size="lg"
-          disabled={isSeeding}
-          className="glass-panel glow-effect"
-        >
-          <Building2 className="h-5 w-5 mr-2" />
-          {isSeeding ? "..." : "Projects"}
-        </Button>
+            <Button
+              onClick={handleSeedProjects}
+              variant="outline"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2"
+            >
+              <Building2 className="h-4 w-4" />
+              {isSeeding ? "..." : "Projects (5)"}
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* AI Area Lens */}

@@ -65,8 +65,17 @@ export const projectsData = [
 
 export async function seedProjects() {
   try {
+    // First check if projects already exist
+    const { count } = await supabase
+      .from("projects")
+      .select("*", { count: "exact", head: true });
+
+    if (count && count > 0) {
+      console.log("Projects already seeded");
+      return { success: true, message: "Projects already exist" };
+    }
+
     // Note: builder_id is left as null since we don't have builder user accounts
-    // In a real scenario, you'd need to create builder accounts first
     const projectsToInsert = projectsData.map(project => ({
       name: project.name,
       city: project.city,
@@ -77,7 +86,7 @@ export async function seedProjects() {
       image: project.image,
       overview: project.overview,
       rera_id: project.rera_id,
-      builder_id: null, // Will need to be updated with actual builder user IDs
+      builder_id: null,
     }));
 
     const { data, error } = await supabase

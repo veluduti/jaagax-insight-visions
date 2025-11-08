@@ -331,7 +331,10 @@ export type Database = {
       }
       properties: {
         Row: {
+          agent_id: number | null
           area: number | null
+          baths: number | null
+          beds: number | null
           bhk: number | null
           city: string
           created_at: string | null
@@ -343,15 +346,20 @@ export type Database = {
           locality: string
           owner_id: string | null
           price: number
-          project_id: string | null
+          project_id: number | null
+          status: string | null
           title: string
           trust_score: number | null
           type: Database["public"]["Enums"]["property_type"]
           updated_at: string | null
           verified: boolean | null
+          verified_at: string | null
         }
         Insert: {
+          agent_id?: number | null
           area?: number | null
+          baths?: number | null
+          beds?: number | null
           bhk?: number | null
           city: string
           created_at?: string | null
@@ -363,15 +371,20 @@ export type Database = {
           locality: string
           owner_id?: string | null
           price: number
-          project_id?: string | null
+          project_id?: number | null
+          status?: string | null
           title: string
           trust_score?: number | null
           type: Database["public"]["Enums"]["property_type"]
           updated_at?: string | null
           verified?: boolean | null
+          verified_at?: string | null
         }
         Update: {
+          agent_id?: number | null
           area?: number | null
+          baths?: number | null
+          beds?: number | null
           bhk?: number | null
           city?: string
           created_at?: string | null
@@ -383,12 +396,14 @@ export type Database = {
           locality?: string
           owner_id?: string | null
           price?: number
-          project_id?: string | null
+          project_id?: number | null
+          status?: string | null
           title?: string
           trust_score?: number | null
           type?: Database["public"]["Enums"]["property_type"]
           updated_at?: string | null
           verified?: boolean | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -396,13 +411,6 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "properties_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]

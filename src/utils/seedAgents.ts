@@ -65,90 +65,69 @@ export const agentsData = [
 
 export async function seedAgents() {
   try {
-    const results = [];
-    
-    for (const agentData of agentsData) {
-      // First, create a user account for the agent
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: agentData.email,
-        password: "agent123456", // Default password
-        options: {
-          data: {
-            name: agentData.name,
-            avatar_url: agentData.avatar_url,
-          }
-        }
-      });
+    // First check if agents already exist
+    const { count } = await supabase
+      .from("agents")
+      .select("*", { count: "exact", head: true });
 
-      if (authError) {
-        console.error(`Error creating auth user for ${agentData.name}:`, authError);
-        // If user already exists, try to get their ID
-        const { data: existingUsers } = await supabase
-          .from("users")
-          .select("id")
-          .eq("email", agentData.email)
-          .single();
-        
-        if (existingUsers) {
-          // Update existing user
-          await supabase
-            .from("users")
-            .update({
-              name: agentData.name,
-              avatar_url: agentData.avatar_url,
-            })
-            .eq("id", existingUsers.id);
-
-          // Create or update agent profile
-          const { data: agentProfile, error: agentError } = await supabase
-            .from("agents")
-            .upsert({
-              user_id: existingUsers.id,
-              agency_name: agentData.agency_name,
-              languages: agentData.languages,
-              cities_served: agentData.cities_served,
-              sales_count: agentData.sales_count,
-              rent_count: agentData.rent_count,
-              specialization: agentData.specialization,
-              avg_response_time: agentData.avg_response_time,
-            })
-            .select();
-
-          if (agentError) {
-            console.error(`Error creating agent profile for ${agentData.name}:`, agentError);
-          } else {
-            results.push(agentProfile);
-          }
-        }
-        continue;
-      }
-
-      if (authData.user) {
-        // Create agent profile
-        const { data: agentProfile, error: agentError } = await supabase
-          .from("agents")
-          .insert({
-            user_id: authData.user.id,
-            agency_name: agentData.agency_name,
-            languages: agentData.languages,
-            cities_served: agentData.cities_served,
-            sales_count: agentData.sales_count,
-            rent_count: agentData.rent_count,
-            specialization: agentData.specialization,
-            avg_response_time: agentData.avg_response_time,
-          })
-          .select();
-
-        if (agentError) {
-          console.error(`Error creating agent profile for ${agentData.name}:`, agentError);
-        } else {
-          results.push(agentProfile);
-        }
-      }
+    if (count && count > 0) {
+      console.log("Agents already seeded");
+      return { success: true, message: "Agents already exist" };
     }
 
-    console.log("Successfully seeded agents:", results);
-    return { success: true, data: results };
+    // Create dummy user IDs (using gen_random_uuid format)
+    // In production, these would be real auth user IDs
+    const dummyUserIds = [
+      "11111111-1111-1111-1111-111111111111",
+      "22222222-2222-2222-2222-222222222222",
+      "33333333-3333-3333-3333-333333333333",
+      "44444444-4444-4444-4444-444444444444",
+      "55555555-5555-5555-5555-555555555555",
+    ];
+
+    // First, insert users into users table
+    const usersToInsert = agentsData.map((agent, idx) => ({
+      id: dummyUserIds[idx],
+      email: agent.email,
+      name: agent.name,
+      avatar_url: agent.avatar_url,
+      verified: true,
+      city: agent.cities_served[0] || "Hyderabad",
+    }));
+
+    const { error: usersError } = await supabase
+      .from("users")
+      .insert(usersToInsert);
+
+    if (usersError && !usersError.message.includes("duplicate key")) {
+      console.error("Error inserting users:", usersError);
+      return { success: false, error: usersError };
+    }
+
+    // Then insert agent profiles
+    const agentsToInsert = agentsData.map((agent, idx) => ({
+      user_id: dummyUserIds[idx],
+      agency_name: agent.agency_name,
+      languages: agent.languages,
+      cities_served: agent.cities_served,
+      sales_count: agent.sales_count,
+      rent_count: agent.rent_count,
+      specialization: agent.specialization,
+      avg_response_time: agent.avg_response_time,
+    }));
+
+    const { data, error } = await supabase
+      .from("agents")
+      .insert(agentsToInsert)
+      .select();
+
+    if (error) {
+      console.error("Error seeding agents:", error);
+      return { success: false, error };
+    }
+
+    console.log("Successfully seeded agents:", data);
+    return { success: true, data };
   } catch (err) {
     console.error("Exception seeding agents:", err);
     return { success: false, error: err };
