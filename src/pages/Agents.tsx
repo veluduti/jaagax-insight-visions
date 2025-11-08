@@ -1,63 +1,51 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  User,
-  MapPin,
-  Star,
-  MessageSquare,
-  Phone,
-  Building2,
-  TrendingUp,
-  Shield,
-  Loader2,
-  Search,
-} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Search } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { toast } from "sonner";
+import AgentCard from "@/components/agents/AgentCard";
+import FeaturedAgents from "@/components/agents/FeaturedAgents";
+import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
   id: string;
-  name: string;
-  email: string;
-  city: string;
-  avatar_url: string | null;
-  verified: boolean;
-  trust_score?: number;
-  specialties?: string[];
-  rating?: number;
-  deals_closed?: number;
-  languages?: string[];
-  agency_name?: string;
+  user_id: string;
+  agency_name: string;
+  languages: string[];
+  cities_served: string[];
+  sales_count: number;
+  rent_count: number;
+  specialization: string;
+  avg_response_time: string;
+  users: {
+    name: string;
+    avatar_url: string;
+    email: string;
+    verified: boolean;
+  };
 }
 
 const Agents = () => {
-  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<Agent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<string>("all");
-  const [selectedRating, setSelectedRating] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedTransactionType, setSelectedTransactionType] = useState<string>("all");
-
-  const cities = ["all", "Hyderabad", "Vijayawada"];
-  const agentTypes = ["all", "Residential", "Commercial", "Rental"];
-  const transactionTypes = ["all", "Buy", "Rent", "Ready", "Under Construction"];
-  const ratings = [
-    { label: "All Ratings", value: "all" },
-    { label: "4.5+ Stars", value: "4.5" },
-    { label: "4+ Stars", value: "4" },
-    { label: "3.5+ Stars", value: "3.5" },
-  ];
+  const [serviceType, setServiceType] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("sales");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAgents();
@@ -65,59 +53,40 @@ const Agents = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, selectedCity, selectedRating, selectedType, selectedTransactionType, agents]);
+  }, [agents, searchQuery, serviceType, cityFilter, verifiedOnly, sortBy]);
 
   const fetchAgents = async () => {
     try {
-      setLoading(true);
+      const { data, error } = await supabase
+        .from("agents")
+        .select("*");
 
-      // Get users who have the 'agent' role
-      const { data: agentRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "agent");
+      if (error) throw error;
 
-      if (rolesError) throw rolesError;
+      // Fetch user details for each agent
+      const agentsWithUsers = await Promise.all(
+        (data || []).map(async (agent: any) => {
+          const { data: userData } = await supabase
+            .from("users")
+            .select("name, avatar_url, email, verified")
+            .eq("id", agent.user_id)
+            .single();
 
-      const agentIds = agentRoles?.map((r) => r.user_id) || [];
+          return {
+            ...agent,
+            users: userData || {
+              name: "Unknown",
+              avatar_url: "",
+              email: "",
+              verified: false,
+            },
+          };
+        })
+      );
 
-      if (agentIds.length === 0) {
-        setAgents([]);
-        setFilteredAgents([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch agent profiles
-      const { data: agentsData, error: agentsError } = await supabase
-        .from("users")
-        .select("*")
-        .in("id", agentIds)
-        .eq("verified", true);
-
-      if (agentsError) throw agentsError;
-
-      // Enrich with mock data for demo (in production, this would come from agents table)
-      const enrichedAgents = (agentsData || []).map((agent) => ({
-        ...agent,
-        trust_score: Math.floor(Math.random() * 20) + 80, // 80-100
-        rating: parseFloat((Math.random() * 1 + 4).toFixed(1)), // 4.0-5.0
-        deals_closed: Math.floor(Math.random() * 50) + 10,
-        languages: ["English", "Hindi", "Telugu"].slice(0, Math.floor(Math.random() * 2) + 1),
-        agency_name: ["Prestige Realty", "Lodha Associates", "DLF Partners", null][Math.floor(Math.random() * 4)],
-        specialties: [
-          ["Residential", "Luxury Homes"],
-          ["Commercial", "Office Spaces"],
-          ["Plots", "Land Development"],
-          ["Residential", "Investment Properties"],
-        ][Math.floor(Math.random() * 4)],
-      }));
-
-      setAgents(enrichedAgents);
-      setFilteredAgents(enrichedAgents);
+      setAgents(agentsWithUsers);
     } catch (error) {
       console.error("Error fetching agents:", error);
-      toast.error("Failed to load agents");
     } finally {
       setLoading(false);
     }
@@ -130,285 +99,185 @@ const Agents = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (agent) =>
-          agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          agent.city?.toLowerCase().includes(searchQuery.toLowerCase())
+          agent.users.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agent.cities_served.some((city) =>
+            city.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
     // City filter
-    if (selectedCity !== "all") {
-      filtered = filtered.filter((agent) => agent.city === selectedCity);
+    if (cityFilter !== "all") {
+      filtered = filtered.filter((agent) =>
+        agent.cities_served.includes(cityFilter)
+      );
     }
 
-    // Rating filter
-    if (selectedRating !== "all") {
-      const minRating = parseFloat(selectedRating);
-      filtered = filtered.filter((agent) => (agent.rating || 0) >= minRating);
+    // Verified only filter
+    if (verifiedOnly) {
+      filtered = filtered.filter((agent) => agent.users.verified);
     }
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === "sales") {
+        return b.sales_count - a.sales_count;
+      } else if (sortBy === "rent") {
+        return b.rent_count - a.rent_count;
+      }
+      return 0;
+    });
 
     setFilteredAgents(filtered);
   };
 
+  const cities = Array.from(
+    new Set(agents.flatMap((agent) => agent.cities_served))
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="container mx-auto px-6 py-24">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-5xl font-bold mb-4">
-            Find Your <span className="text-gradient">Agent</span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Connect with verified real estate experts in your area
-          </p>
-        </motion.div>
+      {/* Hero Section */}
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background" />
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Find Your Perfect Agent
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Connect with verified TruBrokers™ across India
+            </p>
+          </motion.div>
 
-        /* Filters */
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-panel p-6 mb-8 rounded-xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or area..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-panel rounded-xl p-6 max-w-5xl mx-auto"
+          >
+            <div className="grid md:grid-cols-4 gap-4 mb-4">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search agents by name or area..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <Select value={serviceType} onValueChange={setServiceType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Service Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Services</SelectItem>
+                  <SelectItem value="buy">Buy</SelectItem>
+                  <SelectItem value="rent">Rent</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={cityFilter} onValueChange={setCityFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Cities" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Cities</SelectItem>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Agent Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {agentTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={verifiedOnly}
+                    onCheckedChange={setVerifiedOnly}
+                    id="verified"
+                  />
+                  <Label htmlFor="verified">Verified Only</Label>
+                </div>
 
-            <Select value={selectedTransactionType} onValueChange={setSelectedTransactionType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Transaction Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {transactionTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sales">Most Sales</SelectItem>
+                    <SelectItem value="rent">Most Rentals</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <Input
-              placeholder="Location (e.g., Kokapet)"
-              className="w-full"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select City" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city === "all" ? "All Cities" : city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedRating} onValueChange={setSelectedRating}>
-              <SelectTrigger>
-                <SelectValue placeholder="Minimum Rating" />
-              </SelectTrigger>
-              <SelectContent>
-                {ratings.map((rating) => (
-                  <SelectItem key={rating.value} value={rating.value}>
-                    {rating.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline" className="w-full">
-              Advanced Filters
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Results Count */}
-        <div className="mb-6 text-muted-foreground">
-          Found <span className="text-primary font-semibold">{filteredAgents.length}</span> verified agents
+              <div className="text-sm text-muted-foreground">
+                {filteredAgents.length} agents found
+              </div>
+            </div>
+          </motion.div>
         </div>
+      </section>
 
-        {/* Agents Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          </div>
-        ) : filteredAgents.length === 0 ? (
-          <div className="text-center py-20">
-            <User className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No agents found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAgents.map((agent, index) => (
-              <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card
-                  className="glass-panel border-border/50 overflow-hidden group hover:border-primary/50 transition-all duration-300 cursor-pointer h-full relative"
-                  onClick={() => navigate(`/agent/${agent.id}`)}
+      {/* Featured Agents */}
+      <FeaturedAgents agents={filteredAgents} />
+
+      {/* AI Recommendations */}
+      <AIAgentRecommendations />
+
+      {/* All Agents Grid */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          {loading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="glass-panel rounded-xl p-6 animate-pulse"
                 >
-                  {/* TruBroker Badge */}
-                  {agent.verified && agent.trust_score && agent.trust_score >= 85 && (
-                    <div className="absolute top-3 left-3 z-10">
-                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg animate-pulse">
-                        <Shield className="h-3 w-3 mr-1" />
-                        TruBroker™
-                      </Badge>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-full bg-muted" />
+                    <div className="flex-1">
+                      <div className="h-4 bg-muted rounded mb-2" />
+                      <div className="h-3 bg-muted rounded w-2/3" />
                     </div>
-                  )}
-                  
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-4">
-                      {/* Avatar */}
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/50">
-                          {agent.avatar_url ? (
-                            <img
-                              src={agent.avatar_url}
-                              alt={agent.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                              <User className="h-10 w-10 text-primary-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        {agent.verified && (
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">
-                            <Shield className="h-3 w-3 text-white" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg mb-1 line-clamp-1">{agent.name}</h3>
-                        
-                        <div className="flex items-center gap-1 mb-2">
-                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                          <span className="font-semibold">{agent.rating?.toFixed(1)}</span>
-                          <span className="text-sm text-muted-foreground">
-                            ({agent.deals_closed} deals)
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {agent.city || "Multiple Cities"}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    {/* Trust Score */}
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Trust Score</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-primary to-accent"
-                            style={{ width: `${agent.trust_score}%` }}
-                          />
-                        </div>
-                        <span className="font-semibold text-sm">{agent.trust_score}/100</span>
-                      </div>
-                    </div>
-
-                    {/* Specialties */}
-                    <div className="mb-4">
-                      <p className="text-xs text-muted-foreground mb-2">Specialties</p>
-                      <div className="flex flex-wrap gap-2">
-                        {agent.specialties?.map((specialty, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Languages & Agency */}
-                    <div className="mb-4 space-y-2">
-                      {agent.languages && agent.languages.length > 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          <span className="font-medium">Languages:</span> {agent.languages.join(", ")}
-                        </div>
-                      )}
-                      {agent.agency_name && (
-                        <div className="text-xs text-muted-foreground">
-                          <span className="font-medium">Agency:</span> {agent.agency_name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast.info("Chat feature coming soon!");
-                        }}
-                        className="w-full"
-                      >
-                        <MessageSquare className="h-3 w-3 mr-2" />
-                        Chat
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/agent/${agent.id}`);
-                        }}
-                        className="w-full"
-                      >
-                        <Building2 className="h-3 w-3 mr-2" />
-                        View Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-muted rounded" />
+                    <div className="h-3 bg-muted rounded w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredAgents.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                No agents found matching your criteria
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAgents.map((agent, idx) => (
+                <AgentCard key={agent.id} agent={agent} index={idx} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       <Footer />
     </div>
