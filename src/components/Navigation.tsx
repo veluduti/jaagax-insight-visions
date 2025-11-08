@@ -38,7 +38,11 @@ const Navigation = () => {
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="default" className="glow-effect">
+            <Button 
+              variant="default" 
+              className="glow-effect"
+              onClick={() => window.location.href = '/auth'}
+            >
               <User className="h-4 w-4 mr-2" />
               Sign In
             </Button>
