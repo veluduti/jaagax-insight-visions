@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import PropertyDetail from "./pages/PropertyDetail";
 import Transactions from "./pages/Transactions";
 import TrustScore from "./pages/TrustScore";
 import Agents from "./pages/Agents";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/property/:id" element={<PropertyDetail />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/trustscore" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
