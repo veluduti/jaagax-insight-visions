@@ -54,7 +54,7 @@ const Navigation = () => {
           <div className="hidden lg:flex items-center gap-8">
             <NavItem href="#find-agent">Find My Agent</NavItem>
             <NavItem href="#sell-property">Sell My Property</NavItem>
-            <NavItem href="#new-projects">New Projects</NavItem>
+            <NavItem href="/projects">New Projects</NavItem>
             <NavItem href="#transactions">Transactions</NavItem>
             <NavItem href="#market-insights">Market Insights</NavItem>
             <NavItem href="#ai-advisor">AI Advisor</NavItem>
