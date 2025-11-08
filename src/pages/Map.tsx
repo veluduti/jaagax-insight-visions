@@ -7,8 +7,10 @@ import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
-import { Layers, Navigation as Nav3D } from "lucide-react";
+import { Layers, Navigation as Nav3D, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { seedProperties } from "@/utils/seedProperties";
+import { toast as sonnerToast } from "sonner";
 
 interface Property {
   id: string;
@@ -36,6 +38,7 @@ const Map = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [is3DMode, setIs3DMode] = useState(false);
   const [currentCity, setCurrentCity] = useState<"Hyderabad" | "Vijayawada">("Hyderabad");
+  const [isSeeding, setIsSeeding] = useState(false);
   const [filters, setFilters] = useState({
     transactionType: "buy",
     propertyType: "all",
@@ -289,6 +292,21 @@ const Map = () => {
     setCurrentCity(city);
   };
 
+  // Seed properties
+  const handleSeedProperties = async () => {
+    setIsSeeding(true);
+    const result = await seedProperties();
+    
+    if (result.success) {
+      sonnerToast.success("Successfully added 10 properties to the database!");
+      fetchProperties();
+    } else {
+      sonnerToast.error("Failed to seed properties. They may already exist.");
+      console.error(result.error);
+    }
+    setIsSeeding(false);
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
@@ -302,11 +320,11 @@ const Map = () => {
         onCityChange={changeCity}
       />
 
-      {/* 3D Toggle Button */}
+      {/* Control Buttons */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="absolute top-24 right-6 z-10"
+        className="absolute top-24 right-6 z-10 flex flex-col gap-3"
       >
         <Button
           onClick={toggle3DMode}
@@ -316,6 +334,17 @@ const Map = () => {
         >
           {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
           {is3DMode ? "3D View" : "2D View"}
+        </Button>
+        
+        <Button
+          onClick={handleSeedProperties}
+          variant="outline"
+          size="lg"
+          disabled={isSeeding}
+          className="glass-panel glow-effect"
+        >
+          <Database className="h-5 w-5 mr-2" />
+          {isSeeding ? "Loading..." : "Seed Data"}
         </Button>
       </motion.div>
 
