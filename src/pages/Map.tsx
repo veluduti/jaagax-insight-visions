@@ -7,9 +7,11 @@ import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
-import { Layers, Navigation as Nav3D, Database } from "lucide-react";
+import { Layers, Navigation as Nav3D, Database, Users, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { seedProperties } from "@/utils/seedProperties";
+import { seedAgents } from "@/utils/seedAgents";
+import { seedProjects } from "@/utils/seedProjects";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
@@ -307,6 +309,34 @@ const Map = () => {
     setIsSeeding(false);
   };
 
+  // Seed agents
+  const handleSeedAgents = async () => {
+    setIsSeeding(true);
+    const result = await seedAgents();
+    
+    if (result.success) {
+      sonnerToast.success("Successfully added 5 agents to the database!");
+    } else {
+      sonnerToast.error("Failed to seed agents. Check console for details.");
+      console.error(result.error);
+    }
+    setIsSeeding(false);
+  };
+
+  // Seed projects
+  const handleSeedProjects = async () => {
+    setIsSeeding(true);
+    const result = await seedProjects();
+    
+    if (result.success) {
+      sonnerToast.success("Successfully added 5 projects to the database!");
+    } else {
+      sonnerToast.error("Failed to seed projects. Check console for details.");
+      console.error(result.error);
+    }
+    setIsSeeding(false);
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
@@ -344,7 +374,29 @@ const Map = () => {
           className="glass-panel glow-effect"
         >
           <Database className="h-5 w-5 mr-2" />
-          {isSeeding ? "Loading..." : "Seed Data"}
+          {isSeeding ? "..." : "Properties"}
+        </Button>
+
+        <Button
+          onClick={handleSeedAgents}
+          variant="outline"
+          size="lg"
+          disabled={isSeeding}
+          className="glass-panel glow-effect"
+        >
+          <Users className="h-5 w-5 mr-2" />
+          {isSeeding ? "..." : "Agents"}
+        </Button>
+
+        <Button
+          onClick={handleSeedProjects}
+          variant="outline"
+          size="lg"
+          disabled={isSeeding}
+          className="glass-panel glow-effect"
+        >
+          <Building2 className="h-5 w-5 mr-2" />
+          {isSeeding ? "..." : "Projects"}
         </Button>
       </motion.div>
 
