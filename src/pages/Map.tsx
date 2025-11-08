@@ -297,14 +297,23 @@ const Map = () => {
   // Seed properties
   const handleSeedProperties = async () => {
     setIsSeeding(true);
-    const result = await seedProperties();
-    
-    if (result.success) {
-      sonnerToast.success("Successfully added 10 properties to the database!");
-      fetchProperties();
-    } else {
-      sonnerToast.error("Failed to seed properties. They may already exist.");
-      console.error(result.error);
+    try {
+      const result = await seedProperties();
+      
+      if (result.success) {
+        if (result.message === "Properties already exist") {
+          sonnerToast.info("Properties already seeded!");
+        } else {
+          sonnerToast.success("Successfully added 10 properties!");
+          fetchProperties();
+        }
+      } else {
+        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
+        console.error("Seed error:", result.error);
+      }
+    } catch (err) {
+      sonnerToast.error("Error seeding properties");
+      console.error(err);
     }
     setIsSeeding(false);
   };
@@ -312,13 +321,22 @@ const Map = () => {
   // Seed agents
   const handleSeedAgents = async () => {
     setIsSeeding(true);
-    const result = await seedAgents();
-    
-    if (result.success) {
-      sonnerToast.success("Successfully added 5 agents to the database!");
-    } else {
-      sonnerToast.error("Failed to seed agents. Check console for details.");
-      console.error(result.error);
+    try {
+      const result = await seedAgents();
+      
+      if (result.success) {
+        if (result.message === "Agents already exist") {
+          sonnerToast.info("Agents already seeded!");
+        } else {
+          sonnerToast.success("Successfully added 5 agents!");
+        }
+      } else {
+        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
+        console.error("Seed error:", result.error);
+      }
+    } catch (err) {
+      sonnerToast.error("Error seeding agents");
+      console.error(err);
     }
     setIsSeeding(false);
   };
@@ -326,13 +344,22 @@ const Map = () => {
   // Seed projects
   const handleSeedProjects = async () => {
     setIsSeeding(true);
-    const result = await seedProjects();
-    
-    if (result.success) {
-      sonnerToast.success("Successfully added 5 projects to the database!");
-    } else {
-      sonnerToast.error("Failed to seed projects. Check console for details.");
-      console.error(result.error);
+    try {
+      const result = await seedProjects();
+      
+      if (result.success) {
+        if (result.message === "Projects already exist") {
+          sonnerToast.info("Projects already seeded!");
+        } else {
+          sonnerToast.success("Successfully added 5 projects!");
+        }
+      } else {
+        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
+        console.error("Seed error:", result.error);
+      }
+    } catch (err) {
+      sonnerToast.error("Error seeding projects");
+      console.error(err);
     }
     setIsSeeding(false);
   };
