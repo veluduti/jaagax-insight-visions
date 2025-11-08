@@ -1,17 +1,27 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import FeaturedCommunities from "@/components/FeaturedCommunities";
-import AIFeatures from "@/components/AIFeatures";
-import TrustBadge from "@/components/TrustBadge";
+import NavigationTabs from "@/components/NavigationTabs";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import NewProjects from "@/components/NewProjects";
+import AISpotlight from "@/components/AISpotlight";
+import MarketIntelligence from "@/components/MarketIntelligence";
+import FindMyAgent from "@/components/FindMyAgent";
+import TruValue from "@/components/TruValue";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
       <Hero />
-      <FeaturedCommunities />
-      <AIFeatures />
-      <TrustBadge />
+      <NavigationTabs />
+      <FeaturedProperties />
+      <NewProjects />
+      <AISpotlight />
+      <MarketIntelligence />
+      <FindMyAgent />
+      <TruValue />
+      <Footer />
     </div>
   );
 };

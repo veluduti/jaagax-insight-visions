@@ -8,49 +8,43 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 217 33% 6%;
-    --foreground: 200 100% 98%;
+    --background: 220 25% 8%;
+    --foreground: 210 20% 98%;
+    --card: 220 23% 11%;
+    --card-foreground: 210 20% 98%;
+    --popover: 220 23% 11%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 152 76% 48%;
+    --primary-foreground: 220 25% 8%;
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 220 20% 20%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 152 76% 48%;
+    --accent-foreground: 220 25% 8%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 152 76% 48%;
 
-    --card: 217 33% 8%;
-    --card-foreground: 200 100% 98%;
-
-    --popover: 217 33% 10%;
-    --popover-foreground: 200 100% 98%;
-
-    --primary: 189 100% 50%;
-    --primary-foreground: 217 33% 6%;
-
-    --secondary: 217 33% 12%;
-    --secondary-foreground: 189 100% 80%;
-
-    --muted: 217 33% 15%;
-    --muted-foreground: 200 20% 60%;
-
-    --accent: 189 100% 60%;
-    --accent-foreground: 217 33% 6%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 200 100% 98%;
-
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 189 100% 50%;
-
-    --radius: 1rem;
     
     /* Glassmorphic tokens */
-    --glass-bg: 217 33% 10% / 0.6;
-    --glass-border: 189 100% 50% / 0.2;
-    --glass-blur: 20px;
+    --glass-bg: 220 23% 11% / 0.4;
+    --glass-border: 220 20% 25%;
+    --glass-blur: 12px;
     
     /* Gradient tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(189 100% 50%) 0%, hsl(217 100% 60%) 100%);
-    --gradient-accent: linear-gradient(180deg, hsl(189 100% 50% / 0.1) 0%, transparent 100%);
-    --gradient-glow: radial-gradient(circle at center, hsl(189 100% 50% / 0.3) 0%, transparent 70%);
+    --gradient-primary: linear-gradient(135deg, hsl(152, 76%, 48%), hsl(152, 86%, 58%));
+    --gradient-glow: radial-gradient(circle, hsl(152, 76%, 48%) 0%, hsl(152, 86%, 58%) 100%);
+    --gradient-orange: linear-gradient(135deg, hsl(30, 100%, 60%), hsl(20, 90%, 50%));
+    --gradient-blue: linear-gradient(135deg, hsl(210, 100%, 60%), hsl(220, 90%, 50%));
+    --gradient-accent: linear-gradient(180deg, hsl(152 76% 48% / 0.1) 0%, transparent 100%);
     
     /* Shadow tokens */
-    --shadow-glass: 0 8px 32px 0 hsl(189 100% 50% / 0.1);
-    --shadow-glow: 0 0 40px hsl(189 100% 50% / 0.3);
+    --shadow-glass: 0 8px 32px 0 hsl(152 76% 48% / 0.1);
+    --shadow-glow: 0 0 40px hsl(152 76% 48% / 0.4);
+    --shadow-elegant: 0 10px 30px -10px hsl(152 76% 48% / 0.3);
     
     /* Animation tokens */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -96,8 +90,8 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground overflow-x-hidden;
     background-image: 
-      radial-gradient(circle at 20% 50%, hsl(189 100% 20% / 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, hsl(217 100% 30% / 0.15) 0%, transparent 50%);
+      radial-gradient(circle at 20% 50%, hsl(152 76% 20% / 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, hsl(30 100% 30% / 0.12) 0%, transparent 50%);
   }
 }
 
