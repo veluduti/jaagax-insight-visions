@@ -14,7 +14,457 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      amenities: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string | null
+          status: string | null
+          type: Database["public"]["Enums"]["amenity_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string | null
+          type: Database["public"]["Enums"]["amenity_type"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string | null
+          type?: Database["public"]["Enums"]["amenity_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amenities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          favorites: number | null
+          id: string
+          impressions: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          favorites?: number | null
+          id?: string
+          impressions?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          favorites?: number | null
+          id?: string
+          impressions?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          receiver_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          created_at: string | null
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poi: {
+        Row: {
+          city: string
+          created_at: string | null
+          id: string
+          lat: number
+          lng: number
+          name: string
+          rating: number | null
+          type: Database["public"]["Enums"]["poi_type"]
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          rating?: number | null
+          type: Database["public"]["Enums"]["poi_type"]
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          rating?: number | null
+          type?: Database["public"]["Enums"]["poi_type"]
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          avg_price: number | null
+          builder_id: string | null
+          city: string
+          created_at: string | null
+          id: string
+          image: string | null
+          locality: string
+          name: string
+          overview: string | null
+          rera_id: string | null
+          trust_score: number | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avg_price?: number | null
+          builder_id?: string | null
+          city: string
+          created_at?: string | null
+          id?: string
+          image?: string | null
+          locality: string
+          name: string
+          overview?: string | null
+          rera_id?: string | null
+          trust_score?: number | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avg_price?: number | null
+          builder_id?: string | null
+          city?: string
+          created_at?: string | null
+          id?: string
+          image?: string | null
+          locality?: string
+          name?: string
+          overview?: string | null
+          rera_id?: string | null
+          trust_score?: number | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties: {
+        Row: {
+          area: number | null
+          bhk: number | null
+          city: string
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          lat: number
+          lng: number
+          locality: string
+          owner_id: string | null
+          price: number
+          project_id: string | null
+          title: string
+          trust_score: number | null
+          type: Database["public"]["Enums"]["property_type"]
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          area?: number | null
+          bhk?: number | null
+          city: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          lat: number
+          lng: number
+          locality: string
+          owner_id?: string | null
+          price: number
+          project_id?: string | null
+          title: string
+          trust_score?: number | null
+          type: Database["public"]["Enums"]["property_type"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          area?: number | null
+          bhk?: number | null
+          city?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          lat?: number
+          lng?: number
+          locality?: string
+          owner_id?: string | null
+          price?: number
+          project_id?: string | null
+          title?: string
+          trust_score?: number | null
+          type?: Database["public"]["Enums"]["property_type"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      towers: {
+        Row: {
+          created_at: string | null
+          floors: number
+          id: string
+          name: string
+          project_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          floors: number
+          id?: string
+          name: string
+          project_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          floors?: number
+          id?: string
+          name?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "towers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      units: {
+        Row: {
+          area: number
+          bhk: number
+          created_at: string | null
+          facing: string | null
+          id: string
+          plan_3d: string | null
+          plan_svg: string | null
+          price: number
+          tower_id: string | null
+        }
+        Insert: {
+          area: number
+          bhk: number
+          created_at?: string | null
+          facing?: string | null
+          id?: string
+          plan_3d?: string | null
+          plan_svg?: string | null
+          price: number
+          tower_id?: string | null
+        }
+        Update: {
+          area?: number
+          bhk?: number
+          created_at?: string | null
+          facing?: string | null
+          id?: string
+          plan_3d?: string | null
+          plan_svg?: string | null
+          price?: number
+          tower_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_tower_id_fkey"
+            columns: ["tower_id"]
+            isOneToOne: false
+            referencedRelation: "towers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      verifications: {
+        Row: {
+          created_at: string | null
+          document_url: string
+          id: string
+          project_id: string | null
+          rera_verified: boolean | null
+          status: Database["public"]["Enums"]["verification_status"] | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_url: string
+          id?: string
+          project_id?: string | null
+          rera_verified?: boolean | null
+          status?: Database["public"]["Enums"]["verification_status"] | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_url?: string
+          id?: string
+          project_id?: string | null
+          rera_verified?: boolean | null
+          status?: Database["public"]["Enums"]["verification_status"] | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +473,18 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      amenity_type:
+        | "gym"
+        | "pool"
+        | "parking"
+        | "garden"
+        | "clubhouse"
+        | "playground"
+        | "security"
+      poi_type: "metro" | "school" | "hospital" | "mall" | "office" | "airport"
+      property_type: "apartment" | "villa" | "plot" | "commercial"
+      user_role: "buyer" | "seller" | "builder" | "admin"
+      verification_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +611,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      amenity_type: [
+        "gym",
+        "pool",
+        "parking",
+        "garden",
+        "clubhouse",
+        "playground",
+        "security",
+      ],
+      poi_type: ["metro", "school", "hospital", "mall", "office", "airport"],
+      property_type: ["apartment", "villa", "plot", "commercial"],
+      user_role: ["buyer", "seller", "builder", "admin"],
+      verification_status: ["pending", "verified", "rejected"],
+    },
   },
 } as const
