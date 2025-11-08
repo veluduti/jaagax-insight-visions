@@ -55,7 +55,7 @@ const Navigation = () => {
             <NavItem href="#find-agent">Find My Agent</NavItem>
             <NavItem href="#sell-property">Sell My Property</NavItem>
             <NavItem href="/projects">New Projects</NavItem>
-            <NavItem href="#transactions">Transactions</NavItem>
+            <NavItem href="/transactions">Transactions</NavItem>
             <NavItem href="#market-insights">Market Insights</NavItem>
             <NavItem href="#ai-advisor">AI Advisor</NavItem>
           </div>

@@ -1,1 +1,4 @@
 project_id = "smyypmthspsrvwydzsxc"
+
+[functions.market-trends-ai]
+verify_jwt = false
