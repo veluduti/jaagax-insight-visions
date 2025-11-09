@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, TrendingUp, CheckCircle } from "lucide-react";
@@ -87,6 +88,8 @@ const communities = [
 ];
 
 const FeaturedCommunities = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-20 px-6 bg-gradient-to-b from-background via-background/50 to-background">
       <div className="container mx-auto">
@@ -115,8 +118,10 @@ const FeaturedCommunities = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="glass-panel overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer group"
-                onClick={() => window.location.href = `/communities`}>
+              <Card 
+                className="glass-panel overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer group"
+                onClick={() => navigate('/communities')}
+              >
                 {/* Community Image */}
                 <div className="relative h-40 overflow-hidden">
                   <img 

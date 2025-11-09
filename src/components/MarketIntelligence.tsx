@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, MapPin, BarChart3, Target } from "lucide-react";
@@ -11,6 +12,8 @@ const trendingAreas = [
 ];
 
 const MarketIntelligence = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-16 relative bg-secondary/10" id="market-insights">
       <div className="container mx-auto px-6">
@@ -116,6 +119,7 @@ const MarketIntelligence = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   className="p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
+                  onClick={() => navigate('/map')}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-bold">{area.name}</h4>
@@ -135,7 +139,12 @@ const MarketIntelligence = () => {
           viewport={{ once: true }}
           className="text-center mt-10"
         >
-          <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary/50 hover:bg-primary/10"
+            onClick={() => navigate('/map')}
+          >
             Explore Full Market Insights
           </Button>
         </motion.div>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,8 @@ const projects = [
 ];
 
 const NewProjects = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-16 relative bg-secondary/20" id="new-projects">
       <div className="container mx-auto px-6">
@@ -92,7 +95,10 @@ const NewProjects = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full">
+                  <Card 
+                    className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
+                    onClick={() => navigate(`/project/${project.id}`)}
+                  >
                     {/* Image */}
                     <div className="relative h-56 overflow-hidden">
                       <img
@@ -144,7 +150,14 @@ const NewProjects = () => {
                         </div>
                       </div>
 
-                      <Button variant="outline" className="w-full border-primary/50 hover:bg-primary/10">
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-primary/50 hover:bg-primary/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/project/${project.id}`);
+                        }}
+                      >
                         Explore Project
                       </Button>
                     </div>
@@ -163,7 +176,12 @@ const NewProjects = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary/50 hover:bg-primary/10"
+            onClick={() => navigate('/projects')}
+          >
             Explore All Projects
           </Button>
         </motion.div>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Target, TrendingUp, Shield, Sparkles } from "lucide-react";
 
 const TruValue = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background Glow */}
@@ -104,7 +107,10 @@ const TruValue = () => {
                   </Select>
                 </div>
 
-                <Button className="w-full glow-effect mt-6" onClick={() => window.location.href = '/valuation'}>
+                <Button 
+                  className="w-full glow-effect mt-6" 
+                  onClick={() => navigate('/valuation')}
+                >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Get AI Valuation
                 </Button>

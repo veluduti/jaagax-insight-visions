@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,30 @@ import { Search, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 
 const PropertySearchBar = () => {
+  const navigate = useNavigate();
   const [searchType, setSearchType] = useState("buy");
+  const [location, setLocation] = useState("");
+  const [propertyType, setPropertyType] = useState("all");
+  const [beds, setBeds] = useState("any");
+  const [budget, setBudget] = useState("any");
+
+  const handleSearch = () => {
+    // Build search params
+    const params = new URLSearchParams();
+    if (searchType) params.append('type', searchType);
+    if (location) params.append('location', location);
+    if (propertyType !== 'all') params.append('propertyType', propertyType);
+    if (beds !== 'any') params.append('beds', beds);
+    if (budget !== 'any') params.append('budget', budget);
+    
+    navigate(`/map?${params.toString()}`);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <motion.div
@@ -39,12 +63,15 @@ const PropertySearchBar = () => {
           <Input 
             placeholder="City, community, or building" 
             className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onKeyPress={handleKeyPress}
           />
         </div>
 
         {/* Property Type */}
         <div className="md:col-span-3">
-          <Select defaultValue="all">
+          <Select value={propertyType} onValueChange={setPropertyType}>
             <SelectTrigger className="bg-secondary/50 border-0">
               <SelectValue placeholder="Property Type" />
             </SelectTrigger>
@@ -60,7 +87,7 @@ const PropertySearchBar = () => {
 
         {/* Beds & Baths */}
         <div className="md:col-span-2">
-          <Select defaultValue="any">
+          <Select value={beds} onValueChange={setBeds}>
             <SelectTrigger className="bg-secondary/50 border-0">
               <SelectValue placeholder="Beds" />
             </SelectTrigger>
@@ -76,7 +103,7 @@ const PropertySearchBar = () => {
 
         {/* Budget Range */}
         <div className="md:col-span-2">
-          <Select defaultValue="any">
+          <Select value={budget} onValueChange={setBudget}>
             <SelectTrigger className="bg-secondary/50 border-0">
               <SelectValue placeholder="Budget" />
             </SelectTrigger>
@@ -95,7 +122,7 @@ const PropertySearchBar = () => {
           <Button 
             size="lg" 
             className="w-full glow-effect h-[42px]"
-            onClick={() => window.location.href = '/map'}
+            onClick={handleSearch}
           >
             <Search className="h-5 w-5" />
           </Button>
@@ -104,7 +131,10 @@ const PropertySearchBar = () => {
 
       {/* Try AI Search */}
       <div className="mt-4 text-center">
-        <button className="text-sm text-primary hover:underline inline-flex items-center gap-2">
+        <button 
+          onClick={() => navigate('/map')}
+          className="text-sm text-primary hover:underline inline-flex items-center gap-2"
+        >
           <span>or</span>
           <span className="font-semibold">Try JaagaXGPT for smarter search</span>
         </button>

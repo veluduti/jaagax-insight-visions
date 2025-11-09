@@ -134,6 +134,7 @@ const Navigation = () => {
             <Button 
               variant="outline" 
               className="hidden md:flex border-primary/50 hover:bg-primary/10 glow-effect"
+              onClick={() => window.location.href = '/map'}
             >
               <Sparkles className="h-4 w-4 mr-2" />
               Try JaagaXGPT

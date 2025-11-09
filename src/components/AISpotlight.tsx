@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, MessageSquare, Brain } from "lucide-react";
 
 const AISpotlight = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background Glow */}
@@ -54,11 +57,20 @@ const AISpotlight = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="glow-effect group">
+            <Button 
+              size="lg" 
+              className="glow-effect group"
+              onClick={() => navigate('/map')}
+            >
               <Sparkles className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
               Launch JaagaXGPT
             </Button>
-            <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-primary/50 hover:bg-primary/10"
+              onClick={() => navigate('/guides')}
+            >
               <MessageSquare className="h-5 w-5 mr-2" />
               See How It Works
             </Button>

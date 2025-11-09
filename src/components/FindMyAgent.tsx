@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,8 @@ const agents = [
 ];
 
 const FindMyAgent = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-16 relative" id="find-agent">
       <div className="container mx-auto px-6">
@@ -74,7 +77,10 @@ const FindMyAgent = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="glass-panel border-border/50 overflow-hidden hover:border-primary/50 transition-all duration-300 h-full">
+              <Card 
+                className="glass-panel border-border/50 overflow-hidden hover:border-primary/50 transition-all duration-300 h-full cursor-pointer"
+                onClick={() => navigate(`/agent/${agent.id}`)}
+              >
                 {/* Photo */}
                 <div className="relative h-48 overflow-hidden">
                   <img
@@ -118,11 +124,24 @@ const FindMyAgent = () => {
 
                   {/* Actions */}
                   <div className="space-y-2">
-                    <Button className="w-full glow-effect">
+                    <Button 
+                      className="w-full glow-effect"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/agent/${agent.id}`);
+                      }}
+                    >
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Chat Now
                     </Button>
-                    <Button variant="outline" className="w-full border-primary/50 hover:bg-primary/10">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-primary/50 hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/agent/${agent.id}`);
+                      }}
+                    >
                       <Phone className="h-4 w-4 mr-2" />
                       Call Agent
                     </Button>
@@ -143,7 +162,7 @@ const FindMyAgent = () => {
             size="lg" 
             variant="outline" 
             className="border-primary/50 hover:bg-primary/10"
-            onClick={() => window.location.href = '/agents'}
+            onClick={() => navigate('/agents')}
           >
             View All Agents
           </Button>

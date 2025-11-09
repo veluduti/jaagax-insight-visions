@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ const properties = [
 ];
 
 const FeaturedProperties = () => {
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState<number[]>([]);
 
   const toggleFavorite = (id: number) => {
@@ -91,7 +93,10 @@ const FeaturedProperties = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300">
+              <Card 
+                className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300"
+                onClick={() => navigate(`/property/${property.id}`)}
+              >
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
@@ -103,7 +108,10 @@ const FeaturedProperties = () => {
                   
                   {/* Favorite Button */}
                   <button
-                    onClick={() => toggleFavorite(property.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(property.id);
+                    }}
                     className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
                   >
                     <Heart
@@ -156,6 +164,10 @@ const FeaturedProperties = () => {
                   <Button
                     variant="outline"
                     className="w-full border-primary/50 hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/property/${property.id}`);
+                    }}
                   >
                     View Details
                   </Button>
@@ -171,7 +183,12 @@ const FeaturedProperties = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary/50 hover:bg-primary/10"
+            onClick={() => navigate('/map')}
+          >
             View All Properties
           </Button>
         </motion.div>
