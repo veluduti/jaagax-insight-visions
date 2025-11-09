@@ -6,22 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
-  User,
   MapPin,
   Star,
   MessageSquare,
   Phone,
-  Mail,
   Building2,
-  TrendingUp,
   Shield,
   ChevronLeft,
-  Award,
   Home,
   Loader2,
-  Calendar,
   CheckCircle2,
+  Languages,
+  Award,
+  TrendingUp,
+  Users,
+  Mail,
+  Share2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -29,21 +31,40 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 interface Agent {
-  id: string;
+  id: number;
   name: string;
-  email: string;
-  city: string;
-  avatar_url: string | null;
+  photo_url: string;
+  agency_name: string;
+  cities_served: string;
+  languages: string;
+  sales_count: number;
+  rent_count: number;
+  trust_score: number;
   verified: boolean;
+}
+
+interface Property {
+  id: number;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  area: number;
+  bhk: number;
+  type: string;
+  images: string[];
+  verified: boolean;
+  status: string;
 }
 
 interface Review {
   id: string;
-  author: string;
   rating: number;
-  comment: string;
-  date: string;
-  property: string;
+  feedback: string;
+  created_at: string;
+  reviewer_id: string;
+  property_type: string | null;
+  transaction_type: string | null;
 }
 
 const AgentDetail = () => {
@@ -51,21 +72,9 @@ const AgentDetail = () => {
   const navigate = useNavigate();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-
-  // Mock data for demo
-  const stats = {
-    dealsCompleted: 47,
-    activeListings: 12,
-    avgResponseTime: "2 hours",
-    yearsExperience: 8,
-    trustScore: 92,
-    rating: 4.7,
-    totalReviews: 38,
-  };
-
-  const specialties = ["Residential", "Luxury Homes", "Investment Properties"];
+  const [activeTab, setActiveTab] = useState("properties");
 
   useEffect(() => {
     if (id) {
@@ -76,69 +85,129 @@ const AgentDetail = () => {
   const fetchAgentDetails = async () => {
     try {
       setLoading(true);
-      
       const agentId = parseInt(id || "0");
 
-      // Fetch agent profile
+      // Fetch agent profile from agents table
       const { data: agentData, error: agentError } = await supabase
-        .from("users")
+        .from("agents")
         .select("*")
-        .eq("id", id)
-        .single();
+        .eq("id", agentId)
+        .maybeSingle();
 
       if (agentError) throw agentError;
+      
+      if (!agentData) {
+        toast.error("Agent not found");
+        setLoading(false);
+        return;
+      }
+
       setAgent(agentData);
 
-      // Fetch agent's properties (portfolio)
-      const { data: propertiesData, error: propertiesError } = await supabase
+      // Fetch agent's properties
+      const { data: propertiesData } = await supabase
         .from("properties")
         .select("*")
         .eq("agent_id", agentId)
-        .eq("verified", true)
-        .limit(6);
+        .order("id", { ascending: false })
+        .limit(12);
 
-      if (!propertiesError) {
-        setPortfolio(propertiesData || []);
-      }
+      setProperties(propertiesData || []);
 
-      // Mock reviews (in production, fetch from reviews table)
+      // Fetch agent reviews (agent_reviews table uses UUID, but agents table uses integer)
+      // Using mock reviews for demonstration
       setReviews([
         {
           id: "1",
-          author: "Rajesh Kumar",
           rating: 5,
-          comment: "Excellent service! Very professional and helped me find my dream home.",
-          date: "2024-10-15",
-          property: "3 BHK in Kokapet",
+          feedback: "Outstanding service! Helped me find the perfect property within my budget. Very knowledgeable about the local market and extremely professional throughout the process.",
+          created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewer_id: "user1",
+          property_type: "3 BHK Apartment",
+          transaction_type: "Sale",
         },
         {
           id: "2",
-          author: "Priya Sharma",
           rating: 5,
-          comment: "Highly recommended. Great market knowledge and negotiation skills.",
-          date: "2024-09-28",
-          property: "Villa in Narsingi",
+          feedback: "Highly recommended! Made the entire home buying process smooth and stress-free. Always available to answer questions and provided excellent guidance.",
+          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewer_id: "user2",
+          property_type: "Villa",
+          transaction_type: "Sale",
         },
         {
           id: "3",
-          author: "Amit Patel",
           rating: 4,
-          comment: "Good experience overall. Very responsive and knowledgeable.",
-          date: "2024-09-10",
-          property: "Commercial Space",
+          feedback: "Great experience working with this agent. Very responsive and helped negotiate a good deal. Would definitely work with them again.",
+          created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewer_id: "user3",
+          property_type: "2 BHK Flat",
+          transaction_type: "Rent",
+        },
+        {
+          id: "4",
+          rating: 5,
+          feedback: "Professional, knowledgeable, and trustworthy. Took the time to understand my requirements and showed only relevant properties. Excellent market insights!",
+          created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+          reviewer_id: "user4",
+          property_type: "4 BHK Penthouse",
+          transaction_type: "Sale",
         },
       ]);
     } catch (error) {
-      console.error("Error fetching agent details:", error);
       toast.error("Failed to load agent profile");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCall = () => {
+    window.location.href = `tel:+919876543210`;
+    toast.success("Opening dialer...");
+  };
+
+  const handleWhatsApp = () => {
+    if (agent) {
+      const message = encodeURIComponent(
+        `Hi ${agent.name}, I found your profile on JaagaX and I'm interested in discussing properties.`
+      );
+      window.open(`https://wa.me/919876543210?text=${message}`, "_blank");
+    }
+  };
+
+  const handleEmail = () => {
+    window.location.href = `mailto:contact@jaagax.com?subject=Inquiry for ${agent?.name}`;
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: agent?.name,
+        text: `Check out ${agent?.name} on JaagaX`,
+        url: window.location.href,
+      });
+    } catch {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    if (price >= 10000000) {
+      return `₹${(price / 10000000).toFixed(2)} Cr`;
+    }
+    return `₹${(price / 100000).toFixed(2)} L`;
+  };
+
+  const calculateAverageRating = () => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return (sum / reviews.length).toFixed(1);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-6 py-24 flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -149,7 +218,7 @@ const AgentDetail = () => {
 
   if (!agent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-6 py-24 text-center">
           <h2 className="text-2xl font-bold mb-4">Agent not found</h2>
@@ -162,111 +231,146 @@ const AgentDetail = () => {
     );
   }
 
+  const avgRating = calculateAverageRating();
+  const totalDeals = agent.sales_count + agent.rent_count;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="container mx-auto px-6 py-24">
+      <div className="container mx-auto px-6 py-8">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate("/agents")} className="mb-6">
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Agents
         </Button>
 
-        {/* Agent Header */}
+        {/* Agent Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-8 rounded-xl mb-8"
+          className="glass-panel rounded-xl p-8 mb-8"
         >
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            {/* Avatar */}
-            <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-primary/50">
-                <AvatarImage src={agent.avatar_url || undefined} alt={agent.name} />
-                <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-primary/80">
-                  {agent.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              {agent.verified && (
-                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-green-500 border-4 border-background flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-white" />
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left: Avatar and Basic Info */}
+            <div className="flex flex-col items-center lg:items-start gap-4">
+              <div className="relative">
+                <Avatar className="w-40 h-40 border-4 border-primary/20">
+                  <AvatarImage src={agent.photo_url} alt={agent.name} />
+                  <AvatarFallback className="text-4xl bg-primary/10">
+                    {agent.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                {agent.verified && (
+                  <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-green-500 border-4 border-background flex items-center justify-center">
+                    <CheckCircle2 className="h-6 w-6 text-white" />
+                  </div>
+                )}
+              </div>
+
+              {/* Trust Score */}
+              <div className="text-center lg:text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Trust Score</span>
                 </div>
-              )}
+                <div className="text-3xl font-bold text-primary">{agent.trust_score}/100</div>
+              </div>
             </div>
 
-            {/* Info */}
+            {/* Right: Details */}
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">{agent.name}</h1>
-                  <div className="flex items-center gap-4 text-muted-foreground mb-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      {agent.city || "Multiple Cities"}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {stats.yearsExperience} years experience
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
-                    <span className="text-xl font-bold">{stats.rating}</span>
-                    <span className="text-muted-foreground">({stats.totalReviews} reviews)</span>
+                  <h1 className="text-4xl font-bold mb-2">{agent.name}</h1>
+                  {agent.verified && (
+                    <Badge className="mb-3 bg-green-600">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Verified Agent
+                    </Badge>
+                  )}
+                  <div className="flex items-center gap-2 text-lg text-muted-foreground mb-4">
+                    <Building2 className="h-5 w-5" />
+                    <span>{agent.agency_name}</span>
                   </div>
                 </div>
 
-                {/* Trust Score Badge */}
-                <div className="text-center">
-                  <div className="relative w-20 h-20 mb-2">
-                    <svg className="transform -rotate-90 w-20 h-20">
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="36"
-                        stroke="hsl(var(--border))"
-                        strokeWidth="5"
-                        fill="none"
-                      />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="36"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="5"
-                        fill="none"
-                        strokeDasharray={`${(stats.trustScore / 100) * 226.19} 226.19`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-lg font-bold text-primary">{stats.trustScore}</span>
-                    </div>
+                <Button variant="ghost" size="icon" onClick={handleShare}>
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Rating */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2">
+                  <Star className="h-6 w-6 fill-yellow-500 text-yellow-500" />
+                  <span className="text-2xl font-bold">{avgRating}</span>
+                </div>
+                <span className="text-muted-foreground">
+                  ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                </span>
+              </div>
+
+              {/* Key Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="p-4 rounded-lg bg-background/50 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Sales</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Trust Score</p>
+                  <p className="text-2xl font-bold">{agent.sales_count}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background/50 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Home className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Rentals</span>
+                  </div>
+                  <p className="text-2xl font-bold">{agent.rent_count}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background/50 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Total Deals</span>
+                  </div>
+                  <p className="text-2xl font-bold">{totalDeals}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background/50 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Listings</span>
+                  </div>
+                  <p className="text-2xl font-bold">{properties.length}</p>
                 </div>
               </div>
 
-              {/* Specialties */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {specialties.map((specialty, i) => (
-                  <Badge key={i} variant="secondary">
-                    {specialty}
-                  </Badge>
-                ))}
+              {/* Info Badges */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <Badge variant="outline" className="py-2 px-4">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  {agent.cities_served}
+                </Badge>
+                <Badge variant="outline" className="py-2 px-4">
+                  <Languages className="h-4 w-4 mr-2" />
+                  {agent.languages}
+                </Badge>
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => toast.info("Chat feature coming soon!")}>
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Start Chat
-                </Button>
-                <Button size="lg" variant="outline">
+                <Button size="lg" onClick={handleCall}>
                   <Phone className="h-4 w-4 mr-2" />
-                  Call Now
+                  Call Agent
                 </Button>
-                <Button size="lg" variant="outline">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+                  onClick={handleWhatsApp}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </Button>
+                <Button size="lg" variant="outline" onClick={handleEmail}>
                   <Mail className="h-4 w-4 mr-2" />
                   Email
                 </Button>
@@ -275,87 +379,60 @@ const AgentDetail = () => {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
+        {/* About Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8"
+          className="glass-panel rounded-xl p-6 mb-8"
         >
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Deals Completed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.dealsCompleted}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Listings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.activeListings}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Avg Response Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.avgResponseTime}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Reviews
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{stats.totalReviews}</div>
-            </CardContent>
-          </Card>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Users className="h-6 w-6 text-primary" />
+            About {agent.name}
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            {agent.name} is a verified real estate agent with {agent.agency_name}, specializing in 
+            properties across {agent.cities_served}. With {totalDeals} successful deals completed, 
+            including {agent.sales_count} sales and {agent.rent_count} rentals, {agent.name} brings 
+            extensive market knowledge and a proven track record of client satisfaction. 
+            Fluent in {agent.languages}, ensuring clear communication with diverse clients. 
+            Trust Score of {agent.trust_score}/100 reflects commitment to transparency and professionalism.
+          </p>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Tabs defaultValue="portfolio" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              <TabsTrigger value="properties">
+                Properties ({properties.length})
+              </TabsTrigger>
+              <TabsTrigger value="reviews">
+                Reviews ({reviews.length})
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="portfolio" className="mt-0">
-              {portfolio.length === 0 ? (
+            <TabsContent value="properties" className="mt-0">
+              {properties.length === 0 ? (
                 <Card className="glass-panel">
                   <CardContent className="py-12 text-center">
                     <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No properties in portfolio yet</p>
+                    <p className="text-muted-foreground">No properties listed yet</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {portfolio.map((property) => (
+                  {properties.map((property) => (
                     <Card
                       key={property.id}
-                      className="glass-panel overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300"
+                      className="glass-panel overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
                       onClick={() => navigate(`/property/${property.id}`)}
                     >
-                      <div className="relative h-48 overflow-hidden">
+                      <div className="relative h-56 overflow-hidden">
                         <img
                           src={
                             property.images?.[0] ||
@@ -365,22 +442,30 @@ const AgentDetail = () => {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         {property.verified && (
-                          <Badge className="absolute top-3 left-3 bg-green-500/90 text-white">
+                          <Badge className="absolute top-3 left-3 bg-green-600">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Verified
                           </Badge>
                         )}
+                        <Badge className="absolute top-3 right-3 bg-primary">
+                          {property.status}
+                        </Badge>
                       </div>
                       <CardContent className="p-4">
-                        <h3 className="font-bold mb-2 line-clamp-1">{property.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {property.locality}, {property.city}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-primary">
-                            ₹{(property.price / 10000000).toFixed(2)}Cr
+                        <h3 className="font-bold mb-2 line-clamp-1 text-lg">{property.title}</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                          <MapPin className="h-4 w-4" />
+                          <span className="line-clamp-1">{property.locality}, {property.city}</span>
+                        </div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xl font-bold text-primary">
+                            {formatPrice(property.price)}
                           </span>
                           <Badge variant="outline">{property.bhk} BHK</Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>{property.area} sq.ft</span>
+                          <span className="capitalize">{property.type}</span>
                         </div>
                       </CardContent>
                     </Card>
@@ -390,46 +475,108 @@ const AgentDetail = () => {
             </TabsContent>
 
             <TabsContent value="reviews" className="mt-0">
-              <div className="space-y-6">
-                {reviews.map((review) => (
-                  <Card key={review.id} className="glass-panel">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold mb-1">{review.author}</h3>
-                          <p className="text-sm text-muted-foreground">{review.property}</p>
+              {reviews.length === 0 ? (
+                <Card className="glass-panel">
+                  <CardContent className="py-12 text-center">
+                    <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No reviews yet</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-6">
+                  {reviews.map((review) => (
+                    <Card key={review.id} className="glass-panel">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-5 w-5 ${
+                                      i < review.rating
+                                        ? "fill-yellow-500 text-yellow-500"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="font-bold text-lg">{review.rating}.0</span>
+                            </div>
+                            {review.property_type && (
+                              <Badge variant="outline" className="mb-3">
+                                {review.property_type}
+                                {review.transaction_type && ` - ${review.transaction_type}`}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(review.created_at).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? "fill-yellow-500 text-yellow-500"
-                                  : "text-muted-foreground"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground mb-3">{review.comment}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(review.date).toLocaleDateString("en-IN", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        <p className="text-muted-foreground leading-relaxed">{review.feedback}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
+        </motion.div>
+
+        {/* Contact CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12 glass-panel rounded-xl p-8 text-center"
+        >
+          <h3 className="text-2xl font-bold mb-3">Ready to find your perfect property?</h3>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Contact {agent.name} today to discuss your requirements and get expert guidance 
+            on properties in {agent.cities_served}.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button size="lg" onClick={handleCall}>
+              <Phone className="h-4 w-4 mr-2" />
+              Call Now
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+              onClick={handleWhatsApp}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              WhatsApp
+            </Button>
+          </div>
         </motion.div>
       </div>
 
       <Footer />
+
+      {/* Mobile Sticky CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
+        <div className="flex gap-2">
+          <Button className="flex-1" onClick={handleCall}>
+            <Phone className="h-4 w-4 mr-2" />
+            Call
+          </Button>
+          <Button 
+            className="flex-1 bg-green-600 hover:bg-green-700" 
+            onClick={handleWhatsApp}
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            WhatsApp
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
