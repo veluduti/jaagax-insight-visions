@@ -1,21 +1,63 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Heart, MapPin, Home, LogOut } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner";
+import Navigation from "@/components/Navigation";
+import { 
+  Heart, MapPin, Search, Bell, Calculator, 
+  TrendingUp, Calendar, MessageSquare, LogOut,
+  Home, Building2, Filter, Star, ChevronRight,
+  GitCompare, DollarSign, Eye
+} from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function BuyerDashboard() {
-  const [user, setUser] = useState<any>(null);
+interface Property {
+  id: string;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  area: number;
+  beds: number;
+  baths: number;
+  bhk: number;
+  type: string;
+  images: string[];
+  verified: boolean;
+  trust_score: number;
+}
+
+const BuyerDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // EMI Calculator State
+  const [loanAmount, setLoanAmount] = useState(5000000);
+  const [interestRate, setInterestRate] = useState(8.5);
+  const [loanTenure, setLoanTenure] = useState(20);
+  const [emi, setEmi] = useState(0);
 
   useEffect(() => {
-    fetchUser();
+    fetchUserData();
+    fetchProperties();
+    fetchFavorites();
   }, []);
 
-  const fetchUser = async () => {
+  useEffect(() => {
+    calculateEMI();
+  }, [loanAmount, interestRate, loanTenure]);
+
+  const fetchUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -25,54 +67,418 @@ export default function BuyerDashboard() {
         .single();
       setUser(data);
     }
+    setLoading(false);
+  };
+
+  const fetchProperties = async () => {
+    const { data } = await supabase
+      .from("properties")
+      .select("*")
+      .limit(6)
+      .order("created_at", { ascending: false });
+    if (data) setProperties(data);
+  };
+
+  const fetchFavorites = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("favorites")
+      .select("property_id")
+      .eq("user_id", user.id);
+    
+    if (data) {
+      setFavorites(data.map(f => f.property_id));
+    }
+  };
+
+  const toggleFavorite = async (propertyId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please login to save favorites");
+      return;
+    }
+
+    if (favorites.includes(propertyId)) {
+      await supabase
+        .from("favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("property_id", propertyId);
+      setFavorites(favorites.filter(id => id !== propertyId));
+      toast.success("Removed from favorites");
+    } else {
+      await supabase
+        .from("favorites")
+        .insert({ user_id: user.id, property_id: propertyId });
+      setFavorites([...favorites, propertyId]);
+      toast.success("Added to favorites");
+    }
+  };
+
+  const calculateEMI = () => {
+    const principal = loanAmount;
+    const ratePerMonth = interestRate / 12 / 100;
+    const numberOfMonths = loanTenure * 12;
+    
+    const emiValue = (principal * ratePerMonth * Math.pow(1 + ratePerMonth, numberOfMonths)) / 
+                     (Math.pow(1 + ratePerMonth, numberOfMonths) - 1);
+    
+    setEmi(Math.round(emiValue));
   };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Signed out successfully" });
+    toast.success("Signed out successfully");
     navigate("/");
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-midnight via-midnight-light to-midnight">
-      <nav className="glass-panel border-b border-glass px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-cyan">JaagaX Buyer</h1>
-          <Button onClick={handleSignOut} variant="ghost" size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <Navigation />
+      
+      {/* Header */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Welcome back, {user?.name || "Buyer"}!</h1>
+              <p className="text-muted-foreground">Find your dream property</p>
+            </div>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user?.name}!
-          </h2>
-          <p className="text-muted-foreground">Discover your dream property</p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/map")}>
+              <CardContent className="p-6 text-center">
+                <MapPin className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Explore Map</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
+              <CardContent className="p-6 text-center">
+                <GitCompare className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Compare</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/agents")}>
+              <CardContent className="p-6 text-center">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Find Agent</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/valuation")}>
+              <CardContent className="p-6 text-center">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Property Value</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <Heart className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Favorites</h3>
-            <p className="text-muted-foreground text-sm">View your saved properties</p>
-          </Card>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="recommended" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="recommended">
+              <Star className="h-4 w-4 mr-2" />
+              For You
+            </TabsTrigger>
+            <TabsTrigger value="favorites">
+              <Heart className="h-4 w-4 mr-2" />
+              Favorites
+            </TabsTrigger>
+            <TabsTrigger value="calculator">
+              <Calculator className="h-4 w-4 mr-2" />
+              EMI
+            </TabsTrigger>
+            <TabsTrigger value="searches">
+              <Search className="h-4 w-4 mr-2" />
+              Searches
+            </TabsTrigger>
+            <TabsTrigger value="alerts">
+              <Bell className="h-4 w-4 mr-2" />
+              Alerts
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <MapPin className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Explore Map</h3>
-            <p className="text-muted-foreground text-sm">Find properties near you</p>
-          </Card>
+          {/* Recommended Properties */}
+          <TabsContent value="recommended" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recommended Properties</CardTitle>
+                <CardDescription>Based on your preferences and search history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {properties.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
+                    <p className="text-muted-foreground mb-4">Seed data from the Map page to see properties</p>
+                    <Button onClick={() => navigate("/map")}>Go to Map</Button>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {properties.map((property) => (
+                      <motion.div
+                        key={property.id}
+                        whileHover={{ y: -5 }}
+                        className="group cursor-pointer"
+                        onClick={() => navigate(`/property/${property.id}`)}
+                      >
+                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
+                          <div className="relative">
+                            <img
+                              src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                              alt={property.title}
+                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="absolute top-2 right-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(property.id);
+                              }}
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${favorites.includes(property.id) ? "fill-red-500 text-red-500" : ""}`}
+                              />
+                            </Button>
+                            {property.verified && (
+                              <Badge className="absolute top-2 left-2 bg-green-600">
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2 line-clamp-1">{property.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {property.locality}, {property.city}
+                            </p>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-2xl font-bold text-primary">
+                                {formatPrice(property.price)}
+                              </span>
+                              <div className="flex gap-2 text-sm text-muted-foreground">
+                                <span>{property.beds} Beds</span>
+                                <span>•</span>
+                                <span>{property.baths} Baths</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{property.area} sq.ft</span>
+                              <span className="flex items-center text-primary font-semibold">
+                                View Details
+                                <ChevronRight className="h-4 w-4 ml-1" />
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <Home className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Browse Listings</h3>
-            <p className="text-muted-foreground text-sm">Explore all properties</p>
-          </Card>
-        </div>
+          {/* Favorites */}
+          <TabsContent value="favorites">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Favorite Properties</CardTitle>
+                <CardDescription>Properties you've saved for later ({favorites.length})</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {favorites.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
+                    <p className="text-muted-foreground mb-4">Start saving properties you like</p>
+                    <Button onClick={() => navigate("/map")}>Browse Properties</Button>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">You have {favorites.length} favorite properties</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* EMI Calculator */}
+          <TabsContent value="calculator">
+            <Card>
+              <CardHeader>
+                <CardTitle>EMI Calculator</CardTitle>
+                <CardDescription>Calculate your monthly home loan payment</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label>Loan Amount: {formatPrice(loanAmount)}</Label>
+                      <Slider
+                        value={[loanAmount]}
+                        onValueChange={(value) => setLoanAmount(value[0])}
+                        min={1000000}
+                        max={50000000}
+                        step={100000}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Interest Rate: {interestRate}% per annum</Label>
+                      <Slider
+                        value={[interestRate]}
+                        onValueChange={(value) => setInterestRate(value[0])}
+                        min={6}
+                        max={15}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Loan Tenure: {loanTenure} years</Label>
+                      <Slider
+                        value={[loanTenure]}
+                        onValueChange={(value) => setLoanTenure(value[0])}
+                        min={5}
+                        max={30}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-6 bg-primary/10 rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground mb-2">Monthly EMI</p>
+                      <p className="text-4xl font-bold text-primary">{formatPrice(emi)}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Principal</p>
+                        <p className="text-lg font-semibold">{formatPrice(loanAmount)}</p>
+                      </div>
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Total Interest</p>
+                        <p className="text-lg font-semibold">{formatPrice((emi * loanTenure * 12) - loanAmount)}</p>
+                      </div>
+                      <div className="p-4 bg-muted rounded-lg col-span-2">
+                        <p className="text-xs text-muted-foreground mb-1">Total Payment</p>
+                        <p className="text-lg font-semibold">{formatPrice(emi * loanTenure * 12)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Saved Searches */}
+          <TabsContent value="searches">
+            <Card>
+              <CardHeader>
+                <CardTitle>Saved Searches</CardTitle>
+                <CardDescription>Get alerts when new properties match your criteria</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No saved searches</h3>
+                  <p className="text-muted-foreground mb-4">Save your search criteria to get instant alerts</p>
+                  <Button onClick={() => navigate("/map")}>Start Searching</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Alerts */}
+          <TabsContent value="alerts">
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Alerts</CardTitle>
+                <CardDescription>Stay updated with new listings and price changes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Bell className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No alerts</h3>
+                  <p className="text-muted-foreground mb-4">Enable notifications to get instant property alerts</p>
+                  <Button>Enable Notifications</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Market Insights */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Market Insights</CardTitle>
+            <CardDescription>Latest trends in Hyderabad & Vijayawada</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-primary/5 rounded-lg">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                <h3 className="font-semibold text-2xl">+12%</h3>
+                <p className="text-sm text-muted-foreground">Price Growth (YoY)</p>
+              </div>
+              <div className="text-center p-6 bg-primary/5 rounded-lg">
+                <Home className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                <h3 className="font-semibold text-2xl">{properties.length}</h3>
+                <p className="text-sm text-muted-foreground">New Listings</p>
+              </div>
+              <div className="text-center p-6 bg-primary/5 rounded-lg">
+                <Building2 className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                <h3 className="font-semibold text-2xl">45 Days</h3>
+                <p className="text-sm text-muted-foreground">Avg. Days on Market</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-}
+};
+
+export default BuyerDashboard;
