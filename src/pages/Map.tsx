@@ -14,6 +14,7 @@ import { seedAgents } from "@/utils/seedAgents";
 import { seedProjects } from "@/utils/seedProjects";
 import { seedComprehensiveProperties, clearAllData } from "@/utils/comprehensiveSeedProperties";
 import { toast as sonnerToast } from "sonner";
+import { quickSeedData } from "@/utils/quickSeed";
 
 interface Property {
   id: number;
@@ -60,8 +61,9 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Mapbox public token - safe to use in frontend
-    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZS1kZXYiLCJhIjoiY200MG9ic2gyMGl0YzJrcTJ3cDg5Ym8wbyJ9.dQyJJ8vJXxH1D1H5H5H5HQ";
+    // Get your free Mapbox token from: https://account.mapbox.com/access-tokens/
+    // Replace this with your own token for production use
+    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -390,6 +392,26 @@ const Map = () => {
     setIsSeeding(false);
   };
 
+  // Quick seed for testing
+  const handleQuickSeed = async () => {
+    setIsSeeding(true);
+    try {
+      const result = await quickSeedData();
+      
+      if (result.success) {
+        sonnerToast.success(`✅ Seeded ${result.count} properties!`);
+        fetchProperties();
+      } else {
+        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
+        console.error("Seed error:", result.error);
+      }
+    } catch (err) {
+      sonnerToast.error("Error with quick seed");
+      console.error(err);
+    }
+    setIsSeeding(false);
+  };
+
   // Clear all data
   const handleClearData = async () => {
     setIsSeeding(true);
@@ -441,6 +463,17 @@ const Map = () => {
         <div className="glass-panel p-3 rounded-lg">
           <p className="text-xs text-muted-foreground mb-2 font-semibold">Seed Data:</p>
           <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleQuickSeed}
+              variant="default"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Database className="h-4 w-4" />
+              {isSeeding ? "..." : "Quick (10) ⚡"}
+            </Button>
+
             <Button
               onClick={handleSeedComprehensive}
               variant="default"
