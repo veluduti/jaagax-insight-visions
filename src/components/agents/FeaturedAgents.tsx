@@ -9,7 +9,7 @@ interface FeaturedAgentsProps {
 const FeaturedAgents = ({ agents }: FeaturedAgentsProps) => {
   // Get top 3 verified agents
   const featuredAgents = agents
-    .filter((agent) => agent.users.verified)
+    .filter((agent) => agent?.verified)
     .sort((a, b) => (b.sales_count + b.rent_count) - (a.sales_count + a.rent_count))
     .slice(0, 3);
 
