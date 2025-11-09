@@ -61,9 +61,9 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Get your free Mapbox token from: https://account.mapbox.com/access-tokens/
-    // Replace this with your own token for production use
-    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
+    // Use Mapbox public token
+    // Get your own token from: https://account.mapbox.com/access-tokens/
+    mapboxgl.accessToken = "pk.eyJ1IjoidGVzdGludGciLCJhIjoiY200a3RyNW56MDU1cDJrbHN4aWZzbmwxaiJ9.CFM5HxjJVbP1AfDjYKUGFw";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
