@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   CheckCircle2,
-  Award,
   Languages,
   MapPin,
   MessageCircle,
@@ -15,18 +14,16 @@ import {
 
 interface AgentCardProps {
   agent: {
-    id: string;
+    id: number;
+    name: string;
     agency_name: string;
     languages: string;
     cities_served: string;
     sales_count: number;
     rent_count: number;
-    specialization: string;
-    users: {
-      name: string;
-      avatar_url: string;
-      verified: boolean;
-    };
+    photo_url: string;
+    trust_score: number;
+    verified: boolean;
   };
   index: number;
 }
@@ -42,7 +39,7 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
     >
       <Card className="glass-panel border-0 p-6 hover:scale-105 transition-all duration-300 group relative overflow-hidden">
         {/* Verified Ribbon */}
-        {agent.users.verified && (
+        {agent.verified && (
           <div className="absolute top-0 right-0">
             <div className="bg-primary text-primary-foreground text-xs px-3 py-1 rotate-45 translate-x-8 translate-y-2">
               <CheckCircle2 className="h-3 w-3 inline mr-1" />
@@ -54,19 +51,19 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Agent Info */}
         <div className="flex items-start gap-4 mb-4">
           <Avatar className="h-16 w-16 ring-2 ring-primary/50">
-            <AvatarImage src={agent.users.avatar_url} alt={agent.users.name} />
-            <AvatarFallback>{agent.users.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={agent.photo_url} alt={agent.name} />
+            <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1">
-            <h3 className="font-bold text-lg mb-1">{agent.users.name}</h3>
+            <h3 className="font-bold text-lg mb-1">{agent.name}</h3>
             <p className="text-sm text-muted-foreground">{agent.agency_name}</p>
           </div>
         </div>
 
-        {/* Specialization */}
+        {/* Trust Score */}
         <Badge variant="secondary" className="mb-3">
-          {agent.specialization}
+          Trust Score: {agent.trust_score}%
         </Badge>
 
         {/* Stats */}

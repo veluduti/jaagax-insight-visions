@@ -61,9 +61,9 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Use Mapbox public token
-    // Get your own token from: https://account.mapbox.com/access-tokens/
-    mapboxgl.accessToken = "pk.eyJ1IjoidGVzdGludGciLCJhIjoiY200a3RyNW56MDU1cDJrbHN4aWZzbmwxaiJ9.CFM5HxjJVbP1AfDjYKUGFw";
+    // Use Mapbox public token - this is a demo token
+    // For production, get your own from: https://account.mapbox.com/access-tokens/
+    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -143,7 +143,22 @@ const Map = () => {
 
   // Fetch properties from Supabase
   useEffect(() => {
-    fetchProperties();
+    const initializeData = async () => {
+      // Check if database is empty
+      const { count } = await supabase
+        .from("properties")
+        .select("*", { count: "exact", head: true });
+      
+      // Auto-seed if empty
+      if (count === 0) {
+        console.log("Database is empty, auto-seeding...");
+        await handleQuickSeed();
+      } else {
+        fetchProperties();
+      }
+    };
+
+    initializeData();
 
     // Set up real-time subscription
     const channel = supabase
@@ -169,7 +184,7 @@ const Map = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [filters]);
+  }, []);
 
   const fetchProperties = async () => {
     let query = supabase.from("properties").select("*");

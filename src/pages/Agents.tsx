@@ -20,21 +20,16 @@ import FeaturedAgents from "@/components/agents/FeaturedAgents";
 import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
-  id: string;
-  user_id: string;
+  id: number;
+  name: string;
   agency_name: string;
   languages: string;
   cities_served: string;
   sales_count: number;
   rent_count: number;
-  specialization: string;
-  avg_response_time: string;
-  users: {
-    name: string;
-    avatar_url: string;
-    email: string;
-    verified: boolean;
-  };
+  photo_url: string;
+  trust_score: number;
+  verified: boolean;
 }
 
 const Agents = () => {
@@ -59,32 +54,13 @@ const Agents = () => {
     try {
       const { data, error } = await supabase
         .from("agents")
-        .select("*");
+        .select("*")
+        .order("sales_count", { ascending: false });
 
       if (error) throw error;
 
-      // Fetch user details for each agent
-      const agentsWithUsers = await Promise.all(
-        (data || []).map(async (agent: any) => {
-          const { data: userData } = await supabase
-            .from("users")
-            .select("name, avatar_url, email, verified")
-            .eq("id", agent.user_id)
-            .single();
-
-          return {
-            ...agent,
-            users: userData || {
-              name: "Unknown",
-              avatar_url: "",
-              email: "",
-              verified: false,
-            },
-          };
-        })
-      );
-
-      setAgents(agentsWithUsers);
+      setAgents(data || []);
+      setFilteredAgents(data || []);
     } catch (error) {
       console.error("Error fetching agents:", error);
     } finally {
@@ -99,7 +75,7 @@ const Agents = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (agent) =>
-          agent.users.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           agent.cities_served.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -113,7 +89,7 @@ const Agents = () => {
 
     // Verified only filter
     if (verifiedOnly) {
-      filtered = filtered.filter((agent) => agent.users.verified);
+      filtered = filtered.filter((agent) => agent.verified);
     }
 
     // Sort
