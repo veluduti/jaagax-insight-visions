@@ -119,9 +119,16 @@ const ProjectDetail = () => {
         .from("projects")
         .select("*")
         .eq("id", projectId)
-        .single();
+        .maybeSingle();
 
       if (projectError) throw projectError;
+      
+      if (!projectData) {
+        toast.error("Project not found");
+        setLoading(false);
+        return;
+      }
+      
       setProject(projectData);
 
       // Fetch amenities
