@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { seedProperties } from "@/utils/seedProperties";
 import { seedAgents } from "@/utils/seedAgents";
 import { seedProjects } from "@/utils/seedProjects";
+import { seedComprehensiveProperties, clearAllData } from "@/utils/comprehensiveSeedProperties";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
