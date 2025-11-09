@@ -121,8 +121,7 @@ const PropertyDetail = () => {
       // Fetch AI valuation
       fetchAIValuation(mappedProperty);
     } catch (error) {
-      console.error("Error fetching property:", error);
-      toast.error("Failed to load property details");
+      toast.error("Property not found");
     } finally {
       setLoading(false);
     }
@@ -144,7 +143,7 @@ const PropertyDetail = () => {
       if (error) throw error;
       setAiValuation(data);
     } catch (error) {
-      console.error("Error fetching AI valuation:", error);
+      // Silently fail for AI valuation
     }
   };
 

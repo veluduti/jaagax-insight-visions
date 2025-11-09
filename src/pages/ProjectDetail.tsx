@@ -152,8 +152,7 @@ const ProjectDetail = () => {
         }
       }
     } catch (error) {
-      console.error("Error fetching project:", error);
-      toast.error("Failed to load project details");
+      toast.error("Project not found");
     } finally {
       setLoading(false);
     }
@@ -177,7 +176,6 @@ const ProjectDetail = () => {
       
       toast.success("AI summary generated!");
     } catch (error) {
-      console.error("Error generating AI summary:", error);
       toast.error("Failed to generate AI summary");
     } finally {
       setAiLoading(false);

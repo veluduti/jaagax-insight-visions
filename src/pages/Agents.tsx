@@ -44,6 +44,26 @@ const Agents = () => {
 
   useEffect(() => {
     fetchAgents();
+    
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('agents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agents'
+        },
+        () => {
+          fetchAgents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -59,10 +79,20 @@ const Agents = () => {
 
       if (error) throw error;
 
-      setAgents(data || []);
-      setFilteredAgents(data || []);
-    } catch (error) {
-      console.error("Error fetching agents:", error);
+      // Auto-seed if empty
+      if (!data || data.length === 0) {
+        const { seedAgents } = await import("@/utils/seedAgents");
+        await seedAgents();
+        const { data: newData } = await supabase
+          .from("agents")
+          .select("*")
+          .order("sales_count", { ascending: false });
+        setAgents(newData || []);
+        setFilteredAgents(newData || []);
+      } else {
+        setAgents(data || []);
+        setFilteredAgents(data || []);
+      }
     } finally {
       setLoading(false);
     }

@@ -53,6 +53,26 @@ const Projects = () => {
 
   useEffect(() => {
     fetchProjects();
+    
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('projects-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects'
+        },
+        () => {
+          fetchProjects();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -69,10 +89,22 @@ const Projects = () => {
 
       if (error) throw error;
       
-      setProjects(data || []);
-      setFilteredProjects(data || []);
+      // Auto-seed if empty
+      if (!data || data.length === 0) {
+        const { seedProjects } = await import("@/utils/seedProjects");
+        await seedProjects();
+        const { data: newData } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("verified", true)
+          .order("trust_score", { ascending: false });
+        setProjects(newData || []);
+        setFilteredProjects(newData || []);
+      } else {
+        setProjects(data || []);
+        setFilteredProjects(data || []);
+      }
     } catch (error) {
-      console.error("Error fetching projects:", error);
       toast.error("Failed to load projects");
     } finally {
       setLoading(false);
