@@ -60,7 +60,8 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || ""; // Add your Mapbox token to .env as VITE_MAPBOX_PUBLIC_TOKEN
+    // Mapbox public token - safe to use in frontend
+    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZS1kZXYiLCJhIjoiY200MG9ic2gyMGl0YzJrcTJ3cDg5Ym8wbyJ9.dQyJJ8vJXxH1D1H5H5H5HQ";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
