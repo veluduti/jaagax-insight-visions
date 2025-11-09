@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Share2, Heart, Phone, MessageCircle, MapPin, 
   Bed, Bath, Square, Calendar, Download, ArrowLeft,
-  CheckCircle2, TrendingUp, Building2
+  CheckCircle2, TrendingUp, Building2, Hash
 } from "lucide-react";
 import { toast } from "sonner";
 import PropertyImageCarousel from "@/components/property/PropertyImageCarousel";
@@ -17,6 +17,8 @@ import AgentCard from "@/components/property/AgentCard";
 import PropertyMap from "@/components/property/PropertyMap";
 import SimilarProperties from "@/components/property/SimilarProperties";
 import BookingModal from "@/components/property/BookingModal";
+import PropertyBreadcrumb from "@/components/property/PropertyBreadcrumb";
+import PropertyAmenities from "@/components/property/PropertyAmenities";
 
 interface Property {
   id: number;
@@ -185,6 +187,23 @@ const PropertyDetail = () => {
     }
   };
 
+  const handleCall = () => {
+    if (agent) {
+      // In production, this would use the actual agent phone number
+      window.location.href = `tel:+919876543210`;
+      toast.success("Opening dialer...");
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (agent && property) {
+      const message = encodeURIComponent(
+        `Hi, I'm interested in the property: ${property.title} (Ref: JX${property.id})`
+      );
+      window.open(`https://wa.me/919876543210?text=${message}`, "_blank");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -206,16 +225,27 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Back Button */}
+      {/* Back Button & Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="gap-2"
+          className="gap-2 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
+        <PropertyBreadcrumb
+          city={property.city}
+          locality={property.locality}
+          title={property.title}
+        />
+        
+        {/* Property Reference */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Hash className="h-4 w-4" />
+          <span>Property Ref: <span className="font-semibold text-foreground">JX{property.id}</span></span>
+        </div>
       </div>
 
       {/* Image Carousel */}
@@ -253,10 +283,16 @@ const PropertyDetail = () => {
               Book Visit
             </Button>
             {agent && (
-              <Button variant="outline" size="lg" className="gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Chat
-              </Button>
+              <>
+                <Button variant="outline" size="lg" className="gap-2" onClick={handleCall}>
+                  <Phone className="h-4 w-4" />
+                  Call
+                </Button>
+                <Button variant="outline" size="lg" className="gap-2 bg-green-600 hover:bg-green-700 text-white border-green-600" onClick={handleWhatsApp}>
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </Button>
+              </>
             )}
           </div>
         </motion.div>
@@ -280,6 +316,9 @@ const PropertyDetail = () => {
                 {property.description || "A premium property in a prime location with modern amenities and excellent connectivity."}
               </p>
             </motion.div>
+
+            {/* Amenities */}
+            <PropertyAmenities type={property.type} verified={property.verified} />
 
             {/* Map */}
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
@@ -317,13 +356,18 @@ const PropertyDetail = () => {
         <div className="flex gap-2">
           {agent && (
             <>
-              <Button variant="outline" size="lg" className="flex-1 gap-2">
+              <Button variant="outline" size="lg" className="flex-1 gap-2" onClick={handleCall}>
                 <Phone className="h-4 w-4" />
                 Call
               </Button>
-              <Button variant="outline" size="lg" className="flex-1 gap-2">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white border-green-600"
+                onClick={handleWhatsApp}
+              >
                 <MessageCircle className="h-4 w-4" />
-                Chat
+                WhatsApp
               </Button>
             </>
           )}

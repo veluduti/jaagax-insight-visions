@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface AgentCardProps {
   agent: {
@@ -19,6 +20,18 @@ interface AgentCardProps {
 
 const AgentCard = ({ agent, propertyId }: AgentCardProps) => {
   const navigate = useNavigate();
+
+  const handleCall = () => {
+    window.location.href = `tel:+919876543210`;
+    toast.success("Opening dialer...");
+  };
+
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent(
+      `Hi ${agent.name}, I'm interested in property ID: ${propertyId}`
+    );
+    window.open(`https://wa.me/919876543210?text=${message}`, "_blank");
+  };
 
   return (
     <motion.div
@@ -52,18 +65,23 @@ const AgentCard = ({ agent, propertyId }: AgentCardProps) => {
 
       {/* Action Buttons */}
       <div className="space-y-2">
-        <Button className="w-full gap-2" size="lg">
+        <Button className="w-full gap-2" size="lg" onClick={handleCall}>
           <Phone className="h-4 w-4" />
           Call Agent
         </Button>
-        <Button variant="outline" className="w-full gap-2" size="lg">
+        <Button 
+          variant="outline" 
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white border-green-600" 
+          size="lg"
+          onClick={handleWhatsApp}
+        >
           <MessageCircle className="h-4 w-4" />
-          Chat Now
+          WhatsApp
         </Button>
         <Button 
           variant="ghost" 
           className="w-full gap-2"
-          onClick={() => navigate(`/agents/${agent.id}`)}
+          onClick={() => navigate(`/agent/${agent.id}`)}
         >
           <Mail className="h-4 w-4" />
           View Profile
