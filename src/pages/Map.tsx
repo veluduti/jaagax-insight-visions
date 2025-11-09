@@ -352,7 +352,7 @@ const Map = () => {
         if (result.message === "Projects already exist") {
           sonnerToast.info("Projects already seeded!");
         } else {
-          sonnerToast.success("Successfully added 5 projects!");
+          sonnerToast.success("Successfully added projects!");
         }
       } else {
         sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
@@ -360,6 +360,49 @@ const Map = () => {
       }
     } catch (err) {
       sonnerToast.error("Error seeding projects");
+      console.error(err);
+    }
+    setIsSeeding(false);
+  };
+
+  // Seed all comprehensive data
+  const handleSeedComprehensive = async () => {
+    setIsSeeding(true);
+    try {
+      const result = await seedComprehensiveProperties();
+      
+      if (result.success) {
+        if (result.message === "Properties already exist") {
+          sonnerToast.info("Comprehensive data already seeded!");
+        } else {
+          sonnerToast.success("Successfully seeded 20+ properties!");
+          fetchProperties();
+        }
+      } else {
+        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
+        console.error("Seed error:", result.error);
+      }
+    } catch (err) {
+      sonnerToast.error("Error seeding comprehensive data");
+      console.error(err);
+    }
+    setIsSeeding(false);
+  };
+
+  // Clear all data
+  const handleClearData = async () => {
+    setIsSeeding(true);
+    try {
+      const result = await clearAllData();
+      
+      if (result.success) {
+        sonnerToast.success("All data cleared successfully!");
+        fetchProperties();
+      } else {
+        sonnerToast.error("Failed to clear data");
+      }
+    } catch (err) {
+      sonnerToast.error("Error clearing data");
       console.error(err);
     }
     setIsSeeding(false);
@@ -398,6 +441,17 @@ const Map = () => {
           <p className="text-xs text-muted-foreground mb-2 font-semibold">Seed Data:</p>
           <div className="flex flex-col gap-2">
             <Button
+              onClick={handleSeedComprehensive}
+              variant="default"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2 bg-primary"
+            >
+              <Database className="h-4 w-4" />
+              {isSeeding ? "..." : "All (20+)"}
+            </Button>
+
+            <Button
               onClick={handleSeedProperties}
               variant="outline"
               size="sm"
@@ -416,7 +470,7 @@ const Map = () => {
               className="w-full gap-2"
             >
               <Users className="h-4 w-4" />
-              {isSeeding ? "..." : "Agents (5)"}
+              {isSeeding ? "..." : "Agents (13)"}
             </Button>
 
             <Button
@@ -427,7 +481,17 @@ const Map = () => {
               className="w-full gap-2"
             >
               <Building2 className="h-4 w-4" />
-              {isSeeding ? "..." : "Projects (5)"}
+              {isSeeding ? "..." : "Projects (18)"}
+            </Button>
+
+            <Button
+              onClick={handleClearData}
+              variant="destructive"
+              size="sm"
+              disabled={isSeeding}
+              className="w-full gap-2 mt-2"
+            >
+              {isSeeding ? "..." : "Clear All"}
             </Button>
           </div>
         </div>
