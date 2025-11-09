@@ -81,19 +81,20 @@ const BuyerDashboard = () => {
 
   const fetchFavorites = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data } = await supabase
-      .from("favorites")
-      .select("property_id")
-      .eq("user_id", user.id);
-    
-    if (data) {
-      setFavorites(data.map(f => f.property_id));
+    if (user) {
+      const { data } = await supabase
+        .from("favorites")
+        .select("property_id")
+        .eq("user_id", user.id);
+      
+      if (data) {
+        // property_id is UUID (string), convert to number for properties table
+        setFavorites(data.map(f => parseInt(f.property_id) || 0).filter(id => id > 0));
+      }
     }
   };
 
-  const toggleFavorite = async (propertyId: string) => {
+  const toggleFavorite = async (propertyId: number) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Please login to save favorites");
@@ -105,13 +106,13 @@ const BuyerDashboard = () => {
         .from("favorites")
         .delete()
         .eq("user_id", user.id)
-        .eq("property_id", propertyId);
+        .eq("property_id", propertyId.toString());
       setFavorites(favorites.filter(id => id !== propertyId));
       toast.success("Removed from favorites");
     } else {
       await supabase
         .from("favorites")
-        .insert({ user_id: user.id, property_id: propertyId });
+        .insert({ user_id: user.id, property_id: propertyId.toString() });
       setFavorites([...favorites, propertyId]);
       toast.success("Added to favorites");
     }

@@ -202,12 +202,10 @@ export async function seedAgents() {
     const agentsToInsert = agentsData.map((agent, idx) => ({
       user_id: dummyUserIds[idx],
       agency_name: agent.agency_name,
-      languages: agent.languages,
-      cities_served: agent.cities_served,
+      languages: agent.languages.join(", "), // Convert array to comma-separated string
+      cities_served: agent.cities_served.join(", "), // Convert array to comma-separated string
       sales_count: agent.sales_count,
       rent_count: agent.rent_count,
-      specialization: agent.specialization,
-      avg_response_time: agent.avg_response_time,
     }));
 
     const { data, error } = await supabase

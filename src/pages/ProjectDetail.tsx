@@ -114,13 +114,11 @@ const ProjectDetail = () => {
       setLoading(true);
       
       // Fetch project
+      const projectId = parseInt(id || "0");
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
-        .select(`
-          *,
-          builder:users!projects_builder_id_fkey(name)
-        `)
-        .eq("id", id)
+        .select("*")
+        .eq("id", projectId)
         .single();
 
       if (projectError) throw projectError;

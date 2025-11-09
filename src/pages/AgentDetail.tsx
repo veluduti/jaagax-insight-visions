@@ -76,6 +76,8 @@ const AgentDetail = () => {
   const fetchAgentDetails = async () => {
     try {
       setLoading(true);
+      
+      const agentId = parseInt(id || "0");
 
       // Fetch agent profile
       const { data: agentData, error: agentError } = await supabase
@@ -91,7 +93,7 @@ const AgentDetail = () => {
       const { data: propertiesData, error: propertiesError } = await supabase
         .from("properties")
         .select("*")
-        .eq("owner_id", id)
+        .eq("agent_id", agentId)
         .eq("verified", true)
         .limit(6);
 

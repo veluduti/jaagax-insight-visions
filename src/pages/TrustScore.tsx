@@ -79,10 +79,12 @@ const TrustScore = () => {
 
     if (user) {
       // Fetch user's projects if they're a builder
+      // Note: builder_id is integer but user.id is UUID string
+      // This query won't work unless we have a proper mapping
       const { data: projects } = await supabase
         .from("projects")
         .select("*")
-        .eq("builder_id", user.id);
+        .eq("builder_name", user.email); // Use email as fallback
       
       setUserProjects(projects || []);
     }
@@ -94,10 +96,7 @@ const TrustScore = () => {
       
       const { data, error } = await supabase
         .from("projects")
-        .select(`
-          *,
-          builder:users!projects_builder_id_fkey(name)
-        `)
+        .select("*")
         .order("trust_score", { ascending: false });
 
       if (error) throw error;

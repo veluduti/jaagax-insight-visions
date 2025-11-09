@@ -63,10 +63,7 @@ const Projects = () => {
     try {
       const { data, error } = await supabase
         .from("projects")
-        .select(`
-          *,
-          builder:users!projects_builder_id_fkey(name)
-        `)
+        .select("*")
         .eq("verified", true)
         .order("trust_score", { ascending: false });
 
@@ -246,7 +243,7 @@ const Projects = () => {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg mb-1 line-clamp-1">{project.name}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {project.builder?.name || "Builder"}
+                          {project.builder_name || "Builder"}
                         </p>
                       </div>
                     </div>

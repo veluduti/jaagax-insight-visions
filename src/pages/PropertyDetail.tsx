@@ -309,7 +309,7 @@ const PropertyDetail = () => {
       <BookingModal
         open={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        propertyId={property.id}
+        propertyId={property.id.toString()}
         propertyTitle={property.title}
       />
 

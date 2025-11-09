@@ -7,18 +7,14 @@ import { useNavigate } from "react-router-dom";
 
 interface AgentCardProps {
   agent: {
-    id: string;
+    id: number;
     agency_name: string;
-    languages: string[];
+    languages: string;
     sales_count: number;
-    specialization: string;
-    users: {
-      name: string;
-      avatar_url: string;
-      email: string;
-    };
+    name: string;
+    photo_url: string;
   };
-  propertyId: string;
+  propertyId: number;
 }
 
 const AgentCard = ({ agent, propertyId }: AgentCardProps) => {
@@ -35,11 +31,11 @@ const AgentCard = ({ agent, propertyId }: AgentCardProps) => {
 
       <div className="flex items-start gap-4 mb-4">
         <Avatar className="h-16 w-16 ring-2 ring-primary">
-          <AvatarImage src={agent.users.avatar_url} alt={agent.users.name} />
-          <AvatarFallback>{agent.users.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={agent.photo_url} alt={agent.name} />
+          <AvatarFallback>{agent.name?.charAt(0) || 'A'}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <h4 className="font-semibold text-lg">{agent.users.name}</h4>
+          <h4 className="font-semibold text-lg">{agent.name}</h4>
           <p className="text-sm text-muted-foreground">{agent.agency_name}</p>
           <div className="flex items-center gap-1 mt-1">
             <Award className="h-3 w-3 text-primary" />
@@ -48,15 +44,10 @@ const AgentCard = ({ agent, propertyId }: AgentCardProps) => {
         </div>
       </div>
 
-      {/* Specialization */}
-      <div className="mb-4">
-        <Badge variant="secondary" className="mb-2">{agent.specialization}</Badge>
-      </div>
-
       {/* Languages */}
       <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
         <Languages className="h-4 w-4" />
-        <span>{agent.languages.join(", ")}</span>
+        <span>{agent.languages}</span>
       </div>
 
       {/* Action Buttons */}
