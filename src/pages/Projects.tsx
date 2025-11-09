@@ -12,17 +12,18 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 interface Project {
-  id: string;
+  id: number;
   name: string;
-  builder_id: string;
+  builder_id: number;
+  builder_name: string;
   city: string;
   locality: string;
   avg_price: number;
   verified: boolean;
   trust_score: number;
   rera_id: string | null;
-  image: string | null;
   overview: string | null;
+  image: string | null;
   builder?: {
     name: string;
   };

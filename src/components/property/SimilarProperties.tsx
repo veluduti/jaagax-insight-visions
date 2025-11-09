@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 interface SimilarPropertiesProps {
   city: string;
   type: string;
-  currentPropertyId: string;
+  currentPropertyId: number;
 }
 
 const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesProps) => {

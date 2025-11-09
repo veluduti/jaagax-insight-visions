@@ -19,7 +19,7 @@ import {
 import { motion } from "framer-motion";
 
 interface Property {
-  id: string;
+  id: number;
   title: string;
   city: string;
   locality: string;
@@ -38,7 +38,7 @@ const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   
   // EMI Calculator State
@@ -257,28 +257,28 @@ const BuyerDashboard = () => {
                         key={property.id}
                         whileHover={{ y: -5 }}
                         className="group cursor-pointer"
-                        onClick={() => navigate(`/property/${property.id}`)}
-                      >
-                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
-                          <div className="relative">
-                            <img
-                              src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
-                              alt={property.title}
-                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                            />
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="absolute top-2 right-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(property.id);
-                              }}
-                            >
-                              <Heart
-                                className={`h-4 w-4 ${favorites.includes(property.id) ? "fill-red-500 text-red-500" : ""}`}
-                              />
-                            </Button>
+            onClick={() => navigate(`/property/${property.id}`)}
+          >
+            <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
+              <div className="relative">
+                <img
+                  src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                  alt={property.title}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute top-2 right-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(property.id);
+                  }}
+                >
+                  <Heart
+                    className={`h-4 w-4 ${favorites.includes(property.id) ? "fill-red-500 text-red-500" : ""}`}
+                  />
+                </Button>
                             {property.verified && (
                               <Badge className="absolute top-2 left-2 bg-green-600">
                                 Verified

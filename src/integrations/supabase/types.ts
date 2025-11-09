@@ -48,61 +48,44 @@ export type Database = {
           transaction_type?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "agent_reviews_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       agents: {
         Row: {
           agency_name: string | null
-          avg_response_time: string | null
-          bio: string | null
-          cities_served: string[] | null
-          created_at: string | null
-          id: string
-          languages: string[] | null
-          license_id: string | null
+          cities_served: string | null
+          id: number
+          languages: string | null
+          name: string | null
+          photo_url: string | null
           rent_count: number | null
           sales_count: number | null
-          specialization: string | null
-          updated_at: string | null
-          user_id: string
+          trust_score: number | null
+          verified: boolean | null
         }
         Insert: {
           agency_name?: string | null
-          avg_response_time?: string | null
-          bio?: string | null
-          cities_served?: string[] | null
-          created_at?: string | null
-          id?: string
-          languages?: string[] | null
-          license_id?: string | null
+          cities_served?: string | null
+          id?: number
+          languages?: string | null
+          name?: string | null
+          photo_url?: string | null
           rent_count?: number | null
           sales_count?: number | null
-          specialization?: string | null
-          updated_at?: string | null
-          user_id: string
+          trust_score?: number | null
+          verified?: boolean | null
         }
         Update: {
           agency_name?: string | null
-          avg_response_time?: string | null
-          bio?: string | null
-          cities_served?: string[] | null
-          created_at?: string | null
-          id?: string
-          languages?: string[] | null
-          license_id?: string | null
+          cities_served?: string | null
+          id?: number
+          languages?: string | null
+          name?: string | null
+          photo_url?: string | null
           rent_count?: number | null
           sales_count?: number | null
-          specialization?: string | null
-          updated_at?: string | null
-          user_id?: string
+          trust_score?: number | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -128,15 +111,7 @@ export type Database = {
           status?: string | null
           type?: Database["public"]["Enums"]["amenity_type"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "amenities_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       analytics: {
         Row: {
@@ -165,6 +140,39 @@ export type Database = {
           id?: string
           impressions?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      builders: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          description: string | null
+          id: number
+          logo_url: string | null
+          name: string | null
+          trust_score: number | null
+          verified: boolean | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          logo_url?: string | null
+          name?: string | null
+          trust_score?: number | null
+          verified?: boolean | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          logo_url?: string | null
+          name?: string | null
+          trust_score?: number | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -225,13 +233,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "favorites_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "favorites_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -276,47 +277,44 @@ export type Database = {
       projects: {
         Row: {
           avg_price: number | null
-          builder_id: string | null
-          city: string
-          created_at: string | null
-          id: string
+          builder_id: number | null
+          builder_name: string | null
+          city: string | null
+          id: number
           image: string | null
-          locality: string
-          name: string
+          locality: string | null
+          name: string | null
           overview: string | null
           rera_id: string | null
           trust_score: number | null
-          updated_at: string | null
           verified: boolean | null
         }
         Insert: {
           avg_price?: number | null
-          builder_id?: string | null
-          city: string
-          created_at?: string | null
-          id?: string
+          builder_id?: number | null
+          builder_name?: string | null
+          city?: string | null
+          id?: number
           image?: string | null
-          locality: string
-          name: string
+          locality?: string | null
+          name?: string | null
           overview?: string | null
           rera_id?: string | null
           trust_score?: number | null
-          updated_at?: string | null
           verified?: boolean | null
         }
         Update: {
           avg_price?: number | null
-          builder_id?: string | null
-          city?: string
-          created_at?: string | null
-          id?: string
+          builder_id?: number | null
+          builder_name?: string | null
+          city?: string | null
+          id?: number
           image?: string | null
-          locality?: string
-          name?: string
+          locality?: string | null
+          name?: string | null
           overview?: string | null
           rera_id?: string | null
           trust_score?: number | null
-          updated_at?: string | null
           verified?: boolean | null
         }
         Relationships: [
@@ -324,7 +322,7 @@ export type Database = {
             foreignKeyName: "projects_builder_id_fkey"
             columns: ["builder_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "builders"
             referencedColumns: ["id"]
           },
         ]
@@ -336,24 +334,20 @@ export type Database = {
           baths: number | null
           beds: number | null
           bhk: number | null
-          city: string
-          created_at: string | null
+          city: string | null
           description: string | null
-          id: string
+          id: number
           images: string[] | null
-          lat: number
-          lng: number
-          locality: string
-          owner_id: string | null
-          price: number
+          lat: number | null
+          lng: number | null
+          locality: string | null
+          price: number | null
           project_id: number | null
           status: string | null
-          title: string
+          title: string | null
           trust_score: number | null
-          type: Database["public"]["Enums"]["property_type"]
-          updated_at: string | null
+          type: string | null
           verified: boolean | null
-          verified_at: string | null
         }
         Insert: {
           agent_id?: number | null
@@ -361,24 +355,20 @@ export type Database = {
           baths?: number | null
           beds?: number | null
           bhk?: number | null
-          city: string
-          created_at?: string | null
+          city?: string | null
           description?: string | null
-          id?: string
+          id?: number
           images?: string[] | null
-          lat: number
-          lng: number
-          locality: string
-          owner_id?: string | null
-          price: number
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          price?: number | null
           project_id?: number | null
           status?: string | null
-          title: string
+          title?: string | null
           trust_score?: number | null
-          type: Database["public"]["Enums"]["property_type"]
-          updated_at?: string | null
+          type?: string | null
           verified?: boolean | null
-          verified_at?: string | null
         }
         Update: {
           agent_id?: number | null
@@ -386,31 +376,27 @@ export type Database = {
           baths?: number | null
           beds?: number | null
           bhk?: number | null
-          city?: string
-          created_at?: string | null
+          city?: string | null
           description?: string | null
-          id?: string
+          id?: number
           images?: string[] | null
-          lat?: number
-          lng?: number
-          locality?: string
-          owner_id?: string | null
-          price?: number
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          price?: number | null
           project_id?: number | null
           status?: string | null
-          title?: string
+          title?: string | null
           trust_score?: number | null
-          type?: Database["public"]["Enums"]["property_type"]
-          updated_at?: string | null
+          type?: string | null
           verified?: boolean | null
-          verified_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "properties_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "properties_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -437,15 +423,7 @@ export type Database = {
           name?: string
           project_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "towers_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       units: {
         Row: {
@@ -606,15 +584,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["verification_status"] | null
           verified_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "verifications_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

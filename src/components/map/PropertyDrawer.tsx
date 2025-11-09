@@ -7,7 +7,7 @@ import { X, MapPin, Maximize2, Bed, Bath, CheckCircle, MessageCircle, Phone, Tre
 
 interface PropertyDrawerProps {
   property: {
-    id: string;
+    id: number;
     title: string;
     price: number;
     area: number;

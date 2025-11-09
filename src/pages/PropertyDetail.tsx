@@ -19,7 +19,7 @@ import SimilarProperties from "@/components/property/SimilarProperties";
 import BookingModal from "@/components/property/BookingModal";
 
 interface Property {
-  id: string;
+  id: number;
   title: string;
   city: string;
   locality: string;
@@ -36,28 +36,25 @@ interface Property {
   trust_score: number;
   images: string[];
   description: string;
-  agent_id: string | null;
-  project_id: string | null;
+  agent_id: number | null;
+  project_id: number | null;
 }
 
 interface Agent {
-  id: string;
-  user_id: string;
+  id: number;
   agency_name: string;
-  languages: string[];
-  cities_served: string[];
+  languages: string;
+  cities_served: string;
   sales_count: number;
-  specialization: string;
-  avg_response_time: string;
-  users: {
-    name: string;
-    avatar_url: string;
-    email: string;
-  };
+  rent_count: number;
+  name: string;
+  photo_url: string;
+  trust_score: number;
+  verified: boolean;
 }
 
 const PropertyDetail = () => {
-  const { id } = useParams();
+      const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [property, setProperty] = useState<Property | null>(null);
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -72,10 +69,11 @@ const PropertyDetail = () => {
 
   const fetchProperty = async () => {
     try {
+      const propertyId = parseInt(id || "0");
       const { data: propertyData, error: propertyError } = await supabase
         .from("properties")
         .select("*")
-        .eq("id", id)
+        .eq("id", propertyId)
         .single();
 
       if (propertyError) throw propertyError;
@@ -101,8 +99,8 @@ const PropertyDetail = () => {
         trust_score: dbProperty.trust_score,
         images: dbProperty.images || [],
         description: dbProperty.description || "",
-        agent_id: dbProperty.agent_id ? String(dbProperty.agent_id) : null,
-        project_id: dbProperty.project_id ? String(dbProperty.project_id) : null,
+        agent_id: dbProperty.agent_id,
+        project_id: dbProperty.project_id,
       };
       
       setProperty(mappedProperty);
@@ -116,19 +114,7 @@ const PropertyDetail = () => {
           .single();
 
         if (agentData) {
-          // Fetch user details separately
-          const { data: userData } = await supabase
-            .from("users")
-            .select("name, avatar_url, email")
-            .eq("id", agentData.user_id)
-            .single();
-
-          if (userData) {
-            setAgent({
-              ...agentData,
-              users: userData,
-            });
-          }
+          setAgent(agentData);
         }
       }
 

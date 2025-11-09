@@ -16,7 +16,7 @@ import { seedComprehensiveProperties, clearAllData } from "@/utils/comprehensive
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
-  id: string;
+  id: number;
   title: string;
   lat: number;
   lng: number;

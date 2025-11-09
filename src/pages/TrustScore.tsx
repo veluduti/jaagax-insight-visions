@@ -35,11 +35,14 @@ import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
 interface ProjectWithScore {
-  id: string;
+  id: number;
   name: string;
   city: string;
   locality: string;
   verified: boolean;
+  builder_id: number;
+  builder_name: string;
+  avg_price: number;
   trust_score: number;
   rera_id: string | null;
   image: string | null;
