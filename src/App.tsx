@@ -18,6 +18,8 @@ import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
 import PropertyValuation from "./pages/PropertyValuation";
 import Communities from "./pages/Communities";
+import CommunitiesCity from "./pages/CommunitiesCity";
+import CommunitiesLocality from "./pages/CommunitiesLocality";
 import Guides from "./pages/Guides";
 import Events from "./pages/Events";
 import Map from "./pages/Map";
@@ -51,6 +53,8 @@ const App = () => (
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/valuation" element={<PropertyValuation />} />
           <Route path="/communities" element={<Communities />} />
+          <Route path="/communities/:city" element={<CommunitiesCity />} />
+          <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
           <Route path="/guides" element={<Guides />} />
           <Route path="/events" element={<Events />} />
           <Route path="/map" element={<Map />} />

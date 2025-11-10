@@ -215,6 +215,48 @@ export type Database = {
           },
         ]
       }
+      community_profiles: {
+        Row: {
+          ai_rating: number | null
+          ai_recommendation: string | null
+          ai_summary: string | null
+          appreciation_rate: number | null
+          avg_price: number | null
+          city: string
+          id: number
+          locality: string
+          updated_at: string | null
+          verified_projects: number | null
+          verified_properties: number | null
+        }
+        Insert: {
+          ai_rating?: number | null
+          ai_recommendation?: string | null
+          ai_summary?: string | null
+          appreciation_rate?: number | null
+          avg_price?: number | null
+          city: string
+          id?: never
+          locality: string
+          updated_at?: string | null
+          verified_projects?: number | null
+          verified_properties?: number | null
+        }
+        Update: {
+          ai_rating?: number | null
+          ai_recommendation?: string | null
+          ai_summary?: string | null
+          appreciation_rate?: number | null
+          avg_price?: number | null
+          city?: string
+          id?: never
+          locality?: string
+          updated_at?: string | null
+          verified_projects?: number | null
+          verified_properties?: number | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -240,6 +282,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_trends: {
+        Row: {
+          ai_summary: string | null
+          appreciation_rate: number | null
+          avg_price: number | null
+          city: string | null
+          id: number
+          last_updated: string | null
+          locality: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          appreciation_rate?: number | null
+          avg_price?: number | null
+          city?: string | null
+          id?: never
+          last_updated?: string | null
+          locality?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          appreciation_rate?: number | null
+          avg_price?: number | null
+          city?: string | null
+          id?: never
+          last_updated?: string | null
+          locality?: string | null
+        }
+        Relationships: []
       }
       poi: {
         Row: {

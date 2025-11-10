@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.generate-agent-summary]
 verify_jwt = false
+
+[functions.analyze-community]
+verify_jwt = false
