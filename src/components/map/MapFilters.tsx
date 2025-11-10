@@ -92,11 +92,18 @@ const MapFilters = ({ filters, onFiltersChange, currentCity, onCityChange }: Map
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="apartment">Apartment</SelectItem>
-                <SelectItem value="villa">Villa</SelectItem>
-                <SelectItem value="plot">Plot</SelectItem>
-                <SelectItem value="office">Office</SelectItem>
-                <SelectItem value="shop">Shop</SelectItem>
+                <SelectItem value="Apartment">Apartment</SelectItem>
+                <SelectItem value="Villa">Villa</SelectItem>
+                <SelectItem value="Independent House">Independent House</SelectItem>
+                <SelectItem value="Plot">Plot</SelectItem>
+                <SelectItem value="Penthouse">Penthouse</SelectItem>
+                {filters.transactionType === 'commercial' && (
+                  <>
+                    <SelectItem value="Office Space">Office Space</SelectItem>
+                    <SelectItem value="Retail Shop">Retail Shop</SelectItem>
+                    <SelectItem value="Warehouse">Warehouse</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>

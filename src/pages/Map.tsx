@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +34,7 @@ interface Property {
 }
 
 const Map = () => {
+  const [searchParams] = useSearchParams();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -43,13 +45,33 @@ const Map = () => {
   const [is3DMode, setIs3DMode] = useState(false);
   const [currentCity, setCurrentCity] = useState<"Hyderabad" | "Vijayawada">("Hyderabad");
   const [isSeeding, setIsSeeding] = useState(false);
-  const [filters, setFilters] = useState({
-    transactionType: "buy",
-    propertyType: "all",
-    priceRange: [1000000, 50000000],
-    beds: "any",
-    verifiedOnly: false,
-  });
+  
+  // Initialize filters from URL params
+  const getInitialFilters = () => {
+    return {
+      transactionType: searchParams.get('transactionType') || "buy",
+      propertyType: searchParams.get('propertyType') || "all",
+      priceRange: searchParams.get('priceRange') ? 
+        [1000000, parseInt(searchParams.get('priceRange') || "50000000")] : 
+        [1000000, 50000000],
+      beds: searchParams.get('beds') || "any",
+      verifiedOnly: false,
+    };
+  };
+  
+  const [filters, setFilters] = useState(getInitialFilters());
+
+  // Update filters when URL changes
+  useEffect(() => {
+    const newFilters = getInitialFilters();
+    setFilters(newFilters);
+    
+    // Update city from URL if provided
+    const cityParam = searchParams.get('city');
+    if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
+      setCurrentCity(cityParam);
+    }
+  }, [searchParams]);
 
   // City coordinates
   const cityCoordinates = {
@@ -187,18 +209,27 @@ const Map = () => {
   const fetchProperties = async () => {
     let query = supabase.from("properties").select("*");
 
+    // Filter by city
+    query = query.eq("city", currentCity);
+
     if (filters.verifiedOnly) {
       query = query.eq("verified", true);
     }
 
     if (filters.propertyType !== "all") {
-      query = query.eq("type", filters.propertyType as any);
+      query = query.ilike("type", `%${filters.propertyType}%`);
     }
 
     if (filters.beds !== "any") {
-      query = query.eq("bhk", parseInt(filters.beds));
+      const bedsNum = parseInt(filters.beds);
+      if (bedsNum === 4) {
+        query = query.gte("bhk", 4);
+      } else {
+        query = query.eq("bhk", bedsNum);
+      }
     }
 
+    // Price range filter
     query = query
       .gte("price", filters.priceRange[0])
       .lte("price", filters.priceRange[1]);

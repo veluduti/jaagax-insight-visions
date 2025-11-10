@@ -25,13 +25,13 @@ const PropertySearchBar = () => {
   ];
 
   const handleSearch = () => {
-    // Build search params
+    // Build search params based on transaction type
     const params = new URLSearchParams();
-    if (searchType) params.append('type', searchType);
-    if (location) params.append('location', location);
+    params.append('transactionType', searchType); // buy, rent, commercial
+    if (location) params.append('city', location);
     if (propertyType !== 'all') params.append('propertyType', propertyType);
     if (beds !== 'any') params.append('beds', beds);
-    if (budget !== 'any') params.append('budget', budget);
+    if (budget !== 'any') params.append('priceRange', budget);
     
     navigate(`/map?${params.toString()}`);
   };
@@ -118,10 +118,18 @@ const PropertySearchBar = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="apartment">Apartment</SelectItem>
-              <SelectItem value="villa">Villa</SelectItem>
-              <SelectItem value="plot">Plot</SelectItem>
-              <SelectItem value="penthouse">Penthouse</SelectItem>
+              <SelectItem value="Apartment">Apartment</SelectItem>
+              <SelectItem value="Villa">Villa</SelectItem>
+              <SelectItem value="Independent House">Independent House</SelectItem>
+              <SelectItem value="Plot">Plot</SelectItem>
+              <SelectItem value="Penthouse">Penthouse</SelectItem>
+              {searchType === 'commercial' && (
+                <>
+                  <SelectItem value="Office Space">Office Space</SelectItem>
+                  <SelectItem value="Retail Shop">Retail Shop</SelectItem>
+                  <SelectItem value="Warehouse">Warehouse</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
