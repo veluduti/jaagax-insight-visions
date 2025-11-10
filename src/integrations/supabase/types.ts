@@ -170,6 +170,53 @@ export type Database = {
         }
         Relationships: []
       }
+      builder_performance: {
+        Row: {
+          builder_id: string
+          created_at: string | null
+          id: string
+          leads: number | null
+          month: string
+          project_id: number | null
+          revenue: number | null
+          units_sold: number | null
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          builder_id: string
+          created_at?: string | null
+          id?: string
+          leads?: number | null
+          month: string
+          project_id?: number | null
+          revenue?: number | null
+          units_sold?: number | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          builder_id?: string
+          created_at?: string | null
+          id?: string
+          leads?: number | null
+          month?: string
+          project_id?: number | null
+          revenue?: number | null
+          units_sold?: number | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_performance_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builders: {
         Row: {
           city: string | null
@@ -768,6 +815,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_builder_analytics: {
+        Args: { p_builder_id: string; p_months?: number }
+        Returns: {
+          avg_views: number
+          growth_rate: number
+          total_leads: number
+          total_revenue: number
+          total_units_sold: number
+          total_views: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

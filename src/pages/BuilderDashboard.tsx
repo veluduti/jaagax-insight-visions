@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
+import RERAUploadModal from "@/components/builder/RERAUploadModal";
+import DocumentationModal from "@/components/builder/DocumentationModal";
 
 interface Project {
   id: number;
@@ -35,17 +37,27 @@ export default function BuilderDashboard() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
+  const [activeTab, setActiveTab] = useState("properties");
+  const [reraModalOpen, setReraModalOpen] = useState(false);
+  const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProjects: 0,
     verifiedProjects: 0,
     totalUnits: 0,
     totalViews: 0,
   });
+  const [performance, setPerformance] = useState({
+    totalViews: 0,
+    unitsSold: 0,
+    avgTrustScore: 0,
+    growthRate: 0,
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUser();
     fetchProjects();
+    fetchPerformanceData();
   }, []);
 
   const fetchUser = async () => {
@@ -84,6 +96,36 @@ export default function BuilderDashboard() {
       if (data.length > 0 && !selectedProject) {
         fetchProjectForecast(data[0]);
       }
+    }
+  };
+
+  const fetchPerformanceData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      // Fetch analytics using the database function
+      const { data, error } = await supabase.rpc('get_builder_analytics', {
+        p_builder_id: user.id,
+        p_months: 3
+      });
+
+      if (error) {
+        console.error('Analytics error:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const analytics = data[0];
+        setPerformance({
+          totalViews: analytics.total_views || 0,
+          unitsSold: analytics.total_units_sold || 0,
+          avgTrustScore: Math.round(projects.reduce((acc, p) => acc + (p.trust_score || 0), 0) / (projects.length || 1)),
+          growthRate: Math.round(analytics.growth_rate || 0),
+        });
+      }
+    } catch (error) {
+      console.error('Performance fetch error:', error);
     }
   };
 
@@ -209,7 +251,10 @@ export default function BuilderDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setActiveTab("add-property")}
+            >
               <CardContent className="p-6 text-center">
                 <Plus className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Add Property</h3>
@@ -218,7 +263,10 @@ export default function BuilderDashboard() {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setReraModalOpen(true)}
+            >
               <CardContent className="p-6 text-center">
                 <Upload className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Upload RERA</h3>
@@ -227,7 +275,10 @@ export default function BuilderDashboard() {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setDocsModalOpen(true)}
+            >
               <CardContent className="p-6 text-center">
                 <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Documentation</h3>
@@ -236,7 +287,10 @@ export default function BuilderDashboard() {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setActiveTab("performance")}
+            >
               <CardContent className="p-6 text-center">
                 <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Analytics</h3>
@@ -246,7 +300,7 @@ export default function BuilderDashboard() {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="properties" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="properties">My Properties</TabsTrigger>
             <TabsTrigger value="add-property">Add Property</TabsTrigger>
@@ -417,24 +471,28 @@ export default function BuilderDashboard() {
               <div className="p-6 bg-primary/10 rounded-lg">
                 <Eye className="h-8 w-8 text-primary mb-2" />
                 <p className="text-sm text-muted-foreground">Total Views</p>
-                <p className="text-3xl font-bold">{stats.totalViews}</p>
-                <p className="text-sm text-green-600 mt-2">+15% this month</p>
+                <p className="text-3xl font-bold">{performance.totalViews.toLocaleString()}</p>
+                <p className={`text-sm mt-2 ${performance.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {performance.growthRate >= 0 ? '+' : ''}{performance.growthRate}% this month
+                </p>
               </div>
 
               <div className="p-6 bg-green-500/10 rounded-lg">
                 <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
                 <p className="text-sm text-muted-foreground">Units Sold</p>
-                <p className="text-3xl font-bold">127</p>
-                <p className="text-sm text-green-600 mt-2">+23% this month</p>
+                <p className="text-3xl font-bold">{performance.unitsSold}</p>
+                <p className="text-sm text-muted-foreground mt-2">Last 3 months</p>
               </div>
 
               <div className="p-6 bg-blue-500/10 rounded-lg">
                 <Building2 className="h-8 w-8 text-blue-500 mb-2" />
                 <p className="text-sm text-muted-foreground">Avg. Trust Score</p>
                 <p className="text-3xl font-bold">
-                  {Math.round(projects.reduce((acc, p) => acc + (p.trust_score || 0), 0) / projects.length) || 0}/100
+                  {performance.avgTrustScore}/100
                 </p>
-                <p className="text-sm text-green-600 mt-2">Excellent rating</p>
+                <p className="text-sm text-green-600 mt-2">
+                  {performance.avgTrustScore >= 80 ? 'Excellent rating' : performance.avgTrustScore >= 60 ? 'Good rating' : 'Needs improvement'}
+                </p>
               </div>
             </div>
 
@@ -533,6 +591,22 @@ export default function BuilderDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <RERAUploadModal
+          open={reraModalOpen}
+          onOpenChange={setReraModalOpen}
+          projects={projects}
+          onSuccess={() => {
+            fetchProjects();
+            toast.success("RERA document submitted for verification");
+          }}
+        />
+
+        <DocumentationModal
+          open={docsModalOpen}
+          onOpenChange={setDocsModalOpen}
+        />
       </div>
     </div>
   );
