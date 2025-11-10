@@ -75,16 +75,27 @@ export default function AgentDashboard() {
     
     setUser(userData);
 
-    // Find agent profile
-    const { data: agents } = await supabase
+    // Find agent profile linked to this user
+    const { data: agentData, error } = await supabase
       .from("agents")
       .select("*")
-      .limit(1);
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (agents && agents.length > 0) {
-      setAgentProfile(agents[0]);
-      fetchAgentProperties(agents[0].id);
+    if (error) {
+      console.error("Error fetching agent profile:", error);
+      toast.error("Could not load agent profile. Please contact support.");
+      return;
     }
+
+    if (!agentData) {
+      toast.error("No agent profile found. Please complete your profile setup.");
+      // Could redirect to profile setup page here
+      return;
+    }
+
+    setAgentProfile(agentData);
+    fetchAgentProperties(agentData.id);
   };
 
   const fetchAgentProperties = async (agentId: number) => {

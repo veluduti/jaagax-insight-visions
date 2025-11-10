@@ -79,7 +79,7 @@ export const useAuth = () => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string) => {
+  const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -91,6 +91,7 @@ export const useAuth = () => {
           data: {
             role: selectedRole,
             city: city || null,
+            name: name || null,
           }
         },
       });
@@ -118,7 +119,10 @@ export const useAuth = () => {
 
         console.log("User role created successfully");
         
-        // Fetch the role immediately after creation
+        // Set the role immediately
+        setRole(selectedRole);
+        
+        // Fetch the role to confirm
         setTimeout(() => {
           fetchUserRole(data.user.id);
         }, 500);

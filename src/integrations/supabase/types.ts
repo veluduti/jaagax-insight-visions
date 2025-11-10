@@ -61,6 +61,7 @@ export type Database = {
           rent_count: number | null
           sales_count: number | null
           trust_score: number | null
+          user_id: string | null
           verified: boolean | null
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           rent_count?: number | null
           sales_count?: number | null
           trust_score?: number | null
+          user_id?: string | null
           verified?: boolean | null
         }
         Update: {
@@ -85,6 +87,7 @@ export type Database = {
           rent_count?: number | null
           sales_count?: number | null
           trust_score?: number | null
+          user_id?: string | null
           verified?: boolean | null
         }
         Relationships: []

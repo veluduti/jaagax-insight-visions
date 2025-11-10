@@ -108,10 +108,10 @@ export default function Auth() {
         toast.success("Welcome back!");
         // Small delay to ensure auth state is updated
         setTimeout(() => {
-          navigate("/dashboard");
+          redirectToDashboard();
         }, 500);
       } else {
-        const { error } = await signUp(email, password, selectedRole, city);
+        const { error } = await signUp(email, password, selectedRole, city, name);
         
         if (error) {
           if (error.message.includes("already registered")) {
@@ -121,10 +121,10 @@ export default function Auth() {
         }
 
         toast.success("Account created! Redirecting...");
-        // Longer delay for signup to ensure role is created
+        // Longer delay for signup to ensure role and profile are created
         setTimeout(() => {
-          navigate("/dashboard");
-        }, 1000);
+          redirectToDashboard();
+        }, 1500);
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
