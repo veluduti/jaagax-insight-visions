@@ -36,19 +36,36 @@ export const FakeListingManager = () => {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .or('trust_score.lt.80,verified.eq.false,images.is.null')
-        .order('trust_score', { ascending: true })
-        .limit(50);
+        .order('trust_score', { ascending: true });
 
       if (error) throw error;
 
-      const suspicious = data?.map((prop: any) => {
+      const suspicious = data?.filter((prop: any) => {
+        // Filter properties with critical missing data or low quality
+        const hasCriticalIssues = 
+          !prop.title || 
+          !prop.city || 
+          !prop.locality ||
+          prop.price === 0 || 
+          prop.price === null ||
+          prop.trust_score < 80 ||
+          !prop.verified ||
+          !prop.images || 
+          prop.images.length === 0 ||
+          !prop.description || 
+          prop.description.length < 50;
+        
+        return hasCriticalIssues;
+      }).map((prop: any) => {
         const reasons: string[] = [];
+        if (!prop.title) reasons.push("Missing title");
+        if (!prop.city) reasons.push("Missing city");
+        if (!prop.locality) reasons.push("Missing locality");
+        if (prop.price === 0 || prop.price === null) reasons.push("Invalid price");
         if (prop.trust_score < 80) reasons.push("Low trust score");
         if (!prop.verified) reasons.push("Not verified");
         if (!prop.images || prop.images.length === 0) reasons.push("No images");
         if (!prop.description || prop.description.length < 50) reasons.push("Poor description");
-        if (prop.price === 0) reasons.push("Invalid price");
 
         return {
           ...prop,
