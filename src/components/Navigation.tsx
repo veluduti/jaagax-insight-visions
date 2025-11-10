@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -11,10 +14,9 @@ import {
   Calendar, 
   Globe, 
   DollarSign, 
-  Ruler 
+  Ruler,
+  LogOut
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   Select, 
   SelectContent, 
@@ -22,6 +24,14 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <motion.a
@@ -35,9 +45,11 @@ const NavItem = ({ href, children }: { href: string; children: React.ReactNode }
 );
 
 const Navigation = () => {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [preferences, setPreferences] = useState({
     language: 'English',
     currency: 'INR',
@@ -58,9 +70,34 @@ const Navigation = () => {
       setUser(user);
       if (user) {
         fetchPreferences(user.id);
+        fetchUserRole(user.id);
       }
     });
+
+    // Listen to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
+        setUserRole(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    if (data) {
+      setUserRole(data.role);
+    }
+  };
 
   const fetchPreferences = async (userId: string) => {
     const { data } = await supabase
@@ -92,6 +129,16 @@ const Navigation = () => {
 
     if (!error) {
       setPreferences(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      toast.success("Signed out successfully");
+      navigate("/");
+    } else {
+      toast.error("Failed to sign out");
     }
   };
 
@@ -141,21 +188,33 @@ const Navigation = () => {
             </Button>
             
             {user ? (
-              <Button 
-                variant="default" 
-                onClick={() => window.location.href = '/buyer-dashboard'}
-              >
-                <User className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default" className="glow-effect">
+                    <User className="h-4 w-4 mr-2" />
+                    {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : "Dashboard"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button 
                 variant="default" 
                 className="glow-effect"
-                onClick={() => window.location.href = '/auth'}
+                onClick={() => navigate('/auth')}
               >
                 <User className="h-4 w-4 mr-2" />
-                Sign up / Log in
+                Sign In
               </Button>
             )}
 

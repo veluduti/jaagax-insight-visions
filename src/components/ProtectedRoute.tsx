@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-type AppRole = "buyer" | "seller" | "builder" | "agent" | "admin";
+type AppRole = "buyer" | "agent" | "builder" | "admin";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      checkAuth();
+      setTimeout(() => checkAuth(), 0);
     });
 
     return () => {
@@ -55,8 +55,8 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-midnight">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }

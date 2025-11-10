@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MobileNav from "./components/MobileNav";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -29,6 +29,7 @@ import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/property/:id" element={<PropertyDetail />} />
@@ -59,8 +61,10 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/map" element={<Map />} />
           <Route path="/sell-property" element={<SellProperty />} />
+          
+          {/* Role-based Dashboards */}
           <Route
-            path="/buyer-dashboard"
+            path="/dashboard/buyer"
             element={
               <ProtectedRoute allowedRole="buyer">
                 <BuyerDashboard />
@@ -68,23 +72,7 @@ const App = () => (
             }
           />
           <Route
-            path="/seller-dashboard"
-            element={
-              <ProtectedRoute allowedRole="seller">
-                <SellerDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/builder-dashboard"
-            element={
-              <ProtectedRoute allowedRole="builder">
-                <BuilderDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/agent-dashboard"
+            path="/dashboard/agent"
             element={
               <ProtectedRoute allowedRole="agent">
                 <AgentDashboard />
@@ -92,13 +80,28 @@ const App = () => (
             }
           />
           <Route
-            path="/admin-dashboard"
+            path="/dashboard/builder"
+            element={
+              <ProtectedRoute allowedRole="builder">
+                <BuilderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/admin"
             element={
               <ProtectedRoute allowedRole="admin">
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
+          
+          {/* Legacy routes - redirect to new pattern */}
+          <Route path="/buyer-dashboard" element={<Dashboard />} />
+          <Route path="/seller-dashboard" element={<Dashboard />} />
+          <Route path="/builder-dashboard" element={<Dashboard />} />
+          <Route path="/agent-dashboard" element={<Dashboard />} />
+          <Route path="/admin-dashboard" element={<Dashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
