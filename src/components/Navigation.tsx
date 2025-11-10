@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, 
@@ -159,9 +160,11 @@ const Navigation = () => {
             className="flex items-center gap-3"
             whileHover={{ scale: 1.05 }}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect">
-              <span className="text-2xl font-bold text-primary-foreground">J</span>
-            </div>
+            <img 
+              src={logo} 
+              alt="JaagaX Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="text-2xl font-bold text-gradient">JaagaX</h1>
               <p className="text-xs text-muted-foreground">Intelligent Realty</p>
