@@ -3,13 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import Navigation from "@/components/Navigation";
-import { motion } from "framer-motion";
+import PropertyComparison from "@/components/ai/PropertyComparison";
+import { motion, AnimatePresence } from "framer-motion";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { toast } from "sonner";
 import { 
   MapPin, Home, TrendingUp, Shield, ArrowLeft, 
-  Bed, Bath, Maximize, Star, Eye, MessageSquare 
+  Bed, Bath, Maximize, Star, Eye, MessageSquare, GitCompare 
 } from "lucide-react";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoicHJhdGhha2hhbGVyIiwiYSI6ImNtNXFxa3Z4MDA1ejIya29ndmhweDM2cjgifQ.Luc21TaC0cIBSfGWglZANg";
@@ -19,9 +22,31 @@ export default function AIAdvisorResults() {
   const navigate = useNavigate();
   const { properties = [], filters = {} } = location.state || {};
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [selectedProperties, setSelectedProperties] = useState<any[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+
+  const handleSelectProperty = (property: any, checked: boolean) => {
+    if (checked) {
+      if (selectedProperties.length >= 3) {
+        toast.error("You can only compare up to 3 properties");
+        return;
+      }
+      setSelectedProperties(prev => [...prev, property]);
+    } else {
+      setSelectedProperties(prev => prev.filter(p => p.id !== property.id));
+    }
+  };
+
+  const handleCompare = () => {
+    if (selectedProperties.length < 2) {
+      toast.error("Please select at least 2 properties to compare");
+      return;
+    }
+    setShowComparison(true);
+  };
 
   useEffect(() => {
     if (!properties || properties.length === 0) {
@@ -104,6 +129,15 @@ export default function AIAdvisorResults() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
+      <AnimatePresence>
+        {showComparison && (
+          <PropertyComparison 
+            properties={selectedProperties} 
+            onClose={() => setShowComparison(false)}
+          />
+        )}
+      </AnimatePresence>
+      
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <motion.div
@@ -111,14 +145,26 @@ export default function AIAdvisorResults() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/ai-advisor')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to AI Advisor
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/ai-advisor')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to AI Advisor
+            </Button>
+
+            {selectedProperties.length > 0 && (
+              <Button
+                onClick={handleCompare}
+                variant="default"
+                className="gap-2"
+              >
+                <GitCompare className="h-4 w-4" />
+                Compare {selectedProperties.length} Properties
+              </Button>
+            )}
+          </div>
 
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <h1 className="text-3xl font-bold">AI Search Results</h1>
@@ -196,6 +242,16 @@ export default function AIAdvisorResults() {
                           Verified
                         </Badge>
                       )}
+                      {/* Selection Checkbox */}
+                      <div 
+                        className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm rounded p-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedProperties.some(p => p.id === property.id)}
+                          onCheckedChange={(checked) => handleSelectProperty(property, checked as boolean)}
+                        />
+                      </div>
                     </div>
 
                     {/* Content */}

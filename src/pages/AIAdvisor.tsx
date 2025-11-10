@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import SavedSearches, { saveSearch } from "@/components/ai/SavedSearches";
+import { useVoiceSynthesis } from "@/hooks/useVoiceSynthesis";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, Mic, Send, MapPin, Home, TrendingUp, 
-  Shield, MessageSquare, Loader2, ArrowRight, Star
+  Shield, MessageSquare, Loader2, ArrowRight, Star, Volume2, VolumeX, Bookmark
 } from "lucide-react";
 
 interface AIMessage {
@@ -27,8 +30,12 @@ export default function AIAdvisor() {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [conversationContext, setConversationContext] = useState<any>(null);
+  const [showSavedSearches, setShowSavedSearches] = useState(false);
+  const [searchName, setSearchName] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { isSupported: voiceSupported, isEnabled: voiceEnabled, isSpeaking, speak, stop, toggle: toggleVoice } = useVoiceSynthesis();
 
   useEffect(() => {
     fetchUser();
@@ -91,12 +98,24 @@ export default function AIAdvisor() {
 
     const userMessage: AIMessage = { role: "user", content: query };
     setMessages(prev => [...prev, userMessage]);
+    const currentQuery = query;
     setQuery("");
     setIsLoading(true);
 
     try {
+      // Build conversation context for follow-up questions
+      const contextMessages = messages.slice(-4).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
       const { data, error } = await supabase.functions.invoke('ai-property-advisor', {
-        body: { query, userId }
+        body: { 
+          query: currentQuery, 
+          userId,
+          conversationContext: contextMessages.length > 0 ? contextMessages : null,
+          previousFilters: conversationContext
+        }
       });
 
       if (error) throw error;
@@ -104,6 +123,9 @@ export default function AIAdvisor() {
       if (!data.success) {
         throw new Error(data.error || "Failed to process query");
       }
+
+      // Update conversation context
+      setConversationContext(data.filters);
 
       const assistantMessage: AIMessage = {
         role: "assistant",
@@ -115,25 +137,68 @@ export default function AIAdvisor() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
+      // Speak the response if voice is enabled
+      if (voiceEnabled && data.aiSummary) {
+        speak(data.aiSummary);
+      }
+
       // If properties found, offer to view results
       if (data.properties && data.properties.length > 0) {
         setTimeout(() => {
+          const followUpMsg = `Found ${data.totalResults} properties! Would you like to view them on the map?`;
           setMessages(prev => [...prev, {
             role: "assistant",
-            content: `Found ${data.totalResults} properties! Would you like to view them on the map?`,
+            content: followUpMsg,
           }]);
+          if (voiceEnabled) {
+            speak(followUpMsg);
+          }
         }, 1000);
       }
     } catch (error: any) {
       console.error("AI Advisor error:", error);
       toast.error(error.message || "Failed to get AI response");
+      const errorMsg = "I'm having trouble processing that request. Could you try rephrasing it?";
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "I'm having trouble processing that request. Could you try rephrasing it?",
+        content: errorMsg,
       }]);
+      if (voiceEnabled) {
+        speak(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSaveSearch = async () => {
+    if (!searchName.trim()) {
+      toast.error("Please enter a name for this search");
+      return;
+    }
+
+    if (!conversationContext || messages.length === 0) {
+      toast.error("No search to save yet. Try asking for properties first!");
+      return;
+    }
+
+    const lastUserQuery = messages.filter(m => m.role === "user").pop()?.content || "";
+    
+    const success = await saveSearch({
+      query: lastUserQuery,
+      filters: conversationContext,
+      name: searchName
+    });
+
+    if (success) {
+      setSearchName("");
+    }
+  };
+
+  const handleSelectSavedSearch = (search: any) => {
+    setQuery(search.query);
+    setShowSavedSearches(false);
+    toast.success(`Loaded: ${search.name}`);
   };
 
   const handleViewResults = (properties: any[], filters: any) => {
@@ -278,7 +343,27 @@ export default function AIAdvisor() {
             </div>
 
             {/* Input Area */}
-            <div className="border-t pt-4">
+            <div className="border-t pt-4 space-y-3">
+              {/* Save Search Section */}
+              {conversationContext && (
+                <div className="flex gap-2">
+                  <Input
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    placeholder="Save this search..."
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleSaveSearch}
+                    variant="outline"
+                    size="icon"
+                    title="Save search"
+                  >
+                    <Bookmark className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Textarea
                   value={query}
@@ -289,11 +374,25 @@ export default function AIAdvisor() {
                       handleSubmit();
                     }
                   }}
-                  placeholder="Type your requirements... (e.g., '3BHK near Gachibowli under ₹1 crore')"
+                  placeholder={conversationContext 
+                    ? "Ask a follow-up... (e.g., 'show me cheaper options' or 'what about 4BHK?')"
+                    : "Type your requirements... (e.g., '3BHK near Gachibowli under ₹1 crore')"
+                  }
                   className="flex-1 min-h-[60px] resize-none"
                   disabled={isLoading}
                 />
                 <div className="flex flex-col gap-2">
+                  {voiceSupported && (
+                    <Button
+                      onClick={toggleVoice}
+                      variant={voiceEnabled ? "default" : "outline"}
+                      size="icon"
+                      title={voiceEnabled ? "Voice responses enabled" : "Voice responses disabled"}
+                      className={isSpeaking ? 'animate-pulse' : ''}
+                    >
+                      {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                    </Button>
+                  )}
                   <Button
                     onClick={handleVoiceInput}
                     variant="outline"
@@ -303,52 +402,71 @@ export default function AIAdvisor() {
                   >
                     <Mic className="h-4 w-4" />
                   </Button>
-          <Button
-            onClick={handleSubmit}
-            size="icon"
-            disabled={isLoading || !query.trim()}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    size="icon"
+                    disabled={isLoading || !query.trim()}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Press Enter to send • Shift + Enter for new line • Click mic for voice input
+              <p className="text-xs text-muted-foreground text-center">
+                Press Enter to send • Shift + Enter for new line • {conversationContext && "Ask follow-ups like 'show cheaper options' • "}Click mic for voice input
               </p>
             </div>
           </Card>
         </motion.div>
 
-        {/* Example Queries */}
+        {/* Saved Searches & Examples */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="max-w-4xl mx-auto mt-6"
+          className="max-w-4xl mx-auto mt-6 space-y-4"
         >
-          <p className="text-sm text-muted-foreground mb-3 text-center">Try these example queries:</p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {[
-              "3BHK in Gachibowli under ₹1 crore",
-              "Verified villas in Bangalore",
-              "High trust score apartments in Mumbai",
-              "Properties near Whitefield with good appreciation"
-            ].map((example, index) => (
-              <Badge
-                key={index}
-                variant="outline"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                onClick={() => setQuery(example)}
-              >
-                <MessageSquare className="h-3 w-3 mr-1" />
-                {example}
-              </Badge>
-            ))}
+          {/* Saved Searches Toggle */}
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowSavedSearches(!showSavedSearches)}
+            >
+              <Bookmark className="h-4 w-4 mr-2" />
+              {showSavedSearches ? "Hide" : "Show"} Saved Searches
+            </Button>
           </div>
+
+          {showSavedSearches && (
+            <SavedSearches onSelectSearch={handleSelectSavedSearch} />
+          )}
+
+          {!showSavedSearches && (
+            <>
+              <p className="text-sm text-muted-foreground mb-3 text-center">Try these example queries:</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[
+                  "3BHK in Gachibowli under ₹1 crore",
+                  "Verified villas in Bangalore",
+                  "High trust score apartments in Mumbai",
+                  "Properties near Whitefield with good appreciation"
+                ].map((example, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                    onClick={() => setQuery(example)}
+                  >
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    {example}
+                  </Badge>
+                ))}
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
     </div>

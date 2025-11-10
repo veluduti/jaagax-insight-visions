@@ -521,6 +521,63 @@ export type Database = {
           },
         ]
       }
+      property_comparisons: {
+        Row: {
+          ai_analysis: Json
+          created_at: string | null
+          id: string
+          property_ids: number[]
+          user_id: string
+        }
+        Insert: {
+          ai_analysis: Json
+          created_at?: string | null
+          id?: string
+          property_ids: number[]
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: Json
+          created_at?: string | null
+          id?: string
+          property_ids?: number[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_searches: {
+        Row: {
+          created_at: string | null
+          filters: Json
+          id: string
+          last_checked: string | null
+          name: string
+          notification_enabled: boolean | null
+          query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          filters: Json
+          id?: string
+          last_checked?: string | null
+          name: string
+          notification_enabled?: boolean | null
+          query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          filters?: Json
+          id?: string
+          last_checked?: string | null
+          name?: string
+          notification_enabled?: boolean | null
+          query?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       towers: {
         Row: {
           created_at: string | null

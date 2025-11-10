@@ -3,6 +3,9 @@ project_id = "smyypmthspsrvwydzsxc"
 [functions.market-trends-ai]
 verify_jwt = false
 
+[functions.ai-compare-properties]
+verify_jwt = false
+
 [functions.analyze-property]
 verify_jwt = false
 
