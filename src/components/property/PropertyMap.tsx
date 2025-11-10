@@ -46,8 +46,8 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       el.innerHTML = "✓";
       el.style.color = "white";
     } else {
-      el.style.background = "linear-gradient(135deg, #6366f1, #4f46e5)";
-      el.style.boxShadow = "0 0 20px rgba(99, 102, 241, 0.6)";
+      el.style.background = "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))";
+      el.style.boxShadow = "0 0 20px hsl(var(--primary) / 0.6)";
       el.innerHTML = "📍";
     }
 

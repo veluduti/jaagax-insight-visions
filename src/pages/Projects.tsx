@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, MapPin, TrendingUp, Shield, ChevronRight } from "lucide-react";
+import { Building2, MapPin, TrendingUp, Shield, ChevronRight, Map, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface Project {
   id: number;
@@ -34,12 +36,18 @@ const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
   // Filter states
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedPrice, setSelectedPrice] = useState<string>("all");
   const [reraOnly, setReraOnly] = useState(false);
+
+  // Map refs
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   const cities = ["all", "Hyderabad", "Vijayawada"];
   const projectTypes = ["all", "Residential", "Commercial", "Villa", "Plotted Development"];
@@ -133,6 +141,83 @@ const Projects = () => {
     setFilteredProjects(filtered);
   };
 
+  // Initialize map
+  useEffect(() => {
+    if (viewMode !== "map" || !mapContainer.current || map.current) return;
+
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: [78.4867, 17.385],
+      zoom: 11,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    return () => {
+      map.current?.remove();
+      map.current = null;
+    };
+  }, [viewMode]);
+
+  // Update map markers
+  useEffect(() => {
+    if (!map.current || viewMode !== "map") return;
+
+    // Clear existing markers
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    // Add new markers
+    filteredProjects.forEach((project) => {
+      // Use default coordinates for projects (in real app, projects should have lat/lng)
+      const coords: [number, number] = [
+        78.4867 + (Math.random() - 0.5) * 0.2,
+        17.385 + (Math.random() - 0.5) * 0.2,
+      ];
+
+      const el = document.createElement("div");
+      el.className = "project-marker";
+      el.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+          color: white;
+          padding: 8px 12px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 13px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          cursor: pointer;
+          white-space: nowrap;
+          border: 2px solid white;
+        ">
+          ₹${(project.avg_price / 10000000).toFixed(1)}Cr
+        </div>
+      `;
+
+      el.addEventListener("click", () => {
+        navigate(`/project/${project.id}`);
+      });
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat(coords)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(`
+            <div style="padding: 8px;">
+              <h3 style="font-weight: 600; margin-bottom: 4px;">${project.name}</h3>
+              <p style="font-size: 12px; color: #666; margin-bottom: 4px;">${project.locality}, ${project.city}</p>
+              <p style="font-size: 14px; font-weight: 600; color: hsl(var(--primary));">₹${(project.avg_price / 10000000).toFixed(2)}Cr</p>
+            </div>
+          `)
+        )
+        .addTo(map.current!);
+
+      markersRef.current.push(marker);
+    });
+  }, [filteredProjects, viewMode, navigate]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <Navigation />
@@ -159,7 +244,7 @@ const Projects = () => {
           transition={{ delay: 0.1 }}
           className="glass-panel p-6 mb-8 rounded-xl"
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Select value={selectedCity} onValueChange={setSelectedCity}>
               <SelectTrigger>
                 <SelectValue placeholder="Select City" />
@@ -207,6 +292,24 @@ const Projects = () => {
               <Shield className="h-4 w-4 mr-2" />
               RERA Verified
             </Button>
+
+            <Button
+              variant={viewMode === "map" ? "default" : "outline"}
+              onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
+              className="w-full"
+            >
+              {viewMode === "list" ? (
+                <>
+                  <Map className="h-4 w-4 mr-2" />
+                  Map View
+                </>
+              ) : (
+                <>
+                  <List className="h-4 w-4 mr-2" />
+                  List View
+                </>
+              )}
+            </Button>
           </div>
         </motion.div>
 
@@ -215,8 +318,88 @@ const Projects = () => {
           Found <span className="text-primary font-semibold">{filteredProjects.length}</span> projects
         </div>
 
-        {/* Projects Grid */}
-        {loading ? (
+        {/* Projects Grid or Map View */}
+        {viewMode === "map" ? (
+          <div className="flex gap-6 h-[calc(100vh-400px)] min-h-[600px]">
+            {/* Projects List */}
+            <div className="w-[45%] overflow-y-auto pr-4 space-y-4 scrollbar-thin">
+              {loading ? (
+                [...Array(4)].map((_, i) => (
+                  <Card key={i} className="glass-panel h-48 animate-pulse" />
+                ))
+              ) : filteredProjects.length === 0 ? (
+                <div className="text-center py-20">
+                  <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">No projects found</h3>
+                  <p className="text-muted-foreground">Try adjusting your filters</p>
+                </div>
+              ) : (
+                filteredProjects.map((project) => (
+                  <Card
+                    key={project.id}
+                    className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all"
+                    onClick={() => navigate(`/project/${project.id}`)}
+                  >
+                    <div className="flex gap-4 p-4">
+                      {/* Image */}
+                      <div className="relative w-48 h-36 flex-shrink-0 overflow-hidden rounded-lg">
+                        <img
+                          src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
+                          alt={project.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        {project.rera_id && (
+                          <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground border-0 text-xs">
+                            <Shield className="h-3 w-3 mr-1" />
+                            RERA
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg mb-1 line-clamp-1">{project.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-2">{project.builder_name}</p>
+                        <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
+                          <MapPin className="h-4 w-4 flex-shrink-0" />
+                          {project.locality}, {project.city}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-muted-foreground">Starting from</span>
+                            <p className="text-xl font-bold text-primary">
+                              ₹{(project.avg_price / 10000000).toFixed(2)}Cr
+                            </p>
+                          </div>
+                          {project.trust_score > 80 && (
+                            <Badge variant="outline" className="border-primary/50">
+                              <TrendingUp className="h-3 w-3 mr-1" />
+                              {project.trust_score}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+
+            {/* Map */}
+            <div className="flex-1 relative rounded-xl overflow-hidden border border-border">
+              <div ref={mapContainer} className="w-full h-full" />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 shadow-lg"
+                onClick={() => setViewMode("list")}
+              >
+                <Building2 className="h-4 w-4 mr-2" />
+                Switch to Listings View
+              </Button>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="glass-panel h-96 animate-pulse" />

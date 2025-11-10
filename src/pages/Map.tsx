@@ -61,9 +61,7 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Use Mapbox public token - this is a demo token
-    // For production, get your own from: https://account.mapbox.com/access-tokens/
-    mapboxgl.accessToken = "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTRqN3JzNmswMmJ2MmtzN3B3dTRkcjF2In0.5ate8T-GshLvgDb2ByJRDg";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -223,42 +221,77 @@ const Map = () => {
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // Add new markers
+    // Group properties for clustering
+    const clusterGroups: { [key: string]: Property[] } = {};
+    
     properties.forEach((property) => {
+      const key = `${Math.round(property.lat * 100)}_${Math.round(property.lng * 100)}`;
+      if (!clusterGroups[key]) {
+        clusterGroups[key] = [];
+      }
+      clusterGroups[key].push(property);
+    });
+
+    // Add markers for each cluster
+    Object.values(clusterGroups).forEach((clusterProps) => {
       if (!map.current) return;
+
+      const property = clusterProps[0];
+      const isCluster = clusterProps.length > 1;
 
       // Create custom marker element
       const el = document.createElement("div");
       el.className = "property-marker";
-      el.style.width = "40px";
-      el.style.height = "40px";
-      el.style.borderRadius = "50%";
       el.style.cursor = "pointer";
-      el.style.display = "flex";
-      el.style.alignItems = "center";
-      el.style.justifyContent = "center";
-      el.style.fontSize = "18px";
-      el.style.fontWeight = "bold";
-      el.style.transition = "all 0.3s ease";
+      el.style.transition = "all 0.2s ease";
 
-      if (property.verified) {
-        el.style.background = "linear-gradient(135deg, #10b981, #059669)";
-        el.style.boxShadow = "0 0 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3)";
-        el.innerHTML = "✓";
-        el.style.color = "white";
+      if (isCluster) {
+        // Cluster marker
+        el.innerHTML = `
+          <div style="
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
+            color: white;
+            padding: 12px 16px;
+            border-radius: 24px;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border: 3px solid white;
+            min-width: 60px;
+            text-align: center;
+          ">
+            ${clusterProps.length}
+          </div>
+        `;
       } else {
-        el.style.background = "linear-gradient(135deg, #6366f1, #4f46e5)";
-        el.style.boxShadow = "0 0 15px rgba(99, 102, 241, 0.5)";
-        el.innerHTML = "₹";
-        el.style.color = "white";
+        // Single property marker
+        el.innerHTML = `
+          <div style="
+            background: ${property.verified 
+              ? 'linear-gradient(135deg, #10b981, #059669)' 
+              : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'};
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            border: 2px solid white;
+            white-space: nowrap;
+          ">
+            ₹${(property.price / 100000).toFixed(1)}L
+          </div>
+        `;
       }
 
       // Add hover effect
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2)";
+        el.style.transform = "scale(1.1) translateY(-2px)";
+        el.style.zIndex = "1000";
       });
       el.addEventListener("mouseleave", () => {
         el.style.transform = "scale(1)";
+        el.style.zIndex = "auto";
       });
 
       // Create marker
@@ -268,23 +301,37 @@ const Map = () => {
 
       // Add click event
       el.addEventListener("click", () => {
-        setSelectedProperty(property);
+        if (isCluster) {
+          // Zoom into cluster
+          map.current?.flyTo({
+            center: [property.lng, property.lat],
+            zoom: map.current.getZoom() + 2,
+            duration: 1000,
+          });
+        } else {
+          setSelectedProperty(property);
+        }
       });
 
-      // Add popup on hover
-      const popup = new mapboxgl.Popup({
-        offset: 25,
-        closeButton: false,
-      }).setHTML(`
-        <div style="padding: 8px; min-width: 200px;">
-          <h3 style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">${property.title}</h3>
-          <p style="font-size: 16px; color: #10b981; font-weight: bold; margin-bottom: 4px;">₹${(property.price / 100000).toFixed(1)}L</p>
-          <p style="font-size: 12px; color: #888;">${property.bhk} BHK • ${property.area} sq.ft</p>
-          ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 4px;">✓ JaagaX Verified</p>' : ''}
-        </div>
-      `);
+      // Add popup on hover for single properties
+      if (!isCluster) {
+        const popup = new mapboxgl.Popup({
+          offset: 25,
+          closeButton: false,
+          className: "property-popup",
+        }).setHTML(`
+          <div style="padding: 12px; min-width: 220px;">
+            <h3 style="font-weight: 600; margin-bottom: 6px; font-size: 14px; line-height: 1.3;">${property.title}</h3>
+            <p style="font-size: 18px; color: hsl(var(--primary)); font-weight: 700; margin-bottom: 6px;">₹${(property.price / 100000).toFixed(1)}L</p>
+            <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area} sq.ft</p>
+            <p style="font-size: 12px; color: #888;">${property.locality}, ${property.city}</p>
+            ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ''}
+          </div>
+        `);
 
-      marker.setPopup(popup);
+        marker.setPopup(popup);
+      }
+
       markersRef.current.push(marker);
     });
   }, [properties]);
