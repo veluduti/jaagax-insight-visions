@@ -106,6 +106,8 @@ export default function Auth() {
         }
 
         toast.success("Welcome back!");
+        // Navigate to dashboard after successful sign-in
+        navigate("/dashboard");
       } else {
         const { error } = await signUp(email, password, selectedRole, city);
         
@@ -116,11 +118,12 @@ export default function Auth() {
           throw error;
         }
 
-        toast.success("Account created successfully!");
+        toast.success("Account created successfully! Check your email to verify.");
+        // Navigate to dashboard after signup
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
-    } finally {
       setLoading(false);
     }
   };
