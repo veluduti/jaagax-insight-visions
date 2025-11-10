@@ -52,10 +52,17 @@ export const useAuth = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setRole(data?.role as UserRole);
+      if (error) {
+        console.error("Error fetching user role:", error);
+        setRole("buyer"); // Default to buyer
+      } else if (data) {
+        setRole(data.role as UserRole);
+      } else {
+        console.log("No role found, defaulting to buyer");
+        setRole("buyer");
+      }
     } catch (error) {
       console.error("Error fetching user role:", error);
       setRole("buyer"); // Default to buyer
@@ -73,35 +80,55 @@ export const useAuth = () => {
   };
 
   const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
-    });
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            role: selectedRole,
+            city: city || null,
+          }
+        },
+      });
 
-    if (error) return { error };
-    
-    // Insert role after successful signup
-    if (data.user) {
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: data.user.id,
-          role: selectedRole,
-          city: city || null,
-          verified: false,
-        });
-
-      if (roleError) {
-        console.error("Error inserting role:", roleError);
+      if (error) {
+        console.error("Signup error:", error);
+        return { error };
       }
-    }
+      
+      // Insert role immediately after successful signup
+      if (data.user) {
+        console.log("Creating user role for:", data.user.id, selectedRole);
+        
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: data.user.id,
+            role: selectedRole,
+          });
 
-    return { error: null };
+        if (roleError) {
+          console.error("Error inserting role:", roleError);
+          return { error: roleError };
+        }
+
+        console.log("User role created successfully");
+        
+        // Fetch the role immediately after creation
+        setTimeout(() => {
+          fetchUserRole(data.user.id);
+        }, 500);
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      console.error("Signup exception:", error);
+      return { error };
+    }
   };
 
   const signOut = async () => {

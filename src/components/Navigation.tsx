@@ -92,7 +92,7 @@ const Navigation = () => {
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     
     if (data) {
       setUserRole(data.role);
@@ -277,14 +277,6 @@ const Navigation = () => {
                 >
                   <Calendar className="h-5 w-5 text-primary" />
                   <span className="font-medium group-hover:text-primary">Events</span>
-                </a>
-
-                <a
-                  href="/agent-dashboard"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <User className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Agent Portal</span>
                 </a>
               </div>
 
