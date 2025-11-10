@@ -14,6 +14,7 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import VerificationPanel from "@/components/admin/VerificationPanel";
 import { DataImportPanel } from "@/components/admin/DataImportPanel";
+import { FakeListingManager } from "@/components/admin/FakeListingManager";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -221,6 +222,7 @@ export default function AdminDashboard() {
           {/* Verifications */}
           <TabsContent value="verification" className="space-y-6">
             <DataImportPanel />
+            <FakeListingManager />
             <VerificationPanel />
           </TabsContent>
 
