@@ -45,6 +45,8 @@ export default function AgentDashboard() {
   const [user, setUser] = useState<any>(null);
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [rankedLeads, setRankedLeads] = useState<any[]>([]);
+  const [loadingLeads, setLoadingLeads] = useState(false);
   const [stats, setStats] = useState({
     totalProperties: 0,
     activeListings: 0,
@@ -100,6 +102,33 @@ export default function AgentDashboard() {
         viewsThisMonth: Math.floor(Math.random() * 1000) + 500,
         savedByUsers: Math.floor(Math.random() * 100) + 20,
       });
+      
+      // Fetch AI lead ranking
+      fetchLeadRanking();
+    }
+  };
+
+  const fetchLeadRanking = async () => {
+    setLoadingLeads(true);
+    try {
+      // Mock leads data
+      const mockLeads = [
+        { leadId: '1', name: 'Rajesh Kumar', budget: 8000000, viewedProperties: 7, contacted: true },
+        { leadId: '2', name: 'Priya Sharma', budget: 5000000, viewedProperties: 3, contacted: false },
+        { leadId: '3', name: 'Amit Patel', budget: 12000000, viewedProperties: 12, contacted: true },
+      ];
+
+      const { data, error } = await supabase.functions.invoke('ai-rank-leads', {
+        body: { leads: mockLeads }
+      });
+
+      if (!error && data?.rankedLeads) {
+        setRankedLeads(data.rankedLeads);
+      }
+    } catch (error) {
+      console.error('Lead ranking error:', error);
+    } finally {
+      setLoadingLeads(false);
     }
   };
 
@@ -401,7 +430,7 @@ export default function AgentDashboard() {
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-6">
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <Card className="glass-panel p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
@@ -443,6 +472,48 @@ export default function AgentDashboard() {
                   </div>
                 </Card>
               </div>
+
+              {/* AI Lead Prioritization */}
+              <Card className="glass-panel p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-primary" />
+                  AI Lead Prioritization
+                </h3>
+                {loadingLeads ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  </div>
+                ) : rankedLeads.length > 0 ? (
+                  <div className="space-y-3">
+                    {rankedLeads.map((lead: any, index: number) => (
+                      <div key={lead.leadId} className="p-4 border rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`text-2xl font-bold ${
+                            lead.priority === 'high' ? 'text-green-500' : 
+                            lead.priority === 'medium' ? 'text-orange-500' : 'text-gray-500'
+                          }`}>
+                            #{index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{lead.name || `Lead ${lead.leadId}`}</h4>
+                            <p className="text-sm text-muted-foreground">{lead.reason}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge className={
+                            lead.priority === 'high' ? 'bg-green-600' : 
+                            lead.priority === 'medium' ? 'bg-orange-500' : 'bg-gray-500'
+                          }>
+                            Score: {lead.score}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No leads available</p>
+                )}
+              </Card>
             </TabsContent>
           </Tabs>
         </motion.div>

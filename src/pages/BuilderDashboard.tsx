@@ -31,6 +31,9 @@ export default function BuilderDashboard() {
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [forecast, setForecast] = useState<any>(null);
+  const [loadingForecast, setLoadingForecast] = useState(false);
   const [stats, setStats] = useState({
     totalProjects: 0,
     verifiedProjects: 0,
@@ -72,6 +75,36 @@ export default function BuilderDashboard() {
         totalUnits: data.length * 50, // Mock calculation
         totalViews: Math.floor(Math.random() * 10000) + 2000,
       });
+      
+      // Auto-select first project for forecast
+      if (data.length > 0 && !selectedProject) {
+        fetchProjectForecast(data[0]);
+      }
+    }
+  };
+
+  const fetchProjectForecast = async (project: Project) => {
+    setSelectedProject(project);
+    setLoadingForecast(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-project-forecast', {
+        body: {
+          projectId: project.id,
+          city: project.city,
+          locality: project.locality,
+          avgPrice: project.avg_price,
+          verified: project.verified,
+          reraId: project.rera_id
+        }
+      });
+
+      if (!error && data?.forecast) {
+        setForecast(data.forecast);
+      }
+    } catch (error) {
+      console.error('Forecast error:', error);
+    } finally {
+      setLoadingForecast(false);
     }
   };
 
@@ -357,36 +390,122 @@ export default function BuilderDashboard() {
 
           {/* Performance */}
           <TabsContent value="performance">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="p-6 bg-primary/10 rounded-lg">
+                <Eye className="h-8 w-8 text-primary mb-2" />
+                <p className="text-sm text-muted-foreground">Total Views</p>
+                <p className="text-3xl font-bold">{stats.totalViews}</p>
+                <p className="text-sm text-green-600 mt-2">+15% this month</p>
+              </div>
+
+              <div className="p-6 bg-green-500/10 rounded-lg">
+                <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
+                <p className="text-sm text-muted-foreground">Units Sold</p>
+                <p className="text-3xl font-bold">127</p>
+                <p className="text-sm text-green-600 mt-2">+23% this month</p>
+              </div>
+
+              <div className="p-6 bg-blue-500/10 rounded-lg">
+                <Building2 className="h-8 w-8 text-blue-500 mb-2" />
+                <p className="text-sm text-muted-foreground">Avg. Trust Score</p>
+                <p className="text-3xl font-bold">
+                  {Math.round(projects.reduce((acc, p) => acc + (p.trust_score || 0), 0) / projects.length) || 0}/100
+                </p>
+                <p className="text-sm text-green-600 mt-2">Excellent rating</p>
+              </div>
+            </div>
+
+            {/* AI Project Forecast */}
             <Card>
               <CardHeader>
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>Track project performance and engagement</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      AI Project Forecast
+                    </CardTitle>
+                    <CardDescription>AI-powered growth predictions for {selectedProject?.name}</CardDescription>
+                  </div>
+                  {projects.length > 1 && (
+                    <select 
+                      className="border rounded px-3 py-2"
+                      onChange={(e) => {
+                        const proj = projects.find(p => p.id === parseInt(e.target.value));
+                        if (proj) fetchProjectForecast(proj);
+                      }}
+                      value={selectedProject?.id}
+                    >
+                      {projects.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="p-6 bg-primary/10 rounded-lg">
-                    <Eye className="h-8 w-8 text-primary mb-2" />
-                    <p className="text-sm text-muted-foreground">Total Views</p>
-                    <p className="text-3xl font-bold">{stats.totalViews}</p>
-                    <p className="text-sm text-green-600 mt-2">+15% this month</p>
+                {loadingForecast ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                   </div>
+                ) : forecast ? (
+                  <div className="space-y-6">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Demand Score</p>
+                        <p className="text-3xl font-bold text-primary">{forecast.demandScore}/100</p>
+                        <Badge className={
+                          forecast.riskLevel === 'low' ? 'bg-green-600 mt-2' :
+                          forecast.riskLevel === 'medium' ? 'bg-orange-500 mt-2' : 'bg-red-500 mt-2'
+                        }>
+                          {forecast.riskLevel} risk
+                        </Badge>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">Sales Velocity</p>
+                        <p className="text-3xl font-bold">{forecast.salesVelocity?.predicted || 0} units/mo</p>
+                        <p className="text-sm text-green-600 mt-2">{forecast.salesVelocity?.trend}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">3-Year Appreciation</p>
+                        <p className="text-3xl font-bold text-green-600">{forecast.appreciation?.year3 || 0}%</p>
+                        <p className="text-sm text-muted-foreground mt-2">Y1: {forecast.appreciation?.year1}%, Y2: {forecast.appreciation?.year2}%</p>
+                      </div>
+                    </div>
 
-                  <div className="p-6 bg-green-500/10 rounded-lg">
-                    <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
-                    <p className="text-sm text-muted-foreground">Units Sold</p>
-                    <p className="text-3xl font-bold">127</p>
-                    <p className="text-sm text-green-600 mt-2">+23% this month</p>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          Success Factors
+                        </h4>
+                        <ul className="space-y-2">
+                          {forecast.successFactors?.map((factor: string, i: number) => (
+                            <li key={i} className="text-sm flex items-start gap-2">
+                              <span className="text-green-600">•</span>
+                              <span>{factor}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-primary" />
+                          AI Recommendations
+                        </h4>
+                        <ul className="space-y-2">
+                          {forecast.recommendations?.map((rec: string, i: number) => (
+                            <li key={i} className="text-sm flex items-start gap-2">
+                              <span className="text-primary">→</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="p-6 bg-blue-500/10 rounded-lg">
-                    <Building2 className="h-8 w-8 text-blue-500 mb-2" />
-                    <p className="text-sm text-muted-foreground">Avg. Trust Score</p>
-                    <p className="text-3xl font-bold">
-                      {Math.round(projects.reduce((acc, p) => acc + (p.trust_score || 0), 0) / projects.length) || 0}/100
-                    </p>
-                    <p className="text-sm text-green-600 mt-2">Excellent rating</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No forecast available</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

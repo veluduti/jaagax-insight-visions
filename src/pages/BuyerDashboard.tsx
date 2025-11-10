@@ -40,6 +40,8 @@ const BuyerDashboard = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
+  const [loadingAI, setLoadingAI] = useState(false);
   
   // EMI Calculator State
   const [loanAmount, setLoanAmount] = useState(5000000);
@@ -52,6 +54,12 @@ const BuyerDashboard = () => {
     fetchProperties();
     fetchFavorites();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchAISuggestions();
+    }
+  }, [user]);
 
   useEffect(() => {
     calculateEMI();
@@ -115,6 +123,36 @@ const BuyerDashboard = () => {
         .insert({ user_id: user.id, property_id: propertyId.toString() });
       setFavorites([...favorites, propertyId]);
       toast.success("Added to favorites");
+    }
+  };
+
+  const fetchAISuggestions = async () => {
+    setLoadingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-suggest-properties', {
+        body: { 
+          userId: user.id, 
+          city: user.city || 'Hyderabad',
+          minPrice: 3000000,
+          maxPrice: 10000000,
+          bhk: 3
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.suggestions) {
+        const { data: suggestedProps } = await supabase
+          .from('properties')
+          .select('*')
+          .in('id', data.suggestions);
+        
+        if (suggestedProps) setAiSuggestions(suggestedProps);
+      }
+    } catch (error) {
+      console.error('AI Suggestions error:', error);
+    } finally {
+      setLoadingAI(false);
     }
   };
 
@@ -238,9 +276,52 @@ const BuyerDashboard = () => {
 
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
+            {/* AI Suggestions Banner */}
+            {aiSuggestions.length > 0 && (
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-primary" />
+                    AI-Powered Recommendations
+                  </CardTitle>
+                  <CardDescription>
+                    Smart suggestions tailored to your preferences using AI analysis
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {aiSuggestions.slice(0, 3).map((property) => (
+                      <motion.div
+                        key={property.id}
+                        whileHover={{ y: -5 }}
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/property/${property.id}`)}
+                      >
+                        <Card className="overflow-hidden hover:shadow-xl transition-all">
+                          <div className="relative h-32">
+                            <img
+                              src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                              alt={property.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <Badge className="absolute top-2 left-2 bg-primary">AI Match</Badge>
+                          </div>
+                          <CardContent className="p-3">
+                            <h4 className="font-semibold text-sm mb-1 line-clamp-1">{property.title}</h4>
+                            <p className="text-xs text-muted-foreground mb-2">{property.locality}</p>
+                            <p className="text-lg font-bold text-primary">{formatPrice(property.price)}</p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
-                <CardTitle>Recommended Properties</CardTitle>
+                <CardTitle>All Recommended Properties</CardTitle>
                 <CardDescription>Based on your preferences and search history</CardDescription>
               </CardHeader>
               <CardContent>
