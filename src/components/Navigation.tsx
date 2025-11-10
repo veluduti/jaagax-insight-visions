@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <motion.a
@@ -217,6 +218,9 @@ const Navigation = () => {
                 Sign In
               </Button>
             )}
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Hamburger Menu */}
             <Button
