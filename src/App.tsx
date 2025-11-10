@@ -11,6 +11,8 @@ import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import PropertyDetail from "./pages/PropertyDetail";
 import Transactions from "./pages/Transactions";
+import TransactionsCity from "./pages/TransactionsCity";
+import TransactionsLocality from "./pages/TransactionsLocality";
 import TrustScore from "./pages/TrustScore";
 import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
@@ -42,6 +44,8 @@ const App = () => (
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/property/:id" element={<PropertyDetail />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/transactions/:city" element={<TransactionsCity />} />
+          <Route path="/transactions/:city/:locality" element={<TransactionsLocality />} />
           <Route path="/trustscore" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
