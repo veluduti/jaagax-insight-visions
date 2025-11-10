@@ -79,9 +79,15 @@ const PropertyDetail = () => {
         .from("properties")
         .select("*")
         .eq("id", propertyId)
-        .single();
+        .maybeSingle();
 
       if (propertyError) throw propertyError;
+      
+      if (!propertyData) {
+        setProperty(null);
+        setLoading(false);
+        return;
+      }
       
       // Use type assertion to handle the DB schema
       const dbProperty = propertyData as any;
@@ -217,11 +223,33 @@ const PropertyDetail = () => {
 
   if (!property) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Property not found</h2>
-          <Button onClick={() => navigate("/")}>Go Home</Button>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="glass-panel rounded-2xl p-8 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Building2 className="h-10 w-10 text-destructive" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Property Not Found</h2>
+              <p className="text-muted-foreground">
+                The property you're looking for doesn't exist or has been removed.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button onClick={() => navigate("/map")} className="flex-1 gap-2">
+                <MapPin className="h-4 w-4" />
+                Browse Properties
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }
