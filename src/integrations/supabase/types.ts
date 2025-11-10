@@ -358,7 +358,10 @@ export type Database = {
           name: string | null
           overview: string | null
           rera_id: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           trust_score: number | null
+          verification_status: string | null
           verified: boolean | null
         }
         Insert: {
@@ -372,7 +375,10 @@ export type Database = {
           name?: string | null
           overview?: string | null
           rera_id?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           trust_score?: number | null
+          verification_status?: string | null
           verified?: boolean | null
         }
         Update: {
@@ -386,7 +392,10 @@ export type Database = {
           name?: string | null
           overview?: string | null
           rera_id?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           trust_score?: number | null
+          verification_status?: string | null
           verified?: boolean | null
         }
         Relationships: [
@@ -406,6 +415,7 @@ export type Database = {
           baths: number | null
           beds: number | null
           bhk: number | null
+          builder_id: number | null
           city: string | null
           description: string | null
           id: number
@@ -416,9 +426,12 @@ export type Database = {
           price: number | null
           project_id: number | null
           status: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           title: string | null
           trust_score: number | null
           type: string | null
+          verification_status: string | null
           verified: boolean | null
         }
         Insert: {
@@ -427,6 +440,7 @@ export type Database = {
           baths?: number | null
           beds?: number | null
           bhk?: number | null
+          builder_id?: number | null
           city?: string | null
           description?: string | null
           id?: number
@@ -437,9 +451,12 @@ export type Database = {
           price?: number | null
           project_id?: number | null
           status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           title?: string | null
           trust_score?: number | null
           type?: string | null
+          verification_status?: string | null
           verified?: boolean | null
         }
         Update: {
@@ -448,6 +465,7 @@ export type Database = {
           baths?: number | null
           beds?: number | null
           bhk?: number | null
+          builder_id?: number | null
           city?: string | null
           description?: string | null
           id?: number
@@ -458,9 +476,12 @@ export type Database = {
           price?: number | null
           project_id?: number | null
           status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           title?: string | null
           trust_score?: number | null
           type?: string | null
+          verification_status?: string | null
           verified?: boolean | null
         }
         Relationships: [

@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
+import VerificationPanel from "@/components/admin/VerificationPanel";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -218,23 +219,7 @@ export default function AdminDashboard() {
 
           {/* Verifications */}
           <TabsContent value="verification">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Verifications</CardTitle>
-                <CardDescription>Review and approve property & project verifications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {stats.verificationsPending === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                    <h3 className="text-lg font-semibold mb-2">All caught up!</h3>
-                    <p className="text-muted-foreground">No pending verifications</p>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">{stats.verificationsPending} items need review</p>
-                )}
-              </CardContent>
-            </Card>
+            <VerificationPanel />
           </TabsContent>
 
           {/* AI Trust Engine */}

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
+import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
 
 interface Project {
   id: number;
@@ -61,10 +62,13 @@ export default function BuilderDashboard() {
   };
 
   const fetchProjects = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data } = await supabase
       .from("projects")
       .select("*")
-      .limit(10)
+      .eq("submitted_by", user.id)
       .order("id", { ascending: false });
     
     if (data) {
@@ -205,10 +209,10 @@ export default function BuilderDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/projects")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
               <CardContent className="p-6 text-center">
                 <Plus className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Add Project</h3>
+                <h3 className="font-semibold">Add Property</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -242,13 +246,32 @@ export default function BuilderDashboard() {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="projects" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="properties" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="properties">My Properties</TabsTrigger>
+            <TabsTrigger value="add-property">Add Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
+
+          {/* My Properties Tab */}
+          <TabsContent value="properties" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Properties</CardTitle>
+                <CardDescription>Properties you've submitted for verification</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Properties will appear here after submission</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Add Property Tab */}
+          <TabsContent value="add-property" className="space-y-6">
+            <PropertyUploadForm onSuccess={fetchProjects} />
+          </TabsContent>
 
           {/* Projects */}
           <TabsContent value="projects" className="space-y-6">
