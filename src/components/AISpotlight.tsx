@@ -60,10 +60,10 @@ const AISpotlight = () => {
             <Button 
               size="lg" 
               className="glow-effect group"
-              onClick={() => navigate('/map')}
+              onClick={() => navigate('/ai-advisor')}
             >
               <Sparkles className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-              Launch JaagaXGPT
+              Launch AI Property Advisor
             </Button>
             <Button 
               size="lg" 

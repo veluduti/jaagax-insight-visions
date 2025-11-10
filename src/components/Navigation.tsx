@@ -256,6 +256,14 @@ const Navigation = () => {
                 </a>
 
                 <a
+                  href="/ai-advisor"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">AI Property Advisor</span>
+                </a>
+
+                <a
                   href="/communities"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
                 >

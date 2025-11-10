@@ -89,6 +89,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_sessions: {
+        Row: {
+          created_at: string | null
+          filters: Json | null
+          id: number
+          query: string
+          response: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: never
+          query: string
+          response: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: never
+          query?: string
+          response?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       amenities: {
         Row: {
           created_at: string | null

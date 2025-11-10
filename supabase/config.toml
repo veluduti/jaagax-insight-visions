@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.ai-trust-engine]
 verify_jwt = false
+
+[functions.ai-property-advisor]
+verify_jwt = false

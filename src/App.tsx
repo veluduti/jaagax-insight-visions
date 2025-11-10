@@ -29,6 +29,9 @@ import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AIAdvisor from "./pages/AIAdvisor";
+import AIAdvisorResults from "./pages/AIAdvisorResults";
+import AIAdvisorProperty from "./pages/AIAdvisorProperty";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -61,6 +64,11 @@ const App = () => (
           <Route path="/events" element={<Events />} />
           <Route path="/map" element={<Map />} />
           <Route path="/sell-property" element={<SellProperty />} />
+          
+          {/* AI Advisor Routes */}
+          <Route path="/ai-advisor" element={<AIAdvisor />} />
+          <Route path="/ai-advisor/results" element={<AIAdvisorResults />} />
+          <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
           
           {/* Role-based Dashboards */}
           <Route

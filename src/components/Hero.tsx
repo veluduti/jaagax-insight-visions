@@ -121,17 +121,17 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            onClick={() => navigate('/map')}
+            onClick={() => navigate('/ai-advisor')}
             className="mt-6 inline-flex items-center gap-2 text-sm md:text-base text-primary hover:text-primary/80 transition-colors group"
           >
             <div className="p-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <Sparkles className="h-4 w-4" />
             </div>
             <span className="font-medium">
-              Want to find out more about Indian real estate using AI?
+              Want to find your perfect home using AI?
             </span>
             <span className="font-bold group-hover:translate-x-1 transition-transform">
-              Try JaagaXGPT →
+              Try AI Property Advisor →
             </span>
           </motion.button>
         </motion.div>
