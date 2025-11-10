@@ -1,6 +1,5 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import NavigationTabs from "@/components/NavigationTabs";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewProjects from "@/components/NewProjects";
 import AISpotlight from "@/components/AISpotlight";
@@ -15,7 +14,6 @@ const Index = () => {
     <div className="min-h-screen">
       <Navigation />
       <Hero />
-      <NavigationTabs />
       <FeaturedProperties />
       <NewProjects />
       <AISpotlight />
