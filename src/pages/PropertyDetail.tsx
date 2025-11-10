@@ -79,11 +79,19 @@ const PropertyDetail = () => {
         .from("properties")
         .select("*")
         .eq("id", propertyId)
+        .eq("verified", true)
         .maybeSingle();
 
       if (propertyError) throw propertyError;
       
       if (!propertyData) {
+        setProperty(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Validate critical fields
+      if (!propertyData.title || !propertyData.city || !propertyData.locality || !propertyData.price) {
         setProperty(null);
         setLoading(false);
         return;

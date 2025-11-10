@@ -119,12 +119,20 @@ const ProjectDetail = () => {
         .from("projects")
         .select("*")
         .eq("id", projectId)
+        .eq("verified", true)
         .maybeSingle();
 
       if (projectError) throw projectError;
       
       if (!projectData) {
-        toast.error("Project not found");
+        setProject(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Validate critical fields
+      if (!projectData.name || !projectData.city || !projectData.locality) {
+        setProject(null);
         setLoading(false);
         return;
       }
