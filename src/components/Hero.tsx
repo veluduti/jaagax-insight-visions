@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import PropertySearchBar from "@/components/PropertySearchBar";
@@ -7,12 +8,13 @@ import { Sparkles } from "lucide-react";
 const Hero = () => {
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState("properties");
+
   const navItems = [
-    { label: "Properties", path: "/map" },
-    { label: "New Projects", path: "/projects" },
-    { label: "Transactions", path: "/transactions" },
-    { label: "TruValue™", path: "/property-valuation" },
-    { label: "Agents", path: "/agents" },
+    { label: "Properties", path: "/map", value: "properties" },
+    { label: "New Projects", path: "/projects", value: "new-projects" },
+    { label: "Transactions", path: "/transactions", value: "transactions" },
+    { label: "Agents", path: "/agents", value: "agents" },
   ];
 
   return (
@@ -69,16 +71,24 @@ const Hero = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex justify-center gap-6 mb-12"
+            className="flex justify-center gap-8 mb-12"
           >
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <button
-                key={index}
-                onClick={() => navigate(item.path)}
-                className="text-base md:text-lg font-medium text-foreground/80 hover:text-primary transition-colors relative group"
+                key={item.value}
+                onClick={() => setActiveTab(item.value)}
+                className={`text-base md:text-lg font-medium transition-colors relative group ${
+                  activeTab === item.value ? 'text-primary' : 'text-foreground/70 hover:text-foreground'
+                }`}
               >
                 {item.label}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+                {activeTab === item.value && (
+                  <motion.span
+                    layoutId="activeNavTab"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
             ))}
           </motion.div>
@@ -104,7 +114,7 @@ const Hero = () => {
           </motion.p>
 
           {/* Search Bar */}
-          <PropertySearchBar />
+          <PropertySearchBar activeTab={activeTab} />
 
           {/* AI Callout */}
           <motion.button
