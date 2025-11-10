@@ -11,3 +11,15 @@ verify_jwt = false
 
 [functions.analyze-community]
 verify_jwt = false
+
+[functions.ai-suggest-properties]
+verify_jwt = false
+
+[functions.ai-rank-leads]
+verify_jwt = false
+
+[functions.ai-project-forecast]
+verify_jwt = false
+
+[functions.ai-trust-engine]
+verify_jwt = false
