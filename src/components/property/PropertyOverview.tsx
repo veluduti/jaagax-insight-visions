@@ -47,8 +47,9 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
         )}
       </div>
 
-      <div className="text-4xl font-bold text-primary mb-6">
-        {formatPrice(property.price)}
+      <div className="text-4xl font-bold mb-6">
+        <span className="text-muted-foreground text-2xl">₹</span>
+        <span className="text-primary">{formatPrice(property.price)}</span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

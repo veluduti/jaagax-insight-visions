@@ -19,6 +19,9 @@ import SimilarProperties from "@/components/property/SimilarProperties";
 import BookingModal from "@/components/property/BookingModal";
 import PropertyBreadcrumb from "@/components/property/PropertyBreadcrumb";
 import PropertyAmenities from "@/components/property/PropertyAmenities";
+import PropertyInformation from "@/components/property/PropertyInformation";
+import BuildingInformation from "@/components/property/BuildingInformation";
+import PropertyTabs from "@/components/property/PropertyTabs";
 
 interface Property {
   id: number;
@@ -304,18 +307,21 @@ const PropertyDetail = () => {
           <div className="lg:col-span-2 space-y-8">
             <PropertyOverview property={property} />
 
-            {/* Description */}
+            {/* Property Tabs - Overview, Trends, Mortgage */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.15 }}
               className="glass-panel rounded-xl p-6"
             >
-              <h2 className="text-2xl font-bold mb-4">About this property</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                {property.description || "A premium property in a prime location with modern amenities and excellent connectivity."}
-              </p>
+              <PropertyTabs description={property.description || "A premium property in a prime location with modern amenities and excellent connectivity."} />
             </motion.div>
+
+            {/* Property Information */}
+            <PropertyInformation property={property} />
+
+            {/* Building Information */}
+            <BuildingInformation locality={property.locality} verified={property.verified} />
 
             {/* Amenities */}
             <PropertyAmenities type={property.type} verified={property.verified} />

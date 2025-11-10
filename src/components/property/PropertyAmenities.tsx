@@ -1,5 +1,9 @@
 import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
+import { 
+  CheckCircle2, Waves, Dumbbell, TreePine, Shield, 
+  Zap, Car, Baby, Users, Building2, Wind,
+  Droplets, Sun, Home, GraduationCap, Wifi
+} from "lucide-react";
 
 interface PropertyAmenitiesProps {
   type: string;
@@ -7,42 +11,47 @@ interface PropertyAmenitiesProps {
 }
 
 const PropertyAmenities = ({ type, verified }: PropertyAmenitiesProps) => {
-  // Common amenities based on property type
-  const getAmenities = () => {
+  // Amenities with icons
+  const getAmenitiesWithIcons = () => {
     const commonAmenities = [
-      "Power Backup",
-      "Lift",
-      "Reserved Parking",
-      "Security / Fire Alarm",
-      "Waste Disposal",
+      { name: "Power Backup", icon: Zap },
+      { name: "Lift", icon: Building2 },
+      { name: "Reserved Parking", icon: Car },
+      { name: "Security / Fire Alarm", icon: Shield },
+      { name: "Waste Disposal", icon: Wind },
+      { name: "High Speed Internet", icon: Wifi },
     ];
 
     if (type.toLowerCase().includes("apartment") || type.toLowerCase().includes("flat")) {
       return [
         ...commonAmenities,
-        "Gymnasium",
-        "Swimming Pool",
-        "Balcony",
-        "Kids Play Area",
-        "Clubhouse",
+        { name: "Gymnasium", icon: Dumbbell },
+        { name: "Swimming Pool", icon: Waves },
+        { name: "Balcony", icon: Sun },
+        { name: "Kids Play Area", icon: Baby },
+        { name: "Clubhouse", icon: Users },
+        { name: "Garden / Parks", icon: TreePine },
+        { name: "Water Storage", icon: Droplets },
+        { name: "Intercom Facility", icon: Building2 },
       ];
     }
 
     if (type.toLowerCase().includes("villa") || type.toLowerCase().includes("house")) {
       return [
         ...commonAmenities,
-        "Private Garden",
-        "Private Pool",
-        "Terrace",
-        "Servant Quarters",
-        "Study Room",
+        { name: "Private Garden", icon: TreePine },
+        { name: "Private Pool", icon: Waves },
+        { name: "Terrace", icon: Sun },
+        { name: "Servant Quarters", icon: Home },
+        { name: "Study Room", icon: GraduationCap },
+        { name: "Water Storage", icon: Droplets },
       ];
     }
 
     return commonAmenities;
   };
 
-  const amenities = getAmenities();
+  const amenities = getAmenitiesWithIcons();
 
   return (
     <motion.div
@@ -51,14 +60,20 @@ const PropertyAmenities = ({ type, verified }: PropertyAmenitiesProps) => {
       transition={{ delay: 0.3 }}
       className="glass-panel rounded-xl p-6"
     >
-      <h2 className="text-2xl font-bold mb-6">Amenities & Features</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {amenities.map((amenity, index) => (
-          <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-            <span className="text-sm">{amenity}</span>
-          </div>
-        ))}
+      <h2 className="text-2xl font-bold mb-6">Features / Amenities</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {amenities.map((amenity, index) => {
+          const Icon = amenity.icon;
+          return (
+            <div 
+              key={index} 
+              className="flex flex-col items-center gap-2 p-4 rounded-lg bg-background/50 hover:bg-background/70 transition-colors text-center"
+            >
+              <Icon className="h-6 w-6 text-primary" />
+              <span className="text-xs font-medium">{amenity.name}</span>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );

@@ -14,6 +14,15 @@ const PropertySearchBar = () => {
   const [propertyType, setPropertyType] = useState("all");
   const [beds, setBeds] = useState("any");
   const [budget, setBudget] = useState("any");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const popularLocations = [
+    "Hyderabad",
+    "Vijayawada",
+    "Vizag",
+    "Guntur",
+    "Tirupati"
+  ];
 
   const handleSearch = () => {
     // Build search params
@@ -57,16 +66,48 @@ const PropertySearchBar = () => {
 
       {/* Search Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Location Input */}
-        <div className="md:col-span-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50">
-          <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
-          <Input 
-            placeholder="City, community, or building" 
-            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
+        {/* Location Input with Autocomplete */}
+        <div className="md:col-span-4 relative">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50">
+            <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+            <Input 
+              placeholder="City, community, or building" 
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setShowSuggestions(e.target.value.length > 0);
+              }}
+              onFocus={() => setShowSuggestions(location.length > 0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              onKeyPress={handleKeyPress}
+            />
+          </div>
+          
+          {/* Autocomplete Suggestions */}
+          {showSuggestions && location && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute z-50 w-full mt-2 glass-panel rounded-lg overflow-hidden"
+            >
+              {popularLocations
+                .filter(loc => loc.toLowerCase().includes(location.toLowerCase()))
+                .map((loc, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setLocation(loc);
+                      setShowSuggestions(false);
+                    }}
+                    className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{loc}</span>
+                  </button>
+                ))}
+            </motion.div>
+          )}
         </div>
 
         {/* Property Type */}
