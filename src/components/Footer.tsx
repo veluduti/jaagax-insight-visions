@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Linkedin, Instagram, Twitter } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
@@ -10,9 +11,11 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect">
-                <span className="text-2xl font-bold text-primary-foreground">J</span>
-              </div>
+              <img 
+                src={logo} 
+                alt="JaagaX Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
                 <h3 className="text-xl font-bold text-gradient">JaagaX</h3>
                 <p className="text-xs text-muted-foreground">Intelligent Realty</p>

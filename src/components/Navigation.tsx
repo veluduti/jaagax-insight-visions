@@ -248,6 +248,19 @@ const Navigation = () => {
             className="fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 glass-panel border-l border-border/50 shadow-2xl overflow-y-auto z-40"
           >
             <div className="p-6 space-y-6">
+              {/* Logo Header */}
+              <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                <img 
+                  src={logo} 
+                  alt="JaagaX Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+                <div>
+                  <h2 className="text-lg font-bold text-gradient">JaagaX</h2>
+                  <p className="text-xs text-muted-foreground">Intelligent Realty</p>
+                </div>
+              </div>
+
               {/* Navigation Links */}
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
