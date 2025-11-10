@@ -21,6 +21,7 @@ import Events from "./pages/Events";
 import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
+import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/guides" element={<Guides />} />
           <Route path="/events" element={<Events />} />
           <Route path="/map" element={<Map />} />
+          <Route path="/sell-property" element={<SellProperty />} />
           <Route
             path="/buyer-dashboard"
             element={

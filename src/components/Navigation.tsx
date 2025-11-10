@@ -123,7 +123,7 @@ const Navigation = () => {
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center gap-6">
             <NavItem href="/agents">Find My Agent</NavItem>
-            <NavItem href="/seller-dashboard">Sell My Property</NavItem>
+            <NavItem href="/sell-property">Sell My Property</NavItem>
             <NavItem href="/trustscore">TrustScore™</NavItem>
             <NavItem href="/transactions">Transactions</NavItem>
             <NavItem href="/projects">New Projects</NavItem>
