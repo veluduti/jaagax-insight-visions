@@ -14,19 +14,41 @@ export const DatabaseCleanup = () => {
   const analyzeDatabase = async () => {
     setLoading(true);
     try {
-      // Check properties with missing critical data
-      const { data: invalidProps, error: propsError } = await supabase
+      // Check ALL properties and filter invalid ones
+      const { data: allProps, error: propsError } = await supabase
         .from('properties')
-        .select('id, title, city, locality, price, images, description')
-        .or('title.is.null,city.is.null,locality.is.null,price.is.null,price.eq.0');
+        .select('id, title, city, locality, price, images, description, verified');
 
-      // Check projects with missing critical data
-      const { data: invalidProjects, error: projError } = await supabase
+      // Check ALL projects and filter invalid ones
+      const { data: allProjects, error: projError } = await supabase
         .from('projects')
-        .select('id, name, city, locality, builder_name')
-        .or('name.is.null,city.is.null,locality.is.null');
+        .select('id, name, city, locality, builder_name, verified');
 
       if (propsError || projError) throw propsError || projError;
+
+      // Filter properties with any critical issues
+      const invalidProps = allProps?.filter(p => 
+        !p.title || 
+        p.title.trim() === '' ||
+        !p.city || 
+        p.city.trim() === '' ||
+        !p.locality || 
+        p.locality.trim() === '' ||
+        !p.price || 
+        p.price <= 0 ||
+        !p.verified
+      ) || [];
+
+      // Filter projects with any critical issues
+      const invalidProjects = allProjects?.filter(p => 
+        !p.name || 
+        p.name.trim() === '' ||
+        !p.city || 
+        p.city.trim() === '' ||
+        !p.locality || 
+        p.locality.trim() === '' ||
+        !p.verified
+      ) || [];
 
       setStats({
         invalidProperties: invalidProps?.length || 0,
@@ -113,11 +135,12 @@ export const DatabaseCleanup = () => {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            This will permanently delete properties and projects that are missing:
+            This will permanently delete properties and projects that are:
             <ul className="list-disc list-inside mt-2 text-sm">
-              <li>Title/Name</li>
-              <li>City or Locality</li>
-              <li>Valid Price (for properties)</li>
+              <li>Not verified by admin</li>
+              <li>Missing Title/Name, City, or Locality</li>
+              <li>Missing or invalid price (for properties)</li>
+              <li>Have empty or incomplete data</li>
             </ul>
           </AlertDescription>
         </Alert>
