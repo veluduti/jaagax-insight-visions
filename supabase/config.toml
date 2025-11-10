@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.ai-property-advisor]
 verify_jwt = false
+
+[functions.import-real-estate-data]
+verify_jwt = false

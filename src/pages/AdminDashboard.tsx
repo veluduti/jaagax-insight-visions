@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import VerificationPanel from "@/components/admin/VerificationPanel";
+import { DataImportPanel } from "@/components/admin/DataImportPanel";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -218,7 +219,8 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Verifications */}
-          <TabsContent value="verification">
+          <TabsContent value="verification" className="space-y-6">
+            <DataImportPanel />
             <VerificationPanel />
           </TabsContent>
 
