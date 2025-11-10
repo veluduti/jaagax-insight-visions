@@ -1,18 +1,47 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Building2, FileCheck, Upload, LogOut } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { 
+  Building2, FileCheck, Shield, LogOut, Plus, 
+  Home, Eye, TrendingUp, CheckCircle, Clock,
+  MapPin, Upload, FileText, AlertCircle
+} from "lucide-react";
+import { toast } from "sonner";
+import Navigation from "@/components/Navigation";
+import { motion } from "framer-motion";
+
+interface Project {
+  id: number;
+  name: string;
+  city: string;
+  locality: string;
+  builder_name: string;
+  avg_price: number;
+  image: string;
+  verified: boolean;
+  rera_id: string;
+  trust_score: number;
+}
 
 export default function BuilderDashboard() {
   const [user, setUser] = useState<any>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    verifiedProjects: 0,
+    totalUnits: 0,
+    totalViews: 0,
+  });
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchUser();
+    fetchProjects();
   }, []);
 
   const fetchUser = async () => {
@@ -25,53 +54,343 @@ export default function BuilderDashboard() {
         .single();
       setUser(data);
     }
+    setLoading(false);
+  };
+
+  const fetchProjects = async () => {
+    const { data } = await supabase
+      .from("projects")
+      .select("*")
+      .limit(10)
+      .order("id", { ascending: false });
+    
+    if (data) {
+      setProjects(data);
+      setStats({
+        totalProjects: data.length,
+        verifiedProjects: data.filter(p => p.verified).length,
+        totalUnits: data.length * 50, // Mock calculation
+        totalViews: Math.floor(Math.random() * 10000) + 2000,
+      });
+    }
   };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Signed out successfully" });
+    toast.success("Signed out successfully");
     navigate("/");
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-midnight via-midnight-light to-midnight">
-      <nav className="glass-panel border-b border-glass px-6 py-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-cyan">JaagaX Builder</h1>
-          <Button onClick={handleSignOut} variant="ghost" size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <Navigation />
+      
+      {/* Header */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Welcome, {user?.name || "Builder"}!</h1>
+              <p className="text-muted-foreground">Manage your projects and properties</p>
+            </div>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Welcome, {user?.name}!
-          </h2>
-          <p className="text-muted-foreground">Manage your projects and verifications</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <Building2 className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">My Projects</h3>
-            <p className="text-muted-foreground text-sm">View and manage projects</p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Projects</p>
+                  <p className="text-2xl font-bold">{stats.totalProjects}</p>
+                </div>
+                <Building2 className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
           </Card>
 
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <Upload className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Upload RERA Docs</h3>
-            <p className="text-muted-foreground text-sm">Submit verification documents</p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Verified</p>
+                  <p className="text-2xl font-bold">{stats.verifiedProjects}</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
           </Card>
 
-          <Card className="glass-panel border-glass p-6 hover:shadow-glow-cyan transition-all cursor-pointer">
-            <FileCheck className="w-8 h-8 text-cyan mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Verification Status</h3>
-            <p className="text-muted-foreground text-sm">Track your approvals</p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Units</p>
+                  <p className="text-2xl font-bold">{stats.totalUnits}</p>
+                </div>
+                <Home className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Views</p>
+                  <p className="text-2xl font-bold">{stats.totalViews}</p>
+                </div>
+                <Eye className="h-8 w-8 text-orange-500" />
+              </div>
+            </CardContent>
           </Card>
         </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/projects")}>
+              <CardContent className="p-6 text-center">
+                <Plus className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Add Project</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
+              <CardContent className="p-6 text-center">
+                <Upload className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Upload RERA</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
+              <CardContent className="p-6 text-center">
+                <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Documentation</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all">
+              <CardContent className="p-6 text-center">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Analytics</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="projects" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="projects">My Projects</TabsTrigger>
+            <TabsTrigger value="verification">RERA Status</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+          </TabsList>
+
+          {/* Projects */}
+          <TabsContent value="projects" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Your Projects</CardTitle>
+                    <CardDescription>Manage and track your real estate projects</CardDescription>
+                  </div>
+                  <Button onClick={() => navigate("/projects")}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Project
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {projects.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
+                    <p className="text-muted-foreground mb-4">Start by adding your first project</p>
+                    <Button onClick={() => navigate("/projects")}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Project
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {projects.map((project) => (
+                      <motion.div
+                        key={project.id}
+                        whileHover={{ y: -5 }}
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/project/${project.id}`)}
+                      >
+                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
+                          <div className="relative">
+                            <img
+                              src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"}
+                              alt={project.name}
+                              className="w-full h-48 object-cover"
+                            />
+                            {project.verified ? (
+                              <Badge className="absolute top-2 right-2 bg-green-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                RERA Verified
+                              </Badge>
+                            ) : (
+                              <Badge className="absolute top-2 right-2 bg-orange-500">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2">{project.name}</h3>
+                            <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {project.locality}, {project.city}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Avg. Price</p>
+                                <p className="font-semibold text-primary">
+                                  {formatPrice(project.avg_price)}
+                                </p>
+                              </div>
+                              {project.rera_id && (
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">RERA ID</p>
+                                  <p className="text-xs font-mono">{project.rera_id}</p>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* RERA Verification */}
+          <TabsContent value="verification">
+            <Card>
+              <CardHeader>
+                <CardTitle>RERA Verification Status</CardTitle>
+                <CardDescription>Track your project verification status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {projects.filter(p => !p.verified).length === 0 ? (
+                    <div className="text-center py-12">
+                      <Shield className="h-16 w-16 mx-auto mb-4 text-green-500" />
+                      <h3 className="text-lg font-semibold mb-2">All projects verified!</h3>
+                      <p className="text-muted-foreground">All your projects are RERA verified</p>
+                    </div>
+                  ) : (
+                    projects.filter(p => !p.verified).map((project) => (
+                      <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <AlertCircle className="h-8 w-8 text-orange-500" />
+                          <div>
+                            <h3 className="font-semibold">{project.name}</h3>
+                            <p className="text-sm text-muted-foreground">Verification pending</p>
+                          </div>
+                        </div>
+                        <Button variant="outline">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Documents
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Inventory */}
+          <TabsContent value="inventory">
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Inventory</CardTitle>
+                <CardDescription>Manage units across all projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Inventory Management</h3>
+                  <p className="text-muted-foreground">Track available units and floor plans</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Performance */}
+          <TabsContent value="performance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Analytics</CardTitle>
+                <CardDescription>Track project performance and engagement</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="p-6 bg-primary/10 rounded-lg">
+                    <Eye className="h-8 w-8 text-primary mb-2" />
+                    <p className="text-sm text-muted-foreground">Total Views</p>
+                    <p className="text-3xl font-bold">{stats.totalViews}</p>
+                    <p className="text-sm text-green-600 mt-2">+15% this month</p>
+                  </div>
+
+                  <div className="p-6 bg-green-500/10 rounded-lg">
+                    <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
+                    <p className="text-sm text-muted-foreground">Units Sold</p>
+                    <p className="text-3xl font-bold">127</p>
+                    <p className="text-sm text-green-600 mt-2">+23% this month</p>
+                  </div>
+
+                  <div className="p-6 bg-blue-500/10 rounded-lg">
+                    <Building2 className="h-8 w-8 text-blue-500 mb-2" />
+                    <p className="text-sm text-muted-foreground">Avg. Trust Score</p>
+                    <p className="text-3xl font-bold">
+                      {Math.round(projects.reduce((acc, p) => acc + (p.trust_score || 0), 0) / projects.length) || 0}/100
+                    </p>
+                    <p className="text-sm text-green-600 mt-2">Excellent rating</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
