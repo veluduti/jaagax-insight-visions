@@ -29,6 +29,10 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import AgentBadges from "@/components/agents/AgentBadges";
+import AgentExpertise from "@/components/agents/AgentExpertise";
+import AgentPropertyFilters, { PropertyFilters } from "@/components/agents/AgentPropertyFilters";
+import AgentPerformance from "@/components/agents/AgentPerformance";
 
 interface Agent {
   id: number;
@@ -73,6 +77,7 @@ const AgentDetail = () => {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeTab, setActiveTab] = useState("properties");
 
@@ -113,6 +118,7 @@ const AgentDetail = () => {
         .limit(12);
 
       setProperties(propertiesData || []);
+      setFilteredProperties(propertiesData || []);
 
       // Fetch agent reviews (agent_reviews table uses UUID, but agents table uses integer)
       // Using mock reviews for demonstration
@@ -203,6 +209,53 @@ const AgentDetail = () => {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (sum / reviews.length).toFixed(1);
+  };
+
+  const handleFilterChange = (filters: PropertyFilters) => {
+    let filtered = [...properties];
+
+    // Filter by purpose (sale/rent)
+    if (filters.purpose !== "all") {
+      // This would require a status field on properties to distinguish sale vs rent
+      // For now, we'll skip this filter as the schema doesn't have it
+    }
+
+    // Filter by type
+    if (filters.type !== "all") {
+      filtered = filtered.filter(p => p.type.toLowerCase() === filters.type.toLowerCase());
+    }
+
+    // Filter by BHK
+    if (filters.bhk !== "all") {
+      const bhkValue = parseInt(filters.bhk);
+      filtered = filtered.filter(p => {
+        if (bhkValue === 4) {
+          return p.bhk >= 4;
+        }
+        return p.bhk === bhkValue;
+      });
+    }
+
+    // Filter by location
+    if (filters.location.trim()) {
+      const searchTerm = filters.location.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.locality.toLowerCase().includes(searchTerm) ||
+        p.city.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Filter by price range
+    if (filters.minPrice) {
+      const minPrice = parseFloat(filters.minPrice);
+      filtered = filtered.filter(p => p.price >= minPrice);
+    }
+    if (filters.maxPrice) {
+      const maxPrice = parseFloat(filters.maxPrice);
+      filtered = filtered.filter(p => p.price <= maxPrice);
+    }
+
+    setFilteredProperties(filtered);
   };
 
   if (loading) {
@@ -343,6 +396,16 @@ const AgentDetail = () => {
                 </div>
               </div>
 
+              {/* Professional Badges */}
+              <AgentBadges 
+                verified={agent.verified}
+                trustScore={agent.trust_score}
+                salesCount={agent.sales_count}
+                rentCount={agent.rent_count}
+              />
+
+              <Separator className="my-6" />
+
               {/* Info Badges */}
               <div className="flex flex-wrap gap-3 mb-6">
                 <Badge variant="outline" className="py-2 px-4">
@@ -401,32 +464,42 @@ const AgentDetail = () => {
         </motion.div>
 
         {/* Tabs Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="properties">
-                Properties ({properties.length})
-              </TabsTrigger>
-              <TabsTrigger value="reviews">
-                Reviews ({reviews.length})
-              </TabsTrigger>
-            </TabsList>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value="properties">
+                    Properties ({properties.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="reviews">
+                    Reviews ({reviews.length})
+                  </TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="properties" className="mt-0">
-              {properties.length === 0 ? (
-                <Card className="glass-panel">
-                  <CardContent className="py-12 text-center">
-                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No properties listed yet</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {properties.map((property) => (
+                <TabsContent value="properties" className="mt-0 space-y-6">
+                  {/* Property Filters */}
+                  <AgentPropertyFilters onFilterChange={handleFilterChange} />
+
+                  {filteredProperties.length === 0 ? (
+                    <Card className="glass-panel">
+                      <CardContent className="py-12 text-center">
+                        <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-muted-foreground">
+                          {properties.length > 0 
+                            ? "No properties match your filters" 
+                            : "No properties listed yet"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {filteredProperties.map((property) => (
                     <Card
                       key={property.id}
                       className="glass-panel overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
@@ -469,12 +542,12 @@ const AgentDetail = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+                   ))}
+                 </div>
+               )}
+                </TabsContent>
 
-            <TabsContent value="reviews" className="mt-0">
+                <TabsContent value="reviews" className="mt-0">
               {reviews.length === 0 ? (
                 <Card className="glass-panel">
                   <CardContent className="py-12 text-center">
@@ -522,12 +595,33 @@ const AgentDetail = () => {
                         <p className="text-muted-foreground leading-relaxed">{review.feedback}</p>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </motion.div>
+                   ))}
+                 </div>
+               )}
+                </TabsContent>
+              </Tabs>
+            </motion.div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Expertise & Service Areas */}
+            <AgentExpertise 
+              salesCount={agent.sales_count}
+              rentCount={agent.rent_count}
+              citiesServed={agent.cities_served}
+            />
+
+            {/* Performance Metrics */}
+            <AgentPerformance 
+              salesCount={agent.sales_count}
+              rentCount={agent.rent_count}
+              trustScore={agent.trust_score}
+              reviewCount={reviews.length}
+              averageRating={avgRating.toString()}
+            />
+          </div>
+        </div>
 
         {/* Contact CTA */}
         <motion.div
