@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Carousel,
   CarouselContent,
@@ -12,56 +14,64 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-const projects = [
-  {
-    id: 1,
-    name: "Prestige Lake Vista",
-    builder: "Prestige Group",
-    location: "Kokapet, Hyderabad",
-    avgPrice: "₹85 L - ₹1.5 Cr",
-    units: "2, 3 & 4 BHK",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
-    growth: "+12% YoY",
-    reraVerified: true,
-  },
-  {
-    id: 2,
-    name: "Lodha Meridian",
-    builder: "Lodha Group",
-    location: "Gachibowli, Hyderabad",
-    avgPrice: "₹1.2 Cr - ₹2.8 Cr",
-    units: "3 & 4 BHK",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
-    growth: "+15% YoY",
-    reraVerified: true,
-  },
-  {
-    id: 3,
-    name: "DLF Garden City",
-    builder: "DLF Limited",
-    location: "Tellapur, Hyderabad",
-    avgPrice: "₹70 L - ₹1.2 Cr",
-    units: "2 & 3 BHK",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-    growth: "+10% YoY",
-    reraVerified: true,
-  },
-  {
-    id: 4,
-    name: "Aparna Hillpark",
-    builder: "Aparna Constructions",
-    location: "Chandanagar, Hyderabad",
-    avgPrice: "₹55 L - ₹95 L",
-    units: "2 & 3 BHK",
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
-    growth: "+9% YoY",
-    reraVerified: true,
-  },
-];
+interface Project {
+  id: number;
+  name: string;
+  builder_name: string;
+  city: string;
+  locality: string;
+  avg_price: number;
+  image: string | null;
+  verified: boolean;
+  rera_id: string | null;
+}
 
 const NewProjects = () => {
   const navigate = useNavigate();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("verified", true)
+        .not("name", "is", null)
+        .not("city", "is", null)
+        .not("locality", "is", null)
+        .order("trust_score", { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
+  if (loading) {
+    return (
+      <section className="py-16 relative bg-secondary/20" id="new-projects">
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (projects.length === 0) {
+    return null;
+  }
+
   return (
     <section className="py-16 relative bg-secondary/20" id="new-projects">
       <div className="container mx-auto px-6">
@@ -102,24 +112,26 @@ const NewProjects = () => {
                     {/* Image */}
                     <div className="relative h-56 overflow-hidden">
                       <img
-                        src={project.image}
+                        src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
                         alt={project.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                       
                       {/* RERA Badge */}
-                      {project.reraVerified && (
+                      {project.rera_id && (
                         <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground border-0">
                           RERA Verified
                         </Badge>
                       )}
 
-                      {/* Growth Badge */}
-                      <Badge className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border-primary/50">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {project.growth}
-                      </Badge>
+                      {/* Verified Badge */}
+                      {project.verified && (
+                        <Badge className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border-primary/50">
+                          <TrendingUp className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Content */}
@@ -130,23 +142,25 @@ const NewProjects = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-lg mb-1 line-clamp-1">{project.name}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{project.builder}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{project.builder_name}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
                         <MapPin className="h-4 w-4 flex-shrink-0" />
-                        {project.location}
+                        {project.locality}, {project.city}
                       </div>
 
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Price Range</span>
-                          <span className="font-semibold text-primary">{project.avgPrice}</span>
+                          <span className="text-muted-foreground">Starting From</span>
+                          <span className="font-semibold text-primary">
+                            ₹{(project.avg_price / 10000000).toFixed(2)} Cr
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Units</span>
-                          <span className="font-semibold">{project.units}</span>
+                          <span className="text-muted-foreground">Location</span>
+                          <span className="font-semibold">{project.city}</span>
                         </div>
                       </div>
 
