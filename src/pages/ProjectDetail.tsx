@@ -89,6 +89,14 @@ const amenityIcons: Record<string, any> = {
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // Validate ID parameter
+  useEffect(() => {
+    if (!id || isNaN(parseInt(id))) {
+      toast.error("Invalid project ID");
+      navigate("/projects");
+    }
+  }, [id, navigate]);
   const [project, setProject] = useState<Project | null>(null);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);

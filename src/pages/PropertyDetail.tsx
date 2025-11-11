@@ -59,8 +59,16 @@ interface Agent {
 }
 
 const PropertyDetail = () => {
-      const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // Validate ID parameter
+  useEffect(() => {
+    if (!id || isNaN(parseInt(id))) {
+      toast.error("Invalid property ID");
+      navigate("/projects");
+    }
+  }, [id, navigate]);
   const [property, setProperty] = useState<Property | null>(null);
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,7 +138,7 @@ const PropertyDetail = () => {
           .from("agents")
           .select("*")
           .eq("id", mappedProperty.agent_id)
-          .single();
+          .maybeSingle();
 
         if (agentData) {
           setAgent(agentData);
@@ -159,10 +167,13 @@ const PropertyDetail = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("AI valuation error:", error);
+        return;
+      }
       setAiValuation(data);
-    } catch (error) {
-      // Silently fail for AI valuation
+    } catch (error: any) {
+      console.error("AI valuation failed:", error);
     }
   };
 

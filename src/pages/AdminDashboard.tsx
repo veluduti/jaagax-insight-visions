@@ -44,7 +44,7 @@ export default function AdminDashboard() {
         .from("users")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       setUser(data);
     }
   };

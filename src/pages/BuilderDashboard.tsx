@@ -67,7 +67,7 @@ export default function BuilderDashboard() {
         .from("users")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       setUser(data);
     }
     setLoading(false);

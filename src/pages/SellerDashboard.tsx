@@ -53,7 +53,7 @@ export default function SellerDashboard() {
         .from("users")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       setUser(data);
     }
     setLoading(false);
