@@ -88,8 +88,10 @@ const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
-  const [amenities, setAmenities] = useState<Amenity[]>([]);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [amenities, setAmenities] = useState<any[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
+  const [specifications, setSpecifications] = useState<any>(null);
+  const [highlights, setHighlights] = useState<string[]>([]);
   const [aiSummary, setAiSummary] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
@@ -139,34 +141,68 @@ const ProjectDetail = () => {
       
       setProject(projectData);
 
-      // Fetch amenities
-      const { data: amenitiesData, error: amenitiesError } = await supabase
-        .from("amenities")
-        .select("*")
-        .eq("project_id", id);
+      // Fetch real-time web data for the project
+      console.log("Fetching real-time web data...");
+      const { data: webData, error: webError } = await supabase.functions.invoke(
+        "fetch-project-web-data",
+        { body: { projectId: projectData.id } }
+      );
 
-      if (amenitiesError) throw amenitiesError;
-      setAmenities(amenitiesData || []);
-
-      // Fetch units (through towers)
-      const { data: towersData, error: towersError } = await supabase
-        .from("towers")
-        .select("id")
-        .eq("project_id", id);
-
-      if (!towersError && towersData && towersData.length > 0) {
-        const towerIds = towersData.map((t) => t.id);
-        const { data: unitsData, error: unitsError } = await supabase
-          .from("units")
+      if (!webError && webData?.success) {
+        console.log("Web data fetched successfully:", webData.data);
+        
+        // Update overview if available
+        if (webData.data.overview) {
+          setProject((prev) => prev ? { ...prev, overview: webData.data.overview } : prev);
+        }
+        
+        // Set amenities from web data
+        if (webData.data.amenities && webData.data.amenities.length > 0) {
+          setAmenities(webData.data.amenities);
+        }
+        
+        // Set floor plans from web data
+        if (webData.data.floorPlans && webData.data.floorPlans.length > 0) {
+          setUnits(webData.data.floorPlans);
+        }
+        
+        // Set specifications
+        if (webData.data.specifications) {
+          setSpecifications(webData.data.specifications);
+        }
+        
+        // Set highlights
+        if (webData.data.highlights) {
+          setHighlights(webData.data.highlights);
+        }
+      } else {
+        console.log("Using database fallback data");
+        // Fallback to database data if web fetch fails
+        const { data: amenitiesData } = await supabase
+          .from("amenities")
           .select("*")
-          .in("tower_id", towerIds)
-          .limit(10);
+          .eq("project_id", id);
 
-        if (!unitsError) {
-          setUnits(unitsData || []);
+        if (amenitiesData) setAmenities(amenitiesData);
+
+        const { data: towersData } = await supabase
+          .from("towers")
+          .select("id")
+          .eq("project_id", id);
+
+        if (towersData && towersData.length > 0) {
+          const towerIds = towersData.map((t) => t.id);
+          const { data: unitsData } = await supabase
+            .from("units")
+            .select("*")
+            .in("tower_id", towerIds)
+            .limit(10);
+
+          if (unitsData) setUnits(unitsData);
         }
       }
     } catch (error) {
+      console.error("Error fetching project:", error);
       toast.error("Project not found");
     } finally {
       setLoading(false);
@@ -339,13 +375,45 @@ const ProjectDetail = () => {
                 <CardHeader>
                   <CardTitle>Project Overview</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {project.overview ||
-                      `${project.name} is a premium residential project located in the heart of ${project.locality}, ${project.city}. 
-                      Developed by ${project.builder?.name || "a renowned builder"}, this project offers modern living spaces with 
-                      world-class amenities and excellent connectivity to major landmarks.`}
-                  </p>
+                <CardContent className="space-y-6">
+                  <div>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {project.overview ||
+                        `${project.name} is a premium residential project located in the heart of ${project.locality}, ${project.city}. 
+                        Developed by ${project.builder_name || "a renowned builder"}, this project offers modern living spaces with 
+                        world-class amenities and excellent connectivity to major landmarks.`}
+                    </p>
+                  </div>
+
+                  {highlights.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Key Highlights</h3>
+                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {highlights.map((highlight, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-muted-foreground">{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {specifications && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Specifications</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(specifications).map(([key, value]) => (
+                          <div key={key} className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                            <p className="text-sm text-muted-foreground capitalize">
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </p>
+                            <p className="font-medium mt-1">{value as string}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -360,19 +428,23 @@ const ProjectDetail = () => {
                     <p className="text-muted-foreground">No amenities information available.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {amenities.map((amenity) => {
-                        const Icon = amenityIcons[amenity.type] || amenityIcons.default;
+                      {amenities.map((amenity, index) => {
+                        const amenityType = amenity.type?.toLowerCase() || 'default';
+                        const Icon = amenityIcons[amenityType] || amenityIcons.default;
+                        const amenityName = amenity.name || amenity.type;
+                        const amenityStatus = amenity.status || 'Available';
+                        
                         return (
                           <div
-                            key={amenity.id}
-                            className="flex items-center gap-3 p-4 rounded-lg bg-accent/10 border border-border/50"
+                            key={amenity.id || index}
+                            className="flex items-center gap-3 p-4 rounded-lg bg-accent/10 border border-border/50 hover:border-primary/50 transition-colors"
                           >
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               <Icon className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-semibold capitalize">{amenity.type}</p>
-                              <p className="text-sm text-muted-foreground capitalize">{amenity.status}</p>
+                              <p className="font-semibold capitalize">{amenityName}</p>
+                              <p className="text-sm text-muted-foreground capitalize">{amenityStatus}</p>
                             </div>
                           </div>
                         );
@@ -393,9 +465,9 @@ const ProjectDetail = () => {
                     <p className="text-muted-foreground">No floor plans available.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {units.map((unit) => (
+                      {units.map((unit, index) => (
                         <div
-                          key={unit.id}
+                          key={unit.id || index}
                           className="p-6 rounded-lg bg-accent/10 border border-border/50 hover:border-primary/50 transition-colors"
                         >
                           <div className="flex items-center justify-between mb-4">
@@ -412,7 +484,28 @@ const ProjectDetail = () => {
 
                           {unit.facing && (
                             <div className="mb-4">
-                              <p className="text-sm text-muted-foreground">Facing: {unit.facing}</p>
+                              <p className="text-sm text-muted-foreground mb-1">Facing</p>
+                              <p className="font-medium">{unit.facing}</p>
+                            </div>
+                          )}
+
+                          {unit.description && (
+                            <div className="mb-4">
+                              <p className="text-sm text-muted-foreground">{unit.description}</p>
+                            </div>
+                          )}
+
+                          {unit.features && unit.features.length > 0 && (
+                            <div className="mb-4">
+                              <p className="text-sm font-medium mb-2">Key Features:</p>
+                              <ul className="space-y-1">
+                                {unit.features.map((feature: string, idx: number) => (
+                                  <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                    {feature}
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           )}
 

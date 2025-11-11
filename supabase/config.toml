@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.generate-project-summary]
 verify_jwt = false
+
+[functions.fetch-project-web-data]
+verify_jwt = false
