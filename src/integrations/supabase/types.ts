@@ -360,6 +360,91 @@ export type Database = {
           },
         ]
       }
+      lead_interactions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          interaction_type: string
+          lead_id: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          interaction_type: string
+          lead_id: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          interaction_type?: string
+          lead_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          project_id: number | null
+          source: string | null
+          status: Database["public"]["Enums"]["lead_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          project_id?: number | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          project_id?: number | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_trends: {
         Row: {
           ai_summary: string | null
@@ -815,6 +900,72 @@ export type Database = {
         }
         Relationships: []
       }
+      site_visits: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          number_of_visitors: number | null
+          project_id: number
+          status: Database["public"]["Enums"]["site_visit_status"] | null
+          updated_at: string | null
+          visit_date: string
+          visit_time: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          number_of_visitors?: number | null
+          project_id: number
+          status?: Database["public"]["Enums"]["site_visit_status"] | null
+          updated_at?: string | null
+          visit_date: string
+          visit_time: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          number_of_visitors?: number | null
+          project_id?: number
+          status?: Database["public"]["Enums"]["site_visit_status"] | null
+          updated_at?: string | null
+          visit_date?: string
+          visit_time?: string
+          visitor_email?: string
+          visitor_name?: string
+          visitor_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visits_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       towers: {
         Row: {
           created_at: string | null
@@ -1038,8 +1189,15 @@ export type Database = {
         | "playground"
         | "security"
       app_role: "buyer" | "seller" | "builder" | "agent" | "admin"
+      lead_status: "new" | "contacted" | "qualified" | "converted" | "lost"
       poi_type: "metro" | "school" | "hospital" | "mall" | "office" | "airport"
       property_type: "apartment" | "villa" | "plot" | "commercial"
+      site_visit_status:
+        | "pending"
+        | "confirmed"
+        | "completed"
+        | "cancelled"
+        | "rescheduled"
       user_role: "buyer" | "seller" | "builder" | "admin"
       verification_status: "pending" | "verified" | "rejected"
     }
@@ -1179,8 +1337,16 @@ export const Constants = {
         "security",
       ],
       app_role: ["buyer", "seller", "builder", "agent", "admin"],
+      lead_status: ["new", "contacted", "qualified", "converted", "lost"],
       poi_type: ["metro", "school", "hospital", "mall", "office", "airport"],
       property_type: ["apartment", "villa", "plot", "commercial"],
+      site_visit_status: [
+        "pending",
+        "confirmed",
+        "completed",
+        "cancelled",
+        "rescheduled",
+      ],
       user_role: ["buyer", "seller", "builder", "admin"],
       verification_status: ["pending", "verified", "rejected"],
     },

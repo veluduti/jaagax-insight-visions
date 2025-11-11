@@ -17,6 +17,7 @@ import { DataImportPanel } from "@/components/admin/DataImportPanel";
 import { FakeListingManager } from "@/components/admin/FakeListingManager";
 import { DatabaseCleanup } from "@/components/admin/DatabaseCleanup";
 import { EnrichProjectsPanel } from "@/components/admin/EnrichProjectsPanel";
+import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -223,6 +224,7 @@ export default function AdminDashboard() {
 
           {/* Verifications */}
           <TabsContent value="verification" className="space-y-6">
+            <LeadsCRMPanel />
             <EnrichProjectsPanel />
             <DataImportPanel />
             <DatabaseCleanup />

@@ -39,5 +39,8 @@ verify_jwt = false
 [functions.fetch-project-web-data]
 verify_jwt = false
 
-[functions.enrich-project-data]
+[functions.send-booking-confirmation]
+verify_jwt = false
+
+[functions.send-interest-confirmation]
 verify_jwt = false

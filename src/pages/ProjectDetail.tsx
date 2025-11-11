@@ -39,6 +39,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { SiteVisitBookingModal } from "@/components/booking/SiteVisitBookingModal";
+import { InterestRegistrationModal } from "@/components/booking/InterestRegistrationModal";
 
 interface Project {
   id: number;
@@ -96,6 +98,8 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [selected3DPlan, setSelected3DPlan] = useState<string | null>(null);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [interestModalOpen, setInterestModalOpen] = useState(false);
 
   const galleryImages = [
     "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
@@ -604,8 +608,12 @@ const ProjectDetail = () => {
             Contact our team for site visits, pricing details, and exclusive offers
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg">Schedule Site Visit</Button>
-            <Button size="lg" variant="outline">Download Brochure</Button>
+            <Button size="lg" onClick={() => setBookingModalOpen(true)}>
+              Schedule Site Visit
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => setInterestModalOpen(true)}>
+              Express Interest
+            </Button>
           </div>
         </motion.div>
       </div>
@@ -631,6 +639,24 @@ const ProjectDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Site Visit Booking Modal */}
+      {project && (
+        <>
+          <SiteVisitBookingModal
+            open={bookingModalOpen}
+            onOpenChange={setBookingModalOpen}
+            projectId={project.id}
+            projectName={project.name}
+          />
+          <InterestRegistrationModal
+            open={interestModalOpen}
+            onOpenChange={setInterestModalOpen}
+            projectId={project.id}
+            projectName={project.name}
+          />
+        </>
+      )}
     </div>
   );
 };
