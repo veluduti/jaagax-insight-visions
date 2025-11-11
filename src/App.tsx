@@ -104,12 +104,6 @@ const App = () => (
             }
           />
           
-          {/* Legacy routes - redirect to new pattern */}
-          <Route path="/buyer-dashboard" element={<Dashboard />} />
-          <Route path="/seller-dashboard" element={<Dashboard />} />
-          <Route path="/builder-dashboard" element={<Dashboard />} />
-          <Route path="/agent-dashboard" element={<Dashboard />} />
-          <Route path="/admin-dashboard" element={<Dashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -20,11 +20,11 @@ const MobileNav = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Search, label: "Search", path: "/projects" },
     { icon: Users, label: "Agents", path: "/agents" },
-    { icon: Sparkles, label: "AI", path: "#ai" },
+    { icon: Sparkles, label: "AI", path: "/ai-advisor" },
     { 
       icon: User, 
       label: "Profile", 
-      path: user ? "/buyer-dashboard" : "/auth" 
+      path: user ? "/dashboard" : "/auth" 
     },
   ];
 
@@ -47,13 +47,7 @@ const MobileNav = () => {
           return (
             <button
               key={item.label}
-              onClick={() => {
-                if (item.path.startsWith("#")) {
-                  // Handle AI modal or scroll
-                  return;
-                }
-                navigate(item.path);
-              }}
+              onClick={() => navigate(item.path)}
               className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all"
             >
               <div
