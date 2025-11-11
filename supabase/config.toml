@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.import-real-estate-data]
 verify_jwt = false
+
+[functions.generate-project-summary]
+verify_jwt = false

@@ -178,19 +178,32 @@ const ProjectDetail = () => {
     
     setAiLoading(true);
     try {
-      // Simulate AI summary generation (replace with actual AI API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      setAiSummary(
-        `${project.name} is a premium ${project.city}-based development by ${project.builder?.name || "a renowned builder"}. ` +
-        `Located in ${project.locality}, this project offers modern living spaces with world-class amenities. ` +
-        `With a trust score of ${project.trust_score}/100 and ${project.rera_id ? "RERA certification" : "ongoing verification"}, ` +
-        `this project represents excellent value starting from ₹${(project.avg_price / 10000000).toFixed(2)} Crores. ` +
-        `The development features ${amenities.length} premium amenities including modern fitness facilities, landscaped gardens, and 24/7 security.`
-      );
-      
-      toast.success("AI summary generated!");
+      const { data, error } = await supabase.functions.invoke("generate-project-summary", {
+        body: {
+          projectData: project,
+          amenities,
+          units,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.fallback) {
+        // Use fallback summary if AI service is unavailable
+        setAiSummary(
+          `${project.name} is a premium ${project.city}-based development by ${project.builder_name || "a renowned builder"}. ` +
+          `Located in ${project.locality}, this project offers modern living spaces with world-class amenities. ` +
+          `With a trust score of ${project.trust_score}/100 and ${project.rera_id ? "RERA certification" : "ongoing verification"}, ` +
+          `this project represents excellent value starting from ₹${(project.avg_price / 10000000).toFixed(2)} Crores. ` +
+          `The development features ${amenities.length} premium amenities including modern fitness facilities, landscaped gardens, and 24/7 security.`
+        );
+        toast.info(data.error || "Using fallback summary");
+      } else {
+        setAiSummary(data.summary);
+        toast.success("AI summary generated!");
+      }
     } catch (error) {
+      console.error("Error generating AI summary:", error);
       toast.error("Failed to generate AI summary");
     } finally {
       setAiLoading(false);
