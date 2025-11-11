@@ -16,6 +16,7 @@ import TransactionsLocality from "./pages/TransactionsLocality";
 import TrustScore from "./pages/TrustScore";
 import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
+import AgentComparison from "./pages/AgentComparison";
 import PropertyValuation from "./pages/PropertyValuation";
 import Communities from "./pages/Communities";
 import CommunitiesCity from "./pages/CommunitiesCity";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/trustscore" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
+          <Route path="/agents/compare" element={<AgentComparison />} />
           <Route path="/valuation" element={<PropertyValuation />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/communities/:city" element={<CommunitiesCity />} />

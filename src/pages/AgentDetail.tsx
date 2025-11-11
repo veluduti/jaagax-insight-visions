@@ -24,6 +24,7 @@ import {
   Users,
   Mail,
   Share2,
+  ArrowRightLeft
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -33,6 +34,10 @@ import AgentBadges from "@/components/agents/AgentBadges";
 import AgentExpertise from "@/components/agents/AgentExpertise";
 import AgentPropertyFilters, { PropertyFilters } from "@/components/agents/AgentPropertyFilters";
 import AgentPerformance from "@/components/agents/AgentPerformance";
+import AgentVideoSection from "@/components/agents/AgentVideoSection";
+import AgentSuccessStories from "@/components/agents/AgentSuccessStories";
+import AgentTeamMembers from "@/components/agents/AgentTeamMembers";
+import AgentAvailabilityCalendar from "@/components/agents/AgentAvailabilityCalendar";
 
 interface Agent {
   id: number;
@@ -437,6 +442,14 @@ const AgentDetail = () => {
                   <Mail className="h-4 w-4 mr-2" />
                   Email
                 </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => navigate(`/agents/compare?agents=${agent.id}`)}
+                >
+                  <ArrowRightLeft className="h-4 w-4 mr-2" />
+                  Compare
+                </Button>
               </div>
             </div>
           </div>
@@ -462,6 +475,15 @@ const AgentDetail = () => {
             Trust Score of {agent.trust_score}/100 reflects commitment to transparency and professionalism.
           </p>
         </motion.div>
+
+        {/* Video Section */}
+        <AgentVideoSection agentName={agent.name} />
+
+        {/* Success Stories */}
+        <AgentSuccessStories agentName={agent.name} />
+
+        {/* Team Members */}
+        <AgentTeamMembers agencyName={agent.agency_name} currentAgentId={agent.id} />
 
         {/* Tabs Content */}
         <div className="grid lg:grid-cols-3 gap-8">
@@ -620,6 +642,9 @@ const AgentDetail = () => {
               reviewCount={reviews.length}
               averageRating={avgRating.toString()}
             />
+
+            {/* Availability Calendar */}
+            <AgentAvailabilityCalendar agentName={agent.name} agentId={agent.id} />
           </div>
         </div>
 
