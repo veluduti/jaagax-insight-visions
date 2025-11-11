@@ -141,29 +141,33 @@ const ProjectDetail = () => {
       
       setProject(projectData);
 
-      // Fetch real-time web data for the project
-      console.log("Fetching real-time web data...");
+      // Fetch enriched data from database (this will also trigger background enrichment if needed)
+      console.log("Fetching enriched web data...");
       const { data: webData, error: webError } = await supabase.functions.invoke(
         "fetch-project-web-data",
         { body: { projectId: projectData.id } }
       );
 
       if (!webError && webData?.success) {
-        console.log("Web data fetched successfully:", webData.data);
+        console.log("Enriched data fetched:", webData.data);
         
         // Update overview if available
         if (webData.data.overview) {
           setProject((prev) => prev ? { ...prev, overview: webData.data.overview } : prev);
         }
         
-        // Set amenities from web data
+        // Set amenities from database
         if (webData.data.amenities && webData.data.amenities.length > 0) {
           setAmenities(webData.data.amenities);
+        } else {
+          console.log("No amenities yet, data is being enriched in background");
         }
         
-        // Set floor plans from web data
+        // Set floor plans from database
         if (webData.data.floorPlans && webData.data.floorPlans.length > 0) {
           setUnits(webData.data.floorPlans);
+        } else {
+          console.log("No floor plans yet, data is being enriched in background");
         }
         
         // Set specifications
@@ -172,34 +176,49 @@ const ProjectDetail = () => {
         }
         
         // Set highlights
-        if (webData.data.highlights) {
+        if (webData.data.highlights && webData.data.highlights.length > 0) {
           setHighlights(webData.data.highlights);
+        }
+
+        // Show toast if data is being enriched
+        if (webData.data.status === "pending" || webData.data.status === "processing") {
+          toast.info("Project data is being enriched. Refresh the page in a few moments for complete details.");
         }
       } else {
         console.log("Using database fallback data");
         // Fallback to database data if web fetch fails
+        const projectId = parseInt(id || "0");
+        
         const { data: amenitiesData } = await supabase
-          .from("amenities")
+          .from("project_amenities")
           .select("*")
-          .eq("project_id", id);
+          .eq("project_id", projectId);
+
+        const { data: floorPlansData } = await supabase
+          .from("project_floor_plans")
+          .select("*")
+          .eq("project_id", projectId);
+
+        const { data: specificationsData } = await supabase
+          .from("project_specifications")
+          .select("*")
+          .eq("project_id", projectId);
+
+        const { data: highlightsData } = await supabase
+          .from("project_highlights")
+          .select("*")
+          .eq("project_id", projectId);
 
         if (amenitiesData) setAmenities(amenitiesData);
-
-        const { data: towersData } = await supabase
-          .from("towers")
-          .select("id")
-          .eq("project_id", id);
-
-        if (towersData && towersData.length > 0) {
-          const towerIds = towersData.map((t) => t.id);
-          const { data: unitsData } = await supabase
-            .from("units")
-            .select("*")
-            .in("tower_id", towerIds)
-            .limit(10);
-
-          if (unitsData) setUnits(unitsData);
+        if (floorPlansData) setUnits(floorPlansData);
+        if (specificationsData) {
+          const specs = specificationsData.reduce((acc: any, s: any) => {
+            acc[s.category] = s.specification;
+            return acc;
+          }, {});
+          setSpecifications(specs);
         }
+        if (highlightsData) setHighlights(highlightsData.map((h: any) => h.highlight));
       }
     } catch (error) {
       console.error("Error fetching project:", error);

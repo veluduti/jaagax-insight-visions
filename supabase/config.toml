@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.fetch-project-web-data]
 verify_jwt = false
+
+[functions.enrich-project-data]
+verify_jwt = false

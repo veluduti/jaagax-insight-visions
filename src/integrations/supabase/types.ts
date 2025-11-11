@@ -423,6 +423,193 @@ export type Database = {
         }
         Relationships: []
       }
+      project_amenities: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          project_id: number
+          status: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          project_id: number
+          status?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          project_id?: number
+          status?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_amenities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_floor_plans: {
+        Row: {
+          area: number
+          bhk: number
+          created_at: string | null
+          description: string | null
+          facing: string | null
+          features: Json | null
+          id: string
+          plan_image_url: string | null
+          price: number
+          project_id: number
+          updated_at: string | null
+        }
+        Insert: {
+          area: number
+          bhk: number
+          created_at?: string | null
+          description?: string | null
+          facing?: string | null
+          features?: Json | null
+          id?: string
+          plan_image_url?: string | null
+          price: number
+          project_id: number
+          updated_at?: string | null
+        }
+        Update: {
+          area?: number
+          bhk?: number
+          created_at?: string | null
+          description?: string | null
+          facing?: string | null
+          features?: Json | null
+          id?: string
+          plan_image_url?: string | null
+          price?: number
+          project_id?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_floor_plans_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_highlights: {
+        Row: {
+          created_at: string | null
+          highlight: string
+          id: string
+          project_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          highlight: string
+          id?: string
+          project_id: number
+        }
+        Update: {
+          created_at?: string | null
+          highlight?: string
+          id?: string
+          project_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_highlights_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_specifications: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          project_id: number
+          specification: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          project_id: number
+          specification: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          project_id?: number
+          specification?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_specifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_web_data_status: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          fetch_status: string | null
+          last_fetched_at: string | null
+          project_id: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          fetch_status?: string | null
+          last_fetched_at?: string | null
+          project_id: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          fetch_status?: string | null
+          last_fetched_at?: string | null
+          project_id?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_web_data_status_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           avg_price: number | null
