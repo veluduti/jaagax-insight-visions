@@ -4,68 +4,78 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Bed, Bath, Maximize, MapPin, Shield } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const properties = [
-  {
-    id: 1,
-    title: "Luxury 3BHK Apartment",
-    location: "Kokapet, Hyderabad",
-    price: "₹1.2 Cr",
-    beds: 3,
-    baths: 3,
-    area: "2100 sqft",
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
-    verified: true,
-    trustScore: 95,
-  },
-  {
-    id: 2,
-    title: "Premium Villa with Garden",
-    location: "Gachibowli, Hyderabad",
-    price: "₹2.8 Cr",
-    beds: 4,
-    baths: 4,
-    area: "3500 sqft",
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-    verified: true,
-    trustScore: 98,
-  },
-  {
-    id: 3,
-    title: "Modern 2BHK Flat",
-    location: "Benz Circle, Vijayawada",
-    price: "₹65 L",
-    beds: 2,
-    baths: 2,
-    area: "1450 sqft",
-    image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
-    verified: true,
-    trustScore: 92,
-  },
-  {
-    id: 4,
-    title: "Spacious Penthouse",
-    location: "Kondapur, Hyderabad",
-    price: "₹3.5 Cr",
-    beds: 4,
-    baths: 5,
-    area: "4200 sqft",
-    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
-    verified: true,
-    trustScore: 97,
-  },
-];
+interface Property {
+  id: number;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  beds: number;
+  baths: number;
+  area: number;
+  images: string[];
+  verified: boolean;
+  trust_score: number;
+  bhk: number;
+}
 
 const FeaturedProperties = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<number[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("verified", true)
+        .not("title", "is", null)
+        .not("city", "is", null)
+        .not("locality", "is", null)
+        .not("price", "is", null)
+        .gt("price", 0)
+        .order("trust_score", { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+      setProperties(data || []);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
     );
   };
+
+  if (loading) {
+    return (
+      <section className="py-16 relative" id="properties">
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (properties.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16 relative" id="properties">
@@ -100,7 +110,7 @@ const FeaturedProperties = () => {
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={property.image}
+                    src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
                     alt={property.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -137,19 +147,19 @@ const FeaturedProperties = () => {
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-bold text-lg line-clamp-1">{property.title}</h3>
                     <span className="text-primary font-bold text-lg whitespace-nowrap ml-2">
-                      {property.price}
+                      ₹{(property.price / 10000000).toFixed(2)} Cr
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
                     <MapPin className="h-4 w-4" />
-                    {property.location}
+                    {property.locality}, {property.city}
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Bed className="h-4 w-4" />
-                      {property.beds}
+                      {property.bhk || property.beds}
                     </div>
                     <div className="flex items-center gap-1">
                       <Bath className="h-4 w-4" />
@@ -157,7 +167,7 @@ const FeaturedProperties = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Maximize className="h-4 w-4" />
-                      {property.area}
+                      {property.area} sqft
                     </div>
                   </div>
 
