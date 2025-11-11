@@ -22,6 +22,11 @@ import PropertyAmenities from "@/components/property/PropertyAmenities";
 import PropertyInformation from "@/components/property/PropertyInformation";
 import BuildingInformation from "@/components/property/BuildingInformation";
 import PropertyTabs from "@/components/property/PropertyTabs";
+import EMICalculator from "@/components/property/EMICalculator";
+import NearbyPOI from "@/components/property/NearbyPOI";
+import PropertyActions from "@/components/property/PropertyActions";
+import PaymentPlans from "@/components/property/PaymentPlans";
+import PropertyStats from "@/components/property/PropertyStats";
 
 interface Property {
   id: number;
@@ -310,13 +315,15 @@ const PropertyDetail = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel rounded-xl p-4 flex justify-between items-center"
+          className="glass-panel rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
-          <div className="flex gap-2">
-            <Button onClick={handleShare} variant="outline" size="lg" className="gap-2">
-              <Share2 className="h-4 w-4" />
-              Share
-            </Button>
+          <PropertyActions 
+            propertyId={property.id}
+            propertyTitle={property.title}
+            propertyType="property"
+          />
+          
+          <div className="flex flex-wrap gap-2">
             <Button 
               onClick={toggleFavorite} 
               variant={isFavorite ? "default" : "outline"} 
@@ -326,8 +333,6 @@ const PropertyDetail = () => {
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
             </Button>
-          </div>
-          <div className="flex gap-2">
             <Button size="lg" className="gap-2" onClick={() => setShowBookingModal(true)}>
               <Calendar className="h-4 w-4" />
               Book Visit
@@ -349,6 +354,9 @@ const PropertyDetail = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Property Stats */}
+        <PropertyStats entityId={property.id} entityType="property" />
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -376,6 +384,9 @@ const PropertyDetail = () => {
             {/* Map */}
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
+            {/* Nearby POI */}
+            <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} />
+
             {/* Similar Properties */}
             <SimilarProperties 
               city={property.city} 
@@ -390,6 +401,12 @@ const PropertyDetail = () => {
               property={property} 
               valuation={aiValuation}
             />
+
+            {/* EMI Calculator */}
+            <EMICalculator propertyPrice={property.price} />
+
+            {/* Payment Plans */}
+            <PaymentPlans propertyPrice={property.price} status={property.status} />
             
             {agent && <AgentCard agent={agent} propertyId={property.id} />}
           </div>
