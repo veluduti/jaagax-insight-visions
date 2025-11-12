@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,14 +8,11 @@ import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
-import { Layers, Navigation as Nav3D, Database, Users, Building2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Layers, Navigation as Nav3D, Bookmark, Share2, Info, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { seedProperties } from "@/utils/seedProperties";
-import { seedAgents } from "@/utils/seedAgents";
-import { seedProjects } from "@/utils/seedProjects";
-import { seedComprehensiveProperties, clearAllData } from "@/utils/comprehensiveSeedProperties";
 import { toast as sonnerToast } from "sonner";
-import { quickSeedData } from "@/utils/quickSeed";
 
 interface Property {
   id: number;
@@ -44,7 +41,10 @@ const Map = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [is3DMode, setIs3DMode] = useState(false);
   const [currentCity, setCurrentCity] = useState<"Hyderabad" | "Vijayawada">("Hyderabad");
-  const [isSeeding, setIsSeeding] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
+  const navigate = useNavigate();
   
   // Initialize filters from URL params
   const getInitialFilters = () => {
@@ -71,7 +71,10 @@ const Map = () => {
     if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
       setCurrentCity(cityParam);
     }
-  }, [searchParams]);
+    
+    // Fetch properties when filters change
+    fetchProperties();
+  }, [searchParams, currentCity]);
 
   // City coordinates
   const cityCoordinates = {
@@ -164,17 +167,26 @@ const Map = () => {
   // Fetch properties from Supabase
   useEffect(() => {
     const initializeData = async () => {
-      // Check if database is empty
-      const { count } = await supabase
-        .from("properties")
-        .select("*", { count: "exact", head: true });
+      setIsLoading(true);
+      setError(null);
       
-      // Auto-seed if empty
-      if (count === 0) {
-        console.log("Database is empty, auto-seeding...");
-        await handleQuickSeed();
-      } else {
-        fetchProperties();
+      try {
+        // Check if database is empty
+        const { count } = await supabase
+          .from("properties")
+          .select("*", { count: "exact", head: true });
+        
+        // If empty, show a message instead of auto-seeding
+        if (count === 0) {
+          setError("No properties found. Please contact admin to add properties.");
+          setIsLoading(false);
+        } else {
+          await fetchProperties();
+        }
+      } catch (err) {
+        console.error("Error initializing data:", err);
+        setError("Failed to load properties. Please try again.");
+        setIsLoading(false);
       }
     };
 
@@ -193,10 +205,7 @@ const Map = () => {
         (payload) => {
           console.log("Property change detected:", payload);
           fetchProperties();
-          toast({
-            title: "New listing!",
-            description: "A new property has been added to the map.",
-          });
+          sonnerToast.success("New property added to map!");
         }
       )
       .subscribe();
@@ -205,43 +214,70 @@ const Map = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedProperty) {
+        setSelectedProperty(null);
+      }
+      if (e.key === "3" && e.ctrlKey) {
+        e.preventDefault();
+        toggle3DMode();
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [selectedProperty, is3DMode]);
 
   const fetchProperties = async () => {
-    let query = supabase.from("properties").select("*");
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let query = supabase.from("properties").select("*");
 
-    // Filter by city
-    query = query.eq("city", currentCity);
+      // Filter by city
+      query = query.eq("city", currentCity);
 
-    if (filters.verifiedOnly) {
-      query = query.eq("verified", true);
-    }
-
-    if (filters.propertyType !== "all") {
-      query = query.ilike("type", `%${filters.propertyType}%`);
-    }
-
-    if (filters.beds !== "any") {
-      const bedsNum = parseInt(filters.beds);
-      if (bedsNum === 4) {
-        query = query.gte("bhk", 4);
-      } else {
-        query = query.eq("bhk", bedsNum);
+      if (filters.verifiedOnly) {
+        query = query.eq("verified", true);
       }
+
+      if (filters.propertyType !== "all") {
+        query = query.ilike("type", `%${filters.propertyType}%`);
+      }
+
+      if (filters.beds !== "any") {
+        const bedsNum = parseInt(filters.beds);
+        if (bedsNum === 4) {
+          query = query.gte("bhk", 4);
+        } else {
+          query = query.eq("bhk", bedsNum);
+        }
+      }
+
+      // Price range filter
+      query = query
+        .gte("price", filters.priceRange[0])
+        .lte("price", filters.priceRange[1]);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching properties:", error);
+        setError("Failed to fetch properties. Please try again.");
+        return;
+      }
+
+      setProperties(data || []);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("An error occurred while fetching properties.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // Price range filter
-    query = query
-      .gte("price", filters.priceRange[0])
-      .lte("price", filters.priceRange[1]);
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching properties:", error);
-      return;
-    }
-
-    setProperties(data || []);
   };
 
   // Add property markers to map
@@ -286,7 +322,7 @@ const Map = () => {
             border-radius: 24px;
             font-weight: 700;
             font-size: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             border: 3px solid white;
             min-width: 60px;
             text-align: center;
@@ -295,7 +331,11 @@ const Map = () => {
           </div>
         `;
       } else {
-        // Single property marker
+        // Single property marker with type icon
+        const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
+                         property.type?.toLowerCase().includes('plot') ? '📍' :
+                         property.type?.toLowerCase().includes('penthouse') ? '🏢' : '🏠';
+        
         el.innerHTML = `
           <div style="
             background: ${property.verified 
@@ -306,10 +346,14 @@ const Map = () => {
             border-radius: 20px;
             font-weight: 600;
             font-size: 13px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             border: 2px solid white;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
           ">
+            <span style="font-size: 14px;">${typeEmoji}</span>
             ₹${(property.price / 100000).toFixed(1)}L
           </div>
         `;
@@ -390,144 +434,65 @@ const Map = () => {
     });
     setCurrentCity(city);
   };
-
-  // Seed properties
-  const handleSeedProperties = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedProperties();
-      
-      if (result.success) {
-        if (result.message === "Properties already exist") {
-          sonnerToast.info("Properties already seeded!");
-        } else {
-          sonnerToast.success("Successfully added 10 properties!");
-          fetchProperties();
-        }
-      } else {
-        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
-        console.error("Seed error:", result.error);
-      }
-    } catch (err) {
-      sonnerToast.error("Error seeding properties");
-      console.error(err);
-    }
-    setIsSeeding(false);
+  
+  // Save current search
+  const handleSaveSearch = () => {
+    const searchUrl = `${window.location.origin}/map?city=${currentCity}&transactionType=${filters.transactionType}&propertyType=${filters.propertyType}&beds=${filters.beds}&priceRange=${filters.priceRange[1]}`;
+    navigator.clipboard.writeText(searchUrl);
+    sonnerToast.success("Search URL copied to clipboard!");
   };
-
-  // Seed agents
-  const handleSeedAgents = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedAgents();
-      
-      if (result.success) {
-        if (result.message === "Agents already exist") {
-          sonnerToast.info("Agents already seeded!");
-        } else {
-          sonnerToast.success("Successfully added 5 agents!");
-        }
-      } else {
-        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
-        console.error("Seed error:", result.error);
+  
+  // Share current view
+  const handleShare = async () => {
+    const shareData = {
+      title: `Properties in ${currentCity} - JaagaX`,
+      text: `Check out ${properties.length} properties in ${currentCity}`,
+      url: window.location.href,
+    };
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log("Share cancelled");
       }
-    } catch (err) {
-      sonnerToast.error("Error seeding agents");
-      console.error(err);
+    } else {
+      handleSaveSearch();
     }
-    setIsSeeding(false);
-  };
-
-  // Seed projects
-  const handleSeedProjects = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedProjects();
-      
-      if (result.success) {
-        if (result.message === "Projects already exist") {
-          sonnerToast.info("Projects already seeded!");
-        } else {
-          sonnerToast.success("Successfully added projects!");
-        }
-      } else {
-        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
-        console.error("Seed error:", result.error);
-      }
-    } catch (err) {
-      sonnerToast.error("Error seeding projects");
-      console.error(err);
-    }
-    setIsSeeding(false);
-  };
-
-  // Seed all comprehensive data
-  const handleSeedComprehensive = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedComprehensiveProperties();
-      
-      if (result.success) {
-        if (result.message === "Properties already exist") {
-          sonnerToast.info("Comprehensive data already seeded!");
-        } else {
-          sonnerToast.success("Successfully seeded 20+ properties!");
-          fetchProperties();
-        }
-      } else {
-        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
-        console.error("Seed error:", result.error);
-      }
-    } catch (err) {
-      sonnerToast.error("Error seeding comprehensive data");
-      console.error(err);
-    }
-    setIsSeeding(false);
-  };
-
-  // Quick seed for testing
-  const handleQuickSeed = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await quickSeedData();
-      
-      if (result.success) {
-        sonnerToast.success(`✅ Seeded ${result.count} properties!`);
-        fetchProperties();
-      } else {
-        sonnerToast.error(`Failed: ${result.error?.message || 'Unknown error'}`);
-        console.error("Seed error:", result.error);
-      }
-    } catch (err) {
-      sonnerToast.error("Error with quick seed");
-      console.error(err);
-    }
-    setIsSeeding(false);
-  };
-
-  // Clear all data
-  const handleClearData = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await clearAllData();
-      
-      if (result.success) {
-        sonnerToast.success("All data cleared successfully!");
-        fetchProperties();
-      } else {
-        sonnerToast.error("Failed to clear data");
-      }
-    } catch (err) {
-      sonnerToast.error("Error clearing data");
-      console.error(err);
-    }
-    setIsSeeding(false);
   };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
       <div ref={mapContainer} className="absolute inset-0" />
+
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="glass-panel p-8 rounded-2xl space-y-4 max-w-md mx-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-8 w-1/2" />
+            <p className="text-sm text-muted-foreground text-center">Loading properties...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center">
+          <div className="glass-panel p-8 rounded-2xl max-w-md mx-4 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
+              <Info className="h-8 w-8 text-destructive" />
+            </div>
+            <h3 className="text-xl font-bold">Oops! Something went wrong</h3>
+            <p className="text-muted-foreground">{error}</p>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Top Filters */}
       <MapFilters
@@ -537,92 +502,91 @@ const Map = () => {
         onCityChange={changeCity}
       />
 
-      {/* Control Buttons */}
+      {/* Control Buttons - Top Right */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="absolute top-24 right-6 z-10 flex flex-col gap-3"
+        className="absolute top-6 right-6 z-10 flex flex-col gap-3"
       >
         <Button
           onClick={toggle3DMode}
           variant={is3DMode ? "default" : "outline"}
           size="lg"
-          className="glass-panel glow-effect"
+          className="glass-panel shadow-lg"
+          title="Toggle 3D View (Ctrl+3)"
         >
           {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
-          {is3DMode ? "3D View" : "2D View"}
+          <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
         </Button>
         
-        <div className="glass-panel p-3 rounded-lg">
-          <p className="text-xs text-muted-foreground mb-2 font-semibold">Seed Data:</p>
-          <div className="flex flex-col gap-2">
-            <Button
-              onClick={handleQuickSeed}
-              variant="default"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2 bg-green-600 hover:bg-green-700"
-            >
-              <Database className="h-4 w-4" />
-              {isSeeding ? "..." : "Quick (10) ⚡"}
-            </Button>
-
-            <Button
-              onClick={handleSeedComprehensive}
-              variant="default"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2 bg-primary"
-            >
-              <Database className="h-4 w-4" />
-              {isSeeding ? "..." : "All (20+)"}
-            </Button>
-
-            <Button
-              onClick={handleSeedProperties}
-              variant="outline"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2"
-            >
-              <Database className="h-4 w-4" />
-              {isSeeding ? "..." : "Properties (10)"}
-            </Button>
-
-            <Button
-              onClick={handleSeedAgents}
-              variant="outline"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2"
-            >
-              <Users className="h-4 w-4" />
-              {isSeeding ? "..." : "Agents (13)"}
-            </Button>
-
-            <Button
-              onClick={handleSeedProjects}
-              variant="outline"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2"
-            >
-              <Building2 className="h-4 w-4" />
-              {isSeeding ? "..." : "Projects (18)"}
-            </Button>
-
-            <Button
-              onClick={handleClearData}
-              variant="destructive"
-              size="sm"
-              disabled={isSeeding}
-              className="w-full gap-2 mt-2"
-            >
-              {isSeeding ? "..." : "Clear All"}
-            </Button>
-          </div>
-        </div>
+        <Button
+          onClick={handleSaveSearch}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Save Search"
+        >
+          <Bookmark className="h-5 w-5" />
+        </Button>
+        
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Share Map"
+        >
+          <Share2 className="h-5 w-5" />
+        </Button>
+        
+        <Button
+          onClick={() => setShowLegend(!showLegend)}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Toggle Legend"
+        >
+          <Info className="h-5 w-5" />
+        </Button>
       </motion.div>
+
+      {/* Legend */}
+      <AnimatePresence>
+        {showLegend && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute top-80 right-6 z-10 glass-panel p-4 rounded-xl shadow-lg max-w-xs"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-sm">Map Legend</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowLegend(false)}>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 border-2 border-white" />
+                <span>JaagaX Verified</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/80 border-2 border-white" />
+                <span>Standard Listing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/90 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                  5+
+                </div>
+                <span>Cluster (Multiple)</span>
+              </div>
+              <div className="pt-2 mt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">🏠 Apartment • 🏡 Villa • 📍 Plot • 🏢 Penthouse</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AI Area Lens */}
       <AIAreaLens map={map.current} properties={properties} />
@@ -641,11 +605,27 @@ const Map = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 glass-panel px-6 py-3 rounded-full"
+        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
       >
-        <p className="text-sm font-semibold">
-          <span className="text-primary">{properties.length}</span> properties found
-        </p>
+        <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
+          <p className="text-sm font-semibold flex items-center gap-2">
+            <Badge variant="secondary" className="rounded-full">
+              <span className="text-primary font-bold">{properties.length}</span>
+            </Badge>
+            <span className="hidden sm:inline">properties in {currentCity}</span>
+            <span className="sm:hidden">found</span>
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Keyboard Shortcuts Hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        className="absolute bottom-6 left-6 z-10 glass-panel px-4 py-2 rounded-lg text-xs text-muted-foreground hidden lg:block"
+      >
+        <p>Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close • <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D</p>
       </motion.div>
     </div>
   );

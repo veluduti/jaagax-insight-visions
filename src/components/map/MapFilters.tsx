@@ -126,7 +126,14 @@ const MapFilters = ({ filters, onFiltersChange, currentCity, onCityChange }: Map
 
           {/* Apply Button */}
           <div className="md:col-span-3">
-            <Button size="lg" className="w-full glow-effect">
+            <Button 
+              size="lg" 
+              className="w-full glow-effect"
+              onClick={() => {
+                // Trigger filter change to refetch data
+                onFiltersChange({...filters});
+              }}
+            >
               Apply Filters
             </Button>
           </div>

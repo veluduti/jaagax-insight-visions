@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { X, MapPin, Maximize2, Bed, Bath, CheckCircle, MessageCircle, Phone, TrendingUp } from "lucide-react";
+import { X, MapPin, Maximize2, Bed, Bath, CheckCircle, MessageCircle, Phone, TrendingUp, ExternalLink } from "lucide-react";
 
 interface PropertyDrawerProps {
   property: {
@@ -23,13 +24,15 @@ interface PropertyDrawerProps {
 }
 
 const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
+  const navigate = useNavigate();
+  
   return (
     <motion.div
       initial={{ x: "100%" }}
       animate={{ x: 0 }}
       exit={{ x: "100%" }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-      className="fixed top-0 right-0 h-full w-full md:w-[480px] z-50 glass-panel border-l border-border/50 overflow-y-auto"
+      className="fixed top-0 right-0 h-full w-full md:w-[480px] z-50 glass-panel border-l border-border/50 overflow-y-auto shadow-2xl"
     >
       <div className="relative">
         {/* Close Button */}
@@ -152,8 +155,12 @@ const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
               variant="secondary"
               size="lg"
               className="w-full"
-              onClick={() => window.location.href = `/property/${property.id}`}
+              onClick={() => {
+                onClose();
+                navigate(`/property/${property.id}`);
+              }}
             >
+              <ExternalLink className="h-5 w-5 mr-2" />
               View Full Details
             </Button>
           </div>
