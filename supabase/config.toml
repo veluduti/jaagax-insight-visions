@@ -44,9 +44,3 @@ verify_jwt = false
 
 [functions.send-interest-confirmation]
 verify_jwt = false
-
-[functions.enrich-project-data]
-verify_jwt = false
-
-[functions.refresh-market-insights]
-verify_jwt = false

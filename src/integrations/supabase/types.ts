@@ -445,42 +445,6 @@ export type Database = {
           },
         ]
       }
-      market_insights: {
-        Row: {
-          ai_analysis: string | null
-          city: string
-          created_at: string | null
-          data: Json
-          expires_at: string | null
-          id: string
-          insight_type: string
-          locality: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          ai_analysis?: string | null
-          city: string
-          created_at?: string | null
-          data: Json
-          expires_at?: string | null
-          id?: string
-          insight_type: string
-          locality?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          ai_analysis?: string | null
-          city?: string
-          created_at?: string | null
-          data?: Json
-          expires_at?: string | null
-          id?: string
-          insight_type?: string
-          locality?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       market_trends: {
         Row: {
           ai_summary: string | null
@@ -1189,21 +1153,9 @@ export type Database = {
       }
     }
     Views: {
-      daily_market_stats: {
-        Row: {
-          avg_price: number | null
-          avg_trust_score: number | null
-          city: string | null
-          date: string | null
-          locality: string | null
-          total_properties: number | null
-          verified_count: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      clean_expired_insights: { Args: never; Returns: undefined }
       get_builder_analytics: {
         Args: { p_builder_id: string; p_months?: number }
         Returns: {

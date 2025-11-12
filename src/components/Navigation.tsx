@@ -16,17 +16,7 @@ import {
   Globe, 
   DollarSign, 
   Ruler,
-  LogOut,
-  ChevronDown,
-  ChevronRight,
-  Building2,
-  GraduationCap,
-  MapPin,
-  LayoutGrid,
-  Trophy,
-  Heart,
-  Settings,
-  BarChart3
+  LogOut
 } from "lucide-react";
 import { 
   Select, 
@@ -42,14 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -70,7 +52,6 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [preferences, setPreferences] = useState({
     language: 'English',
     currency: 'INR',
@@ -163,13 +144,6 @@ const Navigation = () => {
     }
   };
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
   return (
     <motion.nav 
       initial={{ y: -100 }}
@@ -198,66 +172,12 @@ const Navigation = () => {
           </motion.a>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-6">
             <NavItem href="/agents">Find My Agent</NavItem>
             <NavItem href="/sell-property">Sell My Property</NavItem>
             <NavItem href="/trustscore">TrustScore™</NavItem>
-            <NavItem href="/transactions">Dubai Transactions</NavItem>
+            <NavItem href="/transactions">Transactions</NavItem>
             <NavItem href="/projects">New Projects</NavItem>
-            
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-foreground hover:text-primary bg-transparent">
-                    More
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent className="bg-popover">
-                    <div className="grid gap-3 p-6 w-[400px]">
-                      <a
-                        href="/valuation"
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                      >
-                        <TrendingUp className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <div className="font-medium mb-1 group-hover:text-primary">Property Prices</div>
-                          <div className="text-sm text-muted-foreground">Get instant property valuations</div>
-                        </div>
-                      </a>
-                      <a
-                        href="/guides"
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                      >
-                        <BookOpen className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <div className="font-medium mb-1 group-hover:text-primary">Market Intelligence</div>
-                          <div className="text-sm text-muted-foreground">Trends and market insights</div>
-                        </div>
-                      </a>
-                      <a
-                        href="/communities"
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                      >
-                        <HomeIcon className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <div className="font-medium mb-1 group-hover:text-primary">Communities</div>
-                          <div className="text-sm text-muted-foreground">Explore neighborhoods</div>
-                        </div>
-                      </a>
-                      <a
-                        href="/events"
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
-                      >
-                        <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <div className="font-medium mb-1 group-hover:text-primary">Events</div>
-                          <div className="text-sm text-muted-foreground">Awards and industry events</div>
-                        </div>
-                      </a>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
           </div>
 
           {/* Right Side Actions */}
@@ -342,102 +262,49 @@ const Navigation = () => {
               </div>
 
               {/* Navigation Links */}
-              <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 px-3">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                   Explore
                 </h3>
                 
-                {/* Market Intelligence */}
-                <Collapsible open={expandedSections['market']} onOpenChange={() => toggleSection('market')}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                      <span className="font-medium group-hover:text-primary">Market Intelligence</span>
-                    </div>
-                    <ChevronRight className={`h-4 w-4 transition-transform ${expandedSections['market'] ? 'rotate-90' : ''}`} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-11 pr-3 space-y-1 mt-1">
-                    <a href="/valuation" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Property Prices
-                    </a>
-                    <a href="/guides" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Trends
-                    </a>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Guides */}
-                <Collapsible open={expandedSections['guides']} onOpenChange={() => toggleSection('guides')}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      <span className="font-medium group-hover:text-primary">Guides</span>
-                    </div>
-                    <ChevronRight className={`h-4 w-4 transition-transform ${expandedSections['guides'] ? 'rotate-90' : ''}`} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-11 pr-3 space-y-1 mt-1">
-                    <a href="/communities" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Area Guides
-                    </a>
-                    <a href="/projects" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Building Guides
-                    </a>
-                    <a href="/guides" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      School Guides
-                    </a>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Floor Plans */}
                 <a
-                  href="/projects"
+                  href="/valuation"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
                 >
-                  <LayoutGrid className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Floor Plans</span>
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">TruValue™</span>
                 </a>
 
-                {/* Agent Portal */}
-                <a
-                  href="/agents"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <User className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Agent Portal</span>
-                </a>
-
-                {/* Events */}
-                <Collapsible open={expandedSections['events']} onOpenChange={() => toggleSection('events')}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <span className="font-medium group-hover:text-primary">Events</span>
-                    </div>
-                    <ChevronRight className={`h-4 w-4 transition-transform ${expandedSections['events'] ? 'rotate-90' : ''}`} />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-11 pr-3 space-y-1 mt-1">
-                    <a href="/events" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      JaagaX Awards 2024
-                    </a>
-                    <a href="/events" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      JaagaX Awards 2023
-                    </a>
-                    <a href="/events" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Real Estate Expo 2022
-                    </a>
-                    <a href="/events" className="block p-2 rounded-lg hover:bg-accent/50 text-sm text-muted-foreground hover:text-primary transition-colors">
-                      Your Home Your Choice
-                    </a>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* AI Advisor */}
                 <a
                   href="/ai-advisor"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
                 >
                   <Sparkles className="h-5 w-5 text-primary" />
                   <span className="font-medium group-hover:text-primary">AI Property Advisor</span>
+                </a>
+
+                <a
+                  href="/communities"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <HomeIcon className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">Communities</span>
+                </a>
+
+                <a
+                  href="/guides"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">Guides & Blogs</span>
+                </a>
+
+                <a
+                  href="/events"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                >
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="font-medium group-hover:text-primary">Events</span>
                 </a>
               </div>
 

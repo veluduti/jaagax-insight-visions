@@ -1,28 +1,19 @@
 import { motion } from "framer-motion";
-import { TrendingUp, Target, MapPin, RefreshCw, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useMarketInsights } from "@/hooks/useMarketInsights";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, MapPin, BarChart3, Target } from "lucide-react";
+
+const trendingAreas = [
+  { name: "Kokapet", growth: "+15%", avgPrice: "₹8,500/sqft", demand: "Very High" },
+  { name: "Gachibowli", growth: "+12%", avgPrice: "₹9,200/sqft", demand: "High" },
+  { name: "Narsingi", growth: "+18%", avgPrice: "₹7,800/sqft", demand: "Very High" },
+  { name: "Kondapur", growth: "+10%", avgPrice: "₹8,900/sqft", demand: "High" },
+];
 
 const MarketIntelligence = () => {
   const navigate = useNavigate();
-  const { insights, loading, lastUpdated, refreshInsights, getMarketSummary, getPriceTrend, getInvestmentScore } = useMarketInsights({
-    city: "Hyderabad",
-    autoRefresh: true
-  });
-
-  const marketSummary = getMarketSummary();
-  const priceTrend = getPriceTrend();
-  const investmentScore = getInvestmentScore();
-
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(1)} L`;
-    return `₹${(price / 1000).toFixed(0)}K`;
-  };
-
+  
   return (
     <section className="py-16 relative bg-secondary/10" id="market-insights">
       <div className="container mx-auto px-6">
@@ -32,23 +23,11 @@ const MarketIntelligence = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <h2 className="text-4xl md:text-5xl font-bold">
-              Market <span className="text-gradient">Intelligence</span>
-            </h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refreshInsights()}
-              disabled={loading}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Market <span className="text-gradient">Intelligence</span>
+          </h2>
           <p className="text-muted-foreground text-lg">
-            Real-time insights updated daily • Last updated: {lastUpdated ? lastUpdated.toLocaleDateString() : 'Loading...'}
+            AI-powered insights to make smarter investment decisions
           </p>
         </motion.div>
 
@@ -67,24 +46,16 @@ const MarketIntelligence = () => {
                 </div>
                 <span className="text-xs text-muted-foreground">Hyderabad</span>
               </div>
-              {loading ? (
-                <Skeleton className="h-20 w-full" />
-              ) : (
-                <>
-                  <h3 className="text-3xl font-bold mb-2 text-gradient">
-                    {marketSummary ? formatPrice(marketSummary.data.avgPrice) : '₹8,450/sqft'}
-                  </h3>
-                  <p className="text-muted-foreground mb-2">Average Price</p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                    <TrendingUp className="h-4 w-4" />
-                    {marketSummary ? `${marketSummary.data.totalProperties} properties` : 'Loading...'}
-                  </div>
-                </>
-              )}
+              <h3 className="text-3xl font-bold mb-2 text-gradient">₹8,450/sqft</h3>
+              <p className="text-muted-foreground mb-2">Average Price</p>
+              <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                <TrendingUp className="h-4 w-4" />
+                +12% from last year
+              </div>
             </Card>
           </motion.div>
 
-          {/* Price Trend Card */}
+          {/* ROI Predictor Card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -96,26 +67,18 @@ const MarketIntelligence = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                   <Target className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xs text-muted-foreground">30 Days</span>
+                <span className="text-xs text-muted-foreground">3Y Forecast</span>
               </div>
-              {loading ? (
-                <Skeleton className="h-20 w-full" />
-              ) : (
-                <>
-                  <h3 className={`text-3xl font-bold mb-2 ${priceTrend?.data.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                    {priceTrend ? `${priceTrend.data.trend > 0 ? '+' : ''}${priceTrend.data.trend}%` : '+12%'}
-                  </h3>
-                  <p className="text-muted-foreground mb-2">Price Trend</p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                    <TrendingUp className="h-4 w-4" />
-                    {priceTrend?.data.direction === 'up' ? 'Growing market' : 'Declining market'}
-                  </div>
-                </>
-              )}
+              <h3 className="text-3xl font-bold mb-2 text-gradient">18-22%</h3>
+              <p className="text-muted-foreground mb-2">Expected ROI</p>
+              <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                <TrendingUp className="h-4 w-4" />
+                AI Confidence: 94%
+              </div>
             </Card>
           </motion.div>
 
-          {/* Investment Score Card */}
+          {/* Hot Zones Card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -127,56 +90,55 @@ const MarketIntelligence = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                   <MapPin className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className="text-xs text-muted-foreground">AI Score</span>
+                <span className="text-xs text-muted-foreground">This Month</span>
               </div>
-              {loading ? (
-                <Skeleton className="h-20 w-full" />
-              ) : (
-                <>
-                  <h3 className="text-3xl font-bold mb-2 text-gradient">
-                    {investmentScore?.data.score || 85}/100
-                  </h3>
-                  <p className="text-muted-foreground mb-2">Investment Score</p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                    <TrendingUp className="h-4 w-4" />
-                    {marketSummary ? `${marketSummary.data.verificationRate}% verified` : 'AI Confidence: 94%'}
-                  </div>
-                </>
-              )}
+              <h3 className="text-3xl font-bold mb-2 text-gradient">4</h3>
+              <p className="text-muted-foreground mb-2">Emerging Hot Zones</p>
+              <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                <TrendingUp className="h-4 w-4" />
+                New investment opportunities
+              </div>
             </Card>
           </motion.div>
         </div>
 
-        {/* AI Analysis Section */}
-        {marketSummary?.ai_analysis && !loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <Card className="glass-panel border-border/50 p-6">
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                AI Market Analysis
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {marketSummary.ai_analysis}
-              </p>
-            </Card>
-          </motion.div>
-        )}
+        {/* Trending Areas */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <Card className="glass-panel border-border/50 p-6">
+            <h3 className="text-2xl font-bold mb-6">Trending Areas in Hyderabad</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {trendingAreas.map((area, index) => (
+                <motion.div
+                  key={area.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
+                  onClick={() => navigate('/map')}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-bold">{area.name}</h4>
+                    <span className="text-primary text-sm font-bold">{area.growth}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">{area.avgPrice}</p>
+                  <p className="text-xs text-muted-foreground">Demand: {area.demand}</p>
+                </motion.div>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
 
-        {/* Real-time Data Notice */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center"
+          className="text-center mt-10"
         >
-          <p className="text-sm text-muted-foreground mb-4">
-            💡 All insights are generated using real market data and refreshed daily
-          </p>
           <Button 
             size="lg" 
             variant="outline" 
