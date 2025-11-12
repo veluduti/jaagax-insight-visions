@@ -27,6 +27,10 @@ import NearbyPOI from "@/components/property/NearbyPOI";
 import PropertyActions from "@/components/property/PropertyActions";
 import PaymentPlans from "@/components/property/PaymentPlans";
 import PropertyStats from "@/components/property/PropertyStats";
+import MediaHub from "@/components/property/MediaHub";
+import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";
+import NearbyAgents from "@/components/property/NearbyAgents";
+import MicroComparables from "@/components/property/MicroComparables";
 
 interface Property {
   id: number;
@@ -303,11 +307,15 @@ const PropertyDetail = () => {
         </div>
       </div>
 
-      {/* Image Carousel */}
-      <PropertyImageCarousel 
-        images={property.images} 
-        verified={property.verified}
-        trustScore={property.trust_score}
+      {/* Media Hub - Enhanced with video, 360 tour, floorplans */}
+      <MediaHub
+        images={property.images}
+        videos={[]}
+        virtualTourUrl={undefined}
+        floorplans={[]}
+        brochureUrl={undefined}
+        propertyId={property.id}
+        propertyTitle={property.title}
       />
 
       {/* Action Buttons */}
@@ -397,9 +405,16 @@ const PropertyDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <AIInsightsPanel 
-              property={property} 
-              valuation={aiValuation}
+            {/* AI Property Advisor with Chat */}
+            <AIPropertyAdvisor 
+              property={property}
+              propertyId={property.id}
+            />
+
+            {/* Micro-Comparables & TAP */}
+            <MicroComparables
+              property={property}
+              propertyId={property.id}
             />
 
             {/* EMI Calculator */}
@@ -408,7 +423,13 @@ const PropertyDetail = () => {
             {/* Payment Plans */}
             <PaymentPlans propertyPrice={property.price} status={property.status} />
             
-            {agent && <AgentCard agent={agent} propertyId={property.id} />}
+            {/* Agents Listing - Primary + Nearby */}
+            <NearbyAgents
+              primaryAgent={agent}
+              city={property.city}
+              locality={property.locality}
+              propertyId={property.id}
+            />
           </div>
         </div>
       </div>
