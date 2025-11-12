@@ -32,6 +32,7 @@ const Index = () => {
       {activeTab === "projects" && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
+          <FeaturedProperties detectedCity={detectedLocation?.city} />
           <MarketIntelligence />
           <TruValue />
         </>
