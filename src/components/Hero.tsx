@@ -7,14 +7,10 @@ const Hero = () => {
   const [activeTab, setActiveTab] = useState("properties");
 
   return (
-    <div className="relative min-h-[65vh] flex items-center justify-center overflow-hidden pt-16">
+    <div className="relative min-h-[50vh] flex items-center justify-center overflow-hidden pt-16">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
-        <img 
-          src={heroImage} 
-          alt="Hyderabad & Vijayawada Skyline" 
-          className="w-full h-full object-cover"
-        />
+        <img src={heroImage} alt="Hyderabad & Vijayawada Skyline" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/80 to-background/95" />
       </div>
 
