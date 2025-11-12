@@ -22,6 +22,8 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "hsl(var(--primary-light))",
+          dark: "hsl(var(--primary-dark))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,6 +40,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          neon: "hsl(var(--accent-neon))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -62,10 +65,55 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      spacing: {
+        'xs': 'var(--space-xs)',
+        'sm': 'var(--space-sm)',
+        'md': 'var(--space-md)',
+        'lg': 'var(--space-lg)',
+        'xl': 'var(--space-xl)',
+        '2xl': 'var(--space-2xl)',
+        '3xl': 'var(--space-3xl)',
+      },
+      fontSize: {
+        'xs': 'var(--text-xs)',
+        'sm': 'var(--text-sm)',
+        'base': 'var(--text-base)',
+        'lg': 'var(--text-lg)',
+        'xl': 'var(--text-xl)',
+        '2xl': 'var(--text-2xl)',
+        '3xl': 'var(--text-3xl)',
+        '4xl': 'var(--text-4xl)',
+        '5xl': 'var(--text-5xl)',
+      },
+      lineHeight: {
+        'tight': 'var(--leading-tight)',
+        'normal': 'var(--leading-normal)',
+        'relaxed': 'var(--leading-relaxed)',
+      },
+      fontFamily: {
+        'primary': 'var(--font-primary)',
+        'secondary': 'var(--font-secondary)',
+      },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
+        DEFAULT: 'var(--radius)',
+      },
+      boxShadow: {
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        'xl': 'var(--shadow-xl)',
+        'glass': 'var(--shadow-glass)',
+        'glow': 'var(--shadow-glow)',
+        'elegant': 'var(--shadow-elegant)',
+        'card': 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'var(--ease-smooth)',
       },
       keyframes: {
         "accordion-down": {

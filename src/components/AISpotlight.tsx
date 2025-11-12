@@ -7,15 +7,15 @@ const AISpotlight = () => {
   const navigate = useNavigate();
   
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="section-spacing relative overflow-hidden">
       {/* Background Glow */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-20">
+      <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
         <motion.div
-          className="w-[600px] h-[600px] rounded-full blur-3xl"
+          className="w-[500px] h-[500px] md:w-[600px] md:h-[600px] rounded-full blur-3xl"
           style={{ background: "var(--gradient-glow)" }}
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.2, 0.3, 0.2],
+            opacity: [0.15, 0.25, 0.15],
           }}
           transition={{
             duration: 8,
@@ -25,12 +25,13 @@ const AISpotlight = () => {
         />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto container-padding relative z-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="glass-panel p-12 md:p-16 rounded-3xl text-center max-w-4xl mx-auto glow-effect"
+          transition={{ duration: 0.6 }}
+          className="glass-panel p-lg md:p-2xl rounded-3xl text-center max-w-4xl mx-auto glow-effect"
         >
           <motion.div
             animate={{
@@ -41,34 +42,34 @@ const AISpotlight = () => {
               repeat: Infinity,
               ease: "linear",
             }}
-            className="w-20 h-20 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect"
+            className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-lg rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-glow"
           >
-            <Brain className="h-10 w-10 text-primary-foreground" />
+            <Brain className="h-8 w-8 md:h-10 md:w-10 text-primary-foreground" />
           </motion.div>
 
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Want to discover the best property <br />
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-md text-balance">
+            Want to discover the best property <br className="hidden md:block" />
             <span className="text-gradient">using AI?</span>
           </h2>
 
-          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-lg max-w-2xl mx-auto">
             Chat with JaagaXGPT — Your intelligent real estate assistant. 
             Ask questions, get recommendations, and find your dream home in seconds.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
             <Button 
               size="lg" 
-              className="glow-effect group"
+              variant="premium"
               onClick={() => navigate('/ai-advisor')}
             >
-              <Sparkles className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
+              <Sparkles className="h-5 w-5 mr-2" />
               Launch AI Property Advisor
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-primary/50 hover:bg-primary/10"
+              className="border-primary/50 hover:bg-primary/10 hover:border-primary"
               onClick={() => navigate('/guides')}
             >
               <MessageSquare className="h-5 w-5 mr-2" />
@@ -77,12 +78,12 @@ const AISpotlight = () => {
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-10">
+          <div className="flex flex-wrap items-center justify-center gap-sm mt-lg">
             {["Smart Recommendations", "Market Insights", "Price Prediction", "Legal Assistance"].map(
               (feature) => (
                 <div
                   key={feature}
-                  className="px-4 py-2 rounded-full bg-secondary/50 text-sm font-medium"
+                  className="px-md py-sm rounded-full bg-secondary/50 backdrop-blur-sm text-sm font-medium border border-border/30 transition-all hover:bg-secondary/70 hover:scale-105"
                 >
                   {feature}
                 </div>

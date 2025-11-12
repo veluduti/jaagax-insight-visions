@@ -148,12 +148,13 @@ const Navigation = () => {
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "glass-panel shadow-lg" : "bg-transparent"
+        isScrolled ? "glass-panel shadow-lg" : "bg-background/50 backdrop-blur-sm"
       }`}
     >
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto container-padding py-sm md:py-md">
+        <div className="flex items-center justify-between gap-md">
           {/* Logo */}
           <motion.a
             href="/"
@@ -172,7 +173,7 @@ const Navigation = () => {
           </motion.a>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-lg">
             <NavItem href="/agents">Find My Agent</NavItem>
             <NavItem href="/sell-property">Sell My Property</NavItem>
             <NavItem href="/trustscore">TrustScore™</NavItem>
@@ -181,7 +182,7 @@ const Navigation = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-sm">
             <Button 
               variant="outline" 
               className="hidden md:flex border-primary/50 hover:bg-primary/10 glow-effect"

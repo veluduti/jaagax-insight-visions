@@ -108,24 +108,25 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   }
 
   return (
-    <section className="py-16 relative" id="properties">
-      <div className="container mx-auto px-6">
+    <section className="section-spacing relative" id="properties">
+      <div className="container mx-auto container-padding">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-xl"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Featured <span className="text-gradient">Properties</span>
-            {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
+            {detectedCity && <span className="text-muted-foreground text-xl md:text-2xl"> in {detectedCity}</span>}
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
             {detectedCity ? `Properties near your location verified by JaagaX AI` : 'Handpicked properties verified by JaagaX AI'}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md lg:gap-lg">
           {properties.map((property, index) => (
             <motion.div
               key={property.id}
@@ -135,7 +136,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
               transition={{ delay: index * 0.1 }}
             >
               <Card 
-                className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300"
+                className="card-hover overflow-hidden group cursor-pointer"
                 onClick={() => navigate(`/property/${property.id}`)}
               >
                 {/* Image */}
@@ -143,7 +144,8 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                   <img
                     src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
                     alt={property.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
@@ -174,37 +176,37 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-bold text-lg line-clamp-1">{property.title}</h3>
-                    <span className="text-primary font-bold text-lg whitespace-nowrap ml-2">
+                <div className="p-md">
+                  <div className="flex items-start justify-between mb-sm gap-sm">
+                    <h3 className="font-semibold text-lg line-clamp-1 flex-1">{property.title}</h3>
+                    <span className="text-primary font-bold text-lg whitespace-nowrap">
                       ₹{(property.price / 10000000).toFixed(2)} Cr
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
-                    <MapPin className="h-4 w-4" />
-                    {property.locality}, {property.city}
+                  <div className="flex items-center gap-1 text-muted-foreground text-sm mb-md">
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="line-clamp-1">{property.locality}, {property.city}</span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                  <div className="flex items-center gap-md text-sm text-muted-foreground mb-md">
                     <div className="flex items-center gap-1">
                       <Bed className="h-4 w-4" />
-                      {property.bhk || property.beds}
+                      <span>{property.bhk || property.beds}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Bath className="h-4 w-4" />
-                      {property.baths}
+                      <span>{property.baths}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Maximize className="h-4 w-4" />
-                      {property.area} sqft
+                      <span>{property.area} sqft</span>
                     </div>
                   </div>
 
                   <Button
                     variant="outline"
-                    className="w-full border-primary/50 hover:bg-primary/10"
+                    className="w-full border-primary/50 hover:bg-primary/10 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/property/${property.id}`);
@@ -222,12 +224,13 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mt-xl"
         >
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-primary/50 hover:bg-primary/10"
+            className="border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
             onClick={() => navigate('/map')}
           >
             View All Properties
