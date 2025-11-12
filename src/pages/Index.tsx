@@ -29,7 +29,7 @@ const Index = () => {
         </>
       )}
       
-      {activeTab === "projects" && (
+      {activeTab === "new-projects" && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
           <FeaturedProperties detectedCity={detectedLocation?.city} />
