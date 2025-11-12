@@ -1,10 +1,13 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import PropertySearchBar from "@/components/PropertySearchBar";
 import heroImage from "@/assets/hero-cityscape.jpg";
 
-const Hero = () => {
-  const [activeTab, setActiveTab] = useState("properties");
+interface HeroProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+const Hero = ({ activeTab, onTabChange }: HeroProps) => {
 
   return (
     <div className="relative min-h-[50vh] flex items-center justify-center overflow-hidden pt-16">
@@ -72,7 +75,7 @@ const Hero = () => {
           </motion.p>
 
           {/* Search Bar */}
-          <PropertySearchBar activeTab={activeTab} onTabChange={setActiveTab} />
+          <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
         </motion.div>
       </div>
     </div>

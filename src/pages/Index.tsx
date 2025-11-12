@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
@@ -12,18 +13,46 @@ import { useLocationDetection } from "@/hooks/useLocationDetection";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocationDetection();
+  const [activeTab, setActiveTab] = useState("properties");
 
   return (
     <div className="min-h-screen">
       <Navigation />
-      <Hero />
-      <FeaturedProperties detectedCity={detectedLocation?.city} />
-      <NewProjects detectedCity={detectedLocation?.city} />
-      <AISpotlight />
-      <MarketIntelligence />
-      <FindMyAgent />
-      <TruValue />
-      <FeaturedCommunities />
+      <Hero activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* Dynamic Content Based on Active Tab */}
+      {activeTab === "properties" && (
+        <>
+          <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <AISpotlight />
+          <MarketIntelligence />
+        </>
+      )}
+      
+      {activeTab === "projects" && (
+        <>
+          <NewProjects detectedCity={detectedLocation?.city} />
+          <MarketIntelligence />
+          <TruValue />
+        </>
+      )}
+      
+      {activeTab === "transactions" && (
+        <>
+          <FeaturedCommunities />
+          <MarketIntelligence />
+          <TruValue />
+        </>
+      )}
+      
+      {activeTab === "agents" && (
+        <>
+          <FindMyAgent />
+          <AISpotlight />
+          <TruValue />
+        </>
+      )}
+      
       <Footer />
     </div>
   );
