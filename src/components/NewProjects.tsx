@@ -26,29 +26,57 @@ interface Project {
   rera_id: string | null;
 }
 
-const NewProjects = () => {
+interface NewProjectsProps {
+  detectedCity?: string;
+}
+
+const NewProjects = ({ detectedCity }: NewProjectsProps) => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [detectedCity]);
 
   const fetchProjects = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("projects")
         .select("*")
         .eq("verified", true)
         .not("name", "is", null)
         .not("city", "is", null)
-        .not("locality", "is", null)
+        .not("locality", "is", null);
+
+      // Filter by detected city if available
+      if (detectedCity) {
+        query = query.ilike("city", `%${detectedCity}%`);
+      }
+
+      const { data, error } = await query
         .order("trust_score", { ascending: false })
         .limit(6);
 
       if (error) throw error;
-      setProjects(data || []);
+
+      // If no projects found in detected city, fetch from anywhere
+      if ((!data || data.length === 0) && detectedCity) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("verified", true)
+          .not("name", "is", null)
+          .not("city", "is", null)
+          .not("locality", "is", null)
+          .order("trust_score", { ascending: false })
+          .limit(6);
+
+        if (fallbackError) throw fallbackError;
+        setProjects(fallbackData || []);
+      } else {
+        setProjects(data || []);
+      }
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
@@ -83,9 +111,10 @@ const NewProjects = () => {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             New <span className="text-gradient">Projects</span>
+            {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
           </h2>
           <p className="text-muted-foreground text-lg">
-            Explore upcoming projects from India's top builders
+            {detectedCity ? `Upcoming projects near your location` : 'Explore upcoming projects from India\'s top builders'}
           </p>
         </motion.div>
 

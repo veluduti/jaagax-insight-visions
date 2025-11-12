@@ -22,7 +22,11 @@ interface Property {
   bhk: number;
 }
 
-const FeaturedProperties = () => {
+interface FeaturedPropertiesProps {
+  detectedCity?: string;
+}
+
+const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<number[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -30,11 +34,11 @@ const FeaturedProperties = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, []);
+  }, [detectedCity]);
 
   const fetchProperties = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("properties")
         .select("*")
         .eq("verified", true)
@@ -42,12 +46,38 @@ const FeaturedProperties = () => {
         .not("city", "is", null)
         .not("locality", "is", null)
         .not("price", "is", null)
-        .gt("price", 0)
+        .gt("price", 0);
+
+      // Filter by detected city if available
+      if (detectedCity) {
+        query = query.ilike("city", `%${detectedCity}%`);
+      }
+
+      const { data, error } = await query
         .order("trust_score", { ascending: false })
         .limit(4);
 
       if (error) throw error;
-      setProperties(data || []);
+      
+      // If no properties found in detected city, fetch from anywhere
+      if ((!data || data.length === 0) && detectedCity) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("properties")
+          .select("*")
+          .eq("verified", true)
+          .not("title", "is", null)
+          .not("city", "is", null)
+          .not("locality", "is", null)
+          .not("price", "is", null)
+          .gt("price", 0)
+          .order("trust_score", { ascending: false })
+          .limit(4);
+
+        if (fallbackError) throw fallbackError;
+        setProperties(fallbackData || []);
+      } else {
+        setProperties(data || []);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
     } finally {
@@ -88,9 +118,10 @@ const FeaturedProperties = () => {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Featured <span className="text-gradient">Properties</span>
+            {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
           </h2>
           <p className="text-muted-foreground text-lg">
-            Handpicked properties verified by JaagaX AI
+            {detectedCity ? `Properties near your location verified by JaagaX AI` : 'Handpicked properties verified by JaagaX AI'}
           </p>
         </motion.div>
 
