@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Sparkles } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { MapPin, Sparkles, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertySearchBarProps {
@@ -23,6 +24,13 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
   const [paymentPlan, setPaymentPlan] = useState("any");
   const [completion, setCompletion] = useState("any");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  
+  // Advanced filters
+  const [furnishing, setFurnishing] = useState("any");
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [floorLevel, setFloorLevel] = useState("any");
+  const [parkingSpaces, setParkingSpaces] = useState("any");
 
   // Reset filters when tab changes
   useEffect(() => {
@@ -33,6 +41,10 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     setHandoverBy("any");
     setPaymentPlan("any");
     setCompletion("any");
+    setFurnishing("any");
+    setAmenities([]);
+    setFloorLevel("any");
+    setParkingSpaces("any");
   }, [activeTab]);
 
   const popularLocations = [
@@ -367,8 +379,92 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
 
             {/* Filters Row */}
             {(activeTab === 'properties' || activeTab === 'transactions' || activeTab === 'new-projects') && (
-              <div className="flex gap-2 flex-wrap">
-                {renderFilters()}
+              <div className="space-y-3">
+                <div className="flex gap-2 flex-wrap">
+                  {renderFilters()}
+                  
+                  {/* More Filters Button */}
+                  <Collapsible open={showMoreFilters} onOpenChange={setShowMoreFilters}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-10 text-sm bg-background border-border/50 hover:bg-secondary/50 gap-2"
+                      >
+                        <SlidersHorizontal className="h-4 w-4" />
+                        More Filters
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showMoreFilters ? 'rotate-180' : ''}`} />
+                      </Button>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="mt-3">
+                      <div className="flex gap-2 flex-wrap pt-2 border-t border-border/30">
+                        {/* Furnishing */}
+                        <Select value={furnishing} onValueChange={setFurnishing}>
+                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                            <SelectValue placeholder="Furnishing" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-[70]">
+                            <SelectItem value="any">Any Furnishing</SelectItem>
+                            <SelectItem value="furnished">Furnished</SelectItem>
+                            <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                            <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {/* Floor Level */}
+                        <Select value={floorLevel} onValueChange={setFloorLevel}>
+                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                            <SelectValue placeholder="Floor Level" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-[70]">
+                            <SelectItem value="any">Any Floor</SelectItem>
+                            <SelectItem value="ground">Ground Floor</SelectItem>
+                            <SelectItem value="low">Low Floor (1-5)</SelectItem>
+                            <SelectItem value="mid">Mid Floor (6-15)</SelectItem>
+                            <SelectItem value="high">High Floor (16+)</SelectItem>
+                            <SelectItem value="penthouse">Penthouse</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {/* Parking Spaces */}
+                        <Select value={parkingSpaces} onValueChange={setParkingSpaces}>
+                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                            <SelectValue placeholder="Parking" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover z-[70]">
+                            <SelectItem value="any">Any Parking</SelectItem>
+                            <SelectItem value="1">1 Space</SelectItem>
+                            <SelectItem value="2">2 Spaces</SelectItem>
+                            <SelectItem value="3">3+ Spaces</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {/* Amenities */}
+                        <div className="flex gap-2 flex-wrap">
+                          {['Pool', 'Gym', 'Garden', 'Security', 'Kids Play Area'].map((amenity) => (
+                            <button
+                              key={amenity}
+                              onClick={() => {
+                                setAmenities(prev => 
+                                  prev.includes(amenity) 
+                                    ? prev.filter(a => a !== amenity)
+                                    : [...prev, amenity]
+                                );
+                              }}
+                              className={`py-2 px-4 text-xs font-medium rounded-lg transition-all ${
+                                amenities.includes(amenity)
+                                  ? 'bg-primary/10 text-primary border border-primary/30'
+                                  : 'bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
+                              }`}
+                            >
+                              {amenity}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
               </div>
             )}
           </div>
