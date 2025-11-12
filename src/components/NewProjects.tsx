@@ -41,6 +41,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
 
   const fetchProjects = async () => {
     try {
+      setLoading(true);
+      console.log("Fetching projects for city:", detectedCity);
+      
       let query = supabase
         .from("projects")
         .select("*")
@@ -58,10 +61,16 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
         .order("trust_score", { ascending: false })
         .limit(6);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching projects:", error);
+        throw error;
+      }
+
+      console.log(`Found ${data?.length || 0} projects for ${detectedCity || 'all cities'}`);
 
       // If no projects found in detected city, fetch from anywhere
       if ((!data || data.length === 0) && detectedCity) {
+        console.log("No projects found in detected city, fetching from all cities");
         const { data: fallbackData, error: fallbackError } = await supabase
           .from("projects")
           .select("*")
@@ -72,13 +81,18 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
           .order("trust_score", { ascending: false })
           .limit(6);
 
-        if (fallbackError) throw fallbackError;
+        if (fallbackError) {
+          console.error("Error fetching fallback projects:", fallbackError);
+          throw fallbackError;
+        }
+        console.log(`Found ${fallbackData?.length || 0} fallback projects`);
         setProjects(fallbackData || []);
       } else {
         setProjects(data || []);
       }
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error("Error in fetchProjects:", error);
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -97,7 +111,34 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
   }
 
   if (projects.length === 0) {
-    return null;
+    return (
+      <section className="py-16 relative bg-secondary/20" id="new-projects">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              New <span className="text-gradient">Projects</span>
+              {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              No new projects available at the moment. Check back soon!
+            </p>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-primary/50 hover:bg-primary/10"
+              onClick={() => navigate('/projects')}
+            >
+              Explore All Projects
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+    );
   }
 
   return (
