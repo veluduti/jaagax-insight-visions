@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import PropertySearchBar from "@/components/PropertySearchBar";
 import heroImage from "@/assets/hero-cityscape.jpg";
-import { Sparkles } from "lucide-react";
 
 const Hero = () => {
-  const navigate = useNavigate();
-
   const [activeTab, setActiveTab] = useState("properties");
 
   return (
-    <div className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-16">
+    <div className="relative min-h-[65vh] flex items-center justify-center overflow-hidden pt-16">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img 
@@ -81,25 +77,6 @@ const Hero = () => {
 
           {/* Search Bar */}
           <PropertySearchBar activeTab={activeTab} onTabChange={setActiveTab} />
-
-          {/* AI Callout */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            onClick={() => navigate('/ai-advisor')}
-            className="mt-6 inline-flex items-center gap-2 text-sm md:text-base text-primary hover:text-primary/80 transition-colors group"
-          >
-            <div className="p-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <span className="font-medium">
-              Want to find your perfect home using AI?
-            </span>
-            <span className="font-bold group-hover:translate-x-1 transition-transform">
-              Try AI Property Advisor →
-            </span>
-          </motion.button>
         </motion.div>
       </div>
     </div>

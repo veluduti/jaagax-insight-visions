@@ -1,12 +1,11 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Building2, FileText, Shield, Users } from "lucide-react";
+import { Home, Building2, FileText, Users } from "lucide-react";
 
 const tabs = [
   { id: "properties", label: "Properties", icon: Home, path: "/" },
   { id: "projects", label: "New Projects", icon: Building2, path: "/projects" },
   { id: "transactions", label: "Transactions", icon: FileText, path: "/transactions" },
-  { id: "trustscore", label: "TrustScore™", icon: Shield, path: "/trustscore" },
   { id: "agents", label: "Agents", icon: Users, path: "/agents" },
 ];
 
