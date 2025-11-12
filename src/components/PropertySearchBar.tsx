@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin } from "lucide-react";
+import { MapPin, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertySearchBarProps {
@@ -86,60 +86,38 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     }
   };
 
-  // Render transaction type tabs based on active tab (compact)
+  // Render transaction type tabs - Bayut style
   const renderTransactionTabs = () => {
-    if (activeTab === 'agents' || activeTab === 'properties') {
-      return (
-        <div className="flex gap-1">
-          {[
-            { value: 'buy', label: 'Buy' },
-            { value: 'rent', label: 'Rent' }
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setSearchType(tab.value)}
-              className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                searchType === tab.value
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      );
+    if (activeTab === 'truvalue' || activeTab === 'agents') {
+      return null;
     }
     
-    if (activeTab === 'transactions') {
-      return (
-        <div className="flex gap-1">
-          {[
-            { value: 'sold', label: 'Sold' },
-            { value: 'rented', label: 'Rented' }
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setSearchType(tab.value)}
-              className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                searchType === tab.value
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      );
-    }
+    const tabs = activeTab === 'transactions' 
+      ? [{ value: 'sold', label: 'Sold' }, { value: 'rented', label: 'Rented' }]
+      : [{ value: 'buy', label: 'Buy' }, { value: 'rent', label: 'Rent' }];
     
-    return null;
+    return (
+      <>
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setSearchType(tab.value)}
+            className={`flex-1 py-3 px-8 text-base font-medium rounded-xl transition-all ${
+              searchType === tab.value
+                ? 'bg-primary/10 text-primary border-2 border-primary/20'
+                : 'bg-background border-2 border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </>
+    );
   };
 
-  // Render filters based on active tab (compact inline)
+  // Render filters - Bayut style
   const renderFilters = () => {
-    if (activeTab === 'agents') {
+    if (activeTab === 'truvalue' || activeTab === 'agents') {
       return null;
     }
 
@@ -147,7 +125,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
       return (
         <>
           <Select value={propertyType} onValueChange={setPropertyType}>
-            <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+            <SelectTrigger className="h-14 text-base bg-background border-border/50">
               <SelectValue placeholder="Residential" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-[70]">
@@ -159,7 +137,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </Select>
 
           <Select value={handoverBy} onValueChange={setHandoverBy}>
-            <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+            <SelectTrigger className="h-14 text-base bg-background border-border/50">
               <SelectValue placeholder="Handover By" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-[70]">
@@ -172,7 +150,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </Select>
 
           <Select value={paymentPlan} onValueChange={setPaymentPlan}>
-            <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+            <SelectTrigger className="h-14 text-base bg-background border-border/50">
               <SelectValue placeholder="Payment Plan" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-[70]">
@@ -186,7 +164,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </Select>
 
           <Select value={completion} onValueChange={setCompletion}>
-            <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+            <SelectTrigger className="h-14 text-base bg-background border-border/50">
               <SelectValue placeholder="% Completion" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-[70]">
@@ -201,19 +179,19 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
       );
     }
 
-    // Properties and Transactions - Compact inline filters
+    // Properties and Transactions - Bayut style filters
     return (
       <>
-        {/* Status Pills */}
-        <div className="flex gap-1">
+        {/* Status Buttons */}
+        <div className="flex gap-2">
           {['all', 'ready', 'off-plan'].map((statusOption) => (
             <button
               key={statusOption}
               onClick={() => setStatus(statusOption)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all capitalize whitespace-nowrap ${
+              className={`py-3 px-6 text-sm font-medium rounded-xl transition-all capitalize ${
                 status === statusOption
-                  ? 'bg-primary/10 text-primary'
-                  : 'bg-secondary/30 text-muted-foreground hover:bg-secondary/50'
+                  ? 'bg-primary/10 text-primary border-2 border-primary/20'
+                  : 'bg-background border-2 border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
               }`}
             >
               {statusOption === 'off-plan' ? 'Off-Plan' : statusOption}
@@ -223,7 +201,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
 
         {/* Property Type */}
         <Select value={propertyType} onValueChange={setPropertyType}>
-          <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+          <SelectTrigger className="h-14 text-base bg-background border-border/50 min-w-[180px]">
             <SelectValue placeholder="Residential" />
           </SelectTrigger>
           <SelectContent className="bg-popover z-[70]">
@@ -246,9 +224,9 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </SelectContent>
         </Select>
 
-        {/* Beds */}
+        {/* Beds & Baths */}
         <Select value={beds} onValueChange={setBeds}>
-          <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+          <SelectTrigger className="h-14 text-base bg-background border-border/50 min-w-[160px]">
             <SelectValue placeholder="Beds & Baths" />
           </SelectTrigger>
           <SelectContent className="bg-popover z-[70]">
@@ -260,13 +238,13 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </SelectContent>
         </Select>
 
-        {/* Budget */}
+        {/* Price */}
         <Select value={budget} onValueChange={setBudget}>
-          <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
+          <SelectTrigger className="h-14 text-base bg-background border-border/50 min-w-[160px]">
             <SelectValue placeholder="Price (INR)" />
           </SelectTrigger>
           <SelectContent className="bg-popover z-[70]">
-            <SelectItem value="any">Any Budget</SelectItem>
+            <SelectItem value="any">Any</SelectItem>
             {searchType === 'rent' || searchType === 'rented' ? (
               <>
                 <SelectItem value="10k">Under ₹10K</SelectItem>
@@ -292,6 +270,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     { label: "Properties", value: "properties" },
     { label: "New Projects", value: "new-projects" },
     { label: "Transactions", value: "transactions" },
+    { label: "TruEstimate™", value: "truvalue" },
     { label: "Agents", value: "agents" },
   ];
 
@@ -303,17 +282,17 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-5xl mx-auto"
+        className="w-full max-w-6xl mx-auto"
       >
-        {/* Compact Search Card */}
-        <div className="bg-card/95 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden border border-border/50">
-          {/* Navigation Tabs - Integrated */}
-          <div className="flex justify-center gap-6 px-4 pt-4 pb-3 border-b border-border/30">
+        {/* Search Card - Bayut Style */}
+        <div className="bg-card/95 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden border border-border/50">
+          {/* Navigation Tabs */}
+          <div className="flex justify-center gap-8 px-6 pt-5 pb-4 bg-background/50 border-b border-border/30">
             {navItems.map((item) => (
               <button
                 key={item.value}
                 onClick={() => onTabChange(item.value)}
-                className={`text-sm font-medium transition-colors relative pb-2 ${
+                className={`text-base font-medium transition-colors relative pb-2 ${
                   activeTab === item.value ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -321,7 +300,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
                 {activeTab === item.value && (
                   <motion.span
                     layoutId="activeSearchTab"
-                    className="absolute -bottom-[13px] left-0 right-0 h-0.5 bg-primary"
+                    className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-primary"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -329,78 +308,103 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
             ))}
           </div>
 
-          {/* Compact Search Form */}
-          <div className="p-3">
-            {/* Main Row: Transaction Type + Location + Filters + Search */}
-            <div className="flex flex-col gap-2">
-              {/* First Row: Transaction type + Location + Search */}
-              <div className="flex flex-wrap gap-2 items-center">
-                {/* Transaction Type Tabs */}
-                {renderTransactionTabs()}
+          {/* Search Form */}
+          <div className="p-6 space-y-4">
+            {/* Transaction Type Row */}
+            <div className="flex gap-3">
+              {renderTransactionTabs()}
+            </div>
 
-                {/* Location Input */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors border border-border/30 focus-within:border-primary/50">
-                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                    <Input 
-                      placeholder="Enter location" 
-                      className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm placeholder:text-muted-foreground h-5"
-                      value={location}
-                      onChange={(e) => {
-                        setLocation(e.target.value);
-                        setShowSuggestions(e.target.value.length > 0);
-                      }}
-                      onFocus={() => setShowSuggestions(location.length > 0)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      onKeyPress={handleKeyPress}
-                    />
-                  </div>
-                  
-                  {/* Autocomplete Suggestions */}
-                  {showSuggestions && location && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute z-[60] w-full mt-1 bg-card rounded-lg overflow-hidden border border-border/50 shadow-xl"
-                    >
-                      {popularLocations
-                        .filter(loc => loc.toLowerCase().includes(location.toLowerCase()))
-                        .map((loc, index) => (
-                          <button
-                            key={index}
-                            onClick={() => {
-                              setLocation(loc);
-                              setShowSuggestions(false);
-                            }}
-                            className="w-full px-3 py-2 text-left hover:bg-secondary/50 transition-colors flex items-center gap-2 border-b border-border/30 last:border-0 text-sm"
-                          >
-                            <MapPin className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-foreground">{loc}</span>
-                          </button>
-                        ))}
-                    </motion.div>
-                  )}
+            {/* Location + Search Row */}
+            <div className="flex gap-3">
+              {/* Location Input */}
+              <div className="relative flex-1">
+                <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-background border border-border/50 hover:border-primary/30 focus-within:border-primary/50 transition-colors">
+                  <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
+                  <Input 
+                    placeholder="Enter location" 
+                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-base placeholder:text-muted-foreground"
+                    value={location}
+                    onChange={(e) => {
+                      setLocation(e.target.value);
+                      setShowSuggestions(e.target.value.length > 0);
+                    }}
+                    onFocus={() => setShowSuggestions(location.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onKeyPress={handleKeyPress}
+                  />
                 </div>
-
-                {/* Search Button */}
-                <Button 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm h-9 px-6 rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap"
-                  onClick={handleSearch}
-                >
-                  <Search className="h-4 w-4 mr-1.5" />
-                  Search
-                </Button>
+                
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && location && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute z-[60] w-full mt-2 bg-popover rounded-xl overflow-hidden border border-border/50 shadow-xl"
+                  >
+                    {popularLocations
+                      .filter(loc => loc.toLowerCase().includes(location.toLowerCase()))
+                      .map((loc, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setLocation(loc);
+                            setShowSuggestions(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-3 border-b border-border/30 last:border-0"
+                        >
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-foreground">{loc}</span>
+                        </button>
+                      ))}
+                  </motion.div>
+                )}
               </div>
 
-              {/* Second Row: Additional Filters */}
-              {(activeTab === 'properties' || activeTab === 'transactions' || activeTab === 'new-projects') && (
-                <div className="flex flex-wrap gap-2 items-center">
-                  {renderFilters()}
-                </div>
-              )}
+              {/* Search Button */}
+              <Button 
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base px-12 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
             </div>
+
+            {/* Filters Row */}
+            {(activeTab === 'properties' || activeTab === 'transactions' || activeTab === 'new-projects') && (
+              <div className="flex gap-3 flex-wrap">
+                {renderFilters()}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* AI Prompt - Below Search */}
+        {activeTab !== 'truvalue' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 flex items-center justify-between px-6 py-4 bg-background/50 rounded-xl border border-border/30"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Want to find out more about real estate using AI?
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/ai-advisor')}
+              className="text-primary hover:text-primary/80 font-medium"
+            >
+              Try AI Advisor →
+            </Button>
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
