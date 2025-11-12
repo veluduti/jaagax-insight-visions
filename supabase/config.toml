@@ -44,3 +44,12 @@ verify_jwt = false
 
 [functions.send-interest-confirmation]
 verify_jwt = false
+
+[functions.ai-analyze-event-impact]
+verify_jwt = false
+
+[functions.generate-event-brief]
+verify_jwt = false
+
+[functions.enrich-project-data]
+verify_jwt = false

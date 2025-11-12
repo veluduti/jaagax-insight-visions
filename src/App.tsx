@@ -23,6 +23,8 @@ import CommunitiesCity from "./pages/CommunitiesCity";
 import CommunitiesLocality from "./pages/CommunitiesLocality";
 import Guides from "./pages/Guides";
 import Events from "./pages/Events";
+import EventsNew from "./pages/EventsNew";
+import EventDetail from "./pages/EventDetail";
 import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
@@ -63,7 +65,8 @@ const App = () => (
           <Route path="/communities/:city" element={<CommunitiesCity />} />
           <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
           <Route path="/guides" element={<Guides />} />
-          <Route path="/events" element={<Events />} />
+          <Route path="/events" element={<EventsNew />} />
+          <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/map" element={<Map />} />
           <Route path="/sell-property" element={<SellProperty />} />
           

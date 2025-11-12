@@ -292,6 +292,114 @@ export type Database = {
           },
         ]
       }
+      community_events: {
+        Row: {
+          accessibility_features: string[] | null
+          cancellation_reason: string | null
+          cancelled: boolean | null
+          category: Database["public"]["Enums"]["event_category"]
+          city: string
+          created_at: string | null
+          created_by: string | null
+          current_attendees: number | null
+          description: string | null
+          end_date: string | null
+          end_time: string | null
+          event_date: string
+          event_time: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          images: string[] | null
+          language: string | null
+          lat: number | null
+          lng: number | null
+          locality: string | null
+          max_attendees: number | null
+          organizer: string
+          organizer_contact: string | null
+          organizer_email: string | null
+          published_at: string | null
+          tags: string[] | null
+          ticket_price: number | null
+          title: string
+          updated_at: string | null
+          venue: string
+          venue_address: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          accessibility_features?: string[] | null
+          cancellation_reason?: string | null
+          cancelled?: boolean | null
+          category?: Database["public"]["Enums"]["event_category"]
+          city: string
+          created_at?: string | null
+          created_by?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          event_date: string
+          event_time?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          language?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          max_attendees?: number | null
+          organizer: string
+          organizer_contact?: string | null
+          organizer_email?: string | null
+          published_at?: string | null
+          tags?: string[] | null
+          ticket_price?: number | null
+          title: string
+          updated_at?: string | null
+          venue: string
+          venue_address?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          accessibility_features?: string[] | null
+          cancellation_reason?: string | null
+          cancelled?: boolean | null
+          category?: Database["public"]["Enums"]["event_category"]
+          city?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_time?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          images?: string[] | null
+          language?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          max_attendees?: number | null
+          organizer?: string
+          organizer_contact?: string | null
+          organizer_email?: string | null
+          published_at?: string | null
+          tags?: string[] | null
+          ticket_price?: number | null
+          title?: string
+          updated_at?: string | null
+          venue?: string
+          venue_address?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       community_profiles: {
         Row: {
           ai_rating: number | null
@@ -333,6 +441,165 @@ export type Database = {
           verified_properties?: number | null
         }
         Relationships: []
+      }
+      event_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          event_id: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          event_id: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_rsvps: {
+        Row: {
+          attendee_email: string
+          attendee_name: string
+          attendee_phone: string | null
+          check_in_time: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          payment_id: string | null
+          payment_status: string | null
+          special_requests: string | null
+          status: Database["public"]["Enums"]["rsvp_status"] | null
+          tickets_count: number | null
+          total_amount: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attendee_email: string
+          attendee_name: string
+          attendee_phone?: string | null
+          check_in_time?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          special_requests?: string | null
+          status?: Database["public"]["Enums"]["rsvp_status"] | null
+          tickets_count?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attendee_email?: string
+          attendee_name?: string
+          attendee_phone?: string | null
+          check_in_time?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          payment_id?: string | null
+          payment_status?: string | null
+          special_requests?: string | null
+          status?: Database["public"]["Enums"]["rsvp_status"] | null
+          tickets_count?: number | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_vendors: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          booth_number: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          event_id: string
+          id: string
+          setup_time: string | null
+          status: Database["public"]["Enums"]["vendor_status"] | null
+          updated_at: string | null
+          vendor_name: string
+          vendor_type: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          booth_number?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_id: string
+          id?: string
+          setup_time?: string | null
+          status?: Database["public"]["Enums"]["vendor_status"] | null
+          updated_at?: string | null
+          vendor_name: string
+          vendor_type: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          booth_number?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_id?: string
+          id?: string
+          setup_time?: string | null
+          status?: Database["public"]["Enums"]["vendor_status"] | null
+          updated_at?: string | null
+          vendor_name?: string
+          vendor_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_vendors_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {
@@ -444,6 +711,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_insights: {
+        Row: {
+          ai_analysis: string | null
+          city: string
+          created_at: string | null
+          data: Json
+          expires_at: string | null
+          id: string
+          insight_type: string
+          locality: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_analysis?: string | null
+          city: string
+          created_at?: string | null
+          data: Json
+          expires_at?: string | null
+          id?: string
+          insight_type: string
+          locality?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_analysis?: string | null
+          city?: string
+          created_at?: string | null
+          data?: Json
+          expires_at?: string | null
+          id?: string
+          insight_type?: string
+          locality?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       market_trends: {
         Row: {
@@ -1153,9 +1456,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_market_stats: {
+        Row: {
+          avg_price: number | null
+          avg_trust_score: number | null
+          city: string | null
+          date: string | null
+          locality: string | null
+          total_properties: number | null
+          verified_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      clean_expired_insights: { Args: never; Returns: undefined }
       get_builder_analytics: {
         Args: { p_builder_id: string; p_months?: number }
         Returns: {
@@ -1189,9 +1504,21 @@ export type Database = {
         | "playground"
         | "security"
       app_role: "buyer" | "seller" | "builder" | "agent" | "admin"
+      event_category:
+        | "festival"
+        | "cultural"
+        | "sports"
+        | "community"
+        | "workshop"
+        | "exhibition"
+        | "concert"
+        | "food"
+        | "religious"
+        | "other"
       lead_status: "new" | "contacted" | "qualified" | "converted" | "lost"
       poi_type: "metro" | "school" | "hospital" | "mall" | "office" | "airport"
       property_type: "apartment" | "villa" | "plot" | "commercial"
+      rsvp_status: "confirmed" | "pending" | "cancelled" | "waitlist"
       site_visit_status:
         | "pending"
         | "confirmed"
@@ -1199,6 +1526,7 @@ export type Database = {
         | "cancelled"
         | "rescheduled"
       user_role: "buyer" | "seller" | "builder" | "admin"
+      vendor_status: "pending" | "approved" | "rejected" | "active"
       verification_status: "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
@@ -1337,9 +1665,22 @@ export const Constants = {
         "security",
       ],
       app_role: ["buyer", "seller", "builder", "agent", "admin"],
+      event_category: [
+        "festival",
+        "cultural",
+        "sports",
+        "community",
+        "workshop",
+        "exhibition",
+        "concert",
+        "food",
+        "religious",
+        "other",
+      ],
       lead_status: ["new", "contacted", "qualified", "converted", "lost"],
       poi_type: ["metro", "school", "hospital", "mall", "office", "airport"],
       property_type: ["apartment", "villa", "plot", "commercial"],
+      rsvp_status: ["confirmed", "pending", "cancelled", "waitlist"],
       site_visit_status: [
         "pending",
         "confirmed",
@@ -1348,6 +1689,7 @@ export const Constants = {
         "rescheduled",
       ],
       user_role: ["buyer", "seller", "builder", "admin"],
+      vendor_status: ["pending", "approved", "rejected", "active"],
       verification_status: ["pending", "verified", "rejected"],
     },
   },
