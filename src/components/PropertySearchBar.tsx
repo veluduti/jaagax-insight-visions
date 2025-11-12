@@ -127,74 +127,15 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     );
   };
 
-  // Render filters - compact
+  // Render filters - only status buttons (rest go in More Filters)
   const renderFilters = () => {
-    if (activeTab === 'agents') {
+    if (activeTab === 'agents' || activeTab === 'new-projects') {
       return null;
     }
 
-    if (activeTab === 'new-projects') {
-      return (
-        <>
-          <Select value={propertyType} onValueChange={setPropertyType}>
-            <SelectTrigger className="h-10 text-sm bg-background border-border/50">
-              <SelectValue placeholder="Residential" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-[70]">
-              <SelectItem value="residential">Residential</SelectItem>
-              <SelectItem value="Apartment">Apartment</SelectItem>
-              <SelectItem value="Villa">Villa</SelectItem>
-              <SelectItem value="Penthouse">Penthouse</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={handoverBy} onValueChange={setHandoverBy}>
-            <SelectTrigger className="h-10 text-sm bg-background border-border/50">
-              <SelectValue placeholder="Handover By" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-[70]">
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-              <SelectItem value="2026">2026</SelectItem>
-              <SelectItem value="2027+">2027+</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={paymentPlan} onValueChange={setPaymentPlan}>
-            <SelectTrigger className="h-10 text-sm bg-background border-border/50">
-              <SelectValue placeholder="Payment Plan" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-[70]">
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="10-90">10/90</SelectItem>
-              <SelectItem value="20-80">20/80</SelectItem>
-              <SelectItem value="30-70">30/70</SelectItem>
-              <SelectItem value="40-60">40/60</SelectItem>
-              <SelectItem value="50-50">50/50</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={completion} onValueChange={setCompletion}>
-            <SelectTrigger className="h-10 text-sm bg-background border-border/50">
-              <SelectValue placeholder="% Completion" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-[70]">
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="0-25">0-25%</SelectItem>
-              <SelectItem value="25-50">25-50%</SelectItem>
-              <SelectItem value="50-75">50-75%</SelectItem>
-              <SelectItem value="75-100">75-100%</SelectItem>
-            </SelectContent>
-          </Select>
-        </>
-      );
-    }
-
-    // Properties and Transactions - compact filters
+    // Properties and Transactions - only status buttons
     return (
       <>
-        {/* Status Buttons */}
         {['all', 'ready', 'off-plan'].map((statusOption) => (
           <button
             key={statusOption}
@@ -208,70 +149,6 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
             {statusOption === 'off-plan' ? 'Off-Plan' : statusOption}
           </button>
         ))}
-
-        {/* Property Type */}
-        <Select value={propertyType} onValueChange={setPropertyType}>
-          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
-            <SelectValue placeholder="Residential" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover z-[70]">
-            <SelectItem value="residential">Residential</SelectItem>
-            {searchType !== 'commercial' ? (
-              <>
-                <SelectItem value="Apartment">Apartment</SelectItem>
-                <SelectItem value="Villa">Villa</SelectItem>
-                <SelectItem value="Independent House">Independent House</SelectItem>
-                <SelectItem value="Plot">Plot</SelectItem>
-                <SelectItem value="Penthouse">Penthouse</SelectItem>
-              </>
-            ) : (
-              <>
-                <SelectItem value="Office Space">Office Space</SelectItem>
-                <SelectItem value="Retail Shop">Retail Shop</SelectItem>
-                <SelectItem value="Warehouse">Warehouse</SelectItem>
-              </>
-            )}
-          </SelectContent>
-        </Select>
-
-        {/* Beds & Baths */}
-        <Select value={beds} onValueChange={setBeds}>
-          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[130px]">
-            <SelectValue placeholder="Beds & Baths" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover z-[70]">
-            <SelectItem value="any">Any</SelectItem>
-            <SelectItem value="1">1 BHK</SelectItem>
-            <SelectItem value="2">2 BHK</SelectItem>
-            <SelectItem value="3">3 BHK</SelectItem>
-            <SelectItem value="4">4+ BHK</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Price */}
-        <Select value={budget} onValueChange={setBudget}>
-          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[130px]">
-            <SelectValue placeholder="Price (INR)" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover z-[70]">
-            <SelectItem value="any">Any</SelectItem>
-            {searchType === 'rent' || searchType === 'rented' ? (
-              <>
-                <SelectItem value="10k">Under ₹10K</SelectItem>
-                <SelectItem value="25k">₹10K - ₹25K</SelectItem>
-                <SelectItem value="50k">₹25K - ₹50K</SelectItem>
-                <SelectItem value="50k+">Above ₹50K</SelectItem>
-              </>
-            ) : (
-              <>
-                <SelectItem value="50l">Under ₹50L</SelectItem>
-                <SelectItem value="1cr">₹50L - ₹1Cr</SelectItem>
-                <SelectItem value="2cr">₹1Cr - ₹2Cr</SelectItem>
-                <SelectItem value="2cr+">Above ₹2Cr</SelectItem>
-              </>
-            )}
-          </SelectContent>
-        </Select>
       </>
     );
   };
@@ -397,69 +274,196 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
                     </CollapsibleTrigger>
                     
                     <CollapsibleContent className="mt-3">
-                      <div className="flex gap-2 flex-wrap pt-2 border-t border-border/30">
-                        {/* Furnishing */}
-                        <Select value={furnishing} onValueChange={setFurnishing}>
-                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
-                            <SelectValue placeholder="Furnishing" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover z-[70]">
-                            <SelectItem value="any">Any Furnishing</SelectItem>
-                            <SelectItem value="furnished">Furnished</SelectItem>
-                            <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
-                            <SelectItem value="unfurnished">Unfurnished</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {/* Floor Level */}
-                        <Select value={floorLevel} onValueChange={setFloorLevel}>
-                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
-                            <SelectValue placeholder="Floor Level" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover z-[70]">
-                            <SelectItem value="any">Any Floor</SelectItem>
-                            <SelectItem value="ground">Ground Floor</SelectItem>
-                            <SelectItem value="low">Low Floor (1-5)</SelectItem>
-                            <SelectItem value="mid">Mid Floor (6-15)</SelectItem>
-                            <SelectItem value="high">High Floor (16+)</SelectItem>
-                            <SelectItem value="penthouse">Penthouse</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {/* Parking Spaces */}
-                        <Select value={parkingSpaces} onValueChange={setParkingSpaces}>
-                          <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
-                            <SelectValue placeholder="Parking" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover z-[70]">
-                            <SelectItem value="any">Any Parking</SelectItem>
-                            <SelectItem value="1">1 Space</SelectItem>
-                            <SelectItem value="2">2 Spaces</SelectItem>
-                            <SelectItem value="3">3+ Spaces</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {/* Amenities */}
+                      <div className="space-y-3 pt-3 border-t border-border/30">
+                        {/* Primary Filters Row */}
                         <div className="flex gap-2 flex-wrap">
-                          {['Pool', 'Gym', 'Garden', 'Security', 'Kids Play Area'].map((amenity) => (
-                            <button
-                              key={amenity}
-                              onClick={() => {
-                                setAmenities(prev => 
-                                  prev.includes(amenity) 
-                                    ? prev.filter(a => a !== amenity)
-                                    : [...prev, amenity]
-                                );
-                              }}
-                              className={`py-2 px-4 text-xs font-medium rounded-lg transition-all ${
-                                amenities.includes(amenity)
-                                  ? 'bg-primary/10 text-primary border border-primary/30'
-                                  : 'bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
-                              }`}
-                            >
-                              {amenity}
-                            </button>
-                          ))}
+                          {/* Property Type */}
+                          <Select value={propertyType} onValueChange={setPropertyType}>
+                            <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                              <SelectValue placeholder="Property Type" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-[70]">
+                              <SelectItem value="residential">Residential</SelectItem>
+                              {activeTab === 'new-projects' ? (
+                                <>
+                                  <SelectItem value="Apartment">Apartment</SelectItem>
+                                  <SelectItem value="Villa">Villa</SelectItem>
+                                  <SelectItem value="Penthouse">Penthouse</SelectItem>
+                                </>
+                              ) : searchType !== 'commercial' ? (
+                                <>
+                                  <SelectItem value="Apartment">Apartment</SelectItem>
+                                  <SelectItem value="Villa">Villa</SelectItem>
+                                  <SelectItem value="Independent House">Independent House</SelectItem>
+                                  <SelectItem value="Plot">Plot</SelectItem>
+                                  <SelectItem value="Penthouse">Penthouse</SelectItem>
+                                </>
+                              ) : (
+                                <>
+                                  <SelectItem value="Office Space">Office Space</SelectItem>
+                                  <SelectItem value="Retail Shop">Retail Shop</SelectItem>
+                                  <SelectItem value="Warehouse">Warehouse</SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+
+                          {/* For Properties and Transactions: Beds & Price */}
+                          {(activeTab === 'properties' || activeTab === 'transactions') && (
+                            <>
+                              <Select value={beds} onValueChange={setBeds}>
+                                <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                  <SelectValue placeholder="Beds & Baths" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-[70]">
+                                  <SelectItem value="any">Any</SelectItem>
+                                  <SelectItem value="1">1 BHK</SelectItem>
+                                  <SelectItem value="2">2 BHK</SelectItem>
+                                  <SelectItem value="3">3 BHK</SelectItem>
+                                  <SelectItem value="4">4+ BHK</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              <Select value={budget} onValueChange={setBudget}>
+                                <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                  <SelectValue placeholder="Price (INR)" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-[70]">
+                                  <SelectItem value="any">Any</SelectItem>
+                                  {searchType === 'rent' || searchType === 'rented' ? (
+                                    <>
+                                      <SelectItem value="10k">Under ₹10K</SelectItem>
+                                      <SelectItem value="25k">₹10K - ₹25K</SelectItem>
+                                      <SelectItem value="50k">₹25K - ₹50K</SelectItem>
+                                      <SelectItem value="50k+">Above ₹50K</SelectItem>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <SelectItem value="50l">Under ₹50L</SelectItem>
+                                      <SelectItem value="1cr">₹50L - ₹1Cr</SelectItem>
+                                      <SelectItem value="2cr">₹1Cr - ₹2Cr</SelectItem>
+                                      <SelectItem value="2cr+">Above ₹2Cr</SelectItem>
+                                    </>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </>
+                          )}
+
+                          {/* For New Projects: Handover, Payment Plan, Completion */}
+                          {activeTab === 'new-projects' && (
+                            <>
+                              <Select value={handoverBy} onValueChange={setHandoverBy}>
+                                <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                  <SelectValue placeholder="Handover By" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-[70]">
+                                  <SelectItem value="any">Any</SelectItem>
+                                  <SelectItem value="2024">2024</SelectItem>
+                                  <SelectItem value="2025">2025</SelectItem>
+                                  <SelectItem value="2026">2026</SelectItem>
+                                  <SelectItem value="2027+">2027+</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              <Select value={paymentPlan} onValueChange={setPaymentPlan}>
+                                <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                  <SelectValue placeholder="Payment Plan" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-[70]">
+                                  <SelectItem value="any">Any</SelectItem>
+                                  <SelectItem value="10-90">10/90</SelectItem>
+                                  <SelectItem value="20-80">20/80</SelectItem>
+                                  <SelectItem value="30-70">30/70</SelectItem>
+                                  <SelectItem value="40-60">40/60</SelectItem>
+                                  <SelectItem value="50-50">50/50</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              <Select value={completion} onValueChange={setCompletion}>
+                                <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                  <SelectValue placeholder="% Completion" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover z-[70]">
+                                  <SelectItem value="any">Any</SelectItem>
+                                  <SelectItem value="0-25">0-25%</SelectItem>
+                                  <SelectItem value="25-50">25-50%</SelectItem>
+                                  <SelectItem value="50-75">50-75%</SelectItem>
+                                  <SelectItem value="75-100">75-100%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Advanced Filters Separator */}
+                        <div className="border-t border-border/20 pt-3">
+                          <p className="text-xs text-muted-foreground mb-2 font-medium">Advanced Options</p>
+                          <div className="flex gap-2 flex-wrap">
+                            <Select value={furnishing} onValueChange={setFurnishing}>
+                              <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                <SelectValue placeholder="Furnishing" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover z-[70]">
+                                <SelectItem value="any">Any Furnishing</SelectItem>
+                                <SelectItem value="furnished">Furnished</SelectItem>
+                                <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                                <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={floorLevel} onValueChange={setFloorLevel}>
+                              <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                <SelectValue placeholder="Floor Level" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover z-[70]">
+                                <SelectItem value="any">Any Floor</SelectItem>
+                                <SelectItem value="ground">Ground Floor</SelectItem>
+                                <SelectItem value="low">Low Floor (1-5)</SelectItem>
+                                <SelectItem value="mid">Mid Floor (6-15)</SelectItem>
+                                <SelectItem value="high">High Floor (16+)</SelectItem>
+                                <SelectItem value="penthouse">Penthouse</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={parkingSpaces} onValueChange={setParkingSpaces}>
+                              <SelectTrigger className="h-10 text-sm bg-background border-border/50 min-w-[140px]">
+                                <SelectValue placeholder="Parking" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover z-[70]">
+                                <SelectItem value="any">Any Parking</SelectItem>
+                                <SelectItem value="1">1 Space</SelectItem>
+                                <SelectItem value="2">2 Spaces</SelectItem>
+                                <SelectItem value="3">3+ Spaces</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Amenities */}
+                          <div className="mt-3">
+                            <p className="text-xs text-muted-foreground mb-2">Amenities</p>
+                            <div className="flex gap-2 flex-wrap">
+                              {['Pool', 'Gym', 'Garden', 'Security', 'Kids Play Area'].map((amenity) => (
+                                <button
+                                  key={amenity}
+                                  onClick={() => {
+                                    setAmenities(prev => 
+                                      prev.includes(amenity) 
+                                        ? prev.filter(a => a !== amenity)
+                                        : [...prev, amenity]
+                                    );
+                                  }}
+                                  className={`py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+                                    amenities.includes(amenity)
+                                      ? 'bg-primary/10 text-primary border border-primary/30'
+                                      : 'bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
+                                  }`}
+                                >
+                                  {amenity}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CollapsibleContent>
