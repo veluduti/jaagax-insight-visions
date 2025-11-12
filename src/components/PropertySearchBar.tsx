@@ -8,9 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface PropertySearchBarProps {
   activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
-const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
+const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) => {
   const navigate = useNavigate();
   const [searchType, setSearchType] = useState("buy");
   const [location, setLocation] = useState("");
@@ -149,7 +150,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
             <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
               <SelectValue placeholder="Residential" />
             </SelectTrigger>
-            <SelectContent className="bg-card z-50">
+            <SelectContent className="bg-popover z-[70]">
               <SelectItem value="residential">Residential</SelectItem>
               <SelectItem value="Apartment">Apartment</SelectItem>
               <SelectItem value="Villa">Villa</SelectItem>
@@ -161,7 +162,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
             <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
               <SelectValue placeholder="Handover By" />
             </SelectTrigger>
-            <SelectContent className="bg-card z-50">
+            <SelectContent className="bg-popover z-[70]">
               <SelectItem value="any">Any</SelectItem>
               <SelectItem value="2024">2024</SelectItem>
               <SelectItem value="2025">2025</SelectItem>
@@ -174,7 +175,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
             <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
               <SelectValue placeholder="Payment Plan" />
             </SelectTrigger>
-            <SelectContent className="bg-card z-50">
+            <SelectContent className="bg-popover z-[70]">
               <SelectItem value="any">Any</SelectItem>
               <SelectItem value="10-90">10/90</SelectItem>
               <SelectItem value="20-80">20/80</SelectItem>
@@ -188,7 +189,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
             <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
               <SelectValue placeholder="% Completion" />
             </SelectTrigger>
-            <SelectContent className="bg-card z-50">
+            <SelectContent className="bg-popover z-[70]">
               <SelectItem value="any">Any</SelectItem>
               <SelectItem value="0-25">0-25%</SelectItem>
               <SelectItem value="25-50">25-50%</SelectItem>
@@ -225,7 +226,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
           <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
             <SelectValue placeholder="Residential" />
           </SelectTrigger>
-          <SelectContent className="bg-card z-50">
+          <SelectContent className="bg-popover z-[70]">
             <SelectItem value="residential">Residential</SelectItem>
             {searchType !== 'commercial' ? (
               <>
@@ -250,7 +251,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
           <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
             <SelectValue placeholder="Beds & Baths" />
           </SelectTrigger>
-          <SelectContent className="bg-card z-50">
+          <SelectContent className="bg-popover z-[70]">
             <SelectItem value="any">Any</SelectItem>
             <SelectItem value="1">1 BHK</SelectItem>
             <SelectItem value="2">2 BHK</SelectItem>
@@ -264,7 +265,7 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
           <SelectTrigger className="h-9 text-sm bg-secondary/30 border-0">
             <SelectValue placeholder="Price (INR)" />
           </SelectTrigger>
-          <SelectContent className="bg-card z-50">
+          <SelectContent className="bg-popover z-[70]">
             <SelectItem value="any">Any Budget</SelectItem>
             {searchType === 'rent' || searchType === 'rented' ? (
               <>
@@ -287,104 +288,119 @@ const PropertySearchBar = ({ activeTab }: PropertySearchBarProps) => {
     );
   };
 
+  const navItems = [
+    { label: "Properties", value: "properties" },
+    { label: "New Projects", value: "new-projects" },
+    { label: "Transactions", value: "transactions" },
+    { label: "Agents", value: "agents" },
+  ];
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
         className="w-full max-w-5xl mx-auto"
       >
         {/* Compact Search Card */}
         <div className="bg-card/95 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden border border-border/50">
-          {/* Compact Search Form */}
-          <div className="p-4">
-            {/* First Row: Tabs + Location + Search */}
-            <div className="flex flex-col md:flex-row gap-3 mb-3">
-              {/* Transaction Type Tabs */}
-              {renderTransactionTabs()}
-
-              {/* Location Input */}
-              <div className="relative flex-1">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors border border-border/30 focus-within:border-primary/50">
-                  <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                  <Input 
-                    placeholder="Enter location" 
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm placeholder:text-muted-foreground h-5"
-                    value={location}
-                    onChange={(e) => {
-                      setLocation(e.target.value);
-                      setShowSuggestions(e.target.value.length > 0);
-                    }}
-                    onFocus={() => setShowSuggestions(location.length > 0)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onKeyPress={handleKeyPress}
+          {/* Navigation Tabs - Integrated */}
+          <div className="flex justify-center gap-6 px-4 pt-4 pb-3 border-b border-border/30">
+            {navItems.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => onTabChange(item.value)}
+                className={`text-sm font-medium transition-colors relative pb-2 ${
+                  activeTab === item.value ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {item.label}
+                {activeTab === item.value && (
+                  <motion.span
+                    layoutId="activeSearchTab"
+                    className="absolute -bottom-[13px] left-0 right-0 h-0.5 bg-primary"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
-                </div>
-                
-                {/* Autocomplete Suggestions */}
-                {showSuggestions && location && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-[60] w-full mt-2 bg-card rounded-lg overflow-hidden border border-border/50 shadow-xl"
-                  >
-                    {popularLocations
-                      .filter(loc => loc.toLowerCase().includes(location.toLowerCase()))
-                      .map((loc, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setLocation(loc);
-                            setShowSuggestions(false);
-                          }}
-                          className="w-full px-3 py-2 text-left hover:bg-secondary/50 transition-colors flex items-center gap-2 border-b border-border/30 last:border-0 text-sm"
-                        >
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-foreground">{loc}</span>
-                        </button>
-                      ))}
-                  </motion.div>
                 )}
+              </button>
+            ))}
+          </div>
+
+          {/* Compact Search Form */}
+          <div className="p-3">
+            {/* Main Row: Transaction Type + Location + Filters + Search */}
+            <div className="flex flex-col gap-2">
+              {/* First Row: Transaction type + Location + Search */}
+              <div className="flex flex-wrap gap-2 items-center">
+                {/* Transaction Type Tabs */}
+                {renderTransactionTabs()}
+
+                {/* Location Input */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/30 hover:bg-secondary/40 transition-colors border border-border/30 focus-within:border-primary/50">
+                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                    <Input 
+                      placeholder="Enter location" 
+                      className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm placeholder:text-muted-foreground h-5"
+                      value={location}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        setShowSuggestions(e.target.value.length > 0);
+                      }}
+                      onFocus={() => setShowSuggestions(location.length > 0)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      onKeyPress={handleKeyPress}
+                    />
+                  </div>
+                  
+                  {/* Autocomplete Suggestions */}
+                  {showSuggestions && location && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute z-[60] w-full mt-1 bg-card rounded-lg overflow-hidden border border-border/50 shadow-xl"
+                    >
+                      {popularLocations
+                        .filter(loc => loc.toLowerCase().includes(location.toLowerCase()))
+                        .map((loc, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setLocation(loc);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full px-3 py-2 text-left hover:bg-secondary/50 transition-colors flex items-center gap-2 border-b border-border/30 last:border-0 text-sm"
+                          >
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-foreground">{loc}</span>
+                          </button>
+                        ))}
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Search Button */}
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm h-9 px-6 rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap"
+                  onClick={handleSearch}
+                >
+                  <Search className="h-4 w-4 mr-1.5" />
+                  Search
+                </Button>
               </div>
 
-              {/* Search Button */}
-              <Button 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm h-9 px-8 rounded-lg shadow hover:shadow-md transition-all whitespace-nowrap"
-                onClick={handleSearch}
-              >
-                <Search className="h-4 w-4 mr-1.5" />
-                Search
-              </Button>
-            </div>
-
-            {/* Second Row: Filters (Compact Inline) */}
-            <div className="flex flex-wrap gap-2 items-center">
-              {renderFilters()}
+              {/* Second Row: Additional Filters */}
+              {(activeTab === 'properties' || activeTab === 'transactions' || activeTab === 'new-projects') && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  {renderFilters()}
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* AI Prompt */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mt-4 text-center"
-        >
-          <button
-            onClick={() => navigate('/ai-advisor')}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Search className="h-4 w-4 text-primary" />
-            </div>
-            <span>Want to find out more about real estate using AI?</span>
-            <span className="text-primary font-medium">Try AI Advisor →</span>
-          </button>
-        </motion.div>
       </motion.div>
     </AnimatePresence>
   );

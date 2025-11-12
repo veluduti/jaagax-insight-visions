@@ -10,15 +10,8 @@ const Hero = () => {
 
   const [activeTab, setActiveTab] = useState("properties");
 
-  const navItems = [
-    { label: "Properties", path: "/map", value: "properties" },
-    { label: "New Projects", path: "/projects", value: "new-projects" },
-    { label: "Transactions", path: "/transactions", value: "transactions" },
-    { label: "Agents", path: "/agents", value: "agents" },
-  ];
-
   return (
-    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16">
+    <div className="relative min-h-[75vh] flex items-center justify-center overflow-hidden pt-16">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img 
@@ -66,33 +59,6 @@ const Hero = () => {
           transition={{ duration: 0.8 }}
           className="text-center max-w-6xl mx-auto"
         >
-          {/* Navigation Tabs */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex justify-center gap-8 mb-12"
-          >
-            {navItems.map((item) => (
-              <button
-                key={item.value}
-                onClick={() => setActiveTab(item.value)}
-                className={`text-base md:text-lg font-medium transition-colors relative group ${
-                  activeTab === item.value ? 'text-primary' : 'text-foreground/70 hover:text-foreground'
-                }`}
-              >
-                {item.label}
-                {activeTab === item.value && (
-                  <motion.span
-                    layoutId="activeNavTab"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </motion.div>
-
           {/* Main Heading */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -114,7 +80,7 @@ const Hero = () => {
           </motion.p>
 
           {/* Search Bar */}
-          <PropertySearchBar activeTab={activeTab} />
+          <PropertySearchBar activeTab={activeTab} onTabChange={setActiveTab} />
 
           {/* AI Callout */}
           <motion.button
