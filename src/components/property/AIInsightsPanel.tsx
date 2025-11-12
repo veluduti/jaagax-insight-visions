@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { TrendingUp, Sparkles, Target, BarChart3 } from "lucide-react";
+import { TrendingUp, Sparkles, Target, BarChart3, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useMarketInsights } from "@/hooks/useMarketInsights";
 
 interface AIInsightsPanelProps {
   property: {
@@ -13,6 +15,15 @@ interface AIInsightsPanelProps {
 }
 
 const AIInsightsPanel = ({ property, valuation }: AIInsightsPanelProps) => {
+  const { getPriceTrend, getInvestmentScore, loading: insightsLoading, refreshInsights, lastUpdated } = useMarketInsights({
+    city: property.city,
+    locality: property.locality,
+    autoRefresh: false
+  });
+
+  const priceTrend = getPriceTrend();
+  const investmentScore = getInvestmentScore();
+
   if (!valuation) {
     return (
       <motion.div
@@ -45,10 +56,26 @@ const AIInsightsPanel = ({ property, valuation }: AIInsightsPanelProps) => {
       animate={{ opacity: 1, x: 0 }}
       className="glass-panel rounded-xl p-6 sticky top-6"
     >
-      <div className="flex items-center gap-2 mb-6">
-        <Sparkles className="h-5 w-5 text-primary" />
-        <h3 className="text-xl font-bold">AI Insights</h3>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-bold">AI Insights</h3>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refreshInsights()}
+          disabled={insightsLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${insightsLoading ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
+
+      {lastUpdated && (
+        <p className="text-xs text-muted-foreground mb-4">
+          Updated: {lastUpdated.toLocaleString()}
+        </p>
+      )}
 
       {/* Valuation Range */}
       <div className="mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20">
@@ -61,11 +88,27 @@ const AIInsightsPanel = ({ property, valuation }: AIInsightsPanelProps) => {
         </div>
       </div>
 
-      {/* Appreciation */}
+      {/* Real-time Market Trend */}
+      {priceTrend && (
+        <div className="mb-6 p-4 rounded-lg bg-background/50">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-medium">Market Trend (30 days)</span>
+          </div>
+          <div className={`text-xl font-bold ${priceTrend.data.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+            {priceTrend.data.trend > 0 ? '+' : ''}{priceTrend.data.trend}%
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Real-time market data for {property.locality}
+          </p>
+        </div>
+      )}
+
+      {/* Area Appreciation (from valuation) */}
       <div className="mb-6 p-4 rounded-lg bg-background/50">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="h-4 w-4 text-green-500" />
-          <span className="text-sm font-medium">Area Appreciation</span>
+          <span className="text-sm font-medium">Projected Appreciation</span>
         </div>
         <div className="text-xl font-bold text-green-500">
           +{valuation.appreciation}% (12 months)
@@ -83,9 +126,14 @@ const AIInsightsPanel = ({ property, valuation }: AIInsightsPanelProps) => {
         </p>
       </div>
 
-      {/* Investment Score */}
+      {/* Investment Score - AI Enhanced */}
       <div className="p-4 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
-        <div className="text-sm text-muted-foreground mb-1">Investment Score</div>
+        <div className="text-sm text-muted-foreground mb-1 flex items-center justify-between">
+          <span>Investment Score</span>
+          {investmentScore && (
+            <span className="text-xs">Real-time: {investmentScore.data.score}/100</span>
+          )}
+        </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-primary">{valuation.investmentScore}</span>
           <span className="text-sm text-muted-foreground">/100</span>
@@ -96,6 +144,11 @@ const AIInsightsPanel = ({ property, valuation }: AIInsightsPanelProps) => {
             style={{ width: `${valuation.investmentScore}%` }}
           />
         </div>
+        {investmentScore && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Market score: {investmentScore.data.score}/100 based on live data
+          </p>
+        )}
       </div>
 
       {/* Risk Factors */}
