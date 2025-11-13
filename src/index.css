@@ -10,12 +10,12 @@ All colors MUST be HSL.
   :root {
     /* ===== COLOR SYSTEM ===== */
     /* Light Mode - Clean & Professional */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 15%;
     
     /* Primary - Emerald */
     --primary: 152 76% 48%;
@@ -26,12 +26,12 @@ All colors MUST be HSL.
     /* Accent - Mint Neon */
     --accent-neon: 152 86% 68%;
     
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --secondary: 210 40% 94%;
+    --secondary-foreground: 222 47% 15%;
+    --muted: 210 30% 92%;
+    --muted-foreground: 215 16% 50%;
+    --accent: 152 76% 95%;
+    --accent-foreground: 222 47% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 32% 91%;

@@ -6,10 +6,9 @@ export const ThemeToggle = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    // Check for saved theme preference or default to light
+    // Check for saved theme preference or default to light mode
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+    const initialTheme = savedTheme || "light"; // Always default to light mode
     
     setTheme(initialTheme);
     document.documentElement.classList.toggle("dark", initialTheme === "dark");
