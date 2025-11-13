@@ -16,7 +16,6 @@ const Navigation = () => {
   const navLinks = [
     { label: "Find My Agent", path: "/agents" },
     { label: "Sell Property", path: "/sell-property", badge: "NEW" },
-    { label: "TruValue™", path: "/trust-score" },
     { label: "Transactions", path: "/transactions" },
     { label: "New Projects", path: "/projects" },
     { label: "Events", path: "/events", badge: "NEW" },
@@ -78,12 +77,6 @@ const Navigation = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
-              {/* myJaagaX branding */}
-              <Link to={session ? "/dashboard" : "/"} className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-muted-foreground">my</span>
-                <span className="text-sm font-bold text-gradient">JaagaX</span>
-              </Link>
-
               <ThemeToggle />
 
               <SidebarMenu />
