@@ -2,20 +2,14 @@ import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Linkedin, Instagram, Twitter } from "lucide-react";
 import logo from "@/assets/logo.png";
-
 const Footer = () => {
-  return (
-    <footer className="relative py-16 bg-secondary/20 border-t border-border/50">
+  return <footer className="relative py-16 bg-secondary/20 border-t border-border/50">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img 
-                src={logo} 
-                alt="JaagaX Logo" 
-                className="w-10 h-10 object-contain"
-              />
+              
               <div>
                 <h3 className="text-xl font-bold text-gradient">JaagaX</h3>
                 <p className="text-xs text-muted-foreground">Intelligent Realty</p>
@@ -78,25 +72,19 @@ const Footer = () => {
 
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <motion.a
-              href="#"
-              whileHover={{ scale: 1.1 }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{
+            scale: 1.1
+          }} className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Linkedin className="h-5 w-5" />
             </motion.a>
-            <motion.a
-              href="#"
-              whileHover={{ scale: 1.1 }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{
+            scale: 1.1
+          }} className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Instagram className="h-5 w-5" />
             </motion.a>
-            <motion.a
-              href="#"
-              whileHover={{ scale: 1.1 }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{
+            scale: 1.1
+          }} className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Twitter className="h-5 w-5" />
             </motion.a>
           </div>
@@ -104,17 +92,18 @@ const Footer = () => {
       </div>
 
       {/* JaagaX Verified Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="absolute top-8 right-8 glass-panel px-4 py-2 rounded-full hidden lg:flex items-center gap-2"
-      >
+      <motion.div initial={{
+      opacity: 0,
+      y: 20
+    }} whileInView={{
+      opacity: 1,
+      y: 0
+    }} viewport={{
+      once: true
+    }} className="absolute top-8 right-8 glass-panel px-4 py-2 rounded-full hidden lg:flex items-center gap-2">
         <Shield className="h-4 w-4 text-primary" />
         <span className="text-sm font-semibold">JaagaX Verified™</span>
       </motion.div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
