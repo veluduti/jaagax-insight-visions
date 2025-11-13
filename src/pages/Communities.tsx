@@ -7,6 +7,7 @@ import { TrendingUp, Shield, DollarSign, MapPin, Sparkles, Loader2, ArrowRight }
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { CommunityEventHighlights } from "@/components/communities/CommunityEventHighlights";
 import { toast } from "sonner";
 
 interface CommunityInsight {
@@ -185,6 +186,16 @@ const Communities = () => {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Community Events Highlights */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-16"
+        >
+          <CommunityEventHighlights />
         </motion.div>
 
         {/* City Cards */}

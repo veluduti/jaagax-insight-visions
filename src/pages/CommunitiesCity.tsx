@@ -10,6 +10,7 @@ import { ArrowLeft, Star, MapPin, TrendingUp, Shield, Loader2, Sparkles } from "
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { CityEventsSummary } from "@/components/communities/CityEventsSummary";
 import { toast } from "sonner";
 
 const CommunitiesCity = () => {
@@ -261,6 +262,16 @@ const CommunitiesCity = () => {
             </Card>
           </motion.div>
         )}
+
+        {/* City Events Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <CityEventsSummary city={city!} />
+        </motion.div>
 
         {/* Filters */}
         <motion.div
