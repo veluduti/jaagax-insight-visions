@@ -71,14 +71,20 @@ export const LeadsCRMPanel = () => {
           .order("created_at", { ascending: false })
       ]);
 
-      if (leadsError) throw leadsError;
-      if (visitsError) throw visitsError;
+      if (leadsError) {
+        console.error("Leads fetch error:", leadsError);
+        throw new Error(`Leads: ${leadsError.message}`);
+      }
+      if (visitsError) {
+        console.error("Visits fetch error:", visitsError);
+        throw new Error(`Visits: ${visitsError.message}`);
+      }
 
       setLeads(leadsData || []);
       setSiteVisits(visitsData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching CRM data:", error);
-      toast.error("Failed to load CRM data");
+      toast.error(error.message || "Failed to load CRM data");
     } finally {
       setLoading(false);
     }
