@@ -124,11 +124,24 @@ Respond in JSON format:
       throw new Error('No content in AI response');
     }
 
+    // Strip markdown code blocks if present
+    let cleanContent = content.trim();
+    if (cleanContent.startsWith('```json')) {
+      cleanContent = cleanContent.slice(7); // Remove ```json
+    } else if (cleanContent.startsWith('```')) {
+      cleanContent = cleanContent.slice(3); // Remove ```
+    }
+    if (cleanContent.endsWith('```')) {
+      cleanContent = cleanContent.slice(0, -3); // Remove trailing ```
+    }
+    cleanContent = cleanContent.trim();
+
     let result;
     try {
-      result = JSON.parse(content);
-    } catch (parseError) {
+      result = JSON.parse(cleanContent);
+    } catch (parseError: any) {
       console.error('Failed to parse AI response:', content);
+      console.error('Parse error:', parseError.message);
       throw new Error('Invalid JSON from AI');
     }
 
