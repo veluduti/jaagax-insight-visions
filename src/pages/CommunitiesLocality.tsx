@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Star, Sparkles, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Star, Sparkles, Loader2, MapPin, Building2, Home, TrendingUp, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { LocalityEvents } from "@/components/events/LocalityEvents";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CommunitiesLocality = () => {
   const { city, locality } = useParams();
@@ -17,6 +18,7 @@ const CommunitiesLocality = () => {
   const [loading, setLoading] = useState(true);
   const [aiInsights, setAiInsights] = useState<any>(null);
   const [properties, setProperties] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [stats, setStats] = useState<any>({});
 
   useEffect(() => {
@@ -27,16 +29,30 @@ const CommunitiesLocality = () => {
     try {
       setLoading(true);
       
-      const { data: props, error } = await supabase
+      // Fetch properties
+      const { data: props, error: propsError } = await supabase
         .from("properties")
         .select("*")
         .eq("city", city)
         .eq("locality", locality)
-        .eq("verified", true);
+        .eq("verified", true)
+        .limit(12);
 
-      if (error) throw error;
+      if (propsError) throw propsError;
+
+      // Fetch projects
+      const { data: projs, error: projsError } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("city", city)
+        .eq("locality", locality)
+        .eq("verified", true)
+        .limit(6);
+
+      if (projsError) throw projsError;
 
       setProperties(props || []);
+      setProjects(projs || []);
       
       if (props && props.length > 0) {
         const avgPrice = props.reduce((sum, p) => sum + p.price, 0) / props.length;
@@ -46,6 +62,7 @@ const CommunitiesLocality = () => {
           avgPrice,
           trustScore,
           propertyCount: props.length,
+          projectCount: projs?.length || 0,
           appreciation: Math.random() * 15 + 2,
         });
 
@@ -56,7 +73,7 @@ const CommunitiesLocality = () => {
             locality,
             avg_price: avgPrice,
             appreciation_rate: Math.random() * 15 + 2,
-            verified_projects: 0,
+            verified_projects: projs?.length || 0,
             verified_properties: props.length,
           },
         });
@@ -152,26 +169,49 @@ const CommunitiesLocality = () => {
           </motion.div>
         )}
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="glass-panel">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <Card className="glass-panel border-primary/30 card-hover">
             <CardHeader>
-              <CardTitle className="text-sm text-muted-foreground">Avg. Price</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Avg. Price
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gradient">{formatPrice(stats.avgPrice)}</div>
+              <p className="text-xs text-muted-foreground mt-2">+{stats.appreciation?.toFixed(1)}% YoY</p>
             </CardContent>
           </Card>
-          <Card className="glass-panel">
+          <Card className="glass-panel border-accent/30 card-hover">
             <CardHeader>
-              <CardTitle className="text-sm text-muted-foreground">Properties</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Properties
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.propertyCount}</div>
+              <p className="text-xs text-muted-foreground mt-2">Verified listings</p>
             </CardContent>
           </Card>
-          <Card className="glass-panel">
+          <Card className="glass-panel border-secondary/30 card-hover">
             <CardHeader>
-              <CardTitle className="text-sm text-muted-foreground">Trust Score</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Projects
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.projectCount}</div>
+              <p className="text-xs text-muted-foreground mt-2">Active projects</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-panel border-primary/30 card-hover">
+            <CardHeader>
+              <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Trust Score
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Badge className="bg-primary/20 text-primary border-primary text-lg">
@@ -181,8 +221,152 @@ const CommunitiesLocality = () => {
           </Card>
         </motion.div>
 
+        {/* Properties & Projects Tabs */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-12">
+          <Tabs defaultValue="properties" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+              <TabsTrigger value="properties" className="flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Properties ({properties.length})
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Projects ({projects.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="properties" className="mt-0">
+              {properties.length === 0 ? (
+                <Card className="glass-panel">
+                  <CardContent className="py-12 text-center">
+                    <Home className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Properties Available</h3>
+                    <p className="text-muted-foreground mb-4">No verified properties found in {locality}</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {properties.map((property, idx) => (
+                    <motion.div
+                      key={property.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <Link to={`/property/${property.id}`}>
+                        <Card className="glass-panel card-hover h-full overflow-hidden group">
+                          <div className="relative h-48 overflow-hidden">
+                            <img
+                              src={property.images?.[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800"}
+                              alt={property.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <Badge className="absolute top-3 right-3 bg-primary/90 backdrop-blur">
+                              Verified
+                            </Badge>
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2 line-clamp-1">{property.title}</h3>
+                            <p className="text-muted-foreground text-sm mb-3 flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {property.locality}, {property.city}
+                            </p>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-2xl font-bold text-gradient">{formatPrice(property.price)}</span>
+                              <Badge variant="secondary">{property.bhk} BHK</Badge>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>{property.area} Sq.ft</span>
+                              <span>•</span>
+                              <span>{property.type}</span>
+                            </div>
+                            {property.trust_score && (
+                              <div className="mt-3 pt-3 border-t border-border/50">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground">Trust Score</span>
+                                  <Badge variant="outline" className="text-primary border-primary/50">
+                                    {property.trust_score}/100
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="projects" className="mt-0">
+              {projects.length === 0 ? (
+                <Card className="glass-panel">
+                  <CardContent className="py-12 text-center">
+                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Projects Available</h3>
+                    <p className="text-muted-foreground mb-4">No verified projects found in {locality}</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects.map((project, idx) => (
+                    <motion.div
+                      key={project.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <Link to={`/projects/${project.id}`}>
+                        <Card className="glass-panel card-hover h-full overflow-hidden group">
+                          <div className="relative h-48 overflow-hidden">
+                            <img
+                              src={project.image || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+                              alt={project.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <Badge className="absolute top-3 right-3 bg-primary/90 backdrop-blur">
+                              Verified
+                            </Badge>
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-2 line-clamp-1">{project.name}</h3>
+                            <p className="text-muted-foreground text-sm mb-3">{project.builder_name}</p>
+                            <p className="text-muted-foreground text-xs mb-3 flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {project.locality}, {project.city}
+                            </p>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xl font-bold text-gradient">
+                                {formatPrice(project.avg_price)}
+                              </span>
+                            </div>
+                            {project.rera_id && (
+                              <p className="text-xs text-muted-foreground mb-2">RERA: {project.rera_id}</p>
+                            )}
+                            {project.trust_score > 0 && (
+                              <div className="mt-3 pt-3 border-t border-border/50">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground">Trust Score</span>
+                                  <Badge variant="outline" className="text-primary border-primary/50">
+                                    {project.trust_score}/100
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+
         {/* Community Events Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
           <LocalityEvents city={city!} locality={locality!} />
         </motion.div>
       </div>
