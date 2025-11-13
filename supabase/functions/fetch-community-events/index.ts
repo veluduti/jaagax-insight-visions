@@ -150,7 +150,6 @@ serve(async (req) => {
       organizer_contact: event.organizer_contact,
       image_url: event.image_url,
       status: 'published',
-      is_cancelled: false,
       is_featured: Math.random() > 0.7 // 30% chance of being featured
     }));
 
