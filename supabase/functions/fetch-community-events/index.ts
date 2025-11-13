@@ -146,11 +146,10 @@ serve(async (req) => {
       max_attendees: event.max_attendees,
       current_attendees: Math.floor(Math.random() * event.max_attendees * 0.3), // 0-30% filled
       ticket_price: event.ticket_price,
-      organizer_name: event.organizer_name,
+      organizer: event.organizer_name,
       organizer_contact: event.organizer_contact,
       image_url: event.image_url,
-      status: 'published',
-      is_featured: Math.random() > 0.7 // 30% chance of being featured
+      featured: Math.random() > 0.7 // 30% chance of being featured
     }));
 
     const { data: insertedEvents, error: insertError } = await supabase
