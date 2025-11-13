@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
-  Building2, Home, TrendingUp, AlertCircle, Eye, Star
+  Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -18,6 +18,7 @@ import { FakeListingManager } from "@/components/admin/FakeListingManager";
 import { DatabaseCleanup } from "@/components/admin/DatabaseCleanup";
 import { EnrichProjectsPanel } from "@/components/admin/EnrichProjectsPanel";
 import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
+import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -178,9 +179,10 @@ export default function AdminDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="trust">Trust Engine</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -230,6 +232,11 @@ export default function AdminDashboard() {
             <DatabaseCleanup />
             <FakeListingManager />
             <VerificationPanel />
+          </TabsContent>
+
+          {/* Events Moderation */}
+          <TabsContent value="events" className="space-y-6">
+            <EventModerationPanel />
           </TabsContent>
 
           {/* AI Trust Engine */}

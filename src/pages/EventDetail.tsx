@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventRSVPModal } from "@/components/events/EventRSVPModal";
-import { Calendar, MapPin, Users, Tag, Share2, Download, Verified, ArrowLeft, Clock, Mail, Phone } from "lucide-react";
+import { VendorApplication } from "@/components/events/VendorApplication";
+import { Calendar, MapPin, Users, Tag, Share2, Download, Verified, ArrowLeft, Clock, Mail, Phone, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import mapboxgl from "mapbox-gl";
@@ -19,6 +20,7 @@ export default function EventDetail() {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [rsvpModalOpen, setRsvpModalOpen] = useState(false);
+  const [vendorModalOpen, setVendorModalOpen] = useState(false);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
 
   useEffect(() => {
@@ -283,6 +285,16 @@ export default function EventDetail() {
                   >
                     {spotsLeft === 0 ? 'Sold Out' : 'RSVP Now'}
                   </Button>
+
+                  <Button 
+                    onClick={() => setVendorModalOpen(true)} 
+                    variant="outline"
+                    className="w-full gap-2" 
+                    size="lg"
+                  >
+                    <Store className="h-4 w-4" />
+                    Apply as Vendor
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -322,6 +334,12 @@ export default function EventDetail() {
         open={rsvpModalOpen}
         onOpenChange={setRsvpModalOpen}
         onSuccess={fetchEvent}
+      />
+
+      <VendorApplication
+        eventId={event.id}
+        open={vendorModalOpen}
+        onOpenChange={setVendorModalOpen}
       />
     </div>
   );

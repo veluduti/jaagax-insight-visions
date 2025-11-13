@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { LocalityEvents } from "@/components/events/LocalityEvents";
 
 const CommunitiesLocality = () => {
   const { city, locality } = useParams();
@@ -178,6 +179,11 @@ const CommunitiesLocality = () => {
               </Badge>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Community Events Section */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
+          <LocalityEvents city={city!} locality={locality!} />
         </motion.div>
       </div>
 
