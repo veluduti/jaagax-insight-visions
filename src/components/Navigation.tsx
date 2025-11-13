@@ -1,389 +1,208 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User, 
-  Sparkles, 
-  Menu, 
-  X, 
-  TrendingUp, 
-  BookOpen, 
-  Home as HomeIcon, 
-  Calendar, 
-  Globe, 
-  DollarSign, 
-  Ruler,
-  LogOut
-} from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import { ThemeToggle } from "./ThemeToggle";
-
-const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => (
-  <motion.a
-    href={href}
-    className="text-foreground hover:text-primary transition-colors font-medium relative group"
-    whileHover={{ y: -2 }}
-  >
-    {children}
-    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
-  </motion.a>
-);
+import { ThemeToggle } from "@/components/ThemeToggle";
+import MobileNav from "./MobileNav";
+import { Sparkles, User, Menu } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 const Navigation = () => {
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [preferences, setPreferences] = useState({
-    language: 'English',
-    currency: 'INR',
-    areaUnit: 'Sq.ft'
-  });
+  const location = useLocation();
+  const { session, role: userRole } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const navLinks = [
+    { label: "Buy", path: "/map?transactionType=buy" },
+    { label: "Rent", path: "/map?transactionType=rent" },
+    { label: "New Projects", path: "/projects" },
+    { label: "Agents", path: "/agents" },
+    { label: "Communities", path: "/communities" },
+  ];
 
-  useEffect(() => {
-    // Check auth state
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      if (user) {
-        fetchPreferences(user.id);
-        fetchUserRole(user.id);
-      }
-    });
-
-    // Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      } else {
-        setUserRole(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (data) {
-      setUserRole(data.role);
+  const isActive = (path: string) => {
+    if (path.includes('?')) {
+      const [pathname, search] = path.split('?');
+      return location.pathname === pathname && location.search.includes(search);
     }
-  };
-
-  const fetchPreferences = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (data) {
-      setPreferences({
-        language: data.language || 'English',
-        currency: data.currency || 'INR',
-        areaUnit: data.area_unit || 'Sq.ft'
-      });
-    }
-  };
-
-  const updatePreference = async (field: string, value: string) => {
-    if (!user) return;
-
-    const updates = {
-      user_id: user.id,
-      [field === 'areaUnit' ? 'area_unit' : field]: value
-    };
-
-    const { error } = await supabase
-      .from('user_preferences')
-      .upsert(updates);
-
-    if (!error) {
-      setPreferences(prev => ({ ...prev, [field]: value }));
-    }
-  };
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-      toast.success("Signed out successfully");
-      navigate("/");
-    } else {
-      toast.error("Failed to sign out");
-    }
+    return location.pathname === path || location.pathname.startsWith(path);
   };
 
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "glass-panel shadow-lg" : "bg-background/50 backdrop-blur-sm"
-      }`}
-    >
-      <div className="container mx-auto container-padding py-sm md:py-md">
-        <div className="flex items-center justify-between gap-md">
-          {/* Logo */}
-          <motion.a
-            href="/"
-            className="flex items-center gap-3"
-            whileHover={{ scale: 1.05 }}
-          >
-            <img 
-              src={logo} 
-              alt="JaagaX Logo" 
-              className="w-10 h-10 object-contain"
-            />
-            <div>
-              <h1 className="text-2xl font-bold text-gradient">JaagaX</h1>
-              <p className="text-xs text-muted-foreground">Intelligent Realty</p>
-            </div>
-          </motion.a>
+    <>
+      {/* Desktop Navigation */}
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      >
+        <div className="container-padding py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent-neon flex items-center justify-center group-hover:scale-105 transition-transform">
+                <span className="text-xl font-bold text-primary-foreground">J</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gradient">JaagaX</span>
+                <span className="text-xs text-muted-foreground">Intelligent Realty</span>
+              </div>
+            </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center gap-lg">
-            <NavItem href="/agents">Find My Agent</NavItem>
-            <NavItem href="/sell-property">Sell My Property</NavItem>
-            <NavItem href="/trustscore">TrustScore™</NavItem>
-            <NavItem href="/transactions">Transactions</NavItem>
-            <NavItem href="/projects">New Projects</NavItem>
-          </div>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-sm">
-            <Button 
-              variant="outline" 
-              className="hidden md:flex border-primary/50 hover:bg-primary/10 glow-effect"
-              onClick={() => navigate('/ai-advisor')}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI Advisor
-            </Button>
-            
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="default" className="glow-effect">
-                    <User className="h-4 w-4 mr-2" />
-                    {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : "Dashboard"}
+            {/* Center Nav Links */}
+            <div className="flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link key={link.path} to={link.path}>
+                  <Button
+                    variant="ghost"
+                    className={`relative px-4 py-2 rounded-lg transition-all ${
+                      isActive(link.path) 
+                        ? "text-primary bg-primary/10" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    }`}
+                  >
+                    {link.label}
+                    {isActive(link.path) && (
+                      <motion.div
+                        layoutId="activeNav"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                    <User className="h-4 w-4 mr-2" />
-                    My Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button 
-                variant="default" 
-                className="glow-effect"
-                onClick={() => navigate('/auth')}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/ai-advisor")}
+                className="gap-2 hover:bg-primary/10 hover:text-primary"
               >
-                <User className="h-4 w-4 mr-2" />
-                Sign In
+                <Sparkles className="h-4 w-4" />
+                <span>AI Advisor</span>
               </Button>
-            )}
 
-            {/* Theme Toggle */}
-            <ThemeToggle />
+              <ThemeToggle />
 
-            {/* Hamburger Menu */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="relative"
-            >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+              {session ? (
+                <Button
+                  onClick={() => {
+                    if (userRole === "admin") navigate("/admin");
+                    else if (userRole === "agent") navigate("/agent-dashboard");
+                    else if (userRole === "builder") navigate("/builder-dashboard");
+                    else navigate("/dashboard");
+                  }}
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Button>
+              ) : (
+                <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90">
+                  Sign In
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </motion.nav>
 
-      {/* Dropdown Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
-            className="fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 glass-panel border-l border-border/50 shadow-2xl overflow-y-auto z-40"
-          >
-            <div className="p-6 space-y-6">
-              {/* Logo Header */}
-              <div className="flex items-center gap-3 pb-4 border-b border-border/50">
-                <img 
-                  src={logo} 
-                  alt="JaagaX Logo" 
-                  className="w-10 h-10 object-contain"
-                />
-                <div>
-                  <h2 className="text-lg font-bold text-gradient">JaagaX</h2>
-                  <p className="text-xs text-muted-foreground">Intelligent Realty</p>
-                </div>
+      {/* Mobile Navigation */}
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
+      >
+        <div className="container-padding py-3">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-neon flex items-center justify-center">
+                <span className="text-sm font-bold text-primary-foreground">J</span>
               </div>
+              <span className="text-lg font-bold text-gradient">JaagaX</span>
+            </Link>
 
-              {/* Navigation Links */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Explore
-                </h3>
-                
-                <a
-                  href="/valuation"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">TruValue™</span>
-                </a>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/ai-advisor")}
+                className="hover:bg-primary/10 hover:text-primary"
+              >
+                <Sparkles className="h-5 w-5" />
+              </Button>
 
-                <a
-                  href="/ai-advisor"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">AI Property Advisor</span>
-                </a>
+              <ThemeToggle />
 
-                <a
-                  href="/communities"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <HomeIcon className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Communities</span>
-                </a>
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-72">
+                  <div className="flex flex-col gap-4 mt-8">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Button
+                          variant={isActive(link.path) ? "default" : "ghost"}
+                          className="w-full justify-start"
+                        >
+                          {link.label}
+                        </Button>
+                      </Link>
+                    ))}
 
-                <a
-                  href="/guides"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Guides & Blogs</span>
-                </a>
-
-                <a
-                  href="/events"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group"
-                >
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <span className="font-medium group-hover:text-primary">Events</span>
-                </a>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-border/50" />
-
-              {/* Site Settings */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Site Settings
-                </h3>
-
-                {/* Language */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Globe className="h-4 w-4" />
-                    <span>Language</span>
+                    <div className="border-t border-border pt-4 mt-4">
+                      {session ? (
+                        <Button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            if (userRole === "admin") navigate("/admin");
+                            else if (userRole === "agent") navigate("/agent-dashboard");
+                            else if (userRole === "builder") navigate("/builder-dashboard");
+                            else navigate("/dashboard");
+                          }}
+                          className="w-full gap-2"
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate("/auth");
+                          }}
+                          className="w-full"
+                        >
+                          Sign In
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <Select 
-                    value={preferences.language} 
-                    onValueChange={(value) => updatePreference('language', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="Hindi">हिन्दी (Hindi)</SelectItem>
-                      <SelectItem value="Telugu">తెలుగు (Telugu)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Currency */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <DollarSign className="h-4 w-4" />
-                    <span>Currency</span>
-                  </div>
-                  <Select 
-                    value={preferences.currency} 
-                    onValueChange={(value) => updatePreference('currency', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="INR">₹ INR (Indian Rupee)</SelectItem>
-                      <SelectItem value="USD">$ USD (US Dollar)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Area Unit */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Ruler className="h-4 w-4" />
-                    <span>Area Unit</span>
-                  </div>
-                  <Select 
-                    value={preferences.areaUnit} 
-                    onValueChange={(value) => updatePreference('areaUnit', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Sq.ft">Sq.ft (Square Feet)</SelectItem>
-                      <SelectItem value="Sq.m">Sq.m (Square Meters)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                </SheetContent>
+              </Sheet>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+          </div>
+        </div>
+      </motion.nav>
+
+      {/* Mobile Bottom Nav - Only show on mobile */}
+      <div className="lg:hidden">
+        <MobileNav />
+      </div>
+    </>
   );
 };
 

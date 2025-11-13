@@ -16,7 +16,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("properties");
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navigation />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} />
       
@@ -53,7 +53,6 @@ const Index = () => {
           <TruValue />
         </>
       )}
-      
       <Footer />
     </div>
   );
