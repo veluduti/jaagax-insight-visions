@@ -24,6 +24,7 @@ import CommunitiesLocality from "./pages/CommunitiesLocality";
 import Guides from "./pages/Guides";
 import Events from "./pages/Events";
 import EventsNew from "./pages/EventsNew";
+import EventCreate from "./pages/EventCreate";
 import EventDetail from "./pages/EventDetail";
 import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
@@ -66,6 +67,7 @@ const App = () => (
           <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
           <Route path="/guides" element={<Guides />} />
           <Route path="/events" element={<EventsNew />} />
+          <Route path="/events/create" element={<EventCreate />} />
           <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/map" element={<Map />} />
           <Route path="/sell-property" element={<SellProperty />} />

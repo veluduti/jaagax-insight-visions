@@ -2,9 +2,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
-import { Sparkles, User, Menu } from "lucide-react";
+import SidebarMenu from "./SidebarMenu";
+import { Sparkles, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -12,7 +12,6 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role: userRole } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { label: "Buy", path: "/map?transactionType=buy" },
@@ -129,6 +128,8 @@ const Navigation = () => {
             </Link>
 
             <div className="flex items-center gap-2">
+              <SidebarMenu />
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -140,59 +141,25 @@ const Navigation = () => {
 
               <ThemeToggle />
 
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-72">
-                  <div className="flex flex-col gap-4 mt-8">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.path}
-                        to={link.path}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Button
-                          variant={isActive(link.path) ? "default" : "ghost"}
-                          className="w-full justify-start"
-                        >
-                          {link.label}
-                        </Button>
-                      </Link>
-                    ))}
-
-                    <div className="border-t border-border pt-4 mt-4">
-                      {session ? (
-                        <Button
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            if (userRole === "admin") navigate("/admin");
-                            else if (userRole === "agent") navigate("/agent-dashboard");
-                            else if (userRole === "builder") navigate("/builder-dashboard");
-                            else navigate("/dashboard");
-                          }}
-                          className="w-full gap-2"
-                        >
-                          <User className="h-4 w-4" />
-                          <span>Dashboard</span>
-                        </Button>
-                      ) : (
-                        <Button 
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            navigate("/auth");
-                          }}
-                          className="w-full"
-                        >
-                          Sign In
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+              {session ? (
+                <Button
+                  onClick={() => {
+                    if (userRole === "admin") navigate("/admin");
+                    else if (userRole === "agent") navigate("/agent-dashboard");
+                    else if (userRole === "builder") navigate("/builder-dashboard");
+                    else navigate("/dashboard");
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="hover:bg-primary/10"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+              ) : (
+                <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
