@@ -53,14 +53,14 @@ const Hero = ({ activeTab, onTabChange }: HeroProps) => {
               {/* Main Heading */}
               <div className="space-y-4">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                  <span className="text-gradient">Real homes</span>
+                  <span className="text-gradient">Your Dream Home</span>
                   <br />
-                  <span className="text-foreground">live here</span>
+                  <span className="text-foreground">Awaits</span>
                 </h1>
                 <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
-                  Real Data. Real Brokers. Real Properties.
+                  AI-Powered Insights. 100% Verified Properties. Zero Hidden Costs.
                   <br />
-                  <span className="text-primary font-medium">Verified by AI, trusted by thousands.</span>
+                  <span className="text-primary font-medium">India's most trusted intelligent property platform</span>
                 </p>
               </div>
 
