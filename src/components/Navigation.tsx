@@ -6,7 +6,6 @@ import SidebarMenu from "./SidebarMenu";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import logo from "@/assets/logo.png";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -42,11 +41,6 @@ const Navigation = () => {
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <img 
-                src={logo} 
-                alt="JaagaX Logo" 
-                className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
-              />
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gradient">JaagaX</span>
                 <span className="text-xs text-muted-foreground">Intelligent Realty</span>
@@ -99,11 +93,6 @@ const Navigation = () => {
         <div className="container-padding py-3">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <img 
-                src={logo} 
-                alt="JaagaX Logo" 
-                className="w-8 h-8 object-contain"
-              />
               <span className="text-lg font-bold text-gradient">JaagaX</span>
             </Link>
 
