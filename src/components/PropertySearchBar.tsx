@@ -32,6 +32,12 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     amenities: [] as string[],
     floorLevel: "any",
     parkingSpaces: "any",
+    monthlyRent: "any",
+    deposit: "any",
+    preferredTenants: "any",
+    availableFrom: "any",
+    possessionStatus: "any",
+    propertyAge: "any",
   });
 
   // Reset filters when tab changes
@@ -48,6 +54,12 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
       amenities: [],
       floorLevel: "any",
       parkingSpaces: "any",
+      monthlyRent: "any",
+      deposit: "any",
+      preferredTenants: "any",
+      availableFrom: "any",
+      possessionStatus: "any",
+      propertyAge: "any",
     });
   }, [activeTab]);
 
@@ -336,6 +348,12 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
               amenities: newFilters.amenities,
               floorLevel: newFilters.floorLevel,
               parkingSpaces: newFilters.parkingSpaces,
+              monthlyRent: newFilters.monthlyRent,
+              deposit: newFilters.deposit,
+              preferredTenants: newFilters.preferredTenants,
+              availableFrom: newFilters.availableFrom,
+              possessionStatus: newFilters.possessionStatus,
+              propertyAge: newFilters.propertyAge,
             });
           }}
         />

@@ -42,6 +42,14 @@ interface AdvancedFiltersSheetProps {
     amenities: string[];
     floorLevel: string;
     parkingSpaces: string;
+    // Rent-specific filters
+    monthlyRent: string;
+    deposit: string;
+    preferredTenants: string;
+    availableFrom: string;
+    // Buy-specific filters
+    possessionStatus: string;
+    propertyAge: string;
   };
   onFiltersChange: (filters: any) => void;
 }
@@ -86,6 +94,12 @@ const AdvancedFiltersSheet = ({
       amenities: [],
       floorLevel: "any",
       parkingSpaces: "any",
+      monthlyRent: "any",
+      deposit: "any",
+      preferredTenants: "any",
+      availableFrom: "any",
+      possessionStatus: "any",
+      propertyAge: "any",
     };
     setLocalFilters(cleared);
     onFiltersChange(cleared);
@@ -140,6 +154,53 @@ const AdvancedFiltersSheet = ({
     { value: "Garden", label: "Garden", icon: Trees },
     { value: "Security", label: "24/7 Security", icon: Shield },
     { value: "Kids Play Area", label: "Play Area", icon: Baby },
+  ];
+
+  const possessionStatusOptions = [
+    { value: "any", label: "Any" },
+    { value: "ready-to-move", label: "Ready to Move" },
+    { value: "under-construction", label: "Under Construction" },
+    { value: "new-launch", label: "New Launch" },
+  ];
+
+  const propertyAgeOptions = [
+    { value: "any", label: "Any Age" },
+    { value: "0-1", label: "0-1 Year" },
+    { value: "1-5", label: "1-5 Years" },
+    { value: "5-10", label: "5-10 Years" },
+    { value: "10+", label: "10+ Years" },
+  ];
+
+  const monthlyRentOptions = [
+    { value: "any", label: "Any" },
+    { value: "0-10000", label: "Under ₹10,000" },
+    { value: "10000-20000", label: "₹10,000 - ₹20,000" },
+    { value: "20000-30000", label: "₹20,000 - ₹30,000" },
+    { value: "30000-50000", label: "₹30,000 - ₹50,000" },
+    { value: "50000+", label: "Above ₹50,000" },
+  ];
+
+  const depositOptions = [
+    { value: "any", label: "Any" },
+    { value: "1-month", label: "1 Month Rent" },
+    { value: "2-months", label: "2 Months Rent" },
+    { value: "3-months", label: "3 Months Rent" },
+    { value: "negotiable", label: "Negotiable" },
+  ];
+
+  const tenantOptions = [
+    { value: "any", label: "Any" },
+    { value: "family", label: "Family" },
+    { value: "bachelor", label: "Bachelor" },
+    { value: "company", label: "Company" },
+  ];
+
+  const availabilityOptions = [
+    { value: "any", label: "Any Time" },
+    { value: "immediate", label: "Immediate" },
+    { value: "15-days", label: "Within 15 Days" },
+    { value: "1-month", label: "Within 1 Month" },
+    { value: "custom", label: "Custom Date" },
   ];
 
   const activeFiltersCount = Object.values(localFilters).filter(
@@ -449,6 +510,214 @@ const AdvancedFiltersSheet = ({
                 })}
               </div>
             </motion.div>
+          )}
+
+          {/* RENT-SPECIFIC FILTERS */}
+          {searchType === "rent" && (activeTab === "properties" || activeTab === "transactions") && (
+            <>
+              {/* Monthly Rent */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <IndianRupee className="h-4 w-4 text-primary" />
+                  Monthly Rent
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {monthlyRentOptions.map((option) => {
+                    const isActive = localFilters.monthlyRent === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("monthlyRent", option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Deposit */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-primary" />
+                  Security Deposit
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {depositOptions.map((option) => {
+                    const isActive = localFilters.deposit === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("deposit", option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Preferred Tenants */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Preferred Tenants
+                </h3>
+                <div className="flex gap-2">
+                  {tenantOptions.map((option) => {
+                    const isActive = localFilters.preferredTenants === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("preferredTenants", option.value)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Availability */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  Available From
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {availabilityOptions.map((option) => {
+                    const isActive = localFilters.availableFrom === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("availableFrom", option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
+          )}
+
+          {/* BUY-SPECIFIC FILTERS */}
+          {searchType === "buy" && (activeTab === "properties" || activeTab === "transactions") && (
+            <>
+              {/* Possession Status */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  Possession Status
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {possessionStatusOptions.map((option) => {
+                    const isActive = localFilters.possessionStatus === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("possessionStatus", option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Property Age */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="space-y-3"
+              >
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  Property Age
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {propertyAgeOptions.map((option) => {
+                    const isActive = localFilters.propertyAge === option.value;
+                    return (
+                      <motion.button
+                        key={option.value}
+                        onClick={() => updateFilter("propertyAge", option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        }`}
+                      >
+                        {option.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
           )}
 
           {/* New Projects Filters */}
