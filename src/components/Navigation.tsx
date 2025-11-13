@@ -1,12 +1,12 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
-import { Sparkles, User } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { useState } from "react";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -14,11 +14,12 @@ const Navigation = () => {
   const { session, role: userRole } = useAuth();
 
   const navLinks = [
-    { label: "Buy", path: "/map?transactionType=buy" },
-    { label: "Rent", path: "/map?transactionType=rent" },
+    { label: "Find My Agent", path: "/agents" },
+    { label: "Sell Property", path: "/sell-property", badge: "NEW" },
+    { label: "TruValue™", path: "/trust-score" },
+    { label: "Transactions", path: "/transactions" },
     { label: "New Projects", path: "/projects" },
-    { label: "Agents", path: "/agents" },
-    { label: "Communities", path: "/communities" },
+    { label: "Events", path: "/events", badge: "NEW" },
   ];
 
   const isActive = (path: string) => {
@@ -56,59 +57,45 @@ const Navigation = () => {
                 <Link key={link.path} to={link.path}>
                   <Button
                     variant="ghost"
-                    className={`relative px-4 py-2 rounded-lg transition-all ${
+                    className={`relative px-3 py-2 text-sm font-medium transition-all ${
                       isActive(link.path) 
-                        ? "text-primary bg-primary/10" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        ? "text-foreground" 
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {link.label}
-                    {isActive(link.path) && (
-                      <motion.div
-                        layoutId="activeNav"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
+                    <span className="flex items-center gap-1.5">
+                      {link.label}
+                      {link.badge && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
+                          {link.badge}
+                        </Badge>
+                      )}
+                    </span>
                   </Button>
                 </Link>
               ))}
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-2">
-              <SidebarMenu />
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/ai-advisor")}
-                className="gap-2 hover:bg-primary/10 hover:text-primary"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>AI Advisor</span>
-              </Button>
+            <div className="flex items-center gap-3">
+              {/* myJaagaX branding */}
+              <Link to={session ? "/dashboard" : "/"} className="flex items-center gap-1.5">
+                <span className="text-sm font-medium text-muted-foreground">my</span>
+                <span className="text-sm font-bold text-gradient">JaagaX</span>
+              </Link>
 
               <ThemeToggle />
 
-              {session ? (
-                <Button
-                  onClick={() => {
-                    if (userRole === "admin") navigate("/admin");
-                    else if (userRole === "agent") navigate("/agent-dashboard");
-                    else if (userRole === "builder") navigate("/builder-dashboard");
-                    else navigate("/dashboard");
-                  }}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Button>
-              ) : (
-                <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90">
-                  Sign In
-                </Button>
-              )}
+              <SidebarMenu />
+
+              <Button 
+                onClick={() => navigate("/auth")} 
+                variant="outline"
+                size="sm"
+                className="text-sm"
+              >
+                Sign up or Log in
+              </Button>
             </div>
           </div>
         </div>
@@ -130,38 +117,12 @@ const Navigation = () => {
             </Link>
 
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <SidebarMenu />
               
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/ai-advisor")}
-                className="hover:bg-primary/10 hover:text-primary"
-              >
-                <Sparkles className="h-5 w-5" />
+              <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
+                Sign In
               </Button>
-
-              <ThemeToggle />
-
-              {session ? (
-                <Button
-                  onClick={() => {
-                    if (userRole === "admin") navigate("/admin");
-                    else if (userRole === "agent") navigate("/agent-dashboard");
-                    else if (userRole === "builder") navigate("/builder-dashboard");
-                    else navigate("/dashboard");
-                  }}
-                  size="icon"
-                  variant="ghost"
-                  className="hover:bg-primary/10"
-                >
-                  <User className="h-5 w-5" />
-                </Button>
-              ) : (
-                <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
-                  Sign In
-                </Button>
-              )}
             </div>
           </div>
         </div>

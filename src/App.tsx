@@ -57,7 +57,7 @@ const App = () => (
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:city" element={<TransactionsCity />} />
           <Route path="/transactions/:city/:locality" element={<TransactionsLocality />} />
-          <Route path="/trustscore" element={<TrustScore />} />
+          <Route path="/trust-score" element={<TrustScore />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/agents/compare" element={<AgentComparison />} />
