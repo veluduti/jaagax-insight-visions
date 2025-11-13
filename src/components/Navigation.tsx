@@ -1,6 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
@@ -15,10 +14,11 @@ const Navigation = () => {
 
   const navLinks = [
     { label: "Find My Agent", path: "/agents" },
-    { label: "Sell Property", path: "/sell-property", badge: "NEW" },
+    { label: "Sell Property", path: "/sell-property" },
+    { label: "Communities", path: "/communities" },
     { label: "Transactions", path: "/transactions" },
     { label: "New Projects", path: "/projects" },
-    { label: "Events", path: "/events", badge: "NEW" },
+    { label: "Events", path: "/events" },
   ];
 
   const isActive = (path: string) => {
@@ -62,14 +62,7 @@ const Navigation = () => {
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    <span className="flex items-center gap-1.5">
-                      {link.label}
-                      {link.badge && (
-                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
-                          {link.badge}
-                        </Badge>
-                      )}
-                    </span>
+                    {link.label}
                   </Button>
                 </Link>
               ))}
