@@ -32,16 +32,16 @@ serve(async (req) => {
     const prompt = `Generate 5-8 realistic upcoming community events for ${locality} in ${city}, India. 
     
     Include a mix of:
-    - Real estate open houses and property showcases
-    - Community festivals and cultural events
-    - Local business expos and markets
+    - Community festivals and celebrations
+    - Cultural events and exhibitions
     - Educational workshops and seminars
     - Sports and fitness events
+    - Food festivals and concerts
     
     For each event, provide:
     - title (engaging and descriptive)
     - description (2-3 sentences)
-    - category (one of: real-estate, cultural, business, educational, sports, community)
+    - category (one of: festival, cultural, sports, community, workshop, exhibition, concert, food, religious, other)
     - event_date (between ${new Date().toISOString().split('T')[0]} and 3 months from now, format: YYYY-MM-DD)
     - event_time (in HH:MM format, 24-hour)
     - venue (specific venue name in ${locality})
@@ -88,7 +88,7 @@ serve(async (req) => {
                       description: { type: 'string' },
                       category: { 
                         type: 'string',
-                        enum: ['real-estate', 'cultural', 'business', 'educational', 'sports', 'community']
+                        enum: ['festival', 'cultural', 'sports', 'community', 'workshop', 'exhibition', 'concert', 'food', 'religious', 'other']
                       },
                       event_date: { type: 'string' },
                       event_time: { type: 'string' },
