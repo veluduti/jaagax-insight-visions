@@ -77,6 +77,8 @@ const Navigation = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-2">
+              <SidebarMenu />
+              
               <Button
                 variant="ghost"
                 size="sm"
