@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.send-event-notification]
 verify_jwt = false
+
+[functions.fetch-community-events]
+verify_jwt = false

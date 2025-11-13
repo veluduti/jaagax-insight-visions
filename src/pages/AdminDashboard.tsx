@@ -19,6 +19,7 @@ import { DatabaseCleanup } from "@/components/admin/DatabaseCleanup";
 import { EnrichProjectsPanel } from "@/components/admin/EnrichProjectsPanel";
 import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
+import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -226,6 +227,7 @@ export default function AdminDashboard() {
 
           {/* Verifications */}
           <TabsContent value="verification" className="space-y-6">
+            <FetchCommunityEvents />
             <LeadsCRMPanel />
             <EnrichProjectsPanel />
             <DataImportPanel />
