@@ -34,7 +34,7 @@ const VisitConfirm = () => {
       if (!bookingId) return;
 
       const { data: bookingData, error } = await supabase
-        .from('visit_bookings')
+        .from('visit_bookings' as any)
         .select('*')
         .eq('id', bookingId)
         .single();
@@ -48,21 +48,21 @@ const VisitConfirm = () => {
       setBooking(bookingData);
 
       // Fetch agent details
-      if (bookingData.agent_id) {
+      if ((bookingData as any).agent_id) {
         const { data: agentData } = await supabase
           .from('agents')
           .select('*')
-          .eq('id', bookingData.agent_id)
+          .eq('id', (bookingData as any).agent_id)
           .single();
         setAgent(agentData);
       }
 
       // Fetch vehicle details
-      if (bookingData.vehicle_id) {
+      if ((bookingData as any).vehicle_id) {
         const { data: vehicleData } = await supabase
-          .from('fleet_vehicles')
+          .from('fleet_vehicles' as any)
           .select('*')
-          .eq('id', bookingData.vehicle_id)
+          .eq('id', (bookingData as any).vehicle_id)
           .single();
         setVehicle(vehicleData);
       }
