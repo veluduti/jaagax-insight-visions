@@ -35,6 +35,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AIAdvisor from "./pages/AIAdvisor";
 import AIAdvisorResults from "./pages/AIAdvisorResults";
 import AIAdvisorProperty from "./pages/AIAdvisorProperty";
+import VisitSchedule from "./pages/VisitSchedule";
+import VisitConfirm from "./pages/VisitConfirm";
+import VisitManage from "./pages/VisitManage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -75,6 +78,11 @@ const App = () => (
           <Route path="/ai-advisor" element={<AIAdvisor />} />
           <Route path="/ai-advisor/results" element={<AIAdvisorResults />} />
           <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
+          
+          {/* Visit Scheduling Routes */}
+          <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
+          <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
+          <Route path="/visit/manage" element={<VisitManage />} />
           
           {/* Role-based Dashboards */}
           <Route
