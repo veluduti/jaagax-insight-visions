@@ -96,28 +96,61 @@ export const VisitSchedulingWizard = ({
   const [aiInsight, setAiInsight] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const fetchAvailableAgents = async () => {
+    setLoading(true);
+    try {
+      // Fetch agents based on locality and trust score
+      let query = supabase
+        .from('agents')
+        .select('*')
+        .eq('verified', true)
+        .order('trust_score', { ascending: false });
+
+      // Filter by locality if available
+      if (locality) {
+        query = query.ilike('cities_served', `%${locality}%`);
+      }
+
+      const { data, error } = await query.limit(10);
+
+      if (error) {
+        console.error('Error fetching agents:', error);
+        toast.error('Failed to load agents');
+      } else {
+        setAvailableAgents(data || []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadAgentAndSlots = async () => {
     if (!selectedDate) return;
 
     setLoading(true);
     try {
-      // Get AI-assigned agent
-      const { data: agentData } = await supabase.functions.invoke('ai-assign-agent', {
-        body: {
-          propertyId,
-          locality,
-          city,
-          date: selectedDate.toISOString().split('T')[0],
-        },
-      });
+      if (autoAssign) {
+        // Get AI-assigned agent
+        const { data: agentData } = await supabase.functions.invoke('ai-assign-agent', {
+          body: {
+            propertyId,
+            locality,
+            city,
+            date: selectedDate.toISOString().split('T')[0],
+          },
+        });
 
-      if (agentData?.agent) {
-        setSelectedAgent(agentData.agent);
+        if (agentData?.agent) {
+          setSelectedAgent(agentData.agent);
+        }
+      }
 
-        // Get optimized time slots
+      // Get optimized time slots for selected or auto-assigned agent
+      const agentId = selectedAgent?.id;
+      if (agentId) {
         const { data: slotsData } = await supabase.functions.invoke('ai-optimize-slot', {
           body: {
-            agentId: agentData.agent.id,
+            agentId,
             date: selectedDate.toISOString().split('T')[0],
             pickupLocation: { address: pickupLocation },
             propertyLocation: { locality, city },

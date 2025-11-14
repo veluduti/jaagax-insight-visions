@@ -29,7 +29,7 @@ const VisitManage = () => {
     }
 
     const { data, error } = await supabase
-      .from('visit_bookings')
+      .from('visit_bookings' as any)
       .select(`
         *,
         agents(name, photo_url, agency_name)
@@ -48,7 +48,7 @@ const VisitManage = () => {
 
   const handleCancel = async (bookingId: string) => {
     const { error } = await supabase
-      .from('visit_bookings')
+      .from('visit_bookings' as any)
       .update({ status: 'cancelled' })
       .eq('id', bookingId);
 
