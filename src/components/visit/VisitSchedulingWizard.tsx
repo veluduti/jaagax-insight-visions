@@ -30,6 +30,8 @@ interface Agent {
   photo_url: string;
   trust_score: number;
   agency_name: string;
+  sales_count: number;
+  cities_served: string;
 }
 
 interface VisitSchedulingWizardProps {
@@ -82,6 +84,8 @@ export const VisitSchedulingWizard = ({
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [autoAssign, setAutoAssign] = useState(true);
+  const [availableAgents, setAvailableAgents] = useState<Agent[]>([]);
   const [travelMode, setTravelMode] = useState('self');
   const [pickupLocation, setPickupLocation] = useState('');
   const [userName, setUserName] = useState('');
@@ -141,15 +145,19 @@ export const VisitSchedulingWizard = ({
       toast.error('Please select a date');
       return;
     }
-    if (step === 2 && !selectedTime) {
+    if (step === 2 && !autoAssign && !selectedAgent) {
+      toast.error('Please select an agent or choose auto-assign');
+      return;
+    }
+    if (step === 3 && !selectedTime) {
       toast.error('Please select a time slot');
       return;
     }
-    if (step === 3 && travelMode !== 'self' && !pickupLocation) {
+    if (step === 4 && travelMode !== 'self' && !pickupLocation) {
       toast.error('Please enter pickup location');
       return;
     }
-    if (step === 4) {
+    if (step === 5) {
       if (!userName || !userEmail) {
         toast.error('Please fill required fields');
         return;
@@ -159,6 +167,14 @@ export const VisitSchedulingWizard = ({
     }
 
     if (step === 1) {
+      await fetchAvailableAgents();
+    }
+    
+    if (step === 2 && autoAssign) {
+      await loadAgentAndSlots();
+    }
+    
+    if (step === 2 && !autoAssign && selectedAgent) {
       await loadAgentAndSlots();
     }
     
@@ -174,7 +190,8 @@ export const VisitSchedulingWizard = ({
         body: {
           userId: user?.id,
           propertyId,
-          agentId: selectedAgent?.id,
+          agentId: selectedAgent?.id || null,
+          autoAssign,
           visitDate: selectedDate?.toISOString().split('T')[0],
           visitTime: selectedTime,
           travelMode,
