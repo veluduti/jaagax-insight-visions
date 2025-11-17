@@ -74,3 +74,12 @@ verify_jwt = false
 
 [functions.send-visit-notification]
 verify_jwt = false
+
+[functions.send-visit-update]
+verify_jwt = false
+
+[functions.send-whatsapp]
+verify_jwt = false
+
+[functions.create-notification]
+verify_jwt = false
