@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_availability: {
+        Row: {
+          agent_id: number | null
+          created_at: string | null
+          date: string
+          id: string
+          is_available: boolean | null
+          time_slots: Json
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          is_available?: boolean | null
+          time_slots: Json
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_available?: boolean | null
+          time_slots?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_availability_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_reviews: {
         Row: {
           agent_id: string
@@ -627,6 +665,48 @@ export type Database = {
           },
         ]
       }
+      fleet_vehicles: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          current_location: Json | null
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          vehicle_model: string | null
+          vehicle_number: string
+          vehicle_type: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          current_location?: Json | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_model?: string | null
+          vehicle_number: string
+          vehicle_type: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          current_location?: Json | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          vehicle_model?: string | null
+          vehicle_number?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       lead_interactions: {
         Row: {
           created_at: string | null
@@ -775,6 +855,39 @@ export type Database = {
           id?: never
           last_updated?: string | null
           locality?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1453,6 +1566,178 @@ export type Database = {
           verified_at?: string | null
         }
         Relationships: []
+      }
+      visit_bookings: {
+        Row: {
+          agent_id: number | null
+          created_at: string | null
+          id: string
+          optimized_route: Json | null
+          otp: string | null
+          pickup_location: Json | null
+          properties: Json | null
+          property_id: number | null
+          qr_code: string | null
+          special_requests: string | null
+          status: string | null
+          travel_mode: string | null
+          updated_at: string | null
+          user_email: string
+          user_id: string | null
+          user_name: string
+          user_phone: string | null
+          vehicle_id: string | null
+          visit_date: string
+          visit_time: string
+        }
+        Insert: {
+          agent_id?: number | null
+          created_at?: string | null
+          id?: string
+          optimized_route?: Json | null
+          otp?: string | null
+          pickup_location?: Json | null
+          properties?: Json | null
+          property_id?: number | null
+          qr_code?: string | null
+          special_requests?: string | null
+          status?: string | null
+          travel_mode?: string | null
+          updated_at?: string | null
+          user_email: string
+          user_id?: string | null
+          user_name: string
+          user_phone?: string | null
+          vehicle_id?: string | null
+          visit_date: string
+          visit_time: string
+        }
+        Update: {
+          agent_id?: number | null
+          created_at?: string | null
+          id?: string
+          optimized_route?: Json | null
+          otp?: string | null
+          pickup_location?: Json | null
+          properties?: Json | null
+          property_id?: number | null
+          qr_code?: string | null
+          special_requests?: string | null
+          status?: string | null
+          travel_mode?: string | null
+          updated_at?: string | null
+          user_email?: string
+          user_id?: string | null
+          user_name?: string
+          user_phone?: string | null
+          vehicle_id?: string | null
+          visit_date?: string
+          visit_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_feedback: {
+        Row: {
+          agent_rating: number | null
+          ai_insights: string | null
+          booking_id: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          property_rating: number | null
+          rating: number | null
+          service_rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          agent_rating?: number | null
+          ai_insights?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          property_rating?: number | null
+          rating?: number | null
+          service_rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          agent_rating?: number | null
+          ai_insights?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          property_rating?: number | null
+          rating?: number | null
+          service_rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_feedback_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_notifications: {
+        Row: {
+          booking_id: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          recipient: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          recipient: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
