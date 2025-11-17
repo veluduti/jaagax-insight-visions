@@ -38,6 +38,10 @@ import AIAdvisorProperty from "./pages/AIAdvisorProperty";
 import VisitSchedule from "./pages/VisitSchedule";
 import VisitConfirm from "./pages/VisitConfirm";
 import VisitManage from "./pages/VisitManage";
+import BuilderVisitsDashboard from "./pages/BuilderVisitsDashboard";
+import LiveVisitTracking from "./pages/LiveVisitTracking";
+import VisitVerify from "./pages/VisitVerify";
+import AgentLocationShare from "./pages/AgentLocationShare";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -83,6 +87,9 @@ const App = () => (
           <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
           <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
           <Route path="/visit/manage" element={<VisitManage />} />
+          <Route path="/visit/live/:bookingId" element={<LiveVisitTracking />} />
+          <Route path="/visit/verify" element={<VisitVerify />} />
+          <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
           
           {/* Role-based Dashboards */}
           <Route
@@ -106,6 +113,14 @@ const App = () => (
             element={
               <ProtectedRoute allowedRole="builder">
                 <BuilderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/builder/visits"
+            element={
+              <ProtectedRoute allowedRole="builder">
+                <BuilderVisitsDashboard />
               </ProtectedRoute>
             }
           />

@@ -16,7 +16,6 @@ import {
   Car,
   Phone,
   Mail,
-  Download,
   Share2
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -109,7 +108,7 @@ const VisitConfirm = () => {
             </div>
             <h1 className="text-3xl font-bold mb-2">Visit Confirmed!</h1>
             <p className="text-muted-foreground">
-              Your property visit has been successfully scheduled
+              Your property visit has been {booking.status === 'builder_pending' ? 'requested and is pending approval' : 'successfully scheduled'}
             </p>
           </div>
 
@@ -120,8 +119,14 @@ const VisitConfirm = () => {
                 <h2 className="text-xl font-semibold mb-1">Booking Details</h2>
                 <p className="text-sm text-muted-foreground">ID: {booking.id.slice(0, 8)}</p>
               </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                {booking.status}
+              <Badge variant="secondary" className={
+                booking.status === 'builder_pending' 
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                  : booking.status === 'confirmed' || booking.status === 'in_progress'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                  : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+              }>
+                {booking.status === 'builder_pending' ? 'Pending Approval' : booking.status}
               </Badge>
             </div>
 
@@ -193,24 +198,33 @@ const VisitConfirm = () => {
           </Card>
 
           {/* OTP & QR Code Card */}
-          <Card className="p-6 mb-6">
-            <h3 className="font-semibold mb-4">Verification Details</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Visit OTP</p>
-                <p className="text-3xl font-bold tracking-wider">{booking.otp}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Share this OTP with the agent
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">QR Code</p>
-                <div className="inline-block p-3 bg-white rounded-lg">
-                  <QRCodeSVG value={booking.qr_code} size={120} />
+          {booking.otp_code && (
+            <Card className="p-6 mb-6">
+              <h3 className="font-semibold mb-4">Verification Details</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Visit OTP</p>
+                  <p className="text-3xl font-bold tracking-wider text-primary">{booking.otp_code}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Show this OTP at the property gate
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">QR Code</p>
+                  <div className="inline-block p-3 bg-white rounded-lg">
+                    {booking.qr_code_url ? (
+                      <img src={booking.qr_code_url} alt="Visit QR Code" className="w-[120px] h-[120px]" />
+                    ) : (
+                      <QRCodeSVG 
+                        value={JSON.stringify({ bookingId: booking.id, otp: booking.otp_code })} 
+                        size={120} 
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          )}
 
           {/* Contact Info Card */}
           <Card className="p-6 mb-6">
@@ -231,9 +245,13 @@ const VisitConfirm = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="flex-1">
-              <Download className="w-4 h-4 mr-2" />
-              Download Details
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => navigate(`/visit/live/${bookingId}`)}
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Track Live
             </Button>
             <Button variant="outline" className="flex-1">
               <Share2 className="w-4 h-4 mr-2" />
@@ -246,6 +264,14 @@ const VisitConfirm = () => {
               Manage Visits
             </Button>
           </div>
+
+          {booking.status === 'builder_pending' && (
+            <Card className="mt-6 p-4 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                ⏳ Your visit is pending builder approval. You'll receive a WhatsApp notification once approved.
+              </p>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />
