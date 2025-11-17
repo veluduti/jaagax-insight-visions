@@ -21,8 +21,11 @@ serve(async (req) => {
       throw new Error('Twilio credentials not configured');
     }
 
-    // Format phone number for WhatsApp (must include country code)
-    const formattedTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+    // Format phone number for WhatsApp (must include country code, remove spaces)
+    console.log(`Original phone: "${to}"`);
+    const cleanPhone = to.replace(/\s+/g, ''); // Remove all spaces
+    console.log(`Cleaned phone: "${cleanPhone}"`);
+    const formattedTo = cleanPhone.startsWith('whatsapp:') ? cleanPhone : `whatsapp:${cleanPhone}`;
     const formattedFrom = whatsappNumber.startsWith('whatsapp:') ? whatsappNumber : `whatsapp:${whatsappNumber}`;
 
     console.log(`Sending WhatsApp to ${formattedTo} from ${formattedFrom}`);
