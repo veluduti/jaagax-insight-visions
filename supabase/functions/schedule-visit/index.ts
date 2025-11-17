@@ -10,8 +10,13 @@ function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function generateQR(bookingId: string): string {
-  return `JAAGAX-VISIT-${bookingId}`;
+function generateQRCodeURL(bookingId: string, otpCode: string): string {
+  const qrData = JSON.stringify({
+    bookingId,
+    otp: otpCode,
+    timestamp: Date.now()
+  });
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
 }
 
 serve(async (req) => {
@@ -26,9 +31,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Generate OTP and QR code
+    // Generate OTP and temporary QR code
     const otp = generateOTP();
-    const qrCode = generateQR(bookingData.bookingId || 'temp');
+    const tempQR = generateQRCodeURL('temp', otp);
+
+    // Get property details to find builder_id
+    const { data: property } = await supabase
+      .from('properties')
+      .select('builder_id')
+      .eq('id', bookingData.propertyId)
+      .single();
+
+    const builderId = property?.builder_id || null;
 
     // Assign vehicle if travel mode is not 'self'
     let vehicleId = null;
@@ -63,15 +77,16 @@ serve(async (req) => {
         travel_mode: bookingData.travelMode,
         pickup_location: bookingData.pickupLocation,
         vehicle_id: vehicleId,
-        qr_code: qrCode,
-        otp: otp,
+        otp_code: otp,
+        qr_code_url: tempQR,
+        builder_id: builderId,
         user_name: bookingData.userName,
         user_email: bookingData.userEmail,
         user_phone: bookingData.userPhone,
         special_requests: bookingData.specialRequests,
         properties: bookingData.properties,
         optimized_route: bookingData.optimizedRoute,
-        status: 'confirmed',
+        status: builderId ? 'builder_pending' : 'confirmed',
       })
       .select()
       .single();
@@ -81,51 +96,26 @@ serve(async (req) => {
     }
 
     // Update QR code with actual booking ID
-    const finalQR = generateQR(booking.id);
+    const finalQR = generateQRCodeURL(booking.id, otp);
     await supabase
       .from('visit_bookings')
-      .update({ qr_code: finalQR })
+      .update({ qr_code_url: finalQR })
       .eq('id', booking.id);
 
-    // Create notifications
-    const notifications = [
-      {
-        booking_id: booking.id,
-        notification_type: 'email',
-        recipient: bookingData.userEmail,
-        message: `Your visit to property is confirmed for ${bookingData.visitDate} at ${bookingData.visitTime}. OTP: ${otp}`,
-      },
-      {
-        booking_id: booking.id,
-        notification_type: 'sms',
-        recipient: bookingData.userPhone || bookingData.userEmail,
-        message: `JaagaX Visit Confirmed! Date: ${bookingData.visitDate}, Time: ${bookingData.visitTime}, OTP: ${otp}`,
-      },
-    ];
-
-    await supabase.from('visit_notifications').insert(notifications);
-
-    // Create in-app notifications
-    await supabase.functions.invoke('create-notification', {
+    // Send WhatsApp notifications
+    await supabase.functions.invoke('send-visit-update', {
       body: {
-        userId: bookingData.userId,
-        type: 'booking',
-        title: 'Visit Confirmed!',
-        message: `Your visit to ${bookingData.propertyTitle || 'property'} is scheduled for ${bookingData.visitDate}`,
-        metadata: { bookingId: booking.id },
+        bookingId: booking.id,
+        templateType: 'user_requested'
       }
-    }).catch(console.error);
-    
-    // Send visit notification (fire and forget)
-    supabase.functions.invoke('send-visit-notification', {
-      body: { bookingId: booking.id }
     }).catch(console.error);
 
     return new Response(
       JSON.stringify({
         success: true,
-        booking: { ...booking, qr_code: finalQR },
+        booking: { ...booking, qr_code_url: finalQR },
         otp,
+        status: booking.status
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
