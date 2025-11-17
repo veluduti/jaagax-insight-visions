@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -73,6 +73,13 @@ const carPlans = [
   },
 ];
 
+const TIME_SLOTS = [
+  { id: '09-11', label: '9:00 AM - 11:00 AM', value: '09:00' },
+  { id: '12-14', label: '12:00 PM - 2:00 PM', value: '12:00' },
+  { id: '15-17', label: '3:00 PM - 5:00 PM', value: '15:00' },
+  { id: '17-19', label: '5:00 PM - 7:00 PM', value: '17:00' },
+];
+
 export const VisitSchedulingWizard = ({
   propertyId,
   propertyTitle,
@@ -95,6 +102,13 @@ export const VisitSchedulingWizard = ({
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [aiInsight, setAiInsight] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Fetch agents when entering step 2
+  useEffect(() => {
+    if (step === 2) {
+      fetchAvailableAgents();
+    }
+  }, [step]);
 
   const fetchAvailableAgents = async () => {
     setLoading(true);
@@ -178,39 +192,25 @@ export const VisitSchedulingWizard = ({
       toast.error('Please select a date');
       return;
     }
+    if (step === 2 && !selectedTime) {
+      toast.error('Please select a time slot');
+      return;
+    }
     if (step === 2 && !autoAssign && !selectedAgent) {
       toast.error('Please select an agent or choose auto-assign');
       return;
     }
-    if (step === 3 && !selectedTime) {
-      toast.error('Please select a time slot');
-      return;
-    }
-    if (step === 4 && travelMode !== 'self' && !pickupLocation) {
+    if (step === 3 && travelMode !== 'self' && !pickupLocation) {
       toast.error('Please enter pickup location');
       return;
     }
-    if (step === 5) {
-      if (!userName || !userEmail) {
-        toast.error('Please fill required fields');
+    if (step === 4) {
+      if (!userName || !userEmail || !userPhone) {
+        toast.error('Please fill all contact details');
         return;
       }
-      await handleSubmit();
-      return;
     }
 
-    if (step === 1) {
-      await fetchAvailableAgents();
-    }
-    
-    if (step === 2 && autoAssign) {
-      await loadAgentAndSlots();
-    }
-    
-    if (step === 2 && !autoAssign && selectedAgent) {
-      await loadAgentAndSlots();
-    }
-    
     setStep(step + 1);
   };
 
@@ -301,51 +301,100 @@ export const VisitSchedulingWizard = ({
 
           {/* Step 2: Time & Agent Selection */}
           {step === 2 && (
-            <Card className="p-6">
-              <h3 className="text-2xl font-bold mb-4">Select Time & Meet Your Agent</h3>
-              
-              {selectedAgent && (
-                <div className="mb-6 p-4 bg-muted rounded-lg flex items-center gap-4">
-                  <img
-                    src={selectedAgent.photo_url}
-                    alt={selectedAgent.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="font-semibold">{selectedAgent.name}</h4>
-                    <p className="text-sm text-muted-foreground">{selectedAgent.agency_name}</p>
-                    <Badge variant="secondary" className="mt-1">
-                      Trust Score: {selectedAgent.trust_score}
-                    </Badge>
-                  </div>
+            <div className="space-y-6">
+              <Card className="p-6">
+                <h3 className="text-2xl font-bold mb-4">Select Time Slot</h3>
+                <p className="text-muted-foreground mb-4">
+                  Choose your preferred time for the visit
+                </p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {TIME_SLOTS.map((slot) => (
+                    <Button
+                      key={slot.id}
+                      variant={selectedTime === slot.value ? 'default' : 'outline'}
+                      onClick={() => setSelectedTime(slot.value)}
+                      className="flex flex-col h-auto py-4"
+                    >
+                      <Clock className="w-5 h-5 mb-2" />
+                      <span className="font-semibold">{slot.label}</span>
+                    </Button>
+                  ))}
                 </div>
-              )}
+              </Card>
 
-              {aiInsight && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg flex items-start gap-2">
-                  <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                  <p className="text-sm text-blue-900 dark:text-blue-100">{aiInsight}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {timeSlots.map((slot) => (
+              <Card className="p-6">
+                <h3 className="text-2xl font-bold mb-4">Meet Your Agent</h3>
+                
+                <div className="mb-4">
                   <Button
-                    key={slot.time}
-                    variant={selectedTime === slot.time ? 'default' : 'outline'}
-                    onClick={() => setSelectedTime(slot.time)}
-                    disabled={!slot.available}
-                    className="flex flex-col h-auto py-3"
+                    onClick={() => setAutoAssign(!autoAssign)}
+                    variant={autoAssign ? 'default' : 'outline'}
+                    className="w-full justify-start gap-2 h-auto py-4"
                   >
-                    <Clock className="w-4 h-4 mb-1" />
-                    <span className="font-semibold">{slot.time}</span>
-                    {slot.label && (
-                      <span className="text-xs opacity-70">{slot.label}</span>
-                    )}
+                    <Sparkles className="w-5 h-5" />
+                    <div className="text-left">
+                      <div className="font-semibold">Auto-Assign Best Agent</div>
+                      <div className="text-xs opacity-80">AI selects based on locality & trust score</div>
+                    </div>
                   </Button>
-                ))}
-              </div>
-            </Card>
+                </div>
+
+                {!autoAssign && (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-4">Or choose your preferred agent:</p>
+                    {loading ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
+                        ))}
+                      </div>
+                    ) : availableAgents.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        No agents available for this location
+                      </p>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {availableAgents.map((agent) => (
+                          <button
+                            key={agent.id}
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setAutoAssign(false);
+                            }}
+                            className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                              selectedAgent?.id === agent.id
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <img
+                                src={agent.photo_url}
+                                alt={agent.name}
+                                className="w-16 h-16 rounded-full object-cover"
+                              />
+                              <div className="flex-1">
+                                <div className="font-semibold">{agent.name}</div>
+                                <div className="text-sm text-muted-foreground">{agent.agency_name}</div>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <Badge variant="secondary" className="text-xs">
+                                    Trust: {agent.trust_score}/100
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {agent.sales_count} sales
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </Card>
+            </div>
           )}
 
           {/* Step 3: Travel Mode Selection */}
