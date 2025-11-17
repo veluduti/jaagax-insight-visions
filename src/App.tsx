@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import Search from "./pages/Search";
+import AgentLeaderboard from "./pages/AgentLeaderboard";
+import AgentVisitsDashboard from "./pages/AgentVisitsDashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -56,6 +59,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
@@ -67,6 +71,7 @@ const App = () => (
           <Route path="/agents" element={<Agents />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/agents/compare" element={<AgentComparison />} />
+          <Route path="/agents/leaderboard" element={<AgentLeaderboard />} />
           <Route path="/valuation" element={<PropertyValuation />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/communities/:city" element={<CommunitiesCity />} />
@@ -94,8 +99,10 @@ const App = () => (
           {/* Role-based Dashboards - Authentication temporarily disabled for testing */}
           <Route path="/dashboard/buyer" element={<BuyerDashboard />} />
           <Route path="/dashboard/agent" element={<AgentDashboard />} />
+          <Route path="/dashboard/agent/visits" element={<AgentVisitsDashboard />} />
           <Route path="/dashboard/builder" element={<BuilderDashboard />} />
           <Route path="/dashboard/builder/visits" element={<BuilderVisitsDashboard />} />
+          <Route path="/dashboard/seller" element={<SellerDashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
