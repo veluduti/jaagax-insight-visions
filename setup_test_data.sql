@@ -36,7 +36,7 @@ LIMIT 20;
 -- Step 2: Create test visit bookings with builder_pending status
 -- These will appear in the Builder Visits Dashboard
 
--- Test Booking 1: Pickup mode, for property 16
+-- Test Booking 1: Base pickup mode, for property 16
 INSERT INTO visit_bookings (
   property_id,
   builder_id,
@@ -61,7 +61,7 @@ INSERT INTO visit_bookings (
   '+919876543210',
   CURRENT_DATE + INTERVAL '2 days',
   '14:00:00',
-  'pickup',
+  'base',
   '{"address": "MG Road Metro Station, Bangalore", "lat": 12.9756, "lng": 77.6073}',
   'Need wheelchair accessible entrance. Coming with family of 4.',
   'builder_pending',
@@ -102,7 +102,7 @@ INSERT INTO visit_bookings (
   2
 );
 
--- Test Booking 3: Pickup mode, for property 18
+-- Test Booking 3: Premium pickup mode, for property 18
 INSERT INTO visit_bookings (
   property_id,
   builder_id,
@@ -127,7 +127,7 @@ INSERT INTO visit_bookings (
   '+919988776655',
   CURRENT_DATE + INTERVAL '4 days',
   '16:00:00',
-  'pickup',
+  'premium',
   '{"address": "Indiranagar Metro Station, Bangalore", "lat": 12.9784, "lng": 77.6408}',
   'First-time home buyer. Need complete details about payment plans.',
   'builder_pending',
@@ -166,7 +166,7 @@ INSERT INTO visit_bookings (
   1
 );
 
--- Test Booking 5: Urgent visit for tomorrow
+-- Test Booking 5: Ultimate pickup for urgent visit tomorrow
 INSERT INTO visit_bookings (
   property_id,
   builder_id,
@@ -191,7 +191,7 @@ INSERT INTO visit_bookings (
   '+919000011122',
   CURRENT_DATE + INTERVAL '1 day',
   '09:00:00',
-  'pickup',
+  'ultimate',
   '{"address": "Koramangala Water Tank, Bangalore", "lat": 12.9352, "lng": 77.6245}',
   'URGENT: Need to finalize by this week. Looking for 4BHK penthouse.',
   'builder_pending',
