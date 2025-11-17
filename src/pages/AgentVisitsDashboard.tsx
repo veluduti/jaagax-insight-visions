@@ -257,6 +257,24 @@ const AgentVisitsDashboard = () => {
                         </Button>
                       </div>
                     )}
+
+                    {visit.status === "in_progress" && (
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          variant="default"
+                          className="flex-1"
+                          onClick={() => navigate(`/agent/visit/story/${visit.id}`)}
+                        >
+                          📸 Share Story
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/visit/live/${visit.id}`)}
+                        >
+                          View Live
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}

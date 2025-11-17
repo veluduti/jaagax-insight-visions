@@ -45,6 +45,9 @@ import BuilderVisitsDashboard from "./pages/BuilderVisitsDashboard";
 import LiveVisitTracking from "./pages/LiveVisitTracking";
 import VisitVerify from "./pages/VisitVerify";
 import AgentLocationShare from "./pages/AgentLocationShare";
+import VisitStory from "./pages/VisitStory";
+import VisitSummary from "./pages/VisitSummary";
+import AgentStoryUpload from "./pages/AgentStoryUpload";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -93,8 +96,11 @@ const App = () => (
           <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
           <Route path="/visit/manage" element={<VisitManage />} />
           <Route path="/visit/live/:bookingId" element={<LiveVisitTracking />} />
+          <Route path="/visit/story/:bookingId" element={<VisitStory />} />
+          <Route path="/visit/summary/:bookingId" element={<VisitSummary />} />
           <Route path="/visit/verify" element={<VisitVerify />} />
           <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
+          <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
           
           {/* Role-based Dashboards - Authentication temporarily disabled for testing */}
           <Route path="/dashboard/buyer" element={<BuyerDashboard />} />

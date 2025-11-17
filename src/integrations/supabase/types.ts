@@ -92,8 +92,10 @@ export type Database = {
         Row: {
           agency_name: string | null
           cities_served: string | null
+          completed_visits: number | null
           id: number
           languages: string | null
+          level: number | null
           name: string | null
           photo_url: string | null
           rent_count: number | null
@@ -101,12 +103,15 @@ export type Database = {
           trust_score: number | null
           user_id: string | null
           verified: boolean | null
+          xp_points: number | null
         }
         Insert: {
           agency_name?: string | null
           cities_served?: string | null
+          completed_visits?: number | null
           id?: number
           languages?: string | null
+          level?: number | null
           name?: string | null
           photo_url?: string | null
           rent_count?: number | null
@@ -114,12 +119,15 @@ export type Database = {
           trust_score?: number | null
           user_id?: string | null
           verified?: boolean | null
+          xp_points?: number | null
         }
         Update: {
           agency_name?: string | null
           cities_served?: string | null
+          completed_visits?: number | null
           id?: number
           languages?: string | null
+          level?: number | null
           name?: string | null
           photo_url?: string | null
           rent_count?: number | null
@@ -127,6 +135,7 @@ export type Database = {
           trust_score?: number | null
           user_id?: string | null
           verified?: boolean | null
+          xp_points?: number | null
         }
         Relationships: []
       }
@@ -1805,6 +1814,101 @@ export type Database = {
           },
         ]
       }
+      visit_story_updates: {
+        Row: {
+          agent_id: number | null
+          booking_id: string
+          content: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          update_type: string
+        }
+        Insert: {
+          agent_id?: number | null
+          booking_id: string
+          content?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          update_type: string
+        }
+        Update: {
+          agent_id?: number | null
+          booking_id?: string
+          content?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          update_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_story_updates_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_story_updates_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_summaries: {
+        Row: {
+          ai_insights: string | null
+          booking_id: string
+          buyer_liked: string[] | null
+          concerns: string[] | null
+          created_at: string | null
+          highlights: string[] | null
+          id: string
+          next_steps: string[] | null
+          recommended_properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_insights?: string | null
+          booking_id: string
+          buyer_liked?: string[] | null
+          concerns?: string[] | null
+          created_at?: string | null
+          highlights?: string[] | null
+          id?: string
+          next_steps?: string[] | null
+          recommended_properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_insights?: string | null
+          booking_id?: string
+          buyer_liked?: string[] | null
+          concerns?: string[] | null
+          created_at?: string | null
+          highlights?: string[] | null
+          id?: string
+          next_steps?: string[] | null
+          recommended_properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_summaries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_logs: {
         Row: {
           booking_id: string | null
@@ -1870,6 +1974,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      delete_expired_stories: { Args: never; Returns: undefined }
       get_builder_analytics: {
         Args: { p_builder_id: string; p_months?: number }
         Returns: {
