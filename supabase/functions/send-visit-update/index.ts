@@ -24,20 +24,20 @@ serve(async (req) => {
       .select(`
         *,
         properties (id, title, locality, city),
-        agents (id, name, user_id),
-        users (name, email)
+        agents (id, name, user_id)
       `)
       .eq('id', bookingId)
       .single();
 
     if (bookingError || !booking) {
+      console.error('Booking fetch error:', bookingError);
       throw new Error('Booking not found');
     }
 
-    // Get user phone from users table
+    // Get user details from users table
     const { data: userData } = await supabase
       .from('users')
-      .select('phone')
+      .select('name, email, phone')
       .eq('id', booking.user_id)
       .single();
 
@@ -57,7 +57,7 @@ serve(async (req) => {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
     });
     const visitTime = booking.visit_time;
-    const userName = booking.users?.name || 'Guest';
+    const userName = userData?.name || booking.user_name || 'Guest';
     const agentName = booking.agents?.name || 'Agent';
 
     switch (templateType) {
