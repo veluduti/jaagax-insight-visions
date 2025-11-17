@@ -1570,14 +1570,20 @@ export type Database = {
       visit_bookings: {
         Row: {
           agent_id: number | null
+          agent_location: Json | null
+          builder_id: number | null
+          builder_notes: string | null
           created_at: string | null
           id: string
           optimized_route: Json | null
           otp: string | null
+          otp_code: string | null
           pickup_location: Json | null
           properties: Json | null
           property_id: number | null
           qr_code: string | null
+          qr_code_url: string | null
+          rejection_reason: string | null
           special_requests: string | null
           status: string | null
           travel_mode: string | null
@@ -1587,19 +1593,27 @@ export type Database = {
           user_name: string
           user_phone: string | null
           vehicle_id: string | null
+          vehicle_location: Json | null
           visit_date: string
           visit_time: string
+          whatsapp_thread_id: string | null
         }
         Insert: {
           agent_id?: number | null
+          agent_location?: Json | null
+          builder_id?: number | null
+          builder_notes?: string | null
           created_at?: string | null
           id?: string
           optimized_route?: Json | null
           otp?: string | null
+          otp_code?: string | null
           pickup_location?: Json | null
           properties?: Json | null
           property_id?: number | null
           qr_code?: string | null
+          qr_code_url?: string | null
+          rejection_reason?: string | null
           special_requests?: string | null
           status?: string | null
           travel_mode?: string | null
@@ -1609,19 +1623,27 @@ export type Database = {
           user_name: string
           user_phone?: string | null
           vehicle_id?: string | null
+          vehicle_location?: Json | null
           visit_date: string
           visit_time: string
+          whatsapp_thread_id?: string | null
         }
         Update: {
           agent_id?: number | null
+          agent_location?: Json | null
+          builder_id?: number | null
+          builder_notes?: string | null
           created_at?: string | null
           id?: string
           optimized_route?: Json | null
           otp?: string | null
+          otp_code?: string | null
           pickup_location?: Json | null
           properties?: Json | null
           property_id?: number | null
           qr_code?: string | null
+          qr_code_url?: string | null
+          rejection_reason?: string | null
           special_requests?: string | null
           status?: string | null
           travel_mode?: string | null
@@ -1631,8 +1653,10 @@ export type Database = {
           user_name?: string
           user_phone?: string | null
           vehicle_id?: string | null
+          vehicle_location?: Json | null
           visit_date?: string
           visit_time?: string
+          whatsapp_thread_id?: string | null
         }
         Relationships: [
           {
@@ -1640,6 +1664,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "builders"
             referencedColumns: ["id"]
           },
           {
@@ -1698,6 +1729,41 @@ export type Database = {
           },
         ]
       }
+      visit_locations: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          lat: number
+          lng: number
+          location_type: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          lat: number
+          lng: number
+          location_type: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          location_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_locations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_notifications: {
         Row: {
           booking_id: string | null
@@ -1732,6 +1798,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "visit_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_logs: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message: string
+          recipient: string
+          status: string | null
+          template_type: string | null
+          twilio_sid: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message: string
+          recipient: string
+          status?: string | null
+          template_type?: string | null
+          twilio_sid?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string
+          recipient?: string
+          status?: string | null
+          template_type?: string | null
+          twilio_sid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_logs_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "visit_bookings"
