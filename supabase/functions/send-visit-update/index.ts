@@ -34,12 +34,21 @@ serve(async (req) => {
       throw new Error('Booking not found');
     }
 
-    // Get user details from users table
-    const { data: userData } = await supabase
-      .from('users')
-      .select('name, email, phone')
-      .eq('id', booking.user_id)
-      .single();
+    // Get user details from users table (if user_id exists)
+    let userData = null;
+    if (booking.user_id) {
+      const { data } = await supabase
+        .from('users')
+        .select('name, email')
+        .eq('id', booking.user_id)
+        .single();
+      userData = data;
+    }
+    
+    // Use booking data as fallback
+    const userPhone = booking.user_phone;
+    const userEmail = userData?.email || booking.user_email;
+    const userName = userData?.name || booking.user_name || 'Guest';
 
     // Get agent phone if available
     const agentPhone = booking.agents?.user_id 
@@ -57,18 +66,17 @@ serve(async (req) => {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
     });
     const visitTime = booking.visit_time;
-    const userName = userData?.name || booking.user_name || 'Guest';
     const agentName = booking.agents?.name || 'Agent';
 
     switch (templateType) {
       case 'user_requested':
         message = `🏡 *Visit Request Received* - JaagaX\n\nHi ${userName}!\n\nYour visit request for *${propertyName}* in ${locality}, ${city} has been received.\n\n📅 Date: ${visitDate}\n⏰ Time: ${visitTime}\n🚗 Travel: ${booking.travel_mode || 'Self'}\n\nStatus: Pending builder approval\nOTP: ${booking.otp_code}\n\nYou'll receive updates via WhatsApp & app. Track live: https://jaagax.com/visit/live/${bookingId}`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'builder_approved':
         message = `✅ *Visit Approved!* - JaagaX\n\nHi ${userName}!\n\nGreat news! Your visit to *${propertyName}* has been approved.\n\n📅 ${visitDate} at ${visitTime}\n👤 Agent: ${agentName}\n📍 ${locality}, ${city}\n🔐 OTP: ${booking.otp_code}\n\nYour agent will contact you shortly. Track live: https://jaagax.com/visit/live/${bookingId}`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         if (agentPhone) {
           recipients.push({ phone: agentPhone, role: 'agent' });
         }
@@ -76,32 +84,32 @@ serve(async (req) => {
 
       case 'builder_rejected':
         message = `❌ *Visit Request Declined* - JaagaX\n\nHi ${userName},\n\nWe're sorry, but your visit request for *${propertyName}* has been declined by the builder.\n\n${booking.rejection_reason ? `Reason: ${booking.rejection_reason}\n\n` : ''}Please try booking another slot or contact us for assistance: +91-XXXXXXXXXX`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'agent_assigned':
         message = `👋 *Agent Assigned* - JaagaX\n\nHi ${userName}!\n\nYour visit agent for *${propertyName}* is:\n\n👤 ${agentName}\n📅 ${visitDate} at ${visitTime}\n📍 ${locality}, ${city}\n\nYour agent will reach out to you soon. Have a great visit!`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'visit_reminder':
         message = `⏰ *Visit Reminder* - JaagaX\n\nHi ${userName}!\n\nReminder: Your visit to *${propertyName}* is tomorrow!\n\n📅 ${visitDate} at ${visitTime}\n👤 Agent: ${agentName}\n🔐 OTP: ${booking.otp_code}\n\nTrack live: https://jaagax.com/visit/live/${bookingId}`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'visit_started':
         message = `🚀 *Visit Started* - JaagaX\n\nHi ${userName}!\n\nYour visit to *${propertyName}* has started!\n\nAgent ${agentName} is with you. Enjoy exploring the property. You can provide feedback after the visit.`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'visit_completed':
         message = `✅ *Visit Completed* - JaagaX\n\nHi ${userName}!\n\nThank you for visiting *${propertyName}*!\n\nWe hope you had a great experience. Please share your feedback: https://jaagax.com/visit/feedback/${bookingId}\n\nNeed help? Contact us anytime!`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         break;
 
       case 'visit_cancelled':
         message = `🚫 *Visit Cancelled* - JaagaX\n\nHi ${userName},\n\nYour visit to *${propertyName}* scheduled for ${visitDate} has been cancelled.\n\nYou can schedule a new visit anytime from the JaagaX app.`;
-        if (userData?.phone) recipients.push({ phone: userData.phone, role: 'user' });
+        if (userPhone) recipients.push({ phone: userPhone, role: 'user' });
         if (agentPhone) recipients.push({ phone: agentPhone, role: 'agent' });
         break;
     }
