@@ -1866,6 +1866,10 @@ export type Database = {
     }
     Functions: {
       clean_expired_insights: { Args: never; Returns: undefined }
+      create_test_notification: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       get_builder_analytics: {
         Args: { p_builder_id: string; p_months?: number }
         Returns: {
