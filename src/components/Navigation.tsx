@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
+import { NotificationBell } from "./notifications/NotificationBell";
 import { Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -68,7 +69,7 @@ const Navigation = () => {
             {/* Right Actions */}
             <div className="flex items-center gap-3">
               <ThemeToggle />
-
+              {session && <NotificationBell />}
               <SidebarMenu />
 
               <Button 
@@ -98,6 +99,7 @@ const Navigation = () => {
 
             <div className="flex items-center gap-2">
               <ThemeToggle />
+              {session && <NotificationBell />}
               <SidebarMenu />
               
               <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">

@@ -105,7 +105,18 @@ serve(async (req) => {
 
     await supabase.from('visit_notifications').insert(notifications);
 
-    // Invoke notification sender (fire and forget)
+    // Create in-app notifications
+    await supabase.functions.invoke('create-notification', {
+      body: {
+        userId: bookingData.userId,
+        type: 'booking',
+        title: 'Visit Confirmed!',
+        message: `Your visit to ${bookingData.propertyTitle || 'property'} is scheduled for ${bookingData.visitDate}`,
+        metadata: { bookingId: booking.id },
+      }
+    }).catch(console.error);
+    
+    // Send visit notification (fire and forget)
     supabase.functions.invoke('send-visit-notification', {
       body: { bookingId: booking.id }
     }).catch(console.error);
