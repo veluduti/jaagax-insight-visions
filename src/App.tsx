@@ -43,7 +43,6 @@ import LiveVisitTracking from "./pages/LiveVisitTracking";
 import VisitVerify from "./pages/VisitVerify";
 import AgentLocationShare from "./pages/AgentLocationShare";
 import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -92,46 +91,11 @@ const App = () => (
           <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
           
           {/* Role-based Dashboards */}
-          <Route
-            path="/dashboard/buyer"
-            element={
-              <ProtectedRoute allowedRole="buyer">
-                <BuyerDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/agent"
-            element={
-              <ProtectedRoute allowedRole="agent">
-                <AgentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/builder"
-            element={
-              <ProtectedRoute allowedRole="builder">
-                <BuilderDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/builder/visits"
-            element={
-              <ProtectedRoute allowedRole="builder">
-                <BuilderVisitsDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/admin"
-            element={
-              <ProtectedRoute allowedRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard/buyer" element={<BuyerDashboard />} />
+          <Route path="/dashboard/agent" element={<AgentDashboard />} />
+          <Route path="/dashboard/builder" element={<BuilderDashboard />} />
+          <Route path="/dashboard/builder/visits" element={<BuilderVisitsDashboard />} />
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
