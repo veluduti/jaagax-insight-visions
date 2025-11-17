@@ -31,18 +31,19 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Verify user is a builder and owns this property
+    // Get the booking with property details
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
-      .select('*, properties(builder_id), builders(user_id)')
+      .select('*, properties(id, title, builder_id)')
       .eq('id', bookingId)
       .single();
 
     if (bookingError || !booking) {
+      console.error('Booking fetch error:', bookingError);
       throw new Error('Booking not found');
     }
 
-    // Check if user has admin role OR is the builder
+    // Check if user has admin or builder role
     const { data: userRole } = await supabase
       .from('user_roles')
       .select('role')
@@ -50,11 +51,14 @@ serve(async (req) => {
       .single();
 
     const isAdmin = userRole?.role === 'admin';
-    const isBuilder = booking.properties?.builder_id && booking.builders?.user_id === user.id;
+    const isBuilder = userRole?.role === 'builder';
 
+    // Allow admins and builders to approve/reject visits
     if (!isAdmin && !isBuilder) {
-      throw new Error('Not authorized to approve/reject this visit');
+      throw new Error('Not authorized to approve/reject this visit. Must be an admin or builder.');
     }
+
+    console.log(`User ${user.id} (${userRole?.role}) processing booking ${bookingId}`);
 
     // Update booking status
     const updateData: any = {
