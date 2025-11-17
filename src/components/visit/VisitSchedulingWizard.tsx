@@ -102,6 +102,7 @@ export const VisitSchedulingWizard = ({
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [aiInsight, setAiInsight] = useState('');
   const [loading, setLoading] = useState(false);
+  const [visitType, setVisitType] = useState<'in-person' | 'virtual'>('in-person');
 
   // Fetch agents when entering step 2
   useEffect(() => {
@@ -227,6 +228,7 @@ export const VisitSchedulingWizard = ({
           autoAssign,
           visitDate: selectedDate?.toISOString().split('T')[0],
           visitTime: selectedTime,
+          visitType,
           travelMode,
           pickupLocation: pickupLocation ? { address: pickupLocation } : null,
           userName,
@@ -252,27 +254,58 @@ export const VisitSchedulingWizard = ({
     <div className="space-y-6">
       {/* Progress Indicator */}
       <div className="flex items-center justify-between mb-8">
-        {[1, 2, 3, 4].map((s) => (
-          <div key={s} className="flex items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                step >= s
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {step > s ? <CheckCircle2 className="w-5 h-5" /> : s}
-            </div>
-            {s < 4 && (
+        {[
+          { num: 1, label: 'Date' },
+          { num: 2, label: 'Time & Agent' },
+          { num: 3, label: 'Travel' },
+          { num: 4, label: 'Details' }
+        ].map((s, idx) => (
+          <div key={s.num} className="flex items-center flex-1">
+            <div className="flex flex-col items-center flex-1">
               <div
-                className={`h-1 w-12 mx-2 ${
-                  step > s ? 'bg-primary' : 'bg-muted'
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
+                  step > s.num
+                    ? 'bg-primary text-primary-foreground'
+                    : step === s.num
+                    ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {step > s.num ? <CheckCircle2 className="w-5 h-5" /> : s.num}
+              </div>
+              <span className={`text-xs mt-1 ${step >= s.num ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                {s.label}
+              </span>
+            </div>
+            {idx < 3 && (
+              <div
+                className={`h-1 w-full mx-2 transition-all ${
+                  step > s.num ? 'bg-primary' : 'bg-muted'
                 }`}
               />
             )}
           </div>
         ))}
       </div>
+
+      {/* Live Booking Summary */}
+      {(selectedDate || selectedTime || travelMode !== 'self') && (
+        <Card className="p-4 mb-6 bg-primary/5 border-primary/20">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-primary mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-semibold">Your Booking Summary</p>
+              <div className="text-xs space-y-0.5 text-muted-foreground">
+                {selectedDate && <p>📅 {selectedDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</p>}
+                {selectedTime && <p>🕒 {TIME_SLOTS.find(s => s.value === selectedTime)?.label}</p>}
+                {visitType && <p>👁️ {visitType === 'in-person' ? 'In-Person Visit' : 'Virtual Tour'}</p>}
+                {travelMode !== 'self' && <p>🚗 {carPlans.find(p => p.id === travelMode)?.name}</p>}
+                {selectedAgent && <p>👤 Agent: {selectedAgent.name}</p>}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -302,11 +335,51 @@ export const VisitSchedulingWizard = ({
           {/* Step 2: Time & Agent Selection */}
           {step === 2 && (
             <div className="space-y-6">
+              {/* Visit Type Selection */}
+              <Card className="p-6">
+                <h3 className="text-2xl font-bold mb-4">Visit Type</h3>
+                <p className="text-muted-foreground mb-4">
+                  Choose how you'd like to view the property
+                </p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant={visitType === 'in-person' ? 'default' : 'outline'}
+                    onClick={() => setVisitType('in-person')}
+                    className="flex flex-col h-auto py-6"
+                  >
+                    <MapPin className="w-6 h-6 mb-2" />
+                    <span className="font-semibold">In-Person Visit</span>
+                    <span className="text-xs opacity-80 mt-1">See the property yourself</span>
+                  </Button>
+                  <Button
+                    variant={visitType === 'virtual' ? 'default' : 'outline'}
+                    onClick={() => setVisitType('virtual')}
+                    className="flex flex-col h-auto py-6"
+                  >
+                    <Sparkles className="w-6 h-6 mb-2" />
+                    <span className="font-semibold">Virtual Tour</span>
+                    <span className="text-xs opacity-80 mt-1">View via video call</span>
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Time Slot Selection */}
               <Card className="p-6">
                 <h3 className="text-2xl font-bold mb-4">Select Time Slot</h3>
                 <p className="text-muted-foreground mb-4">
                   Choose your preferred time for the visit
                 </p>
+                
+                {aiInsight && (
+                  <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <p className="text-sm text-primary font-medium flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      AI Recommendation
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{aiInsight}</p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-2 gap-3">
                   {TIME_SLOTS.map((slot) => (
@@ -408,12 +481,13 @@ export const VisitSchedulingWizard = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {carPlans.map((plan) => {
                   const Icon = plan.icon;
+                  const estimatedTime = plan.id === 'self' ? 'Flexible' : plan.id === 'base' ? '45 mins' : plan.id === 'premium' ? '40 mins' : '35 mins';
                   return (
                     <Card
                       key={plan.id}
                       className={`p-4 cursor-pointer transition-all ${
                         travelMode === plan.id
-                          ? 'border-primary ring-2 ring-primary'
+                          ? 'border-primary ring-2 ring-primary bg-primary/5'
                           : 'hover:border-primary/50'
                       }`}
                       onClick={() => setTravelMode(plan.id)}
@@ -423,12 +497,20 @@ export const VisitSchedulingWizard = ({
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold">{plan.name}</h4>
+                          <div className="flex items-start justify-between">
+                            <h4 className="font-semibold">{plan.name}</h4>
+                            {travelMode === plan.id && (
+                              <CheckCircle2 className="w-5 h-5 text-primary" />
+                            )}
+                          </div>
                           <p className="text-xl font-bold text-primary mt-1">{plan.price}</p>
+                          {plan.id !== 'self' && (
+                            <p className="text-xs text-muted-foreground mt-1">⏱️ Est. arrival: {estimatedTime}</p>
+                          )}
                           <ul className="mt-2 space-y-1">
                             {plan.features.map((feature) => (
                               <li key={feature} className="text-sm text-muted-foreground flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
+                                <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
                                 {feature}
                               </li>
                             ))}
@@ -537,10 +619,11 @@ export const VisitSchedulingWizard = ({
         )}
         <Button
           className="ml-auto"
-          onClick={handleNext}
+          onClick={step === 4 ? handleSubmit : handleNext}
           disabled={loading}
+          size="lg"
         >
-          {loading ? 'Processing...' : step === 4 ? 'Confirm Booking' : 'Next'}
+          {loading ? 'Processing...' : step === 4 ? 'Confirm Booking' : 'Continue'}
           {step < 4 && <ArrowRight className="w-4 h-4 ml-2" />}
         </Button>
       </div>
