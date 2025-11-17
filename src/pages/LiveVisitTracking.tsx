@@ -301,6 +301,28 @@ const LiveVisitTracking = () => {
               </div>
             </Card>
 
+            {/* Quick Actions */}
+            <Card className="p-4 mb-4">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => navigate(`/visit/story/${bookingId}`)}
+                >
+                  📸 View Story
+                </Button>
+                {booking.status === 'completed' && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => navigate(`/visit/summary/${bookingId}`)}
+                  >
+                    ✨ AI Summary
+                  </Button>
+                )}
+              </div>
+            </Card>
+
             {/* QR Code and OTP */}
             {booking.otp_code && (
               <Card className="p-6">
