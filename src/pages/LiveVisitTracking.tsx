@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { MapPin, Clock, User, Car, QrCode, Shield, Navigation as NavIcon } from "lucide-react";
+import { MapPin, Navigation2, Clock, User, Phone, AlertCircle, ArrowLeft, Share2, Car, QrCode, Shield, Navigation as NavIcon } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -257,6 +257,28 @@ const LiveVisitTracking = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => {
+              const trackingUrl = `${window.location.origin}/visit/live/${bookingId}`;
+              navigator.clipboard.writeText(trackingUrl);
+              toast.success("Tracking link copied to clipboard!");
+            }}
+          >
+            <Share2 className="w-4 w-4 mr-2" />
+            Share Link
+          </Button>
+        </div>
+
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Visit Details */}
           <div className="lg:col-span-1 space-y-6">

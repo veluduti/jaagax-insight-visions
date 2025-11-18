@@ -206,13 +206,25 @@ const AgentVisitsDashboard = () => {
                           {visit.properties?.locality}, {visit.properties?.city}
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/visit/live/${visit.id}`)}
-                      >
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/visit/live/${visit.id}`)}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/visit/live/${visit.id}`);
+                            toast.success("Tracking link copied!");
+                          }}
+                        >
+                          Copy Link
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
