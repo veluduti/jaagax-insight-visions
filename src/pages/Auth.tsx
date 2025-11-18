@@ -53,16 +53,17 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signUp, user, redirectToDashboard } = useAuth();
+  const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
 
   // Only allow buyer, agent, and builder roles for public signup
   const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
 
   useEffect(() => {
-    if (user) {
+    // Wait for both user and role to be loaded before redirecting
+    if (user && role && !authLoading) {
       redirectToDashboard();
     }
-  }, [user]);
+  }, [user, role, authLoading, redirectToDashboard]);
 
   const validateForm = () => {
     if (!isLogin) {
@@ -109,10 +110,7 @@ export default function Auth() {
         }
 
         toast.success("Welcome back!");
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
-          redirectToDashboard();
-        }, 500);
+        // The useEffect will handle redirect once role is loaded
       } else {
         const { error } = await signUp(email, password, selectedRole, city, name);
         
