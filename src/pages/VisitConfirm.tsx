@@ -106,9 +106,13 @@ const VisitConfirm = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4">
               <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Visit Confirmed!</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              {booking.status === 'pending_approval' ? 'Visit Requested!' : 'Visit Confirmed!'}
+            </h1>
             <p className="text-muted-foreground">
-              Your property visit has been {booking.status === 'builder_pending' ? 'requested and is pending approval' : 'successfully scheduled'}
+              {booking.status === 'pending_approval' 
+                ? 'Your visit request is pending builder approval. You will be notified once approved.' 
+                : 'Your property visit has been successfully scheduled. The agent will contact you soon.'}
             </p>
           </div>
 

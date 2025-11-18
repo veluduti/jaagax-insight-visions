@@ -114,7 +114,7 @@ serve(async (req) => {
         special_requests: bookingData.specialRequests,
         properties: bookingData.properties,
         optimized_route: bookingData.optimizedRoute,
-        status: builderId ? 'builder_pending' : 'confirmed',
+        status: builderId ? 'pending_approval' : 'confirmed',
       })
       .select()
       .single();

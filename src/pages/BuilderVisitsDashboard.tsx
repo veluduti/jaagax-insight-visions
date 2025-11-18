@@ -56,7 +56,7 @@ const BuilderVisitsDashboard = () => {
           properties (title, locality, city),
           agents (name)
         `)
-        .eq("status", "builder_pending")
+        .eq("status", "pending_approval")
         .order("visit_date", { ascending: true });
 
       if (error) throw error;
