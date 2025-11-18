@@ -36,6 +36,8 @@ const BuilderVisitsDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [visits, setVisits] = useState<VisitBooking[]>([]);
+  const [completedVisits, setCompletedVisits] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [loading, setLoading] = useState(true);
   const [selectedVisit, setSelectedVisit] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -44,8 +46,12 @@ const BuilderVisitsDashboard = () => {
 
   useEffect(() => {
     // Auth check removed for testing
-    fetchPendingVisits();
-  }, []);
+    if (activeTab === "pending") {
+      fetchPendingVisits();
+    } else {
+      fetchCompletedVisits();
+    }
+  }, [activeTab]);
 
   const fetchPendingVisits = async () => {
     try {
@@ -65,6 +71,38 @@ const BuilderVisitsDashboard = () => {
     } catch (error: any) {
       console.error("Error fetching visits:", error);
       toast.error("Failed to load pending visits");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCompletedVisits = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("visit_bookings")
+        .select(`
+          *,
+          properties (title, locality, city),
+          agents (name),
+          visit_feedback (
+            id,
+            rating,
+            agent_rating,
+            property_rating,
+            service_rating,
+            feedback,
+            photo_urls
+          )
+        `)
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false });
+
+      if (error) throw error;
+      setCompletedVisits(data || []);
+    } catch (error: any) {
+      console.error("Error fetching completed visits:", error);
+      toast.error("Failed to load completed visits");
     } finally {
       setLoading(false);
     }
