@@ -17,6 +17,28 @@ const VisitManage = () => {
 
   useEffect(() => {
     fetchBookings();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('visit-bookings-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'visit_bookings'
+        },
+        (payload) => {
+          console.log('Visit booking updated:', payload);
+          toast.info('Visit status updated');
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchBookings = async () => {

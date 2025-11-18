@@ -38,6 +38,28 @@ const AgentVisitsDashboard = () => {
 
   useEffect(() => {
     fetchAgentVisits();
+    
+    // Subscribe to real-time updates for agent visits
+    const channel = supabase
+      .channel('agent-visit-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'visit_bookings'
+        },
+        (payload) => {
+          console.log('Agent visit updated:', payload);
+          toast.info('Visit schedule updated');
+          fetchAgentVisits();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [filter]);
 
   const fetchAgentVisits = async () => {

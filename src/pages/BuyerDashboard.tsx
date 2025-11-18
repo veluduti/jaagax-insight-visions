@@ -42,6 +42,7 @@ const BuyerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [visitBookings, setVisitBookings] = useState<any[]>([]);
   
   // EMI Calculator State
   const [loanAmount, setLoanAmount] = useState(5000000);
@@ -53,6 +54,28 @@ const BuyerDashboard = () => {
     fetchUserData();
     fetchProperties();
     fetchFavorites();
+    fetchVisitBookings();
+    
+    // Subscribe to real-time visit updates
+    const channel = supabase
+      .channel('buyer-visit-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'visit_bookings'
+        },
+        (payload) => {
+          console.log('Visit booking updated:', payload);
+          fetchVisitBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -98,6 +121,22 @@ const BuyerDashboard = () => {
       if (data) {
         // property_id is UUID (string), convert to number for properties table
         setFavorites(data.map(f => parseInt(f.property_id) || 0).filter(id => id > 0));
+      }
+    }
+  };
+
+  const fetchVisitBookings = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("visit_bookings")
+        .select("*, properties(title, locality, city)")
+        .eq("user_id", user.id)
+        .order("visit_date", { ascending: true })
+        .limit(3);
+      
+      if (data) {
+        setVisitBookings(data);
       }
     }
   };
