@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MapPin, Clock, User, Car, QrCode, Shield, Navigation as NavIcon } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface VisitBooking {
   id: string;
@@ -40,8 +42,8 @@ const LiveVisitTracking = () => {
   const [booking, setBooking] = useState<VisitBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<{ property?: mapboxgl.Marker; agent?: mapboxgl.Marker; vehicle?: mapboxgl.Marker }>({});
 
   useEffect(() => {
     if (!bookingId) {
@@ -93,8 +95,9 @@ const LiveVisitTracking = () => {
         },
         (payload) => {
           console.log('Visit updated:', payload);
-          setBooking(prev => ({ ...prev, ...payload.new } as VisitBooking));
-          updateMapMarkers(payload.new);
+          const updatedBooking = { ...booking, ...payload.new } as VisitBooking;
+          setBooking(updatedBooking);
+          updateMapMarkers(updatedBooking);
         }
       )
       .subscribe();
@@ -105,106 +108,97 @@ const LiveVisitTracking = () => {
   };
 
   const initializeMap = () => {
-    if (!mapRef.current || !booking?.properties) return;
-
-    const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-    
-    if (!googleMapsApiKey) {
-      console.warn("Google Maps API key not configured");
+    if (!mapRef.current || !booking?.properties?.lat || !booking?.properties?.lng) {
+      console.warn("Map container or property coordinates not available");
       return;
     }
 
-    // Load Google Maps script if not already loaded
-    if (!(window as any).google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}`;
-      script.async = true;
-      script.onload = () => renderMap();
-      document.head.appendChild(script);
-    } else {
-      renderMap();
+    // Clean up existing map
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
-  };
 
-  const renderMap = () => {
-    if (!booking?.properties?.lat || !booking?.properties?.lng) return;
+    // Set Mapbox access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZS1hcHAiLCJhIjoiY20zMGhtd3lkMDdxbTJrc2xtamZ1aWV5biJ9.BO5BcDBK4N0Jqy7yF2ex8A';
 
-    const google = (window as any).google;
-    const map = new google.maps.Map(mapRef.current, {
-      center: { lat: booking.properties.lat, lng: booking.properties.lng },
-      zoom: 14,
-      styles: [
-        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] }
-      ]
+    // Initialize map
+    const map = new mapboxgl.Map({
+      container: mapRef.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [booking.properties.lng, booking.properties.lat],
+      zoom: 14
     });
 
-    googleMapRef.current = map;
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    mapInstanceRef.current = map;
 
-    // Add property marker
-    const propertyMarker = new google.maps.Marker({
-      position: { lat: booking.properties.lat, lng: booking.properties.lng },
-      map,
-      title: booking.properties.title,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#10b981",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 2
-      }
+    map.on('load', () => {
+      updateMapMarkers(booking);
     });
-
-    markersRef.current.push(propertyMarker);
-    updateMapMarkers(booking);
   };
 
-  const updateMapMarkers = (data: any) => {
-    if (!googleMapRef.current) return;
+  const updateMapMarkers = (data: VisitBooking) => {
+    if (!mapInstanceRef.current || !data.properties?.lat || !data.properties?.lng) return;
 
-    const google = (window as any).google;
+    // Remove existing markers
+    Object.values(markersRef.current).forEach(marker => marker?.remove());
+    markersRef.current = {};
 
-    // Clear old agent/vehicle markers (keep property marker)
-    markersRef.current.slice(1).forEach(marker => marker.setMap(null));
-    markersRef.current = [markersRef.current[0]];
+    // Add property marker (destination)
+    const propertyMarker = new mapboxgl.Marker({ color: '#10b981' })
+      .setLngLat([data.properties.lng, data.properties.lat])
+      .setPopup(new mapboxgl.Popup().setHTML(`
+        <div class="p-2">
+          <strong>${data.properties.title}</strong><br/>
+          <span class="text-sm">${data.properties.locality}, ${data.properties.city}</span>
+        </div>
+      `))
+      .addTo(mapInstanceRef.current);
+    
+    markersRef.current.property = propertyMarker;
 
     // Add agent marker if location exists
     if (data.agent_location?.lat && data.agent_location?.lng) {
-      const agentMarker = new google.maps.Marker({
-        position: { lat: data.agent_location.lat, lng: data.agent_location.lng },
-        map: googleMapRef.current,
-        title: "Agent Location",
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#3b82f6",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2
-        }
-      });
-      markersRef.current.push(agentMarker);
+      const agentMarker = new mapboxgl.Marker({ color: '#3b82f6' })
+        .setLngLat([data.agent_location.lng, data.agent_location.lat])
+        .setPopup(new mapboxgl.Popup().setHTML(`
+          <div class="p-2">
+            <strong>Agent Location</strong><br/>
+            <span class="text-sm">Last updated: ${new Date(data.agent_location.updated_at || '').toLocaleTimeString()}</span>
+          </div>
+        `))
+        .addTo(mapInstanceRef.current);
+      
+      markersRef.current.agent = agentMarker;
     }
 
     // Add vehicle marker if location exists
     if (data.vehicle_location?.lat && data.vehicle_location?.lng) {
-      const vehicleMarker = new google.maps.Marker({
-        position: { lat: data.vehicle_location.lat, lng: data.vehicle_location.lng },
-        map: googleMapRef.current,
-        title: "Vehicle Location",
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#f59e0b",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2
-        }
-      });
-      markersRef.current.push(vehicleMarker);
+      const vehicleMarker = new mapboxgl.Marker({ color: '#f59e0b' })
+        .setLngLat([data.vehicle_location.lng, data.vehicle_location.lat])
+        .setPopup(new mapboxgl.Popup().setHTML(`
+          <div class="p-2">
+            <strong>Vehicle Location</strong><br/>
+            <span class="text-sm">Last updated: ${new Date(data.vehicle_location.updated_at || '').toLocaleTimeString()}</span>
+          </div>
+        `))
+        .addTo(mapInstanceRef.current);
+      
+      markersRef.current.vehicle = vehicleMarker;
     }
+
+    // Fit bounds to show all markers
+    const bounds = new mapboxgl.LngLatBounds();
+    bounds.extend([data.properties.lng, data.properties.lat]);
+    if (data.agent_location?.lng && data.agent_location?.lat) {
+      bounds.extend([data.agent_location.lng, data.agent_location.lat]);
+    }
+    if (data.vehicle_location?.lng && data.vehicle_location?.lat) {
+      bounds.extend([data.vehicle_location.lng, data.vehicle_location.lat]);
+    }
+    
+    mapInstanceRef.current.fitBounds(bounds, { padding: 50, maxZoom: 15 });
   };
 
   const getStatusColor = (status: string) => {
