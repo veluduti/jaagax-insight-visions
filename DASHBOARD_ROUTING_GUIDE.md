@@ -1,5 +1,35 @@
 # JaagaX Dashboard Routing & Functionality Guide
 
+## 🔧 Recent Fixes (November 2025)
+
+### Authentication Navigation Fixed
+**Issue:** Navigation bar always showed "Sign up or Log in" even when users were authenticated.
+
+**Solution:**
+- Navigation now conditionally shows:
+  - **"Dashboard"** button when logged in → redirects to role-specific dashboard
+  - **"Sign up or Log in"** button when logged out
+- Both desktop and mobile navigation updated
+
+### Sidebar Menu Enhanced
+**New Features:**
+- User profile section with:
+  - Avatar with email initials
+  - Email display
+  - Role badge (buyer/agent/builder/admin)
+- Quick access buttons:
+  - **Dashboard** - Direct link to role dashboard
+  - **My Visits** - Access visit management
+- **Sign Out** button with proper logout flow
+
+### Security Enhancement
+**Admin Role Protection:**
+- Removed "admin" from public signup role selection
+- Admin roles can now only be assigned directly in the database
+- Prevents privilege escalation attacks
+
+---
+
 ## Overview
 JaagaX uses role-based routing to provide tailored dashboards for different user types. Each user is assigned a role upon signup, and the system automatically redirects them to their appropriate dashboard.
 

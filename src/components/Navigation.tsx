@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { session, role: userRole } = useAuth();
+  const { session, role } = useAuth();
 
   const navLinks = [
     { label: "Find My Agent", path: "/agents" },
@@ -72,14 +72,25 @@ const Navigation = () => {
               {session && <NotificationBell />}
               <SidebarMenu />
 
-              <Button 
-                onClick={() => navigate("/auth")} 
-                variant="outline"
-                size="sm"
-                className="text-sm"
-              >
-                Sign up or Log in
-              </Button>
+              {session ? (
+                <Button 
+                  onClick={() => navigate(`/dashboard/${role || 'buyer'}`)} 
+                  variant="default"
+                  size="sm"
+                  className="text-sm"
+                >
+                  Dashboard
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => navigate("/auth")} 
+                  variant="outline"
+                  size="sm"
+                  className="text-sm"
+                >
+                  Sign up or Log in
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -102,9 +113,23 @@ const Navigation = () => {
               {session && <NotificationBell />}
               <SidebarMenu />
               
-              <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
-                Sign In
-              </Button>
+              {session ? (
+                <Button 
+                  onClick={() => navigate(`/dashboard/${role || 'buyer'}`)} 
+                  variant="ghost" 
+                  size="sm"
+                >
+                  Dashboard
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => navigate("/auth")} 
+                  variant="ghost" 
+                  size="sm"
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
