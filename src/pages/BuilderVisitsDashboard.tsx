@@ -45,17 +45,35 @@ const BuilderVisitsDashboard = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    // Auth check removed for testing
     if (activeTab === "pending") {
       fetchPendingVisits();
     } else {
       fetchCompletedVisits();
     }
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   const fetchPendingVisits = async () => {
     try {
-      // FOR TESTING: Show all pending visit requests
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Get builder's properties first
+      const { data: builderProperties } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("submitted_by", user.id);
+
+      const propertyIds = builderProperties?.map(p => p.id) || [];
+
+      if (propertyIds.length === 0) {
+        setVisits([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch visits for builder's properties
       const { data, error } = await supabase
         .from("visit_bookings")
         .select(`
@@ -63,6 +81,7 @@ const BuilderVisitsDashboard = () => {
           properties (title, locality, city),
           agents (name)
         `)
+        .in("property_id", propertyIds)
         .eq("status", "pending_approval")
         .order("visit_date", { ascending: true });
 
@@ -79,6 +98,26 @@ const BuilderVisitsDashboard = () => {
   const fetchCompletedVisits = async () => {
     setLoading(true);
     try {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // Get builder's properties first
+      const { data: builderProperties } = await supabase
+        .from("properties")
+        .select("id")
+        .eq("submitted_by", user.id);
+
+      const propertyIds = builderProperties?.map(p => p.id) || [];
+
+      if (propertyIds.length === 0) {
+        setCompletedVisits([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch completed visits for builder's properties
       const { data, error } = await supabase
         .from("visit_bookings")
         .select(`
@@ -95,6 +134,7 @@ const BuilderVisitsDashboard = () => {
             photo_urls
           )
         `)
+        .in("property_id", propertyIds)
         .eq("status", "completed")
         .order("completed_at", { ascending: false });
 
