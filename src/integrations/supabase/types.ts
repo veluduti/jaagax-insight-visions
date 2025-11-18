@@ -1582,6 +1582,7 @@ export type Database = {
           agent_location: Json | null
           builder_id: number | null
           builder_notes: string | null
+          completed_at: string | null
           created_at: string | null
           id: string
           optimized_route: Json | null
@@ -1612,6 +1613,7 @@ export type Database = {
           agent_location?: Json | null
           builder_id?: number | null
           builder_notes?: string | null
+          completed_at?: string | null
           created_at?: string | null
           id?: string
           optimized_route?: Json | null
@@ -1642,6 +1644,7 @@ export type Database = {
           agent_location?: Json | null
           builder_id?: number | null
           builder_notes?: string | null
+          completed_at?: string | null
           created_at?: string | null
           id?: string
           optimized_route?: Json | null
@@ -1699,6 +1702,7 @@ export type Database = {
           created_at: string | null
           feedback: string | null
           id: string
+          photo_urls: string[] | null
           property_rating: number | null
           rating: number | null
           service_rating: number | null
@@ -1711,6 +1715,7 @@ export type Database = {
           created_at?: string | null
           feedback?: string | null
           id?: string
+          photo_urls?: string[] | null
           property_rating?: number | null
           rating?: number | null
           service_rating?: number | null
@@ -1723,6 +1728,7 @@ export type Database = {
           created_at?: string | null
           feedback?: string | null
           id?: string
+          photo_urls?: string[] | null
           property_rating?: number | null
           rating?: number | null
           service_rating?: number | null

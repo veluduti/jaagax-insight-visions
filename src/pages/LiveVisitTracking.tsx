@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { MapPin, Navigation2, Clock, User, Phone, AlertCircle, ArrowLeft, Share2, Car, QrCode, Shield, Navigation as NavIcon } from "lucide-react";
+import { MapPin, Navigation2, Clock, User, Phone, AlertCircle, ArrowLeft, Share2, Car, QrCode, Shield, Navigation as NavIcon, Star } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -36,11 +36,14 @@ interface VisitBooking {
   } | null;
 }
 
+import { VisitFeedbackModal } from "@/components/visit/VisitFeedbackModal";
+
 const LiveVisitTracking = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<VisitBooking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ property?: mapboxgl.Marker; agent?: mapboxgl.Marker; vehicle?: mapboxgl.Marker }>({});
@@ -274,12 +277,65 @@ const LiveVisitTracking = () => {
               toast.success("Tracking link copied to clipboard!");
             }}
           >
-            <Share2 className="w-4 w-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             Share Link
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Mobile-optimized layout */}
+        <div className="space-y-6 lg:hidden">
+          {/* Mobile Visit Status Card */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-lg">{booking.properties?.title}</h3>
+              <Badge variant={getStatusColor(booking.status)}>
+                {getStatusText(booking.status)}
+              </Badge>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <span>{new Date(booking.visit_date).toLocaleDateString()} at {booking.visit_time}</span>
+              </div>
+              {booking.agents && (
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary" />
+                  <span>{booking.agents.name}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Mobile Map */}
+          <Card className="p-0 overflow-hidden">
+            <div 
+              ref={mapRef} 
+              className="w-full h-[60vh] rounded-lg"
+            />
+          </Card>
+
+          {/* Mobile Location Status */}
+          {(booking.agent_location || booking.vehicle_location) && (
+            <Card className="p-4">
+              <h4 className="font-semibold mb-3">Live Location</h4>
+              {booking.agent_location && (
+                <div className="flex items-center gap-2 text-sm mb-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span>Agent on the way</span>
+                </div>
+              )}
+              {booking.vehicle_location && (
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <span>Vehicle tracking active</span>
+                </div>
+              )}
+            </Card>
+          )}
+        </div>
+
+        {/* Desktop layout */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-6">
           {/* Left Column - Visit Details */}
           <div className="lg:col-span-1 space-y-6">
             <Card className="p-6">
@@ -319,22 +375,29 @@ const LiveVisitTracking = () => {
 
             {/* Quick Actions */}
             <Card className="p-4 mb-4">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1"
                   onClick={() => navigate(`/visit/story/${bookingId}`)}
                 >
                   📸 View Story
                 </Button>
                 {booking.status === 'completed' && (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => navigate(`/visit/summary/${bookingId}`)}
-                  >
-                    ✨ AI Summary
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/visit/summary/${bookingId}`)}
+                    >
+                      ✨ AI Summary
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={() => setFeedbackModalOpen(true)}
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      Rate Visit
+                    </Button>
+                  </>
                 )}
               </div>
             </Card>
@@ -412,6 +475,13 @@ const LiveVisitTracking = () => {
           </div>
         </div>
       </div>
+
+      <VisitFeedbackModal
+        open={feedbackModalOpen}
+        onOpenChange={setFeedbackModalOpen}
+        bookingId={bookingId || ""}
+        onSuccess={fetchBooking}
+      />
 
       <Footer />
     </div>

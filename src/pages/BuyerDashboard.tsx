@@ -261,10 +261,10 @@ const BuyerDashboard = () => {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/visit/manage")}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/visit/analytics")}>
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">My Visits</h3>
+                <h3 className="font-semibold">Visit Analytics</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -563,7 +563,20 @@ const BuyerDashboard = () => {
                     <Button onClick={() => navigate("/map")}>Browse Properties</Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {visitBookings.length} recent visits
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate("/visit/analytics")}
+                      >
+                        View All Analytics →
+                      </Button>
+                    </div>
+                    <div className="space-y-4">
                     {visitBookings.map((visit: any) => {
                       const trackingUrl = `${window.location.origin}/visit/live/${visit.id}`;
                       const copyTrackingLink = () => {
@@ -616,6 +629,20 @@ const BuyerDashboard = () => {
                               <MapPin className="h-4 w-4 mr-1" />
                               Track Live
                             </Button>
+                            {visit.status === 'completed' && !visit.visit_feedback?.length && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  // Open feedback modal
+                                  const modal = document.createElement('div');
+                                  modal.setAttribute('data-feedback-booking', visit.id);
+                                  document.body.appendChild(modal);
+                                }}
+                              >
+                                Rate Visit
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"
@@ -629,6 +656,7 @@ const BuyerDashboard = () => {
                       );
                     })}
                   </div>
+                  </>
                 )}
               </CardContent>
             </Card>

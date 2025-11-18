@@ -47,6 +47,7 @@ import VisitVerify from "./pages/VisitVerify";
 import AgentLocationShare from "./pages/AgentLocationShare";
 import VisitStory from "./pages/VisitStory";
 import VisitSummary from "./pages/VisitSummary";
+import VisitAnalytics from "./pages/VisitAnalytics";
 import AgentStoryUpload from "./pages/AgentStoryUpload";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -99,6 +100,7 @@ const App = () => (
           <Route path="/visit/story/:bookingId" element={<VisitStory />} />
           <Route path="/visit/summary/:bookingId" element={<VisitSummary />} />
           <Route path="/visit/verify" element={<VisitVerify />} />
+          <Route path="/visit/analytics" element={<VisitAnalytics />} />
           <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
           <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
           
