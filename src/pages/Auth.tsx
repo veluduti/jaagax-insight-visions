@@ -55,6 +55,9 @@ export default function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp, user, redirectToDashboard } = useAuth();
 
+  // Only allow buyer, agent, and builder roles for public signup
+  const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
+
   useEffect(() => {
     if (user) {
       redirectToDashboard();
@@ -259,7 +262,7 @@ export default function Auth() {
                     <div className="space-y-3">
                       <Label>I am a</Label>
                       <div className="grid grid-cols-2 gap-3">
-                        {(Object.keys(roleConfig) as UserRole[]).map((role) => {
+                        {allowedSignupRoles.map((role) => {
                           const config = roleConfig[role];
                           const Icon = config.icon;
                           return (
