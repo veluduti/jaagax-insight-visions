@@ -49,29 +49,7 @@ const BuilderVisitsDashboard = () => {
 
   const fetchPendingVisits = async () => {
     try {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // First, get properties submitted by this builder
-      const { data: builderProperties, error: propsError } = await supabase
-        .from("properties")
-        .select("id")
-        .eq("submitted_by", user.id);
-
-      if (propsError) throw propsError;
-
-      const propertyIds = builderProperties?.map(p => p.id) || [];
-
-      // If no properties, no visits to show
-      if (propertyIds.length === 0) {
-        setVisits([]);
-        setLoading(false);
-        return;
-      }
-
-      // Now fetch visit bookings for these properties
+      // FOR TESTING: Show all pending visit requests
       const { data, error } = await supabase
         .from("visit_bookings")
         .select(`
@@ -80,7 +58,6 @@ const BuilderVisitsDashboard = () => {
           agents (name)
         `)
         .eq("status", "pending_approval")
-        .in("property_id", propertyIds)
         .order("visit_date", { ascending: true });
 
       if (error) throw error;
