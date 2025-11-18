@@ -98,7 +98,7 @@ const AgentVisitsDashboard = () => {
         .order("visit_time", { ascending: true });
 
       if (filter === "upcoming") {
-        query = query.in("status", ["confirmed", "agent_pending", "builder_pending"]);
+        query = query.in("status", ["confirmed", "pending_approval"]);
       } else if (filter === "completed") {
         query = query.in("status", ["completed", "cancelled"]);
       }
@@ -118,8 +118,7 @@ const AgentVisitsDashboard = () => {
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       confirmed: "bg-primary text-primary-foreground",
-      agent_pending: "bg-yellow-500 text-white",
-      builder_pending: "bg-orange-500 text-white",
+      pending_approval: "bg-yellow-500 text-white",
       in_progress: "bg-blue-500 text-white",
       completed: "bg-green-500 text-white",
       cancelled: "bg-destructive text-destructive-foreground",
