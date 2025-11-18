@@ -30,9 +30,25 @@ interface Project {
   trust_score: number;
 }
 
+interface Property {
+  id: number;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  area: number;
+  bhk: number;
+  type: string;
+  images: string[];
+  verified: boolean;
+  verification_status: string;
+  submitted_at: string;
+}
+
 export default function BuilderDashboard() {
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [forecast, setForecast] = useState<any>(null);
@@ -57,6 +73,7 @@ export default function BuilderDashboard() {
   useEffect(() => {
     fetchUser();
     fetchProjects();
+    fetchProperties();
     fetchPerformanceData();
   }, []);
 
@@ -96,6 +113,26 @@ export default function BuilderDashboard() {
       if (data.length > 0 && !selectedProject) {
         fetchProjectForecast(data[0]);
       }
+    }
+  };
+
+  const fetchProperties = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("submitted_by", user.id)
+      .order("submitted_at", { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching properties:", error);
+      return;
+    }
+
+    if (data) {
+      setProperties(data);
     }
   };
 
@@ -317,14 +354,89 @@ export default function BuilderDashboard() {
                 <CardDescription>Properties you've submitted for verification</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Properties will appear here after submission</p>
+                {properties.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
+                    <p className="text-muted-foreground mb-4">Start by adding your first property</p>
+                    <Button onClick={() => setActiveTab("add-property")}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Property
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {properties.map((property) => (
+                      <motion.div
+                        key={property.id}
+                        whileHover={{ y: -5 }}
+                        className="cursor-pointer"
+                        onClick={() => navigate(`/property/${property.id}`)}
+                      >
+                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
+                          <div className="relative">
+                            <img
+                              src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                              alt={property.title}
+                              className="w-full h-48 object-cover"
+                            />
+                            {property.verification_status === 'approved' && property.verified ? (
+                              <Badge className="absolute top-2 right-2 bg-green-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Approved
+                              </Badge>
+                            ) : property.verification_status === 'rejected' ? (
+                              <Badge className="absolute top-2 right-2 bg-red-600">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Rejected
+                              </Badge>
+                            ) : (
+                              <Badge className="absolute top-2 right-2 bg-orange-500">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+                              {property.title}
+                            </h3>
+                            <div className="flex items-center text-sm text-muted-foreground mb-2">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {property.locality}, {property.city}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Price</p>
+                                <p className="font-bold text-primary">
+                                  ₹{(property.price / 10000000).toFixed(2)} Cr
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Config</p>
+                                <p className="font-semibold">{property.bhk} BHK</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Area</p>
+                                <p className="font-semibold">{property.area} sq.ft</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Add Property Tab */}
           <TabsContent value="add-property" className="space-y-6">
-            <PropertyUploadForm onSuccess={fetchProjects} />
+            <PropertyUploadForm onSuccess={() => {
+              fetchProjects();
+              fetchProperties();
+            }} />
           </TabsContent>
 
           {/* Projects */}
