@@ -83,12 +83,16 @@ export default function VerificationPanel() {
 
       if (error) throw error;
 
+      // Immediately remove from local state for instant UI update
+      setProperties(prev => prev.filter(p => p.id !== propertyId));
+
       toast.success(
         status === "approved"
           ? "Property approved and listed!"
           : "Property rejected"
       );
       
+      // Refetch to ensure consistency
       fetchPendingSubmissions();
     } catch (error: any) {
       toast.error(error.message || "Failed to update property");
@@ -110,12 +114,16 @@ export default function VerificationPanel() {
 
       if (error) throw error;
 
+      // Immediately remove from local state for instant UI update
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+
       toast.success(
         status === "approved"
           ? "Project approved and listed!"
           : "Project rejected"
       );
       
+      // Refetch to ensure consistency
       fetchPendingSubmissions();
     } catch (error: any) {
       toast.error(error.message || "Failed to update project");
