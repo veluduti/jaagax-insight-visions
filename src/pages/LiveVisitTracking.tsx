@@ -44,7 +44,8 @@ const LiveVisitTracking = () => {
   const [booking, setBooking] = useState<VisitBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mobileMapRef = useRef<HTMLDivElement>(null);
+  const desktopMapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<{ property?: mapboxgl.Marker; agent?: mapboxgl.Marker; vehicle?: mapboxgl.Marker }>({});
 
@@ -61,6 +62,16 @@ const LiveVisitTracking = () => {
     if (booking?.properties?.lat && booking?.properties?.lng) {
       initializeMap();
     }
+    
+    // Handle window resize to reinitialize map for correct container
+    const handleResize = () => {
+      if (booking?.properties?.lat && booking?.properties?.lng) {
+        initializeMap();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [booking]);
 
   const fetchBooking = async () => {
@@ -111,7 +122,11 @@ const LiveVisitTracking = () => {
   };
 
   const initializeMap = () => {
-    if (!mapRef.current || !booking?.properties?.lat || !booking?.properties?.lng) {
+    // Determine which container to use based on viewport
+    const isMobile = window.innerWidth < 1024;
+    const container = isMobile ? mobileMapRef.current : desktopMapRef.current;
+    
+    if (!container || !booking?.properties?.lat || !booking?.properties?.lng) {
       console.warn("Map container or property coordinates not available");
       return;
     }
@@ -122,12 +137,20 @@ const LiveVisitTracking = () => {
       mapInstanceRef.current = null;
     }
 
-    // Set Mapbox access token
-    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZS1hcHAiLCJhIjoiY20zMGhtd3lkMDdxbTJrc2xtamZ1aWV5biJ9.BO5BcDBK4N0Jqy7yF2ex8A';
+    // Set Mapbox access token from environment variable
+    const mapboxToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
+    
+    if (!mapboxToken) {
+      console.error("Mapbox token not found in environment variables");
+      toast.error("Map configuration error");
+      return;
+    }
+    
+    mapboxgl.accessToken = mapboxToken;
 
     // Initialize map
     const map = new mapboxgl.Map({
-      container: mapRef.current,
+      container: container,
       style: 'mapbox://styles/mapbox/dark-v11',
       center: [booking.properties.lng, booking.properties.lat],
       zoom: 14
@@ -309,8 +332,9 @@ const LiveVisitTracking = () => {
           {/* Mobile Map */}
           <Card className="p-0 overflow-hidden">
             <div 
-              ref={mapRef} 
+              ref={mobileMapRef} 
               className="w-full h-[60vh] rounded-lg"
+              style={{ minHeight: '400px' }}
             />
           </Card>
 
@@ -464,7 +488,11 @@ const LiveVisitTracking = () => {
                 </div>
               </div>
 
-              <div ref={mapRef} className="flex-1 rounded-lg bg-muted" />
+              <div 
+                ref={desktopMapRef} 
+                className="flex-1 rounded-lg bg-muted" 
+                style={{ minHeight: '500px' }}
+              />
 
               {!booking.agent_location && (
                 <div className="mt-4 text-center text-sm text-muted-foreground">
