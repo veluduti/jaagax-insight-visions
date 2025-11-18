@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { 
   Users, MessageSquare, TrendingUp, LogOut, Building2, 
   Home, Phone, Mail, MapPin, Award, Star, CheckCircle2,
-  Eye, Heart, Calendar, BarChart3
+  Eye, Heart, Calendar, BarChart3, Navigation as NavigationIcon,
+  Clock, MapPinned, Route
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -53,11 +54,41 @@ export default function AgentDashboard() {
     viewsThisMonth: 0,
     savedByUsers: 0,
   });
+  const [visitStats, setVisitStats] = useState({
+    upcomingVisits: 0,
+    completedVisits: 0,
+    pendingApprovals: 0,
+    totalVisits: 0,
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUserAndProfile();
   }, []);
+
+  const fetchVisitStats = async (agentId: number) => {
+    try {
+      const { data: visits } = await supabase
+        .from("visit_bookings")
+        .select("status")
+        .eq("agent_id", agentId);
+
+      if (visits) {
+        setVisitStats({
+          upcomingVisits: visits.filter(v => 
+            ["confirmed", "agent_pending", "builder_pending"].includes(v.status)
+          ).length,
+          completedVisits: visits.filter(v => v.status === "completed").length,
+          pendingApprovals: visits.filter(v => 
+            v.status === "agent_pending"
+          ).length,
+          totalVisits: visits.length,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching visit stats:", error);
+    }
+  };
 
   const fetchUserAndProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -96,6 +127,7 @@ export default function AgentDashboard() {
 
     setAgentProfile(agentData);
     fetchAgentProperties(agentData.id);
+    fetchVisitStats(agentData.id);
   };
 
   const fetchAgentProperties = async (agentId: number) => {
@@ -242,10 +274,10 @@ export default function AgentDashboard() {
                 </Badge>
               </div>
 
-              <div className="flex gap-2">
-                <Button>
-                  <Phone className="h-4 w-4 mr-2" />
-                  Contact
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => navigate("/dashboard/agent/visits")}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  My Visits
                 </Button>
                 <Button variant="outline" onClick={() => navigate(`/agent/${agentProfile.id}`)}>
                   <Eye className="h-4 w-4 mr-2" />
@@ -254,6 +286,76 @@ export default function AgentDashboard() {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Quick Actions for Visits */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <Card className="glass-panel border-primary/30">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    Visit Management
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Manage your property visits and schedules
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => navigate("/dashboard/agent/visits")}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  View All Visits
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{visitStats.upcomingVisits}</p>
+                    <p className="text-xs text-muted-foreground">Upcoming</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-500/5 rounded-lg">
+                  <div className="p-2 bg-green-500/10 rounded-full">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{visitStats.completedVisits}</p>
+                    <p className="text-xs text-muted-foreground">Completed</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-yellow-500/5 rounded-lg">
+                  <div className="p-2 bg-yellow-500/10 rounded-full">
+                    <Calendar className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{visitStats.pendingApprovals}</p>
+                    <p className="text-xs text-muted-foreground">Pending</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-blue-500/5 rounded-lg">
+                  <div className="p-2 bg-blue-500/10 rounded-full">
+                    <Route className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{visitStats.totalVisits}</p>
+                    <p className="text-xs text-muted-foreground">Total</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Stats Cards */}
