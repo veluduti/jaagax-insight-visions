@@ -91,9 +91,6 @@ export default function VerificationPanel() {
           ? "Property approved and listed!"
           : "Property rejected"
       );
-      
-      // Refetch to ensure consistency
-      fetchPendingSubmissions();
     } catch (error: any) {
       toast.error(error.message || "Failed to update property");
     }
@@ -122,9 +119,6 @@ export default function VerificationPanel() {
           ? "Project approved and listed!"
           : "Project rejected"
       );
-      
-      // Refetch to ensure consistency
-      fetchPendingSubmissions();
     } catch (error: any) {
       toast.error(error.message || "Failed to update project");
     }
