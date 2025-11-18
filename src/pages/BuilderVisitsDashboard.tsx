@@ -215,6 +215,29 @@ const BuilderVisitsDashboard = () => {
                   </div>
                 )}
 
+                {/* Tracking Link */}
+                <div className="mb-4 p-3 bg-primary/5 rounded-lg">
+                  <p className="text-sm font-medium mb-2">Live Tracking Link:</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/visit/live/${visit.id}`}
+                      className="flex-1 px-3 py-2 text-xs bg-background rounded-md border"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/visit/live/${visit.id}`);
+                        toast.success("Tracking link copied!");
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
                 {selectedVisit === visit.id ? (
                   <div className="space-y-4 mt-4 pt-4 border-t">
                     <div>
