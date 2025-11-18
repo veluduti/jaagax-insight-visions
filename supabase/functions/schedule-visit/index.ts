@@ -44,6 +44,34 @@ serve(async (req) => {
 
     const builderId = property?.builder_id || null;
 
+    // Auto-assign agent if not provided
+    let agentId = bookingData.agentId;
+    if (bookingData.autoAssign && !agentId) {
+      // Get property details for location-based agent matching
+      const { data: propertyDetails } = await supabase
+        .from('properties')
+        .select('city, locality')
+        .eq('id', bookingData.propertyId)
+        .single();
+
+      // Find best available agent based on location and trust score
+      let agentQuery = supabase
+        .from('agents')
+        .select('id')
+        .eq('verified', true)
+        .order('trust_score', { ascending: false });
+
+      // Prefer agents who serve this locality/city
+      if (propertyDetails?.locality) {
+        agentQuery = agentQuery.ilike('cities_served', `%${propertyDetails.locality}%`);
+      } else if (propertyDetails?.city) {
+        agentQuery = agentQuery.ilike('cities_served', `%${propertyDetails.city}%`);
+      }
+
+      const { data: agent } = await agentQuery.limit(1).single();
+      agentId = agent?.id || null;
+    }
+
     // Assign vehicle if travel mode is not 'self'
     let vehicleId = null;
     if (bookingData.travelMode !== 'self') {
@@ -71,7 +99,7 @@ serve(async (req) => {
       .insert({
         user_id: bookingData.userId,
         property_id: bookingData.propertyId,
-        agent_id: bookingData.agentId,
+        agent_id: agentId,
         visit_date: bookingData.visitDate,
         visit_time: bookingData.visitTime,
         travel_mode: bookingData.travelMode,
