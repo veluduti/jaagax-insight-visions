@@ -32,6 +32,7 @@ interface Agent {
   agency_name: string;
   sales_count: number;
   cities_served: string;
+  languages: string;
 }
 
 interface VisitSchedulingWizardProps {
@@ -114,38 +115,56 @@ export const VisitSchedulingWizard = ({
   const fetchAvailableAgents = async () => {
     setLoading(true);
     try {
-      // First try to find agents by city (more common match)
-      let query = supabase
-        .from('agents')
-        .select('*')
-        .eq('verified', true)
-        .order('trust_score', { ascending: false });
+      let agents: Agent[] = [];
 
-      // Filter by city for better matching
+      // Strategy 1: Try to match by city first
       if (city) {
-        query = query.ilike('cities_served', `%${city}%`);
-      }
+        const { data, error } = await supabase
+          .from('agents')
+          .select('*')
+          .eq('verified', true)
+          .ilike('cities_served', `%${city}%`)
+          .order('trust_score', { ascending: false })
+          .limit(10);
 
-      const { data, error } = await query.limit(10);
-
-      if (error) {
-        console.error('Error fetching agents:', error);
-        toast.error('Failed to load agents');
-      } else {
-        // If no agents found with city filter, try without filter
-        if (data && data.length === 0 && city) {
-          const { data: allAgents } = await supabase
-            .from('agents')
-            .select('*')
-            .eq('verified', true)
-            .order('trust_score', { ascending: false })
-            .limit(10);
-          
-          setAvailableAgents(allAgents || []);
-        } else {
-          setAvailableAgents(data || []);
+        if (!error && data && data.length > 0) {
+          agents = data;
         }
       }
+
+      // Strategy 2: If no city match, try locality
+      if (agents.length === 0 && locality) {
+        const { data, error } = await supabase
+          .from('agents')
+          .select('*')
+          .eq('verified', true)
+          .ilike('cities_served', `%${locality}%`)
+          .order('trust_score', { ascending: false })
+          .limit(10);
+
+        if (!error && data && data.length > 0) {
+          agents = data;
+        }
+      }
+
+      // Strategy 3: Fallback to all agents if no location match
+      if (agents.length === 0) {
+        const { data, error } = await supabase
+          .from('agents')
+          .select('*')
+          .eq('verified', true)
+          .order('trust_score', { ascending: false })
+          .limit(10);
+
+        if (!error && data) {
+          agents = data;
+        }
+      }
+
+      setAvailableAgents(agents);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      toast.error('Failed to load agents');
     } finally {
       setLoading(false);
     }
@@ -425,58 +444,58 @@ export const VisitSchedulingWizard = ({
                   </Button>
                 </div>
 
-                {!autoAssign && (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-4">Or choose your preferred agent:</p>
-                    {loading ? (
-                      <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
-                        ))}
-                      </div>
-                    ) : availableAgents.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">
-                        No agents available for this location
-                      </p>
-                    ) : (
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {availableAgents.map((agent) => (
-                          <button
-                            key={agent.id}
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setAutoAssign(false);
-                            }}
-                            className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                              selectedAgent?.id === agent.id
-                                ? 'border-primary bg-primary/10'
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-4">
-                              <img
-                                src={agent.photo_url}
-                                alt={agent.name}
-                                className="w-16 h-16 rounded-full object-cover"
-                              />
-                              <div className="flex-1">
-                                <div className="font-semibold">{agent.name}</div>
-                                <div className="text-sm text-muted-foreground">{agent.agency_name}</div>
-                                <div className="flex items-center gap-3 mt-1">
-                                  <Badge variant="secondary" className="text-xs">
-                                    Trust: {agent.trust_score}/100
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground">
-                                    {agent.sales_count} sales
-                                  </span>
-                                </div>
-                              </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {autoAssign ? 'Preview available agents:' : 'Or choose your preferred agent:'}
+                </p>
+                
+                {loading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {availableAgents.map((agent) => (
+                      <button
+                        key={agent.id}
+                        onClick={() => {
+                          setSelectedAgent(agent);
+                          setAutoAssign(false);
+                        }}
+                        className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                          selectedAgent?.id === agent.id
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={agent.photo_url}
+                            alt={agent.name}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <div className="font-semibold">{agent.name}</div>
+                            <div className="text-sm text-muted-foreground">{agent.agency_name}</div>
+                            <div className="flex items-center flex-wrap gap-2 mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Trust: {agent.trust_score}/100
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {agent.sales_count} sales
+                              </Badge>
+                              {agent.languages && (
+                                <Badge variant="outline" className="text-xs">
+                                  {agent.languages}
+                                </Badge>
+                              )}
                             </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </Card>
             </div>

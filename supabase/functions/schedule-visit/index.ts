@@ -54,21 +54,46 @@ serve(async (req) => {
         .eq('id', bookingData.propertyId)
         .single();
 
-      // Find best available agent based on location and trust score
-      let agentQuery = supabase
-        .from('agents')
-        .select('id')
-        .eq('verified', true)
-        .order('trust_score', { ascending: false });
+      let agent = null;
 
-      // Prefer agents who serve this locality/city
-      if (propertyDetails?.locality) {
-        agentQuery = agentQuery.ilike('cities_served', `%${propertyDetails.locality}%`);
-      } else if (propertyDetails?.city) {
-        agentQuery = agentQuery.ilike('cities_served', `%${propertyDetails.city}%`);
+      // Strategy 1: Try to match by city first (highest priority)
+      if (propertyDetails?.city && !agent) {
+        const { data } = await supabase
+          .from('agents')
+          .select('id')
+          .eq('verified', true)
+          .ilike('cities_served', `%${propertyDetails.city}%`)
+          .order('trust_score', { ascending: false })
+          .limit(1)
+          .single();
+        agent = data;
       }
 
-      const { data: agent } = await agentQuery.limit(1).single();
+      // Strategy 2: Try locality if no city match
+      if (propertyDetails?.locality && !agent) {
+        const { data } = await supabase
+          .from('agents')
+          .select('id')
+          .eq('verified', true)
+          .ilike('cities_served', `%${propertyDetails.locality}%`)
+          .order('trust_score', { ascending: false })
+          .limit(1)
+          .single();
+        agent = data;
+      }
+
+      // Strategy 3: Fallback to any agent with highest trust score
+      if (!agent) {
+        const { data } = await supabase
+          .from('agents')
+          .select('id')
+          .eq('verified', true)
+          .order('trust_score', { ascending: false })
+          .limit(1)
+          .single();
+        agent = data;
+      }
+
       agentId = agent?.id || null;
     }
 
