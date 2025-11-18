@@ -117,12 +117,11 @@ export const VisitSchedulingWizard = ({
     try {
       let agents: Agent[] = [];
 
-      // Strategy 1: Try to match by city first
+      // Strategy 1: Try to match by city first (includes independent agents)
       if (city) {
         const { data, error } = await supabase
           .from('agents')
           .select('*')
-          .eq('verified', true)
           .ilike('cities_served', `%${city}%`)
           .order('trust_score', { ascending: false })
           .limit(10);
@@ -137,7 +136,6 @@ export const VisitSchedulingWizard = ({
         const { data, error } = await supabase
           .from('agents')
           .select('*')
-          .eq('verified', true)
           .ilike('cities_served', `%${locality}%`)
           .order('trust_score', { ascending: false })
           .limit(10);
@@ -152,7 +150,6 @@ export const VisitSchedulingWizard = ({
         const { data, error } = await supabase
           .from('agents')
           .select('*')
-          .eq('verified', true)
           .order('trust_score', { ascending: false })
           .limit(10);
 

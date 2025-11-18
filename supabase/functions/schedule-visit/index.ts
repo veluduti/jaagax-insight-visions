@@ -56,12 +56,11 @@ serve(async (req) => {
 
       let agent = null;
 
-      // Strategy 1: Try to match by city first (highest priority)
+      // Strategy 1: Try to match by city first (highest priority, includes independent agents)
       if (propertyDetails?.city && !agent) {
         const { data } = await supabase
           .from('agents')
           .select('id')
-          .eq('verified', true)
           .ilike('cities_served', `%${propertyDetails.city}%`)
           .order('trust_score', { ascending: false })
           .limit(1)
@@ -69,12 +68,11 @@ serve(async (req) => {
         agent = data;
       }
 
-      // Strategy 2: Try locality if no city match
+      // Strategy 2: Try locality if no city match (includes independent agents)
       if (propertyDetails?.locality && !agent) {
         const { data } = await supabase
           .from('agents')
           .select('id')
-          .eq('verified', true)
           .ilike('cities_served', `%${propertyDetails.locality}%`)
           .order('trust_score', { ascending: false })
           .limit(1)
@@ -82,12 +80,11 @@ serve(async (req) => {
         agent = data;
       }
 
-      // Strategy 3: Fallback to any agent with highest trust score
+      // Strategy 3: Fallback to any agent with highest trust score (includes independent agents)
       if (!agent) {
         const { data } = await supabase
           .from('agents')
           .select('id')
-          .eq('verified', true)
           .order('trust_score', { ascending: false })
           .limit(1)
           .single();
