@@ -107,11 +107,13 @@ const VisitConfirm = () => {
               <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-3xl font-bold mb-2">
-              {booking.status === 'pending_approval' ? 'Visit Requested!' : 'Visit Confirmed!'}
+              {booking.status === 'pending_approval' || booking.status === 'builder_pending' 
+                ? 'Visit Requested!' 
+                : 'Visit Confirmed!'}
             </h1>
             <p className="text-muted-foreground">
-              {booking.status === 'pending_approval' 
-                ? 'Your visit request is pending builder approval. You will be notified once approved.' 
+              {booking.status === 'pending_approval' || booking.status === 'builder_pending'
+                ? 'Your visit request has been submitted. Keep your verification details ready for when it\'s approved!' 
                 : 'Your property visit has been successfully scheduled. The agent will contact you soon.'}
             </p>
           </div>
@@ -201,21 +203,29 @@ const VisitConfirm = () => {
             </div>
           </Card>
 
-          {/* OTP & QR Code Card */}
+          {/* OTP & QR Code Card - Highlighted */}
           {booking.otp_code && (
-            <Card className="p-6 mb-6">
-              <h3 className="font-semibold mb-4">Verification Details</h3>
+            <Card className="p-6 mb-6 border-2 border-primary bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">🔐 Verification Details</h3>
+                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  Required at Gate
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Present either the OTP code or QR code to security personnel when you arrive at the property
+              </p>
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">Visit OTP</p>
-                  <p className="text-3xl font-bold tracking-wider text-primary">{booking.otp_code}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Show this OTP at the property gate
+                <div className="text-center p-4 rounded-lg bg-background border-2 border-dashed border-primary/30">
+                  <p className="text-sm text-muted-foreground mb-3 font-medium">6-Digit OTP Code</p>
+                  <p className="text-4xl font-bold tracking-wider text-primary mb-3">{booking.otp_code}</p>
+                  <p className="text-xs text-muted-foreground">
+                    📱 Save this code on your phone
                   </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">QR Code</p>
-                  <div className="inline-block p-3 bg-white rounded-lg">
+                <div className="text-center p-4 rounded-lg bg-background border-2 border-dashed border-primary/30">
+                  <p className="text-sm text-muted-foreground mb-3 font-medium">Scannable QR Code</p>
+                  <div className="inline-block p-3 bg-white rounded-lg shadow-sm mb-3">
                     {booking.qr_code_url ? (
                       <img src={booking.qr_code_url} alt="Visit QR Code" className="w-[120px] h-[120px]" />
                     ) : (
@@ -225,6 +235,9 @@ const VisitConfirm = () => {
                       />
                     )}
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    📸 Screenshot for easy access
+                  </p>
                 </div>
               </div>
             </Card>
@@ -269,10 +282,14 @@ const VisitConfirm = () => {
             </Button>
           </div>
 
-          {booking.status === 'builder_pending' && (
+          {(booking.status === 'builder_pending' || booking.status === 'pending_approval') && (
             <Card className="mt-6 p-4 bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                ⏳ Your visit is pending builder approval. You'll receive a WhatsApp notification once approved.
+              <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-2">
+                ⏳ Pending Builder Approval
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                Your visit request has been submitted to the builder. You'll receive a WhatsApp notification once approved. 
+                Your verification code is ready and will be active after approval.
               </p>
             </Card>
           )}
