@@ -114,16 +114,16 @@ export const VisitSchedulingWizard = ({
   const fetchAvailableAgents = async () => {
     setLoading(true);
     try {
-      // Fetch agents based on locality and trust score
+      // First try to find agents by city (more common match)
       let query = supabase
         .from('agents')
         .select('*')
         .eq('verified', true)
         .order('trust_score', { ascending: false });
 
-      // Filter by locality if available
-      if (locality) {
-        query = query.ilike('cities_served', `%${locality}%`);
+      // Filter by city for better matching
+      if (city) {
+        query = query.ilike('cities_served', `%${city}%`);
       }
 
       const { data, error } = await query.limit(10);
@@ -132,7 +132,19 @@ export const VisitSchedulingWizard = ({
         console.error('Error fetching agents:', error);
         toast.error('Failed to load agents');
       } else {
-        setAvailableAgents(data || []);
+        // If no agents found with city filter, try without filter
+        if (data && data.length === 0 && city) {
+          const { data: allAgents } = await supabase
+            .from('agents')
+            .select('*')
+            .eq('verified', true)
+            .order('trust_score', { ascending: false })
+            .limit(10);
+          
+          setAvailableAgents(allAgents || []);
+        } else {
+          setAvailableAgents(data || []);
+        }
       }
     } finally {
       setLoading(false);
