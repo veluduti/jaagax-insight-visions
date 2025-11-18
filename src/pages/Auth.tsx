@@ -117,8 +117,15 @@ export default function Auth() {
         const { error } = await signUp(email, password, selectedRole, city, name);
         
         if (error) {
-          if (error.message.includes("already registered")) {
-            throw new Error("Email already registered. Please sign in.");
+          if (error.message.includes("already registered") || error.message.includes("User already registered")) {
+            // Automatically switch to login mode
+            setIsLogin(true);
+            setPassword(""); // Clear password so user enters their actual password
+            toast.error("This email is already registered. Please sign in with your password.", {
+              duration: 5000,
+            });
+            setLoading(false);
+            return;
           }
           throw error;
         }
