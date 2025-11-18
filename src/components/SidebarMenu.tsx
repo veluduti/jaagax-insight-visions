@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Menu, 
   TrendingUp, 
@@ -14,12 +15,16 @@ import {
   Globe,
   DollarSign,
   Ruler,
-  Settings
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  MapPin
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function SidebarMenu() {
   const [open, setOpen] = useState(false);
@@ -27,7 +32,7 @@ export default function SidebarMenu() {
   const [guidesOpen, setGuidesOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
   const navigate = useNavigate();
-  const { role, session } = useAuth();
+  const { role, session, user, signOut } = useAuth();
 
   const [language, setLanguage] = useState("English");
   const [currency, setCurrency] = useState("AED");
@@ -36,6 +41,19 @@ export default function SidebarMenu() {
   const handleNavigation = (path: string) => {
     navigate(path);
     setOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+    setOpen(false);
+  };
+
+  const getUserInitials = () => {
+    if (user?.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return "U";
   };
 
   return (
@@ -47,6 +65,45 @@ export default function SidebarMenu() {
       </SheetTrigger>
       <SheetContent side="left" className="w-80 overflow-y-auto">
         <div className="flex flex-col gap-6 mt-8">
+          
+          {/* User Section */}
+          {session && (
+            <>
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-accent/20 border border-border/50">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{user?.email || "User"}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{role || "buyer"}</p>
+                </div>
+              </div>
+
+              {/* Dashboard & Visit Links */}
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start"
+                  onClick={() => handleNavigation(`/dashboard/${role || 'buyer'}`)}
+                >
+                  <LayoutDashboard className="h-5 w-5 mr-3 text-primary" />
+                  Dashboard
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start"
+                  onClick={() => handleNavigation("/visit/manage")}
+                >
+                  <MapPin className="h-5 w-5 mr-3 text-primary" />
+                  My Visits
+                </Button>
+              </div>
+
+              <Separator />
+            </>
+          )}
           {/* Market Intelligence Section */}
           <Collapsible open={marketOpen} onOpenChange={setMarketOpen}>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-accent/50 transition-colors">
@@ -233,6 +290,21 @@ export default function SidebarMenu() {
               </Select>
             </div>
           </div>
+
+          {/* Sign Out Button */}
+          {session && (
+            <>
+              <Separator className="my-4" />
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                Sign Out
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

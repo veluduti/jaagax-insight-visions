@@ -222,6 +222,15 @@ const BuyerDashboard = () => {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/visit/manage")}>
+              <CardContent className="p-6 text-center">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">My Visits</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card className="cursor-pointer hover:shadow-lg transition-all">
               <CardContent className="p-6 text-center">
                 <GitCompare className="h-8 w-8 mx-auto mb-2 text-primary" />
