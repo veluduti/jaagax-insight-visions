@@ -109,6 +109,54 @@ export type Database = {
           },
         ]
       }
+      agent_effort_log: {
+        Row: {
+          agent_id: number
+          buyer_id: string
+          created_at: string
+          effort_type: string
+          id: string
+          notes: string | null
+          property_id: number | null
+          units: number
+        }
+        Insert: {
+          agent_id: number
+          buyer_id: string
+          created_at?: string
+          effort_type: string
+          id?: string
+          notes?: string | null
+          property_id?: number | null
+          units: number
+        }
+        Update: {
+          agent_id?: number
+          buyer_id?: string
+          created_at?: string
+          effort_type?: string
+          id?: string
+          notes?: string | null
+          property_id?: number | null
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_effort_log_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_effort_log_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_reviews: {
         Row: {
           agent_id: string
@@ -1421,6 +1469,33 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_engagement_settings: {
+        Row: {
+          created_at: string
+          engagement_fee_enabled: boolean
+          id: string
+          min_effort_threshold: number
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_fee_enabled?: boolean
+          id?: string
+          min_effort_threshold?: number
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          engagement_fee_enabled?: boolean
+          id?: string
+          min_effort_threshold?: number
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_visits: {
         Row: {
           admin_notes: string | null
@@ -2077,6 +2152,17 @@ export type Database = {
         Returns: undefined
       }
       delete_expired_stories: { Args: never; Returns: undefined }
+      get_agent_effort_summary: {
+        Args: { p_agent_id: number }
+        Returns: {
+          closure_count: number
+          explanation_count: number
+          negotiation_count: number
+          total_units: number
+          unique_buyers: number
+          visit_count: number
+        }[]
+      }
       get_builder_analytics: {
         Args: { p_builder_id: string; p_months?: number }
         Returns: {
@@ -2098,6 +2184,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_agent_effort: {
+        Args: {
+          p_agent_id: number
+          p_buyer_id: string
+          p_effort_type: string
+          p_property_id: number
+        }
+        Returns: string
       }
     }
     Enums: {

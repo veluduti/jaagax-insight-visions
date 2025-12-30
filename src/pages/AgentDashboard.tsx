@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
+import AgentEffortSummary from "@/components/agents/AgentEffortSummary";
 
 interface AgentProfile {
   id: number;
@@ -356,6 +357,16 @@ export default function AgentDashboard() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Effort Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <AgentEffortSummary agentId={agentProfile.id} />
         </motion.div>
 
         {/* Stats Cards */}

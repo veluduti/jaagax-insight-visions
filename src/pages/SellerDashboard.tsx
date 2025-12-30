@@ -8,11 +8,12 @@ import { useNavigate } from "react-router-dom";
 import { 
   Plus, Home, BarChart, LogOut, Eye, Heart, 
   MessageSquare, TrendingUp, IndianRupee, Calendar,
-  Edit, Trash2, CheckCircle, Clock
+  Edit, Trash2, CheckCircle, Clock, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
+import SellerEngagementSettings from "@/components/seller/SellerEngagementSettings";
 
 interface Property {
   id: number;
@@ -225,11 +226,15 @@ export default function SellerDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="listings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="listings">My Listings</TabsTrigger>
             <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4 mr-1" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           {/* My Listings */}
@@ -380,6 +385,25 @@ export default function SellerDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Settings */}
+          <TabsContent value="settings">
+            <div className="grid md:grid-cols-2 gap-6">
+              <SellerEngagementSettings />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Other Settings</CardTitle>
+                  <CardDescription>Configure your account preferences</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Additional settings will be available here.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
