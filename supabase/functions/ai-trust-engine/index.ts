@@ -70,24 +70,34 @@ For Agents:
 - Response time & professionalism (15%)
 
 For Builders:
-- Verified projects (35%)
-- Completion track record (30%)
-- RERA compliance (25%)
-- Market reputation (10%)
+- Verified projects count and quality (25%)
+- On-time delivery track record (25%)
+- Customer satisfaction score (20%)
+- Construction progress consistency (15%)
+- RERA compliance across projects (15%)
+
+Additional Builder Analysis:
+- Evaluate construction_progress percentage for ongoing projects
+- Consider delivery_confidence_score if available
+- Factor in projects_completed vs projects_ongoing ratio
+- Assess on_time_delivery_rate for reliability
+- Review customer_satisfaction_score for quality
 
 Return JSON:
 {
   "trustScore": 85,
   "grade": "A+",
+  "deliveryConfidence": 88,
   "factors": {
-    "positive": ["Factor 1", "Factor 2"],
-    "concerns": ["Issue 1"]
+    "positive": ["Strong track record with 15+ completed projects", "95% on-time delivery rate", "High customer satisfaction"],
+    "concerns": ["Some ongoing projects behind schedule"]
   },
-  "recommendations": ["Action 1", "Action 2"],
+  "recommendations": ["Verify RERA for all projects", "Check recent customer reviews"],
   "breakdown": {
     "verification": 40,
-    "documentation": 35,
-    "reputation": 10
+    "track_record": 35,
+    "customer_satisfaction": 15,
+    "construction_quality": 10
   }
 }`;
 
