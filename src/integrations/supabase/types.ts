@@ -300,6 +300,45 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_context: {
+        Row: {
+          budget_comfort: string | null
+          confidence_score: number | null
+          created_at: string | null
+          decision_mode: string | null
+          id: string
+          last_ai_update: string | null
+          life_stage: string | null
+          primary_fear: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          budget_comfort?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          decision_mode?: string | null
+          id?: string
+          last_ai_update?: string | null
+          life_stage?: string | null
+          primary_fear?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          budget_comfort?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          decision_mode?: string | null
+          id?: string
+          last_ai_update?: string | null
+          life_stage?: string | null
+          primary_fear?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           created_at: string | null
