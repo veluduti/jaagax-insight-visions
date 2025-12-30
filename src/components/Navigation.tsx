@@ -4,14 +4,33 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { Menu } from "lucide-react";
+import { Menu, Leaf } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role } = useAuth();
+  const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
+
+  useEffect(() => {
+    const fetchFeatureFlag = async () => {
+      const { data } = await supabase
+        .from('feature_flags')
+        .select('enabled')
+        .eq('flag_name', 'natural_living_enabled')
+        .single();
+      
+      if (data) {
+        setNaturalLivingEnabled(data.enabled);
+      }
+    };
+    fetchFeatureFlag();
+  }, []);
 
   const navLinks = [
     { label: "Find My Agent", path: "/agents" },
@@ -64,6 +83,26 @@ const Navigation = () => {
                   </Button>
                 </Link>
               ))}
+              
+              {/* Natural Living Tab */}
+              <Link to="/natural-living">
+                <Button
+                  variant="ghost"
+                  className={`relative px-3 py-2 text-sm font-medium transition-all flex items-center gap-1.5 ${
+                    isActive('/natural-living') 
+                      ? "text-foreground" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Leaf className="h-4 w-4 text-emerald-500" />
+                  Natural Living
+                  {!naturalLivingEnabled && (
+                    <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                      Soon
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
             </div>
 
             {/* Right Actions */}
