@@ -49,6 +49,8 @@ import VisitStory from "./pages/VisitStory";
 import VisitSummary from "./pages/VisitSummary";
 import VisitAnalytics from "./pages/VisitAnalytics";
 import AgentStoryUpload from "./pages/AgentStoryUpload";
+import BuyerOnboarding from "./pages/BuyerOnboarding";
+import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -63,7 +65,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/search" element={<Search />} />
+          <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
+          <Route path="/search" element={
+            <BuyerOnboardingGuard>
+              <Search />
+            </BuyerOnboardingGuard>
+          } />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
@@ -105,7 +112,11 @@ const App = () => (
           <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
           
           {/* Role-based Dashboards - Authentication temporarily disabled for testing */}
-          <Route path="/dashboard/buyer" element={<BuyerDashboard />} />
+          <Route path="/dashboard/buyer" element={
+            <BuyerOnboardingGuard>
+              <BuyerDashboard />
+            </BuyerOnboardingGuard>
+          } />
           <Route path="/dashboard/agent" element={<AgentDashboard />} />
           <Route path="/dashboard/agent/visits" element={<AgentVisitsDashboard />} />
           <Route path="/dashboard/builder" element={<BuilderDashboard />} />
