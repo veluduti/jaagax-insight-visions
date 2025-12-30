@@ -14,9 +14,10 @@ import {
   Heart, MapPin, Search, Bell, Calculator, 
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2
+  GitCompare, DollarSign, Eye, Clock, Share2, Route
 } from "lucide-react";
 import { motion } from "framer-motion";
+import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 
 interface Property {
   id: number;
@@ -299,10 +300,14 @@ const BuyerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="recommended" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
+            </TabsTrigger>
+            <TabsTrigger value="journey">
+              <Route className="h-4 w-4 mr-2" />
+              Journey
             </TabsTrigger>
             <TabsTrigger value="visits">
               <Calendar className="h-4 w-4 mr-2" />
@@ -450,6 +455,11 @@ const BuyerDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* My Journey */}
+          <TabsContent value="journey">
+            <MyJourneyTimeline />
           </TabsContent>
 
           {/* Favorites */}
