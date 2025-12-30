@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.create-notification]
 verify_jwt = false
+
+[functions.ai-buyer-context]
+verify_jwt = false
