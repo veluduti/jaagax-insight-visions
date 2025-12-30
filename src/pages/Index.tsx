@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewProjects from "@/components/NewProjects";
 import AISpotlight from "@/components/AISpotlight";
+import AIInsightStrip from "@/components/AIInsightStrip";
 import MarketIntelligence from "@/components/MarketIntelligence";
 import FindMyAgent from "@/components/FindMyAgent";
 import TruValue from "@/components/TruValue";
@@ -19,6 +20,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* AI Insight Strip - Only shown to buyers with context */}
+      <AIInsightStrip />
       
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && (
