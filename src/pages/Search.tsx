@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PropertySearchBar from "@/components/PropertySearchBar";
+import PropertyCardWithAI from "@/components/search/PropertyCardWithAI";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Bed, Bath, Square, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useBuyerContext } from "@/hooks/useBuyerContext";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Property {
@@ -25,15 +28,40 @@ interface Property {
   images: string[];
   verified: boolean;
   trust_score: number;
+  status?: string;
 }
+
+interface PropertyDecision {
+  property_id: number;
+  match_score: number;
+  ai_verdict: "best_for_you" | "alternative" | "risky";
+  risk_flags: string[];
+  positive_flags: string[];
+  reasoning: {
+    life_stage_fit: boolean;
+    budget_comfort: "good" | "tight" | "stretch";
+    delay_risk: "low" | "medium" | "high";
+    trust_level: "high" | "medium" | "low";
+  };
+}
+
+// Session cache for AI decisions
+const decisionCache = new Map<string, PropertyDecision[]>();
 
 const Search = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, role } = useAuth();
+  const { buyerContext, hasBuyerContext } = useBuyerContext();
+  
   const [properties, setProperties] = useState<Property[]>([]);
+  const [decisions, setDecisions] = useState<Map<number, PropertyDecision>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadingAI, setLoadingAI] = useState(false);
   const [total, setTotal] = useState(0);
   const [activeTab, setActiveTab] = useState("properties");
+  
+  const lastSearchKey = useRef<string>("");
 
   useEffect(() => {
     const query = searchParams.get("q");
@@ -46,6 +74,13 @@ const Search = () => {
       fetchAllProperties();
     }
   }, [searchParams]);
+
+  // Fetch AI decisions when properties and buyer context are available
+  useEffect(() => {
+    if (properties.length > 0 && user && role === "buyer" && hasBuyerContext) {
+      fetchAIDecisions();
+    }
+  }, [properties, user, role, hasBuyerContext, buyerContext]);
 
   const searchProperties = async (query: string | null, city: string | null, type: string | null) => {
     setLoading(true);
@@ -95,11 +130,75 @@ const Search = () => {
     setLoading(false);
   };
 
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
-    return `₹${price.toLocaleString()}`;
+  const fetchAIDecisions = async () => {
+    if (!buyerContext) return;
+
+    // Create cache key based on user + properties
+    const propertyIds = properties.map((p) => p.id).sort().join(",");
+    const cacheKey = `${user?.id}-${propertyIds}`;
+
+    // Check session cache
+    if (decisionCache.has(cacheKey)) {
+      const cached = decisionCache.get(cacheKey)!;
+      const decisionMap = new Map<number, PropertyDecision>();
+      cached.forEach((d) => decisionMap.set(d.property_id, d));
+      setDecisions(decisionMap);
+      return;
+    }
+
+    // Avoid duplicate requests
+    if (lastSearchKey.current === cacheKey) return;
+    lastSearchKey.current = cacheKey;
+
+    setLoadingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-property-decision", {
+        body: {
+          properties: properties.map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            verified: p.verified,
+            trust_score: p.trust_score,
+            status: p.status,
+            bhk: p.bhk,
+            type: p.type,
+            locality: p.locality,
+          })),
+          buyerContext: {
+            life_stage: buyerContext.life_stage,
+            budget_comfort: buyerContext.budget_comfort,
+            primary_fear: buyerContext.primary_fear,
+            decision_mode: buyerContext.decision_mode,
+            confidence_score: buyerContext.confidence_score,
+          },
+        },
+      });
+
+      if (error) {
+        console.error("AI Decision error:", error);
+        return;
+      }
+
+      if (data?.decisions) {
+        // Cache the results
+        decisionCache.set(cacheKey, data.decisions);
+
+        // Create decision map
+        const decisionMap = new Map<number, PropertyDecision>();
+        data.decisions.forEach((d: PropertyDecision) => {
+          decisionMap.set(d.property_id, d);
+        });
+        setDecisions(decisionMap);
+      }
+    } catch (error) {
+      console.error("AI Decision fetch error:", error);
+    } finally {
+      setLoadingAI(false);
+    }
   };
+
+  const showAIFeatures = user && role === "buyer" && hasBuyerContext;
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,9 +215,22 @@ const Search = () => {
             <h1 className="text-4xl font-bold mb-4 text-gradient">
               Search Properties
             </h1>
-            <p className="text-muted-foreground mb-6">
-              {total > 0 ? `Found ${total} properties` : "Search for your dream property"}
-            </p>
+            <div className="flex items-center gap-4 mb-6">
+              <p className="text-muted-foreground">
+                {total > 0 ? `Found ${total} properties` : "Search for your dream property"}
+              </p>
+              {showAIFeatures && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  AI-powered insights enabled
+                </Badge>
+              )}
+              {loadingAI && (
+                <Badge variant="outline" className="animate-pulse">
+                  Analyzing...
+                </Badge>
+              )}
+            </div>
             
             <PropertySearchBar activeTab={activeTab} onTabChange={setActiveTab} />
           </motion.div>
@@ -162,77 +274,12 @@ const Search = () => {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {properties.map((property, index) => (
-                <motion.div
+                <PropertyCardWithAI
                   key={property.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card
-                    className="glass-card hover:scale-[1.02] transition-all cursor-pointer group overflow-hidden"
-                    onClick={() => navigate(`/property/${property.id}`)}
-                  >
-                    {/* Image */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={property.images?.[0] || "/placeholder.svg"}
-                        alt={property.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        {property.verified && (
-                          <Badge className="bg-primary/90 backdrop-blur">
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
-                          {property.title}
-                        </h3>
-                        <Badge variant="outline" className="flex items-center gap-1 shrink-0">
-                          <TrendingUp className="w-3 h-3" />
-                          {property.trust_score}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center text-sm text-muted-foreground gap-1">
-                        <MapPin className="w-4 h-4" />
-                        <span className="line-clamp-1">
-                          {property.locality}, {property.city}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-xl font-bold text-primary">
-                          {formatPrice(property.price)}
-                        </span>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          {property.beds && (
-                            <span className="flex items-center gap-1">
-                              <Bed className="w-4 h-4" />
-                              {property.beds}
-                            </span>
-                          )}
-                          {property.baths && (
-                            <span className="flex items-center gap-1">
-                              <Bath className="w-4 h-4" />
-                              {property.baths}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <Square className="w-4 h-4" />
-                            {property.area} sq.ft
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
+                  property={property}
+                  decision={showAIFeatures ? decisions.get(property.id) : undefined}
+                  index={index}
+                />
               ))}
             </motion.div>
           )}

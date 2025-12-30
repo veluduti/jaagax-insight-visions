@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.ai-buyer-context]
 verify_jwt = false
+
+[functions.ai-property-decision]
+verify_jwt = false
