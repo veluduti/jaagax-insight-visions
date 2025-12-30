@@ -31,6 +31,7 @@ import MediaHub from "@/components/property/MediaHub";
 import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";
 import NearbyAgents from "@/components/property/NearbyAgents";
 import MicroComparables from "@/components/property/MicroComparables";
+import AIDecisionPanel from "@/components/property/AIDecisionPanel";
 
 interface Property {
   id: number;
@@ -362,6 +363,21 @@ const PropertyDetail = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* AI Decision Panel - Above Price Section */}
+        <AIDecisionPanel 
+          propertyId={property.id}
+          propertyData={{
+            title: property.title,
+            price: property.price,
+            locality: property.locality,
+            city: property.city,
+            type: property.type,
+            beds: property.beds,
+            area: property.area,
+            trust_score: property.trust_score
+          }}
+        />
+
         {/* Property Stats */}
         <PropertyStats entityId={property.id} entityType="property" />
 
