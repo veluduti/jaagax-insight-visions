@@ -52,6 +52,63 @@ export type Database = {
           },
         ]
       }
+      agent_call_context: {
+        Row: {
+          agent_id: number | null
+          buyer_context: Json | null
+          buyer_fear: string[] | null
+          buyer_id: string
+          created_at: string
+          id: string
+          intent: string[]
+          preferred_slot: Json | null
+          property_id: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: number | null
+          buyer_context?: Json | null
+          buyer_fear?: string[] | null
+          buyer_id: string
+          created_at?: string
+          id?: string
+          intent: string[]
+          preferred_slot?: Json | null
+          property_id: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: number | null
+          buyer_context?: Json | null
+          buyer_fear?: string[] | null
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          intent?: string[]
+          preferred_slot?: Json | null
+          property_id?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_call_context_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_call_context_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_reviews: {
         Row: {
           agent_id: string

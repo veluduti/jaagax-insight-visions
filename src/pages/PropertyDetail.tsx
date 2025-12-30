@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Share2, Heart, Phone, MessageCircle, MapPin, 
   Bed, Bath, Square, Calendar, Download, ArrowLeft,
-  CheckCircle2, TrendingUp, Building2, Hash
+  CheckCircle2, TrendingUp, Building2, Hash, Brain
 } from "lucide-react";
 import { toast } from "sonner";
 import PropertyImageCarousel from "@/components/property/PropertyImageCarousel";
@@ -32,6 +32,7 @@ import AIPropertyAdvisor from "@/components/property/AIPropertyAdvisor";
 import NearbyAgents from "@/components/property/NearbyAgents";
 import MicroComparables from "@/components/property/MicroComparables";
 import AIDecisionPanel from "@/components/property/AIDecisionPanel";
+import AIPreCallContext from "@/components/property/AIPreCallContext";
 
 interface Property {
   id: number;
@@ -84,6 +85,7 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showPreCallModal, setShowPreCallModal] = useState(false);
   const [aiValuation, setAiValuation] = useState<any>(null);
 
   useEffect(() => {
@@ -226,20 +228,18 @@ const PropertyDetail = () => {
   };
 
   const handleCall = () => {
-    if (agent) {
-      // In production, this would use the actual agent phone number
-      window.location.href = `tel:+919876543210`;
-      toast.success("Opening dialer...");
-    }
+    // Redirect to AI Pre-Call flow instead of direct call
+    setShowPreCallModal(true);
   };
 
   const handleWhatsApp = () => {
-    if (agent && property) {
-      const message = encodeURIComponent(
-        `Hi, I'm interested in the property: ${property.title} (Ref: JX${property.id})`
-      );
-      window.open(`https://wa.me/919876543210?text=${message}`, "_blank");
-    }
+    // Redirect to AI Pre-Call flow instead of direct WhatsApp
+    setShowPreCallModal(true);
+  };
+
+  const handleContextSaved = (contextId: string) => {
+    // Navigate to slot selection with the context
+    navigate(`/visit/schedule?contextId=${contextId}&propertyId=${property?.id}`);
   };
 
   if (loading) {
@@ -346,18 +346,14 @@ const PropertyDetail = () => {
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
-            {agent && (
-              <>
-                <Button variant="outline" size="lg" className="gap-2" onClick={handleCall}>
-                  <Phone className="h-4 w-4" />
-                  Call
-                </Button>
-                <Button variant="outline" size="lg" className="gap-2 bg-green-600 hover:bg-green-700 text-white border-green-600" onClick={handleWhatsApp}>
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
-                </Button>
-              </>
-            )}
+            <Button 
+              size="lg" 
+              className="gap-2 bg-primary hover:bg-primary/90"
+              onClick={() => setShowPreCallModal(true)}
+            >
+              <Brain className="h-4 w-4" />
+              Talk to AI Expert
+            </Button>
           </div>
         </motion.div>
       </div>
@@ -458,29 +454,29 @@ const PropertyDetail = () => {
         propertyTitle={property.title}
       />
 
+      {/* AI Pre-Call Context Modal */}
+      <AIPreCallContext
+        open={showPreCallModal}
+        onClose={() => setShowPreCallModal(false)}
+        propertyId={property.id}
+        propertyTitle={property.title}
+        onContextSaved={handleContextSaved}
+      />
+
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
         <div className="flex gap-2">
-          {agent && (
-            <>
-              <Button variant="outline" size="lg" className="flex-1 gap-2" onClick={handleCall}>
-                <Phone className="h-4 w-4" />
-                Call
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white border-green-600"
-                onClick={handleWhatsApp}
-              >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </Button>
-            </>
-          )}
           <Button size="lg" className="flex-1 gap-2" onClick={() => setShowBookingModal(true)}>
             <Calendar className="h-4 w-4" />
             Book
+          </Button>
+          <Button 
+            size="lg" 
+            className="flex-1 gap-2 bg-primary hover:bg-primary/90"
+            onClick={() => setShowPreCallModal(true)}
+          >
+            <Brain className="h-4 w-4" />
+            AI Expert
           </Button>
         </div>
       </div>
