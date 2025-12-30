@@ -1044,6 +1044,69 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_hotels: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          city: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          discount_percentage: number | null
+          id: string
+          images: string[] | null
+          is_active: boolean | null
+          lat: number | null
+          lng: number | null
+          locality: string
+          name: string
+          partner_since: string | null
+          price_per_night: number
+          star_rating: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          city: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          locality: string
+          name: string
+          partner_since?: string | null
+          price_per_night: number
+          star_rating?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          city?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string
+          name?: string
+          partner_since?: string | null
+          price_per_night?: number
+          star_rating?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       poi: {
         Row: {
           city: string
@@ -1987,6 +2050,138 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_packages: {
+        Row: {
+          base_discount_percentage: number | null
+          created_at: string | null
+          description: string | null
+          duration_days: number
+          id: string
+          includes_airport_pickup: boolean | null
+          includes_local_transport: boolean | null
+          includes_meals: boolean | null
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_discount_percentage?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number
+          id?: string
+          includes_airport_pickup?: boolean | null
+          includes_local_transport?: boolean | null
+          includes_meals?: boolean | null
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_discount_percentage?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number
+          id?: string
+          includes_airport_pickup?: boolean | null
+          includes_local_transport?: boolean | null
+          includes_meals?: boolean | null
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      visit_stay_bookings: {
+        Row: {
+          ai_suggested: boolean | null
+          booking_type: string
+          check_in_date: string
+          check_out_date: string
+          created_at: string | null
+          discount_applied: number | null
+          final_price: number | null
+          hotel_id: string | null
+          id: string
+          number_of_guests: number | null
+          number_of_rooms: number | null
+          package_id: string | null
+          property_id: number | null
+          special_requests: string | null
+          status: string | null
+          suggestion_reason: string | null
+          total_hotel_price: number | null
+          total_package_price: number | null
+          updated_at: string | null
+          user_id: string
+          visit_date: string | null
+          visit_time: string | null
+        }
+        Insert: {
+          ai_suggested?: boolean | null
+          booking_type?: string
+          check_in_date: string
+          check_out_date: string
+          created_at?: string | null
+          discount_applied?: number | null
+          final_price?: number | null
+          hotel_id?: string | null
+          id?: string
+          number_of_guests?: number | null
+          number_of_rooms?: number | null
+          package_id?: string | null
+          property_id?: number | null
+          special_requests?: string | null
+          status?: string | null
+          suggestion_reason?: string | null
+          total_hotel_price?: number | null
+          total_package_price?: number | null
+          updated_at?: string | null
+          user_id: string
+          visit_date?: string | null
+          visit_time?: string | null
+        }
+        Update: {
+          ai_suggested?: boolean | null
+          booking_type?: string
+          check_in_date?: string
+          check_out_date?: string
+          created_at?: string | null
+          discount_applied?: number | null
+          final_price?: number | null
+          hotel_id?: string | null
+          id?: string
+          number_of_guests?: number | null
+          number_of_rooms?: number | null
+          package_id?: string | null
+          property_id?: number | null
+          special_requests?: string | null
+          status?: string | null
+          suggestion_reason?: string | null
+          total_hotel_price?: number | null
+          total_package_price?: number | null
+          updated_at?: string | null
+          user_id?: string
+          visit_date?: string | null
+          visit_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_stay_bookings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_stay_bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "visit_packages"
             referencedColumns: ["id"]
           },
         ]
