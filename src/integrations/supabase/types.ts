@@ -325,6 +325,66 @@ export type Database = {
         }
         Relationships: []
       }
+      assisted_farming: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          crops_supported: string[] | null
+          description: string | null
+          equipment_provided: string[] | null
+          id: string
+          min_land_acres: number | null
+          monthly_fee: number | null
+          name: string
+          organic_certified: boolean | null
+          provider_contact: Json | null
+          provider_name: string
+          regions_available: string[] | null
+          revenue_share_percentage: number | null
+          services: string[]
+          training_included: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          crops_supported?: string[] | null
+          description?: string | null
+          equipment_provided?: string[] | null
+          id?: string
+          min_land_acres?: number | null
+          monthly_fee?: number | null
+          name: string
+          organic_certified?: boolean | null
+          provider_contact?: Json | null
+          provider_name: string
+          regions_available?: string[] | null
+          revenue_share_percentage?: number | null
+          services: string[]
+          training_included?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          crops_supported?: string[] | null
+          description?: string | null
+          equipment_provided?: string[] | null
+          id?: string
+          min_land_acres?: number | null
+          monthly_fee?: number | null
+          name?: string
+          organic_certified?: boolean | null
+          provider_contact?: Json | null
+          provider_name?: string
+          regions_available?: string[] | null
+          revenue_share_percentage?: number | null
+          services?: string[]
+          training_included?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       builder_performance: {
         Row: {
           builder_id: string
@@ -846,6 +906,163 @@ export type Database = {
           },
         ]
       }
+      farm_land_interests: {
+        Row: {
+          assisted_farming_id: string | null
+          created_at: string
+          farm_land_id: string | null
+          id: string
+          investment_amount: number | null
+          notes: string | null
+          ownership_model_id: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assisted_farming_id?: string | null
+          created_at?: string
+          farm_land_id?: string | null
+          id?: string
+          investment_amount?: number | null
+          notes?: string | null
+          ownership_model_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assisted_farming_id?: string | null
+          created_at?: string
+          farm_land_id?: string | null
+          id?: string
+          investment_amount?: number | null
+          notes?: string | null
+          ownership_model_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_land_interests_assisted_farming_id_fkey"
+            columns: ["assisted_farming_id"]
+            isOneToOne: false
+            referencedRelation: "assisted_farming"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farm_land_interests_farm_land_id_fkey"
+            columns: ["farm_land_id"]
+            isOneToOne: false
+            referencedRelation: "farm_lands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farm_land_interests_ownership_model_id_fkey"
+            columns: ["ownership_model_id"]
+            isOneToOne: false
+            referencedRelation: "ownership_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farm_lands: {
+        Row: {
+          area_acres: number
+          city: string
+          created_at: string
+          description: string | null
+          documents: Json | null
+          electricity: boolean | null
+          fencing: boolean | null
+          id: string
+          images: string[] | null
+          land_type_id: string | null
+          lat: number | null
+          lng: number | null
+          locality: string | null
+          ownership_model_id: string | null
+          price: number
+          price_per_acre: number | null
+          road_access: boolean | null
+          soil_type: string | null
+          state: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+          verified: boolean | null
+          water_source: string[] | null
+        }
+        Insert: {
+          area_acres: number
+          city: string
+          created_at?: string
+          description?: string | null
+          documents?: Json | null
+          electricity?: boolean | null
+          fencing?: boolean | null
+          id?: string
+          images?: string[] | null
+          land_type_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          ownership_model_id?: string | null
+          price: number
+          price_per_acre?: number | null
+          road_access?: boolean | null
+          soil_type?: string | null
+          state?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+          verified?: boolean | null
+          water_source?: string[] | null
+        }
+        Update: {
+          area_acres?: number
+          city?: string
+          created_at?: string
+          description?: string | null
+          documents?: Json | null
+          electricity?: boolean | null
+          fencing?: boolean | null
+          id?: string
+          images?: string[] | null
+          land_type_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          ownership_model_id?: string | null
+          price?: number
+          price_per_acre?: number | null
+          road_access?: boolean | null
+          soil_type?: string | null
+          state?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+          verified?: boolean | null
+          water_source?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "farm_lands_land_type_id_fkey"
+            columns: ["land_type_id"]
+            isOneToOne: false
+            referencedRelation: "land_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "farm_lands_ownership_model_id_fkey"
+            columns: ["ownership_model_id"]
+            isOneToOne: false
+            referencedRelation: "ownership_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -871,6 +1088,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          flag_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       fleet_vehicles: {
         Row: {
@@ -911,6 +1155,33 @@ export type Database = {
           vehicle_model?: string | null
           vehicle_number?: string
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      land_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          min_area_acres: number | null
+          name: string
+          suitable_for: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          min_area_acres?: number | null
+          name: string
+          suitable_for?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          min_area_acres?: number | null
+          name?: string
+          suitable_for?: string[] | null
         }
         Relationships: []
       }
@@ -995,6 +1266,53 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      long_term_yield: {
+        Row: {
+          assumptions: Json | null
+          created_at: string
+          crop_type: string
+          farm_land_id: string | null
+          id: string
+          net_profit: number | null
+          projected_expenses: number | null
+          projected_revenue: number | null
+          projected_yield_kg: number | null
+          year_number: number
+        }
+        Insert: {
+          assumptions?: Json | null
+          created_at?: string
+          crop_type: string
+          farm_land_id?: string | null
+          id?: string
+          net_profit?: number | null
+          projected_expenses?: number | null
+          projected_revenue?: number | null
+          projected_yield_kg?: number | null
+          year_number: number
+        }
+        Update: {
+          assumptions?: Json | null
+          created_at?: string
+          crop_type?: string
+          farm_land_id?: string | null
+          id?: string
+          net_profit?: number | null
+          projected_expenses?: number | null
+          projected_revenue?: number | null
+          projected_yield_kg?: number | null
+          year_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "long_term_yield_farm_land_id_fkey"
+            columns: ["farm_land_id"]
+            isOneToOne: false
+            referencedRelation: "farm_lands"
             referencedColumns: ["id"]
           },
         ]
@@ -1095,6 +1413,39 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      ownership_models: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          lock_in_years: number | null
+          min_investment: number | null
+          name: string
+          revenue_share_percentage: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          lock_in_years?: number | null
+          min_investment?: number | null
+          name: string
+          revenue_share_percentage?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          lock_in_years?: number | null
+          min_investment?: number | null
+          name?: string
+          revenue_share_percentage?: number | null
         }
         Relationships: []
       }
