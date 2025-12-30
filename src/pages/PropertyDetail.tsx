@@ -452,6 +452,8 @@ const PropertyDetail = () => {
         onClose={() => setShowBookingModal(false)}
         propertyId={property.id.toString()}
         propertyTitle={property.title}
+        propertyCity={property.city}
+        propertyLocality={property.locality}
       />
 
       {/* AI Pre-Call Context Modal */}
