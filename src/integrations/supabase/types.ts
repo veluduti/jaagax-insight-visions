@@ -375,31 +375,58 @@ export type Database = {
       builders: {
         Row: {
           city: string | null
+          construction_progress: number | null
           created_at: string | null
+          customer_satisfaction_score: number | null
+          delivery_confidence_score: number | null
           description: string | null
           id: number
           logo_url: string | null
           name: string | null
+          on_time_delivery_rate: number | null
+          payment_flexibility_notes: string | null
+          projects_completed: number | null
+          projects_ongoing: number | null
+          trust_partner: boolean | null
+          trust_partner_since: string | null
           trust_score: number | null
           verified: boolean | null
         }
         Insert: {
           city?: string | null
+          construction_progress?: number | null
           created_at?: string | null
+          customer_satisfaction_score?: number | null
+          delivery_confidence_score?: number | null
           description?: string | null
           id?: number
           logo_url?: string | null
           name?: string | null
+          on_time_delivery_rate?: number | null
+          payment_flexibility_notes?: string | null
+          projects_completed?: number | null
+          projects_ongoing?: number | null
+          trust_partner?: boolean | null
+          trust_partner_since?: string | null
           trust_score?: number | null
           verified?: boolean | null
         }
         Update: {
           city?: string | null
+          construction_progress?: number | null
           created_at?: string | null
+          customer_satisfaction_score?: number | null
+          delivery_confidence_score?: number | null
           description?: string | null
           id?: number
           logo_url?: string | null
           name?: string | null
+          on_time_delivery_rate?: number | null
+          payment_flexibility_notes?: string | null
+          projects_completed?: number | null
+          projects_ongoing?: number | null
+          trust_partner?: boolean | null
+          trust_partner_since?: string | null
           trust_score?: number | null
           verified?: boolean | null
         }

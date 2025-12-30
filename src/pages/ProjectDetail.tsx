@@ -27,6 +27,7 @@ import {
   Users,
   Video,
   Loader2,
+  Award,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -41,6 +42,7 @@ import {
 } from "@/components/ui/carousel";
 import { SiteVisitBookingModal } from "@/components/booking/SiteVisitBookingModal";
 import { InterestRegistrationModal } from "@/components/booking/InterestRegistrationModal";
+import { BuilderTrustProgram } from "@/components/builder/BuilderTrustProgram";
 
 interface Project {
   id: number;
@@ -394,8 +396,12 @@ const ProjectDetail = () => {
           transition={{ delay: 0.2 }}
         >
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="builder" className="gap-1">
+                <Award className="h-3 w-3" />
+                Builder
+              </TabsTrigger>
               <TabsTrigger value="amenities">Amenities</TabsTrigger>
               <TabsTrigger value="floorplans">Floor Plans</TabsTrigger>
               <TabsTrigger value="ai">AI Summary</TabsTrigger>
@@ -447,6 +453,23 @@ const ProjectDetail = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Builder Trust Program Tab */}
+            <TabsContent value="builder">
+              {project.builder_id ? (
+                <BuilderTrustProgram 
+                  builderId={project.builder_id} 
+                  builderName={project.builder_name || project.builder?.name}
+                />
+              ) : (
+                <Card className="glass-panel">
+                  <CardContent className="py-12 text-center">
+                    <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Builder information not available</p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="amenities">
