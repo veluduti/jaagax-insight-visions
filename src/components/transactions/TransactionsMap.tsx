@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { InsightDrawer } from "./InsightDrawer";
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "";
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
 
 interface Transaction {
   id: string;

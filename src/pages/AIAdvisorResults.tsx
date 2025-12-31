@@ -15,7 +15,8 @@ import {
   Bed, Bath, Maximize, Star, Eye, MessageSquare, GitCompare 
 } from "lucide-react";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoicHJhdGhha2hhbGVyIiwiYSI6ImNtNXFxa3Z4MDA1ejIya29ndmhweDM2cjgifQ.Luc21TaC0cIBSfGWglZANg";
+// Use the public Mapbox token - this is a publishable key safe for client-side
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
 
 export default function AIAdvisorResults() {
   const location = useLocation();
@@ -65,57 +66,66 @@ export default function AIAdvisorResults() {
   const initializeMap = () => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    try {
+      mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    // Calculate map center from properties with valid coordinates
-    const validProperties = properties.filter((p: any) => p.lat && p.lng);
-    
-    const center: [number, number] = validProperties.length > 0
-      ? [
-          validProperties.reduce((sum: number, p: any) => sum + p.lng, 0) / validProperties.length,
-          validProperties.reduce((sum: number, p: any) => sum + p.lat, 0) / validProperties.length,
-        ]
-      : [78.4867, 17.3850]; // Default to Hyderabad
+      // Calculate map center from properties with valid coordinates
+      const validProperties = properties.filter((p: any) => p.lat && p.lng);
+      
+      const center: [number, number] = validProperties.length > 0
+        ? [
+            validProperties.reduce((sum: number, p: any) => sum + p.lng, 0) / validProperties.length,
+            validProperties.reduce((sum: number, p: any) => sum + p.lat, 0) / validProperties.length,
+          ]
+        : [78.4867, 17.3850]; // Default to Hyderabad
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center,
-      zoom: 11,
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // Add markers for properties with coordinates
-    validProperties.forEach((property: any) => {
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.style.width = '40px';
-      el.style.height = '40px';
-      el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
-      el.style.backgroundSize = 'cover';
-      el.style.cursor = 'pointer';
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([property.lng, property.lat])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`
-              <div class="p-2">
-                <h3 class="font-semibold">${property.title}</h3>
-                <p class="text-sm">${formatPrice(property.price)}</p>
-                <p class="text-xs text-muted-foreground">${property.locality}</p>
-              </div>
-            `)
-        )
-        .addTo(map.current!);
-
-      el.addEventListener('click', () => {
-        setSelectedProperty(property);
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center,
+        zoom: 11,
       });
 
-      markers.current.push(marker);
-    });
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+      });
+
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Add markers for properties with coordinates
+      validProperties.forEach((property: any) => {
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.width = '40px';
+        el.style.height = '40px';
+        el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
+        el.style.backgroundSize = 'cover';
+        el.style.cursor = 'pointer';
+
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([property.lng, property.lat])
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 })
+              .setHTML(`
+                <div class="p-2">
+                  <h3 class="font-semibold">${property.title}</h3>
+                  <p class="text-sm">${formatPrice(property.price)}</p>
+                  <p class="text-xs text-muted-foreground">${property.locality}</p>
+                </div>
+              `)
+          )
+          .addTo(map.current!);
+
+        el.addEventListener('click', () => {
+          setSelectedProperty(property);
+        });
+
+        markers.current.push(marker);
+      });
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+      toast.error('Failed to load map');
+    }
   };
 
   const formatPrice = (price: number) => {
