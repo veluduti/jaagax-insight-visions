@@ -4,12 +4,21 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { Menu, Leaf, Sparkles } from "lucide-react";
+import { Leaf, Sparkles, Home, Building2, Compass, ChevronDown, Users, MapPin, Calendar, Hotel, TrendingUp, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -32,13 +41,17 @@ const Navigation = () => {
     fetchFeatureFlag();
   }, []);
 
-  const navLinks = [
-    { label: "Find My Agent", path: "/agents" },
-    { label: "Sell Property", path: "/sell-property" },
-    { label: "Communities", path: "/communities" },
-    { label: "Transactions", path: "/transactions" },
-    { label: "New Projects", path: "/projects" },
-    { label: "Events", path: "/events" },
+  const propertiesItems = [
+    { label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
+    { label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
+    { label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
+  ];
+
+  const exploreItems = [
+    { label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
+    { label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
+    { label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
+    { label: "Hotels", path: "/hotels", icon: Hotel, description: "Stay near your shortlist" },
   ];
 
   const isActive = (path: string) => {
@@ -48,6 +61,9 @@ const Navigation = () => {
     }
     return location.pathname === path || location.pathname.startsWith(path);
   };
+
+  const isPropertiesActive = propertiesItems.some(item => isActive(item.path));
+  const isExploreActive = exploreItems.some(item => isActive(item.path));
 
   return (
     <>
@@ -67,43 +83,119 @@ const Navigation = () => {
               </div>
             </Link>
 
-            {/* Center Nav Links */}
-            <div className="flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link key={link.path} to={link.path}>
-                  <Button
-                    variant="ghost"
-                    className={`relative px-3 py-2 text-sm font-medium transition-all ${
-                      isActive(link.path) 
-                        ? "text-foreground" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
+            {/* Center Nav Links - Smart Grouped */}
+            <NavigationMenu>
+              <NavigationMenuList className="gap-1">
+                {/* Properties Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger 
+                    className={cn(
+                      "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                      isPropertiesActive ? "text-foreground" : "text-muted-foreground"
+                    )}
                   >
-                    {link.label}
-                  </Button>
-                </Link>
-              ))}
-              
-              {/* Natural Living Tab */}
-              <Link to="/natural-living">
-                <Button
-                  variant="ghost"
-                  className={`relative px-3 py-2 text-sm font-medium transition-all flex items-center gap-1.5 ${
-                    isActive('/natural-living') 
-                      ? "text-foreground" 
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Leaf className="h-4 w-4 text-emerald-500" />
-                  Natural Living
-                  {!naturalLivingEnabled && (
-                    <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                      Soon
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
-            </div>
+                    <Building2 className="h-4 w-4 mr-1.5" />
+                    Properties
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[280px] gap-1 p-2">
+                      {propertiesItems.map((item) => (
+                        <li key={item.path}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={item.path}
+                              className={cn(
+                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                isActive(item.path) && "bg-accent"
+                              )}
+                            >
+                              <item.icon className="h-5 w-5 text-primary mt-0.5" />
+                              <div>
+                                <div className="text-sm font-medium text-foreground">{item.label}</div>
+                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                {/* Explore Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger 
+                    className={cn(
+                      "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                      isExploreActive ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    <Compass className="h-4 w-4 mr-1.5" />
+                    Explore
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[280px] gap-1 p-2">
+                      {exploreItems.map((item) => (
+                        <li key={item.path}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={item.path}
+                              className={cn(
+                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                isActive(item.path) && "bg-accent"
+                              )}
+                            >
+                              <item.icon className="h-5 w-5 text-primary mt-0.5" />
+                              <div>
+                                <div className="text-sm font-medium text-foreground">{item.label}</div>
+                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                {/* Market Index - Direct Link */}
+                <NavigationMenuItem>
+                  <Link to="/transactions">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium h-auto",
+                        isActive('/transactions') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <TrendingUp className="h-4 w-4 mr-1.5" />
+                      Market Index
+                    </Button>
+                  </Link>
+                </NavigationMenuItem>
+
+                {/* Natural Living - Direct Link */}
+                <NavigationMenuItem>
+                  <Link to="/natural-living">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
+                        isActive('/natural-living') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Leaf className="h-4 w-4 text-emerald-500" />
+                      Natural Living
+                      {!naturalLivingEnabled && (
+                        <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                          Soon
+                        </Badge>
+                      )}
+                    </Button>
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">

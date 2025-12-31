@@ -54,6 +54,7 @@ import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NaturalLiving from "./pages/NaturalLiving";
+import Hotels from "./pages/Hotels";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
           <Route path="/map" element={<Map />} />
           <Route path="/sell-property" element={<SellProperty />} />
           <Route path="/natural-living" element={<NaturalLiving />} />
+          <Route path="/hotels" element={<Hotels />} />
           
           {/* AI Advisor Routes */}
           <Route path="/ai-advisor" element={<AIAdvisor />} />
