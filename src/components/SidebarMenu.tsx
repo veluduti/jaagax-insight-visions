@@ -135,7 +135,7 @@ export default function SidebarMenu() {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-sm"
-                onClick={() => handleNavigation("/trustscore")}
+                onClick={() => handleNavigation("/trust-score")}
               >
                 Trust Score
               </Button>
@@ -162,21 +162,21 @@ export default function SidebarMenu() {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-sm"
-                onClick={() => handleNavigation("/guides")}
+                onClick={() => handleNavigation("/guides?tab=buying")}
               >
                 Buying Guide
               </Button>
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-sm"
-                onClick={() => handleNavigation("/guides")}
+                onClick={() => handleNavigation("/guides?tab=selling")}
               >
                 Selling Guide
               </Button>
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-sm"
-                onClick={() => handleNavigation("/guides")}
+                onClick={() => handleNavigation("/guides?tab=investment")}
               >
                 Investment Tips
               </Button>
@@ -199,7 +199,7 @@ export default function SidebarMenu() {
             className="w-full justify-start p-3 h-auto"
             onClick={() => {
               if (role === "agent") {
-                handleNavigation("/agent-dashboard");
+                handleNavigation("/dashboard/agent");
               } else {
                 handleNavigation("/agents");
               }
