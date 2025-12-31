@@ -186,6 +186,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
                         alt={project.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800";
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                       
