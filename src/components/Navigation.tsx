@@ -79,7 +79,7 @@ const Navigation = () => {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gradient">JaagaX</span>
-                <span className="text-xs text-muted-foreground">Intelligent Realty</span>
+                <span className="text-xs text-muted-foreground">Choose Your Place</span>
               </div>
             </Link>
 
