@@ -56,7 +56,7 @@ const AdCarousel = () => {
       // Track impressions for loaded ads
       if (data && data.length > 0) {
         for (const ad of data) {
-          supabase.rpc('increment_ad_stat', { p_ad_id: ad.id, p_stat_type: 'impressions' }).then(() => {}).catch(console.error);
+          supabase.rpc('increment_ad_stat', { p_ad_id: ad.id, p_stat_type: 'impressions' }).then(undefined, console.error);
         }
       }
       
