@@ -52,6 +52,8 @@ interface VisitStayPlannerProps {
   propertyCity: string;
   propertyLocality: string;
   mode?: 'visit_stay' | 'hotel_only';
+  preSelectedHotel?: PartnerHotel | null;
+  preSelectedPackage?: VisitPackage | null;
 }
 
 export const VisitStayPlanner = ({ 
@@ -61,7 +63,9 @@ export const VisitStayPlanner = ({
   propertyTitle, 
   propertyCity,
   propertyLocality,
-  mode = 'visit_stay' 
+  mode = 'visit_stay',
+  preSelectedHotel = null,
+  preSelectedPackage = null
 }: VisitStayPlannerProps) => {
   const { user } = useAuth();
   const { buyerContext } = useBuyerContext();
@@ -72,8 +76,8 @@ export const VisitStayPlanner = ({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
-  const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<VisitPackage | null>(null);
+  const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(preSelectedHotel);
+  const [selectedPackage, setSelectedPackage] = useState<VisitPackage | null>(preSelectedPackage);
   const [checkInDate, setCheckInDate] = useState<Date | undefined>();
   const [visitDate, setVisitDate] = useState<Date | undefined>();
   const [visitTime, setVisitTime] = useState<string>("");
@@ -91,8 +95,32 @@ export const VisitStayPlanner = ({
     if (open) {
       fetchHotelsAndPackages();
       checkAISuggestion();
+      
+      // If pre-selected values exist, set them and adjust step
+      if (preSelectedHotel) {
+        setSelectedHotel(preSelectedHotel);
+      }
+      if (preSelectedPackage) {
+        setSelectedPackage(preSelectedPackage);
+        // Skip to step 2 if package is pre-selected
+        if (!preSelectedHotel) {
+          setStep(2);
+        }
+      }
+      // If both are pre-selected, go to step 3
+      if (preSelectedHotel && preSelectedPackage) {
+        setStep(3);
+      } else if (preSelectedHotel && !preSelectedPackage) {
+        // Hotel pre-selected but no package, start at step 1 to select package
+        setStep(1);
+      }
+    } else {
+      // Reset when closed
+      setStep(1);
+      setSelectedHotel(preSelectedHotel);
+      setSelectedPackage(preSelectedPackage);
     }
-  }, [open, propertyCity]);
+  }, [open, propertyCity, preSelectedHotel, preSelectedPackage]);
 
   const checkAISuggestion = () => {
     if (buyerContext?.primary_fear) {
