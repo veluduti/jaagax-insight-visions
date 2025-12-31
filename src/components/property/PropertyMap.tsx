@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 interface PropertyMapProps {
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   verified: boolean;
 }
 
 const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
+  // Default to Hyderabad center if coordinates are not available
+  const validLat = lat ?? 17.385;
+  const validLng = lng ?? 78.4867;
+  const hasCoordinates = lat !== null && lng !== null;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
@@ -26,8 +30,8 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [lng, lat],
-      zoom: 14,
+      center: [validLng, validLat],
+      zoom: hasCoordinates ? 14 : 11,
     });
 
     // Create custom marker
@@ -52,7 +56,9 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       el.innerHTML = "📍";
     }
 
-    new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(map.current);
+    if (hasCoordinates) {
+      new mapboxgl.Marker(el).setLngLat([validLng, validLat]).addTo(map.current);
+    }
 
     // Add navigation controls
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
@@ -60,7 +66,7 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [lat, lng, verified]);
+  }, [validLat, validLng, verified, hasCoordinates]);
 
   return (
     <motion.div
