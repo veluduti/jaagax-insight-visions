@@ -137,8 +137,11 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={property.images?.[0] || "/placeholder.svg"}
+            src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
             alt={property.title}
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800";
+            }}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute top-3 right-3 flex gap-2">

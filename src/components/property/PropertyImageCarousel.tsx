@@ -33,6 +33,9 @@ const PropertyImageCarousel = ({ images, verified, trustScore }: PropertyImageCa
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800";
+          }}
         />
       </AnimatePresence>
 
@@ -100,7 +103,7 @@ const PropertyImageCarousel = ({ images, verified, trustScore }: PropertyImageCa
               idx === currentIndex ? "border-primary scale-110" : "border-transparent opacity-60"
             }`}
           >
-            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"; }} />
           </button>
         ))}
       </div>
