@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Bed, Bath, Maximize, MapPin, Shield } from "lucide-react";
+import { Heart, Bed, Bath, Maximize, MapPin, Shield, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import PropertyWhyLink from "@/components/home/PropertyWhyLink";
+import MatchBadge from "@/components/home/MatchBadge";
 
 interface Property {
   id: number;
@@ -149,6 +151,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
+                  {/* Match Badge - Top Right Corner (before favorite) */}
+                  <MatchBadge score={property.trust_score} />
+                  
                   {/* Favorite Button */}
                   <button
                     onClick={(e) => {
@@ -214,6 +219,14 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                   >
                     View Details
                   </Button>
+                  
+                  {/* Why this property link */}
+                  <PropertyWhyLink
+                    propertyId={property.id}
+                    verified={property.verified}
+                    trustScore={property.trust_score}
+                    locality={property.locality}
+                  />
                 </div>
               </Card>
             </motion.div>

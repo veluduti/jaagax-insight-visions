@@ -13,6 +13,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import BuilderTrustBadges from "@/components/home/BuilderTrustBadges";
 
 interface Project {
   id: number;
@@ -232,6 +233,15 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                           <span className="text-muted-foreground">Location</span>
                           <span className="font-semibold">{project.city}</span>
                         </div>
+                      </div>
+
+                      {/* Builder Trust Badges */}
+                      <div className="mb-4">
+                        <BuilderTrustBadges
+                          verified={project.verified}
+                          reraId={project.rera_id}
+                          builderName={project.builder_name}
+                        />
                       </div>
 
                       <Button 

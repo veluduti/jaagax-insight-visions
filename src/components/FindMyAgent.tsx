@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Star, MapPin, Phone } from "lucide-react";
+import AgentContactModal from "@/components/home/AgentContactModal";
 
 const agents = [
   {
@@ -50,7 +52,19 @@ const agents = [
 
 const FindMyAgent = () => {
   const navigate = useNavigate();
-  
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<typeof agents[0] | null>(null);
+
+  const handleContactAgent = (agent: typeof agents[0]) => {
+    setSelectedAgent(agent);
+    setContactModalOpen(true);
+  };
+
+  const handleConfirmContact = () => {
+    if (selectedAgent) {
+      navigate(`/agent/${selectedAgent.id}`);
+    }
+  };
   return (
     <section className="py-16 relative" id="find-agent">
       <div className="container mx-auto px-6">
@@ -128,7 +142,7 @@ const FindMyAgent = () => {
                       className="w-full glow-effect"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/agent/${agent.id}`);
+                        handleContactAgent(agent);
                       }}
                     >
                       <MessageSquare className="h-4 w-4 mr-2" />
@@ -139,7 +153,7 @@ const FindMyAgent = () => {
                       className="w-full border-primary/50 hover:bg-primary/10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/agent/${agent.id}`);
+                        handleContactAgent(agent);
                       }}
                     >
                       <Phone className="h-4 w-4 mr-2" />
@@ -168,6 +182,14 @@ const FindMyAgent = () => {
           </Button>
         </motion.div>
       </div>
+
+      {/* Agent Contact Modal */}
+      <AgentContactModal
+        open={contactModalOpen}
+        onOpenChange={setContactModalOpen}
+        agentName={selectedAgent?.name}
+        onConfirm={handleConfirmContact}
+      />
     </section>
   );
 };

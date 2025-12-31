@@ -18,7 +18,8 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
-  MapPin
+  MapPin,
+  Compass
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -81,7 +82,7 @@ export default function SidebarMenu() {
                 </div>
               </div>
 
-              {/* Dashboard & Visit Links */}
+              {/* Dashboard & Visit & Journey Links */}
               <div className="space-y-2">
                 <Button 
                   variant="ghost" 
@@ -99,6 +100,16 @@ export default function SidebarMenu() {
                   <MapPin className="h-5 w-5 mr-3 text-primary" />
                   My Visits
                 </Button>
+                {role === "buyer" && (
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start"
+                    onClick={() => handleNavigation("/dashboard/buyer")}
+                  >
+                    <Compass className="h-5 w-5 mr-3 text-primary" />
+                    My Journey
+                  </Button>
+                )}
               </div>
 
               <Separator />
