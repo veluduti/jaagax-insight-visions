@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 
 interface NearbyPOIProps {
   city: string;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
 }
 
 interface POI {
@@ -36,6 +36,9 @@ const poiColors: Record<string, string> = {
 };
 
 const NearbyPOI = ({ city, lat, lng }: NearbyPOIProps) => {
+  // Default coordinates for distance calculation
+  const validLat = lat ?? 17.385;
+  const validLng = lng ?? 78.4867;
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -133,7 +136,7 @@ const NearbyPOI = ({ city, lat, lng }: NearbyPOIProps) => {
                         )}
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {calculateDistance(lat, lng, poi.lat, poi.lng)}
+                        {calculateDistance(validLat, validLng, poi.lat, poi.lng)}
                       </span>
                     </div>
                   ))}
