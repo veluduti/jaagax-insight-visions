@@ -103,7 +103,7 @@ const FeaturedCommunities = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Explore <span className="text-gradient">Top Communities</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
             Discover verified neighborhoods with the best growth potential
           </p>
         </motion.div>
@@ -147,7 +147,7 @@ const FeaturedCommunities = () => {
                     <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                       {community.name}
                     </h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1 text-sm text-foreground/70">
                       <MapPin className="h-3 w-3" />
                       <span>{community.city}</span>
                     </div>
@@ -155,7 +155,7 @@ const FeaturedCommunities = () => {
 
                   <div className="flex items-center justify-between pt-2 border-t border-border/50">
                     <div>
-                      <p className="text-xs text-muted-foreground">Avg. Price</p>
+                      <p className="text-xs text-foreground/70">Avg. Price</p>
                       <p className="font-semibold text-foreground">{community.avgPrice}</p>
                     </div>
                     <div className="text-right">
@@ -163,7 +163,7 @@ const FeaturedCommunities = () => {
                         <CheckCircle className="h-3 w-3" />
                         <span className="font-semibold">{community.verified}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">Verified</p>
+                      <p className="text-xs text-foreground/70">Verified</p>
                     </div>
                   </div>
                 </div>

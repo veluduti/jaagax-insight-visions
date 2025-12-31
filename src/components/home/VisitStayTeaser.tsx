@@ -36,7 +36,7 @@ const VisitStayTeaser = () => {
                 <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                   Planning a site visit?
                 </h3>
-                <p className="text-sm md:text-base text-muted-foreground">
+                <p className="text-sm md:text-base text-foreground/70">
                   Stay nearby and experience the area before you decide.
                 </p>
               </div>

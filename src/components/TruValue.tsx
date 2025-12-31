@@ -43,7 +43,7 @@ const TruValue = () => {
             Know Your Property's <br />
             <span className="text-gradient">Real Worth Instantly</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
             AI-powered property valuation with 95% accuracy. Get instant market value 
             and future appreciation predictions.
           </p>
@@ -132,7 +132,7 @@ const TruValue = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">Accurate Valuations</h4>
-                  <p className="text-muted-foreground">
+                  <p className="text-foreground/70">
                     AI analyzes 50,000+ data points including recent sales, market trends, 
                     and neighborhood dynamics for 95% accuracy.
                   </p>
@@ -147,7 +147,7 @@ const TruValue = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">Future Appreciation</h4>
-                  <p className="text-muted-foreground">
+                  <p className="text-foreground/70">
                     Get 1, 3, and 5-year appreciation forecasts based on infrastructure 
                     development and market momentum.
                   </p>
@@ -162,7 +162,7 @@ const TruValue = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-2">Market Insights</h4>
-                  <p className="text-muted-foreground">
+                  <p className="text-foreground/70">
                     Receive detailed reports on comparable properties, price per sq ft, 
                     and rental yield potential.
                   </p>
@@ -174,11 +174,11 @@ const TruValue = () => {
             <div className="grid grid-cols-2 gap-4">
               <Card className="glass-panel border-border/50 p-6 text-center">
                 <div className="text-3xl font-bold text-gradient mb-1">95%</div>
-                <div className="text-sm text-muted-foreground">Accuracy Rate</div>
+                <div className="text-sm text-foreground/70">Accuracy Rate</div>
               </Card>
               <Card className="glass-panel border-border/50 p-6 text-center">
                 <div className="text-3xl font-bold text-gradient mb-1">50K+</div>
-                <div className="text-sm text-muted-foreground">Valuations Done</div>
+                <div className="text-sm text-foreground/70">Valuations Done</div>
               </Card>
             </div>
           </motion.div>

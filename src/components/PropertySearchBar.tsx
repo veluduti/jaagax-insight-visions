@@ -246,7 +246,7 @@ const PropertySearchBar = ({
       }} transition={{
         delay: 0.2
       }} className="mt-3 text-center">
-          <button onClick={() => navigate('/ai-advisor')} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+          <button onClick={() => navigate('/ai-advisor')} className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors group">
             <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
             </div>
