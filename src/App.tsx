@@ -24,7 +24,6 @@ import Communities from "./pages/Communities";
 import CommunitiesCity from "./pages/CommunitiesCity";
 import CommunitiesLocality from "./pages/CommunitiesLocality";
 import Guides from "./pages/Guides";
-import Events from "./pages/Events";
 import EventsNew from "./pages/EventsNew";
 import EventCreate from "./pages/EventCreate";
 import EventDetail from "./pages/EventDetail";
