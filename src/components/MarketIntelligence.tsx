@@ -27,7 +27,7 @@ const MarketIntelligence = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Market <span className="text-gradient">Intelligence</span>
           </h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
+          <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto">
             AI-powered insights to make smarter investment decisions
           </p>
         </motion.div>

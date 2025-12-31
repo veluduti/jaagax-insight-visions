@@ -42,7 +42,7 @@ const AIFeatures = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Powered by <span className="text-gradient">AI Intelligence</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
             Experience the next generation of real estate with cutting-edge AI technology
           </p>
         </motion.div>
@@ -63,7 +63,7 @@ const AIFeatures = () => {
                   <feature.icon className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-foreground/70">{feature.description}</p>
               </Card>
             </motion.div>
           ))}

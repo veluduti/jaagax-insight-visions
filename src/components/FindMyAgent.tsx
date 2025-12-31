@@ -77,7 +77,7 @@ const FindMyAgent = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Find Your Perfect <span className="text-gradient">Agent</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-foreground/70 text-lg">
             Connect with top-rated, verified agents in your area
           </p>
         </motion.div>

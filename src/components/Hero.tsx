@@ -72,11 +72,13 @@ const Hero = ({
                   <br />
                   <span className="text-foreground">Awaits</span>
                 </h1>
-                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
-                  AI-Powered Insights. 100% Verified Properties. Zero Hidden Costs.
-                  <br />
-                  <span className="text-primary font-medium">India's most trusted intelligent property platform</span>
-                </p>
+              <p className="text-base sm:text-lg lg:text-xl text-foreground/90 max-w-2xl mx-auto lg:mx-0 drop-shadow-md">
+                <span className="font-semibold">AI-Powered Insights.</span>{" "}
+                <span className="font-semibold">100% Verified Properties.</span>{" "}
+                <span className="font-semibold">Zero Hidden Costs.</span>
+                <br />
+                <span className="text-primary font-medium drop-shadow-sm">India's most trusted intelligent property platform</span>
+              </p>
               </div>
 
               {/* Stats Cards - Desktop Only */}

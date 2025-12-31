@@ -35,7 +35,7 @@ const TrustBadge = () => {
             <span className="text-gradient">Trust Verified</span> Properties
           </h2>
 
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+          <p className="text-xl text-foreground/80 mb-12 max-w-2xl mx-auto">
             Every property on JaagaX undergoes rigorous AI-powered verification and RERA compliance checks. 
             Your trust is our foundation.
           </p>
@@ -56,7 +56,7 @@ const TrustBadge = () => {
               >
                 <stat.icon className="h-8 w-8 text-primary mb-3" />
                 <div className="text-3xl font-bold text-gradient mb-2">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+                <div className="text-sm text-foreground/70">{stat.label}</div>
               </motion.div>
             ))}
           </div>

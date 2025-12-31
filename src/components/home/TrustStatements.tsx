@@ -36,7 +36,7 @@ const TrustStatements = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-center gap-2 text-muted-foreground"
+                className="flex items-center gap-2 text-foreground/80"
               >
                 <Icon className="h-4 w-4 text-primary/70" />
                 <span className="text-sm font-medium">{statement.text}</span>

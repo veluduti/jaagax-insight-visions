@@ -123,9 +123,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               New <span className="text-gradient">Projects</span>
-              {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
+              {detectedCity && <span className="text-foreground/60 text-2xl"> in {detectedCity}</span>}
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
+            <p className="text-foreground/70 text-lg mb-8">
               No new projects available at the moment. Check back soon!
             </p>
             <Button 
@@ -153,9 +153,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             New <span className="text-gradient">Projects</span>
-            {detectedCity && <span className="text-muted-foreground text-2xl"> in {detectedCity}</span>}
+            {detectedCity && <span className="text-foreground/60 text-2xl"> in {detectedCity}</span>}
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-foreground/70 text-lg">
             {detectedCity ? `Upcoming projects near your location` : 'Explore upcoming projects from India\'s top builders'}
           </p>
         </motion.div>

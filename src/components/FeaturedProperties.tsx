@@ -121,9 +121,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Featured <span className="text-gradient">Properties</span>
-            {detectedCity && <span className="text-muted-foreground text-xl md:text-2xl"> in {detectedCity}</span>}
+            {detectedCity && <span className="text-foreground/60 text-xl md:text-2xl"> in {detectedCity}</span>}
           </h2>
-          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
+          <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto">
             {detectedCity ? `Properties near your location verified by JaagaX AI` : 'Handpicked properties verified by JaagaX AI'}
           </p>
         </motion.div>
@@ -192,12 +192,12 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-muted-foreground text-sm mb-md">
+                  <div className="flex items-center gap-1 text-foreground/70 text-sm mb-md">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="line-clamp-1">{property.locality}, {property.city}</span>
                   </div>
 
-                  <div className="flex items-center gap-md text-sm text-muted-foreground mb-md">
+                  <div className="flex items-center gap-md text-sm text-foreground/70 mb-md">
                     <div className="flex items-center gap-1">
                       <Bed className="h-4 w-4" />
                       <span>{property.bhk || property.beds}</span>

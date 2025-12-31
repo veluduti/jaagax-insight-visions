@@ -52,7 +52,7 @@ const AISpotlight = () => {
             <span className="text-gradient">using AI?</span>
           </h2>
 
-          <p className="text-lg md:text-xl text-muted-foreground mb-lg max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-foreground/80 mb-lg max-w-2xl mx-auto">
             Chat with JaagaXGPT — Your intelligent real estate assistant. 
             Ask questions, get recommendations, and find your dream home in seconds.
           </p>

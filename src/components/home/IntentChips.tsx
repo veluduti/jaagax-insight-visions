@@ -46,7 +46,7 @@ const IntentChips = () => {
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground mr-2 hidden sm:inline">
+          <span className="text-xs text-foreground/70 mr-2 hidden sm:inline">
             What's on your mind?
           </span>
           {intentOptions.map((option) => {

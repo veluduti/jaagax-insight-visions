@@ -12,10 +12,10 @@ const Footer = () => {
               
               <div>
                 <h3 className="text-xl font-bold text-gradient">JaagaX</h3>
-                <p className="text-xs text-muted-foreground">Choose Your Place</p>
+                <p className="text-xs text-foreground/70">Choose Your Place</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-foreground/70 mb-4">
               India's first AI-powered real estate platform. Find verified properties 
               with complete transparency.
             </p>
@@ -28,7 +28,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <h4 className="font-bold mb-4">Quick Links</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-foreground/70">
               <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">How It Works</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
@@ -40,7 +40,7 @@ const Footer = () => {
           {/* For Businesses */}
           <div>
             <h4 className="font-bold mb-4">For Businesses</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-foreground/70">
               <li><a href="#" className="hover:text-primary transition-colors">For Builders</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">For Agents</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Advertise</a></li>
@@ -52,7 +52,7 @@ const Footer = () => {
           {/* Legal & Support */}
           <div>
             <h4 className="font-bold mb-4">Legal & Support</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-foreground/70">
               <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
@@ -66,7 +66,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground/70">
             © 2025 JaagaX. All rights reserved. Made with ❤️ in India.
           </p>
 
