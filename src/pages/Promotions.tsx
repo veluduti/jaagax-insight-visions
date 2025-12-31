@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, Filter, Sparkles, Building2, Home, 
-  Briefcase, SlidersHorizontal, TrendingUp
+  Briefcase, SlidersHorizontal, TrendingUp, Wand2, Loader2, PartyPopper
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { seedAdvertisements } from "@/utils/seedAdvertisements";
 
 interface Advertisement {
   id: string;
@@ -40,6 +42,8 @@ const Promotions = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string | null>(null);
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     fetchAds();
@@ -80,6 +84,26 @@ const Promotions = () => {
 
     if (data) {
       setSavedAds(data.map(s => s.advertisement_id));
+    }
+  };
+
+  const handleSeedData = async () => {
+    setSeeding(true);
+    try {
+      await seedAdvertisements();
+      setShowCelebration(true);
+      toast.success("Demo promotions added successfully!", {
+        description: "The page will refresh with new deals"
+      });
+      setTimeout(() => {
+        setShowCelebration(false);
+        fetchAds();
+      }, 2000);
+    } catch (error) {
+      console.error('Error seeding data:', error);
+      toast.error("Failed to add demo data");
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -180,13 +204,93 @@ const Promotions = () => {
               ))}
             </div>
           ) : filteredAds.length === 0 ? (
-            <div className="text-center py-20">
-              <Sparkles className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">No promotions found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery ? "Try adjusting your search or filters" : "Check back later for new offers!"}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <AnimatePresence>
+                {showCelebration && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+                  >
+                    <div className="text-center">
+                      <motion.div
+                        animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.2, 1] }}
+                        transition={{ repeat: Infinity, duration: 0.5 }}
+                      >
+                        <PartyPopper className="h-24 w-24 mx-auto text-primary" />
+                      </motion.div>
+                      <h2 className="text-2xl font-bold mt-4">Adding Amazing Deals!</h2>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="relative">
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                    y: [0, -5, 0]
+                  }}
+                  transition={{ 
+                    repeat: Infinity, 
+                    duration: 3,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Wand2 className="h-20 w-20 mx-auto mb-6 text-primary" />
+                </motion.div>
+                <motion.div
+                  className="absolute -top-2 -right-2 h-4 w-4 bg-primary rounded-full"
+                  animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, delay: 0 }}
+                />
+                <motion.div
+                  className="absolute top-4 -left-4 h-3 w-3 bg-amber-400 rounded-full"
+                  animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                />
+                <motion.div
+                  className="absolute -bottom-2 left-1/3 h-2 w-2 bg-emerald-400 rounded-full"
+                  animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, delay: 1 }}
+                />
+              </div>
+              
+              <h3 className="text-2xl font-bold mb-3 text-foreground">
+                {searchQuery ? "No promotions found" : "No promotions yet"}
+              </h3>
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                {searchQuery 
+                  ? "Try adjusting your search or filters" 
+                  : "Be the first to discover amazing property deals! Add some demo promotions to explore the feature."}
               </p>
-            </div>
+              
+              {!searchQuery && (
+                <Button
+                  size="lg"
+                  onClick={handleSeedData}
+                  disabled={seeding}
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/25"
+                >
+                  {seeding ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Creating Magic...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      Load Demo Promotions
+                    </>
+                  )}
+                </Button>
+              )}
+            </motion.div>
           ) : (
             <div className="space-y-12">
               {/* Featured Section */}

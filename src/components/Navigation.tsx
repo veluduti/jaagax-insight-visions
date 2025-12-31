@@ -123,42 +123,6 @@ const Navigation = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Explore Dropdown */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger 
-                    className={cn(
-                      "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                      isExploreActive ? "text-foreground" : "text-muted-foreground"
-                    )}
-                  >
-                    <Compass className="h-4 w-4 mr-1.5" />
-                    Explore
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[280px] gap-1 p-2">
-                      {exploreItems.map((item) => (
-                        <li key={item.path}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to={item.path}
-                              className={cn(
-                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                isActive(item.path) && "bg-accent"
-                              )}
-                            >
-                              <item.icon className="h-5 w-5 text-primary mt-0.5" />
-                              <div>
-                                <div className="text-sm font-medium text-foreground">{item.label}</div>
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
                 {/* Hotels - Direct Link */}
                 <NavigationMenuItem>
                   <Link to="/hotels">
@@ -194,6 +158,42 @@ const Navigation = () => {
                       )}
                     </Button>
                   </Link>
+                </NavigationMenuItem>
+
+                {/* Explore Dropdown */}
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger 
+                    className={cn(
+                      "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                      isExploreActive ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    <Compass className="h-4 w-4 mr-1.5" />
+                    Explore
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[280px] gap-1 p-2">
+                      {exploreItems.map((item) => (
+                        <li key={item.path}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={item.path}
+                              className={cn(
+                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                isActive(item.path) && "bg-accent"
+                              )}
+                            >
+                              <item.icon className="h-5 w-5 text-primary mt-0.5" />
+                              <div>
+                                <div className="text-sm font-medium text-foreground">{item.label}</div>
+                                <p className="text-xs text-muted-foreground">{item.description}</p>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
