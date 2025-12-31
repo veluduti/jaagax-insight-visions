@@ -14,6 +14,7 @@ import { useLocationDetection } from "@/hooks/useLocationDetection";
 import IntentChips from "@/components/home/IntentChips";
 import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
+import PromotedListings from "@/components/home/PromotedListings";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocationDetection();
@@ -26,6 +27,9 @@ const Index = () => {
       
       {/* Intent Chips - Thin strip for user mindset */}
       <IntentChips />
+      
+      {/* Promoted Listings Carousel */}
+      <PromotedListings />
       
       {/* AI Insight Strip - Only shown to buyers with context */}
       <AIInsightStrip />

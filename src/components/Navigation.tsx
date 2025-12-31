@@ -52,6 +52,7 @@ const Navigation = () => {
     { label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
     { label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
     { label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
+    { label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
   ];
 
   const isActive = (path: string) => {

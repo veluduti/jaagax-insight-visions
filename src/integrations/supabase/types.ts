@@ -14,6 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_interactions: {
+        Row: {
+          advertisement_id: string
+          created_at: string | null
+          id: string
+          interaction_type: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          advertisement_id: string
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          advertisement_id?: string
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_interactions_advertisement_id_fkey"
+            columns: ["advertisement_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertisements: {
+        Row: {
+          ad_type: Database["public"]["Enums"]["ad_type"]
+          budget: number | null
+          builder_id: string
+          clicks: number | null
+          contacts: number | null
+          created_at: string | null
+          cta_text: string | null
+          description: string | null
+          end_date: string | null
+          featured: boolean | null
+          highlights: Json | null
+          id: string
+          images: string[] | null
+          impressions: number | null
+          offer_text: string | null
+          priority: number | null
+          project_id: number | null
+          property_id: number | null
+          saves: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["ad_status"]
+          tagline: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ad_type?: Database["public"]["Enums"]["ad_type"]
+          budget?: number | null
+          builder_id: string
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: Json | null
+          id?: string
+          images?: string[] | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: number | null
+          property_id?: number | null
+          saves?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          tagline?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ad_type?: Database["public"]["Enums"]["ad_type"]
+          budget?: number | null
+          builder_id?: string
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: Json | null
+          id?: string
+          images?: string[] | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: number | null
+          property_id?: number | null
+          saves?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_status"]
+          tagline?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advertisements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_availability: {
         Row: {
           agent_id: number | null
@@ -1904,6 +2035,44 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_advertisements: {
+        Row: {
+          advertisement_id: string
+          contacted: boolean | null
+          contacted_at: string | null
+          id: string
+          notes: string | null
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          advertisement_id: string
+          contacted?: boolean | null
+          contacted_at?: string | null
+          id?: string
+          notes?: string | null
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          advertisement_id?: string
+          contacted?: boolean | null
+          contacted_at?: string | null
+          id?: string
+          notes?: string | null
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_advertisements_advertisement_id_fkey"
+            columns: ["advertisement_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_searches: {
         Row: {
           created_at: string | null
@@ -2785,6 +2954,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_ad_stat: {
+        Args: { p_ad_id: string; p_stat_type: string }
+        Returns: undefined
+      }
       log_agent_effort: {
         Args: {
           p_agent_id: number
@@ -2796,6 +2969,14 @@ export type Database = {
       }
     }
     Enums: {
+      ad_status:
+        | "draft"
+        | "pending_approval"
+        | "active"
+        | "paused"
+        | "expired"
+        | "rejected"
+      ad_type: "property" | "project" | "builder_brand"
       amenity_type:
         | "gym"
         | "pool"
@@ -2956,6 +3137,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_status: [
+        "draft",
+        "pending_approval",
+        "active",
+        "paused",
+        "expired",
+        "rejected",
+      ],
+      ad_type: ["property", "project", "builder_brand"],
       amenity_type: [
         "gym",
         "pool",
