@@ -12,7 +12,7 @@ const Footer = () => {
               
               <div>
                 <h3 className="text-xl font-bold text-gradient">JaagaX</h3>
-                <p className="text-xs text-muted-foreground">Intelligent Realty</p>
+                <p className="text-xs text-muted-foreground">Choose Your Place</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
