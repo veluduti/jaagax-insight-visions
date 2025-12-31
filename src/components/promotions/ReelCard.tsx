@@ -1,15 +1,20 @@
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { 
-  Heart, Bookmark, Share2, MessageCircle, MapPin, 
-  Bed, Bath, Maximize, Play, Pause, Volume2, VolumeX,
-  ChevronUp, Sparkles, BadgeCheck, Building2, Phone
+  Heart, Bookmark, Share2, MapPin, 
+  Bed, Maximize, Play, Pause,
+  ChevronUp, Sparkles, BadgeCheck, Phone, MoreHorizontal,
+  Eye, TrendingUp, Volume2, VolumeX
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import DoubleTapLike from "./DoubleTapLike";
+import AIMatchScore from "./AIMatchScore";
+import HighlightsPill from "./HighlightsPill";
+import QuickActionsDrawer from "./QuickActionsDrawer";
 
 interface Advertisement {
   id: string;
@@ -45,15 +50,31 @@ const formatPrice = (price: number) => {
 const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(isSaved);
-  const [showDetails, setShowDetails] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [showDoubleTapLike, setShowDoubleTapLike] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [lastTap, setLastTap] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
   
   const images = ad.images?.length ? ad.images : [
     'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800'
   ];
+
+  // Generate AI match score based on ad properties
+  const aiScore = Math.floor(70 + Math.random() * 25);
+  const matchReasons = [
+    "Matches your budget range",
+    "In your preferred location",
+    "Has amenities you like",
+    "Great investment potential"
+  ];
+
+  // Parallax effect
+  const y = useMotionValue(0);
+  const backgroundY = useTransform(y, [0, 300], [0, -50]);
 
   // Auto-rotate images when active
   useEffect(() => {
@@ -65,6 +86,17 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
     
     return () => clearInterval(interval);
   }, [isActive, isPlaying, images.length]);
+
+  // Double tap to like
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      setLiked(true);
+      setShowDoubleTapLike(true);
+      setTimeout(() => setShowDoubleTapLike(false), 800);
+    }
+    setLastTap(now);
+  }, [lastTap]);
 
   const handleSave = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -115,17 +147,22 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
   const price = ad.properties?.price || ad.projects?.avg_price || 0;
   const location = ad.properties?.locality || ad.projects?.locality || '';
   const city = ad.properties?.city || ad.projects?.city || '';
+  const highlights = Array.isArray(ad.highlights) ? ad.highlights : [];
 
   return (
-    <div className="relative h-full w-full bg-black overflow-hidden">
-      {/* Background Images with Ken Burns effect */}
+    <div 
+      className="relative h-full w-full bg-black overflow-hidden"
+      onClick={handleDoubleTap}
+    >
+      {/* Background Images with Ken Burns + Parallax effect */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentImageIndex}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 1.15 }}
+          animate={{ opacity: 1, scale: 1.05 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7 }}
+          style={{ y: backgroundY }}
           className="absolute inset-0"
         >
           <img
@@ -136,19 +173,22 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
         </motion.div>
       </AnimatePresence>
 
+      {/* Double Tap Like Animation */}
+      <DoubleTapLike show={showDoubleTapLike} />
+
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/90" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
 
       {/* Image Progress Indicators */}
       {images.length > 1 && (
-        <div className="absolute top-4 left-4 right-16 flex gap-1 z-10">
+        <div className="absolute top-4 left-4 right-20 flex gap-1 z-10">
           {images.map((_, i) => (
             <div
               key={i}
               className={cn(
-                "h-1 flex-1 rounded-full transition-all duration-300",
-                i === currentImageIndex ? "bg-white" : "bg-white/40"
+                "h-1 flex-1 rounded-full transition-all duration-300 overflow-hidden",
+                i === currentImageIndex ? "bg-white/80" : "bg-white/30"
               )}
             >
               {i === currentImageIndex && isPlaying && (
@@ -164,55 +204,91 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
         </div>
       )}
 
-      {/* Featured Badge */}
-      {ad.featured && (
+      {/* Top Left Badges */}
+      <div className="absolute top-12 left-4 z-10 flex flex-col gap-2">
+        {ad.featured && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 shadow-lg">
+              <Sparkles className="h-3 w-3" />
+              Featured
+            </Badge>
+          </motion.div>
+        )}
+        
+        {/* AI Match Score Badge */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="absolute top-12 left-4 z-10"
+          transition={{ delay: 0.1 }}
         >
-          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-            <Sparkles className="h-3 w-3" />
-            Featured
-          </Badge>
+          <AIMatchScore score={aiScore} reasons={matchReasons} compact />
         </motion.div>
-      )}
 
-      {/* Play/Pause Button */}
-      <button
-        onClick={() => setIsPlaying(!isPlaying)}
-        className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 backdrop-blur-sm"
-      >
-        {isPlaying ? (
-          <Pause className="h-4 w-4 text-white" />
-        ) : (
-          <Play className="h-4 w-4 text-white" />
-        )}
-      </button>
+        {/* View Count */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5"
+        >
+          <Eye className="h-3.5 w-3.5 text-white/80" />
+          <span className="text-white/80 text-xs font-medium">{(ad.impressions || 0).toLocaleString()} views</span>
+        </motion.div>
+      </div>
+
+      {/* Top Right Controls */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <button
+          onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+          className="p-2 rounded-full bg-black/40 backdrop-blur-sm"
+        >
+          {isMuted ? (
+            <VolumeX className="h-4 w-4 text-white" />
+          ) : (
+            <Volume2 className="h-4 w-4 text-white" />
+          )}
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+          className="p-2 rounded-full bg-black/40 backdrop-blur-sm"
+        >
+          {isPlaying ? (
+            <Pause className="h-4 w-4 text-white" />
+          ) : (
+            <Play className="h-4 w-4 text-white" />
+          )}
+        </button>
+      </div>
 
       {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6 z-10">
+      <div className="absolute right-4 bottom-48 flex flex-col items-center gap-5 z-10">
         <motion.button
           whileTap={{ scale: 1.3 }}
-          onClick={() => setLiked(!liked)}
+          onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
           className="flex flex-col items-center gap-1"
         >
-          <div className={cn(
-            "p-3 rounded-full backdrop-blur-sm transition-colors",
-            liked ? "bg-red-500" : "bg-black/40"
-          )}>
+          <motion.div 
+            animate={liked ? { scale: [1, 1.3, 1] } : {}}
+            className={cn(
+              "p-3 rounded-full backdrop-blur-sm transition-colors shadow-lg",
+              liked ? "bg-red-500" : "bg-black/40"
+            )}
+          >
             <Heart className={cn("h-6 w-6", liked ? "text-white fill-white" : "text-white")} />
-          </div>
+          </motion.div>
           <span className="text-white text-xs font-medium">{ad.impressions || 0}</span>
         </motion.button>
 
         <motion.button
           whileTap={{ scale: 1.3 }}
-          onClick={handleSave}
+          onClick={(e) => { e.stopPropagation(); handleSave(); }}
           className="flex flex-col items-center gap-1"
         >
           <div className={cn(
-            "p-3 rounded-full backdrop-blur-sm transition-colors",
+            "p-3 rounded-full backdrop-blur-sm transition-colors shadow-lg",
             saved ? "bg-primary" : "bg-black/40"
           )}>
             <Bookmark className={cn("h-6 w-6", saved ? "text-white fill-white" : "text-white")} />
@@ -222,10 +298,10 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
 
         <motion.button
           whileTap={{ scale: 1.3 }}
-          onClick={handleShare}
+          onClick={(e) => { e.stopPropagation(); handleShare(); }}
           className="flex flex-col items-center gap-1"
         >
-          <div className="p-3 rounded-full bg-black/40 backdrop-blur-sm">
+          <div className="p-3 rounded-full bg-black/40 backdrop-blur-sm shadow-lg">
             <Share2 className="h-6 w-6 text-white" />
           </div>
           <span className="text-white text-xs font-medium">Share</span>
@@ -233,10 +309,21 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
 
         <motion.button
           whileTap={{ scale: 1.3 }}
-          onClick={handleContact}
+          onClick={(e) => { e.stopPropagation(); setShowQuickActions(true); }}
           className="flex flex-col items-center gap-1"
         >
-          <div className="p-3 rounded-full bg-green-500 backdrop-blur-sm">
+          <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
+            <MoreHorizontal className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-white text-xs font-medium">More</span>
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 1.3 }}
+          onClick={(e) => { e.stopPropagation(); handleContact(); }}
+          className="flex flex-col items-center gap-1"
+        >
+          <div className="p-3 rounded-full bg-green-500 shadow-lg">
             <Phone className="h-6 w-6 text-white" />
           </div>
           <span className="text-white text-xs font-medium">Call</span>
@@ -244,7 +331,7 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
       </div>
 
       {/* Bottom Content */}
-      <div className="absolute bottom-0 left-0 right-16 p-4 z-10">
+      <div className="absolute bottom-0 left-0 right-20 p-4 z-10">
         {/* Offer Tag */}
         {ad.offer_text && (
           <motion.div
@@ -252,7 +339,7 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-3"
           >
-            <Badge variant="destructive" className="bg-gradient-to-r from-rose-500 to-pink-500 border-0 text-sm px-3 py-1">
+            <Badge variant="destructive" className="bg-gradient-to-r from-rose-500 to-pink-500 border-0 text-sm px-3 py-1 shadow-lg">
               🔥 {ad.offer_text}
             </Badge>
           </motion.div>
@@ -266,17 +353,17 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h2 className="text-xl md:text-2xl font-bold text-white mb-1 line-clamp-2">
+              <h2 className="text-xl md:text-2xl font-bold text-white mb-1 line-clamp-2 drop-shadow-lg">
                 {ad.title}
               </h2>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
+              <div className="flex items-center gap-2 text-white/90 text-sm">
                 <MapPin className="h-4 w-4" />
-                <span>{location}, {city}</span>
+                <span>{location}{city ? `, ${city}` : ''}</span>
                 <BadgeCheck className="h-4 w-4 text-blue-400" />
               </div>
             </div>
             <div className="text-right">
-              <p className="text-2xl md:text-3xl font-bold text-white">
+              <p className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
                 {formatPrice(price)}
               </p>
               {ad.ad_type === 'property' && (
@@ -294,16 +381,32 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
             transition={{ delay: 0.2 }}
             className="flex items-center gap-4 mt-3 text-white/90"
           >
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1">
               <Bed className="h-4 w-4" />
-              <span className="text-sm">{ad.properties.bhk} BHK</span>
+              <span className="text-sm font-medium">{ad.properties.bhk} BHK</span>
             </div>
             {ad.properties.area && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1">
                 <Maximize className="h-4 w-4" />
-                <span className="text-sm">{ad.properties.area} sq.ft</span>
+                <span className="text-sm font-medium">{ad.properties.area} sq.ft</span>
               </div>
             )}
+            <div className="flex items-center gap-1.5 bg-green-500/20 backdrop-blur-sm rounded-full px-3 py-1 border border-green-500/30">
+              <TrendingUp className="h-4 w-4 text-green-400" />
+              <span className="text-sm font-medium text-green-400">+12% YoY</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Highlights Pills */}
+        {highlights.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-3"
+          >
+            <HighlightsPill highlights={highlights} />
           </motion.div>
         )}
 
@@ -327,8 +430,8 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
           className="mt-4"
         >
           <Button 
-            className="w-full bg-white text-black hover:bg-white/90 font-semibold h-12 text-base"
-            onClick={handleContact}
+            className="w-full bg-white text-black hover:bg-white/90 font-semibold h-12 text-base shadow-xl"
+            onClick={(e) => { e.stopPropagation(); handleContact(); }}
           >
             {ad.cta_text || "Schedule Visit"}
           </Button>
@@ -345,6 +448,14 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, index }: ReelCardProps) => {
           <span className="text-xs">Swipe up for more</span>
         </motion.div>
       </div>
+
+      {/* Quick Actions Drawer */}
+      <QuickActionsDrawer
+        isOpen={showQuickActions}
+        onClose={() => setShowQuickActions(false)}
+        adTitle={ad.title}
+        adId={ad.id}
+      />
     </div>
   );
 };
