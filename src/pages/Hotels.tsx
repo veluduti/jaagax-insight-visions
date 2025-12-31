@@ -13,7 +13,7 @@ import HotelDetailModal from "@/components/hotels/HotelDetailModal";
 import HotelTrustBanner from "@/components/hotels/HotelTrustBanner";
 import PackageShowcase from "@/components/hotels/PackageShowcase";
 import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
-
+import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
 interface PartnerHotel {
   id: string;
   name: string;
@@ -56,8 +56,8 @@ const Hotels = () => {
   // Modal state
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingMode, setBookingMode] = useState<'visit_stay' | 'hotel_only'>('visit_stay');
+  const [showVisitStayModal, setShowVisitStayModal] = useState(false);
+  const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [preSelectedPackage, setPreSelectedPackage] = useState<VisitPackage | null>(null);
 
   useEffect(() => {
@@ -126,33 +126,32 @@ const Hotels = () => {
   };
 
   const handleBookNow = (hotel: PartnerHotel) => {
+    // Default to Visit+Stay for better value
     setSelectedHotel(hotel);
-    setBookingMode('visit_stay');
     setShowDetailModal(false);
-    setShowBookingModal(true);
+    setShowVisitStayModal(true);
   };
 
   const handleBookWithVisit = (hotel: PartnerHotel) => {
+    // Opens full VisitStayPlanner with package selection and site visit scheduling
     setSelectedHotel(hotel);
-    setBookingMode('visit_stay');
     setShowDetailModal(false);
-    setShowBookingModal(true);
+    setShowVisitStayModal(true);
   };
 
   const handleBookHotelOnly = (hotel: PartnerHotel) => {
+    // Opens simplified HotelOnlyBooking - just dates, guests, rooms
     setSelectedHotel(hotel);
-    setBookingMode('hotel_only');
     setShowDetailModal(false);
-    setShowBookingModal(true);
+    setShowHotelOnlyModal(true);
   };
 
   const handleSelectPackage = (pkg: VisitPackage) => {
     setPreSelectedPackage(pkg);
-    // Open booking modal with first hotel or let user select
+    // Open Visit+Stay modal with package pre-selected
     if (filteredHotels.length > 0) {
       setSelectedHotel(filteredHotels[0]);
-      setBookingMode('visit_stay');
-      setShowBookingModal(true);
+      setShowVisitStayModal(true);
     } else {
       toast.info('Please select a hotel first');
     }
@@ -267,21 +266,30 @@ const Hotels = () => {
         onBookHotelOnly={handleBookHotelOnly}
       />
 
-      {/* Booking Modal */}
+      {/* Visit + Stay Booking Modal (with package & site visit) */}
       {selectedHotel && (
         <VisitStayPlanner
-          open={showBookingModal}
+          open={showVisitStayModal}
           onClose={() => {
-            setShowBookingModal(false);
+            setShowVisitStayModal(false);
             setPreSelectedPackage(null);
           }}
           propertyId={0}
           propertyTitle="Hotel Booking"
           propertyCity={selectedHotel.city}
           propertyLocality={selectedHotel.locality}
-          mode={bookingMode}
+          mode="visit_stay"
           preSelectedHotel={selectedHotel}
           preSelectedPackage={preSelectedPackage}
+        />
+      )}
+
+      {/* Hotel Only Booking Modal (simple booking) */}
+      {selectedHotel && (
+        <HotelOnlyBooking
+          open={showHotelOnlyModal}
+          onClose={() => setShowHotelOnlyModal(false)}
+          hotel={selectedHotel}
         />
       )}
     </div>
