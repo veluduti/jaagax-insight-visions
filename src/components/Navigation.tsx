@@ -51,7 +51,7 @@ const Navigation = () => {
     { label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
     { label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
     { label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
-    { label: "Hotels", path: "/hotels", icon: Hotel, description: "Stay near your shortlist" },
+    { label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
   ];
 
   const isActive = (path: string) => {
@@ -158,18 +158,18 @@ const Navigation = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Market Index - Direct Link */}
+                {/* Hotels - Direct Link */}
                 <NavigationMenuItem>
-                  <Link to="/transactions">
+                  <Link to="/hotels">
                     <Button
                       variant="ghost"
                       className={cn(
                         "px-3 py-2 text-sm font-medium h-auto",
-                        isActive('/transactions') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                        isActive('/hotels') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <TrendingUp className="h-4 w-4 mr-1.5" />
-                      Market Index
+                      <Hotel className="h-4 w-4 mr-1.5" />
+                      Hotels
                     </Button>
                   </Link>
                 </NavigationMenuItem>
