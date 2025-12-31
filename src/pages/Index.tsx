@@ -11,6 +11,9 @@ import TruValue from "@/components/TruValue";
 import FeaturedCommunities from "@/components/FeaturedCommunities";
 import Footer from "@/components/Footer";
 import { useLocationDetection } from "@/hooks/useLocationDetection";
+import IntentChips from "@/components/home/IntentChips";
+import VisitStayTeaser from "@/components/home/VisitStayTeaser";
+import TrustStatements from "@/components/home/TrustStatements";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocationDetection();
@@ -21,6 +24,9 @@ const Index = () => {
       <Navigation />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} />
       
+      {/* Intent Chips - Thin strip for user mindset */}
+      <IntentChips />
+      
       {/* AI Insight Strip - Only shown to buyers with context */}
       <AIInsightStrip />
       
@@ -28,6 +34,7 @@ const Index = () => {
       {activeTab === "properties" && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <VisitStayTeaser />
           <AISpotlight />
           <MarketIntelligence />
         </>
@@ -36,6 +43,7 @@ const Index = () => {
       {activeTab === "new-projects" && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
+          <VisitStayTeaser />
           <FeaturedProperties detectedCity={detectedLocation?.city} />
           <MarketIntelligence />
           <TruValue />
@@ -57,6 +65,9 @@ const Index = () => {
           <TruValue />
         </>
       )}
+      
+      {/* Trust Statements above Footer */}
+      <TrustStatements />
       <Footer />
     </div>
   );

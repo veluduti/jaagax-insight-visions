@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { Menu, Leaf } from "lucide-react";
+import { Menu, Leaf, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -107,6 +107,17 @@ const Navigation = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              {/* Get Guidance Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/ai-advisor')}
+                className="text-sm text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5 text-primary" />
+                Get Guidance
+              </Button>
+              
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
