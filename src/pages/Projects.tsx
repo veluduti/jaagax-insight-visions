@@ -180,37 +180,52 @@ const Projects = () => {
 
       const el = document.createElement("div");
       el.className = "project-marker";
-      el.innerHTML = `
-        <div style="
-          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
-          color: white;
-          padding: 8px 12px;
-          border-radius: 20px;
-          font-weight: 600;
-          font-size: 13px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          cursor: pointer;
-          white-space: nowrap;
-          border: 2px solid white;
-        ">
-          ₹${(project.avg_price / 10000000).toFixed(1)}Cr
-        </div>
+      
+      // Use safe DOM manipulation instead of innerHTML
+      const markerDiv = document.createElement("div");
+      markerDiv.style.cssText = `
+        background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        cursor: pointer;
+        white-space: nowrap;
+        border: 2px solid white;
       `;
+      markerDiv.textContent = `₹${(project.avg_price / 10000000).toFixed(1)}Cr`;
+      el.appendChild(markerDiv);
 
       el.addEventListener("click", () => {
         navigate(`/project/${project.id}`);
       });
 
+      // Create popup content safely
+      const popupContainer = document.createElement("div");
+      popupContainer.style.padding = "8px";
+      
+      const titleEl = document.createElement("h3");
+      titleEl.style.cssText = "font-weight: 600; margin-bottom: 4px;";
+      titleEl.textContent = project.name || '';
+      
+      const locationEl = document.createElement("p");
+      locationEl.style.cssText = "font-size: 12px; color: #666; margin-bottom: 4px;";
+      locationEl.textContent = `${project.locality || ''}, ${project.city || ''}`;
+      
+      const priceEl = document.createElement("p");
+      priceEl.style.cssText = "font-size: 14px; font-weight: 600; color: hsl(var(--primary));";
+      priceEl.textContent = `₹${(project.avg_price / 10000000).toFixed(2)}Cr`;
+      
+      popupContainer.appendChild(titleEl);
+      popupContainer.appendChild(locationEl);
+      popupContainer.appendChild(priceEl);
+
       const marker = new mapboxgl.Marker(el)
         .setLngLat(coords)
         .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div style="padding: 8px;">
-              <h3 style="font-weight: 600; margin-bottom: 4px;">${project.name}</h3>
-              <p style="font-size: 12px; color: #666; margin-bottom: 4px;">${project.locality}, ${project.city}</p>
-              <p style="font-size: 14px; font-weight: 600; color: hsl(var(--primary));">₹${(project.avg_price / 10000000).toFixed(2)}Cr</p>
-            </div>
-          `)
+          new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContainer)
         )
         .addTo(map.current!);
 

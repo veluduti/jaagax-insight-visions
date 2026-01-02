@@ -313,50 +313,55 @@ const Map = () => {
       el.style.transition = "all 0.2s ease";
 
       if (isCluster) {
-        // Cluster marker
-        el.innerHTML = `
-          <div style="
-            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
-            color: white;
-            padding: 12px 16px;
-            border-radius: 24px;
-            font-weight: 700;
-            font-size: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            border: 3px solid white;
-            min-width: 60px;
-            text-align: center;
-          ">
-            ${clusterProps.length}
-          </div>
+        // Cluster marker - use safe DOM manipulation
+        const clusterDiv = document.createElement("div");
+        clusterDiv.style.cssText = `
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
+          color: white;
+          padding: 12px 16px;
+          border-radius: 24px;
+          font-weight: 700;
+          font-size: 16px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+          border: 3px solid white;
+          min-width: 60px;
+          text-align: center;
         `;
+        clusterDiv.textContent = String(clusterProps.length);
+        el.appendChild(clusterDiv);
       } else {
-        // Single property marker with type icon
+        // Single property marker with type icon - use safe DOM manipulation
         const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
                          property.type?.toLowerCase().includes('plot') ? '📍' :
                          property.type?.toLowerCase().includes('penthouse') ? '🏢' : '🏠';
         
-        el.innerHTML = `
-          <div style="
-            background: ${property.verified 
-              ? 'linear-gradient(135deg, #10b981, #059669)' 
-              : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'};
-            color: white;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-            border: 2px solid white;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-          ">
-            <span style="font-size: 14px;">${typeEmoji}</span>
-            ₹${(property.price / 100000).toFixed(1)}L
-          </div>
+        const markerDiv = document.createElement("div");
+        markerDiv.style.cssText = `
+          background: ${property.verified 
+            ? 'linear-gradient(135deg, #10b981, #059669)' 
+            : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'};
+          color: white;
+          padding: 8px 14px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 13px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          border: 2px solid white;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         `;
+        
+        const emojiSpan = document.createElement("span");
+        emojiSpan.style.fontSize = "14px";
+        emojiSpan.textContent = typeEmoji;
+        
+        const priceText = document.createTextNode(`₹${(property.price / 100000).toFixed(1)}L`);
+        
+        markerDiv.appendChild(emojiSpan);
+        markerDiv.appendChild(priceText);
+        el.appendChild(markerDiv);
       }
 
       // Add hover effect

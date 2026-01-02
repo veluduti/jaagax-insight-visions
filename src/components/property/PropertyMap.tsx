@@ -48,12 +48,12 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
     if (verified) {
       el.style.background = "linear-gradient(135deg, #10b981, #059669)";
       el.style.boxShadow = "0 0 30px rgba(16, 185, 129, 0.8), 0 0 60px rgba(16, 185, 129, 0.4)";
-      el.innerHTML = "✓";
+      el.textContent = "✓";
       el.style.color = "white";
     } else {
       el.style.background = "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))";
       el.style.boxShadow = "0 0 20px hsl(var(--primary) / 0.6)";
-      el.innerHTML = "📍";
+      el.textContent = "📍";
     }
 
     if (hasCoordinates) {
