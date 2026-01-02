@@ -39,17 +39,17 @@ interface Property {
   title: string;
   city: string;
   locality: string;
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   price: number;
-  area: number;
-  type: string;
+  area: number | null;
+  type: string | null;
   beds: number;
   baths: number;
-  bhk: number;
+  bhk: number | null;
   status: string;
   verified: boolean;
-  trust_score: number;
+  trust_score: number | null;
   images: string[];
   description: string;
   agent_id: number | null;
@@ -120,23 +120,39 @@ const PropertyDetail = () => {
       // Use type assertion to handle the DB schema
       const dbProperty = propertyData as any;
       
+      // Parse images - handle both array format and newline-separated string format
+      let parsedImages: string[] = [];
+      if (dbProperty.images) {
+        if (Array.isArray(dbProperty.images)) {
+          // If it's already an array, flatten in case items contain newlines
+          parsedImages = dbProperty.images.flatMap((img: string) => 
+            typeof img === 'string' && img.includes('\n') 
+              ? img.split('\n').map((url: string) => url.trim()).filter(Boolean)
+              : img
+          );
+        } else if (typeof dbProperty.images === 'string') {
+          // If it's a single string with newlines
+          parsedImages = dbProperty.images.split('\n').map((url: string) => url.trim()).filter(Boolean);
+        }
+      }
+      
       const mappedProperty: Property = {
         id: dbProperty.id,
         title: dbProperty.title,
         city: dbProperty.city,
         locality: dbProperty.locality,
-        lat: dbProperty.lat,
-        lng: dbProperty.lng,
+        lat: dbProperty.lat ?? null,
+        lng: dbProperty.lng ?? null,
         price: dbProperty.price,
-        area: dbProperty.area,
-        type: dbProperty.type,
+        area: dbProperty.area ?? null,
+        type: dbProperty.type ?? "Apartment",
         beds: dbProperty.beds || dbProperty.bhk || 0,
         baths: dbProperty.baths || 0,
-        bhk: dbProperty.bhk,
+        bhk: dbProperty.bhk ?? null,
         status: dbProperty.status || "Ready",
         verified: dbProperty.verified,
-        trust_score: dbProperty.trust_score,
-        images: dbProperty.images || [],
+        trust_score: dbProperty.trust_score ?? null,
+        images: parsedImages,
         description: dbProperty.description || "",
         agent_id: dbProperty.agent_id,
         project_id: dbProperty.project_id,

@@ -37,17 +37,23 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
     try {
       setLoading(true);
       
-      // Fetch similar properties in the same locality
-      const { data, error } = await supabase
+      // Build query based on available data
+      let query = supabase
         .from("properties")
         .select("*")
         .eq("city", property.city)
         .eq("locality", property.locality)
-        .eq("bhk", property.bhk)
         .eq("verified", true)
         .neq("id", propertyId)
         .order("trust_score", { ascending: false })
         .limit(6);
+      
+      // Only filter by bhk if it's available
+      if (property.bhk) {
+        query = query.eq("bhk", property.bhk);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -86,7 +92,8 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
     return `₹${(price / 100000).toFixed(2)} L`;
   };
 
-  const formatPSF = (price: number, area: number) => {
+  const formatPSF = (price: number, area: number | null) => {
+    if (!area || area === 0) return 'N/A';
     return `₹${(price / area).toFixed(0)}/sqft`;
   };
 
@@ -182,7 +189,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
               </Button>
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Similar {property.bhk}BHK properties in {property.locality}
+              Similar {property.bhk ? `${property.bhk}BHK ` : ''}properties in {property.locality}
             </p>
           </CardHeader>
           <CardContent>
@@ -231,7 +238,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
                         <div>
                           <p className="text-lg font-bold">{formatPrice(comp.price)}</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatPSF(comp.price, comp.area)} • {comp.area} sqft
+                            {formatPSF(comp.price, comp.area)}{comp.area ? ` • ${comp.area} sqft` : ''}
                           </p>
                         </div>
 

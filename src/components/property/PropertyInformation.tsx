@@ -3,7 +3,7 @@ import { Calendar, CheckCircle2, FileText, Home, Tag } from "lucide-react";
 
 interface PropertyInformationProps {
   property: {
-    type: string;
+    type: string | null;
     status: string;
     verified: boolean;
     id: number;
@@ -34,7 +34,7 @@ const PropertyInformation = ({ property }: PropertyInformationProps) => {
           <Home className="h-5 w-5 text-primary mt-1" />
           <div>
             <div className="text-sm text-muted-foreground mb-1">Type</div>
-            <div className="font-semibold">{property.type}</div>
+            <div className="font-semibold">{property.type || 'Apartment'}</div>
           </div>
         </div>
 

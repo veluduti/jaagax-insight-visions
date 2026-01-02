@@ -8,10 +8,10 @@ interface PropertyOverviewProps {
     city: string;
     locality: string;
     price: number;
-    area: number;
+    area: number | null;
     beds: number;
     baths: number;
-    bhk: number;
+    bhk: number | null;
     status: string;
     verified: boolean;
   };
@@ -71,7 +71,7 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
           <Square className="h-5 w-5 text-primary" />
           <div>
             <div className="text-sm text-muted-foreground">Area</div>
-            <div className="font-semibold">{property.area} sq.ft</div>
+            <div className="font-semibold">{property.area ?? 'N/A'} {property.area ? 'sq.ft' : ''}</div>
           </div>
         </div>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
@@ -84,7 +84,7 @@ const PropertyOverview = ({ property }: PropertyOverviewProps) => {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Badge variant="secondary">{property.bhk} BHK</Badge>
+        {property.bhk && <Badge variant="secondary">{property.bhk} BHK</Badge>}
         <Badge variant="secondary">{property.status}</Badge>
         {property.verified && <Badge variant="default">RERA Verified</Badge>}
       </div>
