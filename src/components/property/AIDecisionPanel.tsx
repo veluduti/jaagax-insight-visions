@@ -26,10 +26,10 @@ interface AIDecisionPanelProps {
     price: number;
     locality: string;
     city: string;
-    type: string;
+    type: string | null;
     beds: number;
-    area: number;
-    trust_score: number;
+    area: number | null;
+    trust_score: number | null;
   };
 }
 
