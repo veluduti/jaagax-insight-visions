@@ -96,22 +96,27 @@ export const VisitStayPlanner = ({
       fetchHotelsAndPackages();
       checkAISuggestion();
       
-      // If pre-selected values exist, set them and adjust step
+      // If pre-selected values exist, set them
       if (preSelectedHotel) {
         setSelectedHotel(preSelectedHotel);
       }
       if (preSelectedPackage) {
         setSelectedPackage(preSelectedPackage);
-        // Skip to step 2 if package is pre-selected
-        if (!preSelectedHotel) {
-          setStep(2);
-        }
       }
-      // If both are pre-selected, go to step 3
+      
+      // Determine starting step based on pre-selected values
       if (preSelectedHotel && preSelectedPackage) {
+        // Both pre-selected, go straight to step 3
         setStep(3);
-      } else if (preSelectedHotel && !preSelectedPackage) {
+      } else if (preSelectedHotel) {
         // Hotel pre-selected but no package, start at step 1 to select package
+        // After package selection, should skip to step 3 (handled in onClick)
+        setStep(1);
+      } else if (preSelectedPackage) {
+        // Package pre-selected but no hotel, start at step 2 to select hotel
+        setStep(2);
+      } else {
+        // Nothing pre-selected, start at step 1
         setStep(1);
       }
     } else {
@@ -366,11 +371,18 @@ export const VisitStayPlanner = ({
                 </div>
                 <div className="flex justify-end">
                   <Button 
-                    onClick={() => setStep(2)} 
+                    onClick={() => {
+                      // If hotel is already pre-selected, skip to step 3
+                      if (selectedHotel) {
+                        setStep(3);
+                      } else {
+                        setStep(2);
+                      }
+                    }} 
                     disabled={!selectedPackage}
                     className="gap-2"
                   >
-                    Select Hotel <ArrowRight className="h-4 w-4" />
+                    {selectedHotel ? 'Schedule Visit' : 'Select Hotel'} <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </motion.div>
