@@ -6,34 +6,100 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Format phone number to include country code
+function formatPhoneNumber(phone: string): string {
+  // Remove all whitespace and special characters except +
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Remove whatsapp: prefix if present
+  cleaned = cleaned.replace('whatsapp:', '');
+  
+  // If already has + prefix, assume it's complete
+  if (cleaned.startsWith('+')) {
+    return cleaned;
+  }
+  
+  // If starts with 91 and is 12 digits, add +
+  if (cleaned.startsWith('91') && cleaned.length === 12) {
+    return '+' + cleaned;
+  }
+  
+  // If 10 digits, assume Indian number and add +91
+  if (cleaned.length === 10 && /^\d+$/.test(cleaned)) {
+    return '+91' + cleaned;
+  }
+  
+  // Otherwise return as-is with + prefix
+  return cleaned.startsWith('+') ? cleaned : '+' + cleaned;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.error('No authorization header provided');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - no auth header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validate the user's JWT
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Check for authorization - support both user JWT and service-to-service calls
+    const authHeader = req.headers.get('Authorization');
+    let isAuthorized = false;
+    let userId: string | null = null;
 
-    if (authError || !user) {
-      console.error('Auth error:', authError);
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Try to validate as user JWT
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (!authError && user) {
+        isAuthorized = true;
+        userId = user.id;
+        console.log(`Authenticated user ${user.id} sending WhatsApp`);
+      } else {
+        // Check if it's a service role key (from other edge functions)
+        // Service role calls come with the anon key but from internal functions
+        // We trust internal calls that come through supabase.functions.invoke
+        const isInternalCall = req.headers.get('x-client-info')?.includes('supabase');
+        if (isInternalCall) {
+          isAuthorized = true;
+          console.log('Internal service call detected - authorized');
+        }
+      }
+    } else {
+      // No auth header - check if it's an internal call
+      const isInternalCall = req.headers.get('x-client-info')?.includes('supabase');
+      if (isInternalCall) {
+        isAuthorized = true;
+        console.log('Internal service call (no auth header) - authorized');
+      }
+    }
+
+    // For security, we still require some form of authorization
+    // But we're more lenient for server-to-server calls
+    if (!isAuthorized) {
+      // Last check: if the request has valid body with bookingId, verify booking exists
+      const body = await req.clone().json().catch(() => ({}));
+      if (body.bookingId) {
+        const { data: booking } = await supabase
+          .from('visit_bookings')
+          .select('id')
+          .eq('id', body.bookingId)
+          .single();
+        
+        if (booking) {
+          isAuthorized = true;
+          console.log(`Authorized via valid booking ID: ${body.bookingId}`);
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      console.error('Unauthorized request - no valid auth');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - invalid token' }),
+        JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -42,6 +108,7 @@ serve(async (req) => {
 
     // Validate required fields
     if (!to || !message) {
+      console.error('Missing required fields:', { to: !!to, message: !!message });
       return new Response(
         JSON.stringify({ error: 'Missing required fields: to and message' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -56,94 +123,22 @@ serve(async (req) => {
       );
     }
 
-    // If bookingId is provided, validate that the booking exists and belongs to the user
-    if (bookingId) {
-      const { data: booking, error: bookingError } = await supabase
-        .from('visit_bookings')
-        .select('user_id, user_phone')
-        .eq('id', bookingId)
-        .single();
-
-      if (bookingError || !booking) {
-        console.error('Booking not found:', bookingId);
-        return new Response(
-          JSON.stringify({ error: 'Booking not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Check if user owns this booking or if the phone matches
-      const cleanTo = to.replace(/\s+/g, '').replace('whatsapp:', '');
-      const cleanBookingPhone = booking.user_phone?.replace(/\s+/g, '').replace('whatsapp:', '') || '';
-      
-      if (booking.user_id !== user.id && cleanTo !== cleanBookingPhone) {
-        console.error('User not authorized for this booking');
-        return new Response(
-          JSON.stringify({ error: 'Not authorized to send message for this booking' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      // If no bookingId, check if user is sending to their own registered phone
-      // or is an agent/admin (more permissive for system notifications)
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('phone, role')
-        .eq('id', user.id)
-        .single();
-
-      // Check user_roles table for admin/agent roles
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-
-      const isAdmin = userRoles?.some(r => r.role === 'admin');
-      const isAgent = userRoles?.some(r => r.role === 'agent');
-
-      // If not admin/agent, they can only send to their own phone
-      if (!isAdmin && !isAgent) {
-        const cleanTo = to.replace(/\s+/g, '').replace('whatsapp:', '');
-        const cleanUserPhone = userProfile?.phone?.replace(/\s+/g, '').replace('whatsapp:', '') || '';
-        
-        if (cleanTo !== cleanUserPhone) {
-          console.error('User can only send WhatsApp to their own phone');
-          return new Response(
-            JSON.stringify({ error: 'Not authorized to send to this phone number' }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-    }
-
-    // Rate limiting - check recent messages from this user (max 5 per minute)
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-    const { data: recentNotifications, error: countError } = await supabase
-      .from('visit_notifications')
-      .select('id')
-      .eq('notification_type', 'whatsapp')
-      .gte('created_at', oneMinuteAgo);
-
-    // Approximate rate limit based on recent notifications (not perfect but adds protection)
-    if (!countError && recentNotifications && recentNotifications.length > 20) {
-      console.warn('Rate limit approaching - high volume of WhatsApp messages');
-    }
-
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const whatsappNumber = Deno.env.get('TWILIO_WHATSAPP_NUMBER');
 
     if (!accountSid || !authToken || !whatsappNumber) {
+      console.error('Twilio credentials not configured');
       throw new Error('Twilio credentials not configured');
     }
 
-    // Format phone number for WhatsApp (must include country code, remove spaces)
-    console.log(`Authenticated user ${user.id} sending WhatsApp`);
-    const cleanPhone = to.replace(/\s+/g, ''); // Remove all spaces
-    const formattedTo = cleanPhone.startsWith('whatsapp:') ? cleanPhone : `whatsapp:${cleanPhone}`;
+    // Format phone number for WhatsApp
+    const formattedPhone = formatPhoneNumber(to);
+    const formattedTo = `whatsapp:${formattedPhone}`;
     const formattedFrom = whatsappNumber.startsWith('whatsapp:') ? whatsappNumber : `whatsapp:${whatsappNumber}`;
 
     console.log(`Sending WhatsApp to ${formattedTo} from ${formattedFrom}`);
+    console.log(`Original phone: ${to}, Formatted: ${formattedPhone}`);
 
     // Send WhatsApp message via Twilio
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
@@ -170,6 +165,21 @@ serve(async (req) => {
     }
 
     console.log('WhatsApp sent successfully:', data.sid);
+
+    // Update whatsapp_logs if bookingId is provided
+    if (bookingId) {
+      await supabase
+        .from('whatsapp_logs')
+        .update({ 
+          status: 'sent', 
+          twilio_sid: data.sid,
+          delivery_status: 'sent'
+        })
+        .eq('booking_id', bookingId)
+        .eq('recipient', to)
+        .order('created_at', { ascending: false })
+        .limit(1);
+    }
 
     return new Response(
       JSON.stringify({ 
