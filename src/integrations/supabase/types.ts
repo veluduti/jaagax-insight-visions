@@ -2402,6 +2402,7 @@ export type Database = {
           qr_code: string | null
           qr_code_url: string | null
           rejection_reason: string | null
+          reminder_sent_at: string | null
           special_requests: string | null
           status: string | null
           travel_mode: string | null
@@ -2433,6 +2434,7 @@ export type Database = {
           qr_code?: string | null
           qr_code_url?: string | null
           rejection_reason?: string | null
+          reminder_sent_at?: string | null
           special_requests?: string | null
           status?: string | null
           travel_mode?: string | null
@@ -2464,6 +2466,7 @@ export type Database = {
           qr_code?: string | null
           qr_code_url?: string | null
           rejection_reason?: string | null
+          reminder_sent_at?: string | null
           special_requests?: string | null
           status?: string | null
           travel_mode?: string | null
@@ -2859,10 +2862,15 @@ export type Database = {
         Row: {
           booking_id: string | null
           created_at: string | null
+          delivered_at: string | null
+          delivery_status: string | null
+          error_code: string | null
           error_message: string | null
           id: string
           message: string
+          read_at: string | null
           recipient: string
+          retry_count: number | null
           status: string | null
           template_type: string | null
           twilio_sid: string | null
@@ -2870,10 +2878,15 @@ export type Database = {
         Insert: {
           booking_id?: string | null
           created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string | null
+          error_code?: string | null
           error_message?: string | null
           id?: string
           message: string
+          read_at?: string | null
           recipient: string
+          retry_count?: number | null
           status?: string | null
           template_type?: string | null
           twilio_sid?: string | null
@@ -2881,10 +2894,15 @@ export type Database = {
         Update: {
           booking_id?: string | null
           created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string | null
+          error_code?: string | null
           error_message?: string | null
           id?: string
           message?: string
+          read_at?: string | null
           recipient?: string
+          retry_count?: number | null
           status?: string | null
           template_type?: string | null
           twilio_sid?: string | null
