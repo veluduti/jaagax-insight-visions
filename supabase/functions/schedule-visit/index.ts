@@ -26,6 +26,7 @@ serve(async (req) => {
 
   try {
     const bookingData = await req.json();
+    console.log('Received booking data:', JSON.stringify(bookingData));
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -35,24 +36,30 @@ serve(async (req) => {
     const otp = generateOTP();
     const tempQR = generateQRCodeURL('temp', otp);
 
-    // Get property details to find builder_id
+    // Get property details including builder_id and project info
     const { data: property } = await supabase
       .from('properties')
-      .select('builder_id')
+      .select('builder_id, project_id, city, locality')
       .eq('id', bookingData.propertyId)
       .single();
 
-    const builderId = property?.builder_id || null;
+    // If property is part of a project, get builder_id from project
+    let builderId = property?.builder_id || null;
+    if (!builderId && property?.project_id) {
+      const { data: project } = await supabase
+        .from('projects')
+        .select('builder_id')
+        .eq('id', property.project_id)
+        .single();
+      builderId = project?.builder_id || null;
+    }
+
+    console.log('Property details:', { property, builderId });
 
     // Auto-assign agent if not provided
     let agentId = bookingData.agentId;
     if (bookingData.autoAssign && !agentId) {
-      // Get property details for location-based agent matching
-      const { data: propertyDetails } = await supabase
-        .from('properties')
-        .select('city, locality')
-        .eq('id', bookingData.propertyId)
-        .single();
+      const propertyDetails = property;
 
       let agent = null;
 
@@ -92,6 +99,7 @@ serve(async (req) => {
       }
 
       agentId = agent?.id || null;
+      console.log('Auto-assigned agent:', agentId);
     }
 
     // Assign vehicle if travel mode is not 'self'
@@ -115,6 +123,10 @@ serve(async (req) => {
       }
     }
 
+    // Determine initial status based on builder presence
+    const initialStatus = builderId ? 'pending_approval' : 'confirmed';
+    console.log('Initial status:', initialStatus, 'builderId:', builderId);
+
     // Create visit booking
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
@@ -136,14 +148,17 @@ serve(async (req) => {
         special_requests: bookingData.specialRequests,
         properties: bookingData.properties,
         optimized_route: bookingData.optimizedRoute,
-        status: builderId ? 'pending_approval' : 'confirmed',
+        status: initialStatus,
       })
       .select()
       .single();
 
     if (bookingError) {
+      console.error('Booking insert error:', bookingError);
       throw bookingError;
     }
+
+    console.log('Booking created:', booking.id);
 
     // Update QR code with actual booking ID
     const finalQR = generateQRCodeURL(booking.id, otp);
@@ -152,13 +167,46 @@ serve(async (req) => {
       .update({ qr_code_url: finalQR })
       .eq('id', booking.id);
 
-    // Send WhatsApp notifications
-    await supabase.functions.invoke('send-visit-update', {
-      body: {
-        bookingId: booking.id,
-        templateType: 'user_requested'
+    // Send notifications based on status
+    if (initialStatus === 'pending_approval') {
+      // Notify the user that request is pending
+      await supabase.functions.invoke('send-visit-update', {
+        body: {
+          bookingId: booking.id,
+          templateType: 'user_requested'
+        }
+      }).catch(err => console.error('User notification error:', err));
+
+      // Notify the builder about the new visit request
+      await supabase.functions.invoke('send-visit-update', {
+        body: {
+          bookingId: booking.id,
+          templateType: 'builder_pending'
+        }
+      }).catch(err => console.error('Builder notification error:', err));
+
+      console.log('Sent pending notifications to user and builder');
+    } else {
+      // Visit is auto-confirmed, notify user and agent
+      await supabase.functions.invoke('send-visit-update', {
+        body: {
+          bookingId: booking.id,
+          templateType: 'visit_confirmed'
+        }
+      }).catch(err => console.error('Confirmation notification error:', err));
+
+      // Notify agent about assignment
+      if (agentId) {
+        await supabase.functions.invoke('send-visit-update', {
+          body: {
+            bookingId: booking.id,
+            templateType: 'agent_new_assignment'
+          }
+        }).catch(err => console.error('Agent notification error:', err));
       }
-    }).catch(console.error);
+
+      console.log('Sent confirmed notifications to user and agent');
+    }
 
     return new Response(
       JSON.stringify({

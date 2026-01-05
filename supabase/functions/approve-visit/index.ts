@@ -59,14 +59,24 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Send notifications
+    // Send notifications to user
     const templateType = approved ? 'builder_approved' : 'builder_rejected';
     await supabase.functions.invoke('send-visit-update', {
       body: {
         bookingId,
         templateType
       }
-    });
+    }).catch(err => console.error('User notification error:', err));
+
+    // If approved, also notify the assigned agent
+    if (approved && booking.agent_id) {
+      await supabase.functions.invoke('send-visit-update', {
+        body: {
+          bookingId,
+          templateType: 'agent_new_assignment'
+        }
+      }).catch(err => console.error('Agent notification error:', err));
+    }
 
     console.log(`Visit ${bookingId} ${approved ? 'approved' : 'rejected'} by builder`);
 

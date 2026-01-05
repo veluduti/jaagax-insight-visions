@@ -329,10 +329,12 @@ export type Database = {
           agency_name: string | null
           cities_served: string | null
           completed_visits: number | null
+          email: string | null
           id: number
           languages: string | null
           level: number | null
           name: string | null
+          phone: string | null
           photo_url: string | null
           rent_count: number | null
           sales_count: number | null
@@ -345,10 +347,12 @@ export type Database = {
           agency_name?: string | null
           cities_served?: string | null
           completed_visits?: number | null
+          email?: string | null
           id?: number
           languages?: string | null
           level?: number | null
           name?: string | null
+          phone?: string | null
           photo_url?: string | null
           rent_count?: number | null
           sales_count?: number | null
@@ -361,10 +365,12 @@ export type Database = {
           agency_name?: string | null
           cities_served?: string | null
           completed_visits?: number | null
+          email?: string | null
           id?: number
           languages?: string | null
           level?: number | null
           name?: string | null
+          phone?: string | null
           photo_url?: string | null
           rent_count?: number | null
           sales_count?: number | null
