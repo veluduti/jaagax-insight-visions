@@ -61,6 +61,7 @@ export default function BuilderDashboard() {
     verifiedProjects: 0,
     totalUnits: 0,
     totalViews: 0,
+    pendingVisits: 0,
   });
   const [performance, setPerformance] = useState({
     totalViews: 0,
@@ -75,6 +76,7 @@ export default function BuilderDashboard() {
     fetchProjects();
     fetchProperties();
     fetchPerformanceData();
+    fetchPendingVisitsCount();
   }, []);
 
   const fetchUser = async () => {
@@ -90,6 +92,52 @@ export default function BuilderDashboard() {
     setLoading(false);
   };
 
+  const fetchPendingVisitsCount = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      // Get properties submitted by this user to find builder_id
+      const { data: submittedProperties } = await supabase
+        .from("properties")
+        .select("id, builder_id")
+        .eq("submitted_by", user.id);
+
+      const builderIds = [...new Set(
+        (submittedProperties || [])
+          .map(p => p.builder_id)
+          .filter(Boolean)
+      )];
+
+      let allPropertyIds = (submittedProperties || []).map(p => p.id);
+      
+      if (builderIds.length > 0) {
+        const { data: builderProperties } = await supabase
+          .from("properties")
+          .select("id")
+          .in("builder_id", builderIds);
+        
+        const builderPropIds = (builderProperties || []).map(p => p.id);
+        allPropertyIds = [...new Set([...allPropertyIds, ...builderPropIds])];
+      }
+
+      // Count pending visits
+      const { data: pendingVisits } = await supabase
+        .from("visit_bookings")
+        .select("id, property_id, builder_id")
+        .eq("status", "pending_approval");
+
+      const count = (pendingVisits || []).filter(visit => 
+        allPropertyIds.includes(visit.property_id) || 
+        builderIds.includes(visit.builder_id)
+      ).length;
+
+      setStats(prev => ({ ...prev, pendingVisits: count }));
+    } catch (error) {
+      console.error("Error fetching pending visits count:", error);
+    }
+  };
+
   const fetchProjects = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -102,12 +150,13 @@ export default function BuilderDashboard() {
     
     if (data) {
       setProjects(data);
-      setStats({
+      setStats(prev => ({
+        ...prev,
         totalProjects: data.length,
         verifiedProjects: data.filter(p => p.verified).length,
-        totalUnits: data.length * 50, // Mock calculation
+        totalUnits: data.length * 50,
         totalViews: Math.floor(Math.random() * 10000) + 2000,
-      });
+      }));
       
       // Auto-select first project for forecast
       if (data.length > 0 && !selectedProject) {
@@ -289,13 +338,20 @@ export default function BuilderDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card 
-              className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-500/50 bg-orange-500/5"
+              className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-500/50 bg-orange-500/5 relative"
               onClick={() => navigate("/builder-visits")}
             >
+              {stats.pendingVisits > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground">
+                  {stats.pendingVisits}
+                </Badge>
+              )}
               <CardContent className="p-6 text-center">
                 <CalendarCheck className="h-8 w-8 mx-auto mb-2 text-orange-500" />
                 <h3 className="font-semibold">Visit Approvals</h3>
-                <p className="text-xs text-muted-foreground mt-1">Review pending visits</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.pendingVisits > 0 ? `${stats.pendingVisits} pending` : 'Review pending visits'}
+                </p>
               </CardContent>
             </Card>
           </motion.div>

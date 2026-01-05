@@ -72,19 +72,33 @@ const BuilderVisitsDashboard = () => {
         return;
       }
 
-      const { data: builderProperties } = await supabase
+      // Get properties submitted by this user
+      const { data: submittedProperties } = await supabase
         .from("properties")
-        .select("id")
+        .select("id, builder_id")
         .eq("submitted_by", user.id);
 
-      const propertyIds = builderProperties?.map(p => p.id) || [];
+      // Get the builder_id associated with this user's properties
+      const builderIds = [...new Set(
+        (submittedProperties || [])
+          .map(p => p.builder_id)
+          .filter(Boolean)
+      )];
 
-      if (propertyIds.length === 0) {
-        setVisits([]);
-        setLoading(false);
-        return;
+      // Also get all properties that belong to this builder
+      let allPropertyIds = (submittedProperties || []).map(p => p.id);
+      
+      if (builderIds.length > 0) {
+        const { data: builderProperties } = await supabase
+          .from("properties")
+          .select("id")
+          .in("builder_id", builderIds);
+        
+        const builderPropIds = (builderProperties || []).map(p => p.id);
+        allPropertyIds = [...new Set([...allPropertyIds, ...builderPropIds])];
       }
 
+      // Fetch visits for these properties OR visits that have builder_id matching
       const { data, error } = await supabase
         .from("visit_bookings")
         .select(`
@@ -92,12 +106,18 @@ const BuilderVisitsDashboard = () => {
           properties (title, locality, city),
           agents (name)
         `)
-        .in("property_id", propertyIds)
         .eq("status", "pending_approval")
         .order("visit_date", { ascending: true });
 
       if (error) throw error;
-      setVisits(data || []);
+
+      // Filter to only show visits for builder's properties or where builder_id matches
+      const filteredVisits = (data || []).filter(visit => 
+        allPropertyIds.includes(visit.property_id) || 
+        builderIds.includes(visit.builder_id)
+      );
+
+      setVisits(filteredVisits);
     } catch (error: any) {
       console.error("Error fetching visits:", error);
       toast.error("Failed to load pending visits");
@@ -114,17 +134,30 @@ const BuilderVisitsDashboard = () => {
         return;
       }
 
-      const { data: builderProperties } = await supabase
+      // Get properties submitted by this user
+      const { data: submittedProperties } = await supabase
         .from("properties")
-        .select("id")
+        .select("id, builder_id")
         .eq("submitted_by", user.id);
 
-      const propertyIds = builderProperties?.map(p => p.id) || [];
+      // Get the builder_id associated with this user's properties
+      const builderIds = [...new Set(
+        (submittedProperties || [])
+          .map(p => p.builder_id)
+          .filter(Boolean)
+      )];
 
-      if (propertyIds.length === 0) {
-        setCompletedVisits([]);
-        setLoading(false);
-        return;
+      // Also get all properties that belong to this builder
+      let allPropertyIds = (submittedProperties || []).map(p => p.id);
+      
+      if (builderIds.length > 0) {
+        const { data: builderProperties } = await supabase
+          .from("properties")
+          .select("id")
+          .in("builder_id", builderIds);
+        
+        const builderPropIds = (builderProperties || []).map(p => p.id);
+        allPropertyIds = [...new Set([...allPropertyIds, ...builderPropIds])];
       }
 
       const { data, error } = await supabase
@@ -143,12 +176,18 @@ const BuilderVisitsDashboard = () => {
             photo_urls
           )
         `)
-        .in("property_id", propertyIds)
         .eq("status", "completed")
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
-      setCompletedVisits(data || []);
+
+      // Filter to only show visits for builder's properties or where builder_id matches
+      const filteredVisits = (data || []).filter(visit => 
+        allPropertyIds.includes(visit.property_id) || 
+        builderIds.includes(visit.builder_id)
+      );
+
+      setCompletedVisits(filteredVisits);
     } catch (error: any) {
       console.error("Error fetching completed visits:", error);
       toast.error("Failed to load completed visits");
