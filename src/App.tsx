@@ -55,6 +55,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import NaturalLiving from "./pages/NaturalLiving";
 import Hotels from "./pages/Hotels";
 import Promotions from "./pages/Promotions";
+import InnovationHub from "./pages/InnovationHub";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ const App = () => (
           <Route path="/natural-living" element={<NaturalLiving />} />
           <Route path="/hotels" element={<Hotels />} />
           <Route path="/promotions" element={<Promotions />} />
+          <Route path="/innovation" element={<InnovationHub />} />
           
           {/* AI Advisor Routes */}
           <Route path="/ai-advisor" element={<AIAdvisor />} />

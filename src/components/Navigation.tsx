@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { Leaf, Sparkles, Home, Building2, Compass, ChevronDown, Users, MapPin, Calendar, Hotel, TrendingUp, DollarSign } from "lucide-react";
+import { Leaf, Sparkles, Home, Building2, Compass, ChevronDown, Users, MapPin, Calendar, Hotel, TrendingUp, DollarSign, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -53,6 +53,7 @@ const Navigation = () => {
     { label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
     { label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
     { label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
+    { label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
   ];
 
   const isActive = (path: string) => {
