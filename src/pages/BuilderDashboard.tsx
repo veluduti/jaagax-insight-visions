@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Building2, FileCheck, Shield, LogOut, Plus, 
   Home, Eye, TrendingUp, CheckCircle, Clock,
-  MapPin, Upload, FileText, AlertCircle
+  MapPin, Upload, FileText, AlertCircle, CalendarCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -286,7 +286,20 @@ export default function BuilderDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-500/50 bg-orange-500/5"
+              onClick={() => navigate("/builder-visits")}
+            >
+              <CardContent className="p-6 text-center">
+                <CalendarCheck className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                <h3 className="font-semibold">Visit Approvals</h3>
+                <p className="text-xs text-muted-foreground mt-1">Review pending visits</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card 
               className="cursor-pointer hover:shadow-lg transition-all"
