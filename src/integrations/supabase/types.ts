@@ -582,6 +582,7 @@ export type Database = {
           name: string | null
           on_time_delivery_rate: number | null
           payment_flexibility_notes: string | null
+          phone: string | null
           projects_completed: number | null
           projects_ongoing: number | null
           trust_partner: boolean | null
@@ -601,6 +602,7 @@ export type Database = {
           name?: string | null
           on_time_delivery_rate?: number | null
           payment_flexibility_notes?: string | null
+          phone?: string | null
           projects_completed?: number | null
           projects_ongoing?: number | null
           trust_partner?: boolean | null
@@ -620,6 +622,7 @@ export type Database = {
           name?: string | null
           on_time_delivery_rate?: number | null
           payment_flexibility_notes?: string | null
+          phone?: string | null
           projects_completed?: number | null
           projects_ongoing?: number | null
           trust_partner?: boolean | null
