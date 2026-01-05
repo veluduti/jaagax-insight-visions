@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
-  Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar
+  Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -20,6 +20,7 @@ import { EnrichProjectsPanel } from "@/components/admin/EnrichProjectsPanel";
 import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
 import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
+import { WhatsAppLogsPanel } from "@/components/admin/WhatsAppLogsPanel";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -180,10 +181,11 @@ export default function AdminDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             <TabsTrigger value="trust">Trust Engine</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -239,6 +241,11 @@ export default function AdminDashboard() {
           {/* Events Moderation */}
           <TabsContent value="events" className="space-y-6">
             <EventModerationPanel />
+          </TabsContent>
+
+          {/* WhatsApp Logs */}
+          <TabsContent value="whatsapp" className="space-y-6">
+            <WhatsAppLogsPanel />
           </TabsContent>
 
           {/* AI Trust Engine */}
