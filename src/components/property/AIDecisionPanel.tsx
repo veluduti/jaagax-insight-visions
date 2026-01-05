@@ -33,12 +33,19 @@ interface AIDecisionPanelProps {
   };
 }
 
+interface AIDecisionReasoning {
+  life_stage_fit: boolean;
+  budget_comfort: 'good' | 'tight' | 'stretch';
+  delay_risk: 'low' | 'medium' | 'high';
+  trust_level: 'high' | 'medium' | 'low';
+}
+
 interface AIDecision {
   match_score: number;
   ai_verdict: 'best_for_you' | 'alternative' | 'risky';
   risk_flags: string[];
   positive_flags: string[];
-  reasoning: string;
+  reasoning: AIDecisionReasoning;
   alternatives?: Array<{ id: number; title: string; match_score: number }>;
   should_wait?: {
     recommendation: string;
@@ -212,7 +219,12 @@ const AIDecisionPanel = ({ propertyId, propertyData }: AIDecisionPanelProps) => 
             </div>
           </div>
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">{decision.reasoning}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {decision.reasoning.life_stage_fit ? 'Fits your life stage. ' : 'May not fit your current life stage. '}
+          Budget is {decision.reasoning.budget_comfort === 'good' ? 'comfortable' : decision.reasoning.budget_comfort === 'tight' ? 'manageable' : 'a stretch'}.
+          {decision.reasoning.delay_risk !== 'low' && ` Delay risk is ${decision.reasoning.delay_risk}.`}
+          {decision.reasoning.trust_level === 'high' && ' High trust property.'}
+        </p>
       </div>
 
       {/* Tabs */}
