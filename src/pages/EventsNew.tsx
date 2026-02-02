@@ -1,49 +1,72 @@
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Construction } from "lucide-react";
+import { Plus, Calendar, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
-// Stub component - community_events table not yet created
+interface CommunityEvent {
+  id: string;
+  title: string;
+  description?: string;
+  venue: string;
+  city: string;
+  locality?: string;
+  event_date: string;
+  event_time?: string;
+  category: string;
+  featured: boolean;
+  ticket_price: number;
+  max_attendees?: number;
+  current_attendees: number;
+  image_url?: string;
+  organizer?: string;
+}
+
 export default function EventsNew() {
   const { user } = useAuth();
+  const [events, setEvents] = useState<CommunityEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock featured events for display
-  const mockEvents = [
-    {
-      id: "1",
-      title: "Diwali Celebration 2025",
-      description: "Join us for a grand Diwali celebration with cultural performances and fireworks.",
-      venue: "Central Park",
-      city: "Hyderabad",
-      event_date: "2025-10-20",
-      category: "cultural",
-      featured: true,
-    },
-    {
-      id: "2", 
-      title: "Community Sports Day",
-      description: "Annual sports day with various games and activities for all ages.",
-      venue: "Sports Complex",
-      city: "Vijayawada",
-      event_date: "2025-03-15",
-      category: "sports",
-      featured: false,
-    },
-    {
-      id: "3",
-      title: "Real Estate Expo 2025",
-      description: "Explore the latest properties and meet top builders in the region.",
-      venue: "Convention Center",
-      city: "Hyderabad",
-      event_date: "2025-04-10",
-      category: "networking",
-      featured: true,
-    },
-  ];
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    const { data, error } = await supabase
+      .from('community_events')
+      .select('*')
+      .not('published_at', 'is', null)
+      .neq('status', 'cancelled')
+      .order('event_date', { ascending: true });
+
+    if (!error && data) {
+      setEvents(data);
+    }
+    setLoading(false);
+  };
+
+  const featuredEvents = events.filter(e => e.featured);
+  const upcomingEvents = events.filter(e => !e.featured);
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      festival: 'bg-orange-500',
+      cultural: 'bg-purple-500',
+      community: 'bg-blue-500',
+      sports: 'bg-green-500',
+      music: 'bg-pink-500',
+      food: 'bg-yellow-500',
+      other: 'bg-gray-500'
+    };
+    return colors[category] || colors.other;
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -85,25 +108,21 @@ export default function EventsNew() {
           </div>
         </section>
 
-        {/* Coming Soon Notice */}
-        <section className="py-12 px-4">
-          <div className="container mx-auto max-w-7xl">
-            <Card className="bg-muted/50">
-              <CardContent className="py-8">
-                <div className="text-center">
-                  <Construction className="h-12 w-12 mx-auto mb-4 text-primary" />
-                  <h3 className="text-lg font-semibold mb-2">Events Feature Coming Soon</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    The community events system is being set up. Check back soon for local events, 
-                    festivals, and community gatherings!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        {/* Featured Events */}
+        {featuredEvents.length > 0 && (
+          <section className="py-12 px-4">
+            <div className="container mx-auto max-w-7xl">
+              <h2 className="text-3xl font-bold mb-8">Featured Events</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredEvents.map((event) => (
+                  <EventCard key={event.id} event={event} getCategoryColor={getCategoryColor} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
-        {/* Sample Events Preview */}
+        {/* Upcoming Events */}
         <section className="py-12 px-4">
           <div className="container mx-auto max-w-7xl">
             <motion.div
@@ -111,25 +130,44 @@ export default function EventsNew() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h2 className="text-3xl font-bold mb-8">Preview: Upcoming Events</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockEvents.map((event) => (
-                  <Card key={event.id} className="overflow-hidden opacity-75">
-                    <div className="h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                      <Calendar className="h-12 w-12 text-primary/50" />
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{event.city}</span>
-                        <span>•</span>
-                        <span>{event.event_date}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <h2 className="text-3xl font-bold mb-8">
+                {featuredEvents.length > 0 ? 'Upcoming Events' : 'All Events'}
+              </h2>
+              
+              {loading ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="overflow-hidden animate-pulse">
+                      <div className="h-40 bg-muted" />
+                      <CardContent className="p-4">
+                        <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : upcomingEvents.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {upcomingEvents.map((event) => (
+                    <EventCard key={event.id} event={event} getCategoryColor={getCategoryColor} />
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <Card className="bg-muted/50">
+                  <CardContent className="py-12 text-center">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Events Yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Be the first to create an event in your community!
+                    </p>
+                    {user && (
+                      <Link to="/events/create">
+                        <Button>Create Event</Button>
+                      </Link>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
             </motion.div>
           </div>
         </section>
@@ -160,5 +198,71 @@ export default function EventsNew() {
 
       <Footer />
     </div>
+  );
+}
+
+interface EventCardProps {
+  event: CommunityEvent;
+  getCategoryColor: (category: string) => string;
+}
+
+function EventCard({ event, getCategoryColor }: EventCardProps) {
+  return (
+    <Link to={`/events/${event.id}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+        <div className="relative h-40 bg-gradient-to-br from-primary/20 to-accent/20">
+          {event.image_url ? (
+            <img 
+              src={event.image_url} 
+              alt={event.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <Calendar className="h-12 w-12 text-primary/50" />
+            </div>
+          )}
+          <Badge className={`absolute top-3 left-3 ${getCategoryColor(event.category)} text-white border-0`}>
+            {event.category}
+          </Badge>
+          {event.featured && (
+            <Badge className="absolute top-3 right-3 bg-yellow-500 text-white border-0">
+              Featured
+            </Badge>
+          )}
+        </div>
+        <CardContent className="p-4">
+          <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
+            {event.title}
+          </h3>
+          {event.description && (
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+              {event.description}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {format(new Date(event.event_date), 'MMM d, yyyy')}
+            </span>
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {event.city}
+            </span>
+            {event.max_attendees && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {event.current_attendees}/{event.max_attendees}
+              </span>
+            )}
+          </div>
+          {event.ticket_price > 0 && (
+            <Badge variant="outline" className="mt-3">
+              ₹{event.ticket_price}
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

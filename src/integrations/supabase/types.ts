@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_interactions: {
+        Row: {
+          ad_id: string
+          created_at: string | null
+          id: string
+          interaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          user_id?: string | null
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_interactions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_actions: {
         Row: {
           action_type: string
@@ -43,6 +75,105 @@ export type Database = {
           target_type?: string
         }
         Relationships: []
+      }
+      advertisements: {
+        Row: {
+          ad_type: string
+          budget: number | null
+          builder_id: string
+          clicks: number | null
+          contacts: number | null
+          created_at: string | null
+          cta_text: string | null
+          description: string | null
+          end_date: string | null
+          featured: boolean | null
+          highlights: Json | null
+          id: string
+          images: Json | null
+          impressions: number | null
+          offer_text: string | null
+          priority: number | null
+          project_id: string | null
+          property_id: string | null
+          saves: number | null
+          spent: number | null
+          start_date: string | null
+          status: string
+          tagline: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ad_type: string
+          budget?: number | null
+          builder_id: string
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: Json | null
+          id?: string
+          images?: Json | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          saves?: number | null
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          tagline?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ad_type?: string
+          budget?: number | null
+          builder_id?: string
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: Json | null
+          id?: string
+          images?: Json | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          saves?: number | null
+          spent?: number | null
+          start_date?: string | null
+          status?: string
+          tagline?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advertisements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_activity_log: {
         Row: {
@@ -399,6 +530,111 @@ export type Database = {
           },
         ]
       }
+      community_events: {
+        Row: {
+          accessibility_features: Json | null
+          category: string
+          city: string
+          created_at: string | null
+          current_attendees: number | null
+          description: string | null
+          end_date: string | null
+          end_time: string | null
+          event_date: string
+          event_time: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          images: Json | null
+          language: string | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          max_attendees: number | null
+          organizer: string | null
+          organizer_contact: string | null
+          organizer_email: string | null
+          organizer_id: string | null
+          published_at: string | null
+          status: string | null
+          tags: Json | null
+          ticket_price: number | null
+          title: string
+          updated_at: string | null
+          venue: string
+          venue_address: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          accessibility_features?: Json | null
+          category: string
+          city: string
+          created_at?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          event_date: string
+          event_time?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          images?: Json | null
+          language?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer?: string | null
+          organizer_contact?: string | null
+          organizer_email?: string | null
+          organizer_id?: string | null
+          published_at?: string | null
+          status?: string | null
+          tags?: Json | null
+          ticket_price?: number | null
+          title: string
+          updated_at?: string | null
+          venue: string
+          venue_address?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          accessibility_features?: Json | null
+          category?: string
+          city?: string
+          created_at?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          end_date?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_time?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          images?: Json | null
+          language?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer?: string | null
+          organizer_contact?: string | null
+          organizer_email?: string | null
+          organizer_id?: string | null
+          published_at?: string | null
+          status?: string | null
+          tags?: Json | null
+          ticket_price?: number | null
+          title?: string
+          updated_at?: string | null
+          venue?: string
+          venue_address?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       customer_preferences: {
         Row: {
           bedrooms_max: number | null
@@ -544,6 +780,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
             referencedColumns: ["id"]
           },
         ]
