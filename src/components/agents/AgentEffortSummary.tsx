@@ -1,9 +1,5 @@
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Activity, 
   MessageSquare, 
@@ -14,108 +10,26 @@ import {
   TrendingUp
 } from "lucide-react";
 
-interface EffortSummary {
-  total_units: number;
-  explanation_count: number;
-  visit_count: number;
-  negotiation_count: number;
-  closure_count: number;
-  unique_buyers: number;
-}
-
 interface AgentEffortSummaryProps {
-  agentId?: number;
+  agentId?: string;
 }
 
+// Stub component - using mock data until database function is created
 const AgentEffortSummary = ({ agentId }: AgentEffortSummaryProps) => {
-  const { user } = useAuth();
-  const [summary, setSummary] = useState<EffortSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentAgentId, setCurrentAgentId] = useState<number | null>(agentId || null);
-
-  useEffect(() => {
-    if (agentId) {
-      setCurrentAgentId(agentId);
-    } else if (user) {
-      fetchAgentId();
-    }
-  }, [user, agentId]);
-
-  useEffect(() => {
-    if (currentAgentId) {
-      fetchEffortSummary();
-    }
-  }, [currentAgentId]);
-
-  const fetchAgentId = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from('agents')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (data) {
-      setCurrentAgentId(data.id);
-    } else {
-      setLoading(false);
-    }
+  const summary = {
+    total_units: 0,
+    explanation_count: 0,
+    visit_count: 0,
+    negotiation_count: 0,
+    closure_count: 0,
+    unique_buyers: 0
   };
-
-  const fetchEffortSummary = async () => {
-    if (!currentAgentId) return;
-
-    try {
-      const { data, error } = await supabase.rpc('get_agent_effort_summary', {
-        p_agent_id: currentAgentId
-      });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setSummary(data[0]);
-      } else {
-        setSummary({
-          total_units: 0,
-          explanation_count: 0,
-          visit_count: 0,
-          negotiation_count: 0,
-          closure_count: 0,
-          unique_buyers: 0
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching effort summary:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <div className="grid grid-cols-2 gap-4">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!summary) return null;
 
   const effortStats = [
     { 
       label: 'Explanations', 
       count: summary.explanation_count, 
-      units: Number(summary.explanation_count) * 1,
+      units: summary.explanation_count * 1,
       icon: MessageSquare, 
       color: 'text-blue-500',
       bg: 'bg-blue-500/10'
@@ -123,7 +37,7 @@ const AgentEffortSummary = ({ agentId }: AgentEffortSummaryProps) => {
     { 
       label: 'Site Visits', 
       count: summary.visit_count, 
-      units: Number(summary.visit_count) * 3,
+      units: summary.visit_count * 3,
       icon: MapPin, 
       color: 'text-green-500',
       bg: 'bg-green-500/10'
@@ -131,7 +45,7 @@ const AgentEffortSummary = ({ agentId }: AgentEffortSummaryProps) => {
     { 
       label: 'Negotiations', 
       count: summary.negotiation_count, 
-      units: Number(summary.negotiation_count) * 5,
+      units: summary.negotiation_count * 5,
       icon: HandshakeIcon, 
       color: 'text-amber-500',
       bg: 'bg-amber-500/10'
@@ -139,7 +53,7 @@ const AgentEffortSummary = ({ agentId }: AgentEffortSummaryProps) => {
     { 
       label: 'Closures', 
       count: summary.closure_count, 
-      units: Number(summary.closure_count) * 10,
+      units: summary.closure_count * 10,
       icon: Trophy, 
       color: 'text-purple-500',
       bg: 'bg-purple-500/10'

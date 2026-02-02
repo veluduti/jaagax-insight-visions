@@ -21,7 +21,7 @@ const bookingSchema = z.object({
 interface SiteVisitBookingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId: number;
+  projectId: string;
   projectName: string;
 }
 
@@ -64,17 +64,24 @@ export const SiteVisitBookingModal = ({ open, onOpenChange, projectId, projectNa
 
       setLoading(true);
 
-      // Insert site visit booking
-      const { data: siteVisit, error: visitError } = await supabase
-        .from("site_visits")
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login to book a visit");
+        return;
+      }
+
+      // Insert into visit_bookings table (which exists)
+      const { data: visitBooking, error: visitError } = await supabase
+        .from("visit_bookings")
         .insert({
           project_id: projectId,
-          visitor_name: validated.name,
-          visitor_email: validated.email,
-          visitor_phone: validated.phone,
+          user_id: user.id,
+          buyer_name: validated.name,
+          buyer_email: validated.email,
+          buyer_phone: validated.phone,
           visit_date: selectedDate.toISOString().split('T')[0],
           visit_time: selectedTime,
-          number_of_visitors: validated.numberOfVisitors,
           notes: validated.notes || null,
           status: "pending",
         })
@@ -84,18 +91,18 @@ export const SiteVisitBookingModal = ({ open, onOpenChange, projectId, projectNa
       if (visitError) throw visitError;
 
       // Send confirmation email
-      const { error: emailError } = await supabase.functions.invoke("send-booking-confirmation", {
-        body: {
-          visitorName: validated.name,
-          visitorEmail: validated.email,
-          projectName,
-          visitDate: selectedDate.toLocaleDateString(),
-          visitTime: selectedTime,
-          bookingId: siteVisit.id,
-        },
-      });
-
-      if (emailError) {
+      try {
+        await supabase.functions.invoke("send-booking-confirmation", {
+          body: {
+            visitorName: validated.name,
+            visitorEmail: validated.email,
+            projectName,
+            visitDate: selectedDate.toLocaleDateString(),
+            visitTime: selectedTime,
+            bookingId: visitBooking.id,
+          },
+        });
+      } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }
 

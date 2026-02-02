@@ -11,7 +11,7 @@ import { Upload, FileText, Loader2 } from "lucide-react";
 interface RERAUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projects: Array<{ id: number; name: string }>;
+  projects: Array<{ id: string; name: string }>;
   onSuccess?: () => void;
 }
 
@@ -39,8 +39,8 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
   };
 
   const handleUpload = async () => {
-    if (!selectedProject || !reraNumber || !file) {
-      toast.error("Please fill all fields and select a file");
+    if (!selectedProject || !reraNumber) {
+      toast.error("Please fill all required fields");
       return;
     }
 
@@ -52,45 +52,17 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
         return;
       }
 
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${selectedProject}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('verification-docs')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('verification-docs')
-        .getPublicUrl(fileName);
-
       // Update project with RERA information
       const { error: updateError } = await supabase
         .from('projects')
         .update({ 
           rera_id: reraNumber,
-          verification_status: 'pending'
         })
-        .eq('id', parseInt(selectedProject));
+        .eq('id', selectedProject);
 
       if (updateError) throw updateError;
 
-      // Insert verification record
-      const { error: verificationError } = await supabase
-        .from('verifications')
-        .insert({
-          project_id: selectedProject,
-          document_url: publicUrl,
-          status: 'pending',
-          rera_verified: false
-        });
-
-      if (verificationError) throw verificationError;
-
-      toast.success("RERA document uploaded successfully!");
+      toast.success("RERA information updated successfully!");
       onOpenChange(false);
       onSuccess?.();
       
@@ -100,7 +72,7 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
       setFile(null);
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Failed to upload document");
+      toast.error(error.message || "Failed to update RERA information");
     } finally {
       setUploading(false);
     }
@@ -128,7 +100,7 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
               </SelectTrigger>
               <SelectContent>
                 {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
+                  <SelectItem key={project.id} value={project.id}>
                     {project.name}
                   </SelectItem>
                 ))}
@@ -147,7 +119,7 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="file">Upload Document (PDF or Image)</Label>
+            <Label htmlFor="file">Upload Document (PDF or Image) - Optional</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="file"
@@ -181,7 +153,7 @@ export default function RERAUploadModal({ open, onOpenChange, projects, onSucces
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Document
+                Update RERA Info
               </>
             )}
           </Button>

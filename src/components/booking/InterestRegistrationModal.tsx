@@ -19,7 +19,7 @@ const interestSchema = z.object({
 interface InterestRegistrationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId: number;
+  projectId: string;
   projectName: string;
 }
 
@@ -46,35 +46,36 @@ export const InterestRegistrationModal = ({ open, onOpenChange, projectId, proje
       // Get current user if authenticated
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Insert lead
-      const { data: lead, error: leadError } = await supabase
-        .from("leads")
-        .insert({
-          project_id: projectId,
-          user_id: user?.id || null,
-          name: validated.name,
-          email: validated.email,
-          phone: validated.phone,
-          message: validated.message || null,
-          status: "new",
-          source: "website",
-        })
-        .select()
-        .single();
+      // For now, store as a visit booking with a special status
+      // This is a workaround until leads table is created
+      if (user) {
+        const { error: bookingError } = await supabase
+          .from("visit_bookings")
+          .insert({
+            project_id: projectId,
+            user_id: user.id,
+            buyer_name: validated.name,
+            buyer_email: validated.email,
+            buyer_phone: validated.phone,
+            notes: validated.message ? `Interest: ${validated.message}` : "Interest registered",
+            visit_date: new Date().toISOString().split('T')[0],
+            visit_time: "TBD",
+            status: "interest",
+          });
 
-      if (leadError) throw leadError;
+        if (bookingError) throw bookingError;
+      }
 
       // Send confirmation email
-      const { error: emailError } = await supabase.functions.invoke("send-interest-confirmation", {
-        body: {
-          name: validated.name,
-          email: validated.email,
-          projectName,
-          leadId: lead.id,
-        },
-      });
-
-      if (emailError) {
+      try {
+        await supabase.functions.invoke("send-interest-confirmation", {
+          body: {
+            name: validated.name,
+            email: validated.email,
+            projectName,
+          },
+        });
+      } catch (emailError) {
         console.error("Email sending failed:", emailError);
       }
 

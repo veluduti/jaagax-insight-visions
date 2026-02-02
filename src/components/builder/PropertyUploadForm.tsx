@@ -17,13 +17,13 @@ const propertySchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   city: z.string().min(2, "City is required"),
   locality: z.string().min(2, "Locality is required"),
-  type: z.enum(["Apartment", "Villa", "Plot", "House", "Office", "Shop"]),
+  address: z.string().min(5, "Address is required"),
+  propertyType: z.enum(["apartment", "villa", "plot", "commercial"]),
   price: z.string().min(1, "Price is required"),
   area: z.string().min(1, "Area is required"),
   beds: z.string().min(1, "Number of bedrooms required"),
   baths: z.string().min(1, "Number of bathrooms required"),
   bhk: z.string().min(1, "BHK configuration required"),
-  status: z.enum(["Ready", "Under Construction"]),
   images: z.string().min(1, "At least one image URL required"),
 });
 
@@ -43,13 +43,13 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       description: "",
       city: "",
       locality: "",
-      type: "Apartment",
+      address: "",
+      propertyType: "apartment",
       price: "",
       area: "",
       beds: "",
       baths: "",
       bhk: "",
-      status: "Ready",
       images: "",
     },
   });
@@ -64,6 +64,18 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         return;
       }
 
+      // Get builder ID for current user
+      const { data: builder } = await supabase
+        .from("builders")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!builder) {
+        toast.error("You must be registered as a builder to submit properties");
+        return;
+      }
+
       // Convert comma-separated image URLs to array
       const imageArray = values.images.split(',').map(url => url.trim());
 
@@ -72,16 +84,17 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         .insert({
           title: values.title,
           description: values.description,
+          address: values.address,
           city: values.city,
           locality: values.locality,
-          type: values.type,
+          property_type: values.propertyType,
           price: parseInt(values.price),
-          area: parseInt(values.area),
-          beds: parseInt(values.beds),
-          baths: parseInt(values.baths),
+          area_sqft: parseInt(values.area),
+          bedrooms: parseInt(values.beds),
+          bathrooms: parseInt(values.baths),
           bhk: parseInt(values.bhk),
-          status: values.status,
           images: imageArray,
+          builder_id: builder.id,
           submitted_by: user.id,
           verification_status: 'pending',
           verified: false,
@@ -131,7 +144,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
               <FormField
                 control={form.control}
-                name="type"
+                name="propertyType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Property Type</FormLabel>
@@ -142,12 +155,10 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Apartment">Apartment</SelectItem>
-                        <SelectItem value="Villa">Villa</SelectItem>
-                        <SelectItem value="Plot">Plot</SelectItem>
-                        <SelectItem value="House">House</SelectItem>
-                        <SelectItem value="Office">Office</SelectItem>
-                        <SelectItem value="Shop">Shop</SelectItem>
+                        <SelectItem value="apartment">Apartment</SelectItem>
+                        <SelectItem value="villa">Villa</SelectItem>
+                        <SelectItem value="plot">Plot</SelectItem>
+                        <SelectItem value="commercial">Commercial</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -174,6 +185,20 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main Street, Building Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -182,7 +207,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                   <FormItem>
                     <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Input placeholder="Mumbai" {...field} />
+                      <Input placeholder="Hyderabad" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,7 +221,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                   <FormItem>
                     <FormLabel>Locality</FormLabel>
                     <FormControl>
-                      <Input placeholder="Andheri West" {...field} />
+                      <Input placeholder="KPHB" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -262,43 +287,19 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="baths"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bathrooms</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="2" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Ready">Ready to Move</SelectItem>
-                        <SelectItem value="Under Construction">Under Construction</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="baths"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bathrooms</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="2" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
