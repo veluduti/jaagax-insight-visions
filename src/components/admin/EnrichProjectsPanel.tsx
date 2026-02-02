@@ -25,6 +25,8 @@ export const EnrichProjectsPanel = () => {
 
       if (!projects || projects.length === 0) {
         toast.info("No verified projects found");
+        setEnriching(false);
+        setProgress("");
         return;
       }
 
@@ -68,23 +70,6 @@ export const EnrichProjectsPanel = () => {
       toast.error("Failed to enrich projects");
     } finally {
       setEnriching(false);
-    }
-  };
-
-  const checkEnrichmentStatus = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("project_web_data_status")
-        .select("fetch_status, COUNT(*)")
-        .order("fetch_status");
-
-      if (error) throw error;
-
-      console.log("Enrichment status:", data);
-      toast.info("Check console for enrichment status");
-    } catch (error) {
-      console.error("Error checking status:", error);
-      toast.error("Failed to check status");
     }
   };
 
@@ -133,21 +118,11 @@ export const EnrichProjectsPanel = () => {
               </>
             )}
           </Button>
-
-          <Button
-            variant="outline"
-            onClick={checkEnrichmentStatus}
-            disabled={enriching}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Check Status
-          </Button>
         </div>
 
         <div className="text-xs text-muted-foreground">
           <p className="mb-2">
-            <strong>Note:</strong> Projects with existing enriched data (less than 7 days old) 
-            will be skipped. Data includes:
+            <strong>Note:</strong> Projects with existing enriched data will be updated. Data includes:
           </p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>15-20 comprehensive amenities</li>

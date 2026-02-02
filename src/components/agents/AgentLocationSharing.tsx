@@ -12,11 +12,11 @@ interface Booking {
   visit_date: string;
   visit_time: string;
   status: string;
-  user_name: string;
+  buyer_name?: string | null;
   properties: {
     title: string;
-    locality: string;
-    city: string;
+    locality: string | null;
+    city: string | null;
   } | null;
 }
 
@@ -48,7 +48,10 @@ const AgentLocationSharing = () => {
 
       if (bookingError) throw bookingError;
 
-      setBooking(bookingData);
+      setBooking({
+        ...bookingData,
+        properties: bookingData.properties || null
+      } as any);
 
       // Verify if current user is the assigned agent
       const agentUserId = (bookingData as any).agents?.user_id;
@@ -128,7 +131,7 @@ const AgentLocationSharing = () => {
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-primary" />
             <div>
-              <p className="text-sm">Visitor: {booking.user_name}</p>
+              <p className="text-sm">Visitor: {booking.buyer_name || 'N/A'}</p>
             </div>
           </div>
         </div>

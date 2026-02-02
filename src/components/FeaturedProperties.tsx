@@ -10,18 +10,18 @@ import PropertyWhyLink from "@/components/home/PropertyWhyLink";
 import MatchBadge from "@/components/home/MatchBadge";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  beds: number;
-  baths: number;
-  area: number;
-  images: string[];
-  verified: boolean;
-  trust_score: number;
-  bhk: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  area_sqft: number | null;
+  images: any;
+  verified: boolean | null;
+  trust_score: number | null;
+  bhk: number | null;
 }
 
 interface FeaturedPropertiesProps {
@@ -30,7 +30,7 @@ interface FeaturedPropertiesProps {
 
 const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   const navigate = useNavigate();
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,9 +76,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
           .limit(4);
 
         if (fallbackError) throw fallbackError;
-        setProperties(fallbackData || []);
+        setProperties((fallbackData as any) || []);
       } else {
-        setProperties(data || []);
+        setProperties((data as any) || []);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -87,7 +87,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
     }
   };
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = (id: string) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
     );
@@ -144,7 +144,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+                    src={Array.isArray(property.images) && property.images[0] ? property.images[0] : "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
                     alt={property.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     loading="lazy"
@@ -155,7 +155,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   {/* Match Badge - Top Right Corner (before favorite) */}
-                  <MatchBadge score={property.trust_score} />
+                  <MatchBadge score={property.trust_score ?? 0} />
                   
                   {/* Favorite Button */}
                   <button
@@ -194,21 +194,21 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
 
                   <div className="flex items-center gap-1 text-foreground/70 text-sm mb-md">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="line-clamp-1">{property.locality}, {property.city}</span>
+                    <span className="line-clamp-1">{property.locality || 'N/A'}, {property.city || 'N/A'}</span>
                   </div>
 
                   <div className="flex items-center gap-md text-sm text-foreground/70 mb-md">
                     <div className="flex items-center gap-1">
                       <Bed className="h-4 w-4" />
-                      <span>{property.bhk || property.beds}</span>
+                      <span>{property.bhk || property.bedrooms || 0}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Bath className="h-4 w-4" />
-                      <span>{property.baths}</span>
+                      <span>{property.bathrooms || 0}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Maximize className="h-4 w-4" />
-                      <span>{property.area} sqft</span>
+                      <span>{property.area_sqft || 0} sqft</span>
                     </div>
                   </div>
 
@@ -225,10 +225,10 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                   
                   {/* Why this property link */}
                   <PropertyWhyLink
-                    propertyId={property.id}
-                    verified={property.verified}
-                    trustScore={property.trust_score}
-                    locality={property.locality}
+                    propertyId={property.id as any}
+                    verified={property.verified ?? false}
+                    trustScore={property.trust_score ?? 0}
+                    locality={property.locality || ''}
                   />
                 </div>
               </Card>

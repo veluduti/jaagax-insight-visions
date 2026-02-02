@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-type AppRole = "buyer" | "agent" | "builder" | "admin";
+type AppRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -37,15 +37,27 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
         return;
       }
 
-      // Check if user has the required role
+      // Check if user has the required role (handle buyer/customer mapping)
+      const dbRole = allowedRole === 'buyer' ? 'customer' : allowedRole;
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
-        .eq("role", allowedRole)
-        .single();
+        .eq("role", dbRole as any)
+        .maybeSingle();
 
-      setIsAuthorized(!!roleData);
+      // Also allow buyer to access if they have customer role
+      if (!roleData && allowedRole === 'buyer') {
+        const { data: customerRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "customer" as any)
+          .maybeSingle();
+        setIsAuthorized(!!customerRole);
+      } else {
+        setIsAuthorized(!!roleData);
+      }
     } catch (error) {
       setIsAuthorized(false);
     } finally {

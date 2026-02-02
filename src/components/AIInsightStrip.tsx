@@ -10,15 +10,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ThumbsUp, AlertCircle, XCircle, ChevronRight, MapPin } from "lucide-react";
 
 interface PropertyInsight {
-  id: number;
+  id: string;
   title: string;
-  locality: string;
-  city: string;
+  locality: string | null;
+  city: string | null;
   price: number;
   matchScore: number;
   reasoning: string;
   category: "best" | "alternative" | "not_right";
-  images: string[];
+  images: string[] | null;
 }
 
 const AIInsightStrip = () => {
@@ -55,14 +55,14 @@ const AIInsightStrip = () => {
         body: {
           userId: user?.id,
           buyerContext: buyerContext,
-          properties: properties.map((p) => ({
+          properties: properties.map((p: any) => ({
             id: p.id,
             title: p.title,
             price: p.price,
-            locality: p.locality,
-            city: p.city,
-            bhk: p.bhk,
-            type: p.type,
+            locality: p.locality || '',
+            city: p.city || '',
+            bhk: p.bhk || p.bedrooms || 0,
+            type: p.type || p.property_type || '',
           })),
         },
       });

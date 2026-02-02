@@ -18,14 +18,18 @@ const MobileNav = () => {
     
     // Fetch feature flag
     const fetchFeatureFlag = async () => {
-      const { data } = await supabase
-        .from('feature_flags')
-        .select('enabled')
-        .eq('flag_name', 'natural_living_enabled')
-        .single();
-      
-      if (data) {
-        setNaturalLivingEnabled(data.enabled);
+      try {
+        const { data } = await supabase
+          .from('feature_flags')
+          .select('enabled')
+          .eq('flag_name', 'natural_living_enabled')
+          .maybeSingle();
+        
+        if (data) {
+          setNaturalLivingEnabled(data.enabled ?? false);
+        }
+      } catch (error) {
+        console.log('Feature flags not available');
       }
     };
     fetchFeatureFlag();
