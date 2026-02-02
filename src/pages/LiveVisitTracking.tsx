@@ -16,23 +16,23 @@ interface VisitBooking {
   id: string;
   visit_date: string;
   visit_time: string;
-  status: string;
+  status: string | null;
   otp_code: string | null;
-  qr_code_url: string | null;
-  travel_mode: string | null;
-  pickup_location: any;
   agent_location: any;
   vehicle_location: any;
-  user_name: string;
+  buyer_name: string | null;
+  buyer_phone: string | null;
+  buyer_email: string | null;
+  notes: string | null;
   properties: {
     title: string;
-    locality: string;
-    city: string;
-    lat: number | null;
-    lng: number | null;
+    locality: string | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
   agents: {
-    name: string;
+    name: string | null;
   } | null;
 }
 
@@ -59,13 +59,13 @@ const LiveVisitTracking = () => {
   }, [bookingId]);
 
   useEffect(() => {
-    if (booking?.properties?.lat && booking?.properties?.lng) {
+    if (booking?.properties?.latitude && booking?.properties?.longitude) {
       initializeMap();
     }
     
     // Handle window resize to reinitialize map for correct container
     const handleResize = () => {
-      if (booking?.properties?.lat && booking?.properties?.lng) {
+      if (booking?.properties?.latitude && booking?.properties?.longitude) {
         initializeMap();
       }
     };
@@ -80,14 +80,14 @@ const LiveVisitTracking = () => {
         .from("visit_bookings")
         .select(`
           *,
-          properties (title, locality, city, lat, lng),
+          properties (title, locality, city, latitude, longitude),
           agents (name)
         `)
         .eq("id", bookingId)
         .single();
 
       if (error) throw error;
-      setBooking(data);
+      setBooking(data as VisitBooking);
     } catch (error: any) {
       console.error("Error fetching booking:", error);
       toast.error("Failed to load visit details");
@@ -126,7 +126,7 @@ const LiveVisitTracking = () => {
     const isMobile = window.innerWidth < 1024;
     const container = isMobile ? mobileMapRef.current : desktopMapRef.current;
     
-    if (!container || !booking?.properties?.lat || !booking?.properties?.lng) {
+    if (!container || !booking?.properties?.latitude || !booking?.properties?.longitude) {
       console.warn("Map container or property coordinates not available");
       return;
     }
@@ -152,7 +152,7 @@ const LiveVisitTracking = () => {
     const map = new mapboxgl.Map({
       container: container,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [booking.properties.lng, booking.properties.lat],
+      center: [booking.properties.longitude, booking.properties.latitude],
       zoom: 14
     });
 
@@ -165,7 +165,7 @@ const LiveVisitTracking = () => {
   };
 
   const updateMapMarkers = (data: VisitBooking) => {
-    if (!mapInstanceRef.current || !data.properties?.lat || !data.properties?.lng) return;
+    if (!mapInstanceRef.current || !data.properties?.latitude || !data.properties?.longitude) return;
 
     // Remove existing markers
     Object.values(markersRef.current).forEach(marker => marker?.remove());
@@ -173,7 +173,7 @@ const LiveVisitTracking = () => {
 
     // Add property marker (destination)
     const propertyMarker = new mapboxgl.Marker({ color: '#10b981' })
-      .setLngLat([data.properties.lng, data.properties.lat])
+      .setLngLat([data.properties.longitude, data.properties.latitude])
       .setPopup(new mapboxgl.Popup().setHTML(`
         <div class="p-2">
           <strong>${data.properties.title}</strong><br/>
@@ -181,96 +181,107 @@ const LiveVisitTracking = () => {
         </div>
       `))
       .addTo(mapInstanceRef.current);
-    
     markersRef.current.property = propertyMarker;
 
-    // Add agent marker if location exists
+    // Add agent marker if location available
     if (data.agent_location?.lat && data.agent_location?.lng) {
       const agentMarker = new mapboxgl.Marker({ color: '#3b82f6' })
         .setLngLat([data.agent_location.lng, data.agent_location.lat])
         .setPopup(new mapboxgl.Popup().setHTML(`
           <div class="p-2">
-            <strong>Agent Location</strong><br/>
-            <span class="text-sm">Last updated: ${new Date(data.agent_location.updated_at || '').toLocaleTimeString()}</span>
+            <strong>Agent</strong><br/>
+            <span class="text-sm">${data.agents?.name || 'En route'}</span>
           </div>
         `))
         .addTo(mapInstanceRef.current);
-      
       markersRef.current.agent = agentMarker;
     }
 
-    // Add vehicle marker if location exists
+    // Add vehicle marker if location available
     if (data.vehicle_location?.lat && data.vehicle_location?.lng) {
       const vehicleMarker = new mapboxgl.Marker({ color: '#f59e0b' })
         .setLngLat([data.vehicle_location.lng, data.vehicle_location.lat])
         .setPopup(new mapboxgl.Popup().setHTML(`
           <div class="p-2">
-            <strong>Vehicle Location</strong><br/>
-            <span class="text-sm">Last updated: ${new Date(data.vehicle_location.updated_at || '').toLocaleTimeString()}</span>
+            <strong>Vehicle</strong><br/>
+            <span class="text-sm">Transport</span>
           </div>
         `))
         .addTo(mapInstanceRef.current);
-      
       markersRef.current.vehicle = vehicleMarker;
     }
 
-    // Fit bounds to show all markers
+    // Fit map to show all markers
     const bounds = new mapboxgl.LngLatBounds();
-    bounds.extend([data.properties.lng, data.properties.lat]);
-    if (data.agent_location?.lng && data.agent_location?.lat) {
+    bounds.extend([data.properties.longitude, data.properties.latitude]);
+    if (data.agent_location?.lat && data.agent_location?.lng) {
       bounds.extend([data.agent_location.lng, data.agent_location.lat]);
     }
-    if (data.vehicle_location?.lng && data.vehicle_location?.lat) {
+    if (data.vehicle_location?.lat && data.vehicle_location?.lng) {
       bounds.extend([data.vehicle_location.lng, data.vehicle_location.lat]);
     }
-    
-    mapInstanceRef.current.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+    mapInstanceRef.current.fitBounds(bounds, { padding: 50 });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
-      case "builder_pending": return "secondary";
-      case "confirmed": return "default";
-      case "in_progress": return "default";
-      case "completed": return "default";
-      case "cancelled": return "destructive";
-      case "builder_rejected": return "destructive";
-      default: return "secondary";
+      case 'confirmed': return 'bg-green-500';
+      case 'in_progress': return 'bg-blue-500';
+      case 'completed': return 'bg-primary';
+      case 'cancelled': return 'bg-red-500';
+      default: return 'bg-yellow-500';
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: string | null) => {
     switch (status) {
-      case "builder_pending": return "Pending Approval";
-      case "confirmed": return "Confirmed";
-      case "in_progress": return "Visit In Progress";
-      case "completed": return "Completed";
-      case "cancelled": return "Cancelled";
-      case "builder_rejected": return "Declined";
-      default: return status;
+      case 'confirmed': return 'Confirmed';
+      case 'in_progress': return 'In Progress';
+      case 'completed': return 'Completed';
+      case 'cancelled': return 'Cancelled';
+      default: return 'Pending';
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Track My Visit',
+      text: `Track my property visit to ${booking?.properties?.title}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading visit details...</div>
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Visit not found</p>
-            <Button onClick={() => navigate("/")} className="mt-4">Go Home</Button>
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="p-8 text-center max-w-md">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-xl font-semibold mb-2">Booking Not Found</h2>
+            <p className="text-muted-foreground mb-4">
+              The visit booking you're looking for doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => navigate('/')}>Go Home</Button>
           </Card>
         </div>
         <Footer />
@@ -279,239 +290,143 @@ const LiveVisitTracking = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => {
-              const trackingUrl = `${window.location.origin}/visit/live/${bookingId}`;
-              navigator.clipboard.writeText(trackingUrl);
-              toast.success("Tracking link copied to clipboard!");
-            }}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Link
-          </Button>
-        </div>
+      <main className="flex-1 pt-16">
+        <div className="lg:flex lg:h-[calc(100vh-4rem)]">
+          {/* Mobile Map (visible on small screens) */}
+          <div className="lg:hidden h-64 relative">
+            <div ref={mobileMapRef} className="w-full h-full" />
+          </div>
 
-        {/* Mobile-optimized layout */}
-        <div className="space-y-6 lg:hidden">
-          {/* Mobile Visit Status Card */}
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg">{booking.properties?.title}</h3>
-              <Badge variant={getStatusColor(booking.status)}>
-                {getStatusText(booking.status)}
-              </Badge>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                <span>{new Date(booking.visit_date).toLocaleDateString()} at {booking.visit_time}</span>
-              </div>
-              {booking.agents && (
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-primary" />
-                  <span>{booking.agents.name}</span>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Mobile Map */}
-          <Card className="p-0 overflow-hidden">
-            <div 
-              ref={mobileMapRef} 
-              className="w-full h-[60vh] rounded-lg"
-              style={{ minHeight: '400px' }}
-            />
-          </Card>
-
-          {/* Mobile Location Status */}
-          {(booking.agent_location || booking.vehicle_location) && (
-            <Card className="p-4">
-              <h4 className="font-semibold mb-3">Live Location</h4>
-              {booking.agent_location && (
-                <div className="flex items-center gap-2 text-sm mb-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
-                  <span>Agent on the way</span>
-                </div>
-              )}
-              {booking.vehicle_location && (
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <span>Vehicle tracking active</span>
-                </div>
-              )}
-            </Card>
-          )}
-        </div>
-
-        {/* Desktop layout */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Visit Details */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1">{booking.properties?.title}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {booking.properties?.locality}, {booking.properties?.city}
-                  </p>
-                </div>
-                <Badge variant={getStatusColor(booking.status)}>
-                  {getStatusText(booking.status)}
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span>
-                    {new Date(booking.visit_date).toLocaleDateString("en-IN")} at {booking.visit_time}
-                  </span>
-                </div>
-                {booking.agents && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <User className="w-4 h-4 text-primary" />
-                    <span>{booking.agents.name}</span>
-                  </div>
-                )}
-                {booking.travel_mode && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Car className="w-4 h-4 text-primary" />
-                    <span className="capitalize">{booking.travel_mode}</span>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="p-4 mb-4">
-              <div className="flex flex-col gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/visit/story/${bookingId}`)}
-                >
-                  📸 View Story
+          {/* Details Panel */}
+          <div className="lg:w-1/3 p-4 lg:p-6 lg:overflow-y-auto">
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
                 </Button>
-                {booking.status === 'completed' && (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(`/visit/summary/${bookingId}`)}
-                    >
-                      ✨ AI Summary
-                    </Button>
-                    <Button
-                      variant="default"
-                      onClick={() => setFeedbackModalOpen(true)}
-                    >
-                      <Star className="w-4 h-4 mr-2" />
-                      Rate Visit
-                    </Button>
-                  </>
-                )}
+                <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
               </div>
-            </Card>
 
-            {/* QR Code and OTP */}
-            {booking.otp_code && (
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
-                  Verification Details
-                </h3>
-                
-                <div className="text-center mb-4">
-                  <div className="inline-block p-4 bg-white rounded-lg">
-                    {booking.qr_code_url ? (
-                      <img 
-                        src={booking.qr_code_url} 
-                        alt="Visit QR Code" 
-                        className="w-48 h-48"
-                      />
-                    ) : (
-                      <QRCodeSVG 
-                        value={JSON.stringify({ bookingId: booking.id, otp: booking.otp_code })}
-                        size={192}
-                      />
-                    )}
-                  </div>
+              {/* Status Card */}
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Visit Status</h2>
+                  <Badge className={getStatusColor(booking.status)}>
+                    {getStatusText(booking.status)}
+                  </Badge>
                 </div>
-
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">Your OTP Code:</p>
-                  <div className="text-3xl font-bold tracking-wider text-primary">
-                    {booking.otp_code}
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium">{booking.properties?.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {booking.properties?.locality}, {booking.properties?.city}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Show this at the property gate
-                  </p>
+                  
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-medium">{booking.visit_date}</p>
+                      <p className="text-sm text-muted-foreground">{booking.visit_time}</p>
+                    </div>
+                  </div>
+
+                  {booking.agents && (
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="font-medium">{booking.agents.name}</p>
+                        <p className="text-sm text-muted-foreground">Assigned Agent</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
-            )}
+
+              {/* OTP/QR Code Card */}
+              {booking.otp_code && (
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    Verification
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">OTP Code</p>
+                      <p className="text-2xl font-bold tracking-widest">{booking.otp_code}</p>
+                    </div>
+                    <div className="p-2 bg-white rounded-lg">
+                      <QRCodeSVG value={booking.id} size={80} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Share this code with your agent to verify your visit
+                  </p>
+                </Card>
+              )}
+
+              {/* Buyer Info */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-primary" />
+                  Buyer Details
+                </h3>
+                <div className="space-y-2">
+                  {booking.buyer_name && (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Name:</span> {booking.buyer_name}
+                    </p>
+                  )}
+                  {booking.buyer_phone && (
+                    <p className="text-sm flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      {booking.buyer_phone}
+                    </p>
+                  )}
+                </div>
+              </Card>
+
+              {/* Actions */}
+              {booking.status === 'completed' && (
+                <Button 
+                  className="w-full" 
+                  onClick={() => setFeedbackModalOpen(true)}
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Leave Feedback
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* Right Column - Map */}
-          <div className="lg:col-span-2">
-            <Card className="p-6 h-[600px] flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <NavIcon className="w-5 h-5 text-primary" />
-                  Live Tracking
-                </h3>
-                <div className="flex gap-2 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-primary"></div>
-                    <span>Property</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <span>Agent</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                    <span>Vehicle</span>
-                  </div>
-                </div>
-              </div>
-
-              <div 
-                ref={desktopMapRef} 
-                className="flex-1 rounded-lg bg-muted" 
-                style={{ minHeight: '500px' }}
-              />
-
-              {!booking.agent_location && (
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  Live tracking will appear once your agent starts the journey
-                </div>
-              )}
-            </Card>
+          {/* Desktop Map */}
+          <div className="hidden lg:block lg:flex-1 relative">
+            <div ref={desktopMapRef} className="w-full h-full" />
           </div>
         </div>
+      </main>
+
+      <div className="lg:hidden">
+        <Footer />
       </div>
 
       <VisitFeedbackModal
         open={feedbackModalOpen}
         onOpenChange={setFeedbackModalOpen}
-        bookingId={bookingId || ""}
-        onSuccess={fetchBooking}
+        bookingId={booking.id}
       />
-
-      <Footer />
     </div>
   );
 };

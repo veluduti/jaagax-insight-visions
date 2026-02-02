@@ -326,17 +326,17 @@ const BuilderVisitsDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-primary" />
-                        <span className="text-sm">{visit.user_name}</span>
+                        <span className="text-sm">{visit.buyer_name}</span>
                       </div>
-                      {visit.user_phone && (
+                      {visit.buyer_phone && (
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-primary" />
-                          <span className="text-sm">{visit.user_phone}</span>
+                          <span className="text-sm">{visit.buyer_phone}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2">
                         <Car className="w-4 h-4 text-primary" />
-                        <span className="text-sm capitalize">{visit.travel_mode || "Self"}</span>
+                        <span className="text-sm capitalize">Self</span>
                       </div>
                       {visit.agents && (
                         <div className="flex items-center gap-2">
@@ -346,10 +346,10 @@ const BuilderVisitsDashboard = () => {
                       )}
                     </div>
 
-                    {visit.special_requests && (
+                    {visit.notes && (
                       <div className="mb-4 p-3 bg-muted rounded-lg">
-                        <p className="text-sm font-medium mb-1">Special Requests:</p>
-                        <p className="text-sm text-muted-foreground">{visit.special_requests}</p>
+                        <p className="text-sm font-medium mb-1">Notes:</p>
+                        <p className="text-sm text-muted-foreground">{visit.notes}</p>
                       </div>
                     )}
 
@@ -443,7 +443,7 @@ const BuilderVisitsDashboard = () => {
             ) : (
               <div className="grid gap-6">
                 {completedVisits.map((visit) => {
-                  const feedback = visit.visit_feedback?.[0];
+                  // visit_feedback table doesn't exist yet - using notes as fallback
                   return (
                     <Card key={visit.id} className="p-6">
                       <div className="flex justify-between items-start mb-4">
@@ -469,7 +469,7 @@ const BuilderVisitsDashboard = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-primary" />
-                          <span className="text-sm">{visit.user_name}</span>
+                          <span className="text-sm">{visit.buyer_name}</span>
                         </div>
                         {visit.agents && (
                           <div className="flex items-center gap-2">
@@ -479,62 +479,13 @@ const BuilderVisitsDashboard = () => {
                         )}
                       </div>
 
-                      {feedback ? (
-                        <div className="mt-4 pt-4 border-t space-y-4">
-                          <h4 className="font-semibold flex items-center gap-2">
+                      {visit.notes ? (
+                        <div className="mt-4 pt-4 border-t">
+                          <h4 className="font-semibold flex items-center gap-2 mb-2">
                             <MessageSquare className="w-4 h-4" />
-                            Buyer Feedback
+                            Visit Notes
                           </h4>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-3 bg-muted rounded-lg">
-                              <p className="text-sm text-muted-foreground mb-1">Overall Rating</p>
-                              <div className="flex items-center gap-1">
-                                {renderStars(feedback.rating)}
-                                <span className="ml-2 font-semibold">{feedback.rating}/5</span>
-                              </div>
-                            </div>
-                            <div className="p-3 bg-muted rounded-lg">
-                              <p className="text-sm text-muted-foreground mb-1">Property Rating</p>
-                              <div className="flex items-center gap-1">
-                                {renderStars(feedback.property_rating)}
-                                <span className="ml-2 font-semibold">{feedback.property_rating}/5</span>
-                              </div>
-                            </div>
-                            <div className="p-3 bg-muted rounded-lg">
-                              <p className="text-sm text-muted-foreground mb-1">Agent Rating</p>
-                              <div className="flex items-center gap-1">
-                                {renderStars(feedback.agent_rating)}
-                                <span className="ml-2 font-semibold">{feedback.agent_rating}/5</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {feedback.feedback && (
-                            <div className="p-3 bg-muted rounded-lg">
-                              <p className="text-sm text-muted-foreground mb-1">Comments</p>
-                              <p className="text-sm">{feedback.feedback}</p>
-                            </div>
-                          )}
-
-                          {feedback.photo_urls && feedback.photo_urls.length > 0 && (
-                            <div>
-                              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                                <Image className="w-4 h-4" />
-                                Photos ({feedback.photo_urls.length})
-                              </p>
-                              <div className="flex gap-2 overflow-x-auto">
-                                {feedback.photo_urls.map((url, idx) => (
-                                  <img
-                                    key={idx}
-                                    src={url}
-                                    alt={`Visit photo ${idx + 1}`}
-                                    className="w-24 h-24 object-cover rounded-lg"
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                          <p className="text-sm text-muted-foreground">{visit.notes}</p>
                         </div>
                       ) : (
                         <div className="mt-4 pt-4 border-t">

@@ -14,17 +14,17 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
-  builder_id: number;
+  builder_id: string | null;
   builder_name: string;
   city: string;
   locality: string;
-  avg_price: number;
-  verified: boolean;
-  trust_score: number;
+  avg_price: number | null;
+  verified: boolean | null;
+  trust_score: number | null;
   rera_id: string | null;
-  overview: string | null;
+  description: string | null;
   image: string | null;
   builder?: {
     name: string;

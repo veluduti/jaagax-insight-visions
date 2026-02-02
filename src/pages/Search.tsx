@@ -20,46 +20,45 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet from "@/components/search/AdvancedFiltersSheet";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  beds: number;
-  baths: number;
-  bhk: number;
-  type: string;
-  images: string[];
-  verified: boolean;
-  trust_score: number;
-  status?: string;
+  area_sqft: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  bhk: number | null;
+  type: string | null;
+  images: any;
+  verified: boolean | null;
+  trust_score: number | null;
 }
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
   builder_name: string;
   city: string;
   locality: string;
-  avg_price: number;
-  verified: boolean;
-  trust_score: number;
+  avg_price: number | null;
+  verified: boolean | null;
+  trust_score: number | null;
   rera_id: string | null;
   image: string | null;
 }
 
 interface Agent {
-  id: number;
-  name: string;
-  agency_name: string;
-  languages: string;
-  cities_served: string;
-  sales_count: number;
-  rent_count: number;
-  photo_url: string;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  name: string | null;
+  agency_name: string | null;
+  languages: string[] | null;
+  cities_served: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  photo_url: string | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 interface PropertyDecision {

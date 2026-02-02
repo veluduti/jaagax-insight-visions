@@ -45,17 +45,17 @@ import { InterestRegistrationModal } from "@/components/booking/InterestRegistra
 import { BuilderTrustProgram } from "@/components/builder/BuilderTrustProgram";
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
-  builder_id: number;
+  builder_id: string | null;
   builder_name: string;
   city: string;
   locality: string;
-  avg_price: number;
-  verified: boolean;
-  trust_score: number;
+  avg_price: number | null;
+  verified: boolean | null;
+  trust_score: number | null;
   rera_id: string | null;
-  overview: string | null;
+  description: string | null;
   image: string | null;
   builder?: {
     name: string;
@@ -94,7 +94,7 @@ const ProjectDetail = () => {
   
   // Validate ID parameter
   useEffect(() => {
-    if (!id || isNaN(parseInt(id))) {
+    if (!id) {
       toast.error("Invalid project ID");
       navigate("/projects");
     }
@@ -130,11 +130,10 @@ const ProjectDetail = () => {
       setLoading(true);
       
       // Fetch project
-      const projectId = parseInt(id || "0");
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
         .select("*")
-        .eq("id", projectId)
+        .eq("id", id)
         .eq("verified", true)
         .maybeSingle();
 

@@ -8,17 +8,17 @@ import { X, MapPin, Maximize2, Bed, Bath, CheckCircle, MessageCircle, Phone, Tre
 
 interface PropertyDrawerProps {
   property: {
-    id: number;
+    id: string;
     title: string;
     price: number;
-    area: number;
-    type: string;
-    bhk: number;
-    verified: boolean;
-    images: string[];
-    trust_score: number;
-    city: string;
-    locality: string;
+    area_sqft: number | null;
+    type: string | null;
+    bhk: number | null;
+    verified: boolean | null;
+    images: any;
+    trust_score: number | null;
+    city: string | null;
+    locality: string | null;
   };
   onClose: () => void;
 }
