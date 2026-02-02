@@ -19,7 +19,7 @@ import {
 
 interface MicroComparablesProps {
   property: any;
-  propertyId: number;
+  propertyId: string;
 }
 
 export default function MicroComparables({ property, propertyId }: MicroComparablesProps) {
@@ -37,19 +37,17 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
     try {
       setLoading(true);
       
-      // Build query based on available data
       let query = supabase
         .from("properties")
         .select("*")
-        .eq("city", property.city)
-        .eq("locality", property.locality)
+        .eq("city", property?.city)
+        .eq("locality", property?.locality)
         .eq("verified", true)
         .neq("id", propertyId)
         .order("trust_score", { ascending: false })
         .limit(6);
       
-      // Only filter by bhk if it's available
-      if (property.bhk) {
+      if (property?.bhk) {
         query = query.eq("bhk", property.bhk);
       }
 
@@ -66,15 +64,12 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
   };
 
   const calculateTAP = () => {
-    // Trust-Adjusted Price calculation
-    const basePrice = property.price;
-    const trustScore = property.trust_score || 75;
+    const basePrice = property?.price || 0;
+    const trustScore = property?.trust_score || 75;
     
-    // Adjust price based on trust score
     const trustMultiplier = trustScore / 100;
     const adjustedPrice = basePrice * (0.85 + (trustMultiplier * 0.15));
     
-    // Calculate range (±5%)
     const lowerBound = adjustedPrice * 0.95;
     const upperBound = adjustedPrice * 1.05;
 
@@ -98,7 +93,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
   };
 
   const getPriceTrend = (compPrice: number) => {
-    const diff = ((compPrice - property.price) / property.price) * 100;
+    const diff = ((compPrice - (property?.price || 0)) / (property?.price || 1)) * 100;
     return {
       value: Math.abs(diff).toFixed(1),
       isHigher: diff > 0,
@@ -158,7 +153,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Based on {property.trust_score}/100 TrustScore and verified market data
+                  Based on {property?.trust_score || 'N/A'}/100 TrustScore and verified market data
                 </p>
               </div>
             </CardContent>
@@ -182,14 +177,14 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(`/transactions/${property.city}/${property.locality}`)}
+                onClick={() => navigate(`/transactions/${property?.city}/${property?.locality}`)}
               >
                 View All
                 <ExternalLink className="h-4 w-4 ml-2" />
               </Button>
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Similar {property.bhk ? `${property.bhk}BHK ` : ''}properties in {property.locality}
+              Similar {property?.bhk ? `${property.bhk}BHK ` : ''}properties in {property?.locality || 'this area'}
             </p>
           </CardHeader>
           <CardContent>
@@ -238,7 +233,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
                         <div>
                           <p className="text-lg font-bold">{formatPrice(comp.price)}</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatPSF(comp.price, comp.area)}{comp.area ? ` • ${comp.area} sqft` : ''}
+                            {formatPSF(comp.price, comp.area_sqft)}{comp.area_sqft ? ` • ${comp.area_sqft} sqft` : ''}
                           </p>
                         </div>
 
@@ -255,7 +250,7 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>{comp.status}</span>
+                          <span>{comp.completion_stage || 'Ready'}</span>
                         </div>
                       </div>
                     </motion.div>

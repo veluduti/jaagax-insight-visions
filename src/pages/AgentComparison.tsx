@@ -32,16 +32,16 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 interface Agent {
-  id: number;
-  name: string;
-  photo_url: string;
-  agency_name: string;
-  cities_served: string;
-  languages: string;
-  sales_count: number;
-  rent_count: number;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  name: string | null;
+  photo_url: string | null;
+  agency_name: string | null;
+  cities_served: string[] | null;
+  languages: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 const AgentComparison = () => {
@@ -58,7 +58,7 @@ const AgentComparison = () => {
 
   useEffect(() => {
     // Load agents from URL params if provided
-    const agentIds = searchParams.get("agents")?.split(",").map(Number) || [];
+    const agentIds = searchParams.get("agents")?.split(",") || [];
     if (agentIds.length > 0 && allAgents.length > 0) {
       const selected = allAgents.filter(a => agentIds.includes(a.id));
       setSelectedAgents(selected.slice(0, 3)); // Max 3 agents

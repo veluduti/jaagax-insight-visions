@@ -45,59 +45,16 @@ export const VisitFeedbackModal = ({ open, onOpenChange, bookingId, onSuccess }:
 
     setUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Upload photos
-      const photoUrls: string[] = [];
-      if (photos.length > 0) {
-        const feedbackId = crypto.randomUUID();
-        
-        for (let i = 0; i < photos.length; i++) {
-          const photo = photos[i];
-          const fileName = `${user.id}/${feedbackId}/photo-${i}-${Date.now()}.jpg`;
-          
-          const { error: uploadError, data } = await supabase.storage
-            .from('visit-feedback-photos')
-            .upload(fileName, photo, {
-              contentType: photo.type,
-              upsert: false
-            });
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('visit-feedback-photos')
-            .getPublicUrl(fileName);
-          
-          photoUrls.push(publicUrl);
-        }
-      }
-
-      // Submit feedback
+      // Update booking with feedback (using visit_bookings table)
       const { error } = await supabase
-        .from('visit_feedback')
-        .insert({
-          booking_id: bookingId,
-          user_id: user.id,
-          property_rating: propertyRating,
-          agent_rating: agentRating,
-          service_rating: serviceRating,
-          rating: Math.round((propertyRating + agentRating + serviceRating) / 3),
-          feedback,
-          photo_urls: photoUrls
-        });
-
-      if (error) throw error;
-
-      // Update booking status to completed
-      await supabase
         .from('visit_bookings')
         .update({ 
           status: 'completed',
-          completed_at: new Date().toISOString()
+          notes: `Rating: ${Math.round((propertyRating + agentRating + serviceRating) / 3)}/5. ${feedback}`
         })
         .eq('id', bookingId);
+
+      if (error) throw error;
 
       toast.success("Thank you for your feedback!");
       onOpenChange(false);

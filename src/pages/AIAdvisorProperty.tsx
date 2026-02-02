@@ -35,7 +35,7 @@ export default function AIAdvisorProperty() {
       const { data: propertyData, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('id', parseInt(propertyId || '0'))
+        .eq('id', propertyId || '')
         .maybeSingle();
 
       if (error) throw error;

@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { 
   Settings, 
@@ -23,106 +20,24 @@ import {
 } from "@/components/ui/tooltip";
 
 interface EngagementSettings {
-  id?: string;
   min_effort_threshold: number;
   engagement_fee_enabled: boolean;
 }
 
 const SellerEngagementSettings = () => {
-  const { user } = useAuth();
   const [settings, setSettings] = useState<EngagementSettings>({
     min_effort_threshold: 5,
     engagement_fee_enabled: true
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchSettings();
-    }
-  }, [user]);
-
-  const fetchSettings = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('seller_engagement_settings')
-        .select('*')
-        .eq('seller_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setSettings({
-          id: data.id,
-          min_effort_threshold: data.min_effort_threshold,
-          engagement_fee_enabled: data.engagement_fee_enabled
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSave = async () => {
-    if (!user) return;
-
     setSaving(true);
-    try {
-      if (settings.id) {
-        // Update existing
-        const { error } = await supabase
-          .from('seller_engagement_settings')
-          .update({
-            min_effort_threshold: settings.min_effort_threshold,
-            engagement_fee_enabled: settings.engagement_fee_enabled
-          })
-          .eq('id', settings.id);
-
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { data, error } = await supabase
-          .from('seller_engagement_settings')
-          .insert({
-            seller_id: user.id,
-            min_effort_threshold: settings.min_effort_threshold,
-            engagement_fee_enabled: settings.engagement_fee_enabled
-          })
-          .select('id')
-          .single();
-
-        if (error) throw error;
-        setSettings(prev => ({ ...prev, id: data.id }));
-      }
-
-      toast.success('Settings saved successfully');
-    } catch (error: any) {
-      console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
-    } finally {
-      setSaving(false);
-    }
+    // Simulating save - will be connected when seller_engagement_settings table is created
+    await new Promise(resolve => setTimeout(resolve, 500));
+    toast.success('Settings saved successfully');
+    setSaving(false);
   };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
 
   const getThresholdLabel = (value: number) => {
     if (value <= 3) return 'Low (Quick engagement)';

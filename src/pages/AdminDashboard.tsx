@@ -62,7 +62,7 @@ export default function AdminDashboard() {
       supabase.from("users").select("*", { count: 'exact', head: true }),
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
-      supabase.from("verifications").select("*").eq("status", "pending")
+      supabase.from("property_verifications").select("*").eq("status", "assigned")
     ]);
 
     setStats({
