@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 interface AIDecisionPanelProps {
-  propertyId: number;
+  propertyId: string;
   propertyData: {
     title: string;
     price: number;
@@ -46,7 +46,7 @@ interface AIDecision {
   risk_flags: string[];
   positive_flags: string[];
   reasoning: AIDecisionReasoning;
-  alternatives?: Array<{ id: number; title: string; match_score: number }>;
+  alternatives?: Array<{ id: string; title: string; match_score: number }>;
   should_wait?: {
     recommendation: string;
     reasons: string[];

@@ -1,5 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
+function toPropertyType(type: string): "apartment" | "villa" | "plot" | "commercial" {
+  switch (type) {
+    case "villa":
+      return "villa";
+    case "plot":
+      return "plot";
+    case "commercial":
+      return "commercial";
+    default:
+      return "apartment";
+  }
+}
+
+async function resolveBuilderId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.rpc("get_builder_id", { _user_id: user.id });
+  if (error) return null;
+  return data ?? null;
+}
+
 // Quick seed function - call this from browser console if button doesn't work
 export async function quickSeedData() {
   console.log("🌱 Starting quick seed...");
@@ -78,9 +100,41 @@ export async function quickSeedData() {
     }
   ];
 
+  const builderId = await resolveBuilderId();
+  if (!builderId) {
+    const error = new Error(
+      "Cannot seed properties: no builder profile for the current user. Log in as a Builder (with a builders row) and try again."
+    );
+    console.error("❌ Error:", error);
+    return { success: false, error };
+  }
+
+  const rows = properties.map((p) => ({
+    active: true,
+    builder_id: builderId,
+    title: p.title,
+    address: `${p.locality}, ${p.city}`,
+    city: p.city,
+    locality: p.locality,
+    latitude: p.lat,
+    longitude: p.lng,
+    price: p.price,
+    area_sqft: p.area,
+    bedrooms: p.beds,
+    bathrooms: p.baths,
+    bhk: p.bhk,
+    completion_stage: p.status,
+    verified: p.verified,
+    trust_score: p.trust_score,
+    images: p.images,
+    description: p.description,
+    type: p.type,
+    property_type: toPropertyType(p.type),
+  }));
+
   const { data, error } = await supabase
     .from("properties")
-    .insert(properties)
+    .insert(rows as any)
     .select();
 
   if (error) {

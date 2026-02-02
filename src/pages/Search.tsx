@@ -62,7 +62,7 @@ interface Agent {
 }
 
 interface PropertyDecision {
-  property_id: number;
+  property_id: string;
   match_score: number;
   ai_verdict: "best_for_you" | "alternative" | "risky";
   risk_flags: string[];
@@ -97,7 +97,7 @@ const Search = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [decisions, setDecisions] = useState<Map<number, PropertyDecision>>(new Map());
+  const [decisions, setDecisions] = useState<Map<string, PropertyDecision>>(new Map());
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -258,7 +258,7 @@ const Search = () => {
 
     if (decisionCache.has(cacheKey)) {
       const cached = decisionCache.get(cacheKey)!;
-      const decisionMap = new Map<number, PropertyDecision>();
+      const decisionMap = new Map<string, PropertyDecision>();
       cached.forEach((d) => decisionMap.set(d.property_id, d));
       setDecisions(decisionMap);
       return;
@@ -293,7 +293,7 @@ const Search = () => {
 
       if (!error && data?.decisions) {
         decisionCache.set(cacheKey, data.decisions);
-        const decisionMap = new Map<number, PropertyDecision>();
+        const decisionMap = new Map<string, PropertyDecision>();
         data.decisions.forEach((d: PropertyDecision) => {
           decisionMap.set(d.property_id, d);
         });

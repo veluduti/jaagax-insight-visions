@@ -234,16 +234,17 @@ export async function seedProjects() {
       return { success: true, message: "Projects already exist" };
     }
 
-    // Note: builder_id is left as null since we don't have builder user accounts
+    // Note: builder_id is left as null since we may not have builder user accounts for seed data
     const projectsToInsert = projectsData.map(project => ({
       name: project.name,
+      builder_name: project.builder_name,
       city: project.city,
       locality: project.locality,
       avg_price: project.avg_price,
       verified: project.verified,
       trust_score: project.trust_score,
       image: project.image,
-      overview: project.overview,
+      description: project.overview,
       rera_id: project.rera_id,
       builder_id: null,
     }));
