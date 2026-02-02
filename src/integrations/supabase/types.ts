@@ -44,36 +44,303 @@ export type Database = {
         }
         Relationships: []
       }
-      agents: {
+      agent_activity_log: {
         Row: {
-          availability_schedule: Json | null
+          activity_type: string
+          agent_id: string
           created_at: string | null
           id: string
-          license_doc: string | null
-          rating: number | null
+          metadata: Json | null
+        }
+        Insert: {
+          activity_type: string
+          agent_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          activity_type?: string
+          agent_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_activity_log_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_assignment_requests: {
+        Row: {
+          agent_id: string
+          cascade_order: number | null
+          created_at: string | null
+          id: string
+          rejection_reason: string | null
+          requested_at: string | null
+          responded_at: string | null
+          status: string | null
+          visit_booking_id: string
+        }
+        Insert: {
+          agent_id: string
+          cascade_order?: number | null
+          created_at?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          responded_at?: string | null
+          status?: string | null
+          visit_booking_id: string
+        }
+        Update: {
+          agent_id?: string
+          cascade_order?: number | null
+          created_at?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          responded_at?: string | null
+          status?: string | null
+          visit_booking_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_assignment_requests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_assignment_requests_visit_booking_id_fkey"
+            columns: ["visit_booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_availability: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          date: string
+          id: string
+          is_available: boolean | null
+          time_slots: Json | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          date: string
+          id?: string
+          is_available?: boolean | null
+          time_slots?: Json | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_available?: boolean | null
+          time_slots?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_availability_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_earnings: {
+        Row: {
+          agent_id: string
+          amount: number
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          status: string | null
+          type: string | null
+          visit_booking_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          amount: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          status?: string | null
+          type?: string | null
+          visit_booking_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          status?: string | null
+          type?: string | null
+          visit_booking_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_earnings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_earnings_visit_booking_id_fkey"
+            columns: ["visit_booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_performance_daily: {
+        Row: {
+          acceptance_rate: number | null
+          agent_id: string
+          avg_rating: number | null
+          avg_response_time_seconds: number | null
+          cancelled_visits: number | null
+          completed_visits: number | null
+          date: string
+          distance_traveled_km: number | null
+          id: string
+          online_hours: number | null
+          total_earnings: number | null
           total_visits: number | null
+        }
+        Insert: {
+          acceptance_rate?: number | null
+          agent_id: string
+          avg_rating?: number | null
+          avg_response_time_seconds?: number | null
+          cancelled_visits?: number | null
+          completed_visits?: number | null
+          date: string
+          distance_traveled_km?: number | null
+          id?: string
+          online_hours?: number | null
+          total_earnings?: number | null
+          total_visits?: number | null
+        }
+        Update: {
+          acceptance_rate?: number | null
+          agent_id?: string
+          avg_rating?: number | null
+          avg_response_time_seconds?: number | null
+          cancelled_visits?: number | null
+          completed_visits?: number | null
+          date?: string
+          distance_traveled_km?: number | null
+          id?: string
+          online_hours?: number | null
+          total_earnings?: number | null
+          total_visits?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_performance_daily_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          acceptance_rate: number | null
+          agency_name: string | null
+          availability_schedule: Json | null
+          avg_response_time_seconds: number | null
+          cities_served: string[] | null
+          created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
+          id: string
+          is_online: boolean | null
+          languages: string[] | null
+          last_location_update: string | null
+          license_doc: string | null
+          name: string | null
+          phone: string | null
+          photo_url: string | null
+          rating: number | null
+          rent_count: number | null
+          sales_count: number | null
+          total_assignments: number | null
+          total_visits: number | null
+          trust_score: number | null
           updated_at: string | null
           user_id: string
           verified: boolean | null
         }
         Insert: {
+          acceptance_rate?: number | null
+          agency_name?: string | null
           availability_schedule?: Json | null
+          avg_response_time_seconds?: number | null
+          cities_served?: string[] | null
           created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
           id?: string
+          is_online?: boolean | null
+          languages?: string[] | null
+          last_location_update?: string | null
           license_doc?: string | null
+          name?: string | null
+          phone?: string | null
+          photo_url?: string | null
           rating?: number | null
+          rent_count?: number | null
+          sales_count?: number | null
+          total_assignments?: number | null
           total_visits?: number | null
+          trust_score?: number | null
           updated_at?: string | null
           user_id: string
           verified?: boolean | null
         }
         Update: {
+          acceptance_rate?: number | null
+          agency_name?: string | null
           availability_schedule?: Json | null
+          avg_response_time_seconds?: number | null
+          cities_served?: string[] | null
           created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
           id?: string
+          is_online?: boolean | null
+          languages?: string[] | null
+          last_location_update?: string | null
           license_doc?: string | null
+          name?: string | null
+          phone?: string | null
+          photo_url?: string | null
           rating?: number | null
+          rent_count?: number | null
+          sales_count?: number | null
+          total_assignments?: number | null
           total_visits?: number | null
+          trust_score?: number | null
           updated_at?: string | null
           user_id?: string
           verified?: boolean | null
@@ -281,6 +548,72 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string | null
+          property_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          property_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          property_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled: boolean | null
+          flag_name: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       moderation_queue: {
         Row: {
           created_at: string | null
@@ -414,6 +747,107 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          address: string | null
+          amenities: Json | null
+          available_units: number | null
+          avg_price: number | null
+          builder_id: string | null
+          builder_name: string
+          city: string
+          completion_date: string | null
+          configurations: Json | null
+          created_at: string | null
+          description: string | null
+          documents: Json | null
+          id: string
+          image: string | null
+          images: Json | null
+          latitude: number | null
+          launch_date: string | null
+          locality: string
+          longitude: number | null
+          max_price: number | null
+          min_price: number | null
+          name: string
+          rera_id: string | null
+          status: string | null
+          total_units: number | null
+          trust_score: number | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: Json | null
+          available_units?: number | null
+          avg_price?: number | null
+          builder_id?: string | null
+          builder_name: string
+          city: string
+          completion_date?: string | null
+          configurations?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          image?: string | null
+          images?: Json | null
+          latitude?: number | null
+          launch_date?: string | null
+          locality: string
+          longitude?: number | null
+          max_price?: number | null
+          min_price?: number | null
+          name: string
+          rera_id?: string | null
+          status?: string | null
+          total_units?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: Json | null
+          available_units?: number | null
+          avg_price?: number | null
+          builder_id?: string | null
+          builder_name?: string
+          city?: string
+          completion_date?: string | null
+          configurations?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          image?: string | null
+          images?: Json | null
+          latitude?: number | null
+          launch_date?: string | null
+          locality?: string
+          longitude?: number | null
+          max_price?: number | null
+          min_price?: number | null
+          name?: string
+          rera_id?: string | null
+          status?: string | null
+          total_units?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_builder_id_fkey"
+            columns: ["builder_id"]
+            isOneToOne: false
+            referencedRelation: "builders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       properties: {
         Row: {
           active: boolean | null
@@ -421,7 +855,9 @@ export type Database = {
           area_sqft: number | null
           bathrooms: number | null
           bedrooms: number | null
+          bhk: number | null
           builder_id: string
+          city: string | null
           completion_stage: string | null
           created_at: string | null
           description: string | null
@@ -431,14 +867,19 @@ export type Database = {
           id: string
           images: Json | null
           latitude: number | null
+          locality: string | null
           longitude: number | null
           moderation_status: string | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           rera_id: string | null
+          submitted_by: string | null
           title: string
           trust_score: number | null
+          type: string | null
           updated_at: string | null
+          verification_status: string | null
+          verified: boolean | null
         }
         Insert: {
           active?: boolean | null
@@ -446,7 +887,9 @@ export type Database = {
           area_sqft?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          bhk?: number | null
           builder_id: string
+          city?: string | null
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
@@ -456,14 +899,19 @@ export type Database = {
           id?: string
           images?: Json | null
           latitude?: number | null
+          locality?: string | null
           longitude?: number | null
           moderation_status?: string | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           rera_id?: string | null
+          submitted_by?: string | null
           title: string
           trust_score?: number | null
+          type?: string | null
           updated_at?: string | null
+          verification_status?: string | null
+          verified?: boolean | null
         }
         Update: {
           active?: boolean | null
@@ -471,7 +919,9 @@ export type Database = {
           area_sqft?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          bhk?: number | null
           builder_id?: string
+          city?: string | null
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
@@ -481,14 +931,19 @@ export type Database = {
           id?: string
           images?: Json | null
           latitude?: number | null
+          locality?: string | null
           longitude?: number | null
           moderation_status?: string | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
           rera_id?: string | null
+          submitted_by?: string | null
           title?: string
           trust_score?: number | null
+          type?: string | null
           updated_at?: string | null
+          verification_status?: string | null
+          verified?: boolean | null
         }
         Relationships: [
           {
@@ -496,6 +951,87 @@ export type Database = {
             columns: ["builder_id"]
             isOneToOne: false
             referencedRelation: "builders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_verifications: {
+        Row: {
+          admin_notes: string | null
+          admin_reviewed_at: string | null
+          admin_reviewed_by: string | null
+          agent_id: string
+          agent_notes: string | null
+          assigned_at: string | null
+          completed_at: string | null
+          created_at: string | null
+          documents_verified: boolean | null
+          final_status: string | null
+          gps_coordinates: Json | null
+          id: string
+          location_verified: boolean | null
+          photos_match: boolean | null
+          property_id: string
+          status: string | null
+          updated_at: string | null
+          verification_photos: Json | null
+          verification_type: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          agent_id: string
+          agent_notes?: string | null
+          assigned_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          documents_verified?: boolean | null
+          final_status?: string | null
+          gps_coordinates?: Json | null
+          id?: string
+          location_verified?: boolean | null
+          photos_match?: boolean | null
+          property_id: string
+          status?: string | null
+          updated_at?: string | null
+          verification_photos?: Json | null
+          verification_type?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          agent_id?: string
+          agent_notes?: string | null
+          assigned_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          documents_verified?: boolean | null
+          final_status?: string | null
+          gps_coordinates?: Json | null
+          id?: string
+          location_verified?: boolean | null
+          photos_match?: boolean | null
+          property_id?: string
+          status?: string | null
+          updated_at?: string | null
+          verification_photos?: Json | null
+          verification_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_verifications_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_verifications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -602,6 +1138,126 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      visit_bookings: {
+        Row: {
+          agent_id: string | null
+          agent_location: Json | null
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          otp_code: string | null
+          project_id: string | null
+          property_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          vehicle_location: Json | null
+          verification_code: string | null
+          visit_date: string
+          visit_time: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_location?: Json | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          project_id?: string | null
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_location?: Json | null
+          verification_code?: string | null
+          visit_date: string
+          visit_time: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_location?: Json | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          otp_code?: string | null
+          project_id?: string | null
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_location?: Json | null
+          verification_code?: string | null
+          visit_date?: string
+          visit_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_locations: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          lat: number
+          lng: number
+          location_type: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          lat: number
+          lng: number
+          location_type: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          location_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_locations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "visit_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       visits: {
         Row: {

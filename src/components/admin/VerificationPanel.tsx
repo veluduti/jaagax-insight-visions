@@ -4,33 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock, Eye, Building2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PendingProperty {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
-  type: string;
+  city: string | null;
+  locality: string | null;
+  type: string | null;
   price: number;
-  area: number;
-  beds: number;
-  bhk: number;
-  images: string[];
-  submitted_at: string;
-  verification_status: string;
+  area_sqft: number | null;
+  bedrooms: number | null;
+  bhk: number | null;
+  images: any;
+  verification_status: string | null;
 }
 
 interface PendingProject {
-  id: number;
+  id: string;
   name: string;
   city: string;
   locality: string;
   builder_name: string;
   avg_price: number;
-  submitted_at: string;
-  verification_status: string;
+  verified: boolean | null;
 }
 
 export default function VerificationPanel() {
@@ -50,16 +48,16 @@ export default function VerificationPanel() {
           .from("properties")
           .select("*")
           .eq("verification_status", "pending")
-          .order("submitted_at", { ascending: false }),
+          .order("created_at", { ascending: false }),
         supabase
           .from("projects")
           .select("*")
-          .eq("verification_status", "pending")
-          .order("submitted_at", { ascending: false }),
+          .eq("verified", false)
+          .order("created_at", { ascending: false }),
       ]);
 
-      if (propertiesRes.data) setProperties(propertiesRes.data);
-      if (projectsRes.data) setProjects(projectsRes.data);
+      if (propertiesRes.data) setProperties(propertiesRes.data as any);
+      if (projectsRes.data) setProjects(projectsRes.data as any);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       toast.error("Failed to load submissions");
@@ -69,7 +67,7 @@ export default function VerificationPanel() {
   };
 
   const handlePropertyVerification = async (
-    propertyId: number,
+    propertyId: string,
     status: "approved" | "rejected"
   ) => {
     try {
@@ -83,7 +81,6 @@ export default function VerificationPanel() {
 
       if (error) throw error;
 
-      // Immediately remove from local state for instant UI update
       setProperties(prev => prev.filter(p => p.id !== propertyId));
 
       toast.success(
@@ -97,21 +94,19 @@ export default function VerificationPanel() {
   };
 
   const handleProjectVerification = async (
-    projectId: number,
+    projectId: string,
     status: "approved" | "rejected"
   ) => {
     try {
       const { error } = await supabase
         .from("projects")
         .update({
-          verification_status: status,
           verified: status === "approved",
         })
         .eq("id", projectId);
 
       if (error) throw error;
 
-      // Immediately remove from local state for instant UI update
       setProjects(prev => prev.filter(p => p.id !== projectId));
 
       toast.success(
@@ -165,7 +160,7 @@ export default function VerificationPanel() {
               <Card key={property.id} className="overflow-hidden">
                 <div className="relative h-48">
                   <img
-                    src={property.images[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                    src={Array.isArray(property.images) && property.images[0] ? property.images[0] : "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -177,7 +172,7 @@ export default function VerificationPanel() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg mb-2">{property.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {property.locality}, {property.city}
+                    {property.locality || 'N/A'}, {property.city || 'N/A'}
                   </p>
                   
                   <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
@@ -187,15 +182,15 @@ export default function VerificationPanel() {
                     </div>
                     <div>
                       <span className="text-muted-foreground">Area:</span>
-                      <span className="font-semibold ml-2">{property.area} sq.ft</span>
+                      <span className="font-semibold ml-2">{property.area_sqft || 0} sq.ft</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Type:</span>
-                      <span className="font-semibold ml-2">{property.type}</span>
+                      <span className="font-semibold ml-2">{property.type || 'N/A'}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">BHK:</span>
-                      <span className="font-semibold ml-2">{property.bhk}</span>
+                      <span className="font-semibold ml-2">{property.bhk || property.bedrooms || 0}</span>
                     </div>
                   </div>
 

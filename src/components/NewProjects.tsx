@@ -16,15 +16,16 @@ import {
 import BuilderTrustBadges from "@/components/home/BuilderTrustBadges";
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
   builder_name: string;
   city: string;
   locality: string;
   avg_price: number;
   image: string | null;
-  verified: boolean;
+  verified: boolean | null;
   rera_id: string | null;
+  trust_score: number | null;
 }
 
 interface NewProjectsProps {
