@@ -47,7 +47,7 @@ const PropertyValuation = () => {
         query = query.eq("type", formData.propertyType.toLowerCase() as any);
       }
       if (formData.bedrooms) {
-        query = query.eq("beds", parseInt(formData.bedrooms));
+        query = query.eq("bedrooms", parseInt(formData.bedrooms));
       }
 
       const { data: similarProperties, error } = await query.limit(10);
@@ -58,7 +58,7 @@ const PropertyValuation = () => {
         // Calculate average price per sqft
         const avgPricePerSqft =
           similarProperties.reduce((sum, prop) => {
-            return sum + (prop.price || 0) / (prop.area || 1);
+            return sum + (prop.price || 0) / (prop.area_sqft || 1);
           }, 0) / similarProperties.length;
 
         const estimatedPrice = avgPricePerSqft * parseInt(formData.area);

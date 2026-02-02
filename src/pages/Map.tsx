@@ -15,19 +15,19 @@ import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  lat: number;
-  lng: number;
+  latitude: number | null;
+  longitude: number | null;
   price: number;
-  area: number;
-  type: string;
-  bhk: number;
-  verified: boolean;
-  images: string[];
-  trust_score: number;
-  city: string;
-  locality: string;
+  area_sqft: number | null;
+  type: string | null;
+  bhk: number | null;
+  verified: boolean | null;
+  images: any;
+  trust_score: number | null;
+  city: string | null;
+  locality: string | null;
 }
 
 const Map = () => {
@@ -292,7 +292,8 @@ const Map = () => {
     const clusterGroups: { [key: string]: Property[] } = {};
     
     properties.forEach((property) => {
-      const key = `${Math.round(property.lat * 100)}_${Math.round(property.lng * 100)}`;
+      if (!property.latitude || !property.longitude) return;
+      const key = `${Math.round(property.latitude * 100)}_${Math.round(property.longitude * 100)}`;
       if (!clusterGroups[key]) {
         clusterGroups[key] = [];
       }
@@ -375,8 +376,10 @@ const Map = () => {
       });
 
       // Create marker
+      if (!property.longitude || !property.latitude) return;
+      
       const marker = new mapboxgl.Marker(el)
-        .setLngLat([property.lng, property.lat])
+        .setLngLat([property.longitude, property.latitude])
         .addTo(map.current);
 
       // Add click event
@@ -384,7 +387,7 @@ const Map = () => {
         if (isCluster) {
           // Zoom into cluster
           map.current?.flyTo({
-            center: [property.lng, property.lat],
+            center: [property.longitude!, property.latitude!],
             zoom: map.current.getZoom() + 2,
             duration: 1000,
           });
@@ -403,7 +406,7 @@ const Map = () => {
           <div style="padding: 12px; min-width: 220px;">
             <h3 style="font-weight: 600; margin-bottom: 6px; font-size: 14px; line-height: 1.3;">${property.title}</h3>
             <p style="font-size: 18px; color: hsl(var(--primary)); font-weight: 700; margin-bottom: 6px;">₹${(property.price / 100000).toFixed(1)}L</p>
-            <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area} sq.ft</p>
+            <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area_sqft || 0} sq.ft</p>
             <p style="font-size: 12px; color: #888;">${property.locality}, ${property.city}</p>
             ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ''}
           </div>

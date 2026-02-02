@@ -465,7 +465,7 @@ export default function BuilderDashboard() {
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Area</p>
-                                <p className="font-semibold">{property.area} sq.ft</p>
+                                <p className="font-semibold">{property.area_sqft} sq.ft</p>
                               </div>
                             </div>
                           </CardContent>
@@ -670,7 +670,7 @@ export default function BuilderDashboard() {
                     <select 
                       className="border rounded px-3 py-2"
                       onChange={(e) => {
-                        const proj = projects.find(p => p.id === parseInt(e.target.value));
+                        const proj = projects.find(p => p.id === e.target.value);
                         if (proj) fetchProjectForecast(proj);
                       }}
                       value={selectedProject?.id}

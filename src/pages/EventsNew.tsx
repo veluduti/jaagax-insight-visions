@@ -1,46 +1,49 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { EventList } from "@/components/events/EventList";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Construction } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent } from "@/components/ui/card";
 
+// Stub component - community_events table not yet created
 export default function EventsNew() {
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('community_events')
-        .select('*')
-        .not('published_at', 'is', null)
-        .eq('cancelled', false)
-        .order('event_date', { ascending: true });
-
-      if (error) throw error;
-      setEvents(data || []);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const featuredEvents = events.filter(e => e.featured);
-  const upcomingEvents = events.filter(e => {
-    const eventDate = new Date(e.event_date);
-    return eventDate >= new Date() && !e.featured;
-  });
+  // Mock featured events for display
+  const mockEvents = [
+    {
+      id: "1",
+      title: "Diwali Celebration 2025",
+      description: "Join us for a grand Diwali celebration with cultural performances and fireworks.",
+      venue: "Central Park",
+      city: "Hyderabad",
+      event_date: "2025-10-20",
+      category: "cultural",
+      featured: true,
+    },
+    {
+      id: "2", 
+      title: "Community Sports Day",
+      description: "Annual sports day with various games and activities for all ages.",
+      venue: "Sports Complex",
+      city: "Vijayawada",
+      event_date: "2025-03-15",
+      category: "sports",
+      featured: false,
+    },
+    {
+      id: "3",
+      title: "Real Estate Expo 2025",
+      description: "Explore the latest properties and meet top builders in the region.",
+      venue: "Convention Center",
+      city: "Hyderabad",
+      event_date: "2025-04-10",
+      category: "networking",
+      featured: true,
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -82,35 +85,51 @@ export default function EventsNew() {
           </div>
         </section>
 
-        {/* Featured Events */}
-        {featuredEvents.length > 0 && (
-          <section className="py-12 px-4 bg-gradient-to-b from-primary/5 to-background">
-            <div className="container mx-auto max-w-7xl">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-                  <span className="text-primary">★</span>
-                  Featured Events
-                </h2>
-                <EventList events={featuredEvents} loading={loading} />
-              </motion.div>
-            </div>
-          </section>
-        )}
+        {/* Coming Soon Notice */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto max-w-7xl">
+            <Card className="bg-muted/50">
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Construction className="h-12 w-12 mx-auto mb-4 text-primary" />
+                  <h3 className="text-lg font-semibold mb-2">Events Feature Coming Soon</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    The community events system is being set up. Check back soon for local events, 
+                    festivals, and community gatherings!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
-        {/* All Events */}
+        {/* Sample Events Preview */}
         <section className="py-12 px-4">
           <div className="container mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2 }}
             >
-              <h2 className="text-3xl font-bold mb-8">Upcoming Events</h2>
-              <EventList events={upcomingEvents} loading={loading} />
+              <h2 className="text-3xl font-bold mb-8">Preview: Upcoming Events</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {mockEvents.map((event) => (
+                  <Card key={event.id} className="overflow-hidden opacity-75">
+                    <div className="h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                      <Calendar className="h-12 w-12 text-primary/50" />
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold mb-2">{event.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{event.city}</span>
+                        <span>•</span>
+                        <span>{event.event_date}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </motion.div>
           </div>
         </section>

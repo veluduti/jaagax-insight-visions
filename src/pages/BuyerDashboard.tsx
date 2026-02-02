@@ -435,13 +435,13 @@ const BuyerDashboard = () => {
                                 {formatPrice(property.price)}
                               </span>
                               <div className="flex gap-2 text-sm text-muted-foreground">
-                                <span>{property.beds} Beds</span>
+                                <span>{property.bedrooms || property.bhk} Beds</span>
                                 <span>•</span>
-                                <span>{property.baths} Baths</span>
+                                <span>{property.bathrooms} Baths</span>
                               </div>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">{property.area} sq.ft</span>
+                              <span className="text-muted-foreground">{property.area_sqft} sq.ft</span>
                               <span className="flex items-center text-primary font-semibold">
                                 View Details
                                 <ChevronRight className="h-4 w-4 ml-1" />
