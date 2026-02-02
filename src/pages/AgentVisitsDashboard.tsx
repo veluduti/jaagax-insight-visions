@@ -15,19 +15,17 @@ interface VisitBooking {
   id: string;
   visit_date: string;
   visit_time: string;
-  status: string;
-  user_name: string;
-  user_phone: string;
-  user_email: string;
-  pickup_location: any;
-  property_id: number;
-  travel_mode: string;
-  special_requests: string;
+  status: string | null;
+  buyer_name: string | null;
+  buyer_phone: string | null;
+  buyer_email: string | null;
+  notes: string | null;
+  property_id: string | null;
   properties?: {
     title: string;
-    locality: string;
-    city: string;
-  };
+    locality: string | null;
+    city: string | null;
+  } | null;
 }
 
 const AgentVisitsDashboard = () => {
@@ -106,7 +104,7 @@ const AgentVisitsDashboard = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setVisits(data || []);
+      setVisits((data || []) as VisitBooking[]);
     } catch (error) {
       console.error("Error fetching visits:", error);
       toast.error("Failed to load visits");
@@ -243,7 +241,7 @@ const AgentVisitsDashboard = () => {
                         <User className="w-4 h-4 text-primary" />
                         <div>
                           <div className="text-xs text-muted-foreground">Client</div>
-                          <div className="text-sm font-medium">{visit.user_name}</div>
+                          <div className="text-sm font-medium">{visit.buyer_name || "N/A"}</div>
                         </div>
                       </div>
                       
@@ -251,25 +249,25 @@ const AgentVisitsDashboard = () => {
                         <Phone className="w-4 h-4 text-primary" />
                         <div>
                           <div className="text-xs text-muted-foreground">Contact</div>
-                          <div className="text-sm font-medium">{visit.user_phone || "N/A"}</div>
+                          <div className="text-sm font-medium">{visit.buyer_phone || "N/A"}</div>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
                         <NavigationIcon className="w-4 h-4 text-primary" />
                         <div>
-                          <div className="text-xs text-muted-foreground">Travel Mode</div>
-                          <div className="text-sm font-medium capitalize">
-                            {visit.travel_mode || "Self"}
+                          <div className="text-xs text-muted-foreground">Email</div>
+                          <div className="text-sm font-medium">
+                            {visit.buyer_email || "N/A"}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {visit.special_requests && (
+                    {visit.notes && (
                       <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-1">Special Requests</div>
-                        <div className="text-sm">{visit.special_requests}</div>
+                        <div className="text-xs text-muted-foreground mb-1">Notes</div>
+                        <div className="text-sm">{visit.notes}</div>
                       </div>
                     )}
 

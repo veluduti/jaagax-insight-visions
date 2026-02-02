@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 interface AgentTeamMembersProps {
   agencyName: string;
-  currentAgentId: number;
+  currentAgentId: string;
 }
 
 const AgentTeamMembers = ({ agencyName, currentAgentId }: AgentTeamMembersProps) => {

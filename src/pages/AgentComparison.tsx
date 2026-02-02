@@ -90,13 +90,13 @@ const AgentComparison = () => {
       return;
     }
 
-    const agent = agents.find(a => a.id === parseInt(agentId));
+    const agent = agents.find(a => a.id === agentId);
     if (agent && !selectedAgents.find(a => a.id === agent.id)) {
       setSelectedAgents([...selectedAgents, agent]);
     }
   };
 
-  const handleRemoveAgent = (agentId: number) => {
+  const handleRemoveAgent = (agentId: string) => {
     setSelectedAgents(selectedAgents.filter(a => a.id !== agentId));
   };
 
@@ -268,7 +268,7 @@ const AgentComparison = () => {
                     icon={MapPin}
                     values={selectedAgents.map(a => (
                       <div className="flex flex-wrap gap-1 justify-center">
-                        {a.cities_served.split(",").slice(0, 2).map(city => (
+                        {(a.cities_served || []).slice(0, 2).map(city => (
                           <Badge key={city} variant="secondary" className="text-xs">
                             {city.trim()}
                           </Badge>
@@ -282,7 +282,7 @@ const AgentComparison = () => {
                     icon={Languages}
                     values={selectedAgents.map(a => (
                       <div className="text-sm text-muted-foreground">
-                        {a.languages}
+                        {(a.languages || []).join(", ")}
                       </div>
                     ))}
                   />

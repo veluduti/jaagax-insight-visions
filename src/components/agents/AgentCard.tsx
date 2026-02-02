@@ -14,16 +14,16 @@ import {
 
 interface AgentCardProps {
   agent: {
-    id: number;
-    name: string;
-    agency_name: string;
-    languages: string;
-    cities_served: string;
-    sales_count: number;
-    rent_count: number;
-    photo_url: string;
-    trust_score: number;
-    verified: boolean;
+    id: string;
+    name: string | null;
+    agency_name: string | null;
+    languages: string[] | null;
+    cities_served: string[] | null;
+    sales_count: number | null;
+    rent_count: number | null;
+    photo_url: string | null;
+    trust_score: number | null;
+    verified: boolean | null;
   };
   index: number;
 }
@@ -51,8 +51,8 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Agent Info */}
         <div className="flex items-start gap-4 mb-4">
           <Avatar className="h-16 w-16 ring-2 ring-primary/50">
-            <AvatarImage src={agent.photo_url} alt={agent.name} />
-            <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={agent.photo_url || ""} alt={agent.name || ""} />
+            <AvatarFallback>{(agent.name || "A").charAt(0)}</AvatarFallback>
           </Avatar>
 
           <div className="flex-1">
@@ -63,17 +63,17 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
 
         {/* Trust Score */}
         <Badge variant="secondary" className="mb-3">
-          Trust Score: {agent.trust_score}%
+          Trust Score: {agent.trust_score || 0}%
         </Badge>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="p-2 rounded-lg bg-background/50">
-            <div className="text-2xl font-bold text-primary">{agent.sales_count}</div>
+            <div className="text-2xl font-bold text-primary">{agent.sales_count || 0}</div>
             <div className="text-xs text-muted-foreground">Sales</div>
           </div>
           <div className="p-2 rounded-lg bg-background/50">
-            <div className="text-2xl font-bold text-primary">{agent.rent_count}</div>
+            <div className="text-2xl font-bold text-primary">{agent.rent_count || 0}</div>
             <div className="text-xs text-muted-foreground">Rentals</div>
           </div>
         </div>
@@ -81,14 +81,14 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Languages */}
         <div className="flex items-center gap-2 mb-2 text-sm">
           <Languages className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{agent.languages}</span>
+          <span className="text-muted-foreground">{(agent.languages || []).join(", ")}</span>
         </div>
 
         {/* Cities */}
         <div className="flex items-center gap-2 mb-4 text-sm">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground line-clamp-1">
-            {agent.cities_served}
+            {(agent.cities_served || []).join(", ")}
           </span>
         </div>
 

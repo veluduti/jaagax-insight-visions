@@ -17,7 +17,7 @@ import { format } from "date-fns";
 
 interface AgentAvailabilityCalendarProps {
   agentName: string;
-  agentId: number;
+  agentId: string;
 }
 
 const AgentAvailabilityCalendar = ({ agentName, agentId }: AgentAvailabilityCalendarProps) => {

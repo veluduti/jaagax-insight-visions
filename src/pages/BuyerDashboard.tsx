@@ -20,26 +20,26 @@ import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  beds: number;
-  baths: number;
-  bhk: number;
-  type: string;
-  images: string[];
-  verified: boolean;
-  trust_score: number;
+  area_sqft: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  bhk: number | null;
+  type: string | null;
+  images: any;
+  verified: boolean | null;
+  trust_score: number | null;
 }
 
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>([]);
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
@@ -120,8 +120,8 @@ const BuyerDashboard = () => {
         .eq("user_id", user.id);
       
       if (data) {
-        // property_id is UUID (string), convert to number for properties table
-        setFavorites(data.map(f => parseInt(f.property_id) || 0).filter(id => id > 0));
+        // property_id is UUID (string)
+        setFavorites(data.map(f => f.property_id).filter(Boolean) as string[]);
       }
     }
   };
@@ -142,7 +142,7 @@ const BuyerDashboard = () => {
     }
   };
 
-  const toggleFavorite = async (propertyId: number) => {
+  const toggleFavorite = async (propertyId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Please login to save favorites");
@@ -154,13 +154,13 @@ const BuyerDashboard = () => {
         .from("favorites")
         .delete()
         .eq("user_id", user.id)
-        .eq("property_id", propertyId.toString());
+        .eq("property_id", propertyId);
       setFavorites(favorites.filter(id => id !== propertyId));
       toast.success("Removed from favorites");
     } else {
       await supabase
         .from("favorites")
-        .insert({ user_id: user.id, property_id: propertyId.toString() });
+        .insert({ user_id: user.id, property_id: propertyId });
       setFavorites([...favorites, propertyId]);
       toast.success("Added to favorites");
     }

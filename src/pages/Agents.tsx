@@ -20,16 +20,16 @@ import FeaturedAgents from "@/components/agents/FeaturedAgents";
 import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
-  id: number;
-  name: string;
-  agency_name: string;
-  languages: string;
-  cities_served: string;
-  sales_count: number;
-  rent_count: number;
-  photo_url: string;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  name: string | null;
+  agency_name: string | null;
+  languages: string[] | null;
+  cities_served: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  photo_url: string | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 const Agents = () => {
@@ -105,15 +105,15 @@ const Agents = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (agent) =>
-          agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          agent.cities_served.toLowerCase().includes(searchQuery.toLowerCase())
+          (agent.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (agent.cities_served || []).some(city => city.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
     // City filter
     if (cityFilter !== "all") {
       filtered = filtered.filter((agent) =>
-        agent.cities_served.toLowerCase().includes(cityFilter.toLowerCase())
+        (agent.cities_served || []).some(city => city.toLowerCase().includes(cityFilter.toLowerCase()))
       );
     }
 
@@ -125,9 +125,9 @@ const Agents = () => {
     // Sort
     filtered.sort((a, b) => {
       if (sortBy === "sales") {
-        return b.sales_count - a.sales_count;
+        return (b.sales_count || 0) - (a.sales_count || 0);
       } else if (sortBy === "rent") {
-        return b.rent_count - a.rent_count;
+        return (b.rent_count || 0) - (a.rent_count || 0);
       }
       return 0;
     });
@@ -138,8 +138,7 @@ const Agents = () => {
   const cities = Array.from(
     new Set(
       agents
-        .map((agent) => agent.cities_served?.split(',').map(c => c.trim()) || [])
-        .flat()
+        .flatMap((agent) => agent.cities_served || [])
         .filter(Boolean)
     )
   );
