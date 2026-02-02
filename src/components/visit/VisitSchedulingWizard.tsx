@@ -25,18 +25,18 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Agent {
-  id: number;
-  name: string;
-  photo_url: string;
-  trust_score: number;
-  agency_name: string;
-  sales_count: number;
-  cities_served: string;
-  languages: string;
+  id: string;
+  name: string | null;
+  photo_url: string | null;
+  trust_score: number | null;
+  agency_name: string | null;
+  sales_count: number | null;
+  cities_served: string[] | null;
+  languages: string[] | null;
 }
 
 interface VisitSchedulingWizardProps {
-  propertyId: number;
+  propertyId: string;
   propertyTitle: string;
   locality: string;
   city: string;
@@ -100,12 +100,10 @@ export const VisitSchedulingWizard = ({
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
-  const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [aiInsight, setAiInsight] = useState('');
   const [loading, setLoading] = useState(false);
   const [visitType, setVisitType] = useState<'in-person' | 'virtual'>('in-person');
 
-  // Fetch agents when entering step 2
   useEffect(() => {
     if (step === 2) {
       fetchAvailableAgents();
@@ -117,12 +115,11 @@ export const VisitSchedulingWizard = ({
     try {
       let agents: Agent[] = [];
 
-      // Strategy 1: Try to match by city first (includes independent agents)
       if (city) {
         const { data, error } = await supabase
           .from('agents')
-          .select('*')
-          .ilike('cities_served', `%${city}%`)
+          .select('id, name, photo_url, trust_score, agency_name, sales_count, cities_served, languages')
+          .contains('cities_served', [city])
           .order('trust_score', { ascending: false })
           .limit(10);
 
@@ -131,25 +128,10 @@ export const VisitSchedulingWizard = ({
         }
       }
 
-      // Strategy 2: If no city match, try locality
-      if (agents.length === 0 && locality) {
-        const { data, error } = await supabase
-          .from('agents')
-          .select('*')
-          .ilike('cities_served', `%${locality}%`)
-          .order('trust_score', { ascending: false })
-          .limit(10);
-
-        if (!error && data && data.length > 0) {
-          agents = data;
-        }
-      }
-
-      // Strategy 3: Fallback to all agents if no location match
       if (agents.length === 0) {
         const { data, error } = await supabase
           .from('agents')
-          .select('*')
+          .select('id, name, photo_url, trust_score, agency_name, sales_count, cities_served, languages')
           .order('trust_score', { ascending: false })
           .limit(10);
 
@@ -162,55 +144,6 @@ export const VisitSchedulingWizard = ({
     } catch (error) {
       console.error('Error fetching agents:', error);
       toast.error('Failed to load agents');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAgentAndSlots = async () => {
-    if (!selectedDate) return;
-
-    setLoading(true);
-    try {
-      if (autoAssign) {
-        // Get AI-assigned agent
-        const { data: agentData } = await supabase.functions.invoke('ai-assign-agent', {
-          body: {
-            propertyId,
-            locality,
-            city,
-            date: selectedDate.toISOString().split('T')[0],
-          },
-        });
-
-        if (agentData?.agent) {
-          setSelectedAgent(agentData.agent);
-        }
-      }
-
-      // Get optimized time slots for selected or auto-assigned agent
-      const agentId = selectedAgent?.id;
-      if (agentId) {
-        const { data: slotsData } = await supabase.functions.invoke('ai-optimize-slot', {
-          body: {
-            agentId,
-            date: selectedDate.toISOString().split('T')[0],
-            pickupLocation: { address: pickupLocation },
-            propertyLocation: { locality, city },
-          },
-        });
-
-        if (slotsData?.slots) {
-          setTimeSlots(slotsData.slots);
-          setAiInsight(slotsData.aiInsight || '');
-          if (slotsData.recommended) {
-            setSelectedTime(slotsData.recommended.time);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading agent and slots:', error);
-      toast.error('Failed to load availability');
     } finally {
       setLoading(false);
     }
@@ -468,23 +401,23 @@ export const VisitSchedulingWizard = ({
                       >
                         <div className="flex items-center gap-4">
                           <img
-                            src={agent.photo_url}
-                            alt={agent.name}
+                            src={agent.photo_url || '/placeholder.svg'}
+                            alt={agent.name || 'Agent'}
                             className="w-16 h-16 rounded-full object-cover"
                           />
                           <div className="flex-1">
-                            <div className="font-semibold">{agent.name}</div>
-                            <div className="text-sm text-muted-foreground">{agent.agency_name}</div>
+                            <div className="font-semibold">{agent.name || 'Agent'}</div>
+                            <div className="text-sm text-muted-foreground">{agent.agency_name || 'Independent'}</div>
                             <div className="flex items-center flex-wrap gap-2 mt-2">
                               <Badge variant="secondary" className="text-xs">
-                                Trust: {agent.trust_score}/100
+                                Trust: {agent.trust_score || 0}/100
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                {agent.sales_count} sales
+                                {agent.sales_count || 0} sales
                               </Badge>
-                              {agent.languages && (
+                              {agent.languages && agent.languages.length > 0 && (
                                 <Badge variant="outline" className="text-xs">
-                                  {agent.languages}
+                                  {agent.languages.join(', ')}
                                 </Badge>
                               )}
                             </div>
@@ -498,66 +431,59 @@ export const VisitSchedulingWizard = ({
             </div>
           )}
 
-          {/* Step 3: Travel Mode Selection */}
+          {/* Step 3: Travel Selection */}
           {step === 3 && (
             <Card className="p-6">
-              <h3 className="text-2xl font-bold mb-4">Choose Travel Mode</h3>
+              <h3 className="text-2xl font-bold mb-4">How will you travel?</h3>
               <p className="text-muted-foreground mb-6">
-                How would you like to reach the property?
+                Select your preferred mode of transportation
               </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+              <div className="grid gap-4">
                 {carPlans.map((plan) => {
                   const Icon = plan.icon;
-                  const estimatedTime = plan.id === 'self' ? 'Flexible' : plan.id === 'base' ? '45 mins' : plan.id === 'premium' ? '40 mins' : '35 mins';
                   return (
-                    <Card
+                    <button
                       key={plan.id}
-                      className={`p-4 cursor-pointer transition-all ${
-                        travelMode === plan.id
-                          ? 'border-primary ring-2 ring-primary bg-primary/5'
-                          : 'hover:border-primary/50'
-                      }`}
                       onClick={() => setTravelMode(plan.id)}
+                      className={`p-4 rounded-lg border-2 transition-all text-left ${
+                        travelMode === plan.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
+                      }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                           <Icon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-semibold">{plan.name}</h4>
-                            {travelMode === plan.id && (
-                              <CheckCircle2 className="w-5 h-5 text-primary" />
-                            )}
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{plan.name}</span>
+                            <span className="text-primary font-bold">{plan.price}</span>
                           </div>
-                          <p className="text-xl font-bold text-primary mt-1">{plan.price}</p>
-                          {plan.id !== 'self' && (
-                            <p className="text-xs text-muted-foreground mt-1">⏱️ Est. arrival: {estimatedTime}</p>
-                          )}
-                          <ul className="mt-2 space-y-1">
-                            {plan.features.map((feature) => (
-                              <li key={feature} className="text-sm text-muted-foreground flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {plan.features.map((feature, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
                                 {feature}
-                              </li>
+                              </Badge>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                       </div>
-                    </Card>
+                    </button>
                   );
                 })}
               </div>
 
               {travelMode !== 'self' && (
-                <div className="space-y-2">
-                  <Label htmlFor="pickup">Pickup Location *</Label>
+                <div className="mt-6">
+                  <Label htmlFor="pickup">Pickup Location</Label>
                   <Input
                     id="pickup"
                     placeholder="Enter your pickup address"
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
+                    className="mt-2"
                   />
                 </div>
               )}
@@ -567,94 +493,123 @@ export const VisitSchedulingWizard = ({
           {/* Step 4: Contact Details */}
           {step === 4 && (
             <Card className="p-6">
-              <h3 className="text-2xl font-bold mb-4">Your Contact Details</h3>
+              <h3 className="text-2xl font-bold mb-4">Contact Details</h3>
               <p className="text-muted-foreground mb-6">
-                We'll send you confirmation and visit details
+                Enter your details to confirm the booking
               </p>
-              
+
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="name"
-                      placeholder="John Doe"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="name" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Full Name
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter your full name"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="mt-2"
+                  />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={userEmail}
-                      onChange={(e) => setUserEmail(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="email" className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    className="mt-2"
+                  />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+91 98765 43210"
-                      value={userPhone}
-                      onChange={(e) => setUserPhone(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={userPhone}
+                    onChange={(e) => setUserPhone(e.target.value)}
+                    className="mt-2"
+                  />
                 </div>
 
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="requests">Special Requests (Optional)</Label>
                   <Textarea
                     id="requests"
-                    placeholder="Any specific requirements or questions..."
+                    placeholder="Any special requirements or questions?"
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
+                    className="mt-2"
                     rows={3}
                   />
                 </div>
               </div>
             </Card>
           )}
+
+          {/* Step 5: Confirmation */}
+          {step === 5 && (
+            <Card className="p-6 text-center">
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2">Confirm Your Booking</h3>
+              <p className="text-muted-foreground mb-6">
+                Review your details and confirm the visit
+              </p>
+
+              <div className="bg-muted/50 rounded-lg p-4 text-left space-y-2 mb-6">
+                <p><strong>Property:</strong> {propertyTitle}</p>
+                <p><strong>Location:</strong> {locality}, {city}</p>
+                <p><strong>Date:</strong> {selectedDate?.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p><strong>Time:</strong> {TIME_SLOTS.find(s => s.value === selectedTime)?.label}</p>
+                <p><strong>Visit Type:</strong> {visitType === 'in-person' ? 'In-Person' : 'Virtual Tour'}</p>
+                <p><strong>Travel:</strong> {carPlans.find(p => p.id === travelMode)?.name}</p>
+                {selectedAgent && <p><strong>Agent:</strong> {selectedAgent.name}</p>}
+                <p><strong>Name:</strong> {userName}</p>
+                <p><strong>Email:</strong> {userEmail}</p>
+                <p><strong>Phone:</strong> {userPhone}</p>
+              </div>
+
+              <Button 
+                onClick={handleSubmit} 
+                className="w-full" 
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? 'Confirming...' : 'Confirm Booking'}
+              </Button>
+            </Card>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between gap-4">
-        {step > 1 && (
+      {step < 5 && (
+        <div className="flex justify-between pt-4">
           <Button
             variant="outline"
             onClick={() => setStep(step - 1)}
-            disabled={loading}
+            disabled={step === 1}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-        )}
-        <Button
-          className="ml-auto"
-          onClick={step === 4 ? handleSubmit : handleNext}
-          disabled={loading}
-          size="lg"
-        >
-          {loading ? 'Processing...' : step === 4 ? 'Confirm Booking' : 'Continue'}
-          {step < 4 && <ArrowRight className="w-4 h-4 ml-2" />}
-        </Button>
-      </div>
+          <Button onClick={handleNext}>
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

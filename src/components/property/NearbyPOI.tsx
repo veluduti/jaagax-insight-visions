@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { School, Hospital, ShoppingBag, Train, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 interface NearbyPOIProps {
@@ -11,14 +9,13 @@ interface NearbyPOIProps {
   lng: number | null;
 }
 
-interface POI {
-  id: string;
-  name: string;
-  type: string;
-  lat: number;
-  lng: number;
-  rating: number | null;
-}
+// Mock POI data - will be replaced when poi table is created
+const mockPOIs = [
+  { id: '1', name: 'International School', type: 'school', distance: '0.5km', rating: 4.5 },
+  { id: '2', name: 'Apollo Hospital', type: 'hospital', distance: '1.2km', rating: 4.8 },
+  { id: '3', name: 'City Mall', type: 'mall', distance: '0.8km', rating: 4.2 },
+  { id: '4', name: 'Metro Station', type: 'metro', distance: '0.3km', rating: 4.6 },
+];
 
 const poiIcons: Record<string, any> = {
   school: School,
@@ -36,59 +33,12 @@ const poiColors: Record<string, string> = {
 };
 
 const NearbyPOI = ({ city, lat, lng }: NearbyPOIProps) => {
-  // Default coordinates for distance calculation
-  const validLat = lat ?? 17.385;
-  const validLng = lng ?? 78.4867;
-  const [pois, setPois] = useState<POI[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchNearbyPOI();
-  }, [city]);
-
-  const fetchNearbyPOI = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("poi")
-        .select("*")
-        .eq("city", city)
-        .limit(12);
-
-      if (error) throw error;
-      setPois(data || []);
-    } catch (error) {
-      console.error("Error fetching POI:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`;
-  };
-
-  const groupedPOIs = pois.reduce((acc, poi) => {
+  // Group POIs by type
+  const groupedPOIs = mockPOIs.reduce((acc, poi) => {
     if (!acc[poi.type]) acc[poi.type] = [];
     acc[poi.type].push(poi);
     return acc;
-  }, {} as Record<string, POI[]>);
-
-  if (loading) {
-    return null;
-  }
-
-  if (pois.length === 0) {
-    return null;
-  }
+  }, {} as Record<string, typeof mockPOIs>);
 
   return (
     <motion.div
@@ -121,7 +71,7 @@ const NearbyPOI = ({ city, lat, lng }: NearbyPOIProps) => {
                 </div>
 
                 <div className="space-y-2 pl-10">
-                  {items.slice(0, 3).map((poi) => (
+                  {items.map((poi) => (
                     <div
                       key={poi.id}
                       className="flex items-center justify-between p-3 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors"
@@ -136,7 +86,7 @@ const NearbyPOI = ({ city, lat, lng }: NearbyPOIProps) => {
                         )}
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {calculateDistance(validLat, validLng, poi.lat, poi.lng)}
+                        {poi.distance}
                       </span>
                     </div>
                   ))}

@@ -51,7 +51,7 @@ const BookingModal = ({
       <VisitStayPlanner
         open={showVisitStay}
         onClose={handleCloseVisitStay}
-        propertyId={parseInt(propertyId)}
+        propertyId={propertyId}
         propertyTitle={propertyTitle}
         propertyCity={propertyCity}
         propertyLocality={propertyLocality}

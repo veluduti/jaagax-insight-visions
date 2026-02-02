@@ -3,7 +3,13 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
-export type UserRole = "buyer" | "agent" | "builder" | "admin";
+export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver";
+
+// Map database roles to app roles
+const mapDbRoleToAppRole = (dbRole: string): UserRole => {
+  if (dbRole === "customer") return "buyer";
+  return dbRole as UserRole;
+};
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -13,13 +19,11 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch role when user logs in
         if (session?.user) {
           setTimeout(() => {
             fetchUserRole(session.user.id);
@@ -31,7 +35,6 @@ export const useAuth = () => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -56,16 +59,16 @@ export const useAuth = () => {
 
       if (error) {
         console.error("Error fetching user role:", error);
-        setRole("buyer"); // Default to buyer
+        setRole("buyer");
       } else if (data) {
-        setRole(data.role as UserRole);
+        setRole(mapDbRoleToAppRole(data.role));
       } else {
         console.log("No role found, defaulting to buyer");
         setRole("buyer");
       }
     } catch (error) {
       console.error("Error fetching user role:", error);
-      setRole("buyer"); // Default to buyer
+      setRole("buyer");
     } finally {
       setLoading(false);
     }
@@ -83,13 +86,16 @@ export const useAuth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
+      // Map app role to database role
+      const dbRole = selectedRole === "buyer" ? "customer" : selectedRole;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            role: selectedRole,
+            role: dbRole,
             city: city || null,
             name: name || null,
           }
@@ -101,16 +107,15 @@ export const useAuth = () => {
         return { error };
       }
       
-      // Insert role immediately after successful signup
       if (data.user) {
-        console.log("Creating user role for:", data.user.id, selectedRole);
+        console.log("Creating user role for:", data.user.id, dbRole);
         
         const { error: roleError } = await supabase
           .from("user_roles")
-          .insert({
+          .insert([{
             user_id: data.user.id,
-            role: selectedRole,
-          });
+            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver",
+          }]);
 
         if (roleError) {
           console.error("Error inserting role:", roleError);
@@ -118,11 +123,8 @@ export const useAuth = () => {
         }
 
         console.log("User role created successfully");
-        
-        // Set the role immediately
         setRole(selectedRole);
         
-        // Fetch the role to confirm
         setTimeout(() => {
           fetchUserRole(data.user.id);
         }, 500);
@@ -151,6 +153,7 @@ export const useAuth = () => {
     
     switch (role) {
       case "buyer":
+      case "customer":
         navigate("/dashboard/buyer");
         break;
       case "agent":

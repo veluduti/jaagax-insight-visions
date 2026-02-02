@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export type BudgetComfort = 'strict' | 'flexible' | 'premium';
@@ -38,38 +37,20 @@ interface UseBuyerContextReturn {
   upsertBuyerContext: (data: BuyerContextInput) => Promise<BuyerContext | null>;
 }
 
+// Stubbed version - buyer_context table doesn't exist yet
 export const useBuyerContext = (): UseBuyerContextReturn => {
   const { user } = useAuth();
   const [buyerContext, setBuyerContext] = useState<BuyerContext | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchBuyerContext = useCallback(async () => {
     if (!user?.id) {
       setBuyerContext(null);
-      setLoading(false);
       return;
     }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
-        .from('buyer_context')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      setBuyerContext(data as BuyerContext | null);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch buyer context'));
-      setBuyerContext(null);
-    } finally {
-      setLoading(false);
-    }
+    // Stub: buyer_context table doesn't exist yet
+    setLoading(false);
   }, [user?.id]);
 
   const createBuyerContext = useCallback(async (data: BuyerContextInput): Promise<BuyerContext | null> => {
@@ -77,90 +58,48 @@ export const useBuyerContext = (): UseBuyerContextReturn => {
       setError(new Error('User not authenticated'));
       return null;
     }
-
-    try {
-      setError(null);
-
-      const { data: newContext, error: insertError } = await supabase
-        .from('buyer_context')
-        .insert({
-          user_id: user.id,
-          ...data,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      setBuyerContext(newContext as BuyerContext);
-      return newContext as BuyerContext;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to create buyer context'));
-      return null;
-    }
+    // Stub: Return mock context
+    const mockContext: BuyerContext = {
+      id: crypto.randomUUID(),
+      user_id: user.id,
+      life_stage: data.life_stage || null,
+      budget_comfort: data.budget_comfort || null,
+      primary_fear: data.primary_fear || null,
+      decision_mode: data.decision_mode || null,
+      confidence_score: data.confidence_score || 50,
+      last_ai_update: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setBuyerContext(mockContext);
+    return mockContext;
   }, [user?.id]);
 
   const updateBuyerContext = useCallback(async (data: BuyerContextInput): Promise<BuyerContext | null> => {
-    if (!user?.id) {
-      setError(new Error('User not authenticated'));
+    if (!user?.id || !buyerContext) {
+      setError(new Error('User not authenticated or no context'));
       return null;
     }
-
-    try {
-      setError(null);
-
-      const { data: updatedContext, error: updateError } = await supabase
-        .from('buyer_context')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-
-      setBuyerContext(updatedContext as BuyerContext);
-      return updatedContext as BuyerContext;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to update buyer context'));
-      return null;
-    }
-  }, [user?.id]);
+    const updatedContext: BuyerContext = {
+      ...buyerContext,
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    setBuyerContext(updatedContext);
+    return updatedContext;
+  }, [user?.id, buyerContext]);
 
   const upsertBuyerContext = useCallback(async (data: BuyerContextInput): Promise<BuyerContext | null> => {
     if (!user?.id) {
       setError(new Error('User not authenticated'));
       return null;
     }
-
-    try {
-      setError(null);
-
-      const { data: upsertedContext, error: upsertError } = await supabase
-        .from('buyer_context')
-        .upsert({
-          user_id: user.id,
-          ...data,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id',
-        })
-        .select()
-        .single();
-
-      if (upsertError) throw upsertError;
-
-      setBuyerContext(upsertedContext as BuyerContext);
-      return upsertedContext as BuyerContext;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to upsert buyer context'));
-      return null;
+    if (buyerContext) {
+      return updateBuyerContext(data);
     }
-  }, [user?.id]);
+    return createBuyerContext(data);
+  }, [user?.id, buyerContext, updateBuyerContext, createBuyerContext]);
 
-  // Auto-fetch on login
   useEffect(() => {
     fetchBuyerContext();
   }, [fetchBuyerContext]);

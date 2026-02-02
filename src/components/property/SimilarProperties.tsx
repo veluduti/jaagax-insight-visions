@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 interface SimilarPropertiesProps {
   city: string;
   type: string;
-  currentPropertyId: number;
+  currentPropertyId: string;
 }
 
 const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesProps) => {
@@ -63,7 +63,9 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
             <Card className="overflow-hidden border-0 bg-background/50 hover:bg-background/70 transition-all">
               <div className="relative h-40 overflow-hidden">
                 <img
-                  src={property.images[0]}
+                  src={Array.isArray(property.images) && property.images.length > 0 
+                    ? property.images[0] 
+                    : '/placeholder.svg'}
                   alt={property.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
@@ -84,9 +86,9 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
                   {formatPrice(property.price)}
                 </div>
                 <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
-                  <span>{property.beds} Beds</span>
+                  <span>{property.bedrooms} Beds</span>
                   <span>•</span>
-                  <span>{property.area} sq.ft</span>
+                  <span>{property.area_sqft} sq.ft</span>
                 </div>
               </div>
             </Card>

@@ -3,11 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Sparkles, Send, Loader2, MessageCircle, Calendar, Heart,
-  TrendingUp, FileText, ChevronDown, ChevronUp, Bot, User
+  Sparkles, Send, Loader2, MessageCircle, 
+  ChevronDown, ChevronUp, Bot, User
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +27,7 @@ interface ActionButton {
 
 interface AIPropertyAdvisorProps {
   property: any;
-  propertyId: number;
+  propertyId: string;
 }
 
 export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAdvisorProps) {
@@ -43,7 +42,6 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
 
   useEffect(() => {
     loadInitialSummary();
-    loadChatHistory();
   }, [propertyId]);
 
   useEffect(() => {
@@ -56,15 +54,14 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
       const { data, error } = await supabase.functions.invoke("ai-property-advisor", {
         body: {
           propertyContext: {
-            title: property.title,
-            price: property.price,
-            area: property.area,
-            location: `${property.locality}, ${property.city}`,
-            bhk: property.bhk,
-            trustScore: property.trust_score,
-            verified: property.verified,
-            type: property.type,
-            status: property.status
+            title: property?.title,
+            price: property?.price,
+            area: property?.area_sqft,
+            location: `${property?.locality || ''}, ${property?.city || ''}`,
+            bhk: property?.bhk,
+            trustScore: property?.trust_score,
+            verified: property?.verified,
+            type: property?.property_type,
           },
           query: "Provide a brief 2-3 sentence summary of why this property is a good investment.",
           propertyId
@@ -77,41 +74,16 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
         setInitialSummary(data.answer);
       } else {
         setInitialSummary(
-          `This ${property.bhk}BHK property in ${property.locality} offers excellent value at ₹${(property.price / 100000).toFixed(2)}L. ` +
-          `With a trust score of ${property.trust_score}/100 and ${property.verified ? 'JaagaX verification' : 'ongoing verification'}, ` +
-          `it's a ${property.status} property in a prime location.`
+          `This ${property?.bhk || ''}BHK property in ${property?.locality || 'this area'} offers excellent value. ` +
+          `With a trust score of ${property?.trust_score || 'N/A'}/100, ` +
+          `it's a great option in a prime location.`
         );
       }
     } catch (error) {
       console.error("Error loading summary:", error);
-      setInitialSummary("Unable to generate AI summary. Please try asking specific questions.");
+      setInitialSummary("Ask me anything about this property to get AI-powered insights.");
     } finally {
       setLoadingSummary(false);
-    }
-  };
-
-  const loadChatHistory = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: sessions } = await supabase
-        .from("ai_sessions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true })
-        .limit(10);
-
-      if (sessions && sessions.length > 0) {
-        const history: Message[] = sessions.map(session => ({
-          role: "user" as const,
-          content: session.query,
-          timestamp: new Date(session.created_at)
-        }));
-        setMessages(history);
-      }
-    } catch (error) {
-      console.error("Error loading chat history:", error);
     }
   };
 
@@ -134,16 +106,15 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
       const { data, error } = await supabase.functions.invoke("ai-property-advisor", {
         body: {
           propertyContext: {
-            title: property.title,
-            price: property.price,
-            area: property.area,
-            location: `${property.locality}, ${property.city}`,
-            bhk: property.bhk,
-            trustScore: property.trust_score,
-            verified: property.verified,
-            type: property.type,
-            status: property.status,
-            description: property.description
+            title: property?.title,
+            price: property?.price,
+            area: property?.area_sqft,
+            location: `${property?.locality || ''}, ${property?.city || ''}`,
+            bhk: property?.bhk,
+            trustScore: property?.trust_score,
+            verified: property?.verified,
+            type: property?.property_type,
+            description: property?.description
           },
           query: userMessage.content,
           propertyId,
@@ -155,12 +126,11 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
 
       const actionButtons: ActionButton[] = [];
       
-      // Add context-aware action buttons
       if (data?.answer?.toLowerCase().includes("visit")) {
         actionButtons.push({ label: "Schedule Visit", action: "schedule", data: { propertyId } });
       }
       if (data?.answer?.toLowerCase().includes("similar")) {
-        actionButtons.push({ label: "Show Similar Properties", action: "similar", data: { city: property.city, bhk: property.bhk } });
+        actionButtons.push({ label: "Show Similar Properties", action: "similar", data: { city: property?.city, bhk: property?.bhk } });
       }
       actionButtons.push({ label: "Add to Watchlist", action: "watchlist", data: { propertyId } });
 
@@ -174,18 +144,11 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error("Error sending message:", error);
-      
-      if (error.message?.includes("429")) {
-        toast.error("AI advisor is currently busy. Please try again in a moment.");
-      } else if (error.message?.includes("402")) {
-        toast.error("AI advisor service requires additional credits. Please contact support.");
-      } else {
-        toast.error("Failed to get AI response. Please try again.");
-      }
+      toast.error("Failed to get AI response. Please try again.");
 
       const errorMessage: Message = {
         role: "assistant",
-        content: "I'm experiencing technical difficulties. Please try asking your question again in a moment.",
+        content: "I'm experiencing technical difficulties. Please try asking your question again.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -203,8 +166,7 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
           toast.error("Please login to schedule a visit");
           return;
         }
-        toast.success("Opening booking form...");
-        // Trigger booking modal or navigate
+        navigate(`/visit/schedule/${propertyId}`);
         break;
       case "similar":
         navigate(`/map?city=${data?.city}&bhk=${data?.bhk}`);
@@ -217,7 +179,7 @@ export default function AIPropertyAdvisor({ property, propertyId }: AIPropertyAd
         try {
           await supabase.from("favorites").insert({
             user_id: user.id,
-            property_id: data?.propertyId
+            property_id: propertyId
           });
           toast.success("Added to watchlist!");
         } catch (error) {
