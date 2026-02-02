@@ -104,7 +104,7 @@ const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
                 <Maximize2 className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">Area</span>
               </div>
-              <p className="text-xl font-bold">{property.area}</p>
+              <p className="text-xl font-bold">{property.area_sqft}</p>
               <p className="text-xs text-muted-foreground">sq.ft</p>
             </Card>
             <Card className="p-4 bg-secondary/50 border-border/50">
@@ -130,7 +130,7 @@ const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
               <span className="text-primary">✨</span> AI Summary
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              This {property.bhk} BHK {property.type} in {property.locality} offers {property.area} sq.ft of premium living space.
+              This {property.bhk} BHK {property.type} in {property.locality} offers {property.area_sqft} sq.ft of premium living space.
               {property.verified && " This property is JaagaX Verified™ with complete documentation and transparent pricing."}
               {" "}Located in a prime area with excellent connectivity and amenities.
             </p>

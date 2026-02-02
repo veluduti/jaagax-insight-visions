@@ -45,13 +45,13 @@ const Transactions = () => {
       if (error) throw error;
 
       if (properties && properties.length > 0) {
-        // Process transactions
+        // Process transactions - use latitude/longitude instead of lat/lng
         const processedTransactions = properties
-          .filter(p => p.lat && p.lng)
+          .filter(p => p.latitude && p.longitude)
           .map((p, idx) => ({
             id: p.id.toString(),
-            lat: p.lat,
-            lng: p.lng,
+            lat: p.latitude,
+            lng: p.longitude,
             price: p.price,
             locality: p.locality || "Unknown",
             date: new Date(2024, Math.floor(idx / properties.length * 6), 1).toLocaleDateString(),
