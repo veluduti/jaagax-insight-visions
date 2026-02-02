@@ -14,7 +14,7 @@ const AgentStoryUpload = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
-  const [agentId, setAgentId] = useState<number | null>(null);
+  const [agentId, setAgentId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -130,15 +130,18 @@ const AgentStoryUpload = () => {
         imageUrl = await uploadToStorage(selectedFile);
       }
 
+      // For now, we'll update the visit_bookings notes field
+      // since visit_story_updates table doesn't exist yet
+      const updateContent = type === 'photo' 
+        ? `[Photo Update] ${content.trim() || 'Photo shared'} - ${imageUrl || ''}`
+        : `[Text Update] ${content.trim()}`;
+      
       const { error } = await supabase
-        .from("visit_story_updates")
-        .insert({
-          booking_id: bookingId,
-          agent_id: agentId,
-          update_type: type,
-          content: content.trim() || null,
-          image_url: imageUrl,
-        });
+        .from("visit_bookings")
+        .update({
+          notes: updateContent,
+        })
+        .eq("id", bookingId);
 
       if (error) throw error;
 

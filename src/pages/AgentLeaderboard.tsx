@@ -12,15 +12,15 @@ import { Trophy, Star, TrendingUp, Award, Medal } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Agent {
-  id: number;
-  name: string;
-  photo_url: string;
-  agency_name: string;
-  cities_served: string;
-  sales_count: number;
-  rent_count: number;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  name: string | null;
+  photo_url: string | null;
+  agency_name: string | null;
+  cities_served: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 const AgentLeaderboard = () => {

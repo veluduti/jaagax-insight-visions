@@ -40,30 +40,30 @@ import AgentTeamMembers from "@/components/agents/AgentTeamMembers";
 import AgentAvailabilityCalendar from "@/components/agents/AgentAvailabilityCalendar";
 
 interface Agent {
-  id: number;
-  name: string;
-  photo_url: string;
-  agency_name: string;
-  cities_served: string;
-  languages: string;
-  sales_count: number;
-  rent_count: number;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  name: string | null;
+  photo_url: string | null;
+  agency_name: string | null;
+  cities_served: string[] | null;
+  languages: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  bhk: number;
-  type: string;
-  images: string[];
-  verified: boolean;
-  status: string;
+  area_sqft: number | null;
+  bhk: number | null;
+  type: string | null;
+  images: any;
+  verified: boolean | null;
+  active: boolean | null;
 }
 
 interface Review {
@@ -95,7 +95,7 @@ const AgentDetail = () => {
   const fetchAgentDetails = async () => {
     try {
       setLoading(true);
-      const agentId = parseInt(id || "0");
+      const agentId = id || "";
 
       // Fetch agent profile from agents table
       const { data: agentData, error: agentError } = await supabase
@@ -112,18 +112,18 @@ const AgentDetail = () => {
         return;
       }
 
-      setAgent(agentData);
+      setAgent(agentData as Agent);
 
-      // Fetch agent's properties
+      // Fetch agent's properties (using builder_id as agent reference)
       const { data: propertiesData } = await supabase
         .from("properties")
         .select("*")
-        .eq("agent_id", agentId)
-        .order("id", { ascending: false })
+        .eq("builder_id", agentId)
+        .order("created_at", { ascending: false })
         .limit(12);
 
-      setProperties(propertiesData || []);
-      setFilteredProperties(propertiesData || []);
+      setProperties((propertiesData || []) as Property[]);
+      setFilteredProperties((propertiesData || []) as Property[]);
 
       // Fetch agent reviews (agent_reviews table uses UUID, but agents table uses integer)
       // Using mock reviews for demonstration
@@ -415,11 +415,11 @@ const AgentDetail = () => {
               <div className="flex flex-wrap gap-3 mb-6">
                 <Badge variant="outline" className="py-2 px-4">
                   <MapPin className="h-4 w-4 mr-2" />
-                  {agent.cities_served}
+                  {(agent.cities_served || []).join(", ")}
                 </Badge>
                 <Badge variant="outline" className="py-2 px-4">
                   <Languages className="h-4 w-4 mr-2" />
-                  {agent.languages}
+                  {(agent.languages || []).join(", ")}
                 </Badge>
               </div>
 
@@ -483,7 +483,7 @@ const AgentDetail = () => {
         <AgentSuccessStories agentName={agent.name} />
 
         {/* Team Members */}
-        <AgentTeamMembers agencyName={agent.agency_name} currentAgentId={agent.id} />
+        <AgentTeamMembers agencyName={agent.agency_name || ""} currentAgentId={agent.id} />
 
         {/* Tabs Content */}
         <div className="grid lg:grid-cols-3 gap-8">
@@ -543,7 +543,7 @@ const AgentDetail = () => {
                           </Badge>
                         )}
                         <Badge className="absolute top-3 right-3 bg-primary">
-                          {property.status}
+                          {property.active ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                       <CardContent className="p-4">
@@ -559,7 +559,7 @@ const AgentDetail = () => {
                           <Badge variant="outline">{property.bhk} BHK</Badge>
                         </div>
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <span>{property.area} sq.ft</span>
+                          <span>{property.area_sqft} sq.ft</span>
                           <span className="capitalize">{property.type}</span>
                         </div>
                       </CardContent>
@@ -629,22 +629,22 @@ const AgentDetail = () => {
           <div className="space-y-6">
             {/* Expertise & Service Areas */}
             <AgentExpertise 
-              salesCount={agent.sales_count}
-              rentCount={agent.rent_count}
-              citiesServed={agent.cities_served}
+              salesCount={agent.sales_count || 0}
+              rentCount={agent.rent_count || 0}
+              citiesServed={(agent.cities_served || []).join(", ")}
             />
 
             {/* Performance Metrics */}
             <AgentPerformance 
-              salesCount={agent.sales_count}
-              rentCount={agent.rent_count}
-              trustScore={agent.trust_score}
+              salesCount={agent.sales_count || 0}
+              rentCount={agent.rent_count || 0}
+              trustScore={agent.trust_score || 0}
               reviewCount={reviews.length}
               averageRating={avgRating.toString()}
             />
 
             {/* Availability Calendar */}
-            <AgentAvailabilityCalendar agentName={agent.name} agentId={agent.id} />
+            <AgentAvailabilityCalendar agentName={agent.name || ""} agentId={agent.id} />
           </div>
         </div>
 

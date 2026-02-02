@@ -17,30 +17,30 @@ import { motion } from "framer-motion";
 import AgentEffortSummary from "@/components/agents/AgentEffortSummary";
 
 interface AgentProfile {
-  id: number;
-  name: string;
+  id: string;
+  name: string | null;
   email?: string;
-  photo_url: string;
-  agency_name: string;
-  cities_served: string;
-  languages: string;
-  sales_count: number;
-  rent_count: number;
-  trust_score: number;
-  verified: boolean;
+  photo_url: string | null;
+  agency_name: string | null;
+  cities_served: string[] | null;
+  languages: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  type: string;
-  beds: number;
-  images: string[];
-  status: string;
+  area_sqft: number | null;
+  type: string | null;
+  bedrooms: number | null;
+  images: any;
+  active: boolean | null;
 }
 
 export default function AgentDashboard() {
@@ -67,7 +67,7 @@ export default function AgentDashboard() {
     fetchUserAndProfile();
   }, []);
 
-  const fetchVisitStats = async (agentId: number) => {
+  const fetchVisitStats = async (agentId: string) => {
     try {
       const { data: visits } = await supabase
         .from("visit_bookings")
@@ -126,23 +126,23 @@ export default function AgentDashboard() {
       return;
     }
 
-    setAgentProfile(agentData);
+    setAgentProfile(agentData as AgentProfile);
     fetchAgentProperties(agentData.id);
     fetchVisitStats(agentData.id);
   };
 
-  const fetchAgentProperties = async (agentId: number) => {
+  const fetchAgentProperties = async (agentId: string) => {
     const { data } = await supabase
       .from("properties")
       .select("*")
-      .eq("agent_id", agentId)
-      .order("id", { ascending: false });
+      .eq("builder_id", agentId)
+      .order("created_at", { ascending: false });
 
     if (data) {
-      setProperties(data);
+      setProperties(data as Property[]);
       setStats({
         totalProperties: data.length,
-        activeListings: data.filter(p => p.status !== "Sold").length,
+        activeListings: data.filter(p => p.active !== false).length,
         viewsThisMonth: Math.floor(Math.random() * 1000) + 500,
         savedByUsers: Math.floor(Math.random() * 100) + 20,
       });
@@ -268,10 +268,10 @@ export default function AgentDashboard() {
               <div className="flex flex-wrap gap-2 mb-4">
                 <Badge variant="outline">
                   <MapPin className="h-3 w-3 mr-1" />
-                  {agentProfile.cities_served}
+                  {(agentProfile.cities_served || []).join(", ")}
                 </Badge>
                 <Badge variant="outline">
-                  {agentProfile.languages}
+                  {(agentProfile.languages || []).join(", ")}
                 </Badge>
               </div>
 
@@ -456,7 +456,7 @@ export default function AgentDashboard() {
             <TabsContent value="active" className="mt-6">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties
-                  .filter(p => p.status !== "Sold")
+                  .filter(p => p.active !== false)
                   .map((property) => (
                     <Card 
                       key={property.id} 
@@ -465,12 +465,12 @@ export default function AgentDashboard() {
                     >
                       <div className="relative h-48">
                         <img
-                          src={property.images[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400"}
+                          src={(Array.isArray(property.images) ? property.images[0] : null) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400"}
                           alt={property.title}
                           className="w-full h-full object-cover"
                         />
                         <Badge className="absolute top-2 right-2 bg-primary">
-                          {property.status}
+                          {property.active ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                       <CardContent className="p-4">
@@ -483,11 +483,11 @@ export default function AgentDashboard() {
                             {formatPrice(property.price)}
                           </span>
                           <span className="text-sm text-muted-foreground">
-                            {property.area} sq.ft
+                            {property.area_sqft} sq.ft
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{property.beds} BHK</span>
+                          <span>{property.bedrooms} BHK</span>
                           <span>•</span>
                           <span>{property.type}</span>
                         </div>
@@ -496,7 +496,7 @@ export default function AgentDashboard() {
                   ))}
               </div>
 
-              {properties.filter(p => p.status !== "Sold").length === 0 && (
+              {properties.filter(p => p.active !== false).length === 0 && (
                 <div className="text-center py-12">
                   <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No active listings yet</p>
@@ -514,12 +514,12 @@ export default function AgentDashboard() {
                   >
                     <div className="relative h-48">
                       <img
-                        src={property.images[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400"}
+                        src={(Array.isArray(property.images) ? property.images[0] : null) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400"}
                         alt={property.title}
                         className="w-full h-full object-cover"
                       />
                       <Badge className="absolute top-2 right-2">
-                        {property.status}
+                        {property.active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                     <CardContent className="p-4">
@@ -532,11 +532,11 @@ export default function AgentDashboard() {
                           {formatPrice(property.price)}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {property.area} sq.ft
+                          {property.area_sqft} sq.ft
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{property.beds} BHK</span>
+                        <span>{property.bedrooms} BHK</span>
                         <span>•</span>
                         <span>{property.type}</span>
                       </div>

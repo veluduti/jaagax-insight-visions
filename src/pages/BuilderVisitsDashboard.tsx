@@ -15,34 +15,23 @@ interface VisitBooking {
   id: string;
   visit_date: string;
   visit_time: string;
-  travel_mode: string;
-  status: string;
-  user_name: string;
-  user_email: string;
-  user_phone: string | null;
-  pickup_location: any;
-  special_requests: string | null;
+  status: string | null;
+  buyer_name: string | null;
+  buyer_email: string | null;
+  buyer_phone: string | null;
+  notes: string | null;
   properties: {
     title: string;
-    locality: string;
-    city: string;
+    locality: string | null;
+    city: string | null;
   } | null;
   agents: {
-    name: string;
+    name: string | null;
   } | null;
 }
 
 interface CompletedVisit extends VisitBooking {
-  completed_at: string;
-  visit_feedback: {
-    id: string;
-    rating: number;
-    agent_rating: number;
-    property_rating: number;
-    service_rating: number;
-    feedback: string;
-    photo_urls: string[];
-  }[] | null;
+  updated_at: string | null;
 }
 
 const BuilderVisitsDashboard = () => {
@@ -111,13 +100,12 @@ const BuilderVisitsDashboard = () => {
 
       if (error) throw error;
 
-      // Filter to only show visits for builder's properties or where builder_id matches
+      // Filter to only show visits for builder's properties
       const filteredVisits = (data || []).filter(visit => 
-        allPropertyIds.includes(visit.property_id) || 
-        builderIds.includes(visit.builder_id)
+        allPropertyIds.includes(visit.property_id || "")
       );
 
-      setVisits(filteredVisits);
+      setVisits(filteredVisits as VisitBooking[]);
     } catch (error: any) {
       console.error("Error fetching visits:", error);
       toast.error("Failed to load pending visits");
@@ -165,29 +153,19 @@ const BuilderVisitsDashboard = () => {
         .select(`
           *,
           properties (title, locality, city),
-          agents (name),
-          visit_feedback (
-            id,
-            rating,
-            agent_rating,
-            property_rating,
-            service_rating,
-            feedback,
-            photo_urls
-          )
+          agents (name)
         `)
         .eq("status", "completed")
-        .order("completed_at", { ascending: false });
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
 
-      // Filter to only show visits for builder's properties or where builder_id matches
+      // Filter to only show visits for builder's properties
       const filteredVisits = (data || []).filter(visit => 
-        allPropertyIds.includes(visit.property_id) || 
-        builderIds.includes(visit.builder_id)
+        allPropertyIds.includes(visit.property_id || "")
       );
 
-      setCompletedVisits(filteredVisits);
+      setCompletedVisits(filteredVisits as CompletedVisit[]);
     } catch (error: any) {
       console.error("Error fetching completed visits:", error);
       toast.error("Failed to load completed visits");
