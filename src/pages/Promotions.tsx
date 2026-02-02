@@ -6,6 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ReelsFeed from "@/components/promotions/ReelsFeed";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Advertisement {
+  id: string;
+  title: string;
+  tagline?: string | null;
+  description?: string | null;
+  images: string[];
+  highlights: string[];
+  offer_text?: string | null;
+  cta_text?: string | null;
+  featured: boolean | null;
+  priority: number | null;
+  impressions: number | null;
+  clicks: number | null;
+  saves: number | null;
+  contacts: number | null;
+  property_id?: string | null;
+  project_id?: string | null;
+  ad_type: string;
+}
 
 const Promotions = () => {
   const navigate = useNavigate();
@@ -13,13 +34,23 @@ const Promotions = () => {
   const [stats, setStats] = useState({ total: 0, featured: 0, deals: 0 });
 
   useEffect(() => {
-    // Mock stats since advertisements table doesn't exist
-    setStats({
-      total: 12,
-      featured: 3,
-      deals: 5
-    });
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    const { data, error } = await supabase
+      .from('advertisements')
+      .select('id, featured, offer_text')
+      .eq('status', 'active');
+
+    if (!error && data) {
+      setStats({
+        total: data.length,
+        featured: data.filter(ad => ad.featured).length,
+        deals: data.filter(ad => ad.offer_text).length
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black">
@@ -125,64 +156,45 @@ const Promotions = () => {
   );
 };
 
-// Enhanced Grid View Component with mock data
+// Grid View Component with real data
 const GridView = () => {
   const [loading, setLoading] = useState(true);
+  const [ads, setAds] = useState<Advertisement[]>([]);
   const navigate = useNavigate();
 
-  // Mock advertisement data
-  const mockAds = [
-    {
-      id: '1',
-      title: 'Luxury Villa in Banjara Hills',
-      images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400'],
-      price: 25000000,
-      featured: true,
-      offer_text: '10% Off',
-      locality: 'Banjara Hills',
-      city: 'Hyderabad'
-    },
-    {
-      id: '2',
-      title: 'Modern Apartment in Gachibowli',
-      images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400'],
-      price: 8500000,
-      featured: true,
-      offer_text: null,
-      locality: 'Gachibowli',
-      city: 'Hyderabad'
-    },
-    {
-      id: '3',
-      title: 'Spacious 3BHK in Madhapur',
-      images: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400'],
-      price: 12000000,
-      featured: false,
-      offer_text: 'Special Deal',
-      locality: 'Madhapur',
-      city: 'Hyderabad'
-    },
-    {
-      id: '4',
-      title: 'Premium Plot in Kokapet',
-      images: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400'],
-      price: 45000000,
-      featured: true,
-      offer_text: null,
-      locality: 'Kokapet',
-      city: 'Hyderabad'
-    },
-  ];
-
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
+    fetchAds();
   }, []);
+
+  const fetchAds = async () => {
+    const { data, error } = await supabase
+      .from('advertisements')
+      .select('*')
+      .eq('status', 'active')
+      .order('priority', { ascending: false })
+      .order('featured', { ascending: false });
+
+    if (!error && data) {
+      setAds(data.map(ad => ({
+        ...ad,
+        images: (ad.images as string[]) || [],
+        highlights: (ad.highlights as string[]) || []
+      })));
+    }
+    setLoading(false);
+  };
 
   const formatPrice = (price: number) => {
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
     if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
     return `₹${price.toLocaleString()}`;
+  };
+
+  const trackImpression = async (adId: string) => {
+    await supabase.from('ad_interactions').insert({
+      ad_id: adId,
+      interaction_type: 'impression'
+    });
   };
 
   if (loading) {
@@ -195,9 +207,19 @@ const GridView = () => {
     );
   }
 
+  if (ads.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-semibold mb-2">No Active Promotions</h3>
+        <p className="text-muted-foreground">Check back soon for new deals and offers!</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {mockAds.map((ad, index) => {
+      {ads.map((ad, index) => {
         const image = ad.images?.[0] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400';
         
         return (
@@ -207,7 +229,12 @@ const GridView = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             whileHover={{ scale: 1.02 }}
+            onViewportEnter={() => trackImpression(ad.id)}
             className="relative aspect-[3/4] rounded-2xl overflow-hidden group cursor-pointer shadow-lg"
+            onClick={() => {
+              if (ad.property_id) navigate(`/property/${ad.property_id}`);
+              else if (ad.project_id) navigate(`/project/${ad.project_id}`);
+            }}
           >
             <img
               src={image}
@@ -234,11 +261,10 @@ const GridView = () => {
             )}
             
             <div className="absolute bottom-0 left-0 right-0 p-4">
-              <p className="text-white font-bold text-xl mb-1">{formatPrice(ad.price)}</p>
-              <p className="text-white/90 text-sm font-medium line-clamp-2 mb-1">{ad.title}</p>
-              <p className="text-white/70 text-xs line-clamp-1">
-                {ad.locality}, {ad.city}
-              </p>
+              <p className="text-white font-bold text-lg mb-1">{ad.title}</p>
+              {ad.tagline && (
+                <p className="text-white/80 text-sm line-clamp-1">{ad.tagline}</p>
+              )}
             </div>
 
             {/* Hover overlay */}
@@ -248,7 +274,7 @@ const GridView = () => {
               className="absolute inset-0 bg-primary/20 flex items-center justify-center"
             >
               <Button size="sm" className="bg-white text-black hover:bg-white/90">
-                View Details
+                {ad.cta_text || 'View Details'}
               </Button>
             </motion.div>
           </motion.div>
