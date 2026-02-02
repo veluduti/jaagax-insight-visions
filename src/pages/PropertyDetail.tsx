@@ -35,7 +35,7 @@ import AIDecisionPanel from "@/components/property/AIDecisionPanel";
 import AIPreCallContext from "@/components/property/AIPreCallContext";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
   city: string;
   locality: string;
@@ -52,21 +52,21 @@ interface Property {
   trust_score: number | null;
   images: string[];
   description: string;
-  agent_id: number | null;
-  project_id: number | null;
+  agent_id: string | null;
+  project_id: string | null;
 }
 
 interface Agent {
-  id: number;
-  agency_name: string;
-  languages: string;
-  cities_served: string;
-  sales_count: number;
-  rent_count: number;
-  name: string;
-  photo_url: string;
-  trust_score: number;
-  verified: boolean;
+  id: string;
+  agency_name: string | null;
+  languages: string[] | null;
+  cities_served: string[] | null;
+  sales_count: number | null;
+  rent_count: number | null;
+  name: string | null;
+  photo_url: string | null;
+  trust_score: number | null;
+  verified: boolean | null;
 }
 
 const PropertyDetail = () => {
@@ -75,7 +75,7 @@ const PropertyDetail = () => {
   
   // Validate ID parameter
   useEffect(() => {
-    if (!id || isNaN(parseInt(id))) {
+    if (!id) {
       toast.error("Invalid property ID");
       navigate("/projects");
     }
@@ -94,11 +94,10 @@ const PropertyDetail = () => {
 
   const fetchProperty = async () => {
     try {
-      const propertyId = parseInt(id || "0");
       const { data: propertyData, error: propertyError } = await supabase
         .from("properties")
         .select("*")
-        .eq("id", propertyId)
+        .eq("id", id)
         .eq("verified", true)
         .maybeSingle();
 
@@ -141,37 +140,24 @@ const PropertyDetail = () => {
         title: dbProperty.title,
         city: dbProperty.city,
         locality: dbProperty.locality,
-        lat: dbProperty.lat ?? null,
-        lng: dbProperty.lng ?? null,
+        lat: dbProperty.latitude ?? null,
+        lng: dbProperty.longitude ?? null,
         price: dbProperty.price,
-        area: dbProperty.area ?? null,
+        area: dbProperty.area_sqft ?? null,
         type: dbProperty.type ?? "Apartment",
-        beds: dbProperty.beds || dbProperty.bhk || 0,
-        baths: dbProperty.baths || 0,
+        beds: dbProperty.bedrooms || dbProperty.bhk || 0,
+        baths: dbProperty.bathrooms || 0,
         bhk: dbProperty.bhk ?? null,
-        status: dbProperty.status || "Ready",
+        status: dbProperty.completion_stage || "Ready",
         verified: dbProperty.verified,
         trust_score: dbProperty.trust_score ?? null,
         images: parsedImages,
         description: dbProperty.description || "",
-        agent_id: dbProperty.agent_id,
-        project_id: dbProperty.project_id,
+        agent_id: null, // agents table doesn't have direct link
+        project_id: null,
       };
       
       setProperty(mappedProperty);
-
-      // Fetch agent if available
-      if (mappedProperty.agent_id) {
-        const { data: agentData } = await supabase
-          .from("agents")
-          .select("*")
-          .eq("id", mappedProperty.agent_id)
-          .maybeSingle();
-
-        if (agentData) {
-          setAgent(agentData);
-        }
-      }
 
       // Fetch AI valuation
       fetchAIValuation(mappedProperty);
@@ -320,7 +306,7 @@ const PropertyDetail = () => {
         {/* Property Reference */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Hash className="h-4 w-4" />
-          <span>Property Ref: <span className="font-semibold text-foreground">JX{property.id}</span></span>
+          <span>Property Ref: <span className="font-semibold text-foreground">JX{property.id.slice(0, 8)}</span></span>
         </div>
       </div>
 
@@ -466,7 +452,7 @@ const PropertyDetail = () => {
       <BookingModal
         open={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        propertyId={property.id.toString()}
+        propertyId={property.id}
         propertyTitle={property.title}
         propertyCity={property.city}
         propertyLocality={property.locality}

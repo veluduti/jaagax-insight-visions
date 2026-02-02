@@ -21,7 +21,7 @@ const VisitSchedule = () => {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('id', parseInt(propertyId))
+        .eq('id', propertyId)
         .single();
 
       if (error) {
@@ -87,7 +87,7 @@ const VisitSchedule = () => {
           </div>
 
           <VisitSchedulingWizard
-            propertyId={parseInt(propertyId!)}
+            propertyId={propertyId!}
             propertyTitle={property.title}
             locality={property.locality}
             city={property.city}

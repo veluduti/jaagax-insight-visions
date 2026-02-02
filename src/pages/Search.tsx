@@ -277,7 +277,6 @@ const Search = () => {
             price: p.price,
             verified: p.verified,
             trust_score: p.trust_score,
-            status: p.status,
             bhk: p.bhk,
             type: p.type,
             locality: p.locality,
@@ -552,7 +551,7 @@ const Search = () => {
                         {formatPrice(property.price)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {property.area} sq.ft
+                        {property.area_sqft} sq.ft
                       </span>
                     </div>
                   </div>

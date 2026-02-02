@@ -16,17 +16,17 @@ import { motion } from "framer-motion";
 import SellerEngagementSettings from "@/components/seller/SellerEngagementSettings";
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  beds: number;
-  baths: number;
-  type: string;
-  images: string[];
-  verified: boolean;
+  area_sqft: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  type: string | null;
+  images: any;
+  verified: boolean | null;
 }
 
 export default function SellerDashboard() {
@@ -65,7 +65,7 @@ export default function SellerDashboard() {
       .from("properties")
       .select("*")
       .limit(10)
-      .order("id", { ascending: false });
+      .order("created_at", { ascending: false });
     
     if (data) {
       setProperties(data);
@@ -265,54 +265,57 @@ export default function SellerDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {properties.map((property) => (
-                      <motion.div
-                        key={property.id}
-                        whileHover={{ x: 5 }}
-                        className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer"
-                        onClick={() => navigate(`/property/${property.id}`)}
-                      >
-                        <img
-                          src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
-                          alt={property.title}
-                          className="w-24 h-24 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-semibold text-lg">{property.title}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {property.locality}, {property.city}
-                              </p>
+                    {properties.map((property) => {
+                      const images = Array.isArray(property.images) ? property.images : [];
+                      return (
+                        <motion.div
+                          key={property.id}
+                          whileHover={{ x: 5 }}
+                          className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => navigate(`/property/${property.id}`)}
+                        >
+                          <img
+                            src={images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                            alt={property.title}
+                            className="w-24 h-24 object-cover rounded-lg"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-semibold text-lg">{property.title}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {property.locality}, {property.city}
+                                </p>
+                              </div>
+                              {property.verified ? (
+                                <Badge className="bg-green-600">Verified</Badge>
+                              ) : (
+                                <Badge variant="secondary">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Pending
+                                </Badge>
+                              )}
                             </div>
-                            {property.verified ? (
-                              <Badge className="bg-green-600">Verified</Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Pending
-                              </Badge>
-                            )}
+                            <div className="flex items-center gap-6 mt-2 text-sm">
+                              <span className="font-semibold text-primary text-lg">
+                                {formatPrice(property.price)}
+                              </span>
+                              <span className="text-muted-foreground">{property.bedrooms || 0} Beds</span>
+                              <span className="text-muted-foreground">{property.bathrooms || 0} Baths</span>
+                              <span className="text-muted-foreground">{property.area_sqft || 0} sq.ft</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-6 mt-2 text-sm">
-                            <span className="font-semibold text-primary text-lg">
-                              {formatPrice(property.price)}
-                            </span>
-                            <span className="text-muted-foreground">{property.beds} Beds</span>
-                            <span className="text-muted-foreground">{property.baths} Baths</span>
-                            <span className="text-muted-foreground">{property.area} sq.ft</span>
+                          <div className="flex gap-2">
+                            <Button size="icon" variant="outline" onClick={(e) => e.stopPropagation()}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="outline" onClick={(e) => e.stopPropagation()}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="icon" variant="outline" onClick={(e) => e.stopPropagation()}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="outline" onClick={(e) => e.stopPropagation()}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

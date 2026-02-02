@@ -35,20 +35,17 @@ import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
 interface ProjectWithScore {
-  id: number;
+  id: string;
   name: string;
   city: string;
   locality: string;
-  verified: boolean;
-  builder_id: number;
+  verified: boolean | null;
+  builder_id: string | null;
   builder_name: string;
-  avg_price: number;
-  trust_score: number;
+  avg_price: number | null;
+  trust_score: number | null;
   rera_id: string | null;
   image: string | null;
-  builder?: {
-    name: string;
-  };
 }
 
 const TrustScore = () => {
@@ -79,12 +76,10 @@ const TrustScore = () => {
 
     if (user) {
       // Fetch user's projects if they're a builder
-      // Note: builder_id is integer but user.id is UUID string
-      // This query won't work unless we have a proper mapping
       const { data: projects } = await supabase
         .from("projects")
         .select("*")
-        .eq("builder_name", user.email); // Use email as fallback
+        .eq("builder_name", user.email || ""); // Use email as fallback
       
       setUserProjects(projects || []);
     }
@@ -151,28 +146,12 @@ const TrustScore = () => {
       const fileName = `${user.id}/${projectId}_${Date.now()}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("verification-docs")
+        .from("rera-documents")
         .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("verification-docs")
-        .getPublicUrl(fileName);
-
-      // Create verification record
-      const { error: verificationError } = await supabase
-        .from("verifications")
-        .insert({
-          project_id: projectId,
-          document_url: publicUrl,
-          status: "pending",
-        });
-
-      if (verificationError) throw verificationError;
-
-      toast.success("Verification submitted successfully!");
+      toast.success("Verification submitted successfully! Our team will review your documents.");
       setSelectedFile(null);
       setProjectId("");
       
@@ -253,7 +232,7 @@ const TrustScore = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {projects.filter((p) => p.trust_score >= 80).length}
+                {projects.filter((p) => (p.trust_score || 0) >= 80).length}
               </div>
             </CardContent>
           </Card>
@@ -281,7 +260,7 @@ const TrustScore = () => {
               <div className="text-3xl font-bold">
                 {projects.length > 0
                   ? Math.round(
-                      projects.reduce((sum, p) => sum + p.trust_score, 0) / projects.length
+                      projects.reduce((sum, p) => sum + (p.trust_score || 0), 0) / projects.length
                     )
                   : 0}
               </div>
@@ -423,7 +402,7 @@ const TrustScore = () => {
             <TabsContent value="high-trust" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects
-                  .filter((p) => p.trust_score >= 80)
+                  .filter((p) => (p.trust_score || 0) >= 80)
                   .map((project, index) => (
                     <ProjectCard key={project.id} project={project} index={index} />
                   ))}
@@ -439,6 +418,8 @@ const TrustScore = () => {
 };
 
 const ProjectCard = ({ project, index }: { project: ProjectWithScore; index: number }) => {
+  const trustScore = project.trust_score || 0;
+  
   const getTrustColor = (score: number) => {
     if (score >= 80) return "text-green-500";
     if (score >= 60) return "text-yellow-500";
@@ -478,13 +459,13 @@ const ProjectCard = ({ project, index }: { project: ProjectWithScore; index: num
                 stroke="hsl(var(--primary))"
                 strokeWidth="4"
                 fill="none"
-                strokeDasharray={`${(project.trust_score / 100) * 175.93} 175.93`}
+                strokeDasharray={`${(trustScore / 100) * 175.93} 175.93`}
                 className="transition-all duration-1000"
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className={`text-sm font-bold ${getTrustColor(project.trust_score)}`}>
-                {project.trust_score}
+              <span className={`text-sm font-bold ${getTrustColor(trustScore)}`}>
+                {trustScore}
               </span>
             </div>
           </div>
@@ -499,9 +480,8 @@ const ProjectCard = ({ project, index }: { project: ProjectWithScore; index: num
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           
-          {/* RERA Badge */}
           {project.rera_id && (
-            <Badge className="absolute top-3 left-3 bg-green-500/90 text-white border-0">
+            <Badge className="absolute bottom-4 left-4 bg-primary/90 text-primary-foreground">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               RERA Verified
             </Badge>
@@ -509,36 +489,25 @@ const ProjectCard = ({ project, index }: { project: ProjectWithScore; index: num
         </div>
 
         {/* Content */}
-        <div className="p-5">
-          <div className="mb-3">
-            <h3 className="font-bold text-lg mb-1">{project.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {project.builder?.name || "Builder"}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-            <Building2 className="h-4 w-4" />
+        <CardContent className="p-5">
+          <h3 className="font-bold text-lg mb-1 line-clamp-1">{project.name}</h3>
+          <p className="text-sm text-muted-foreground mb-2">
             {project.locality}, {project.city}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Trust Score</span>
-              <Badge variant="outline" className={getTrustColor(project.trust_score)}>
-                {getTrustLabel(project.trust_score)}
-              </Badge>
+          </p>
+          <p className="text-xs text-muted-foreground mb-3">By {project.builder_name}</p>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs text-muted-foreground">Starting from</span>
+              <p className="text-lg font-bold text-primary">
+                ₹{((project.avg_price || 0) / 10000000).toFixed(2)} Cr
+              </p>
             </div>
-            
-            <Progress value={project.trust_score} className="h-2" />
-
-            {project.rera_id && (
-              <div className="text-xs text-muted-foreground pt-2 border-t border-border/50">
-                RERA: {project.rera_id}
-              </div>
-            )}
+            <Badge variant="outline" className={getTrustColor(trustScore)}>
+              {getTrustLabel(trustScore)}
+            </Badge>
           </div>
-        </div>
+        </CardContent>
       </Card>
     </motion.div>
   );
