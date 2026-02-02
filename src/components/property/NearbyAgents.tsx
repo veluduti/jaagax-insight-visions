@@ -16,7 +16,7 @@ interface NearbyAgentsProps {
   primaryAgent?: any;
   city: string;
   locality: string;
-  propertyId: number;
+  propertyId: string;
 }
 
 export default function NearbyAgents({ primaryAgent, city, locality, propertyId }: NearbyAgentsProps) {
@@ -37,7 +37,7 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId 
         .from("agents")
         .select("*")
         .or(`cities_served.ilike.%${city}%,cities_served.ilike.%${locality}%`)
-        .neq("id", primaryAgent?.id || 0)
+        .neq("id", primaryAgent?.id || "00000000-0000-0000-0000-000000000000")
         .eq("verified", true)
         .order("trust_score", { ascending: false })
         .limit(5);

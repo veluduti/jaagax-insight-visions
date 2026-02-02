@@ -6,7 +6,7 @@ interface PropertyInformationProps {
     type: string | null;
     status: string;
     verified: boolean;
-    id: number;
+    id: string;
   };
 }
 

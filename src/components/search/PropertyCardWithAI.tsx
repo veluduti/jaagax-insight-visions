@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 interface PropertyDecision {
-  property_id: number;
+  property_id: string;
   match_score: number;
   ai_verdict: "best_for_you" | "alternative" | "risky";
   risk_flags: string[];
@@ -39,19 +39,19 @@ interface PropertyDecision {
 }
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
-  city: string;
-  locality: string;
+  city: string | null;
+  locality: string | null;
   price: number;
-  area: number;
-  beds: number;
-  baths: number;
-  bhk: number;
-  type: string;
-  images: string[];
-  verified: boolean;
-  trust_score: number;
+  area_sqft: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  bhk: number | null;
+  type: string | null;
+  images: any;
+  verified: boolean | null;
+  trust_score: number | null;
 }
 
 interface PropertyCardWithAIProps {
@@ -63,6 +63,19 @@ interface PropertyCardWithAIProps {
 const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIProps) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+
+  const imageUrls: string[] = Array.isArray(property.images)
+    ? property.images
+    : typeof property.images === "string"
+      ? property.images
+          .split("\n")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+
+  const beds = property.bedrooms ?? property.bhk;
+  const baths = property.bathrooms;
+  const area = property.area_sqft;
 
   const formatPrice = (price: number) => {
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
@@ -137,7 +150,7 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+            src={imageUrls[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
             alt={property.title}
             onError={(e) => {
               e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800";
@@ -193,7 +206,7 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
           <div className="flex items-center text-sm text-muted-foreground gap-1">
             <MapPin className="w-4 h-4" />
             <span className="line-clamp-1">
-              {property.locality}, {property.city}
+              {property.locality || "—"}, {property.city || "—"}
             </span>
           </div>
 
@@ -202,22 +215,24 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
               {formatPrice(property.price)}
             </span>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              {property.beds && (
+              {beds != null && beds > 0 && (
                 <span className="flex items-center gap-1">
                   <Bed className="w-4 h-4" />
-                  {property.beds}
+                  {beds}
                 </span>
               )}
-              {property.baths && (
+              {baths != null && baths > 0 && (
                 <span className="flex items-center gap-1">
                   <Bath className="w-4 h-4" />
-                  {property.baths}
+                  {baths}
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Square className="w-4 h-4" />
-                {property.area} sq.ft
-              </span>
+              {area != null && (
+                <span className="flex items-center gap-1">
+                  <Square className="w-4 h-4" />
+                  {area} sq.ft
+                </span>
+              )}
             </div>
           </div>
 

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface PropertyActionsProps {
-  propertyId: number;
+  propertyId: string;
   propertyTitle: string;
   propertyType: "property" | "project";
 }

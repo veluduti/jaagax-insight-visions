@@ -16,7 +16,7 @@ interface MediaHubProps {
   virtualTourUrl?: string;
   floorplans?: string[];
   brochureUrl?: string;
-  propertyId: number;
+  propertyId: string;
   propertyTitle: string;
 }
 

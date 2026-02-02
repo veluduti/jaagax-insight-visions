@@ -1,5 +1,29 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+
+function toPropertyType(type: string): "apartment" | "villa" | "plot" | "commercial" {
+  switch (type) {
+    case "villa":
+      return "villa";
+    case "plot":
+      return "plot";
+    case "commercial":
+      return "commercial";
+    default:
+      return "apartment";
+  }
+}
+
+async function resolveBuilderId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.rpc("get_builder_id", { _user_id: user.id });
+  if (error) return null;
+  return data ?? null;
+}
+
 // Comprehensive real estate data for Hyderabad and Vijayawada
 export const comprehensiveProperties = [
   // Premium Hyderabad Properties - Gachibowli/Financial District
@@ -397,9 +421,9 @@ export const comprehensiveProperties = [
 export async function clearAllData() {
   try {
     // Delete in reverse order of dependencies
-    await supabase.from("properties").delete().gt("id", 0);
-    await supabase.from("agents").delete().gt("id", "00000000");
-    await supabase.from("projects").delete().gt("id", 0);
+    await supabase.from("properties").delete().neq("id", ZERO_UUID);
+    await supabase.from("agents").delete().neq("id", ZERO_UUID);
+    await supabase.from("projects").delete().neq("id", ZERO_UUID);
     
     console.log("All data cleared successfully");
     return { success: true };
@@ -420,9 +444,41 @@ export async function seedComprehensiveProperties() {
       return { success: true, message: "Properties already exist" };
     }
 
+    const builderId = await resolveBuilderId();
+    if (!builderId) {
+      const error = new Error(
+        "Cannot seed properties: no builder profile for the current user. Log in as a Builder (with a builders row) and try again."
+      );
+      console.error(error);
+      return { success: false, error };
+    }
+
+    const rows = comprehensiveProperties.map((p) => ({
+      active: true,
+      builder_id: builderId,
+      title: p.title,
+      address: `${p.locality}, ${p.city}`,
+      city: p.city,
+      locality: p.locality,
+      latitude: p.lat,
+      longitude: p.lng,
+      price: p.price,
+      area_sqft: p.area,
+      bedrooms: p.beds,
+      bathrooms: p.baths,
+      bhk: p.bhk,
+      completion_stage: p.status,
+      verified: p.verified,
+      trust_score: p.trust_score,
+      images: p.images,
+      description: p.description,
+      type: p.type,
+      property_type: toPropertyType(p.type),
+    }));
+
     const { data, error } = await supabase
       .from("properties")
-      .insert(comprehensiveProperties)
+      .insert(rows as any)
       .select();
 
     if (error) {
