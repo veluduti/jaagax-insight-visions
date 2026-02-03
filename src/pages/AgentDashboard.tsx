@@ -280,6 +280,10 @@ export default function AgentDashboard() {
                   <Calendar className="h-4 w-4 mr-2" />
                   My Visits
                 </Button>
+                <Button variant="secondary" onClick={() => navigate("/dashboard/agent/verifications")}>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Verifications
+                </Button>
                 <Button variant="outline" onClick={() => navigate(`/agent/${agentProfile.id}`)}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Public Profile

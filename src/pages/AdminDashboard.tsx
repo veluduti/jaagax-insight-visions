@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
-  Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare
+  Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -181,8 +182,9 @@ export default function AdminDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
@@ -225,6 +227,28 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* FRM Dashboard */}
+          <TabsContent value="frm" className="space-y-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-primary" />
+                      Field Relationship Manager
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Agent performance tracking, assignments, and earnings analytics
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate("/dashboard/admin/frm")}>
+                    Open Full Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Verifications */}

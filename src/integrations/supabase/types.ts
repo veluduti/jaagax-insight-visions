@@ -1606,6 +1606,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aggregate_agent_performance_daily: {
+        Args: { target_date?: string }
+        Returns: undefined
+      }
       get_agent_id: { Args: { _user_id: string }; Returns: string }
       get_builder_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
