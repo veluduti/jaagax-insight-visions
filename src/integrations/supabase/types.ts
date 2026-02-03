@@ -530,6 +530,45 @@ export type Database = {
           },
         ]
       }
+      buyer_context: {
+        Row: {
+          budget_comfort: string | null
+          confidence_score: number | null
+          created_at: string
+          decision_mode: string | null
+          id: string
+          last_ai_update: string | null
+          life_stage: string | null
+          primary_fear: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_comfort?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          decision_mode?: string | null
+          id?: string
+          last_ai_update?: string | null
+          life_stage?: string | null
+          primary_fear?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_comfort?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          decision_mode?: string | null
+          id?: string
+          last_ai_update?: string | null
+          life_stage?: string | null
+          primary_fear?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_events: {
         Row: {
           accessibility_features: Json | null
