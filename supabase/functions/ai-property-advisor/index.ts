@@ -106,9 +106,8 @@ Examples:
     let propertyQuery = supabase
       .from('properties')
       .select(`
-        id, title, city, locality, price, area, beds, baths, bhk, type,
-        trust_score, verified, status, images, description,
-        agent_id, project_id
+        id, title, city, locality, price, area_sqft, bedrooms, bathrooms, bhk, type,
+        trust_score, verified, images, description
       `)
       .eq('verified', true);
 
@@ -120,7 +119,7 @@ Examples:
       propertyQuery = propertyQuery.ilike('locality', `%${filters.locality}%`);
     }
     if (filters.beds) {
-      propertyQuery = propertyQuery.eq('beds', filters.beds);
+      propertyQuery = propertyQuery.eq('bedrooms', filters.beds);
     }
     if (filters.bhk) {
       propertyQuery = propertyQuery.eq('bhk', filters.bhk);
