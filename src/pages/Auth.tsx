@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import { supabase } from "@/integrations/supabase/client";
 
 const roleConfig = {
   buyer: {
@@ -52,8 +54,15 @@ export default function Auth() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
+  
+  // Check if user came from password reset link
+  const isPasswordReset = searchParams.get("reset") === "true";
 
   // Only allow buyer, agent, and builder roles for public signup
   const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
@@ -64,6 +73,44 @@ export default function Auth() {
       redirectToDashboard();
     }
   }, [user, role, authLoading, redirectToDashboard]);
+
+  // Handle password reset flow
+  useEffect(() => {
+    if (isPasswordReset) {
+      // Check if user has a valid session from the reset link
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setIsResettingPassword(true);
+        }
+      });
+    }
+  }, [isPasswordReset]);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) throw error;
+      
+      toast.success("Password updated successfully!");
+      setIsResettingPassword(false);
+      setNewPassword("");
+      // Clear URL params
+      navigate("/auth", { replace: true });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateForm = () => {
     if (!isLogin) {
@@ -333,6 +380,15 @@ export default function Auth() {
                 {!isLogin && (
                   <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
                 )}
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-xs text-primary hover:underline font-medium mt-1"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={loading} size="lg">
@@ -360,6 +416,81 @@ export default function Auth() {
           </Card>
         </div>
       </motion.div>
+
+      {/* Password Reset Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        defaultEmail={email}
+      />
+
+      {/* Password Reset Form Modal */}
+      <AnimatePresence>
+        {isResettingPassword && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="glass-panel border-primary/20 p-8 rounded-xl max-w-md w-full"
+            >
+              <div className="text-center mb-6">
+                <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+                  <Lock className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">Set New Password</h2>
+                <p className="text-muted-foreground mt-2">
+                  Enter your new password below
+                </p>
+              </div>
+
+              <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    New Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pr-10 h-12"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+                </div>
+
+                <Button type="submit" className="w-full h-12" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
