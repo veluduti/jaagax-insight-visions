@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import AgentLeaderboard from "./pages/AgentLeaderboard";
 import AgentVisitsDashboard from "./pages/AgentVisitsDashboard";
+import AgentVerificationDashboard from "./pages/AgentVerificationDashboard";
+import AdminFRMDashboard from "./pages/AdminFRMDashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -126,11 +128,13 @@ const App = () => (
           } />
           <Route path="/dashboard/agent" element={<AgentDashboard />} />
           <Route path="/dashboard/agent/visits" element={<AgentVisitsDashboard />} />
+          <Route path="/dashboard/agent/verifications" element={<AgentVerificationDashboard />} />
           <Route path="/dashboard/builder" element={<BuilderDashboard />} />
           <Route path="/dashboard/builder/visits" element={<BuilderVisitsDashboard />} />
           <Route path="/builder-visits" element={<BuilderVisitsDashboard />} />
           <Route path="/dashboard/seller" element={<SellerDashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
+          <Route path="/dashboard/admin/frm" element={<AdminFRMDashboard />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
