@@ -31,14 +31,18 @@ serve(async (req) => {
     const otp = generateOTP();
     const verificationCode = generateVerificationCode();
 
-    // Get property details to find project_id if exists
+    // Get property details to check if it has a builder (requires approval)
     const { data: property } = await supabase
       .from('properties')
-      .select('city, locality')
+      .select('city, locality, builder_id, title')
       .eq('id', bookingData.propertyId)
       .single();
 
     console.log('Property details:', property);
+
+    // Determine if this property requires builder approval
+    const requiresBuilderApproval = !!property?.builder_id;
+    const initialStatus = requiresBuilderApproval ? 'pending_approval' : 'confirmed';
 
     // Auto-assign agent if not provided
     let agentId = bookingData.agentId;
@@ -49,7 +53,7 @@ serve(async (req) => {
       if (property?.city && !agent) {
         const { data } = await supabase
           .from('agents')
-          .select('id')
+          .select('id, name, phone')
           .contains('cities_served', [property.city])
           .eq('is_online', true)
           .order('trust_score', { ascending: false })
@@ -62,7 +66,7 @@ serve(async (req) => {
       if (!agent) {
         const { data } = await supabase
           .from('agents')
-          .select('id')
+          .select('id, name, phone')
           .eq('is_online', true)
           .order('trust_score', { ascending: false })
           .limit(1)
@@ -74,7 +78,7 @@ serve(async (req) => {
       if (!agent) {
         const { data } = await supabase
           .from('agents')
-          .select('id')
+          .select('id, name, phone')
           .order('trust_score', { ascending: false })
           .limit(1)
           .single();
@@ -82,10 +86,10 @@ serve(async (req) => {
       }
 
       agentId = agent?.id || null;
-      console.log('Auto-assigned agent:', agentId);
+      console.log('Auto-assigned agent:', agentId, agent?.name);
     }
 
-    // Create visit booking using only existing columns
+    // Create visit booking with proper status based on builder_id
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
       .insert({
@@ -100,7 +104,7 @@ serve(async (req) => {
         buyer_email: bookingData.userEmail,
         buyer_phone: bookingData.userPhone,
         notes: bookingData.specialRequests || null,
-        status: 'confirmed',
+        status: initialStatus,
       })
       .select()
       .single();
@@ -110,22 +114,45 @@ serve(async (req) => {
       throw bookingError;
     }
 
+    console.log('Booking created:', booking.id, 'Status:', initialStatus);
+
     console.log('Booking created:', booking.id);
 
-    // Send confirmation notifications
+    // Send appropriate notifications based on status
     try {
-      await supabase.functions.invoke('send-visit-update', {
-        body: {
-          bookingId: booking.id,
-          templateType: 'visit_confirmed'
-        }
-      });
-      console.log('Sent confirmation notification');
+      if (requiresBuilderApproval) {
+        // Notify buyer that visit is pending approval
+        await supabase.functions.invoke('send-visit-update', {
+          body: {
+            bookingId: booking.id,
+            templateType: 'visit_pending_approval'
+          }
+        });
+        console.log('Sent pending approval notification to buyer');
+
+        // Notify builder about new approval request
+        await supabase.functions.invoke('send-visit-update', {
+          body: {
+            bookingId: booking.id,
+            templateType: 'builder_approval_needed'
+          }
+        });
+        console.log('Sent approval request to builder');
+      } else {
+        // Direct confirmation - notify buyer
+        await supabase.functions.invoke('send-visit-update', {
+          body: {
+            bookingId: booking.id,
+            templateType: 'visit_confirmed'
+          }
+        });
+        console.log('Sent confirmation notification');
+      }
     } catch (notifError) {
       console.error('Notification error (non-fatal):', notifError);
     }
 
-    // Notify agent about assignment
+    // Notify agent about assignment (for both flows)
     if (agentId) {
       try {
         await supabase.functions.invoke('send-visit-update', {
