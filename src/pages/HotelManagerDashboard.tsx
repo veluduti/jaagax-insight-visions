@@ -94,14 +94,13 @@ const HotelManagerDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-      return;
-    }
-    if (user) {
-      fetchHotels();
-      fetchBookings();
-    }
+    // TODO: Re-enable auth check after testing
+    // if (!authLoading && !user) {
+    //   navigate("/auth");
+    //   return;
+    // }
+    fetchHotels();
+    fetchBookings();
   }, [user, authLoading]);
 
   const fetchHotels = async () => {
