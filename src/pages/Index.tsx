@@ -10,7 +10,7 @@ import FindMyAgent from "@/components/FindMyAgent";
 import TruValue from "@/components/TruValue";
 import FeaturedCommunities from "@/components/FeaturedCommunities";
 import Footer from "@/components/Footer";
-import { useLocationDetection } from "@/hooks/useLocationDetection";
+import { useLocation } from "@/contexts/LocationContext";
 import IntentChips from "@/components/home/IntentChips";
 import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
