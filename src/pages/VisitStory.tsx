@@ -51,7 +51,7 @@ const VisitStory = () => {
         .single();
 
       if (bookingError) throw bookingError;
-      setBooking(bookingData);
+      setBooking(bookingData as any);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load visit stories");

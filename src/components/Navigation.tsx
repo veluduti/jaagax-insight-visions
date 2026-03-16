@@ -29,9 +29,9 @@ const Navigation = () => {
   useEffect(() => {
     const fetchFeatureFlag = async () => {
       try {
-        const { data } = await supabase
-          .from('feature_flags')
-          .select('enabled')
+        const { data } = await (supabase
+          .from('feature_flags' as any)
+          .select('enabled') as any)
           .eq('flag_name', 'natural_living_enabled')
           .maybeSingle();
         

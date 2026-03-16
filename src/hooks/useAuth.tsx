@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
-export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver";
+export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
 // Map database roles to app roles
 const mapDbRoleToAppRole = (dbRole: string): UserRole => {
@@ -114,7 +114,7 @@ export const useAuth = () => {
           .from("user_roles")
           .insert([{
             user_id: data.user.id,
-            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver",
+            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver" | "hotel_manager",
           }]);
 
         if (roleError) {
@@ -164,6 +164,9 @@ export const useAuth = () => {
         break;
       case "admin":
         navigate("/dashboard/admin");
+        break;
+      case "hotel_manager":
+        navigate("/dashboard/hotel-manager");
         break;
       default:
         navigate("/");

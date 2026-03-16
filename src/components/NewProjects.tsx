@@ -46,9 +46,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
       setLoading(true);
       console.log("Fetching projects for city:", detectedCity);
       
-      let query = supabase
-        .from("projects")
-        .select("*")
+      let query = (supabase
+        .from("projects" as any)
+        .select("*") as any)
         .eq("verified", true)
         .not("name", "is", null)
         .not("city", "is", null)
@@ -73,9 +73,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
       // If no projects found in detected city, fetch from anywhere
       if ((!data || data.length === 0) && detectedCity) {
         console.log("No projects found in detected city, fetching from all cities");
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("projects")
-          .select("*")
+        const { data: fallbackData, error: fallbackError } = await (supabase
+          .from("projects" as any)
+          .select("*") as any)
           .eq("verified", true)
           .not("name", "is", null)
           .not("city", "is", null)

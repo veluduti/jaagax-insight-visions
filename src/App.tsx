@@ -59,6 +59,7 @@ import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
 import Promotions from "./pages/Promotions";
 import InnovationHub from "./pages/InnovationHub";
+import HotelManagerDashboard from "./pages/HotelManagerDashboard";
 import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
@@ -139,6 +140,7 @@ const App = () => (
           <Route path="/dashboard/seller" element={<SellerDashboard />} />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="/dashboard/admin/frm" element={<AdminFRMDashboard />} />
+          <Route path="/dashboard/hotel-manager" element={<HotelManagerDashboard />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
