@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation } from "@/contexts/LocationContext";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -44,6 +45,7 @@ interface VisitPackage {
 const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { detectedLocation } = useLocation();
   
   // Mock data for display
   const mockHotels: PartnerHotel[] = [
@@ -130,11 +132,24 @@ const Hotels = () => {
   const [location, setLocation] = useState(searchParams.get('city') || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   
-  // Filter state
+  // Filter state - default to detected city
   const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || "all");
   const [starRating, setStarRating] = useState(0);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Auto-set city from detected location
+  useEffect(() => {
+    if (detectedLocation?.city && !searchParams.get('city')) {
+      const matchedCity = popularLocations.find(
+        c => c.toLowerCase() === detectedLocation.city.toLowerCase()
+      );
+      if (matchedCity) {
+        setSelectedCity(matchedCity);
+        setLocation(matchedCity);
+      }
+    }
+  }, [detectedLocation]);
 
   // Modal state
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);

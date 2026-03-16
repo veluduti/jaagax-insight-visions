@@ -59,6 +59,7 @@ import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
 import Promotions from "./pages/Promotions";
 import InnovationHub from "./pages/InnovationHub";
+import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <LocationProvider>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -141,6 +143,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </LocationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

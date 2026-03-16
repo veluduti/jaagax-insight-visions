@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Sparkles } from "lucide-react";
@@ -14,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const Transactions = () => {
   const navigate = useNavigate();
+  const { detectedLocation } = useLocationContext();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [localities, setLocalities] = useState<any[]>([]);
@@ -29,18 +31,23 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactionsData();
-  }, []);
+  }, [detectedLocation]);
 
   const fetchTransactionsData = async () => {
     try {
       setLoading(true);
       
-      // Fetch verified properties as transactions
-      const { data: properties, error } = await supabase
+      // Fetch verified properties as transactions, filtered by detected city
+      let query = supabase
         .from("properties")
         .select("*")
-        .eq("verified", true)
-        .limit(200);
+        .eq("verified", true);
+
+      if (detectedLocation?.city) {
+        query = query.ilike("city", `%${detectedLocation.city}%`);
+      }
+
+      const { data: properties, error } = await query.limit(200);
 
       if (error) throw error;
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ interface Agent {
 }
 
 const Agents = () => {
+  const { detectedLocation } = useLocationContext();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [filteredAgents, setFilteredAgents] = useState<Agent[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +43,13 @@ const Agents = () => {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState("sales");
   const [loading, setLoading] = useState(true);
+
+  // Auto-set city from detected location
+  useEffect(() => {
+    if (detectedLocation?.city) {
+      setCityFilter(detectedLocation.city);
+    }
+  }, [detectedLocation]);
 
   useEffect(() => {
     fetchAgents();
