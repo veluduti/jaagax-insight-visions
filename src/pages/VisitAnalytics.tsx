@@ -85,9 +85,10 @@ const VisitAnalytics = () => {
 
       // Find most visited property
       const propertyCounts: Record<string, number> = {};
-      data?.forEach(v => {
-        if (v.properties?.title) {
-          propertyCounts[v.properties.title] = (propertyCounts[v.properties.title] || 0) + 1;
+      data?.forEach((v: any) => {
+        const prop = Array.isArray(v.properties) ? v.properties[0] : v.properties;
+        if (prop?.title) {
+          propertyCounts[prop.title] = (propertyCounts[prop.title] || 0) + 1;
         }
       });
       const topProperty = Object.keys(propertyCounts).length > 0 
