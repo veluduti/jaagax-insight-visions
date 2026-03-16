@@ -56,6 +56,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NaturalLiving from "./pages/NaturalLiving";
 import Hotels from "./pages/Hotels";
+import HotelDetail from "./pages/HotelDetail";
 import Promotions from "./pages/Promotions";
 import InnovationHub from "./pages/InnovationHub";
 
