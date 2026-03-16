@@ -37,12 +37,17 @@ const Transactions = () => {
     try {
       setLoading(true);
       
-      // Fetch verified properties as transactions
-      const { data: properties, error } = await supabase
+      // Fetch verified properties as transactions, filtered by detected city
+      let query = supabase
         .from("properties")
         .select("*")
-        .eq("verified", true)
-        .limit(200);
+        .eq("verified", true);
+
+      if (detectedLocation?.city) {
+        query = query.ilike("city", `%${detectedLocation.city}%`);
+      }
+
+      const { data: properties, error } = await query.limit(200);
 
       if (error) throw error;
 
