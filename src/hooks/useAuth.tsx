@@ -114,7 +114,7 @@ export const useAuth = () => {
           .from("user_roles")
           .insert([{
             user_id: data.user.id,
-            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver",
+            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver" | "hotel_manager",
           }]);
 
         if (roleError) {
