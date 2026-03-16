@@ -42,92 +42,34 @@ interface VisitPackage {
   is_active: boolean | null;
 }
 
-// Stub component - partner_hotels and visit_packages tables not yet created
 const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
   
-  // Mock data for display
-  const mockHotels: PartnerHotel[] = [
-    {
-      id: "1",
-      name: "Grand Hyatt Hyderabad",
-      city: "Hyderabad",
-      locality: "HITEC City",
-      address: "Near Cyber Gateway, HITEC City",
-      star_rating: 5,
-      price_per_night: 8500,
-      discount_percentage: 15,
-      amenities: ["Pool", "Spa", "Gym", "Restaurant", "Bar"],
-      images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600"],
-      contact_phone: "+91 40 1234 5678",
-      contact_email: "reservations@grandhyatt.com",
-      partner_since: "2024-01-01",
-      is_active: true,
-    },
-    {
-      id: "2",
-      name: "Novotel Vijayawada",
-      city: "Vijayawada",
-      locality: "MG Road",
-      address: "Near PVR Cinemas, MG Road",
-      star_rating: 4,
-      price_per_night: 4500,
-      discount_percentage: 10,
-      amenities: ["Pool", "Gym", "Restaurant"],
-      images: ["https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600"],
-      contact_phone: "+91 866 987 6543",
-      contact_email: "info@novotel-vijayawada.com",
-      partner_since: "2024-03-15",
-      is_active: true,
-    },
-    {
-      id: "3",
-      name: "Taj Krishna Hyderabad",
-      city: "Hyderabad",
-      locality: "Banjara Hills",
-      address: "Road No. 1, Banjara Hills",
-      star_rating: 5,
-      price_per_night: 12000,
-      discount_percentage: 20,
-      amenities: ["Pool", "Spa", "Gym", "Restaurant", "Bar", "Business Center"],
-      images: ["https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600"],
-      contact_phone: "+91 40 5555 1234",
-      contact_email: "tajkrishna@tajhotels.com",
-      partner_since: "2023-06-01",
-      is_active: true,
-    },
-  ];
+  const [hotels, setHotels] = useState<PartnerHotel[]>([]);
+  const [packages, setPackages] = useState<VisitPackage[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const mockPackages: VisitPackage[] = [
-    {
-      id: "1",
-      name: "Weekend Property Explorer",
-      description: "Perfect for buyers who want to visit multiple properties over a weekend",
-      duration_days: 2,
-      includes_airport_pickup: true,
-      includes_meals: true,
-      includes_local_transport: true,
-      base_discount_percentage: 15,
-      is_active: true,
-    },
-    {
-      id: "2",
-      name: "Quick Visit Package",
-      description: "One-day intensive property viewing with all logistics covered",
-      duration_days: 1,
-      includes_airport_pickup: true,
-      includes_meals: false,
-      includes_local_transport: true,
-      base_discount_percentage: 10,
-      is_active: true,
-    },
-  ];
-
-  const [hotels] = useState<PartnerHotel[]>(mockHotels);
-  const [packages] = useState<VisitPackage[]>(mockPackages);
-  const [loading] = useState(false);
+  // Fetch from database
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [hotelsRes, packagesRes] = await Promise.all([
+          supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
+          supabase.from("visit_packages").select("*").eq("is_active", true),
+        ]);
+        setHotels(hotelsRes.data || []);
+        setPackages(packagesRes.data || []);
+      } catch (err) {
+        console.error("Error fetching hotels:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Search state
   const [location, setLocation] = useState(searchParams.get('city') || "");
