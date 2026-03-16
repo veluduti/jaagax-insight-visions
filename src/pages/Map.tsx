@@ -33,6 +33,7 @@ interface Property {
 
 const Map = () => {
   const [searchParams] = useSearchParams();
+  const { detectedLocation } = useLocationContext();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -46,6 +47,16 @@ const Map = () => {
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
   const navigate = useNavigate();
+
+  // Auto-set city from detected location
+  useEffect(() => {
+    if (detectedLocation?.city) {
+      const city = detectedLocation.city;
+      if (city === "Hyderabad" || city === "Vijayawada") {
+        setCurrentCity(city);
+      }
+    }
+  }, [detectedLocation]);
   
   // Initialize filters from URL params
   const getInitialFilters = () => {

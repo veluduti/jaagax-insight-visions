@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Sparkles } from "lucide-react";

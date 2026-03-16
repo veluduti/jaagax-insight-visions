@@ -34,16 +34,29 @@ interface Project {
 
 const Projects = () => {
   const navigate = useNavigate();
+  const { detectedLocation } = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
-  // Filter states
+  // Filter states - default city to detected location
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedPrice, setSelectedPrice] = useState<string>("all");
   const [reraOnly, setReraOnly] = useState(false);
+
+  // Auto-set city from detected location
+  useEffect(() => {
+    if (detectedLocation?.city) {
+      const matchedCity = cities.find(
+        c => c.toLowerCase() === detectedLocation.city.toLowerCase()
+      );
+      if (matchedCity) {
+        setSelectedCity(matchedCity);
+      }
+    }
+  }, [detectedLocation]);
 
   // Map refs
   const mapContainer = useRef<HTMLDivElement>(null);

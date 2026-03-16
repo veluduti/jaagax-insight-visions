@@ -132,11 +132,24 @@ const Hotels = () => {
   const [location, setLocation] = useState(searchParams.get('city') || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
   
-  // Filter state
+  // Filter state - default to detected city
   const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || "all");
   const [starRating, setStarRating] = useState(0);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Auto-set city from detected location
+  useEffect(() => {
+    if (detectedLocation?.city && !searchParams.get('city')) {
+      const matchedCity = popularLocations.find(
+        c => c.toLowerCase() === detectedLocation.city.toLowerCase()
+      );
+      if (matchedCity) {
+        setSelectedCity(matchedCity);
+        setLocation(matchedCity);
+      }
+    }
+  }, [detectedLocation]);
 
   // Modal state
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);

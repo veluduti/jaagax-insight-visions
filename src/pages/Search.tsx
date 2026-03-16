@@ -84,12 +84,15 @@ const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, role } = useAuth();
   const { buyerContext, hasBuyerContext } = useBuyerContext();
+  const { detectedLocation } = useLocationContext();
   
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
   
-  // Search state
-  const [location, setLocation] = useState(searchParams.get("city") || searchParams.get("q") || "");
+  // Search state - default to detected city if no search param
+  const [location, setLocation] = useState(
+    searchParams.get("city") || searchParams.get("q") || detectedLocation?.city || ""
+  );
   const [searchType, setSearchType] = useState(searchParams.get("type") || "buy");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
