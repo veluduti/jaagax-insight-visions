@@ -49,70 +49,41 @@ interface HotelData {
   smoking_allowed?: boolean;
 }
 
-const mockHotels: Record<string, HotelData> = {
-  "1": {
-    id: "1", name: "Grand Hyatt Hyderabad", city: "Hyderabad", locality: "HITEC City",
-    address: "Near Cyber Gateway, HITEC City, Hyderabad - 500081",
-    star_rating: 5, price_per_night: 8500, discount_percentage: 15,
-    amenities: ["Free WiFi", "Swimming Pool", "Gym", "Restaurant", "Bar", "Spa", "Business Center", "Room Service", "Parking", "AC", "24/7 Security", "Laundry"],
-    images: [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200",
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200",
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1200",
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200",
-    ],
-    contact_phone: "+91 40 1234 5678", contact_email: "reservations@grandhyatt.com",
-    partner_since: "2024-01-01",
-    description: "Experience world-class luxury at Grand Hyatt Hyderabad, strategically located in the heart of HITEC City. With panoramic city views, an award-winning spa, and proximity to major tech parks and upcoming residential projects, it's the ideal base for property exploration.",
-    total_rooms: 312, check_in_time: "14:00", check_out_time: "12:00",
-    languages_spoken: ["English", "Hindi", "Telugu"], accepts_cards: true,
-    pet_friendly: false, wheelchair_accessible: true, smoking_allowed: false,
-  },
-  "2": {
-    id: "2", name: "Novotel Vijayawada", city: "Vijayawada", locality: "MG Road",
-    address: "Near PVR Cinemas, MG Road, Vijayawada - 520010",
-    star_rating: 4, price_per_night: 4500, discount_percentage: 10,
-    amenities: ["Free WiFi", "Swimming Pool", "Gym", "Restaurant", "Parking", "AC", "Room Service", "Business Center"],
-    images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200",
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200",
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1200",
-    ],
-    contact_phone: "+91 866 987 6543", contact_email: "info@novotel-vijayawada.com",
-    partner_since: "2024-03-15",
-    description: "Novotel Vijayawada offers a perfect blend of comfort and convenience, located on the bustling MG Road. Ideal for buyers exploring the booming Amaravati capital region and emerging residential corridors.",
-    total_rooms: 148, check_in_time: "14:00", check_out_time: "11:00",
-    languages_spoken: ["English", "Hindi", "Telugu"], accepts_cards: true,
-    pet_friendly: true, wheelchair_accessible: true, smoking_allowed: false,
-  },
-  "3": {
-    id: "3", name: "Taj Krishna Hyderabad", city: "Hyderabad", locality: "Banjara Hills",
-    address: "Road No. 1, Banjara Hills, Hyderabad - 500034",
-    star_rating: 5, price_per_night: 12000, discount_percentage: 20,
-    amenities: ["Free WiFi", "Swimming Pool", "Spa", "Gym", "Restaurant", "Bar", "Business Center", "Room Service", "Parking", "AC", "24/7 Security", "Laundry", "Concierge"],
-    images: [
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1200",
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200",
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200",
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200",
-    ],
-    contact_phone: "+91 40 5555 1234", contact_email: "tajkrishna@tajhotels.com",
-    partner_since: "2023-06-01",
-    description: "The iconic Taj Krishna in Banjara Hills brings heritage luxury to your property search journey. Surrounded by premium residential neighborhoods and elite shopping districts, this is where discerning buyers stay.",
-    total_rooms: 261, check_in_time: "15:00", check_out_time: "12:00",
-    languages_spoken: ["English", "Hindi", "Telugu", "Tamil", "Urdu"], accepts_cards: true,
-    pet_friendly: false, wheelchair_accessible: true, smoking_allowed: false,
-  },
-};
-
 const HotelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [hotel, setHotel] = useState<HotelData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const hotel = id ? mockHotels[id] : null;
+  useEffect(() => {
+    if (!id) return;
+    const fetchHotel = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("partner_hotels")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error || !data) {
+        console.error("Error fetching hotel:", error);
+        setHotel(null);
+      } else {
+        setHotel(data as HotelData);
+      }
+      setLoading(false);
+    };
+    fetchHotel();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!hotel) {
     return (
