@@ -46,9 +46,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
       setLoading(true);
       console.log("Fetching projects for city:", detectedCity);
       
-      let query = supabase
-        .from("projects")
-        .select("*")
+      let query = (supabase
+        .from("projects" as any)
+        .select("*") as any)
         .eq("verified", true)
         .not("name", "is", null)
         .not("city", "is", null)
