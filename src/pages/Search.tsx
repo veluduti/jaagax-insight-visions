@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
