@@ -40,9 +40,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
 
   const fetchProperties = async () => {
     try {
-      let query = supabase
-        .from("properties")
-        .select("*")
+      let query = (supabase
+        .from("properties" as any)
+        .select("*") as any)
         .eq("verified", true)
         .not("title", "is", null)
         .not("city", "is", null)
