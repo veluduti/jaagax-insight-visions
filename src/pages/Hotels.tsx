@@ -163,8 +163,7 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
-    setSelectedHotel(hotel);
-    setShowHotelOnlyModal(true);
+    navigate(`/hotels/${hotel.id}`);
   };
 
   return (

@@ -56,6 +56,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NaturalLiving from "./pages/NaturalLiving";
 import Hotels from "./pages/Hotels";
+import HotelDetail from "./pages/HotelDetail";
 import Promotions from "./pages/Promotions";
 import InnovationHub from "./pages/InnovationHub";
 
@@ -100,6 +101,7 @@ const App = () => (
           <Route path="/sell-property" element={<SellProperty />} />
           <Route path="/natural-living" element={<NaturalLiving />} />
           <Route path="/hotels" element={<Hotels />} />
+          <Route path="/hotels/:id" element={<HotelDetail />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/innovation" element={<InnovationHub />} />
           
