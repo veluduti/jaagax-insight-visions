@@ -14,7 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      hotel_bookings: {
+        Row: {
+          booking_type: string | null
+          check_in: string
+          check_out: string
+          created_at: string | null
+          guest_email: string | null
+          guest_name: string
+          guest_phone: string | null
+          hotel_id: string
+          id: string
+          num_guests: number | null
+          num_rooms: number | null
+          package_id: string | null
+          property_id: string | null
+          room_type: string | null
+          special_requests: string | null
+          status: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_type?: string | null
+          check_in: string
+          check_out: string
+          created_at?: string | null
+          guest_email?: string | null
+          guest_name: string
+          guest_phone?: string | null
+          hotel_id: string
+          id?: string
+          num_guests?: number | null
+          num_rooms?: number | null
+          package_id?: string | null
+          property_id?: string | null
+          room_type?: string | null
+          special_requests?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_type?: string | null
+          check_in?: string
+          check_out?: string
+          created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string
+          guest_phone?: string | null
+          hotel_id?: string
+          id?: string
+          num_guests?: number | null
+          num_rooms?: number | null
+          package_id?: string | null
+          property_id?: string | null
+          room_type?: string | null
+          special_requests?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_bookings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "visit_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_hotels: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          discount_percentage: number | null
+          id: string
+          images: string[] | null
+          is_active: boolean | null
+          locality: string
+          manager_id: string | null
+          name: string
+          partner_since: string | null
+          policies: Json | null
+          price_per_night: number
+          room_types: Json | null
+          star_rating: number | null
+          total_rooms: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          locality: string
+          manager_id?: string | null
+          name: string
+          partner_since?: string | null
+          policies?: Json | null
+          price_per_night?: number
+          room_types?: Json | null
+          star_rating?: number | null
+          total_rooms?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          locality?: string
+          manager_id?: string | null
+          name?: string
+          partner_since?: string | null
+          policies?: Json | null
+          price_per_night?: number
+          room_types?: Json | null
+          star_rating?: number | null
+          total_rooms?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      visit_packages: {
+        Row: {
+          base_discount_percentage: number | null
+          created_at: string | null
+          description: string | null
+          duration_days: number | null
+          id: string
+          includes_airport_pickup: boolean | null
+          includes_local_transport: boolean | null
+          includes_meals: boolean | null
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          base_discount_percentage?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number | null
+          id?: string
+          includes_airport_pickup?: boolean | null
+          includes_local_transport?: boolean | null
+          includes_meals?: boolean | null
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          base_discount_percentage?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number | null
+          id?: string
+          includes_airport_pickup?: boolean | null
+          includes_local_transport?: boolean | null
+          includes_meals?: boolean | null
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
