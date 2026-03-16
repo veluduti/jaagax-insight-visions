@@ -165,6 +165,9 @@ export const useAuth = () => {
       case "admin":
         navigate("/dashboard/admin");
         break;
+      case "hotel_manager":
+        navigate("/dashboard/hotel-manager");
+        break;
       default:
         navigate("/");
     }
