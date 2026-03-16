@@ -45,6 +45,7 @@ interface VisitPackage {
 const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { detectedLocation } = useLocation();
   
   // Mock data for display
   const mockHotels: PartnerHotel[] = [
