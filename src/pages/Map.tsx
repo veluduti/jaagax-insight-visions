@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
