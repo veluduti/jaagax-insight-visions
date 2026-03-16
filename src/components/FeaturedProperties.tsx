@@ -63,9 +63,9 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
       
       // If no properties found in detected city, fetch from anywhere
       if ((!data || data.length === 0) && detectedCity) {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from("properties")
-          .select("*")
+        const { data: fallbackData, error: fallbackError } = await (supabase
+          .from("properties" as any)
+          .select("*") as any)
           .eq("verified", true)
           .not("title", "is", null)
           .not("city", "is", null)

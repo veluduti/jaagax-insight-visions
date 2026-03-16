@@ -40,10 +40,10 @@ const AIInsightStrip = () => {
     setLoading(true);
     try {
       // Fetch properties
-      const { data: properties } = await supabase
-        .from("properties")
+      const { data: properties } = await (supabase
+        .from("properties" as any)
         .select("*")
-        .limit(20);
+        .limit(20) as any);
 
       if (!properties || properties.length === 0) {
         setLoading(false);

@@ -15,14 +15,14 @@ export const DatabaseCleanup = () => {
     setLoading(true);
     try {
       // Check ALL properties and filter invalid ones
-      const { data: allProps, error: propsError } = await supabase
-        .from('properties')
-        .select('id, title, city, locality, price, images, description, verified');
+      const { data: allProps, error: propsError } = await (supabase
+        .from('properties' as any)
+        .select('id, title, city, locality, price, images, description, verified') as any);
 
       // Check ALL projects and filter invalid ones
-      const { data: allProjects, error: projError } = await supabase
-        .from('projects')
-        .select('id, name, city, locality, builder_name, verified');
+      const { data: allProjects, error: projError } = await (supabase
+        .from('projects' as any)
+        .select('id, name, city, locality, builder_name, verified') as any);
 
       if (propsError || projError) throw propsError || projError;
 
