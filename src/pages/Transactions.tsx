@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const Transactions = () => {
   const navigate = useNavigate();
+  const { detectedLocation } = useLocationContext();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [localities, setLocalities] = useState<any[]>([]);
@@ -30,7 +31,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactionsData();
-  }, []);
+  }, [detectedLocation]);
 
   const fetchTransactionsData = async () => {
     try {
