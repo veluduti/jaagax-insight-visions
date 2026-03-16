@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
-export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver";
+export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
 // Map database roles to app roles
 const mapDbRoleToAppRole = (dbRole: string): UserRole => {
