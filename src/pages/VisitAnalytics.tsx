@@ -78,7 +78,7 @@ const VisitAnalytics = () => {
 
       if (error) throw error;
 
-      setVisits(data || []);
+      setVisits((data as any) || []);
 
       // Calculate stats
       const completed = data?.filter(v => v.status === 'completed').length || 0;
