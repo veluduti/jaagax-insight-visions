@@ -17,7 +17,7 @@ import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
 
 const Index = () => {
-  const { detectedLocation, isDetecting } = useLocationDetection();
+  const { detectedLocation, isDetecting } = useLocation();
   const [activeTab, setActiveTab] = useState("properties");
 
   return (
