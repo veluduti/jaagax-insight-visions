@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
+import MyBookings from "@/components/buyer/MyBookings";
 
 interface Property {
   id: string;
