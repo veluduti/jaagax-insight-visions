@@ -23,6 +23,7 @@ import HotelSpecsGrid from "@/components/hotels/HotelSpecsGrid";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelPolicies from "@/components/hotels/HotelPolicies";
 import HotelNearbyAttractions from "@/components/hotels/HotelNearbyAttractions";
+import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 
 interface HotelData {
   id: string;
