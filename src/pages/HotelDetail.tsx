@@ -360,6 +360,15 @@ const HotelDetail = () => {
       </main>
 
       <Footer />
+
+      {hotel && (
+        <HotelBookingModal
+          open={bookingModalOpen}
+          onClose={() => setBookingModalOpen(false)}
+          hotel={hotel}
+          bookingType={bookingType}
+        />
+      )}
     </div>
   );
 };
