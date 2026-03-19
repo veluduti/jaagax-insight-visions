@@ -14,7 +14,7 @@ import {
   Heart, MapPin, Search, Bell, Calculator, 
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route
+  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
