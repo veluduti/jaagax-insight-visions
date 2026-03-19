@@ -14,10 +14,11 @@ import {
   Heart, MapPin, Search, Bell, Calculator, 
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route
+  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
+import MyBookings from "@/components/buyer/MyBookings";
 
 interface Property {
   id: string;
@@ -300,7 +301,7 @@ const BuyerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="recommended" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -312,6 +313,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="visits">
               <Calendar className="h-4 w-4 mr-2" />
               Visits
+            </TabsTrigger>
+            <TabsTrigger value="bookings">
+              <Hotel className="h-4 w-4 mr-2" />
+              Bookings
             </TabsTrigger>
             <TabsTrigger value="favorites">
               <Heart className="h-4 w-4 mr-2" />
@@ -460,6 +465,11 @@ const BuyerDashboard = () => {
           {/* My Journey */}
           <TabsContent value="journey">
             <MyJourneyTimeline />
+          </TabsContent>
+
+          {/* My Bookings */}
+          <TabsContent value="bookings">
+            <MyBookings />
           </TabsContent>
 
           {/* Favorites */}
