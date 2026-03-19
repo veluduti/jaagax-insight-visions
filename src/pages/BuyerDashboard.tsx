@@ -467,6 +467,11 @@ const BuyerDashboard = () => {
             <MyJourneyTimeline />
           </TabsContent>
 
+          {/* My Bookings */}
+          <TabsContent value="bookings">
+            <MyBookings />
+          </TabsContent>
+
           {/* Favorites */}
           <TabsContent value="favorites">
             <Card>
