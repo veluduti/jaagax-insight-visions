@@ -23,6 +23,7 @@ import HotelSpecsGrid from "@/components/hotels/HotelSpecsGrid";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelPolicies from "@/components/hotels/HotelPolicies";
 import HotelNearbyAttractions from "@/components/hotels/HotelNearbyAttractions";
+import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 
 interface HotelData {
   id: string;
@@ -56,6 +57,8 @@ const HotelDetail = () => {
   const [liked, setLiked] = useState(false);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<"hotel_only" | "with_visit">("hotel_only");
 
   useEffect(() => {
     if (!id) return;
@@ -304,11 +307,11 @@ const HotelDetail = () => {
                     )}
                   </div>
                   <CardContent className="p-6 space-y-4">
-                    <Button className="w-full h-12 text-base gap-2" onClick={() => toast.success("Booking feature coming soon!")}>
+                    <Button className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("with_visit"); setBookingModalOpen(true); }}>
                       <Calendar className="h-5 w-5" />
                       Book with Site Visit
                     </Button>
-                    <Button variant="outline" className="w-full h-12 text-base gap-2" onClick={() => toast.success("Booking feature coming soon!")}>
+                    <Button variant="outline" className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("hotel_only"); setBookingModalOpen(true); }}>
                       <BedDouble className="h-5 w-5" />
                       Book Hotel Only
                     </Button>
@@ -357,6 +360,15 @@ const HotelDetail = () => {
       </main>
 
       <Footer />
+
+      {hotel && (
+        <HotelBookingModal
+          open={bookingModalOpen}
+          onClose={() => setBookingModalOpen(false)}
+          hotel={hotel}
+          bookingType={bookingType}
+        />
+      )}
     </div>
   );
 };

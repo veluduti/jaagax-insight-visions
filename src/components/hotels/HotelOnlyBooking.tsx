@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Hotel, Construction } from "lucide-react";
+import { Hotel } from "lucide-react";
+import HotelBookingModal from "./HotelBookingModal";
 
 interface PartnerHotel {
   id: string;
@@ -21,31 +23,14 @@ interface HotelOnlyBookingProps {
   hotel: PartnerHotel;
 }
 
-// Stub component - visit_stay_bookings table not yet created
 export const HotelOnlyBooking = ({ open, onClose, hotel }: HotelOnlyBookingProps) => {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Hotel className="h-5 w-5 text-primary" />
-            Book {hotel.name}
-          </DialogTitle>
-          <DialogDescription>
-            Quick hotel booking
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="text-center py-8">
-          <Construction className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-semibold mb-2">Coming Soon</h3>
-          <p className="text-muted-foreground text-sm mb-4">
-            Hotel booking feature is being set up. Check back soon!
-          </p>
-          <Button onClick={onClose}>Close</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <HotelBookingModal
+      open={open}
+      onClose={onClose}
+      hotel={hotel}
+      bookingType="hotel_only"
+    />
   );
 };
 
