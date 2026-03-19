@@ -57,6 +57,8 @@ const HotelDetail = () => {
   const [liked, setLiked] = useState(false);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<"hotel_only" | "with_visit">("hotel_only");
 
   useEffect(() => {
     if (!id) return;
