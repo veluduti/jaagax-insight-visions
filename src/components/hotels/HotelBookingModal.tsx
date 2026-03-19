@@ -56,7 +56,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
       
       const { error } = await supabase.from("hotel_bookings").insert({
         hotel_id: hotel.id,
-        user_id: user?.id || "00000000-0000-0000-0000-000000000000",
+        user_id: user?.id || null,
         guest_name: guestName.trim(),
         guest_email: guestEmail.trim() || null,
         guest_phone: guestPhone.trim() || null,
