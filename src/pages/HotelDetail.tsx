@@ -307,11 +307,11 @@ const HotelDetail = () => {
                     )}
                   </div>
                   <CardContent className="p-6 space-y-4">
-                    <Button className="w-full h-12 text-base gap-2" onClick={() => toast.success("Booking feature coming soon!")}>
+                    <Button className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("with_visit"); setBookingModalOpen(true); }}>
                       <Calendar className="h-5 w-5" />
                       Book with Site Visit
                     </Button>
-                    <Button variant="outline" className="w-full h-12 text-base gap-2" onClick={() => toast.success("Booking feature coming soon!")}>
+                    <Button variant="outline" className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("hotel_only"); setBookingModalOpen(true); }}>
                       <BedDouble className="h-5 w-5" />
                       Book Hotel Only
                     </Button>
