@@ -101,6 +101,19 @@ const Promotions = () => {
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setViewMode('properties')}
+            className={cn(
+              "h-8 w-8 rounded-full transition-all",
+              viewMode === 'properties' 
+                ? "bg-white text-black hover:bg-white hover:text-black" 
+                : "text-white hover:bg-white/20 hover:text-white"
+            )}
+          >
+            <Film className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
