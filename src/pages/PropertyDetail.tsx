@@ -33,6 +33,9 @@ import NearbyAgents from "@/components/property/NearbyAgents";
 import MicroComparables from "@/components/property/MicroComparables";
 import AIDecisionPanel from "@/components/property/AIDecisionPanel";
 import AIPreCallContext from "@/components/property/AIPreCallContext";
+import AuthGate from "@/components/property/AuthGate";
+import PropertyVideoReels from "@/components/property/PropertyVideoReels";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Property {
   id: string;
@@ -51,6 +54,7 @@ interface Property {
   verified: boolean;
   trust_score: number | null;
   images: string[];
+  video_urls: string[];
   description: string;
   agent_id: string | null;
   project_id: string | null;
@@ -72,6 +76,8 @@ interface Agent {
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   
   // Validate ID parameter
   useEffect(() => {
@@ -152,8 +158,9 @@ const PropertyDetail = () => {
         verified: dbProperty.verified,
         trust_score: dbProperty.trust_score ?? null,
         images: parsedImages,
+        video_urls: Array.isArray(dbProperty.video_urls) ? dbProperty.video_urls : [],
         description: dbProperty.description || "",
-        agent_id: null, // agents table doesn't have direct link
+        agent_id: null,
         project_id: null,
       };
       
@@ -313,13 +320,20 @@ const PropertyDetail = () => {
       {/* Media Hub - Enhanced with video, 360 tour, floorplans */}
       <MediaHub
         images={property.images}
-        videos={[]}
+        videos={property.video_urls}
         virtualTourUrl={undefined}
         floorplans={[]}
         brochureUrl={undefined}
         propertyId={property.id}
         propertyTitle={property.title}
       />
+
+      {/* Property Video Reels from YouTube/Instagram */}
+      {property.video_urls.length > 0 && (
+        <div className="container mx-auto px-4 mt-6">
+          <PropertyVideoReels videoUrls={property.video_urls} propertyTitle={property.title} />
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="container mx-auto px-4 -mt-8 relative z-10">
@@ -339,7 +353,7 @@ const PropertyDetail = () => {
               onClick={toggleFavorite} 
               variant={isFavorite ? "default" : "outline"} 
               size="lg" 
-              className="gap-2"
+              className="gap-2 hidden md:inline-flex"
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
@@ -362,19 +376,21 @@ const PropertyDetail = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* AI Decision Panel - Above Price Section */}
-        <AIDecisionPanel 
-          propertyId={property.id}
-          propertyData={{
-            title: property.title,
-            price: property.price,
-            locality: property.locality,
-            city: property.city,
-            type: property.type,
-            beds: property.beds,
-            area: property.area,
-            trust_score: property.trust_score
-          }}
-        />
+        <AuthGate isAuthenticated={isAuthenticated} label="Sign in to see AI analysis">
+          <AIDecisionPanel 
+            propertyId={property.id}
+            propertyData={{
+              title: property.title,
+              price: property.price,
+              locality: property.locality,
+              city: property.city,
+              type: property.type,
+              beds: property.beds,
+              area: property.area,
+              trust_score: property.trust_score
+            }}
+          />
+        </AuthGate>
 
         {/* Property Stats */}
         <PropertyStats entityId={property.id} entityType="property" />
@@ -420,30 +436,40 @@ const PropertyDetail = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* AI Property Advisor with Chat */}
-            <AIPropertyAdvisor 
-              property={property}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to chat with AI advisor">
+              <AIPropertyAdvisor 
+                property={property}
+                propertyId={property.id}
+              />
+            </AuthGate>
 
             {/* Micro-Comparables & TAP */}
-            <MicroComparables
-              property={property}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view comparables">
+              <MicroComparables
+                property={property}
+                propertyId={property.id}
+              />
+            </AuthGate>
 
             {/* EMI Calculator */}
-            <EMICalculator propertyPrice={property.price} />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
+              <EMICalculator propertyPrice={property.price} />
+            </AuthGate>
 
             {/* Payment Plans */}
-            <PaymentPlans propertyPrice={property.price} status={property.status} />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
+              <PaymentPlans propertyPrice={property.price} status={property.status} />
+            </AuthGate>
             
             {/* Agents Listing - Primary + Nearby */}
-            <NearbyAgents
-              primaryAgent={agent}
-              city={property.city}
-              locality={property.locality}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact agents">
+              <NearbyAgents
+                primaryAgent={agent}
+                city={property.city}
+                locality={property.locality}
+                propertyId={property.id}
+              />
+            </AuthGate>
           </div>
         </div>
       </div>
