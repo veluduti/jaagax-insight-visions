@@ -158,8 +158,9 @@ const PropertyDetail = () => {
         verified: dbProperty.verified,
         trust_score: dbProperty.trust_score ?? null,
         images: parsedImages,
+        video_urls: Array.isArray(dbProperty.video_urls) ? dbProperty.video_urls : [],
         description: dbProperty.description || "",
-        agent_id: null, // agents table doesn't have direct link
+        agent_id: null,
         project_id: null,
       };
       
