@@ -425,30 +425,40 @@ const PropertyDetail = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* AI Property Advisor with Chat */}
-            <AIPropertyAdvisor 
-              property={property}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to chat with AI advisor">
+              <AIPropertyAdvisor 
+                property={property}
+                propertyId={property.id}
+              />
+            </AuthGate>
 
             {/* Micro-Comparables & TAP */}
-            <MicroComparables
-              property={property}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view comparables">
+              <MicroComparables
+                property={property}
+                propertyId={property.id}
+              />
+            </AuthGate>
 
             {/* EMI Calculator */}
-            <EMICalculator propertyPrice={property.price} />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
+              <EMICalculator propertyPrice={property.price} />
+            </AuthGate>
 
             {/* Payment Plans */}
-            <PaymentPlans propertyPrice={property.price} status={property.status} />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
+              <PaymentPlans propertyPrice={property.price} status={property.status} />
+            </AuthGate>
             
             {/* Agents Listing - Primary + Nearby */}
-            <NearbyAgents
-              primaryAgent={agent}
-              city={property.city}
-              locality={property.locality}
-              propertyId={property.id}
-            />
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact agents">
+              <NearbyAgents
+                primaryAgent={agent}
+                city={property.city}
+                locality={property.locality}
+                propertyId={property.id}
+              />
+            </AuthGate>
           </div>
         </div>
       </div>

@@ -151,6 +151,17 @@ const Hotels = () => {
                 Exclusive discounts for JaagaX buyers.
               </p>
 
+              {/* Partner with Us CTA */}
+              <Button
+                variant="premium"
+                size="lg"
+                onClick={() => navigate("/dashboard/hotel-manager")}
+                className="gap-2"
+              >
+                <Hotel className="h-5 w-5" />
+                Partner with Us
+              </Button>
+
               {/* Search Bar */}
               <div className="max-w-xl mx-auto relative">
                 <div className="flex gap-2">
