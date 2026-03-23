@@ -1,75 +1,72 @@
 
 
-# Implementation Plan
+# Property Reels → Booking Flow
 
 ## Summary
-Four features requested: (1) Social media video reels for property listings, (2) "Partner with Us" button on Hotels page, (3) Mobile-optimized view with essential buttons only, (4) Partial property details for non-authenticated users.
+Create a new full-screen "Property Reels" experience — a TikTok-style vertical feed that fetches properties with `video_urls` from the database, plays the embedded video, and provides a swipe-up or tap action to reveal property details + booking flow in a bottom sheet / separate tab panel.
 
 ---
 
-## 1. Property Video Reels from YouTube Shorts / Instagram Reels
+## 1. New Page: `/reels` — Property Reels Discovery
 
-**What**: Add a `video_urls` column to the `properties` table to store YouTube Shorts and Instagram Reel links. Display these as embedded video content on property detail pages and in the Promotions reels feed.
+**New file: `src/pages/PropertyReels.tsx`**
 
-**Database Migration**:
-- Add `video_urls text[] DEFAULT '{}'` column to `properties` table
+A dedicated full-screen vertical-swipe reels page that:
+- Fetches all properties from `properties` table where `video_urls` is not empty
+- Renders each property as a full-screen reel card with the YouTube/Instagram embed playing
+- Overlays property info (title, locality, price, BHK) at the bottom
+- Side action bar: Like, Save, Share, "Book" button
+- Swipe up/down or arrow keys to navigate between properties
 
-**Code Changes**:
-- **`src/components/property/MediaHub.tsx`**: Update to accept and render video URLs. Detect YouTube/Instagram URLs and render appropriate embed iframes (YouTube `youtube.com/embed/SHORT_ID`, Instagram embed via `instagram.com/p/ID/embed`).
-- **`src/components/property/PropertyVideoReels.tsx`** (new): A dedicated vertical-scroll reels component that fetches properties with `video_urls` and displays them in a TikTok-style feed with property info overlays. Reuse the existing `ReelCard` animation patterns from the promotions feed.
-- **`src/pages/PropertyDetail.tsx`**: Pass `property.video_urls` to `MediaHub` component's `videos` prop (currently hardcoded as `[]`).
-- **`src/pages/Promotions.tsx`**: Add a "Property Reels" tab/section that queries properties with non-empty `video_urls` and displays them alongside advertisement reels.
-- **Admin/Builder**: Add video URL input fields in property upload forms so builders can paste YouTube Shorts / Instagram Reel links.
+**New file: `src/components/reels/PropertyReelCard.tsx`**
 
----
-
-## 2. "Partner with Us" Button on Hotels Page
-
-**What**: Add a prominent CTA button in the Hotels page hero section that navigates to `/dashboard/hotel-manager`.
-
-**Code Change**:
-- **`src/pages/Hotels.tsx`** (~line 152): Add a "Partner with Us" button below the search bar that calls `navigate("/dashboard/hotel-manager")`. Style with `variant="premium"` for visual prominence.
+Each reel card shows:
+- Full-screen video embed (YouTube/Instagram iframe)
+- Property info overlay at bottom (title, price, locality, BHK, type)
+- Verified badge if applicable
+- "View Details" and "Book Visit" action buttons
 
 ---
 
-## 3. Mobile View - Essential Buttons Only
+## 2. Bottom Sheet: Property Details + Booking Tab Panel
 
-**What**: Simplify the mobile UI across key pages to show only the most important action buttons, hiding secondary actions behind a "More" menu or removing them entirely on small screens.
+**New file: `src/components/reels/ReelPropertyDrawer.tsx`**
 
-**Code Changes**:
-- **`src/pages/PropertyDetail.tsx`**: The mobile sticky CTA (lines 471-486) already shows only "Book" and "AI Expert" -- keep this. Hide the desktop action bar's secondary buttons (Share, Save) on mobile using `hidden md:flex`.
-- **`src/pages/Hotels.tsx`**: On mobile, collapse filter controls behind the existing filter toggle. Show only search + primary hotel cards.
-- **`src/components/Navigation.tsx`**: Audit mobile nav to ensure only critical navigation items show (Home, Search, Hotels, Profile).
+When user taps "View Details" or swipes up on a reel:
+- A bottom drawer (using existing `Drawer` component) slides up with two tabs:
+  - **Details Tab**: Property images carousel, description, amenities, map location, similar properties link
+  - **Book Tab**: Inline booking form — reuses the existing `BookingModal` flow (Quick Visit or Visit+Stay options), pre-filled with the property ID/title/city
 
----
-
-## 4. Partial Property Details for Non-Authenticated Users
-
-**What**: Non-logged-in users can see basic property info (title, locality, images, BHK, type) but detailed sections (price, agent contact, AI advisor, EMI calculator, booking) are blurred/gated with a "Sign in to view full details" prompt.
-
-**Code Changes**:
-- **`src/pages/PropertyDetail.tsx`**: 
-  - Import `useAuth` hook to check authentication state.
-  - Wrap price display, agent card, EMI calculator, payment plans, booking modal trigger, AI advisor, and nearby agents sections in an auth gate component.
-- **`src/components/property/AuthGate.tsx`** (new): A wrapper component that blurs its children and overlays a "Sign in to unlock" CTA with a button linking to `/auth`. Accepts `user` prop to decide visibility.
-- Sections visible without auth: images, title, locality, BHK/type, map, amenities, building info.
-- Sections gated: exact price (show range like "₹XX L - ₹XX L"), agent details, EMI calculator, payment plans, AI advisor, booking, micro-comparables.
+This keeps the user in the reels experience without navigating away.
 
 ---
 
-## 5. Database Note
+## 3. Route Registration
 
-The project already uses Lovable Cloud (Supabase) as the primary database. No change needed -- all data operations already go through Supabase client. The `fromTable` helper in `src/lib/supabaseHelper.ts` is just a type-bypass utility, not a separate DB.
+- Add `/reels` route in `App.tsx` pointing to `PropertyReels.tsx`
+- Add a "Reels" entry point from the Promotions page (new tab alongside existing reels/grid toggle)
+- Add a floating "Property Reels" button on the homepage or navigation
+
+---
+
+## 4. Navigation from Existing Components
+
+- **`PropertyVideoReels.tsx`**: Add a "Watch All Reels" button that navigates to `/reels`
+- **`Promotions.tsx`**: Add a third view mode tab "Properties" alongside existing "Reels" and "Grid" that shows the property reels feed
 
 ---
 
 ## Technical Details
 
-| Change | Files | Migration |
-|--------|-------|-----------|
-| Video URLs column | `properties` table | `ALTER TABLE properties ADD COLUMN video_urls text[] DEFAULT '{}'` |
-| Video embeds | `MediaHub.tsx`, new `PropertyVideoReels.tsx` | -- |
-| Partner button | `Hotels.tsx` | -- |
-| Mobile cleanup | `PropertyDetail.tsx`, `Hotels.tsx` | -- |
-| Auth gate | New `AuthGate.tsx`, `PropertyDetail.tsx` | -- |
+| Component | File | Purpose |
+|-----------|------|---------|
+| PropertyReels page | `src/pages/PropertyReels.tsx` | Full-screen vertical feed |
+| PropertyReelCard | `src/components/reels/PropertyReelCard.tsx` | Individual reel with video + overlay |
+| ReelPropertyDrawer | `src/components/reels/ReelPropertyDrawer.tsx` | Bottom sheet with Details/Book tabs |
+| App.tsx | Route `/reels` | Registration |
+| Promotions.tsx | New "Properties" tab | Entry point |
+
+**Database**: No schema changes needed — uses existing `properties` table with `video_urls` column.
+
+**Booking flow**: Reuses existing `BookingModal` component (Quick Visit / Visit+Stay) — just passes `propertyId`, `propertyTitle`, `propertyCity`, `propertyLocality` from the current reel's property data.
 
