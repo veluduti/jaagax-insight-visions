@@ -54,6 +54,7 @@ interface Property {
   verified: boolean;
   trust_score: number | null;
   images: string[];
+  video_urls: string[];
   description: string;
   agent_id: string | null;
   project_id: string | null;
