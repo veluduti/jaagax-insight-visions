@@ -153,6 +153,23 @@ const Promotions = () => {
           >
             <ReelsFeed />
           </motion.div>
+        ) : viewMode === 'properties' ? (
+          <motion.div
+            key="properties"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pt-16 flex flex-col items-center justify-center min-h-screen bg-background px-4 gap-4"
+          >
+            <Film className="h-16 w-16 text-primary" />
+            <h2 className="text-xl font-bold">Property Video Reels</h2>
+            <p className="text-muted-foreground text-center text-sm max-w-sm">
+              Discover properties through immersive YouTube Shorts and Instagram Reels
+            </p>
+            <Button size="lg" onClick={() => navigate('/reels')} className="mt-2">
+              Watch Property Reels
+            </Button>
+          </motion.div>
         ) : (
           <motion.div
             key="grid"
