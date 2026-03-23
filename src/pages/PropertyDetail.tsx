@@ -320,13 +320,20 @@ const PropertyDetail = () => {
       {/* Media Hub - Enhanced with video, 360 tour, floorplans */}
       <MediaHub
         images={property.images}
-        videos={[]}
+        videos={property.video_urls}
         virtualTourUrl={undefined}
         floorplans={[]}
         brochureUrl={undefined}
         propertyId={property.id}
         propertyTitle={property.title}
       />
+
+      {/* Property Video Reels from YouTube/Instagram */}
+      {property.video_urls.length > 0 && (
+        <div className="container mx-auto px-4 mt-6">
+          <PropertyVideoReels videoUrls={property.video_urls} propertyTitle={property.title} />
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="container mx-auto px-4 -mt-8 relative z-10">
