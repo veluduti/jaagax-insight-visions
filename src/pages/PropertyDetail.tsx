@@ -344,7 +344,7 @@ const PropertyDetail = () => {
               onClick={toggleFavorite} 
               variant={isFavorite ? "default" : "outline"} 
               size="lg" 
-              className="gap-2"
+              className="gap-2 hidden md:inline-flex"
             >
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
