@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Grid3X3, Play, Sparkles, Flame, TrendingUp } from "lucide-react";
+import { ArrowLeft, Grid3X3, Play, Sparkles, Flame, TrendingUp, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ReelsFeed from "@/components/promotions/ReelsFeed";
@@ -30,7 +30,7 @@ interface Advertisement {
 
 const Promotions = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'reels' | 'grid'>('reels');
+  const [viewMode, setViewMode] = useState<'reels' | 'grid' | 'properties'>('reels');
   const [stats, setStats] = useState({ total: 0, featured: 0, deals: 0 });
 
   useEffect(() => {
@@ -101,6 +101,19 @@ const Promotions = () => {
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setViewMode('properties')}
+            className={cn(
+              "h-8 w-8 rounded-full transition-all",
+              viewMode === 'properties' 
+                ? "bg-white text-black hover:bg-white hover:text-black" 
+                : "text-white hover:bg-white/20 hover:text-white"
+            )}
+          >
+            <Film className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -139,6 +152,23 @@ const Promotions = () => {
             className="h-screen"
           >
             <ReelsFeed />
+          </motion.div>
+        ) : viewMode === 'properties' ? (
+          <motion.div
+            key="properties"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pt-16 flex flex-col items-center justify-center min-h-screen bg-background px-4 gap-4"
+          >
+            <Film className="h-16 w-16 text-primary" />
+            <h2 className="text-xl font-bold">Property Video Reels</h2>
+            <p className="text-muted-foreground text-center text-sm max-w-sm">
+              Discover properties through immersive YouTube Shorts and Instagram Reels
+            </p>
+            <Button size="lg" onClick={() => navigate('/reels')} className="mt-2">
+              Watch Property Reels
+            </Button>
           </motion.div>
         ) : (
           <motion.div
