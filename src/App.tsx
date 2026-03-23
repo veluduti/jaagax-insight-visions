@@ -107,6 +107,7 @@ const App = () => (
           <Route path="/hotels" element={<Hotels />} />
           <Route path="/hotels/:id" element={<HotelDetail />} />
           <Route path="/promotions" element={<Promotions />} />
+          <Route path="/reels" element={<PropertyReels />} />
           <Route path="/innovation" element={<InnovationHub />} />
           
           {/* AI Advisor Routes */}
