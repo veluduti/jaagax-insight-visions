@@ -75,6 +75,8 @@ interface Agent {
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   
   // Validate ID parameter
   useEffect(() => {
