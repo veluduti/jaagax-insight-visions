@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Grid3X3, Play, Sparkles, Flame, TrendingUp } from "lucide-react";
+import { ArrowLeft, Grid3X3, Play, Sparkles, Flame, TrendingUp, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ReelsFeed from "@/components/promotions/ReelsFeed";
