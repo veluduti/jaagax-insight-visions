@@ -30,7 +30,7 @@ interface Advertisement {
 
 const Promotions = () => {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<'reels' | 'grid'>('reels');
+  const [viewMode, setViewMode] = useState<'reels' | 'grid' | 'properties'>('reels');
   const [stats, setStats] = useState({ total: 0, featured: 0, deals: 0 });
 
   useEffect(() => {
