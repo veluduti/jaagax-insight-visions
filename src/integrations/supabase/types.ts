@@ -173,6 +173,81 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string | null
+          area_sqft: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          bhk: number | null
+          builder_id: string | null
+          city: string
+          completion_stage: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          latitude: number | null
+          locality: string
+          longitude: number | null
+          price: number
+          title: string
+          trust_score: number | null
+          type: string | null
+          updated_at: string | null
+          verified: boolean | null
+          video_urls: string[] | null
+        }
+        Insert: {
+          address?: string | null
+          area_sqft?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          bhk?: number | null
+          builder_id?: string | null
+          city: string
+          completion_stage?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          locality: string
+          longitude?: number | null
+          price?: number
+          title: string
+          trust_score?: number | null
+          type?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+          video_urls?: string[] | null
+        }
+        Update: {
+          address?: string | null
+          area_sqft?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          bhk?: number | null
+          builder_id?: string | null
+          city?: string
+          completion_stage?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          locality?: string
+          longitude?: number | null
+          price?: number
+          title?: string
+          trust_score?: number | null
+          type?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+          video_urls?: string[] | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
