@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, MapPin, Bed, Maximize, Clock, ShieldAlert, Sparkles, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import SneakPeekPreviewModal from "./SneakPeekPreviewModal";
 
 interface UnverifiedProperty {
   id: string;
@@ -27,6 +28,7 @@ const SneakPeekListings = () => {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<UnverifiedProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState<UnverifiedProperty | null>(null);
 
   useEffect(() => {
     fetchUnverifiedProperties();
@@ -121,7 +123,7 @@ const SneakPeekListings = () => {
               >
                 <Card
                   className="group relative overflow-hidden border-dashed border-foreground/20 hover:border-primary/50 bg-card/60 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
-                  onClick={() => navigate(`/property/${property.id}`)}
+                  onClick={() => setSelectedProperty(property)}
                 >
                   {/* Image with frosted overlay */}
                   <div className="relative h-44 overflow-hidden">
@@ -228,6 +230,11 @@ const SneakPeekListings = () => {
           </Button>
         </motion.div>
       </div>
+      <SneakPeekPreviewModal
+        property={selectedProperty}
+        open={!!selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+      />
     </section>
   );
 };
