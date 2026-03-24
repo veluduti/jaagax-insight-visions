@@ -28,6 +28,7 @@ const SneakPeekListings = () => {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<UnverifiedProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState<UnverifiedProperty | null>(null);
 
   useEffect(() => {
     fetchUnverifiedProperties();
