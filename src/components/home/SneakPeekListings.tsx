@@ -123,7 +123,7 @@ const SneakPeekListings = () => {
               >
                 <Card
                   className="group relative overflow-hidden border-dashed border-foreground/20 hover:border-primary/50 bg-card/60 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
-                  onClick={() => navigate(`/property/${property.id}`)}
+                  onClick={() => setSelectedProperty(property)}
                 >
                   {/* Image with frosted overlay */}
                   <div className="relative h-44 overflow-hidden">
