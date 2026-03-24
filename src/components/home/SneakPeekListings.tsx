@@ -236,6 +236,7 @@ const SneakPeekListings = () => {
         onClose={() => setSelectedProperty(null)}
       />
     </section>
+  );
 };
 
 export default SneakPeekListings;
