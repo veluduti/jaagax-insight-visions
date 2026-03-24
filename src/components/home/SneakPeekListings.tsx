@@ -230,8 +230,12 @@ const SneakPeekListings = () => {
           </Button>
         </motion.div>
       </div>
+      <SneakPeekPreviewModal
+        property={selectedProperty}
+        open={!!selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+      />
     </section>
-  );
 };
 
 export default SneakPeekListings;
