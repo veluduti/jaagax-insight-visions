@@ -39,6 +39,7 @@ const Index = () => {
       {activeTab === "properties" && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <SneakPeekListings />
           <VisitStayTeaser />
           <AISpotlight />
           <MarketIntelligence />
