@@ -15,6 +15,7 @@ import IntentChips from "@/components/home/IntentChips";
 import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
+import SneakPeekListings from "@/components/home/SneakPeekListings";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
