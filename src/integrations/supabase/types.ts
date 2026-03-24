@@ -14,6 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_interactions: {
+        Row: {
+          ad_id: string
+          created_at: string | null
+          id: string
+          interaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          ad_id: string
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          user_id?: string | null
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_interactions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertisements: {
+        Row: {
+          ad_type: string
+          builder_id: string | null
+          clicks: number | null
+          contacts: number | null
+          created_at: string | null
+          cta_text: string | null
+          description: string | null
+          end_date: string | null
+          featured: boolean | null
+          highlights: string[] | null
+          id: string
+          images: string[] | null
+          impressions: number | null
+          offer_text: string | null
+          priority: number | null
+          project_id: string | null
+          property_id: string | null
+          saves: number | null
+          start_date: string | null
+          status: string
+          tagline: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ad_type?: string
+          builder_id?: string | null
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: string[] | null
+          id?: string
+          images?: string[] | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          saves?: number | null
+          start_date?: string | null
+          status?: string
+          tagline?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ad_type?: string
+          builder_id?: string | null
+          clicks?: number | null
+          contacts?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          end_date?: string | null
+          featured?: boolean | null
+          highlights?: string[] | null
+          id?: string
+          images?: string[] | null
+          impressions?: number | null
+          offer_text?: string | null
+          priority?: number | null
+          project_id?: string | null
+          property_id?: string | null
+          saves?: number | null
+          start_date?: string | null
+          status?: string
+          tagline?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_bookings: {
         Row: {
           booking_type: string | null
