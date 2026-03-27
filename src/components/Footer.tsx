@@ -11,7 +11,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               
               <div>
-                <h3 className="text-xl font-bold text-gradient">JaagaX</h3>
+                <h3 className="text-xl font-bold text-gradient">JAAGA X</h3>
                 <p className="text-xs text-foreground/70">Choose Your Place</p>
               </div>
             </div>

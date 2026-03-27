@@ -156,15 +156,28 @@ const SneakPeekPreviewModal = ({ property, open, onClose }: SneakPeekPreviewModa
             </p>
           </div>
 
-          {/* Action button */}
-          <Button
-            variant="outline"
-            className="w-full border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
-            onClick={onClose}
-          >
-            <Bell className="h-4 w-4" />
-            Notify Me When Verified
-          </Button>
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
+              onClick={() => {
+                window.open(`/property/${property.id}`, '_blank');
+                onClose();
+              }}
+            >
+              <Eye className="h-4 w-4" />
+              View Full Listing
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
+              onClick={onClose}
+            >
+              <Bell className="h-4 w-4" />
+              Notify Me
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,13 +1,39 @@
 import { motion } from "framer-motion";
-import { Building2, Layers, Car, Square, Maximize } from "lucide-react";
+import { Building2, Layers, Car, Square, Maximize, DoorOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface BuildingInformationProps {
+  buildingName?: string | null;
+  totalFloors?: number | null;
+  totalParking?: number | null;
+  buildingArea?: number | null;
+  elevators?: number | null;
+  retailCentres?: number | null;
   locality: string;
   verified: boolean;
 }
 
-const BuildingInformation = ({ locality, verified }: BuildingInformationProps) => {
+const BuildingInformation = ({
+  buildingName,
+  totalFloors,
+  totalParking,
+  buildingArea,
+  elevators,
+  retailCentres,
+  locality,
+  verified,
+}: BuildingInformationProps) => {
+  const items = [
+    { icon: Building2, label: "Building Name", value: buildingName || locality },
+    { icon: Layers, label: "Total Floors", value: totalFloors },
+    { icon: Building2, label: "Retail Centres", value: retailCentres },
+    { icon: Car, label: "Total Parking Spaces", value: totalParking },
+    { icon: Square, label: "Total Building Area", value: buildingArea ? `${buildingArea.toLocaleString()} sq.ft` : null },
+    { icon: DoorOpen, label: "Elevators", value: elevators },
+  ].filter((item) => item.value != null);
+
+  if (items.length <= 1) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -24,55 +50,17 @@ const BuildingInformation = ({ locality, verified }: BuildingInformationProps) =
           </Badge>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex items-start gap-3">
-          <Building2 className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Building Name</div>
-            <div className="font-semibold">{locality}</div>
+        {items.map((item) => (
+          <div key={item.label} className="flex items-start gap-3">
+            <item.icon className="h-5 w-5 text-primary mt-1" />
+            <div>
+              <div className="text-sm text-muted-foreground mb-1">{item.label}</div>
+              <div className="font-semibold">{item.value}</div>
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Layers className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Total Floors</div>
-            <div className="font-semibold">15</div>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Building2 className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Retail Centres</div>
-            <div className="font-semibold">2</div>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Car className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Total Parking Spaces</div>
-            <div className="font-semibold">120</div>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Square className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Total Building Area</div>
-            <div className="font-semibold">85,500 sq.ft</div>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Maximize className="h-5 w-5 text-primary mt-1" />
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Elevators</div>
-            <div className="font-semibold">3</div>
-          </div>
-        </div>
+        ))}
       </div>
     </motion.div>
   );

@@ -58,6 +58,12 @@ interface Property {
   description: string;
   agent_id: string | null;
   project_id: string | null;
+  building_name: string | null;
+  total_floors: number | null;
+  total_parking: number | null;
+  building_area_sqft: number | null;
+  elevators: number | null;
+  retail_centres: number | null;
 }
 
 interface Agent {
@@ -104,7 +110,6 @@ const PropertyDetail = () => {
         .from("properties")
         .select("*")
         .eq("id", id)
-        .eq("verified", true)
         .maybeSingle();
 
       if (propertyError) throw propertyError;
@@ -162,6 +167,12 @@ const PropertyDetail = () => {
         description: dbProperty.description || "",
         agent_id: null,
         project_id: null,
+        building_name: dbProperty.building_name ?? null,
+        total_floors: dbProperty.total_floors ?? null,
+        total_parking: dbProperty.total_parking ?? null,
+        building_area_sqft: dbProperty.building_area_sqft ?? null,
+        elevators: dbProperty.elevators ?? null,
+        retail_centres: dbProperty.retail_centres ?? null,
       };
       
       setProperty(mappedProperty);
@@ -414,7 +425,16 @@ const PropertyDetail = () => {
             <PropertyInformation property={property} />
 
             {/* Building Information */}
-            <BuildingInformation locality={property.locality} verified={property.verified} />
+            <BuildingInformation
+              locality={property.locality}
+              verified={property.verified}
+              buildingName={property.building_name}
+              totalFloors={property.total_floors}
+              totalParking={property.total_parking}
+              buildingArea={property.building_area_sqft}
+              elevators={property.elevators}
+              retailCentres={property.retail_centres}
+            />
 
             {/* Amenities */}
             <PropertyAmenities type={property.type} verified={property.verified} />
