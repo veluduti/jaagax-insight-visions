@@ -110,7 +110,6 @@ const PropertyDetail = () => {
         .from("properties")
         .select("*")
         .eq("id", id)
-        .eq("verified", true)
         .maybeSingle();
 
       if (propertyError) throw propertyError;
