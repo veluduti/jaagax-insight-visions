@@ -58,6 +58,12 @@ interface Property {
   description: string;
   agent_id: string | null;
   project_id: string | null;
+  building_name: string | null;
+  total_floors: number | null;
+  total_parking: number | null;
+  building_area_sqft: number | null;
+  elevators: number | null;
+  retail_centres: number | null;
 }
 
 interface Agent {
