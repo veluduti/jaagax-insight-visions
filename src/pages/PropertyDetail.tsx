@@ -167,6 +167,12 @@ const PropertyDetail = () => {
         description: dbProperty.description || "",
         agent_id: null,
         project_id: null,
+        building_name: dbProperty.building_name ?? null,
+        total_floors: dbProperty.total_floors ?? null,
+        total_parking: dbProperty.total_parking ?? null,
+        building_area_sqft: dbProperty.building_area_sqft ?? null,
+        elevators: dbProperty.elevators ?? null,
+        retail_centres: dbProperty.retail_centres ?? null,
       };
       
       setProperty(mappedProperty);
