@@ -299,17 +299,23 @@ export type Database = {
           bedrooms: number | null
           bhk: number | null
           builder_id: string | null
+          building_area_sqft: number | null
+          building_name: string | null
           city: string
           completion_stage: string | null
           created_at: string | null
           description: string | null
+          elevators: number | null
           id: string
           images: string[] | null
           latitude: number | null
           locality: string
           longitude: number | null
           price: number
+          retail_centres: number | null
           title: string
+          total_floors: number | null
+          total_parking: number | null
           trust_score: number | null
           type: string | null
           updated_at: string | null
@@ -323,17 +329,23 @@ export type Database = {
           bedrooms?: number | null
           bhk?: number | null
           builder_id?: string | null
+          building_area_sqft?: number | null
+          building_name?: string | null
           city: string
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
+          elevators?: number | null
           id?: string
           images?: string[] | null
           latitude?: number | null
           locality: string
           longitude?: number | null
           price?: number
+          retail_centres?: number | null
           title: string
+          total_floors?: number | null
+          total_parking?: number | null
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
@@ -347,17 +359,23 @@ export type Database = {
           bedrooms?: number | null
           bhk?: number | null
           builder_id?: string | null
+          building_area_sqft?: number | null
+          building_name?: string | null
           city?: string
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
+          elevators?: number | null
           id?: string
           images?: string[] | null
           latitude?: number | null
           locality?: string
           longitude?: number | null
           price?: number
+          retail_centres?: number | null
           title?: string
+          total_floors?: number | null
+          total_parking?: number | null
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
