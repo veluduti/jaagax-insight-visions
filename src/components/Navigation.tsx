@@ -253,7 +253,7 @@ const Navigation = () => {
         <div className="container-padding py-3">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gradient">JaagaX</span>
+              <span className="text-lg font-bold text-gradient">{"\n"}</span>
             </Link>
 
             <div className="flex items-center gap-2">
