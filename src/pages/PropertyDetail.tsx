@@ -425,7 +425,16 @@ const PropertyDetail = () => {
             <PropertyInformation property={property} />
 
             {/* Building Information */}
-            <BuildingInformation locality={property.locality} verified={property.verified} />
+            <BuildingInformation
+              locality={property.locality}
+              verified={property.verified}
+              buildingName={property.building_name}
+              totalFloors={property.total_floors}
+              totalParking={property.total_parking}
+              buildingArea={property.building_area_sqft}
+              elevators={property.elevators}
+              retailCentres={property.retail_centres}
+            />
 
             {/* Amenities */}
             <PropertyAmenities type={property.type} verified={property.verified} />
