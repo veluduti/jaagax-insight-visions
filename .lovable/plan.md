@@ -1,72 +1,82 @@
 
 
-# Property Reels → Booking Flow
+# Fix Plan: Logo, Rendering, Views & Building Information
 
-## Summary
-Create a new full-screen "Property Reels" experience — a TikTok-style vertical feed that fetches properties with `video_urls` from the database, plays the embedded video, and provides a swipe-up or tap action to reveal property details + booking flow in a bottom sheet / separate tab panel.
+## Issues Identified
 
----
-
-## 1. New Page: `/reels` — Property Reels Discovery
-
-**New file: `src/pages/PropertyReels.tsx`**
-
-A dedicated full-screen vertical-swipe reels page that:
-- Fetches all properties from `properties` table where `video_urls` is not empty
-- Renders each property as a full-screen reel card with the YouTube/Instagram embed playing
-- Overlays property info (title, locality, price, BHK) at the bottom
-- Side action bar: Like, Save, Share, "Book" button
-- Swipe up/down or arrow keys to navigate between properties
-
-**New file: `src/components/reels/PropertyReelCard.tsx`**
-
-Each reel card shows:
-- Full-screen video embed (YouTube/Instagram iframe)
-- Property info overlay at bottom (title, price, locality, BHK, type)
-- Verified badge if applicable
-- "View Details" and "Book Visit" action buttons
+1. **Logo Name**: Currently shows "JaagaX" — user wants "JAAGA X" (with space)
+2. **Sneak Peek → Property Detail**: Clicking a Sneak Peek card opens the preview modal correctly, but the "Explore All New Arrivals" button navigates to `/search?verified=false` which may show "not found" for unverified properties. The user wants verified property detail pages to open in a **new browser tab** so users don't lose their place.
+3. **Building Information is hardcoded**: All values (15 floors, 120 parking, 85,500 sqft, 3 elevators, 2 retail centres) are static — they should come from the `properties` table.
+4. **Rendering issues**: The site has visual polish issues to address.
 
 ---
 
-## 2. Bottom Sheet: Property Details + Booking Tab Panel
+## 1. Logo Name → "JAAGA X"
 
-**New file: `src/components/reels/ReelPropertyDrawer.tsx`**
-
-When user taps "View Details" or swipes up on a reel:
-- A bottom drawer (using existing `Drawer` component) slides up with two tabs:
-  - **Details Tab**: Property images carousel, description, amenities, map location, similar properties link
-  - **Book Tab**: Inline booking form — reuses the existing `BookingModal` flow (Quick Visit or Visit+Stay options), pre-filled with the property ID/title/city
-
-This keeps the user in the reels experience without navigating away.
+Update in 3 places:
+- **`src/components/Navigation.tsx`** line 87: `JaagaX` → `JAAGA X`
+- **`src/components/Footer.tsx`** line 14: `JaagaX` → `JAAGA X`
+- **`index.html`** title and meta tags: Update brand name
 
 ---
 
-## 3. Route Registration
+## 2. Property Detail opens in new tab
 
-- Add `/reels` route in `App.tsx` pointing to `PropertyReels.tsx`
-- Add a "Reels" entry point from the Promotions page (new tab alongside existing reels/grid toggle)
-- Add a floating "Property Reels" button on the homepage or navigation
-
----
-
-## 4. Navigation from Existing Components
-
-- **`PropertyVideoReels.tsx`**: Add a "Watch All Reels" button that navigates to `/reels`
-- **`Promotions.tsx`**: Add a third view mode tab "Properties" alongside existing "Reels" and "Grid" that shows the property reels feed
+- **`src/components/home/SneakPeekListings.tsx`**: For verified properties in the listing, clicking a card should call `window.open(/property/${id}, '_blank')` instead of inline navigation. Unverified properties continue to open the SneakPeek preview modal.
+- **`src/components/home/SneakPeekPreviewModal.tsx`**: Add a "View Full Listing" button that opens `/property/${id}` in a new tab (only if the property is verified).
+- **Search results & other property cards**: Any property card click that navigates to `/property/:id` should use `target="_blank"` or `window.open` so the user doesn't lose context.
 
 ---
 
-## Technical Details
+## 3. Dynamic Building Information
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| PropertyReels page | `src/pages/PropertyReels.tsx` | Full-screen vertical feed |
-| PropertyReelCard | `src/components/reels/PropertyReelCard.tsx` | Individual reel with video + overlay |
-| ReelPropertyDrawer | `src/components/reels/ReelPropertyDrawer.tsx` | Bottom sheet with Details/Book tabs |
-| App.tsx | Route `/reels` | Registration |
-| Promotions.tsx | New "Properties" tab | Entry point |
+**Database migration**: Add building-related columns to `properties` table:
+```sql
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS total_floors integer;
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS total_parking integer;
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS building_area_sqft numeric;
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS elevators integer;
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS retail_centres integer;
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS building_name text;
+```
 
-**Database**: No schema changes needed — uses existing `properties` table with `video_urls` column.
+**Update seed data**: Set building info for existing test properties.
 
-**Booking flow**: Reuses existing `BookingModal` component (Quick Visit / Visit+Stay) — just passes `propertyId`, `propertyTitle`, `propertyCity`, `propertyLocality` from the current reel's property data.
+**Update `BuildingInformation.tsx`**: Accept full building data as props instead of hardcoded values. Show "Not available" or hide fields when data is missing. The component interface becomes:
+```typescript
+interface BuildingInformationProps {
+  buildingName: string;
+  totalFloors: number | null;
+  totalParking: number | null;
+  buildingArea: number | null;
+  elevators: number | null;
+  retailCentres: number | null;
+  verified: boolean;
+}
+```
+
+**Update `PropertyDetail.tsx`**: Pass the new building fields from the fetched property data to `BuildingInformation`.
+
+---
+
+## 4. Rendering Polish
+
+- Ensure the SneakPeek modal dialog renders cleanly without layout shift
+- Fix any z-index or overflow issues on the homepage sections
+- Verify the "Property Not Found" page only shows for truly missing properties, not for unverified ones that exist in the DB
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/components/Navigation.tsx` | Logo text → "JAAGA X" |
+| `src/components/Footer.tsx` | Logo text → "JAAGA X" |
+| `index.html` | Title/meta brand name |
+| `src/components/property/BuildingInformation.tsx` | Dynamic props instead of hardcoded |
+| `src/pages/PropertyDetail.tsx` | Pass building data, map new columns |
+| `src/components/home/SneakPeekListings.tsx` | Verified cards open in new tab |
+| `src/components/home/SneakPeekPreviewModal.tsx` | Add "View Full Listing" new-tab button |
+| Migration SQL | Add building columns to properties |
 
