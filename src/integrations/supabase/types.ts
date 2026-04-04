@@ -291,6 +291,75 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          area_range: string | null
+          avg_price: number | null
+          bhk_types: string | null
+          builder_name: string | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          name: string | null
+          possession_date: string | null
+          price_max: number | null
+          price_min: number | null
+          rera_id: string | null
+          status: string | null
+          trust_score: number | null
+          verified: boolean | null
+        }
+        Insert: {
+          area_range?: string | null
+          avg_price?: number | null
+          bhk_types?: string | null
+          builder_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name?: string | null
+          possession_date?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rera_id?: string | null
+          status?: string | null
+          trust_score?: number | null
+          verified?: boolean | null
+        }
+        Update: {
+          area_range?: string | null
+          avg_price?: number | null
+          bhk_types?: string | null
+          builder_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name?: string | null
+          possession_date?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rera_id?: string | null
+          status?: string | null
+          trust_score?: number | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       properties: {
         Row: {
           address: string | null
