@@ -143,7 +143,7 @@ const Projects = () => {
 
     // RERA filter
     if (reraOnly) {
-      filtered = filtered.filter((p) => p.rera_id !== null);
+      filtered = filtered.filter((p) => p.rera_id !== null && p.rera_id !== '' && p.rera_id.trim() !== '');
     }
 
     // Price filter
