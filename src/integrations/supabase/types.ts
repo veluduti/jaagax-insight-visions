@@ -302,8 +302,10 @@ export type Database = {
           description: string | null
           id: string
           image: string | null
+          images: string[] | null
           latitude: number | null
           locality: string | null
+          location: string | null
           longitude: number | null
           name: string | null
           possession_date: string | null
@@ -324,8 +326,10 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string | null
+          images?: string[] | null
           latitude?: number | null
           locality?: string | null
+          location?: string | null
           longitude?: number | null
           name?: string | null
           possession_date?: string | null
@@ -346,8 +350,10 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string | null
+          images?: string[] | null
           latitude?: number | null
           locality?: string | null
+          location?: string | null
           longitude?: number | null
           name?: string | null
           possession_date?: string | null
