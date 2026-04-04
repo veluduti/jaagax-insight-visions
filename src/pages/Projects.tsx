@@ -27,6 +27,8 @@ interface Project {
   rera_id: string | null;
   description: string | null;
   image: string | null;
+  latitude: number | null;
+  longitude: number | null;
   builder?: {
     name: string;
   };
@@ -184,13 +186,15 @@ const Projects = () => {
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
+    // Compute bounds to fit all markers
+    const bounds = new mapboxgl.LngLatBounds();
+    let hasMarkers = false;
+
     // Add new markers
-    filteredProjects.forEach((project) => {
-      // Use default coordinates for projects (in real app, projects should have lat/lng)
-      const coords: [number, number] = [
-        78.4867 + (Math.random() - 0.5) * 0.2,
-        17.385 + (Math.random() - 0.5) * 0.2,
-      ];
+    filteredProjects.forEach((project: any) => {
+      // Skip projects without coordinates
+      if (!project.latitude || !project.longitude) return;
+      const coords: [number, number] = [project.longitude, project.latitude];
 
       const el = document.createElement("div");
       el.className = "project-marker";
@@ -243,8 +247,15 @@ const Projects = () => {
         )
         .addTo(map.current!);
 
+      bounds.extend(coords);
+      hasMarkers = true;
       markersRef.current.push(marker);
     });
+
+    // Fit map to show all markers
+    if (hasMarkers) {
+      map.current.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 1000 });
+    }
   }, [filteredProjects, viewMode, navigate]);
 
   return (
