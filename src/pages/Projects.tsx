@@ -27,6 +27,8 @@ interface Project {
   rera_id: string | null;
   description: string | null;
   image: string | null;
+  latitude: number | null;
+  longitude: number | null;
   builder?: {
     name: string;
   };
