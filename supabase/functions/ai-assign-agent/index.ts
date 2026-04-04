@@ -12,11 +12,21 @@ serve(async (req) => {
   }
 
   try {
-    const { propertyId, locality, city, date, preferredAgentId } = await req.json();
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const { propertyId, locality, city, date, preferredAgentId } = await req.json();
 
     // If preferred agent is specified and available, use them
     if (preferredAgentId) {
@@ -31,7 +41,7 @@ serve(async (req) => {
       if (availability) {
         const { data: agent } = await supabase
           .from('agents')
-          .select('*')
+          .select('id, name, trust_score, cities_served')
           .eq('id', preferredAgentId)
           .single();
 
@@ -42,10 +52,10 @@ serve(async (req) => {
       }
     }
 
-    // Find best available agent based on locality, trust score, and availability
+    // Find best available agent
     const { data: agents, error } = await supabase
       .from('agents')
-      .select('*')
+      .select('id, name, trust_score, cities_served, sales_count')
       .ilike('cities_served', `%${city}%`)
       .order('trust_score', { ascending: false })
       .order('sales_count', { ascending: false })
@@ -58,7 +68,7 @@ serve(async (req) => {
       );
     }
 
-    // Check availability for each agent on the requested date
+    // Check availability for each agent
     for (const agent of agents) {
       const { data: availability } = await supabase
         .from('agent_availability')
@@ -70,28 +80,22 @@ serve(async (req) => {
 
       if (availability) {
         return new Response(
-          JSON.stringify({ 
-            agent, 
-            reason: 'Best available agent based on trust score and locality match' 
-          }),
+          JSON.stringify({ agent, reason: 'Best available agent based on trust score and locality match' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    // Fallback: return highest-rated agent even if no availability recorded
+    // Fallback
     return new Response(
-      JSON.stringify({ 
-        agent: agents[0], 
-        reason: 'Fallback agent (highest trust score)' 
-      }),
+      JSON.stringify({ agent: agents[0], reason: 'Fallback agent (highest trust score)' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in ai-assign-agent:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An error occurred processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
