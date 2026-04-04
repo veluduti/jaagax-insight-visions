@@ -143,7 +143,7 @@ const Projects = () => {
 
     // RERA filter
     if (reraOnly) {
-      filtered = filtered.filter((p) => p.rera_id !== null);
+      filtered = filtered.filter((p) => p.rera_id !== null && p.rera_id !== '' && p.rera_id.trim() !== '');
     }
 
     // Price filter
@@ -360,7 +360,7 @@ const Projects = () => {
                 <div className="text-center py-20">
                   <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-xl font-semibold mb-2">
-                    {reraOnly ? "No RERA verified projects available" : "No projects found"}
+                    {reraOnly ? `No RERA verified projects available${selectedCity ? ` in ${selectedCity}` : ''}` : "No projects found"}
                   </h3>
                   <p className="text-muted-foreground">
                     {reraOnly ? "Try removing the RERA filter to see all projects" : "Try adjusting your filters"}
@@ -442,7 +442,7 @@ const Projects = () => {
           <div className="text-center py-20">
             <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold mb-2">
-              {reraOnly ? "No RERA verified projects available" : "No projects found"}
+              {reraOnly ? `No RERA verified projects available${selectedCity ? ` in ${selectedCity}` : ''}` : "No projects found"}
             </h3>
             <p className="text-muted-foreground">
               {reraOnly ? "Try removing the RERA filter to see all projects" : "Try adjusting your filters"}
