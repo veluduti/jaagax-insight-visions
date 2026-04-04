@@ -12,6 +12,20 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { travelMode, date, timeSlot } = await req.json();
 
     if (travelMode === 'self') {
@@ -21,11 +35,6 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Map travel modes to vehicle categories
     const categoryMap: Record<string, string> = {
       'base': 'base',
       'premium': 'premium',
@@ -34,10 +43,9 @@ serve(async (req) => {
 
     const category = categoryMap[travelMode];
 
-    // Find available vehicle of the requested category
     const { data: vehicle, error } = await supabase
       .from('fleet_vehicles')
-      .select('*')
+      .select('id, vehicle_type, vehicle_model, capacity, status, category')
       .eq('category', category)
       .eq('status', 'available')
       .limit(1)
@@ -45,16 +53,11 @@ serve(async (req) => {
 
     if (error || !vehicle) {
       return new Response(
-        JSON.stringify({ 
-          vehicle: null, 
-          error: 'No vehicles available',
-          message: `All ${travelMode} cars currently busy. Please select a different plan or time slot.` 
-        }),
+        JSON.stringify({ vehicle: null, message: `All ${travelMode} cars currently busy. Please select a different plan or time slot.` }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Update vehicle status to assigned
     await supabase
       .from('fleet_vehicles')
       .update({ status: 'assigned' })
@@ -68,7 +71,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in assign-vehicle:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An error occurred processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -20,27 +20,34 @@ serve(async (req) => {
   }
 
   try {
-    const bookingData = await req.json();
-    console.log('Received booking data:', JSON.stringify(bookingData));
-    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Generate OTP and verification code
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const bookingData = await req.json();
+
+    // Ensure the booking is created for the authenticated user
+    const userId = user.id;
+
     const otp = generateOTP();
     const verificationCode = generateVerificationCode();
 
-    // Get property details to check if it has a builder (requires approval)
     const { data: property } = await supabase
       .from('properties')
       .select('city, locality, builder_id, title')
       .eq('id', bookingData.propertyId)
       .single();
 
-    console.log('Property details:', property);
-
-    // Determine if this property requires builder approval
     const requiresBuilderApproval = !!property?.builder_id;
     const initialStatus = requiresBuilderApproval ? 'pending_approval' : 'confirmed';
 
@@ -49,7 +56,6 @@ serve(async (req) => {
     if (bookingData.autoAssign && !agentId) {
       let agent = null;
 
-      // Strategy 1: Try to match by city first
       if (property?.city && !agent) {
         const { data } = await supabase
           .from('agents')
@@ -62,7 +68,6 @@ serve(async (req) => {
         agent = data;
       }
 
-      // Strategy 2: Fallback to any online agent with highest trust score
       if (!agent) {
         const { data } = await supabase
           .from('agents')
@@ -74,7 +79,6 @@ serve(async (req) => {
         agent = data;
       }
 
-      // Strategy 3: Any agent if none are online
       if (!agent) {
         const { data } = await supabase
           .from('agents')
@@ -86,14 +90,12 @@ serve(async (req) => {
       }
 
       agentId = agent?.id || null;
-      console.log('Auto-assigned agent:', agentId, agent?.name);
     }
 
-    // Create visit booking with proper status based on builder_id
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
       .insert({
-        user_id: bookingData.userId,
+        user_id: userId,
         property_id: bookingData.propertyId,
         agent_id: agentId,
         visit_date: bookingData.visitDate,
@@ -111,77 +113,41 @@ serve(async (req) => {
 
     if (bookingError) {
       console.error('Booking insert error:', bookingError);
-      throw bookingError;
+      return new Response(
+        JSON.stringify({ error: 'Failed to create booking' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log('Booking created:', booking.id, 'Status:', initialStatus);
-
-    console.log('Booking created:', booking.id);
-
-    // Send appropriate notifications based on status
+    // Send notifications (non-fatal)
     try {
       if (requiresBuilderApproval) {
-        // Notify buyer that visit is pending approval
-        await supabase.functions.invoke('send-visit-update', {
-          body: {
-            bookingId: booking.id,
-            templateType: 'visit_pending_approval'
-          }
-        });
-        console.log('Sent pending approval notification to buyer');
-
-        // Notify builder about new approval request
-        await supabase.functions.invoke('send-visit-update', {
-          body: {
-            bookingId: booking.id,
-            templateType: 'builder_approval_needed'
-          }
-        });
-        console.log('Sent approval request to builder');
+        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'visit_pending_approval' } });
+        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'builder_approval_needed' } });
       } else {
-        // Direct confirmation - notify buyer
-        await supabase.functions.invoke('send-visit-update', {
-          body: {
-            bookingId: booking.id,
-            templateType: 'visit_confirmed'
-          }
-        });
-        console.log('Sent confirmation notification');
+        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'visit_confirmed' } });
       }
     } catch (notifError) {
       console.error('Notification error (non-fatal):', notifError);
     }
 
-    // Notify agent about assignment (for both flows)
     if (agentId) {
       try {
-        await supabase.functions.invoke('send-visit-update', {
-          body: {
-            bookingId: booking.id,
-            templateType: 'agent_new_assignment'
-          }
-        });
-        console.log('Sent agent assignment notification');
+        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'agent_new_assignment' } });
       } catch (notifError) {
         console.error('Agent notification error (non-fatal):', notifError);
       }
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        booking: booking,
-        otp,
-        verificationCode,
-        status: booking.status
-      }),
+      JSON.stringify({ success: true, booking, otp, verificationCode, status: booking.status }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in schedule-visit:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An error occurred processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
