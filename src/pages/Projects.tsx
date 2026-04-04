@@ -245,8 +245,15 @@ const Projects = () => {
         )
         .addTo(map.current!);
 
+      bounds.extend(coords);
+      hasMarkers = true;
       markersRef.current.push(marker);
     });
+
+    // Fit map to show all markers
+    if (hasMarkers) {
+      map.current.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 1000 });
+    }
   }, [filteredProjects, viewMode, navigate]);
 
   return (
