@@ -43,57 +43,27 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check for authorization - support both user JWT and service-to-service calls
+    // Validate authorization via JWT
     const authHeader = req.headers.get('Authorization');
     let isAuthorized = false;
     let userId: string | null = null;
 
-    if (authHeader) {
+    if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '');
-      
-      // Try to validate as user JWT
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       
       if (!authError && user) {
         isAuthorized = true;
         userId = user.id;
-        console.log(`Authenticated user ${user.id} sending WhatsApp`);
-      } else {
-        // Check if it's a service role key (from other edge functions)
-        // Service role calls come with the anon key but from internal functions
-        // We trust internal calls that come through supabase.functions.invoke
-        const isInternalCall = req.headers.get('x-client-info')?.includes('supabase');
-        if (isInternalCall) {
-          isAuthorized = true;
-          console.log('Internal service call detected - authorized');
-        }
-      }
-    } else {
-      // No auth header - check if it's an internal call
-      const isInternalCall = req.headers.get('x-client-info')?.includes('supabase');
-      if (isInternalCall) {
-        isAuthorized = true;
-        console.log('Internal service call (no auth header) - authorized');
+        console.log(`Authenticated user sending WhatsApp`);
       }
     }
 
-    // For security, we still require some form of authorization
-    // But we're more lenient for server-to-server calls
     if (!isAuthorized) {
-      // Last check: if the request has valid body with bookingId, verify booking exists
-      const body = await req.clone().json().catch(() => ({}));
-      if (body.bookingId) {
-        const { data: booking } = await supabase
-          .from('visit_bookings')
-          .select('id')
-          .eq('id', body.bookingId)
-          .single();
-        
-        if (booking) {
-          isAuthorized = true;
-          console.log(`Authorized via valid booking ID: ${body.bookingId}`);
-        }
-      }
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!isAuthorized) {
@@ -193,7 +163,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error in send-whatsapp function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error' }),
+      JSON.stringify({ error: 'An internal error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

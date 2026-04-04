@@ -359,8 +359,12 @@ const Projects = () => {
               ) : filteredProjects.length === 0 ? (
                 <div className="text-center py-20">
                   <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">No projects found</h3>
-                  <p className="text-muted-foreground">Try adjusting your filters</p>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {reraOnly ? "No RERA verified projects available" : "No projects found"}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {reraOnly ? "Try removing the RERA filter to see all projects" : "Try adjusting your filters"}
+                  </p>
                 </div>
               ) : (
                 filteredProjects.map((project) => (
@@ -437,8 +441,17 @@ const Projects = () => {
         ) : filteredProjects.length === 0 ? (
           <div className="text-center py-20">
             <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">No projects found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters</p>
+            <h3 className="text-xl font-semibold mb-2">
+              {reraOnly ? "No RERA verified projects available" : "No projects found"}
+            </h3>
+            <p className="text-muted-foreground">
+              {reraOnly ? "Try removing the RERA filter to see all projects" : "Try adjusting your filters"}
+            </p>
+            {reraOnly && (
+              <Button variant="outline" className="mt-4" onClick={() => setReraOnly(false)}>
+                Show All Projects
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
