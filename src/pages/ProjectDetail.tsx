@@ -475,6 +475,34 @@ const ProjectDetail = () => {
                   builderId={project.builder_id} 
                   builderName={project.builder_name}
                 />
+              ) : project.builder_name ? (
+                <Card className="glass-panel">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      {project.builder_name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground">
+                      {project.builder_name} is the developer of {project.name}, located in {project.locality}, {project.city}.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {project.status && (
+                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                          <p className="text-xs text-muted-foreground">Project Status</p>
+                          <p className="font-semibold">{project.status}</p>
+                        </div>
+                      )}
+                      {project.possession_date && (
+                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                          <p className="text-xs text-muted-foreground">Possession</p>
+                          <p className="font-semibold">{project.possession_date}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <Card className="glass-panel">
                   <CardContent className="py-12 text-center">
