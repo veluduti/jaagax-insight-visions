@@ -57,9 +57,13 @@ interface Project {
   rera_id: string | null;
   description: string | null;
   image: string | null;
-  builder?: {
-    name: string;
-  };
+  images: string[] | null;
+  amenities: string[] | null;
+  bhk_types: string | null;
+  area_range: string | null;
+  status: string | null;
+  possession_date: string | null;
+  overview?: string;
 }
 
 interface Amenity {
