@@ -345,7 +345,7 @@ const ProjectDetail = () => {
               Trust Score: {project.trust_score}/100
             </Badge>
             <Badge variant="secondary">
-              By {project.builder?.name || "Builder"}
+              By {project.builder_name || "Builder"}
             </Badge>
           </div>
         </motion.div>
