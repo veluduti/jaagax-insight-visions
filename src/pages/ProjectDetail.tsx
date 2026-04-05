@@ -57,9 +57,13 @@ interface Project {
   rera_id: string | null;
   description: string | null;
   image: string | null;
-  builder?: {
-    name: string;
-  };
+  images: string[] | null;
+  amenities: string[] | null;
+  bhk_types: string | null;
+  area_range: string | null;
+  status: string | null;
+  possession_date: string | null;
+  overview?: string;
 }
 
 interface Amenity {
@@ -154,68 +158,55 @@ const ProjectDetail = () => {
       
       setProject(projectData);
 
-      // Fetch enriched data from database (this will also trigger background enrichment if needed)
-      console.log("Fetching enriched web data...");
-      const { data: webData, error: webError } = await supabase.functions.invoke(
-        "fetch-project-web-data",
-        { body: { projectId: projectData.id } }
-      );
+      // Use amenities from project table directly
+      if (projectData.amenities && projectData.amenities.length > 0) {
+        const amenityIconMap: Record<string, string> = {
+          'Swimming Pool': 'pool', 'Infinity Pool': 'pool', 'Olympic Pool': 'pool', 'Rooftop Pool': 'pool',
+          'Gymnasium': 'gym', 'Fitness Center': 'gym',
+          'Clubhouse': 'clubhouse', 'Party Hall': 'clubhouse', 'Community Hall': 'clubhouse', 'Banquet Hall': 'clubhouse',
+          'Landscaped Gardens': 'park', 'Garden': 'park', 'Rooftop Garden': 'park', 'Pet Park': 'park', 'Senior Citizen Park': 'park',
+          'Covered Parking': 'parking', 'Valet Parking': 'parking',
+          '24/7 Security': 'security',
+        };
+        setAmenities(projectData.amenities.map((name: string, i: number) => ({
+          id: String(i),
+          type: amenityIconMap[name] || 'default',
+          name,
+          status: 'Available',
+        })));
+      }
 
-      if (!webError && webData?.success) {
-        console.log("Enriched data fetched:", webData.data);
-        
-        // Update overview if available
-        if (webData.data.overview) {
-          setProject((prev) => prev ? { ...prev, overview: webData.data.overview } : prev);
-        }
-        
-        // Set amenities from database
-        if (webData.data.amenities && webData.data.amenities.length > 0) {
-          setAmenities(webData.data.amenities);
-        } else {
-          console.log("No amenities yet, data is being enriched in background");
-        }
-        
-        // Set floor plans from database
-        if (webData.data.floorPlans && webData.data.floorPlans.length > 0) {
-          setUnits(webData.data.floorPlans);
-        } else {
-          console.log("No floor plans yet, data is being enriched in background");
-        }
-        
-        // Set specifications
-        if (webData.data.specifications) {
-          setSpecifications(webData.data.specifications);
-        }
-        
-        // Set highlights
-        if (webData.data.highlights && webData.data.highlights.length > 0) {
-          setHighlights(webData.data.highlights);
-        }
+      // Generate highlights from available project data
+      const autoHighlights: string[] = [];
+      if (projectData.bhk_types) autoHighlights.push(`Available in ${projectData.bhk_types} configurations`);
+      if (projectData.area_range) autoHighlights.push(`Unit sizes: ${projectData.area_range}`);
+      if (projectData.status) autoHighlights.push(`Status: ${projectData.status}`);
+      if (projectData.possession_date) autoHighlights.push(`Possession: ${projectData.possession_date}`);
+      if (projectData.rera_id) autoHighlights.push('RERA approved project');
+      if (projectData.builder_name) autoHighlights.push(`Developed by ${projectData.builder_name}`);
+      autoHighlights.push('Premium location with excellent connectivity');
+      if (projectData.amenities?.length) autoHighlights.push(`${projectData.amenities.length}+ world-class amenities`);
+      setHighlights(autoHighlights);
 
-        // Show toast if data is being enriched
-        if (webData.data.status === "pending" || webData.data.status === "processing") {
-          toast.info("Project data is being enriched. Refresh the page in a few moments for complete details.");
+      // Try fetching enriched data (floor plans, specs) from edge function - non-blocking
+      try {
+        const { data: webData, error: webError } = await supabase.functions.invoke(
+          "fetch-project-web-data",
+          { body: { projectId: projectData.id } }
+        );
+        if (!webError && webData?.success) {
+          if (webData.data.overview) {
+            setProject((prev) => prev ? { ...prev, overview: webData.data.overview } : prev);
+          }
+          if (webData.data.floorPlans?.length > 0) {
+            setUnits(webData.data.floorPlans);
+          }
+          if (webData.data.specifications && Object.keys(webData.data.specifications).length > 0) {
+            setSpecifications(webData.data.specifications);
+          }
         }
-      } else {
-        console.log("Using fallback data - project detail tables don't exist yet");
-        // Set mock data since these tables don't exist
-        setAmenities([
-          { id: '1', type: 'gym', name: 'Fitness Center', status: 'available' },
-          { id: '2', type: 'pool', name: 'Swimming Pool', status: 'available' },
-          { id: '3', type: 'park', name: 'Garden', status: 'available' },
-          { id: '4', type: 'parking', name: 'Covered Parking', status: 'available' },
-        ]);
-        setUnits([
-          { id: '1', bhk: 2, area: 1200, price: 8500000, facing: 'East', plan_svg: null, plan_3d: null },
-          { id: '2', bhk: 3, area: 1600, price: 12000000, facing: 'North', plan_svg: null, plan_3d: null },
-        ]);
-        setHighlights([
-          'Premium location with excellent connectivity',
-          'World-class amenities',
-          'RERA approved project',
-          'Trusted builder with track record',
-        ]);
+      } catch (enrichErr) {
+        console.log("Enrichment data not available, using project table data");
       }
     } catch (error) {
       console.error("Error fetching project:", error);
@@ -341,7 +332,7 @@ const ProjectDetail = () => {
               Trust Score: {project.trust_score}/100
             </Badge>
             <Badge variant="secondary">
-              By {project.builder?.name || "Builder"}
+              By {project.builder_name || "Builder"}
             </Badge>
           </div>
         </motion.div>
@@ -396,6 +387,45 @@ const ProjectDetail = () => {
                   <CardTitle>Project Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Project Quick Info */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {project.builder_name && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Builder</p>
+                        <p className="font-semibold text-sm">{project.builder_name}</p>
+                      </div>
+                    )}
+                    {project.bhk_types && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Home className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Configurations</p>
+                        <p className="font-semibold text-sm">{project.bhk_types}</p>
+                      </div>
+                    )}
+                    {project.area_range && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Area Range</p>
+                        <p className="font-semibold text-sm">{project.area_range}</p>
+                      </div>
+                    )}
+                    {project.status && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Status</p>
+                        <p className="font-semibold text-sm">{project.status}</p>
+                      </div>
+                    )}
+                    {project.possession_date && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Sparkles className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Possession</p>
+                        <p className="font-semibold text-sm">{project.possession_date}</p>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {project.description ||
@@ -443,8 +473,36 @@ const ProjectDetail = () => {
               {project.builder_id ? (
                 <BuilderTrustProgram 
                   builderId={project.builder_id} 
-                  builderName={project.builder_name || project.builder?.name}
+                  builderName={project.builder_name}
                 />
+              ) : project.builder_name ? (
+                <Card className="glass-panel">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      {project.builder_name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground">
+                      {project.builder_name} is the developer of {project.name}, located in {project.locality}, {project.city}.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {project.status && (
+                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                          <p className="text-xs text-muted-foreground">Project Status</p>
+                          <p className="font-semibold">{project.status}</p>
+                        </div>
+                      )}
+                      {project.possession_date && (
+                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                          <p className="text-xs text-muted-foreground">Possession</p>
+                          <p className="font-semibold">{project.possession_date}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <Card className="glass-panel">
                   <CardContent className="py-12 text-center">
