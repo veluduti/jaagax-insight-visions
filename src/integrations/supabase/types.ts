@@ -293,6 +293,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          amenities: string[] | null
           area_range: string | null
           avg_price: number | null
           bhk_types: string | null
@@ -305,7 +306,6 @@ export type Database = {
           images: string[] | null
           latitude: number | null
           locality: string | null
-          location: string | null
           longitude: number | null
           name: string | null
           possession_date: string | null
@@ -317,6 +317,7 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          amenities?: string[] | null
           area_range?: string | null
           avg_price?: number | null
           bhk_types?: string | null
@@ -329,7 +330,6 @@ export type Database = {
           images?: string[] | null
           latitude?: number | null
           locality?: string | null
-          location?: string | null
           longitude?: number | null
           name?: string | null
           possession_date?: string | null
@@ -341,6 +341,7 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          amenities?: string[] | null
           area_range?: string | null
           avg_price?: number | null
           bhk_types?: string | null
@@ -353,7 +354,6 @@ export type Database = {
           images?: string[] | null
           latitude?: number | null
           locality?: string | null
-          location?: string | null
           longitude?: number | null
           name?: string | null
           possession_date?: string | null
