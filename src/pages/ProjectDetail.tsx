@@ -387,6 +387,45 @@ const ProjectDetail = () => {
                   <CardTitle>Project Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Project Quick Info */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {project.builder_name && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Builder</p>
+                        <p className="font-semibold text-sm">{project.builder_name}</p>
+                      </div>
+                    )}
+                    {project.bhk_types && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Home className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Configurations</p>
+                        <p className="font-semibold text-sm">{project.bhk_types}</p>
+                      </div>
+                    )}
+                    {project.area_range && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Area Range</p>
+                        <p className="font-semibold text-sm">{project.area_range}</p>
+                      </div>
+                    )}
+                    {project.status && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Status</p>
+                        <p className="font-semibold text-sm">{project.status}</p>
+                      </div>
+                    )}
+                    {project.possession_date && (
+                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
+                        <Sparkles className="h-5 w-5 mx-auto mb-2 text-primary" />
+                        <p className="text-xs text-muted-foreground">Possession</p>
+                        <p className="font-semibold text-sm">{project.possession_date}</p>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {project.description ||
