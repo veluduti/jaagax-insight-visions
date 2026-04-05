@@ -447,7 +447,7 @@ const ProjectDetail = () => {
               {project.builder_id ? (
                 <BuilderTrustProgram 
                   builderId={project.builder_id} 
-                  builderName={project.builder_name || project.builder?.name}
+                  builderName={project.builder_name}
                 />
               ) : (
                 <Card className="glass-panel">
