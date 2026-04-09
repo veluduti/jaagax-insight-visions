@@ -149,12 +149,14 @@ const AddBuilderProfileForm = () => {
   });
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+    <div className="max-w-3xl mx-auto pt-20 pb-24 px-4 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <Building2 className="h-7 w-7 text-primary" />
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 rounded-lg bg-primary/10">
+          <Building2 className="h-7 w-7 text-primary" />
+        </div>
         <div>
-          <h1 className="text-2xl font-bold">Add Builder Profile</h1>
+          <h1 className="text-2xl font-bold text-foreground">Add Builder Profile</h1>
           <p className="text-sm text-muted-foreground">Fill in the details below to create a new builder profile</p>
         </div>
       </div>
