@@ -332,7 +332,7 @@ const PropertyDetail = () => {
       <MediaHub
         images={property.images}
         videos={property.video_urls}
-        virtualTourUrl={undefined}
+        virtualTourUrl={property.video_urls?.find(url => url.includes('virtual-tour') || url.includes('360'))}
         floorplans={[]}
         brochureUrl={undefined}
         propertyId={property.id}
@@ -360,20 +360,6 @@ const PropertyDetail = () => {
           />
           
           <div className="flex flex-wrap gap-2">
-            {property.video_urls.some(url => url.includes('virtual-tour') || url.includes('360')) && (
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                onClick={() => {
-                  const tourUrl = property.video_urls.find(url => url.includes('virtual-tour') || url.includes('360'));
-                  if (tourUrl) window.open(tourUrl, '_blank');
-                }}
-              >
-                <Globe className="h-4 w-4" />
-                360° Virtual Tour
-              </Button>
-            )}
             <Button 
               onClick={toggleFavorite} 
               variant={isFavorite ? "default" : "outline"} 
