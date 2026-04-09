@@ -2,23 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import {
-  Building2, User, Briefcase, Image, Phone, ChevronRight, ChevronLeft,
+  Building2, User, Briefcase, Image, Phone, Layers,
   Check, Wifi, Car, Dumbbell, Trees, Shield, Waves, Wind, Droplets,
   Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2
 } from "lucide-react";
-
-const STEPS = [
-  { label: "Basic Info", icon: User },
-  { label: "Business", icon: Briefcase },
-  { label: "Amenities & Media", icon: Image },
-  { label: "Contact", icon: Phone },
-];
 
 const AMENITY_OPTIONS = [
   { name: "Swimming Pool", icon: Waves },
@@ -51,7 +44,6 @@ const classifyBuilder = (data: {
 };
 
 const AddBuilderProfileForm = () => {
-  const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -98,13 +90,16 @@ const AddBuilderProfileForm = () => {
     setForm((prev) => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
   };
 
-  const canProceed = () => {
-    if (step === 0) return form.builderName.trim().length > 0;
-    if (step === 3) return form.phone.trim().length > 0;
-    return true;
-  };
-
   const handleSubmit = async () => {
+    if (!form.builderName.trim()) {
+      toast({ title: "Required", description: "Builder name is required.", variant: "destructive" });
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast({ title: "Required", description: "Phone number is required.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
     const type = classifyBuilder({
       priceRangeMax: Number(form.priceRangeMax) || 0,
@@ -147,231 +142,254 @@ const AddBuilderProfileForm = () => {
     navigate("/");
   };
 
+  const currentType = classifyBuilder({
+    priceRangeMax: Number(form.priceRangeMax) || 0,
+    amenities: form.amenities,
+    videos: form.videos,
+  });
+
   return (
-    <div className="max-w-3xl mx-auto py-xl px-md">
-      {/* Progress Bar */}
-      <div className="flex items-center justify-between mb-lg sm:mb-xl">
-        {STEPS.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = i === step;
-          const isDone = i < step;
-          return (
-            <div key={s.label} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${isDone ? "bg-primary text-primary-foreground" : isActive ? "bg-primary/20 text-primary ring-2 ring-primary" : "bg-muted text-muted-foreground"}`}>
-                  {isDone ? <Check className="h-4 w-4 sm:h-5 sm:w-5" /> : <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
-                </div>
-                <span className={`text-[10px] sm:text-xs font-medium text-center leading-tight ${isActive ? "text-primary" : "text-muted-foreground"}`}>{s.label}</span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-1 sm:mx-2 transition-all ${i < step ? "bg-primary" : "bg-muted"}`} />
-              )}
-            </div>
-          );
-        })}
+    <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center gap-3 mb-2">
+        <Building2 className="h-7 w-7 text-primary" />
+        <div>
+          <h1 className="text-2xl font-bold">Add Builder Profile</h1>
+          <p className="text-sm text-muted-foreground">Fill in the details below to create a new builder profile</p>
+        </div>
       </div>
 
-      <Card className="border-0 shadow-lg">
-        <CardContent className="p-lg">
-          {/* Step 1: Basic Info */}
-          {step === 0 && (
-            <div className="space-y-md animate-fade-in">
-              <div className="flex items-center gap-2 mb-md">
-                <Building2 className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Basic Information</h2>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Builder Name *</label>
-                <Input value={form.builderName} onChange={(e) => updateField("builderName", e.target.value)} placeholder="e.g. Prestige Group" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Tagline</label>
-                <Input value={form.tagline} onChange={(e) => updateField("tagline", e.target.value)} placeholder="e.g. Building Dreams Since 1986" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Description</label>
-                <Textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Tell us about the builder..." rows={4} />
-              </div>
+      {/* SECTION 1: Basic Information */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <User className="h-5 w-5 text-primary" />
+            Basic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Builder Name <span className="text-destructive">*</span></label>
+            <Input value={form.builderName} onChange={(e) => updateField("builderName", e.target.value)} placeholder="e.g. Prestige Group" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Tagline</label>
+            <Input value={form.tagline} onChange={(e) => updateField("tagline", e.target.value)} placeholder="e.g. Building Dreams Since 1986" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Description</label>
+            <Textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Tell us about the builder..." rows={4} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 2: Business Details */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Briefcase className="h-5 w-5 text-primary" />
+            Business Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Years of Experience</label>
+              <Input type="number" value={form.yearsOfExperience} onChange={(e) => updateField("yearsOfExperience", e.target.value)} placeholder="e.g. 15" />
             </div>
-          )}
-
-          {/* Step 2: Business */}
-          {step === 1 && (
-            <div className="space-y-md animate-fade-in">
-              <div className="flex items-center gap-2 mb-md">
-                <Briefcase className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Business Details</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Years of Experience</label>
-                  <Input type="number" value={form.yearsOfExperience} onChange={(e) => updateField("yearsOfExperience", e.target.value)} placeholder="e.g. 15" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Number of Projects</label>
-                  <Input type="number" value={form.numberOfProjects} onChange={(e) => updateField("numberOfProjects", e.target.value)} placeholder="e.g. 50" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">RERA Number</label>
-                  <Input value={form.reraNumber} onChange={(e) => updateField("reraNumber", e.target.value)} placeholder="e.g. P02400003243" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Certifications</label>
-                  <Input value={form.certifications} onChange={(e) => updateField("certifications", e.target.value)} placeholder="e.g. ISO 9001, IGBC Gold" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Min Price (₹)</label>
-                  <Input type="number" value={form.priceRangeMin} onChange={(e) => updateField("priceRangeMin", e.target.value)} placeholder="e.g. 3000000" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Max Price (₹)</label>
-                  <Input type="number" value={form.priceRangeMax} onChange={(e) => updateField("priceRangeMax", e.target.value)} placeholder="e.g. 15000000" />
-                </div>
-              </div>
-
-              {/* Unit Types */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Unit Types</label>
-                <div className="flex flex-wrap gap-2">
-                  {UNIT_TYPES.map((u) => (
-                    <Badge key={u} variant={form.unitTypes.includes(u) ? "default" : "outline"} className="cursor-pointer transition-all hover:scale-105" onClick={() => toggleArrayItem("unitTypes", u)}>
-                      {u}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Locations */}
-              <div>
-                <label className="text-sm font-medium mb-1 block">Locations</label>
-                <div className="flex gap-2">
-                  <Input value={form.locationInput} onChange={(e) => updateField("locationInput", e.target.value)} placeholder="e.g. Gachibowli, Hyderabad" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("locations", "locationInput"))} />
-                  <Button type="button" variant="outline" size="icon" onClick={() => addToArray("locations", "locationInput")}><ChevronRight className="h-4 w-4" /></Button>
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {form.locations.map((loc, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1">
-                      {loc}
-                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeFromArray("locations", i)} />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">RERA Number</label>
+              <Input value={form.reraNumber} onChange={(e) => updateField("reraNumber", e.target.value)} placeholder="e.g. P02400003243" />
             </div>
-          )}
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Certifications</label>
+            <Input value={form.certifications} onChange={(e) => updateField("certifications", e.target.value)} placeholder="e.g. ISO 9001, IGBC Gold" />
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Step 3: Amenities & Media */}
-          {step === 2 && (
-            <div className="space-y-md animate-fade-in">
-              <div className="flex items-center gap-2 mb-md">
-                <Image className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Amenities & Media</h2>
-              </div>
-
-              {/* Amenities Grid */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Amenities</label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {AMENITY_OPTIONS.map((a) => {
-                    const Icon = a.icon;
-                    const selected = form.amenities.includes(a.name);
-                    return (
-                      <button key={a.name} type="button" onClick={() => toggleArrayItem("amenities", a.name)}
-                        className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all text-xs ${selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>
-                        <Icon className="h-5 w-5" />
-                        <span className="text-center leading-tight">{a.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Images */}
-              <div>
-                <label className="text-sm font-medium mb-1 block">Image URLs</label>
-                <div className="flex gap-2">
-                  <Input value={form.imageInput} onChange={(e) => updateField("imageInput", e.target.value)} placeholder="Paste image URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("images", "imageInput"))} />
-                  <Button type="button" variant="outline" size="icon" onClick={() => addToArray("images", "imageInput")}><Upload className="h-4 w-4" /></Button>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.images.map((img, i) => (
-                    <div key={i} className="relative group">
-                      <img src={img} alt="" className="w-20 h-20 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
-                      <button onClick={() => removeFromArray("images", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Videos */}
-              <div>
-                <label className="text-sm font-medium mb-1 block">Video URLs (optional)</label>
-                <div className="flex gap-2">
-                  <Input value={form.videoInput} onChange={(e) => updateField("videoInput", e.target.value)} placeholder="Paste YouTube URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("videos", "videoInput"))} />
-                  <Button type="button" variant="outline" size="icon" onClick={() => addToArray("videos", "videoInput")}><Upload className="h-4 w-4" /></Button>
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {form.videos.map((v, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1 max-w-[200px] truncate">
-                      {v}
-                      <X className="h-3 w-3 cursor-pointer flex-shrink-0" onClick={() => removeFromArray("videos", i)} />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+      {/* SECTION 3: Project Details */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Layers className="h-5 w-5 text-primary" />
+            Project Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Number of Projects</label>
+              <Input type="number" value={form.numberOfProjects} onChange={(e) => updateField("numberOfProjects", e.target.value)} placeholder="e.g. 50" />
             </div>
-          )}
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Min Price (₹)</label>
+              <Input type="number" value={form.priceRangeMin} onChange={(e) => updateField("priceRangeMin", e.target.value)} placeholder="e.g. 3000000" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Max Price (₹)</label>
+              <Input type="number" value={form.priceRangeMax} onChange={(e) => updateField("priceRangeMax", e.target.value)} placeholder="e.g. 15000000" />
+            </div>
+          </div>
 
-          {/* Step 4: Contact */}
-          {step === 3 && (
-            <div className="space-y-md animate-fade-in">
-              <div className="flex items-center gap-2 mb-md">
-                <Phone className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-semibold">Contact Details</h2>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Phone *</label>
-                <Input value={form.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="+91 98765 43210" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">WhatsApp</label>
-                <Input value={form.whatsapp} onChange={(e) => updateField("whatsapp", e.target.value)} placeholder="+91 98765 43210" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Email</label>
-                <Input type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} placeholder="contact@builder.com" />
-              </div>
+          {/* Unit Types */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Unit Types</label>
+            <div className="flex flex-wrap gap-2">
+              {UNIT_TYPES.map((u) => (
+                <Badge key={u} variant={form.unitTypes.includes(u) ? "default" : "outline"} className="cursor-pointer transition-all hover:scale-105" onClick={() => toggleArrayItem("unitTypes", u)}>
+                  {u}
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-              {/* Auto Classification Preview */}
-              <Card className="bg-muted/50 border-dashed">
-                <CardContent className="p-md">
-                  <p className="text-sm text-muted-foreground mb-1">Auto Classification</p>
-                  <Badge className={`text-sm ${classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos }) === "luxury" ? "bg-amber-500/20 text-amber-700 border-amber-500/50" : classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos }) === "standard" ? "bg-blue-500/20 text-blue-700 border-blue-500/50" : "bg-emerald-500/20 text-emerald-700 border-emerald-500/50"}`}>
-                    {classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos }).toUpperCase()}
+          {/* Locations */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Locations</label>
+            <div className="flex gap-2">
+              <Input value={form.locationInput} onChange={(e) => updateField("locationInput", e.target.value)} placeholder="e.g. Gachibowli, Hyderabad" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("locations", "locationInput"))} />
+              <Button type="button" variant="outline" onClick={() => addToArray("locations", "locationInput")}>Add</Button>
+            </div>
+            {form.locations.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {form.locations.map((loc, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1">
+                    {loc}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeFromArray("locations", i)} />
                   </Badge>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-lg">
-            <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Back
-            </Button>
-            {step < STEPS.length - 1 ? (
-              <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()}>
-                Next <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            ) : (
-              <Button variant="premium" onClick={handleSubmit} disabled={!canProceed() || isSubmitting}>
-                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
-                Create Profile
-              </Button>
+                ))}
+              </div>
             )}
           </div>
         </CardContent>
       </Card>
+
+      {/* SECTION 4: Amenities */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Shield className="h-5 w-5 text-primary" />
+            Amenities
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {AMENITY_OPTIONS.map((a) => {
+              const Icon = a.icon;
+              const selected = form.amenities.includes(a.name);
+              return (
+                <button key={a.name} type="button" onClick={() => toggleArrayItem("amenities", a.name)}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all text-xs ${selected ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>
+                  <Icon className="h-5 w-5" />
+                  <span className="text-center leading-tight">{a.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 5: Media Upload */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Image className="h-5 w-5 text-primary" />
+            Media Upload
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Images */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Image URLs</label>
+            <div className="flex gap-2">
+              <Input value={form.imageInput} onChange={(e) => updateField("imageInput", e.target.value)} placeholder="Paste image URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("images", "imageInput"))} />
+              <Button type="button" variant="outline" onClick={() => addToArray("images", "imageInput")}>
+                <Upload className="h-4 w-4 mr-1" /> Add
+              </Button>
+            </div>
+            {form.images.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {form.images.map((img, i) => (
+                  <div key={i} className="relative group">
+                    <img src={img} alt="" className="w-20 h-20 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    <button onClick={() => removeFromArray("images", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Videos */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Video URLs (optional)</label>
+            <div className="flex gap-2">
+              <Input value={form.videoInput} onChange={(e) => updateField("videoInput", e.target.value)} placeholder="Paste YouTube URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("videos", "videoInput"))} />
+              <Button type="button" variant="outline" onClick={() => addToArray("videos", "videoInput")}>
+                <Upload className="h-4 w-4 mr-1" /> Add
+              </Button>
+            </div>
+            {form.videos.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {form.videos.map((v, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1 max-w-[250px] truncate">
+                    {v}
+                    <X className="h-3 w-3 cursor-pointer flex-shrink-0" onClick={() => removeFromArray("videos", i)} />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 6: Contact Details */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Phone className="h-5 w-5 text-primary" />
+            Contact Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Phone <span className="text-destructive">*</span></label>
+              <Input value={form.phone} onChange={(e) => updateField("phone", e.target.value)} placeholder="+91 98765 43210" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">WhatsApp</label>
+              <Input value={form.whatsapp} onChange={(e) => updateField("whatsapp", e.target.value)} placeholder="+91 98765 43210" />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Email</label>
+            <Input type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} placeholder="contact@builder.com" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Auto Classification Preview */}
+      <Card className="border-dashed">
+        <CardContent className="p-4 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Auto Classification:</span>
+          <Badge className={`text-sm ${currentType === "luxury" ? "bg-amber-500/20 text-amber-700 border-amber-500/50" : currentType === "standard" ? "bg-blue-500/20 text-blue-700 border-blue-500/50" : "bg-emerald-500/20 text-emerald-700 border-emerald-500/50"}`}>
+            {currentType.toUpperCase()}
+          </Badge>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex justify-between pt-2 pb-8">
+        <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+        <Button onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
+          Submit Builder Profile
+        </Button>
+      </div>
     </div>
   );
 };
