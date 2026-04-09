@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Share2, Heart, Phone, MessageCircle, MapPin, 
   Bed, Bath, Square, Calendar, Download, ArrowLeft,
-  CheckCircle2, TrendingUp, Building2, Hash, Brain
+  CheckCircle2, TrendingUp, Building2, Hash, Brain, Globe
 } from "lucide-react";
 import { toast } from "sonner";
 import PropertyImageCarousel from "@/components/property/PropertyImageCarousel";
@@ -360,6 +360,20 @@ const PropertyDetail = () => {
           />
           
           <div className="flex flex-wrap gap-2">
+            {property.video_urls.some(url => url.includes('virtual-tour') || url.includes('360')) && (
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => {
+                  const tourUrl = property.video_urls.find(url => url.includes('virtual-tour') || url.includes('360'));
+                  if (tourUrl) window.open(tourUrl, '_blank');
+                }}
+              >
+                <Globe className="h-4 w-4" />
+                360° Virtual Tour
+              </Button>
+            )}
             <Button 
               onClick={toggleFavorite} 
               variant={isFavorite ? "default" : "outline"} 
