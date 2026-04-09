@@ -212,13 +212,22 @@ export default function MediaHub({
 
           <TabsContent value="tour" className="mt-4">
             {virtualTourUrl ? (
-              <div className="aspect-video rounded-xl overflow-hidden bg-black">
-                <iframe
-                  src={virtualTourUrl}
-                  className="w-full h-full"
-                  allowFullScreen
-                  title="360° Virtual Tour"
-                />
+              <div className="glass-panel rounded-xl p-8 text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <Maximize className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">360° Virtual Tour Available</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Experience an immersive walkthrough of this property. The tour opens in a new tab for the best viewing experience.
+                </p>
+                <Button
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => window.open(virtualTourUrl, '_blank', 'noopener,noreferrer')}
+                >
+                  <Maximize className="h-5 w-5" />
+                  Launch 360° Tour
+                </Button>
               </div>
             ) : (
               <div className="glass-panel rounded-xl p-8 text-center">
