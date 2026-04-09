@@ -134,74 +134,131 @@ export type Database = {
       }
       builder_profiles: {
         Row: {
+          about_mission: string | null
+          about_vision: string | null
           amenities: string[] | null
+          awards: string[] | null
           builder_name: string
           certifications: string | null
+          company_registration_number: string | null
+          completed_projects_count: number | null
           created_at: string
+          customer_rating: number | null
           description: string | null
           email: string | null
+          established_year: number | null
           id: string
           images: string[] | null
+          key_people: Json | null
           locations: string[] | null
+          logo: string | null
           number_of_projects: number | null
+          office_addresses: Json | null
+          ongoing_projects_count: number | null
+          operating_cities: string[] | null
           phone: string
           price_range_max: number | null
           price_range_min: number | null
           rera_number: string | null
+          social_links: Json | null
+          specializations: string[] | null
           tagline: string | null
+          total_land_developed_sqft: number | null
+          total_reviews: number | null
+          total_units_delivered: number | null
           type: string
           unit_types: string[] | null
+          upcoming_projects_count: number | null
           updated_at: string
           user_id: string | null
           videos: string[] | null
+          website: string | null
           whatsapp: string | null
           years_of_experience: number | null
         }
         Insert: {
+          about_mission?: string | null
+          about_vision?: string | null
           amenities?: string[] | null
+          awards?: string[] | null
           builder_name: string
           certifications?: string | null
+          company_registration_number?: string | null
+          completed_projects_count?: number | null
           created_at?: string
+          customer_rating?: number | null
           description?: string | null
           email?: string | null
+          established_year?: number | null
           id?: string
           images?: string[] | null
+          key_people?: Json | null
           locations?: string[] | null
+          logo?: string | null
           number_of_projects?: number | null
+          office_addresses?: Json | null
+          ongoing_projects_count?: number | null
+          operating_cities?: string[] | null
           phone: string
           price_range_max?: number | null
           price_range_min?: number | null
           rera_number?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
           tagline?: string | null
+          total_land_developed_sqft?: number | null
+          total_reviews?: number | null
+          total_units_delivered?: number | null
           type?: string
           unit_types?: string[] | null
+          upcoming_projects_count?: number | null
           updated_at?: string
           user_id?: string | null
           videos?: string[] | null
+          website?: string | null
           whatsapp?: string | null
           years_of_experience?: number | null
         }
         Update: {
+          about_mission?: string | null
+          about_vision?: string | null
           amenities?: string[] | null
+          awards?: string[] | null
           builder_name?: string
           certifications?: string | null
+          company_registration_number?: string | null
+          completed_projects_count?: number | null
           created_at?: string
+          customer_rating?: number | null
           description?: string | null
           email?: string | null
+          established_year?: number | null
           id?: string
           images?: string[] | null
+          key_people?: Json | null
           locations?: string[] | null
+          logo?: string | null
           number_of_projects?: number | null
+          office_addresses?: Json | null
+          ongoing_projects_count?: number | null
+          operating_cities?: string[] | null
           phone?: string
           price_range_max?: number | null
           price_range_min?: number | null
           rera_number?: string | null
+          social_links?: Json | null
+          specializations?: string[] | null
           tagline?: string | null
+          total_land_developed_sqft?: number | null
+          total_reviews?: number | null
+          total_units_delivered?: number | null
           type?: string
           unit_types?: string[] | null
+          upcoming_projects_count?: number | null
           updated_at?: string
           user_id?: string | null
           videos?: string[] | null
+          website?: string | null
           whatsapp?: string | null
           years_of_experience?: number | null
         }
