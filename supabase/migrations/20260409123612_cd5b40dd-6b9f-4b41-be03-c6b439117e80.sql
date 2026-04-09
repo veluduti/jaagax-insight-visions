@@ -1,0 +1,21 @@
+
+ALTER TABLE public.builder_profiles
+ADD COLUMN IF NOT EXISTS logo text,
+ADD COLUMN IF NOT EXISTS established_year integer,
+ADD COLUMN IF NOT EXISTS website text,
+ADD COLUMN IF NOT EXISTS social_links jsonb DEFAULT '{}'::jsonb,
+ADD COLUMN IF NOT EXISTS awards text[] DEFAULT '{}'::text[],
+ADD COLUMN IF NOT EXISTS operating_cities text[] DEFAULT '{}'::text[],
+ADD COLUMN IF NOT EXISTS completed_projects_count integer DEFAULT 0,
+ADD COLUMN IF NOT EXISTS ongoing_projects_count integer DEFAULT 0,
+ADD COLUMN IF NOT EXISTS upcoming_projects_count integer DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_units_delivered integer DEFAULT 0,
+ADD COLUMN IF NOT EXISTS office_addresses jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS company_registration_number text,
+ADD COLUMN IF NOT EXISTS total_land_developed_sqft numeric DEFAULT 0,
+ADD COLUMN IF NOT EXISTS customer_rating numeric DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_reviews integer DEFAULT 0,
+ADD COLUMN IF NOT EXISTS specializations text[] DEFAULT '{}'::text[],
+ADD COLUMN IF NOT EXISTS key_people jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS about_mission text,
+ADD COLUMN IF NOT EXISTS about_vision text;
