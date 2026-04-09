@@ -449,7 +449,7 @@ const PropertyDetail = () => {
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}
-            <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} />
+            <NearbyPOI city={property.city} lat={property.lat} lng={property.lng} locality={property.locality} />
 
             {/* Similar Properties */}
             <SimilarProperties 
