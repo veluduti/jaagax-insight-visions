@@ -432,7 +432,13 @@ const PropertyDetail = () => {
               transition={{ delay: 0.15 }}
               className="glass-panel rounded-xl p-6"
             >
-              <PropertyTabs description={property.description || "A premium property in a prime location with modern amenities and excellent connectivity."} />
+              <PropertyTabs 
+                description={property.description || "A premium property in a prime location with modern amenities and excellent connectivity."} 
+                price={property.price}
+                area={property.area}
+                locality={property.locality}
+                city={property.city}
+              />
             </motion.div>
 
             {/* Property Information */}
