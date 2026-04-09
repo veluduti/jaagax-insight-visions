@@ -132,6 +132,81 @@ export type Database = {
           },
         ]
       }
+      builder_profiles: {
+        Row: {
+          amenities: string[] | null
+          builder_name: string
+          certifications: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          images: string[] | null
+          locations: string[] | null
+          number_of_projects: number | null
+          phone: string
+          price_range_max: number | null
+          price_range_min: number | null
+          rera_number: string | null
+          tagline: string | null
+          type: string
+          unit_types: string[] | null
+          updated_at: string
+          user_id: string | null
+          videos: string[] | null
+          whatsapp: string | null
+          years_of_experience: number | null
+        }
+        Insert: {
+          amenities?: string[] | null
+          builder_name: string
+          certifications?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          images?: string[] | null
+          locations?: string[] | null
+          number_of_projects?: number | null
+          phone: string
+          price_range_max?: number | null
+          price_range_min?: number | null
+          rera_number?: string | null
+          tagline?: string | null
+          type?: string
+          unit_types?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+          videos?: string[] | null
+          whatsapp?: string | null
+          years_of_experience?: number | null
+        }
+        Update: {
+          amenities?: string[] | null
+          builder_name?: string
+          certifications?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          images?: string[] | null
+          locations?: string[] | null
+          number_of_projects?: number | null
+          phone?: string
+          price_range_max?: number | null
+          price_range_min?: number | null
+          rera_number?: string | null
+          tagline?: string | null
+          type?: string
+          unit_types?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+          videos?: string[] | null
+          whatsapp?: string | null
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
       hotel_bookings: {
         Row: {
           booking_type: string | null

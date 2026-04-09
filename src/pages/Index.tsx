@@ -16,6 +16,7 @@ import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
 import SneakPeekListings from "@/components/home/SneakPeekListings";
+import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
@@ -39,6 +40,7 @@ const Index = () => {
       {activeTab === "properties" && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
           <AISpotlight />

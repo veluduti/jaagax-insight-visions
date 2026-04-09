@@ -61,6 +61,8 @@ import Promotions from "./pages/Promotions";
 import PropertyReels from "./pages/PropertyReels";
 import InnovationHub from "./pages/InnovationHub";
 import HotelManagerDashboard from "./pages/HotelManagerDashboard";
+import AddBuilderProfile from "./pages/AddBuilderProfile";
+import BuilderProfileDetail from "./pages/BuilderProfileDetail";
 import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
@@ -108,6 +110,8 @@ const App = () => (
           <Route path="/hotels/:id" element={<HotelDetail />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/reels" element={<PropertyReels />} />
+          <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
+          <Route path="/builder-profile/:id" element={<BuilderProfileDetail />} />
           <Route path="/innovation" element={<InnovationHub />} />
           
           {/* AI Advisor Routes */}

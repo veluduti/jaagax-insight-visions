@@ -349,6 +349,18 @@ export default function BuilderDashboard() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card 
               className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => navigate("/add-builder-profile")}
+            >
+              <CardContent className="p-6 text-center">
+                <Building2 className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Add Builder Profile</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
               onClick={() => setReraModalOpen(true)}
             >
               <CardContent className="p-6 text-center">
