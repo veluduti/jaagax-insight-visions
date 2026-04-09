@@ -150,21 +150,21 @@ const AddBuilderProfileForm = () => {
   return (
     <div className="max-w-3xl mx-auto py-xl px-md">
       {/* Progress Bar */}
-      <div className="flex items-center justify-between mb-xl">
+      <div className="flex items-center justify-between mb-lg sm:mb-xl">
         {STEPS.map((s, i) => {
           const Icon = s.icon;
           const isActive = i === step;
           const isDone = i < step;
           return (
             <div key={s.label} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isDone ? "bg-primary text-primary-foreground" : isActive ? "bg-primary/20 text-primary ring-2 ring-primary" : "bg-muted text-muted-foreground"}`}>
-                  {isDone ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+              <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${isDone ? "bg-primary text-primary-foreground" : isActive ? "bg-primary/20 text-primary ring-2 ring-primary" : "bg-muted text-muted-foreground"}`}>
+                  {isDone ? <Check className="h-4 w-4 sm:h-5 sm:w-5" /> : <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </div>
-                <span className={`text-xs font-medium hidden sm:block ${isActive ? "text-primary" : "text-muted-foreground"}`}>{s.label}</span>
+                <span className={`text-[10px] sm:text-xs font-medium text-center leading-tight ${isActive ? "text-primary" : "text-muted-foreground"}`}>{s.label}</span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 transition-all ${i < step ? "bg-primary" : "bg-muted"}`} />
+                <div className={`flex-1 h-0.5 mx-1 sm:mx-2 transition-all ${i < step ? "bg-primary" : "bg-muted"}`} />
               )}
             </div>
           );
