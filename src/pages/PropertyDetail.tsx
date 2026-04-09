@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Share2, Heart, Phone, MessageCircle, MapPin, 
   Bed, Bath, Square, Calendar, Download, ArrowLeft,
-  CheckCircle2, TrendingUp, Building2, Hash, Brain
+  CheckCircle2, TrendingUp, Building2, Hash, Brain, Globe
 } from "lucide-react";
 import { toast } from "sonner";
 import PropertyImageCarousel from "@/components/property/PropertyImageCarousel";
