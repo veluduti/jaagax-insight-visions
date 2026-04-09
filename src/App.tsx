@@ -61,6 +61,8 @@ import Promotions from "./pages/Promotions";
 import PropertyReels from "./pages/PropertyReels";
 import InnovationHub from "./pages/InnovationHub";
 import HotelManagerDashboard from "./pages/HotelManagerDashboard";
+import AddBuilderProfile from "./pages/AddBuilderProfile";
+import BuilderProfileDetail from "./pages/BuilderProfileDetail";
 import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
