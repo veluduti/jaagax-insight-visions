@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Phone, MessageCircle, X, Calendar, Mail, Globe, Shield, Star, MapPin, Award, Sparkles, Building2, ChevronUp, Play, Crown, Diamond, Eye, Target, Briefcase, Users, User, ChevronRight, ChevronLeft, ChevronDown, TrendingUp, Layers, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, X, Calendar, Mail, Globe, Shield, Star, MapPin, Award, Sparkles, Building2, ChevronUp, Play, Crown, Diamond, Eye, Target, Briefcase, Users, User, ChevronRight, ChevronLeft, ChevronDown, TrendingUp, Layers, CheckCircle2, Home, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   builder: any;
@@ -26,9 +27,32 @@ const formatPrice = (val: number | null) => {
   return `₹${val.toLocaleString("en-IN")}`;
 };
 
+const PROPERTY_TYPES = [
+  { label: "All", value: "all", icon: "🏠" },
+  { label: "1 BHK", value: "1", icon: "🛏️" },
+  { label: "2 BHK", value: "2", icon: "🛏️" },
+  { label: "3 BHK", value: "3", icon: "🛏️" },
+  { label: "4 BHK", value: "4", icon: "🛏️" },
+  { label: "5+ BHK", value: "5", icon: "🛏️" },
+  { label: "Villa", value: "Villa", icon: "🏡" },
+  { label: "Duplex", value: "Duplex", icon: "🏘️" },
+  { label: "Penthouse", value: "Penthouse", icon: "🏙️" },
+  { label: "Plot", value: "Plot", icon: "📐" },
+];
+
+const BUDGET_RANGES = [
+  { label: "Any Budget", min: 0, max: 0 },
+  { label: "Under ₹50L", min: 0, max: 5000000 },
+  { label: "₹50L – ₹1Cr", min: 5000000, max: 10000000 },
+  { label: "₹1Cr – ₹2Cr", min: 10000000, max: 20000000 },
+  { label: "₹2Cr – ₹5Cr", min: 20000000, max: 50000000 },
+  { label: "₹5Cr+", min: 50000000, max: 0 },
+];
+
 const SECTIONS = [
   { id: "about", label: "About" },
   { id: "gallery", label: "Gallery" },
+  { id: "properties", label: "Properties" },
   { id: "projects", label: "Projects" },
   { id: "amenities", label: "Amenities" },
   { id: "team", label: "Leadership" },
@@ -46,6 +70,13 @@ const LuxuryMicrosite = ({ builder }: Props) => {
   const [projects, setProjects] = useState<any[]>([]);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
+  // Property filter state
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedBudget, setSelectedBudget] = useState(0);
+  const [locationFilter, setLocationFilter] = useState("");
+  const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
+  const [propertiesLoading, setPropertiesLoading] = useState(false);
+
   useEffect(() => {
     const fetchProjects = async () => {
       const { data } = await supabase.from("projects").select("*").ilike("builder_name", `%${builder.builder_name}%`).limit(20);
@@ -53,6 +84,57 @@ const LuxuryMicrosite = ({ builder }: Props) => {
     };
     if (builder.builder_name) fetchProjects();
   }, [builder.builder_name]);
+
+  // Fetch properties based on filters
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setPropertiesLoading(true);
+      try {
+        let query = (supabase.from("properties" as any).select("*") as any)
+          .eq("verified", true)
+          .gt("price", 0);
+
+        // Filter by builder
+        if (builder.id) {
+          query = query.eq("builder_id", builder.id);
+        }
+
+        // Filter by type (BHK or property type)
+        const typeVal = selectedType;
+        if (typeVal !== "all") {
+          const bhkNum = parseInt(typeVal);
+          if (!isNaN(bhkNum)) {
+            if (bhkNum >= 5) {
+              query = query.gte("bhk", 5);
+            } else {
+              query = query.eq("bhk", bhkNum);
+            }
+          } else {
+            query = query.ilike("type", `%${typeVal}%`);
+          }
+        }
+
+        // Filter by budget
+        const budget = BUDGET_RANGES[selectedBudget];
+        if (budget.min > 0) query = query.gte("price", budget.min);
+        if (budget.max > 0) query = query.lte("price", budget.max);
+
+        // Filter by location
+        if (locationFilter.trim()) {
+          query = query.or(`city.ilike.%${locationFilter.trim()}%,locality.ilike.%${locationFilter.trim()}%`);
+        }
+
+        const { data } = await query.order("price", { ascending: true }).limit(12);
+        setFilteredProperties((data as any) || []);
+      } catch (e) {
+        console.error("Error fetching properties:", e);
+        setFilteredProperties([]);
+      } finally {
+        setPropertiesLoading(false);
+      }
+    };
+    fetchProperties();
+  }, [selectedType, selectedBudget, locationFilter, builder.id]);
 
   const handleScroll = useCallback(() => {
     setShowScrollTop(window.scrollY > 600);
@@ -133,9 +215,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
 
         <div className="relative z-10 w-full max-w-[1400px] mx-auto px-5 md:px-10 pb-10 pt-32">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-8 items-end">
-            {/* Left: Identity */}
             <div className="space-y-5">
-              {/* Avatar + Badge row */}
               <div className="flex items-center gap-4">
                 {builder.logo && (
                   <div className="relative">
@@ -159,15 +239,10 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                   </div>
                 </div>
               </div>
-
-              <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.05]">
-                {builder.builder_name}
-              </h1>
+              <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.05]">{builder.builder_name}</h1>
               {builder.tagline && (
                 <p className="text-lg text-white/50 max-w-lg font-light italic leading-relaxed">"{builder.tagline}"</p>
               )}
-
-              {/* Location pills + Rating */}
               <div className="flex items-center gap-3 flex-wrap">
                 {builder.customer_rating > 0 && (
                   <span className="flex items-center gap-2 bg-[#d4af37]/10 backdrop-blur-sm px-4 py-2 rounded-full border border-[#d4af37]/20">
@@ -183,7 +258,6 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                   </span>
                 ))}
               </div>
-
               <div className="flex gap-3 pt-1">
                 <Button size="lg" onClick={() => scrollToSection("projects")} className="rounded-full px-8 bg-white text-[#1a1a0e] hover:bg-white/90 font-semibold gap-2 shadow-[0_4px_30px_rgba(255,255,255,0.15)] hover:shadow-[0_6px_40px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all">
                   <Building2 className="h-4 w-4" /> View Projects
@@ -193,8 +267,6 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                 </Button>
               </div>
             </div>
-
-            {/* Right: Floating stats card */}
             <div className="hidden lg:block">
               <div className="bg-white/[0.08] backdrop-blur-2xl rounded-2xl border border-white/[0.12] p-5 space-y-2.5 shadow-[0_8px_50px_rgba(0,0,0,0.4),0_0_60px_rgba(212,175,55,0.05)] hover:shadow-[0_12px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(212,175,55,0.08)] transition-shadow duration-500">
                 <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d4af37]/70 mb-3">Builder Highlights</h3>
@@ -212,8 +284,6 @@ const LuxuryMicrosite = ({ builder }: Props) => {
               </div>
             </div>
           </div>
-
-          {/* Scroll down indicator */}
           <div className="flex justify-center mt-8 animate-bounce">
             <button onClick={() => scrollToSection("about")} className="flex flex-col items-center gap-1 text-white/30 hover:text-white/50 transition-colors">
               <span className="text-[10px] uppercase tracking-[0.2em] font-medium">Explore</span>
@@ -248,10 +318,9 @@ const LuxuryMicrosite = ({ builder }: Props) => {
       {/* ═══ SPLIT LAYOUT ═══ */}
       <div className="max-w-[1400px] mx-auto relative">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-0">
-          {/* Left: Scrollable sections */}
-          <div className="px-5 md:px-8 py-10 space-y-12">
+          <div className="px-5 md:px-8 py-10 space-y-10">
 
-            {/* Mobile stats (hidden on desktop) */}
+            {/* Mobile stats */}
             <div className="lg:hidden grid grid-cols-2 gap-2.5">
               {heroStats.map((stat) => (
                 <div key={stat.label} className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-amber-100/50 shadow-sm">
@@ -269,22 +338,22 @@ const LuxuryMicrosite = ({ builder }: Props) => {
             {/* About */}
             <section ref={(el) => (sectionRefs.current["about"] = el)}>
               <SectionHeader title="About" icon={<Briefcase className="h-4 w-4" />} />
-              <div className="space-y-4 mt-5">
+              <div className="space-y-4 mt-4">
                 {builder.description && (
-                  <div className="p-6 rounded-2xl bg-white border border-amber-100/50 shadow-[0_2px_20px_rgba(180,160,100,0.06)]">
+                  <div className="p-5 rounded-2xl bg-white border border-amber-100/50 shadow-[0_2px_20px_rgba(180,160,100,0.06)]">
                     <p className="text-[#4a4a3a] leading-relaxed text-sm">{builder.description}</p>
                   </div>
                 )}
                 {(builder.about_mission || builder.about_vision) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {builder.about_mission && (
-                      <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/80 to-white border border-amber-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 to-white border border-amber-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <h3 className="font-semibold flex items-center gap-2 mb-2 text-sm text-[#5a4a20]"><Target className="h-4 w-4 text-[#d4af37]" /> Our Mission</h3>
                         <p className="text-sm text-[#6a6a5a]">{builder.about_mission}</p>
                       </div>
                     )}
                     {builder.about_vision && (
-                      <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/50 to-white border border-emerald-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/50 to-white border border-emerald-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <h3 className="font-semibold flex items-center gap-2 mb-2 text-sm text-[#2a5a24]"><Eye className="h-4 w-4 text-emerald-600" /> Our Vision</h3>
                         <p className="text-sm text-[#6a6a5a]">{builder.about_vision}</p>
                       </div>
@@ -301,7 +370,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                 {builder.awards?.length > 0 && (
                   <div className="space-y-2">
                     {builder.awards.map((a: string, i: number) => (
-                      <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/60 to-white border border-amber-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-amber-50/60 to-white border border-amber-100/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#d4af37] to-amber-600 flex items-center justify-center flex-shrink-0 shadow-[0_2px_10px_rgba(212,175,55,0.3)]">
                           <Award className="h-4 w-4 text-white" />
                         </div>
@@ -313,44 +382,145 @@ const LuxuryMicrosite = ({ builder }: Props) => {
               </div>
             </section>
 
-            {/* Gallery */}
-            {allImages.length > 0 && (
+            {/* Gallery & Media - tightened spacing */}
+            {(allImages.length > 0 || builder.videos?.length > 0) && (
               <section ref={(el) => (sectionRefs.current["gallery"] = el)}>
                 <SectionHeader title="Gallery & Media" icon={<Play className="h-4 w-4" />} />
-                <div className="mt-5 grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {allImages.map((img: string, i: number) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "relative overflow-hidden cursor-pointer group rounded-2xl border border-amber-100/30 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300",
-                        i === 0 ? "col-span-2 row-span-2 aspect-[4/3]" : "aspect-square"
-                      )}
-                      onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="mt-4 space-y-3">
+                  {allImages.length > 0 && (
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-1.5">
+                      {allImages.map((img: string, i: number) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "relative overflow-hidden cursor-pointer group rounded-xl border border-amber-100/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300",
+                            i === 0 ? "col-span-2 row-span-2 aspect-[4/3]" : "aspect-square"
+                          )}
+                          onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  {builder.videos?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {builder.videos.map((v: string, i: number) => (
+                        <Button key={i} variant="outline" size="sm" className="rounded-full text-xs border-amber-200/50 text-[#8a6a20] hover:bg-amber-50 hover:scale-105 transition-all" onClick={() => window.open(v, "_blank")}>
+                          <Play className="h-3 w-3 mr-1" /> Video {i + 1}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {builder.videos?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {builder.videos.map((v: string, i: number) => (
-                      <Button key={i} variant="outline" size="sm" className="rounded-full text-xs border-amber-200/50 text-[#8a6a20] hover:bg-amber-50 hover:scale-105 transition-all" onClick={() => window.open(v, "_blank")}>
-                        <Play className="h-3 w-3 mr-1" /> Video {i + 1}
-                      </Button>
-                    ))}
-                  </div>
-                )}
               </section>
             )}
+
+            {/* ═══ PROPERTIES FILTER SECTION ═══ */}
+            <section ref={(el) => (sectionRefs.current["properties"] = el)}>
+              <SectionHeader title="Find Properties" icon={<Home className="h-4 w-4" />} />
+              <div className="mt-4 space-y-4">
+                {/* Type chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  {PROPERTY_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => setSelectedType(t.value)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium border transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]",
+                        selectedType === t.value
+                          ? "bg-gradient-to-r from-[#b8982e] to-[#d4af37] text-white border-[#d4af37]/50 shadow-[0_2px_12px_rgba(212,175,55,0.3)]"
+                          : "bg-white text-[#6a6a5a] border-amber-100/50 hover:border-[#d4af37]/30 hover:text-[#8a6a20]"
+                      )}
+                    >
+                      <span className="text-sm">{t.icon}</span> {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Location + Budget row */}
+                <div className="flex gap-2 flex-wrap">
+                  <div className="relative flex-1 min-w-[180px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#8a8a7a]" />
+                    <Input
+                      placeholder="City or locality..."
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      className="h-10 pl-9 rounded-xl border-amber-100/60 bg-white text-sm focus:border-[#d4af37]/50 focus:ring-[#d4af37]/20"
+                    />
+                  </div>
+                  <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
+                    {BUDGET_RANGES.map((b, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedBudget(i)}
+                        className={cn(
+                          "px-3 py-2 rounded-xl text-[11px] font-medium border whitespace-nowrap transition-all",
+                          selectedBudget === i
+                            ? "bg-[#d4af37]/10 text-[#8a6a20] border-[#d4af37]/40"
+                            : "bg-white text-[#8a8a7a] border-amber-100/40 hover:border-[#d4af37]/20"
+                        )}
+                      >
+                        {b.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Results */}
+                {propertiesLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-6 h-6 border-2 border-[#d4af37]/30 border-t-[#d4af37] rounded-full animate-spin" />
+                  </div>
+                ) : filteredProperties.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {filteredProperties.map((prop: any) => (
+                      <div
+                        key={prop.id}
+                        onClick={() => navigate(`/property/${prop.id}`)}
+                        className="flex gap-3 p-3 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/30 hover:shadow-[0_4px_20px_rgba(212,175,55,0.08)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group"
+                      >
+                        <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-amber-50 border border-amber-100/30">
+                          {Array.isArray(prop.images) && prop.images[0] ? (
+                            <img src={prop.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center"><Home className="h-6 w-6 text-amber-300" /></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm text-[#2a2a1a] truncate group-hover:text-[#8a6a20] transition-colors">{prop.title}</h4>
+                          <p className="text-[11px] text-[#8a8a7a] mt-0.5 flex items-center gap-1 truncate"><MapPin className="h-3 w-3 flex-shrink-0" />{prop.locality}, {prop.city}</p>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span className="text-xs font-bold text-[#8a6a20]">{formatPrice(prop.price)}</span>
+                            {prop.bhk && <Badge className="text-[10px] h-5 bg-amber-50 text-[#8a6a20] border border-amber-200/30">{prop.bhk} BHK</Badge>}
+                            {prop.type && prop.type !== "Apartment" && (
+                              <Badge className="text-[10px] h-5 bg-violet-50 text-violet-700 border border-violet-200/30">{prop.type}</Badge>
+                            )}
+                            {prop.area_sqft && <span className="text-[10px] text-[#8a8a7a]">{prop.area_sqft} sqft</span>}
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-amber-300 group-hover:text-[#d4af37] transition-colors self-center flex-shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 text-center rounded-2xl bg-white border border-amber-100/40">
+                    <Home className="h-10 w-10 text-amber-200 mx-auto mb-3" />
+                    <p className="text-sm font-medium text-[#8a8a7a]">No properties found</p>
+                    <p className="text-xs text-[#aaa] mt-1">Try adjusting your filters</p>
+                  </div>
+                )}
+              </div>
+            </section>
 
             {/* Projects */}
             {projects.length > 0 && (
               <section ref={(el) => (sectionRefs.current["projects"] = el)}>
                 <SectionHeader title="Projects" icon={<Building2 className="h-4 w-4" />} />
-                <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {projects.map((p) => (
-                    <div key={p.id} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/30 hover:shadow-[0_4px_20px_rgba(212,175,55,0.08)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group" onClick={() => navigate(`/projects/${p.id}`)}>
+                    <div key={p.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/30 hover:shadow-[0_4px_20px_rgba(212,175,55,0.08)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group" onClick={() => navigate(`/projects/${p.id}`)}>
                       <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-amber-50 border border-amber-100/30">
                         {p.image || p.images?.[0] ? <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover" /> : <Building2 className="h-6 w-6 text-amber-300 m-auto mt-5" />}
                       </div>
@@ -373,7 +543,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
             {(builder.amenities?.length > 0 || builder.unit_types?.length > 0) && (
               <section ref={(el) => (sectionRefs.current["amenities"] = el)}>
                 <SectionHeader title="Amenities & Configurations" icon={<Sparkles className="h-4 w-4" />} />
-                <div className="mt-5 space-y-4">
+                <div className="mt-4 space-y-3">
                   {builder.unit_types?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {builder.unit_types.map((u: string) => (
@@ -382,13 +552,13 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                     </div>
                   )}
                   {builder.amenities?.length > 0 && (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                       {builder.amenities.map((a: string) => {
                         const AmenIcon = amenityIcons[a];
                         return (
-                          <div key={a} className="flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/25 hover:shadow-[0_4px_16px_rgba(212,175,55,0.06)] hover:-translate-y-0.5 transition-all duration-300 group text-center">
-                            <span className="text-2xl group-hover:scale-110 transition-transform">{AmenIcon ? <AmenIcon /> : "✦"}</span>
-                            <span className="text-[11px] text-[#6a6a5a] leading-tight font-medium">{a}</span>
+                          <div key={a} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/25 hover:shadow-[0_4px_16px_rgba(212,175,55,0.06)] hover:-translate-y-0.5 transition-all duration-300 group text-center">
+                            <span className="text-xl group-hover:scale-110 transition-transform">{AmenIcon ? <AmenIcon /> : "✦"}</span>
+                            <span className="text-[10px] text-[#6a6a5a] leading-tight font-medium">{a}</span>
                           </div>
                         );
                       })}
@@ -402,10 +572,10 @@ const LuxuryMicrosite = ({ builder }: Props) => {
             {people.length > 0 && (
               <section ref={(el) => (sectionRefs.current["team"] = el)}>
                 <SectionHeader title="Leadership" icon={<Users className="h-4 w-4" />} />
-                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {people.map((person: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/25 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d4af37]/20 to-amber-100/50 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-[#d4af37]/20">
+                    <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-amber-100/40 hover:border-[#d4af37]/25 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#d4af37]/20 to-amber-100/50 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-[#d4af37]/20">
                         {person.photo ? <img src={person.photo} alt="" className="w-full h-full object-cover" /> : <User className="h-5 w-5 text-[#d4af37]" />}
                       </div>
                       <div>
@@ -421,31 +591,31 @@ const LuxuryMicrosite = ({ builder }: Props) => {
             {/* Contact */}
             <section ref={(el) => (sectionRefs.current["contact"] = el)}>
               <SectionHeader title="Get in Touch" icon={<Phone className="h-4 w-4" />} />
-              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 rounded-2xl bg-white border border-amber-100/50 space-y-3 shadow-sm">
-                  <Button className="w-full h-12 rounded-xl bg-gradient-to-r from-[#b8982e] to-[#d4af37] text-white hover:from-[#a0841e] hover:to-[#c4a027] gap-2 font-semibold shadow-[0_2px_20px_rgba(212,175,55,0.2)] hover:shadow-[0_4px_30px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`tel:${builder.phone}`)}>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-5 rounded-2xl bg-white border border-amber-100/50 space-y-2.5 shadow-sm">
+                  <Button className="w-full h-11 rounded-xl bg-gradient-to-r from-[#b8982e] to-[#d4af37] text-white hover:from-[#a0841e] hover:to-[#c4a027] gap-2 font-semibold shadow-[0_2px_20px_rgba(212,175,55,0.2)] hover:shadow-[0_4px_30px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`tel:${builder.phone}`)}>
                     <Phone className="h-4 w-4" /> Call Now
                   </Button>
                   {builder.whatsapp && (
-                    <Button variant="outline" className="w-full h-12 rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-50 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`https://wa.me/${builder.whatsapp.replace(/[^0-9]/g, "")}`)}>
+                    <Button variant="outline" className="w-full h-11 rounded-xl border-emerald-200 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-50 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`https://wa.me/${builder.whatsapp.replace(/[^0-9]/g, "")}`)}>
                       <MessageCircle className="h-4 w-4" /> WhatsApp
                     </Button>
                   )}
                   {builder.email && (
-                    <Button variant="outline" className="w-full h-12 rounded-xl border-amber-200/50 text-[#8a6a20] hover:bg-amber-50/50 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`mailto:${builder.email}`)}>
+                    <Button variant="outline" className="w-full h-11 rounded-xl border-amber-200/50 text-[#8a6a20] hover:bg-amber-50/50 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={() => window.open(`mailto:${builder.email}`)}>
                       <Mail className="h-4 w-4" /> Email
                     </Button>
                   )}
                 </div>
-                <div className="p-6 rounded-2xl bg-white border border-amber-100/50 space-y-3 shadow-sm">
+                <div className="p-5 rounded-2xl bg-white border border-amber-100/50 space-y-2.5 shadow-sm">
                   {builder.rera_number && (
-                    <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-700">
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-700">
                       <Shield className="h-4 w-4 flex-shrink-0" />
                       <div><p className="font-semibold">RERA Verified</p><p className="text-[10px] opacity-70 font-mono mt-0.5">{builder.rera_number}</p></div>
                     </div>
                   )}
                   {builder.certifications && (
-                    <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-100 text-xs text-[#8a6a20]">
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-100 text-xs text-[#8a6a20]">
                       <Award className="h-4 w-4 flex-shrink-0" /> {builder.certifications}
                     </div>
                   )}
@@ -463,12 +633,11 @@ const LuxuryMicrosite = ({ builder }: Props) => {
           {/* Right: Fixed floating action panel */}
           <div className="hidden lg:block relative">
             <div className="sticky top-[110px] mx-4 mr-6">
-              <div className="rounded-2xl bg-white/95 backdrop-blur-xl border border-amber-100/60 shadow-[0_8px_40px_rgba(180,160,100,0.12),0_0_60px_rgba(212,175,55,0.04)] p-5 space-y-3.5">
+              <div className="rounded-2xl bg-white/95 backdrop-blur-xl border border-amber-100/60 shadow-[0_8px_40px_rgba(180,160,100,0.12),0_0_60px_rgba(212,175,55,0.04)] p-5 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Crown className="h-4 w-4 text-[#d4af37]" />
                   <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#8a6a20]">Quick Actions</h3>
                 </div>
-
                 <Button className="w-full h-11 rounded-xl bg-gradient-to-r from-[#b8982e] to-[#d4af37] text-white hover:from-[#a0841e] hover:to-[#c4a027] gap-2 font-semibold shadow-[0_2px_20px_rgba(212,175,55,0.25)] hover:shadow-[0_4px_30px_rgba(212,175,55,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all text-sm" onClick={() => window.open(`tel:${builder.phone}`)}>
                   <Phone className="h-4 w-4" /> Call Builder
                 </Button>
@@ -480,7 +649,6 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                 <Button variant="outline" className="w-full h-10 rounded-xl border-amber-200/60 text-[#8a6a20] hover:bg-amber-50/50 gap-2 text-xs hover:scale-[1.02] active:scale-[0.98] transition-all">
                   <Calendar className="h-4 w-4" /> Schedule Visit
                 </Button>
-
                 <div className="pt-3 border-t border-amber-100/40 space-y-2">
                   {builder.rera_number && (
                     <div className="flex items-center gap-2 text-[11px] text-emerald-700 bg-emerald-50 rounded-lg p-2.5 border border-emerald-100/50">
