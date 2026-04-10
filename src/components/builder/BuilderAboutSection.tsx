@@ -1,99 +1,52 @@
 import { Badge } from "@/components/ui/badge";
 import { Shield, Award, Target, Eye, Briefcase } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Props {
   builder: any;
   tier?: string;
 }
 
-const tierCard = {
-  luxury: "bg-[#0f1510]/80 backdrop-blur-md border border-[#2a3a20]/40 rounded-2xl",
-  standard: "bg-white/80 dark:bg-[#141a12]/60 backdrop-blur-md border border-[#d4e0d0] dark:border-[#1e2e1a]/50 rounded-2xl",
-  budget: "bg-white dark:bg-slate-800/60 border border-blue-100 dark:border-blue-800/30 rounded-2xl",
-};
-
-const tierText = {
-  luxury: "text-[#c8b882]",
-  standard: "text-[#2a3a28] dark:text-[#d0daca]",
-  budget: "text-slate-800 dark:text-white",
-};
-
-const tierIcon = {
-  luxury: "text-[#c8b882]",
-  standard: "text-[#2a5a24] dark:text-emerald-400",
-  budget: "text-blue-600 dark:text-blue-400",
-};
-
-const tierMissionCard = {
-  luxury: "bg-[#1a2a14]/60 border border-[#2a3a20]/40 rounded-2xl",
-  standard: "bg-[#eaf2e8]/60 dark:bg-[#1a2a14]/40 border border-[#d4e0d0]/60 dark:border-[#2a3a20]/30 rounded-2xl",
-  budget: "bg-blue-50/60 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-2xl",
-};
-
-const tierAwardRow = {
-  luxury: "bg-[#c8b882]/5 border border-[#c8b882]/10 rounded-xl",
-  standard: "bg-amber-500/5 border border-amber-500/10 rounded-xl",
-  budget: "bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/20 rounded-xl",
-};
-
 const BuilderAboutSection = ({ builder, tier = "standard" }: Props) => {
-  const card = tierCard[tier as keyof typeof tierCard] || tierCard.standard;
-  const heading = tierText[tier as keyof typeof tierText] || tierText.standard;
-  const icon = tierIcon[tier as keyof typeof tierIcon] || tierIcon.standard;
-  const missionCard = tierMissionCard[tier as keyof typeof tierMissionCard] || tierMissionCard.standard;
-  const awardRow = tierAwardRow[tier as keyof typeof tierAwardRow] || tierAwardRow.standard;
-
   return (
     <div className="space-y-4">
-      {/* About */}
       {builder.description && (
-        <div className={cn("p-6", card)}>
-          <h2 className={cn("text-base font-semibold flex items-center gap-2 mb-3", heading)}>
-            <Briefcase className={cn("h-4 w-4", icon)} /> About {builder.builder_name}
+        <div className="p-6 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06]">
+          <h2 className="text-sm font-semibold flex items-center gap-2 mb-3 text-zinc-200">
+            <Briefcase className="h-4 w-4 text-violet-400" /> About {builder.builder_name}
           </h2>
-          <p className="text-muted-foreground leading-relaxed text-sm">{builder.description}</p>
+          <p className="text-zinc-400 leading-relaxed text-sm">{builder.description}</p>
         </div>
       )}
 
-      {/* Mission & Vision */}
       {(builder.about_mission || builder.about_vision) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {builder.about_mission && (
-            <div className={cn("p-5", missionCard)}>
-              <h3 className={cn("font-semibold flex items-center gap-2 mb-2 text-sm", heading)}>
-                <Target className={cn("h-4 w-4", icon)} /> Our Mission
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-violet-500/[0.04] to-transparent border border-violet-500/[0.08]">
+              <h3 className="font-semibold flex items-center gap-2 mb-2 text-sm text-zinc-200">
+                <Target className="h-4 w-4 text-violet-400" /> Our Mission
               </h3>
-              <p className="text-sm text-muted-foreground">{builder.about_mission}</p>
+              <p className="text-sm text-zinc-400">{builder.about_mission}</p>
             </div>
           )}
           {builder.about_vision && (
-            <div className={cn("p-5", missionCard)}>
-              <h3 className={cn("font-semibold flex items-center gap-2 mb-2 text-sm", heading)}>
-                <Eye className={cn("h-4 w-4", icon)} /> Our Vision
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-500/[0.04] to-transparent border border-blue-500/[0.08]">
+              <h3 className="font-semibold flex items-center gap-2 mb-2 text-sm text-zinc-200">
+                <Eye className="h-4 w-4 text-blue-400" /> Our Vision
               </h3>
-              <p className="text-sm text-muted-foreground">{builder.about_vision}</p>
+              <p className="text-sm text-zinc-400">{builder.about_vision}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Specializations */}
       {builder.specializations?.length > 0 && (
-        <div className={cn("p-6", card)}>
-          <h3 className={cn("font-semibold flex items-center gap-2 mb-3 text-sm", heading)}>
-            <Shield className={cn("h-4 w-4", icon)} /> Specializations
+        <div className="p-6 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06]">
+          <h3 className="font-semibold flex items-center gap-2 mb-3 text-sm text-zinc-200">
+            <Shield className="h-4 w-4 text-violet-400" /> Specializations
           </h3>
           <div className="flex flex-wrap gap-2">
             {builder.specializations.map((s: string) => (
-              <Badge
-                key={s}
-                variant="secondary"
-                className={cn(
-                  "text-xs rounded-lg",
-                  tier === "luxury" ? "bg-[#1a2a14] text-[#8a9a78] border border-[#2a3a20]/40" : ""
-                )}
-              >
+              <Badge key={s} className="text-xs rounded-full bg-violet-500/[0.08] text-violet-300 border border-violet-500/[0.15] hover:bg-violet-500/[0.12]">
                 {s}
               </Badge>
             ))}
@@ -101,54 +54,46 @@ const BuilderAboutSection = ({ builder, tier = "standard" }: Props) => {
         </div>
       )}
 
-      {/* Awards */}
       {builder.awards?.length > 0 && (
-        <div className={cn("p-6", card)}>
-          <h3 className={cn("font-semibold flex items-center gap-2 mb-3 text-sm", heading)}>
-            <Award className="h-4 w-4 text-amber-500" /> Awards & Recognition
+        <div className="p-6 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06]">
+          <h3 className="font-semibold flex items-center gap-2 mb-3 text-sm text-zinc-200">
+            <Award className="h-4 w-4 text-amber-400" /> Awards & Recognition
           </h3>
           <div className="space-y-2">
             {builder.awards.map((a: string, i: number) => (
-              <div key={i} className={cn("flex items-center gap-3 p-3", awardRow)}>
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                  <Award className="h-4 w-4 text-amber-500" />
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/[0.08]">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 opacity-80 flex items-center justify-center flex-shrink-0">
+                  <Award className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-sm">{a}</span>
+                <span className="text-sm text-zinc-300">{a}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Legal */}
       {(builder.certifications || builder.rera_number || builder.company_registration_number) && (
-        <div className={cn("p-6", card)}>
-          <h3 className={cn("font-semibold flex items-center gap-2 mb-3 text-sm", heading)}>
-            <Shield className="h-4 w-4 text-emerald-500" /> Legal & Compliance
+        <div className="p-6 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06]">
+          <h3 className="font-semibold flex items-center gap-2 mb-3 text-sm text-zinc-200">
+            <Shield className="h-4 w-4 text-emerald-400" /> Legal & Compliance
           </h3>
           <div className="space-y-2 text-sm">
             {builder.rera_number && (
-              <div className={cn("flex items-center justify-between p-3 rounded-xl",
-                tier === "luxury" ? "bg-[#0c0f0a]/60 border border-[#2a3a20]/30" : "bg-muted/50"
-              )}>
-                <span className="text-muted-foreground">RERA Number</span>
-                <span className="font-mono font-medium">{builder.rera_number}</span>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/[0.08]">
+                <span className="text-zinc-500">RERA Number</span>
+                <span className="font-mono font-medium text-emerald-400">{builder.rera_number}</span>
               </div>
             )}
             {builder.company_registration_number && (
-              <div className={cn("flex items-center justify-between p-3 rounded-xl",
-                tier === "luxury" ? "bg-[#0c0f0a]/60 border border-[#2a3a20]/30" : "bg-muted/50"
-              )}>
-                <span className="text-muted-foreground">Company Registration</span>
-                <span className="font-mono font-medium text-xs">{builder.company_registration_number}</span>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <span className="text-zinc-500">Company Registration</span>
+                <span className="font-mono font-medium text-xs text-zinc-300">{builder.company_registration_number}</span>
               </div>
             )}
             {builder.certifications && (
-              <div className={cn("flex items-center justify-between p-3 rounded-xl",
-                tier === "luxury" ? "bg-[#0c0f0a]/60 border border-[#2a3a20]/30" : "bg-muted/50"
-              )}>
-                <span className="text-muted-foreground">Certifications</span>
-                <span className="font-medium">{builder.certifications}</span>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <span className="text-zinc-500">Certifications</span>
+                <span className="font-medium text-zinc-300">{builder.certifications}</span>
               </div>
             )}
           </div>
