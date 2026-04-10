@@ -1,5 +1,4 @@
 import { Building2, Calendar, TrendingUp, Users, Star, MapPin, Award, Layers } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Props {
   builder: any;
