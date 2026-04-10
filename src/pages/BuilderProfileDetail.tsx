@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Loader2 } from "lucide-react";
+import { Loader2, PanelRightOpen, PanelRightClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BuilderHeroSection from "@/components/builder/BuilderHeroSection";
 import BuilderStatsGrid from "@/components/builder/BuilderStatsGrid";
@@ -19,6 +19,7 @@ const BuilderProfileDetail = () => {
   const navigate = useNavigate();
   const [builder, setBuilder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showPanel, setShowPanel] = useState(true);
 
   useEffect(() => {
     const fetchBuilder = async () => {
@@ -63,9 +64,26 @@ const BuilderProfileDetail = () => {
           <BuilderStatsGrid builder={builder} />
         </div>
 
+        {/* Toggle Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPanel(!showPanel)}
+            className="gap-2 text-xs"
+          >
+            {showPanel ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+            {showPanel ? "Hide Contact Panel" : "Show Contact Panel"}
+          </Button>
+        </div>
+
         {/* Main Layout: Content + Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
+        <div className="flex gap-6">
+          {/* Main content — expands to full when panel is hidden */}
+          <div
+            className="space-y-4 transition-all duration-500 ease-in-out"
+            style={{ flex: showPanel ? '0 0 66.666%' : '1 1 100%', maxWidth: showPanel ? '66.666%' : '100%' }}
+          >
             <BuilderAboutSection builder={builder} />
             <BuilderAmenitiesSection amenities={builder.amenities} unitTypes={builder.unit_types} />
             <BuilderTeamSection keyPeople={builder.key_people} />
@@ -73,7 +91,15 @@ const BuilderProfileDetail = () => {
             <BuilderProjectsSection builderName={builder.builder_name} />
           </div>
 
-          <div>
+          {/* Sidebar with smooth slide animation */}
+          <div
+            className="hidden lg:block overflow-hidden transition-all duration-500 ease-in-out"
+            style={{
+              flex: showPanel ? '0 0 33.333%' : '0 0 0%',
+              maxWidth: showPanel ? '33.333%' : '0%',
+              opacity: showPanel ? 1 : 0,
+            }}
+          >
             <div className="sticky top-20">
               <BuilderContactSidebar builder={builder} />
             </div>
