@@ -51,7 +51,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [projects, setProjects] = useState<any[]>([]);
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
     const fetch = async () => {
