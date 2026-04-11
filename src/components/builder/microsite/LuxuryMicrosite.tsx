@@ -335,7 +335,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
       <div className="max-w-[1200px] mx-auto px-5 md:px-8">
 
         {/* ── ABOUT ── */}
-        <section ref={el => (sectionRefs.current["about"] = el)} className="py-20 lg:py-28">
+        <section ref={el => (sectionRefs.current["about"] = el)} className="py-10 lg:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div className="space-y-6">
               <SectionLabel text="About" />
@@ -394,7 +394,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
 
         {/* ── FEATURED PROJECTS ── */}
         {projects.length > 0 && (
-          <section ref={el => (sectionRefs.current["projects"] = el)} className="py-20 lg:py-28">
+          <section ref={el => (sectionRefs.current["projects"] = el)} className="py-10 lg:py-14">
             <div className="flex items-end justify-between mb-10">
               <div>
                 <SectionLabel text="Projects" />
@@ -453,7 +453,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
         <Divider />
 
         {/* ── FIND PROPERTIES ── */}
-        <section ref={el => (sectionRefs.current["properties"] = el)} className="py-20 lg:py-28">
+        <section ref={el => (sectionRefs.current["properties"] = el)} className="py-10 lg:py-14">
           <SectionLabel text="Properties" />
           <h2 className="text-3xl md:text-4xl font-bold text-[#0B1220] mt-3 mb-8 tracking-tight">Find Your Home</h2>
 
@@ -551,7 +551,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
 
         {/* ── GALLERY ── */}
         {allImages.length > 0 && (
-          <section ref={el => (sectionRefs.current["gallery"] = el)} className="py-20 lg:py-28">
+          <section ref={el => (sectionRefs.current["gallery"] = el)} className="py-10 lg:py-14">
             <SectionLabel text="Gallery" />
             <h2 className="text-3xl md:text-4xl font-bold text-[#0B1220] mt-3 mb-8 tracking-tight">Visual Tour</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -584,8 +584,8 @@ const LuxuryMicrosite = ({ builder }: Props) => {
         <Divider />
 
         {/* ── TRUST / CREDIBILITY ── */}
-        <section ref={el => (sectionRefs.current["trust"] = el)} className="py-20 lg:py-28">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+        <section ref={el => (sectionRefs.current["trust"] = el)} className="py-10 lg:py-14">
+          <div className="text-center max-w-2xl mx-auto mb-8">
             <SectionLabel text="Trust" center />
             <h2 className="text-3xl md:text-4xl font-bold text-[#0B1220] mt-3 tracking-tight">Why Choose Us</h2>
           </div>
@@ -623,7 +623,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
 
         {/* ── LOCATION ── */}
         {builder.operating_cities?.length > 0 && (
-          <section className="py-16 lg:py-20">
+          <section className="py-10 lg:py-12">
             <div className="bg-[#F6F7F9] rounded-2xl p-8 md:p-12 text-center">
               <SectionLabel text="Locations" center />
               <h2 className="text-2xl md:text-3xl font-bold text-[#0B1220] mt-3 mb-6 tracking-tight">Where We Build</h2>
@@ -642,7 +642,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
 
         {/* ── LEADERSHIP ── */}
         {people.length > 0 && (
-          <section className="py-20 lg:py-28">
+          <section className="py-10 lg:py-14">
             <SectionLabel text="Team" />
             <h2 className="text-3xl md:text-4xl font-bold text-[#0B1220] mt-3 mb-8 tracking-tight">Leadership</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -664,7 +664,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
         <Divider />
 
         {/* ── CONTACT / ENQUIRY ── */}
-        <section ref={el => (sectionRefs.current["contact"] = el)} className="py-20 lg:py-28">
+        <section ref={el => (sectionRefs.current["contact"] = el)} className="py-10 lg:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
               <SectionLabel text="Contact" />
