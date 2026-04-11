@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronRight, MapPin, Star } from "lucide-react";
+import { Building2, ChevronRight, MapPin, Star, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BuilderProfile {
@@ -16,6 +16,8 @@ interface BuilderProfile {
   locations: string[];
   number_of_projects: number | null;
   years_of_experience: number | null;
+  rating?: number;
+  verified?: boolean;
 }
 
 const formatPrice = (val: number | null) => {
@@ -44,18 +46,71 @@ const FeaturedBuilderProfiles = () => {
 
   if (builders.length === 0) return null;
 
+  const topBuilder = builders[0];
+  const restBuilders = builders.slice(1);
+
   return (
     <section className="py-xl px-md">
-      <div className="container mx-auto">
-        <div className="flex items-center justify-between mb-lg">
+      <div className="container mx-auto space-y-8">
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
           <h2 className="text-3xl font-bold">Featured Builders</h2>
           <Button variant="ghost" onClick={() => navigate("/builders")}>
-            View All <ChevronRight className="ml-1" />
+            View All <ChevronRight />
           </Button>
         </div>
 
-        <div className="flex gap-md overflow-x-auto pb-md snap-x">
-          {builders.map((b) => {
+        {/* 🔥 TOP BUILDER (HERO CARD) */}
+        {topBuilder && (
+          <div
+            onClick={() => navigate(`/builder-profile/${topBuilder.id}`)}
+            className="relative h-[320px] rounded-3xl overflow-hidden cursor-pointer group"
+          >
+            <img
+              src={topBuilder.images?.[0]}
+              className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+            />
+
+            {/* DARK OVERLAY */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+            {/* CONTENT */}
+            <div className="absolute bottom-6 left-6 right-6 text-white space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-amber-400 text-black">Top Builder</Badge>
+                <Badge className="bg-white/20">Premium</Badge>
+              </div>
+
+              <h3 className="text-2xl font-bold">{topBuilder.builder_name}</h3>
+
+              <p className="text-sm opacity-80 max-w-md">{topBuilder.tagline}</p>
+
+              <div className="flex items-center gap-4 text-sm mt-2">
+                <span className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-400" />
+                  {topBuilder.rating || 4.5}
+                </span>
+
+                {topBuilder.verified && (
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="h-4 w-4 text-green-400" />
+                    Verified
+                  </span>
+                )}
+
+                <span>{topBuilder.years_of_experience}+ yrs</span>
+              </div>
+
+              <div className="text-xl font-bold text-amber-300">
+                Starts at {formatPrice(topBuilder.price_range_min)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* OTHER BUILDERS */}
+        <div className="flex gap-md overflow-x-auto pb-md">
+          {restBuilders.map((b) => {
             const isLuxury = b.type === "luxury";
             const isStandard = b.type === "standard";
             const isBudget = b.type === "budget";
@@ -65,112 +120,64 @@ const FeaturedBuilderProfiles = () => {
                 key={b.id}
                 onClick={() => navigate(`/builder-profile/${b.id}`)}
                 className={`
-                  min-w-[300px] max-w-[340px] snap-start cursor-pointer overflow-hidden rounded-2xl transition-all duration-500 group
-                  
-                  ${isLuxury && "bg-black text-white border border-amber-500/30 hover:shadow-[0_0_40px_rgba(255,215,0,0.2)]"}
-                  ${isStandard && "bg-white hover:shadow-xl"}
-                  ${isBudget && "bg-emerald-50 hover:shadow-lg"}
+                  min-w-[300px] max-w-[340px] rounded-2xl overflow-hidden cursor-pointer group transition-all duration-500
+                  hover:scale-[1.04]
+
+                  ${isLuxury && "bg-black text-white border border-amber-500/30"}
+                  ${isStandard && "bg-white"}
+                  ${isBudget && "bg-emerald-50"}
                 `}
               >
                 {/* IMAGE */}
-                <div className="relative h-48 overflow-hidden">
-                  {b.images?.[0] ? (
-                    <img
-                      src={b.images[0]}
-                      alt={b.builder_name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <Building2 className="h-10 w-10 opacity-40" />
-                    </div>
-                  )}
-
-                  {/* OVERLAY */}
-                  <div
-                    className={`
-                    absolute inset-0 
-                    ${isLuxury ? "bg-gradient-to-t from-black/90 via-black/30" : ""}
-                    ${isStandard ? "bg-gradient-to-t from-black/60 via-transparent" : ""}
-                    ${isBudget ? "bg-gradient-to-t from-emerald-900/40 via-transparent" : ""}
-                  `}
+                <div className="relative h-44 overflow-hidden">
+                  <img
+                    src={b.images?.[0]}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                   />
 
-                  {/* TYPE BADGE */}
-                  <Badge
-                    className={`
-                    absolute top-3 right-3 uppercase text-xs
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
-                    ${isLuxury && "bg-amber-500 text-black"}
-                    ${isStandard && "bg-blue-500 text-white"}
-                    ${isBudget && "bg-emerald-500 text-white"}
-                  `}
-                  >
-                    {isLuxury ? "Premium" : b.type}
-                  </Badge>
+                  {/* BADGES */}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    {b.verified && <Badge className="bg-green-500 text-white text-xs">Verified</Badge>}
+                    {isLuxury && <Badge className="bg-amber-400 text-black text-xs">Premium</Badge>}
+                  </div>
 
                   {/* TITLE */}
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="font-bold text-lg">{b.builder_name}</h3>
-                    {b.tagline && <p className="text-xs opacity-80 line-clamp-1">{b.tagline}</p>}
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <h3 className="font-bold">{b.builder_name}</h3>
+                    <p className="text-xs opacity-80 line-clamp-1">{b.tagline}</p>
                   </div>
                 </div>
 
                 {/* DETAILS */}
-                <div
-                  className={`
-                  p-4 space-y-3
-
-                  ${isLuxury && "bg-white/5 backdrop-blur-md"}
-                  ${isStandard && ""}
-                  ${isBudget && ""}
-                `}
-                >
+                <div className="p-4 space-y-3">
                   {/* LOCATION */}
-                  {b.locations?.length > 0 && (
-                    <div className="flex items-center gap-1 text-sm opacity-80">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span>{b.locations[0]}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 text-sm opacity-70">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {b.locations?.[0]}
+                  </div>
 
                   {/* STATS */}
-                  <div className="flex justify-between text-xs opacity-80">
-                    {b.number_of_projects && (
-                      <span className="flex items-center gap-1">
-                        <Star className="h-3 w-3" />
-                        {b.number_of_projects} Projects
-                      </span>
-                    )}
-                    {b.years_of_experience && <span>{b.years_of_experience}+ yrs</span>}
+                  <div className="flex justify-between text-xs opacity-70">
+                    <span>{b.number_of_projects} Projects</span>
+                    <span>{b.years_of_experience}+ yrs</span>
                   </div>
 
                   {/* PRICE */}
-                  {b.price_range_min && (
-                    <div
-                      className={`
-                      text-lg font-bold
-
-                      ${isLuxury && "text-amber-400"}
-                      ${isStandard && "text-primary"}
-                      ${isBudget && "text-emerald-600"}
-                    `}
-                    >
-                      ₹ {formatPrice(b.price_range_min)}
-                    </div>
-                  )}
+                  <div
+                    className={`
+                    font-bold text-lg
+                    ${isLuxury && "text-amber-400"}
+                    ${isBudget && "text-emerald-600"}
+                  `}
+                  >
+                    From {formatPrice(b.price_range_min)}
+                  </div>
 
                   {/* BUTTON */}
-                  <Button
-                    className={`
-                      w-full mt-2 transition-all
-
-                      ${isLuxury && "bg-amber-500 text-black hover:bg-amber-400"}
-                      ${isStandard && ""}
-                      ${isBudget && "bg-emerald-500 hover:bg-emerald-600 text-white"}
-                    `}
-                  >
-                    Explore <ChevronRight className="ml-1 h-4 w-4" />
+                  <Button className="w-full">
+                    View Profile <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </div>
               </Card>
