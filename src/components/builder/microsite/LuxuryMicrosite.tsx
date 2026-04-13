@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Phone, MessageCircle, X, Calendar, Mail, Globe, Shield, Star,
   MapPin, Award, Building2, ChevronDown, Play, ChevronRight, ChevronLeft,
-  ChevronUp, Users, User, Home, Search, Layers, Crown, CheckCircle2
+  ChevronUp, Users, User, Home, Search, Layers, Crown, CheckCircle2, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
