@@ -153,6 +153,10 @@ const LuxuryMicrosite = ({ builder }: Props) => {
     setEnquiryOpen(false);
   };
 
+  const handleDownloadBrochure = () => {
+    toast.info("Brochure download will be available soon. Contact the builder for details.");
+  };
+
   const allImages = builder.images?.filter(Boolean) || [];
   const people = Array.isArray(builder.key_people) ? builder.key_people : [];
 
@@ -245,7 +249,7 @@ const LuxuryMicrosite = ({ builder }: Props) => {
               </div>
             )}
 
-            {/* Two CTAs */}
+            {/* CTAs */}
             <div className="flex gap-3 pt-2">
               <Button
                 size="lg"
@@ -261,6 +265,14 @@ const LuxuryMicrosite = ({ builder }: Props) => {
                 className="rounded-full px-8 border-white/25 text-white hover:bg-white/10 font-semibold bg-transparent hover:scale-[1.02] active:scale-[0.97] transition-all"
               >
                 Contact
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDownloadBrochure}
+                className="rounded-full px-6 border-white/25 text-white hover:bg-white/10 font-medium bg-transparent hover:scale-[1.02] active:scale-[0.97] transition-all"
+              >
+                <Download className="h-4 w-4 mr-1.5" /> Brochure
               </Button>
             </div>
           </div>
