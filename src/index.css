@@ -123,6 +123,21 @@ All colors MUST be HSL.
     --sidebar-ring: 152 76% 45%;
   }
 
+  /* ===== LUXURY DARK THEME ===== */
+  .luxury-dark {
+    --luxury-bg: 220 60% 8%;
+    --luxury-card: 215 28% 17%;
+    --luxury-card-alt: 220 39% 11%;
+    --luxury-gold: 43 74% 52%;
+    --luxury-gold-light: 43 74% 62%;
+    --luxury-gold-dark: 43 74% 42%;
+    --luxury-text: 0 0% 100%;
+    --luxury-text-muted: 215 20% 65%;
+    --luxury-text-dim: 215 16% 46%;
+    --luxury-border: 215 28% 22%;
+    --luxury-divider: 214 32% 45%;
+  }
+
   .dark {
     /* ===== COLOR SYSTEM - DARK MODE ===== */
     --background: 222 47% 11%;
