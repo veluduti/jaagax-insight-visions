@@ -562,6 +562,22 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </div>
       </section>
 
+      {/* PHONE STRIP */}
+      <div className="bg-[hsl(220,60%,8%)] border-y border-[hsl(215,28%,22%)] py-4 px-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-center gap-3">
+          <Phone className="h-5 w-5 text-[hsl(43,74%,52%)]" />
+          <a href={`tel:${d.contact.phone}`} className="text-white text-lg font-medium tracking-wide hover:text-[hsl(43,74%,52%)] transition-colors">
+            {d.contact.phone}
+          </a>
+          <span className="text-white/30 mx-2">|</span>
+          <MessageCircle className="h-5 w-5 text-green-500" />
+          <a href={`https://wa.me/${d.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(d.contact.whatsappMessage)}`} target="_blank" rel="noopener noreferrer"
+            className="text-white text-lg font-medium tracking-wide hover:text-green-400 transition-colors">
+            {d.contact.whatsapp}
+          </a>
+        </div>
+      </div>
+
       {/* FOOTER */}
       <footer className="py-8 px-4 border-t border-[hsl(215,28%,22%)]">
         <div className="max-w-6xl mx-auto text-center">
@@ -589,25 +605,18 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
 
 const FloorPlanCard = ({ plan, onEnquire, showHighlights = false }: { plan: FloorPlan; onEnquire: () => void; showHighlights?: boolean }) => (
   <div className="bg-[hsl(215,28%,17%)] rounded-xl border border-[hsl(215,28%,22%)] overflow-hidden hover:border-[hsl(43,74%,52%)]/30 hover:-translate-y-1 transition-all group">
-    <div className="aspect-[4/3] overflow-hidden relative">
-      <img src={plan.image} alt={plan.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-      {plan.priceRange && (
-        <div className="absolute top-3 right-3 bg-[hsl(220,60%,8%)]/80 backdrop-blur-sm rounded-lg px-3 py-1">
-          <span className="text-[hsl(43,74%,52%)] text-xs font-semibold">{plan.priceRange}</span>
-        </div>
-      )}
+    <div className="aspect-square overflow-hidden relative bg-[hsl(220,60%,8%)]">
+      <img src={plan.image} alt={plan.name} loading="lazy" width={1024} height={1024} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
     </div>
-    <div className="p-4">
-      <p className="text-[hsl(43,74%,52%)] font-semibold text-sm">{plan.name}</p>
-      <p className="text-white text-lg font-bold mt-1">{plan.size}</p>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-white/60">
-        <span className="flex items-center gap-1"><Compass className="h-3 w-3" />{plan.facing}</span>
-        <span className="flex items-center gap-1"><Square className="h-3 w-3" />{plan.carpetArea} carpet</span>
+    <div className="p-4 border-t border-[hsl(215,28%,22%)]">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[hsl(43,74%,52%)] font-semibold text-sm">{plan.facing} Facing</p>
+        {plan.priceRange && <span className="text-[hsl(43,74%,52%)] text-xs font-semibold">{plan.priceRange}</span>}
       </div>
-      <div className="flex gap-3 mt-2 text-xs text-white/60">
-        <span className="flex items-center gap-1"><Bed className="h-3 w-3" />{plan.beds}</span>
-        <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{plan.baths}</span>
-        <span>{plan.balconies} Balcony</span>
+      <div className="flex gap-4 text-xs text-white/60">
+        <span className="flex items-center gap-1"><Bed className="h-3 w-3" />{plan.beds} Bed</span>
+        <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{plan.baths} Bath</span>
+        <span className="flex items-center gap-1"><Square className="h-3 w-3" />{plan.carpetArea}</span>
       </div>
       {showHighlights && plan.highlights && plan.highlights.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3">
@@ -618,7 +627,7 @@ const FloorPlanCard = ({ plan, onEnquire, showHighlights = false }: { plan: Floo
           ))}
         </div>
       )}
-      <Button variant="goldOutline" size="sm" className="w-full mt-4 rounded-lg text-xs" onClick={onEnquire}>
+      <Button variant="goldOutline" size="sm" className="w-full mt-3 rounded-lg text-xs" onClick={onEnquire}>
         Enquire About This Plan
       </Button>
     </div>
