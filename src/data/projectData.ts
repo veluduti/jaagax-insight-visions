@@ -28,6 +28,8 @@ export interface FloorPlan {
   baths: number;
   balconies: number;
   image: string;
+  priceRange: string;
+  highlights: string[];
 }
 
 export const projectData = {
@@ -40,10 +42,10 @@ export const projectData = {
   brochureUrl: "/prestige-homes-brochure.pdf",
 
   liveStats: [
-    { text: "18 people viewing now", color: "green" },
-    { text: "32 units sold this month", color: "green" },
-    { text: "Only 12 units left", color: "amber" },
-    { text: "Prices increasing in 15 days", color: "red" },
+    { text: "18 people viewing now", color: "green", icon: "eye" },
+    { text: "32 units sold this month", color: "green", icon: "trending" },
+    { text: "Only 12 units left", color: "amber", icon: "alert" },
+    { text: "Prices increasing in 15 days", color: "red", icon: "clock" },
   ],
 
   about: {
@@ -88,18 +90,49 @@ export const projectData = {
     ],
   },
 
+  // Floor plans organized by facing with 2-3 variants each
+  floorPlansByFacing: {
+    "East": [
+      { name: "Type A Compact 2BHK", size: "1,250 Sft", facing: "East", carpetArea: "925 Sft", beds: 2, baths: 2, balconies: 1, image: fp2a, priceRange: "₹80L–1Cr", highlights: ["Morning sunlight", "Vastu compliant", "Cross ventilation"] },
+      { name: "Type D Classic 3BHK", size: "1,850 Sft", facing: "East", carpetArea: "1,370 Sft", beds: 3, baths: 3, balconies: 2, image: fp3a, priceRange: "₹1.5Cr–2Cr", highlights: ["Sunrise view", "Spacious balcony", "Premium finishes"] },
+      { name: "Type A1 Premium 2BHK", size: "1,300 Sft", facing: "East", carpetArea: "960 Sft", beds: 2, baths: 2, balconies: 2, image: fp2b, priceRange: "₹90L–1.1Cr", highlights: ["Corner unit", "Extra storage", "Garden view"] },
+    ] as FloorPlan[],
+    "West": [
+      { name: "Type B Standard 2BHK", size: "1,320 Sft", facing: "West", carpetArea: "980 Sft", beds: 2, baths: 2, balconies: 2, image: fp2b, priceRange: "₹85L–1.05Cr", highlights: ["Sunset view", "Double balcony", "Open kitchen"] },
+      { name: "Type E Grand 3BHK", size: "1,950 Sft", facing: "West", carpetArea: "1,445 Sft", beds: 3, baths: 3, balconies: 2, image: fp3b, priceRange: "₹1.5Cr–1.8Cr", highlights: ["Evening breeze", "Master suite", "Walk-in closet"] },
+    ] as FloorPlan[],
+    "North": [
+      { name: "Type C Premium 2BHK", size: "1,380 Sft", facing: "North", carpetArea: "1,020 Sft", beds: 2, baths: 2, balconies: 2, image: fp2c, priceRange: "₹1Cr–1.2Cr", highlights: ["Cool breeze", "No direct sun", "Energy efficient"] },
+      { name: "Type C2 Deluxe 2BHK", size: "1,400 Sft", facing: "North", carpetArea: "1,040 Sft", beds: 2, baths: 2, balconies: 2, image: fp2d, priceRange: "₹1.05Cr–1.25Cr", highlights: ["Pool facing", "Utility room", "Smart home ready"] },
+      { name: "Type F Royal 3BHK", size: "2,100 Sft", facing: "North", carpetArea: "1,555 Sft", beds: 3, baths: 3, balconies: 3, image: fp3c, priceRange: "₹1.8Cr–2.2Cr", highlights: ["Panoramic view", "Servant quarter", "Italian marble"] },
+    ] as FloorPlan[],
+    "North-East": [
+      { name: "Type C1 Premium+ 2BHK", size: "1,420 Sft", facing: "North-East", carpetArea: "1,050 Sft", beds: 2, baths: 2, balconies: 2, image: fp2d, priceRange: "₹1.1Cr–1.3Cr", highlights: ["Vastu perfect", "Morning light", "Park facing"] },
+      { name: "Type F1 Imperial 3BHK", size: "2,200 Sft", facing: "North-East", carpetArea: "1,630 Sft", beds: 3, baths: 4, balconies: 3, image: fp3d, priceRange: "₹2Cr–2.5Cr", highlights: ["Premium corner", "4 bathrooms", "Sky lounge access"] },
+    ] as FloorPlan[],
+    "South": [
+      { name: "Type B1 Comfort 2BHK", size: "1,280 Sft", facing: "South", carpetArea: "950 Sft", beds: 2, baths: 2, balconies: 1, image: fp2a, priceRange: "₹80L–95L", highlights: ["Budget friendly", "Natural light", "Compact design"] },
+      { name: "Type E1 Grand+ 3BHK", size: "2,000 Sft", facing: "South", carpetArea: "1,480 Sft", beds: 3, baths: 3, balconies: 2, image: fp3b, priceRange: "₹1.6Cr–1.9Cr", highlights: ["City view", "Large living room", "Modular kitchen"] },
+    ] as FloorPlan[],
+    "South-East": [
+      { name: "Type B2 Smart 2BHK", size: "1,350 Sft", facing: "South-East", carpetArea: "1,000 Sft", beds: 2, baths: 2, balconies: 2, image: fp2c, priceRange: "₹95L–1.15Cr", highlights: ["Balanced light", "Tech-ready", "Ventilated"] },
+      { name: "Type F2 Signature 3BHK", size: "2,150 Sft", facing: "South-East", carpetArea: "1,590 Sft", beds: 3, baths: 4, balconies: 3, image: fp3d, priceRange: "₹2Cr–2.4Cr", highlights: ["Flagship unit", "Terrace garden", "Designer interiors"] },
+    ] as FloorPlan[],
+  },
+
+  // Keep legacy flat structure for floor plan tabs
   floorPlans: {
     "2BHK": [
-      { name: "Type A Compact", size: "1,250 Sft", facing: "East", carpetArea: "925 Sft", beds: 2, baths: 2, balconies: 1, image: fp2a },
-      { name: "Type B Standard", size: "1,320 Sft", facing: "West", carpetArea: "980 Sft", beds: 2, baths: 2, balconies: 2, image: fp2b },
-      { name: "Type C Premium", size: "1,380 Sft", facing: "North", carpetArea: "1,020 Sft", beds: 2, baths: 2, balconies: 2, image: fp2c },
-      { name: "Type C1 Premium+", size: "1,420 Sft", facing: "North-East", carpetArea: "1,050 Sft", beds: 2, baths: 2, balconies: 2, image: fp2d },
+      { name: "Type A Compact", size: "1,250 Sft", facing: "East", carpetArea: "925 Sft", beds: 2, baths: 2, balconies: 1, image: fp2a, priceRange: "₹80L–1Cr", highlights: [] },
+      { name: "Type B Standard", size: "1,320 Sft", facing: "West", carpetArea: "980 Sft", beds: 2, baths: 2, balconies: 2, image: fp2b, priceRange: "₹85L–1.05Cr", highlights: [] },
+      { name: "Type C Premium", size: "1,380 Sft", facing: "North", carpetArea: "1,020 Sft", beds: 2, baths: 2, balconies: 2, image: fp2c, priceRange: "₹1Cr–1.2Cr", highlights: [] },
+      { name: "Type C1 Premium+", size: "1,420 Sft", facing: "North-East", carpetArea: "1,050 Sft", beds: 2, baths: 2, balconies: 2, image: fp2d, priceRange: "₹1.1Cr–1.3Cr", highlights: [] },
     ] as FloorPlan[],
     "3BHK": [
-      { name: "Type D Classic", size: "1,850 Sft", facing: "East", carpetArea: "1,370 Sft", beds: 3, baths: 3, balconies: 2, image: fp3a },
-      { name: "Type E Grand", size: "1,950 Sft", facing: "South", carpetArea: "1,445 Sft", beds: 3, baths: 3, balconies: 2, image: fp3b },
-      { name: "Type F Royal", size: "2,100 Sft", facing: "North-East", carpetArea: "1,555 Sft", beds: 3, baths: 3, balconies: 3, image: fp3c },
-      { name: "Type F1 Imperial", size: "2,200 Sft", facing: "South-East", carpetArea: "1,630 Sft", beds: 3, baths: 4, balconies: 3, image: fp3d },
+      { name: "Type D Classic", size: "1,850 Sft", facing: "East", carpetArea: "1,370 Sft", beds: 3, baths: 3, balconies: 2, image: fp3a, priceRange: "₹1.5Cr–2Cr", highlights: [] },
+      { name: "Type E Grand", size: "1,950 Sft", facing: "South", carpetArea: "1,445 Sft", beds: 3, baths: 3, balconies: 2, image: fp3b, priceRange: "₹1.5Cr–1.8Cr", highlights: [] },
+      { name: "Type F Royal", size: "2,100 Sft", facing: "North-East", carpetArea: "1,555 Sft", beds: 3, baths: 3, balconies: 3, image: fp3c, priceRange: "₹1.8Cr–2.2Cr", highlights: [] },
+      { name: "Type F1 Imperial", size: "2,200 Sft", facing: "South-East", carpetArea: "1,630 Sft", beds: 3, baths: 4, balconies: 3, image: fp3d, priceRange: "₹2Cr–2.5Cr", highlights: [] },
     ] as FloorPlan[],
   },
 

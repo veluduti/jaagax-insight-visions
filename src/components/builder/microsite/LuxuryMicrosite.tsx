@@ -10,13 +10,18 @@ import {
   ChevronDown, Menu, Phone, MessageCircle, MapPin, Check,
   Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
   Gamepad2, Users, Footprints, Sparkles, Bed, Bath, Square, Compass,
-  Download, ArrowRight
+  Download, ArrowRight, Eye, TrendingUp, AlertTriangle, Clock,
+  ChevronRight, RotateCcw, Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, any> = {
   Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
   Gamepad2, Users, Footprints, Sparkles,
+};
+
+const statIconMap: Record<string, any> = {
+  eye: Eye, trending: TrendingUp, alert: AlertTriangle, clock: Clock,
 };
 
 const NAV_ITEMS = ["Home", "About", "Amenities", "Master Plan", "Floor Plans", "Gallery", "Location", "Contact"];
@@ -28,10 +33,12 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [fpTab, setFpTab] = useState<"2BHK" | "3BHK">("2BHK");
+  const [fpTab, setFpTab] = useState<string>("East");
   const [galleryOpen, setGalleryOpen] = useState<string | null>(null);
   const [masterPlanOpen, setMasterPlanOpen] = useState(false);
 
+  // AI Home Finder state - conversational flow
+  const [aiStep, setAiStep] = useState(0);
   const [aiBhk, setAiBhk] = useState<string | null>(null);
   const [aiBudget, setAiBudget] = useState<string | null>(null);
   const [aiFacing, setAiFacing] = useState<string | null>(null);
@@ -61,11 +68,22 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   };
 
   const aiResults = useMemo(() => {
-    if (!aiBhk || !aiBudget || !aiFacing) return null;
-    const key = aiBhk as "2BHK" | "3BHK";
-    const plans = d.floorPlans[key] || [];
-    return plans.filter((p) => p.facing === aiFacing);
-  }, [aiBhk, aiBudget, aiFacing]);
+    if (aiStep < 3) return null;
+    if (!aiBhk || !aiFacing) return null;
+    const facingPlans = d.floorPlansByFacing[aiFacing as keyof typeof d.floorPlansByFacing] || [];
+    const bhkNum = parseInt(aiBhk);
+    return facingPlans.filter((p) => p.beds === bhkNum);
+  }, [aiStep, aiBhk, aiBudget, aiFacing]);
+
+  const handleAiSelect = (step: number, value: string) => {
+    if (step === 0) { setAiBhk(value); setAiStep(1); }
+    else if (step === 1) { setAiBudget(value); setAiStep(2); }
+    else if (step === 2) { setAiFacing(value); setAiStep(3); }
+  };
+
+  const resetAi = () => {
+    setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null);
+  };
 
   const handleEnquiry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +91,8 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
     toast.success("Thank you! Our team will contact you shortly.");
     setFormName(""); setFormPhone(""); setFormUnit("");
   };
+
+  const facingKeys = Object.keys(d.floorPlansByFacing);
 
   return (
     <div className="luxury-dark bg-[hsl(220,60%,8%)] min-h-screen text-white" style={{ scrollBehavior: "smooth" }}>
@@ -133,16 +153,38 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </button>
       </section>
 
-      {/* LIVE STATS */}
-      <section id="livestats" className="bg-[hsl(220,39%,11%)] border-y border-[hsl(215,28%,22%)]">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-6 overflow-x-auto scrollbar-thin">
-          {d.liveStats.map((s, i) => (
-            <div key={i} className="flex items-center gap-2 whitespace-nowrap text-sm">
-              <span className={cn("h-2 w-2 rounded-full animate-pulse",
-                s.color === "green" ? "bg-green-500" : s.color === "amber" ? "bg-amber-500" : "bg-red-500")} />
-              <span className="text-white/80">{s.text}</span>
-            </div>
-          ))}
+      {/* LIVE STATS — Compact ticker-style */}
+      <section id="livestats" className="bg-[hsl(220,60%,8%)] border-y border-[hsl(43,74%,52%)]/10">
+        <div className="max-w-6xl mx-auto px-4 py-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[hsl(215,28%,22%)]">
+            {d.liveStats.map((s, i) => {
+              const Icon = statIconMap[s.icon];
+              return (
+                <div key={i} className="flex items-center gap-3 py-4 px-4 md:px-6 group hover:bg-[hsl(215,28%,17%)]/40 transition-colors">
+                  <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                    s.color === "green" ? "bg-green-500/10" : s.color === "amber" ? "bg-amber-500/10" : "bg-red-500/10"
+                  )}>
+                    {Icon && <Icon className={cn("h-4 w-4",
+                      s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400"
+                    )} />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={cn("text-sm font-semibold leading-tight",
+                      s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400"
+                    )}>
+                      {s.text.split(" ").slice(0, 2).join(" ")}
+                    </p>
+                    <p className="text-white/40 text-xs truncate">
+                      {s.text.split(" ").slice(2).join(" ")}
+                    </p>
+                  </div>
+                  <span className={cn("ml-auto h-2 w-2 rounded-full animate-pulse flex-shrink-0",
+                    s.color === "green" ? "bg-green-500" : s.color === "amber" ? "bg-amber-500" : "bg-red-500"
+                  )} />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -170,62 +212,163 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </div>
       </section>
 
-      {/* AI RECOMMENDATION */}
+      {/* AI HOME FINDER — Conversational flow */}
       <section className="py-20 px-4 bg-[hsl(220,39%,11%)]">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-2">AI-Powered Home Finder</h2>
-          <p className="text-white/50 mb-8">Find your perfect home in 3 simple steps</p>
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
-              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 1</p>
-              <p className="text-white text-sm mb-4">Select BHK</p>
-              <div className="flex gap-3">
-                {["2BHK", "3BHK"].map((b) => (
-                  <button key={b} onClick={() => setAiBhk(b)}
-                    className={cn("flex-1 py-3 rounded-lg text-sm font-medium transition-all border",
-                      aiBhk === b ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
-                    {b}
-                  </button>
-                ))}
-              </div>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-[hsl(43,74%,52%)]/10 border border-[hsl(43,74%,52%)]/20 rounded-full px-4 py-1.5 mb-4">
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(43,74%,52%)]" />
+              <span className="text-[hsl(43,74%,52%)] text-xs tracking-wider uppercase">AI-Powered</span>
             </div>
-            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
-              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 2</p>
-              <p className="text-white text-sm mb-4">Select Budget</p>
-              <div className="grid grid-cols-2 gap-2">
-                {d.aiBudgetRanges.map((b) => (
-                  <button key={b} onClick={() => setAiBudget(b)}
-                    className={cn("py-2 rounded-lg text-xs font-medium transition-all border",
-                      aiBudget === b ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
-              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 3</p>
-              <p className="text-white text-sm mb-4">Preferred Facing</p>
-              <div className="grid grid-cols-2 gap-2">
-                {d.aiFacings.map((f) => (
-                  <button key={f} onClick={() => setAiFacing(f)}
-                    className={cn("py-2 rounded-lg text-xs font-medium transition-all border",
-                      aiFacing === f ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <h2 className="font-serif italic text-3xl md:text-4xl text-white mb-2">Find Your Perfect Home</h2>
+            <p className="text-white/50 text-sm">Tell us your preferences and we'll find your ideal floor plan</p>
           </div>
-          {aiResults !== null && (
-            <div>
-              <h3 className="text-white text-lg mb-4">
-                {aiResults.length > 0 ? `${aiResults.length} matching plan(s) found` : "No exact match — try a different facing"}
-              </h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {aiResults.map((p) => (
-                  <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} />
-                ))}
+
+          {/* Progress bar */}
+          <div className="flex items-center gap-1 mb-8 max-w-md mx-auto">
+            {[0, 1, 2].map((step) => (
+              <div key={step} className="flex-1 flex items-center gap-1">
+                <div className={cn("h-1.5 flex-1 rounded-full transition-all duration-500",
+                  aiStep > step ? "bg-[hsl(43,74%,52%)]" : aiStep === step ? "bg-[hsl(43,74%,52%)]/50" : "bg-[hsl(215,28%,22%)]"
+                )} />
               </div>
+            ))}
+          </div>
+
+          {/* Conversational cards */}
+          <div className="space-y-4">
+            {/* Step 0: BHK */}
+            <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300",
+              aiStep === 0 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
+              aiStep > 0 ? "opacity-60" : ""
+            )}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
+                    <Home className="h-4 w-4 text-[hsl(43,74%,52%)]" />
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-medium">How many bedrooms do you need?</p>
+                    {aiBhk && aiStep > 0 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiBhk} BHK selected</p>}
+                  </div>
+                </div>
+                {aiStep > 0 && (
+                  <button onClick={() => { setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null); }}
+                    className="text-white/40 hover:text-white/70 text-xs">Change</button>
+                )}
+              </div>
+              {aiStep === 0 && (
+                <div className="flex gap-3">
+                  {["2", "3"].map((b) => (
+                    <button key={b} onClick={() => handleAiSelect(0, b)}
+                      className="flex-1 py-4 rounded-xl text-center bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 transition-all group">
+                      <p className="text-2xl font-bold text-white group-hover:text-[hsl(43,74%,52%)] transition-colors">{b}</p>
+                      <p className="text-white/40 text-xs mt-1">BHK</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Step 1: Budget */}
+            {aiStep >= 1 && (
+              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300 animate-fade-in",
+                aiStep === 1 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
+                aiStep > 1 ? "opacity-60" : ""
+              )}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
+                      <TrendingUp className="h-4 w-4 text-[hsl(43,74%,52%)]" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">What's your budget range?</p>
+                      {aiBudget && aiStep > 1 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiBudget} selected</p>}
+                    </div>
+                  </div>
+                  {aiStep > 1 && (
+                    <button onClick={() => { setAiStep(1); setAiBudget(null); setAiFacing(null); }}
+                      className="text-white/40 hover:text-white/70 text-xs">Change</button>
+                  )}
+                </div>
+                {aiStep === 1 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {d.aiBudgetRanges.map((b) => (
+                      <button key={b} onClick={() => handleAiSelect(1, b)}
+                        className="py-3 px-4 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Facing */}
+            {aiStep >= 2 && (
+              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300 animate-fade-in",
+                aiStep === 2 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
+                aiStep > 2 ? "opacity-60" : ""
+              )}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
+                      <Compass className="h-4 w-4 text-[hsl(43,74%,52%)]" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Preferred direction?</p>
+                      {aiFacing && aiStep > 2 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiFacing} facing</p>}
+                    </div>
+                  </div>
+                  {aiStep > 2 && (
+                    <button onClick={() => { setAiStep(2); setAiFacing(null); }}
+                      className="text-white/40 hover:text-white/70 text-xs">Change</button>
+                  )}
+                </div>
+                {aiStep === 2 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {d.aiFacings.map((f) => (
+                      <button key={f} onClick={() => handleAiSelect(2, f)}
+                        className="py-3 px-3 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Results */}
+          {aiStep === 3 && aiResults !== null && (
+            <div className="mt-8 animate-fade-in">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-white text-lg font-medium">
+                    {aiResults.length > 0 ? `We found ${aiResults.length} perfect match${aiResults.length > 1 ? "es" : ""}` : "No exact match for this combination"}
+                  </h3>
+                  <p className="text-white/40 text-sm mt-1">
+                    {aiBhk} BHK • {aiBudget} • {aiFacing} facing
+                  </p>
+                </div>
+                <button onClick={resetAi} className="flex items-center gap-1.5 text-[hsl(43,74%,52%)] text-sm hover:underline">
+                  <RotateCcw className="h-3.5 w-3.5" /> Start over
+                </button>
+              </div>
+              {aiResults.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {aiResults.map((p) => (
+                    <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} showHighlights />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[hsl(215,28%,17%)] rounded-2xl p-8 text-center border border-[hsl(215,28%,22%)]">
+                  <p className="text-white/50 mb-4">Try adjusting your preferences for more results</p>
+                  <Button variant="goldOutline" onClick={resetAi} className="rounded-full">
+                    <RotateCcw className="h-4 w-4 mr-2" /> Try Again
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -277,22 +420,23 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </DialogContent>
       </Dialog>
 
-      {/* FLOOR PLANS */}
+      {/* FLOOR PLANS — By Facing */}
       <section id="floorplans" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Floor Plans</h2>
-          <div className="flex gap-2 mb-8">
-            {(["2BHK", "3BHK"] as const).map((t) => (
-              <button key={t} onClick={() => setFpTab(t)}
-                className={cn("px-6 py-2.5 rounded-full text-sm font-medium transition-all",
-                  fpTab === t ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)]" : "bg-[hsl(215,28%,17%)] text-white/70 hover:text-white")}>
-                {t}
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-2">Floor Plans</h2>
+          <p className="text-white/50 text-sm mb-8">Browse plans by facing direction</p>
+          <div className="flex gap-2 mb-8 flex-wrap">
+            {facingKeys.map((facing) => (
+              <button key={facing} onClick={() => setFpTab(facing)}
+                className={cn("px-5 py-2 rounded-full text-sm font-medium transition-all",
+                  fpTab === facing ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)]" : "bg-[hsl(215,28%,17%)] text-white/70 hover:text-white")}>
+                {facing}
               </button>
             ))}
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {d.floorPlans[fpTab].map((p) => (
-              <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(d.floorPlansByFacing[fpTab as keyof typeof d.floorPlansByFacing] || []).map((p) => (
+              <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} showHighlights />
             ))}
           </div>
         </div>
@@ -443,10 +587,15 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   );
 };
 
-const FloorPlanCard = ({ plan, onEnquire }: { plan: FloorPlan; onEnquire: () => void }) => (
+const FloorPlanCard = ({ plan, onEnquire, showHighlights = false }: { plan: FloorPlan; onEnquire: () => void; showHighlights?: boolean }) => (
   <div className="bg-[hsl(215,28%,17%)] rounded-xl border border-[hsl(215,28%,22%)] overflow-hidden hover:border-[hsl(43,74%,52%)]/30 hover:-translate-y-1 transition-all group">
-    <div className="aspect-[4/3] overflow-hidden">
+    <div className="aspect-[4/3] overflow-hidden relative">
       <img src={plan.image} alt={plan.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      {plan.priceRange && (
+        <div className="absolute top-3 right-3 bg-[hsl(220,60%,8%)]/80 backdrop-blur-sm rounded-lg px-3 py-1">
+          <span className="text-[hsl(43,74%,52%)] text-xs font-semibold">{plan.priceRange}</span>
+        </div>
+      )}
     </div>
     <div className="p-4">
       <p className="text-[hsl(43,74%,52%)] font-semibold text-sm">{plan.name}</p>
@@ -460,6 +609,15 @@ const FloorPlanCard = ({ plan, onEnquire }: { plan: FloorPlan; onEnquire: () => 
         <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{plan.baths}</span>
         <span>{plan.balconies} Balcony</span>
       </div>
+      {showHighlights && plan.highlights && plan.highlights.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {plan.highlights.map((h) => (
+            <span key={h} className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(43,74%,52%)]/10 text-[hsl(43,74%,52%)] border border-[hsl(43,74%,52%)]/20">
+              {h}
+            </span>
+          ))}
+        </div>
+      )}
       <Button variant="goldOutline" size="sm" className="w-full mt-4 rounded-lg text-xs" onClick={onEnquire}>
         Enquire About This Plan
       </Button>
