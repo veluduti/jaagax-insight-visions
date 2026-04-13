@@ -1,0 +1,470 @@
+import { useState, useEffect, useMemo } from "react";
+import { projectData, type FloorPlan } from "@/data/projectData";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { toast } from "sonner";
+import {
+  ChevronDown, Menu, Phone, MessageCircle, MapPin, Check,
+  Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
+  Gamepad2, Users, Footprints, Sparkles, Bed, Bath, Square, Compass,
+  Download, ArrowRight
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const iconMap: Record<string, any> = {
+  Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
+  Gamepad2, Users, Footprints, Sparkles,
+};
+
+const NAV_ITEMS = ["Home", "About", "Amenities", "Master Plan", "Floor Plans", "Gallery", "Location", "Contact"];
+const SECTION_IDS = ["home", "about", "amenities", "masterplan", "floorplans", "gallery", "location", "contact"];
+
+const d = projectData;
+
+const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
+  const [activeSection, setActiveSection] = useState("home");
+  const [navSolid, setNavSolid] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [fpTab, setFpTab] = useState<"2BHK" | "3BHK">("2BHK");
+  const [galleryOpen, setGalleryOpen] = useState<string | null>(null);
+  const [masterPlanOpen, setMasterPlanOpen] = useState(false);
+
+  const [aiBhk, setAiBhk] = useState<string | null>(null);
+  const [aiBudget, setAiBudget] = useState<string | null>(null);
+  const [aiFacing, setAiFacing] = useState<string | null>(null);
+
+  const [formName, setFormName] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formUnit, setFormUnit] = useState("");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setNavSolid(window.scrollY > 60);
+      for (let i = SECTION_IDS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(SECTION_IDS[i]);
+        if (el && el.getBoundingClientRect().top <= 120) {
+          setActiveSection(SECTION_IDS[i]);
+          break;
+        }
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setMobileOpen(false);
+  };
+
+  const aiResults = useMemo(() => {
+    if (!aiBhk || !aiBudget || !aiFacing) return null;
+    const key = aiBhk as "2BHK" | "3BHK";
+    const plans = d.floorPlans[key] || [];
+    return plans.filter((p) => p.facing === aiFacing);
+  }, [aiBhk, aiBudget, aiFacing]);
+
+  const handleEnquiry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName || !formPhone) { toast.error("Please fill name and phone"); return; }
+    toast.success("Thank you! Our team will contact you shortly.");
+    setFormName(""); setFormPhone(""); setFormUnit("");
+  };
+
+  return (
+    <div className="luxury-dark bg-[hsl(220,60%,8%)] min-h-screen text-white" style={{ scrollBehavior: "smooth" }}>
+      {/* STICKY NAV */}
+      <nav className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        navSolid ? "bg-[hsl(220,60%,8%)]/95 backdrop-blur-md shadow-lg" : "bg-transparent"
+      )}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
+          <span className="font-serif italic text-xl text-[hsl(43,74%,52%)]">{d.name}</span>
+          <div className="hidden lg:flex items-center gap-6">
+            {NAV_ITEMS.map((item, i) => (
+              <button key={item} onClick={() => scrollTo(SECTION_IDS[i])}
+                className={cn("text-sm transition-colors", activeSection === SECTION_IDS[i] ? "text-[hsl(43,74%,52%)]" : "text-white/70 hover:text-white")}>
+                {item}
+              </button>
+            ))}
+          </div>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild className="lg:hidden">
+              <button><Menu className="h-6 w-6 text-white" /></button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)] w-64">
+              <div className="flex flex-col gap-4 mt-8">
+                {NAV_ITEMS.map((item, i) => (
+                  <button key={item} onClick={() => scrollTo(SECTION_IDS[i])}
+                    className={cn("text-left text-lg py-2", activeSection === SECTION_IDS[i] ? "text-[hsl(43,74%,52%)]" : "text-white/70")}>
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
+        <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,60%,8%)]/70 via-[hsl(220,60%,8%)]/50 to-[hsl(220,60%,8%)]/90" />
+        <div className="relative z-10 text-center max-w-3xl px-4">
+          <p className="text-[hsl(43,74%,52%)] text-sm tracking-[0.3em] uppercase mb-4">Premium Residences</p>
+          <h1 className="font-serif italic text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">{d.tagline}</h1>
+          <p className="text-white/70 text-base md:text-lg max-w-xl mx-auto mb-8">{d.subtitle}</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button variant="gold" size="lg" className="rounded-full px-8" onClick={() => scrollTo("contact")}>
+              Book a Private Tour
+            </Button>
+            <a href={d.brochureUrl} download>
+              <Button variant="goldOutline" size="lg" className="rounded-full px-8">
+                <Download className="h-4 w-4 mr-2" /> Download Brochure
+              </Button>
+            </a>
+          </div>
+        </div>
+        <button onClick={() => scrollTo("livestats")} className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
+          <ChevronDown className="h-8 w-8" />
+        </button>
+      </section>
+
+      {/* LIVE STATS */}
+      <section id="livestats" className="bg-[hsl(220,39%,11%)] border-y border-[hsl(215,28%,22%)]">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-6 overflow-x-auto scrollbar-thin">
+          {d.liveStats.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 whitespace-nowrap text-sm">
+              <span className={cn("h-2 w-2 rounded-full animate-pulse",
+                s.color === "green" ? "bg-green-500" : s.color === "amber" ? "bg-amber-500" : "bg-red-500")} />
+              <span className="text-white/80">{s.text}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ABOUT */}
+      <section id="about" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-6">About {d.name}</h2>
+          <p className="text-white/70 max-w-3xl text-base leading-relaxed mb-10">{d.about.description}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+            {d.about.features.map((f) => (
+              <div key={f} className="flex items-center gap-3 bg-[hsl(215,28%,17%)] rounded-xl p-4">
+                <Check className="h-5 w-5 text-[hsl(43,74%,52%)] flex-shrink-0" />
+                <span className="text-white/90 text-sm">{f}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {d.about.highlights.map((h) => (
+              <div key={h.label} className="bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] rounded-xl p-4 text-center">
+                <p className="text-[hsl(43,74%,52%)] text-xl font-bold">{h.value}</p>
+                <p className="text-white/50 text-xs mt-1">{h.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI RECOMMENDATION */}
+      <section className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-2">AI-Powered Home Finder</h2>
+          <p className="text-white/50 mb-8">Find your perfect home in 3 simple steps</p>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
+              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 1</p>
+              <p className="text-white text-sm mb-4">Select BHK</p>
+              <div className="flex gap-3">
+                {["2BHK", "3BHK"].map((b) => (
+                  <button key={b} onClick={() => setAiBhk(b)}
+                    className={cn("flex-1 py-3 rounded-lg text-sm font-medium transition-all border",
+                      aiBhk === b ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
+              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 2</p>
+              <p className="text-white text-sm mb-4">Select Budget</p>
+              <div className="grid grid-cols-2 gap-2">
+                {d.aiBudgetRanges.map((b) => (
+                  <button key={b} onClick={() => setAiBudget(b)}
+                    className={cn("py-2 rounded-lg text-xs font-medium transition-all border",
+                      aiBudget === b ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-[hsl(215,28%,17%)] rounded-xl p-6 border border-[hsl(215,28%,22%)]">
+              <p className="text-[hsl(43,74%,52%)] text-xs mb-3 tracking-widest">STEP 3</p>
+              <p className="text-white text-sm mb-4">Preferred Facing</p>
+              <div className="grid grid-cols-2 gap-2">
+                {d.aiFacings.map((f) => (
+                  <button key={f} onClick={() => setAiFacing(f)}
+                    className={cn("py-2 rounded-lg text-xs font-medium transition-all border",
+                      aiFacing === f ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)] border-[hsl(43,74%,52%)]" : "border-[hsl(215,28%,22%)] text-white/70 hover:border-[hsl(43,74%,52%)]/50")}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {aiResults !== null && (
+            <div>
+              <h3 className="text-white text-lg mb-4">
+                {aiResults.length > 0 ? `${aiResults.length} matching plan(s) found` : "No exact match — try a different facing"}
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {aiResults.map((p) => (
+                  <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* AMENITIES */}
+      <section id="amenities" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-10">World-Class Amenities</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-10">
+            {d.amenities.icons.map((a) => {
+              const Icon = iconMap[a.icon];
+              return (
+                <div key={a.name} className="flex items-center gap-3 bg-[hsl(215,28%,17%)] rounded-xl p-4 hover:border-[hsl(43,74%,52%)]/30 border border-transparent transition-all">
+                  {Icon && <Icon className="h-5 w-5 text-[hsl(43,74%,52%)]" />}
+                  <span className="text-white/80 text-sm">{a.name}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {d.amenities.images.map((a) => (
+              <div key={a.label} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
+                <img src={a.src} alt={a.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-semibold text-sm">{a.label}</p>
+                  <p className="text-white/60 text-xs mt-1">{a.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MASTER PLAN */}
+      <section id="masterplan" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Master Plan</h2>
+          <div className="border-2 border-[hsl(43,74%,52%)]/30 rounded-2xl overflow-hidden cursor-pointer" onClick={() => setMasterPlanOpen(true)}>
+            <img src={d.masterPlanImage} alt="Master Plan" loading="lazy" className="w-full hover:scale-[1.02] transition-transform duration-500" />
+          </div>
+          <p className="text-white/40 text-sm text-center mt-4">Click to enlarge</p>
+        </div>
+      </section>
+      <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
+        <DialogContent className="max-w-5xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
+          <img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" />
+        </DialogContent>
+      </Dialog>
+
+      {/* FLOOR PLANS */}
+      <section id="floorplans" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Floor Plans</h2>
+          <div className="flex gap-2 mb-8">
+            {(["2BHK", "3BHK"] as const).map((t) => (
+              <button key={t} onClick={() => setFpTab(t)}
+                className={cn("px-6 py-2.5 rounded-full text-sm font-medium transition-all",
+                  fpTab === t ? "bg-[hsl(43,74%,52%)] text-[hsl(220,60%,8%)]" : "bg-[hsl(215,28%,17%)] text-white/70 hover:text-white")}>
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {d.floorPlans[fpTab].map((p) => (
+              <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* GALLERY */}
+      <section id="gallery" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Gallery</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {d.gallery.map((g) => (
+              <div key={g.label} className="group relative rounded-xl overflow-hidden aspect-[4/3] cursor-pointer" onClick={() => setGalleryOpen(g.src)}>
+                <img src={g.src} alt={g.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                  <span className="text-white font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">{g.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
+        <DialogContent className="max-w-4xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
+          {galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}
+        </DialogContent>
+      </Dialog>
+
+      {/* LOCATION */}
+      <section id="location" className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Location</h2>
+          <div className="rounded-2xl overflow-hidden border border-[hsl(215,28%,22%)] mb-4">
+            <iframe src={d.map.embedUrl} width="100%" height="400" className="border-0" loading="lazy" allowFullScreen title="Location Map" />
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-white/70">
+              <MapPin className="h-4 w-4 text-[hsl(43,74%,52%)]" />
+              <span className="text-sm">{d.map.address}</span>
+            </div>
+            <a href={d.map.mapsUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="goldOutline" size="sm" className="rounded-full">Open in Google Maps</Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST */}
+      <section className="py-12 px-4 bg-[hsl(220,39%,11%)] border-y border-[hsl(215,28%,22%)]">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4">
+          {d.trust.map((t) => (
+            <div key={t.label} className="text-center">
+              <p className="text-[hsl(43,74%,52%)] text-xl font-bold">{t.value}</p>
+              <p className="text-white/50 text-xs mt-1">{t.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TIMELINE */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-10">Our Legacy</h2>
+          <div className="relative">
+            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-[hsl(215,28%,22%)]" />
+            {d.timeline.map((t, i) => (
+              <div key={t.year} className={cn("relative flex mb-10 last:mb-0", i % 2 === 0 ? "md:justify-start" : "md:justify-end")}>
+                <div className="absolute left-4 md:left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(43,74%,52%)] mt-1.5" />
+                <div className={cn("ml-10 md:ml-0 md:w-[45%] bg-[hsl(215,28%,17%)] rounded-xl p-5 border border-[hsl(215,28%,22%)]",
+                  i % 2 === 0 ? "md:mr-auto md:pr-8" : "md:ml-auto md:pl-8")}>
+                  <p className="text-[hsl(43,74%,52%)] text-sm font-bold">{t.year}</p>
+                  <p className="text-white font-medium mt-1">{t.title}</p>
+                  <p className="text-white/50 text-sm mt-1">{t.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Schedule Your Visit</h2>
+          <div className="grid lg:grid-cols-2 gap-10">
+            <form onSubmit={handleEnquiry} className="space-y-4">
+              <Input placeholder="Your Name" value={formName} onChange={(e) => setFormName(e.target.value)}
+                className="bg-[hsl(215,28%,17%)] border-[hsl(215,28%,22%)] text-white placeholder:text-white/30 rounded-xl h-12" />
+              <Input placeholder="Phone Number" value={formPhone} onChange={(e) => setFormPhone(e.target.value)}
+                className="bg-[hsl(215,28%,17%)] border-[hsl(215,28%,22%)] text-white placeholder:text-white/30 rounded-xl h-12" />
+              <Select value={formUnit} onValueChange={setFormUnit}>
+                <SelectTrigger className="bg-[hsl(215,28%,17%)] border-[hsl(215,28%,22%)] text-white rounded-xl h-12">
+                  <SelectValue placeholder="Interested Unit" />
+                </SelectTrigger>
+                <SelectContent className="bg-[hsl(215,28%,17%)] border-[hsl(215,28%,22%)]">
+                  <SelectItem value="2bhk">2 BHK</SelectItem>
+                  <SelectItem value="3bhk">3 BHK</SelectItem>
+                  <SelectItem value="notsure">Not Sure</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="submit" variant="gold" size="lg" className="w-full rounded-xl">
+                Schedule Visit <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </form>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <a href={`tel:${d.contact.phone}`} className="bg-[hsl(215,28%,17%)] border border-[hsl(215,28%,22%)] rounded-xl p-5 flex flex-col items-center gap-3 hover:border-[hsl(43,74%,52%)]/40 transition-all">
+                <Phone className="h-6 w-6 text-[hsl(43,74%,52%)]" />
+                <span className="text-white/80 text-sm text-center">Call Now</span>
+                <span className="text-white/50 text-xs">{d.contact.phone}</span>
+              </a>
+              <a href={`https://wa.me/${d.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(d.contact.whatsappMessage)}`} target="_blank" rel="noopener noreferrer"
+                className="bg-[hsl(215,28%,17%)] border border-[hsl(215,28%,22%)] rounded-xl p-5 flex flex-col items-center gap-3 hover:border-green-500/40 transition-all">
+                <MessageCircle className="h-6 w-6 text-green-500" />
+                <span className="text-white/80 text-sm text-center">WhatsApp</span>
+                <span className="text-white/50 text-xs">{d.contact.whatsapp}</span>
+              </a>
+              <div className="bg-[hsl(215,28%,17%)] border border-[hsl(215,28%,22%)] rounded-xl p-5 flex flex-col items-center gap-3">
+                <MapPin className="h-6 w-6 text-[hsl(43,74%,52%)]" />
+                <span className="text-white/80 text-sm text-center">Visit Us</span>
+                <span className="text-white/50 text-xs text-center">{d.contact.address}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="py-8 px-4 border-t border-[hsl(215,28%,22%)]">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="font-serif italic text-[hsl(43,74%,52%)] text-lg">{d.name}</p>
+          <p className="text-white/40 text-sm mt-1">{d.tagline}</p>
+          <p className="text-white/30 text-xs mt-4">&copy; {new Date().getFullYear()} Prestige Group. All rights reserved.</p>
+          <p className="text-white/20 text-xs mt-1">Made with ❤️ by Prestige Group</p>
+        </div>
+      </footer>
+
+      {/* FLOATING CTA */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3">
+        <a href={`https://wa.me/${d.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(d.contact.whatsappMessage)}`} target="_blank" rel="noopener noreferrer"
+          className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+          <MessageCircle className="h-5 w-5 text-white" />
+        </a>
+        <a href={`tel:${d.contact.phone}`}
+          className="w-12 h-12 rounded-full bg-[hsl(43,74%,52%)] flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+          <Phone className="h-5 w-5 text-[hsl(220,60%,8%)]" />
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const FloorPlanCard = ({ plan, onEnquire }: { plan: FloorPlan; onEnquire: () => void }) => (
+  <div className="bg-[hsl(215,28%,17%)] rounded-xl border border-[hsl(215,28%,22%)] overflow-hidden hover:border-[hsl(43,74%,52%)]/30 hover:-translate-y-1 transition-all group">
+    <div className="aspect-[4/3] overflow-hidden">
+      <img src={plan.image} alt={plan.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+    </div>
+    <div className="p-4">
+      <p className="text-[hsl(43,74%,52%)] font-semibold text-sm">{plan.name}</p>
+      <p className="text-white text-lg font-bold mt-1">{plan.size}</p>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-white/60">
+        <span className="flex items-center gap-1"><Compass className="h-3 w-3" />{plan.facing}</span>
+        <span className="flex items-center gap-1"><Square className="h-3 w-3" />{plan.carpetArea} carpet</span>
+      </div>
+      <div className="flex gap-3 mt-2 text-xs text-white/60">
+        <span className="flex items-center gap-1"><Bed className="h-3 w-3" />{plan.beds}</span>
+        <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{plan.baths}</span>
+        <span>{plan.balconies} Balcony</span>
+      </div>
+      <Button variant="goldOutline" size="sm" className="w-full mt-4 rounded-lg text-xs" onClick={onEnquire}>
+        Enquire About This Plan
+      </Button>
+    </div>
+  </div>
+);
+
+export default LuxuryMicrosite;
