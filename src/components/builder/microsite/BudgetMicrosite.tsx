@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Phone, MessageCircle, Mail, Shield, Star, MapPin,
-  Building2, ChevronRight, Download, Home
+  Building2, ChevronRight, Download, Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +10,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Props {
-  builder: any;
-}
+interface Props { builder: any; }
 
 const formatPrice = (val: number | null) => {
   if (!val) return "";
@@ -24,6 +22,16 @@ const formatPrice = (val: number | null) => {
 const BudgetMicrosite = ({ builder }: Props) => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<any[]>([]);
+  const [fpTab, setFpTab] = useState("2BHK");
+
+  const floorPlans = builder?.floor_plans_data || {};
+  const fpCategories = Object.keys(floorPlans).filter(k => Array.isArray(floorPlans[k]) && floorPlans[k].length > 0);
+  const hasFloorPlans = fpCategories.length > 0;
+  const galleryImages = builder?.gallery_images || [];
+
+  useEffect(() => {
+    if (fpCategories.length > 0 && !fpCategories.includes(fpTab)) setFpTab(fpCategories[0]);
+  }, []);
 
   useEffect(() => {
     const fetch = async () => {
@@ -34,15 +42,18 @@ const BudgetMicrosite = ({ builder }: Props) => {
   }, [builder.builder_name]);
 
   const handleDownloadBrochure = () => {
-    toast.info("Brochure download will be available soon. Contact the builder for details.");
+    if (builder.brochure_url) {
+      window.open(builder.brochure_url, "_blank");
+    } else {
+      toast.info("Brochure download will be available soon.");
+    }
   };
 
   const startingPrice = builder.price_range_min ? formatPrice(builder.price_range_min) : null;
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-[#1e293b]">
-
-      {/* ═══ HEADER — compact ═══ */}
+      {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-white border-b border-gray-200 flex items-center px-3 md:px-6">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 font-medium">
           <ArrowLeft className="h-3.5 w-3.5" /> Back
@@ -50,15 +61,22 @@ const BudgetMicrosite = ({ builder }: Props) => {
         <div className="flex-1 text-center">
           <span className="text-xs font-semibold text-gray-700 truncate">{builder.builder_name}</span>
         </div>
-        <Button size="sm" className="h-7 text-[10px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-3" onClick={() => window.open(`tel:${builder.phone}`)}>
-          <Phone className="h-3 w-3 mr-1" /> Call
-        </Button>
+        <div className="flex items-center gap-2">
+          {builder.id && (
+            <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-gray-400 hover:text-gray-700">
+              <Edit className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <Button size="sm" className="h-7 text-[10px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 px-3" onClick={() => window.open(`tel:${builder.phone}`)}>
+            <Phone className="h-3 w-3 mr-1" /> Call
+          </Button>
+        </div>
       </header>
 
-      {/* ═══ HERO — 35vh, compact info-first ═══ */}
+      {/* HERO */}
       <section className="pt-12 relative h-[35vh] min-h-[220px] flex items-end overflow-hidden">
-        {builder.images?.[0] ? (
-          <img src={builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover" />
+        {(builder.hero_image || builder.images?.[0]) ? (
+          <img src={builder.hero_image || builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-blue-700 to-blue-500" />
         )}
@@ -86,7 +104,7 @@ const BudgetMicrosite = ({ builder }: Props) => {
         </div>
       </section>
 
-      {/* ═══ QUICK STATS ═══ */}
+      {/* QUICK STATS */}
       <div className="max-w-3xl mx-auto px-4 -mt-3 relative z-10">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 shadow-sm">
           {builder.completed_projects_count > 0 && <div className="flex-1 text-center border-r border-gray-100 last:border-0"><p className="text-base font-bold text-blue-600">{builder.completed_projects_count}</p><p className="text-[9px] text-gray-400">Projects</p></div>}
@@ -95,10 +113,9 @@ const BudgetMicrosite = ({ builder }: Props) => {
         </div>
       </div>
 
-      {/* ═══ CONTENT — tight single column ═══ */}
+      {/* CONTENT */}
       <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
-
-        {/* About — brief */}
+        {/* About */}
         {builder.description && (
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <h2 className="text-sm font-bold text-gray-700 mb-2">About</h2>
@@ -106,7 +123,23 @@ const BudgetMicrosite = ({ builder }: Props) => {
           </div>
         )}
 
-        {/* Projects — list style */}
+        {/* Highlights */}
+        {(builder.bhk_types_offered || builder.size_range || builder.total_units_count) && (
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Config", value: builder.bhk_types_offered },
+              { label: "Size", value: builder.size_range },
+              { label: "Units", value: builder.total_units_count },
+            ].filter(h => h.value).map(h => (
+              <div key={h.label} className="p-2.5 rounded-lg bg-white border border-gray-200 text-center">
+                <p className="text-xs font-bold text-blue-600">{h.value}</p>
+                <p className="text-[9px] text-gray-400">{h.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Projects */}
         {projects.length > 0 && (
           <div>
             <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-3"><Building2 className="h-3.5 w-3.5 text-blue-500" /> Projects</h2>
@@ -131,7 +164,64 @@ const BudgetMicrosite = ({ builder }: Props) => {
           </div>
         )}
 
-        {/* Trust — compact */}
+        {/* Floor Plans */}
+        {hasFloorPlans && (
+          <div>
+            <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-3"><Building2 className="h-3.5 w-3.5 text-blue-500" /> Floor Plans</h2>
+            <div className="flex gap-1.5 mb-3">
+              {fpCategories.map(cat => (
+                <button key={cat} onClick={() => setFpTab(cat)}
+                  className={cn("px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all",
+                    fpTab === cat ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200")}>{cat}</button>
+              ))}
+            </div>
+            <div className="space-y-2">
+              {(floorPlans[fpTab] || []).map((fp: any, i: number) => (
+                <div key={i} className="flex gap-3 p-3 rounded-lg bg-white border border-gray-200">
+                  {fp.image && <img src={fp.image} alt={fp.name} className="w-16 h-16 rounded-lg object-contain bg-gray-50 flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-xs text-gray-700">{fp.name}</h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{fp.facing} • {fp.carpetArea || fp.size}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] text-gray-400">{fp.beds}B/{fp.baths}Ba</span>
+                      {fp.priceRange && <span className="text-[10px] font-bold text-blue-600">{fp.priceRange}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gallery */}
+        {galleryImages.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold text-gray-700 mb-3">Gallery</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {galleryImages.map((img: string, i: number) => (
+                <div key={i} className="rounded-lg overflow-hidden aspect-square bg-gray-100">
+                  <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Location */}
+        {(builder.latitude && builder.longitude) && (
+          <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+            <iframe
+              src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${builder.longitude}!3d${builder.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
+              width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location" />
+            {builder.google_maps_link && (
+              <a href={builder.google_maps_link} target="_blank" rel="noopener noreferrer" className="block p-2.5 text-center text-xs text-blue-600 font-medium hover:bg-blue-50">
+                Open in Google Maps
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Trust */}
         {(builder.rera_number || builder.certifications) && (
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm space-y-2">
             <h2 className="text-sm font-bold text-gray-700 flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-blue-500" /> Verification</h2>
@@ -140,12 +230,12 @@ const BudgetMicrosite = ({ builder }: Props) => {
           </div>
         )}
 
-        {/* Contact — simple */}
+        {/* Contact */}
         <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
           <h2 className="text-sm font-bold text-gray-700 mb-3">Get in Touch</h2>
           <div className="grid grid-cols-2 gap-2 mb-3">
             <Button className="h-10 rounded-lg bg-blue-600 text-white hover:bg-blue-700 gap-1.5 text-xs" onClick={() => window.open(`tel:${builder.phone}`)}>
-              <Phone className="h-3.5 w-3.5" /> Call
+              <Phone className="h-3.5 w-3.5" /> {builder.phone}
             </Button>
             {builder.whatsapp ? (
               <Button variant="outline" className="h-10 rounded-lg border-green-200 text-green-600 hover:bg-green-50 gap-1.5 text-xs" onClick={() => window.open(`https://wa.me/${builder.whatsapp.replace(/[^0-9]/g, "")}`)}>
@@ -163,7 +253,7 @@ const BudgetMicrosite = ({ builder }: Props) => {
         </div>
       </div>
 
-      {/* ═══ FIXED BOTTOM CTA (mobile) ═══ */}
+      {/* FIXED BOTTOM CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 px-3 py-2.5 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="flex items-center gap-2 max-w-3xl mx-auto">
           <Button className="flex-1 h-10 rounded-lg bg-blue-600 text-white hover:bg-blue-700 gap-1.5 text-xs font-medium" onClick={() => window.open(`tel:${builder.phone}`)}>
@@ -179,7 +269,6 @@ const BudgetMicrosite = ({ builder }: Props) => {
           )}
         </div>
       </div>
-
       <div className="h-16 md:hidden" />
     </div>
   );

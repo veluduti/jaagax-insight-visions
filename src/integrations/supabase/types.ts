@@ -134,12 +134,18 @@ export type Database = {
       }
       builder_profiles: {
         Row: {
+          about_features: string[] | null
           about_mission: string | null
           about_vision: string | null
           amenities: string[] | null
+          amenity_images: Json | null
           awards: string[] | null
+          bhk_types_offered: string | null
+          brochure_url: string | null
           builder_name: string
           certifications: string | null
+          clubhouse_description: string | null
+          clubhouse_images: string[] | null
           company_registration_number: string | null
           completed_projects_count: number | null
           created_at: string
@@ -147,11 +153,20 @@ export type Database = {
           description: string | null
           email: string | null
           established_year: number | null
+          floor_plans_data: Json | null
+          gallery_images: string[] | null
+          google_maps_link: string | null
+          hero_image: string | null
           id: string
           images: string[] | null
           key_people: Json | null
+          land_area: string | null
+          latitude: number | null
+          live_stats_data: Json | null
           locations: string[] | null
           logo: string | null
+          longitude: number | null
+          master_plan_image: string | null
           number_of_projects: number | null
           office_addresses: Json | null
           ongoing_projects_count: number | null
@@ -159,13 +174,20 @@ export type Database = {
           phone: string
           price_range_max: number | null
           price_range_min: number | null
+          project_location: string | null
+          project_subtitle: string | null
           rera_number: string | null
+          size_range: string | null
           social_links: Json | null
           specializations: string[] | null
           tagline: string | null
+          timeline_data: Json | null
+          total_floors_count: string | null
           total_land_developed_sqft: number | null
           total_reviews: number | null
+          total_units_count: number | null
           total_units_delivered: number | null
+          towers_count: number | null
           type: string
           unit_types: string[] | null
           upcoming_projects_count: number | null
@@ -177,12 +199,18 @@ export type Database = {
           years_of_experience: number | null
         }
         Insert: {
+          about_features?: string[] | null
           about_mission?: string | null
           about_vision?: string | null
           amenities?: string[] | null
+          amenity_images?: Json | null
           awards?: string[] | null
+          bhk_types_offered?: string | null
+          brochure_url?: string | null
           builder_name: string
           certifications?: string | null
+          clubhouse_description?: string | null
+          clubhouse_images?: string[] | null
           company_registration_number?: string | null
           completed_projects_count?: number | null
           created_at?: string
@@ -190,11 +218,20 @@ export type Database = {
           description?: string | null
           email?: string | null
           established_year?: number | null
+          floor_plans_data?: Json | null
+          gallery_images?: string[] | null
+          google_maps_link?: string | null
+          hero_image?: string | null
           id?: string
           images?: string[] | null
           key_people?: Json | null
+          land_area?: string | null
+          latitude?: number | null
+          live_stats_data?: Json | null
           locations?: string[] | null
           logo?: string | null
+          longitude?: number | null
+          master_plan_image?: string | null
           number_of_projects?: number | null
           office_addresses?: Json | null
           ongoing_projects_count?: number | null
@@ -202,13 +239,20 @@ export type Database = {
           phone: string
           price_range_max?: number | null
           price_range_min?: number | null
+          project_location?: string | null
+          project_subtitle?: string | null
           rera_number?: string | null
+          size_range?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           tagline?: string | null
+          timeline_data?: Json | null
+          total_floors_count?: string | null
           total_land_developed_sqft?: number | null
           total_reviews?: number | null
+          total_units_count?: number | null
           total_units_delivered?: number | null
+          towers_count?: number | null
           type?: string
           unit_types?: string[] | null
           upcoming_projects_count?: number | null
@@ -220,12 +264,18 @@ export type Database = {
           years_of_experience?: number | null
         }
         Update: {
+          about_features?: string[] | null
           about_mission?: string | null
           about_vision?: string | null
           amenities?: string[] | null
+          amenity_images?: Json | null
           awards?: string[] | null
+          bhk_types_offered?: string | null
+          brochure_url?: string | null
           builder_name?: string
           certifications?: string | null
+          clubhouse_description?: string | null
+          clubhouse_images?: string[] | null
           company_registration_number?: string | null
           completed_projects_count?: number | null
           created_at?: string
@@ -233,11 +283,20 @@ export type Database = {
           description?: string | null
           email?: string | null
           established_year?: number | null
+          floor_plans_data?: Json | null
+          gallery_images?: string[] | null
+          google_maps_link?: string | null
+          hero_image?: string | null
           id?: string
           images?: string[] | null
           key_people?: Json | null
+          land_area?: string | null
+          latitude?: number | null
+          live_stats_data?: Json | null
           locations?: string[] | null
           logo?: string | null
+          longitude?: number | null
+          master_plan_image?: string | null
           number_of_projects?: number | null
           office_addresses?: Json | null
           ongoing_projects_count?: number | null
@@ -245,13 +304,20 @@ export type Database = {
           phone?: string
           price_range_max?: number | null
           price_range_min?: number | null
+          project_location?: string | null
+          project_subtitle?: string | null
           rera_number?: string | null
+          size_range?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           tagline?: string | null
+          timeline_data?: Json | null
+          total_floors_count?: string | null
           total_land_developed_sqft?: number | null
           total_reviews?: number | null
+          total_units_count?: number | null
           total_units_delivered?: number | null
+          towers_count?: number | null
           type?: string
           unit_types?: string[] | null
           upcoming_projects_count?: number | null

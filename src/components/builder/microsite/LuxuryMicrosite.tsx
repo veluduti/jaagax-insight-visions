@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { projectData, type FloorPlan } from "@/data/projectData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import {
   Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
   Gamepad2, Users, Footprints, Sparkles, Bed, Bath, Square, Compass,
   Download, ArrowRight, Eye, TrendingUp, AlertTriangle, Clock,
-  ChevronRight, RotateCcw, Home
+  RotateCcw, Home, Edit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,24 +21,125 @@ const iconMap: Record<string, any> = {
   Gamepad2, Users, Footprints, Sparkles,
 };
 
+const amenityIconMap: Record<string, any> = {
+  "Swimming Pool": Waves, "Gym": Dumbbell, "Parking": Car, "Garden": TreePine,
+  "Security": Shield, "Wi-Fi": Zap, "AC": Zap, "Water Supply": Waves,
+  "Power Backup": Zap, "Kids Play Area": Baby, "Pet Friendly": Baby,
+  "Landscaping": TreePine, "Game Room": Gamepad2, "Library": Building2,
+  "Cafeteria": Users, "Clubhouse": Building2, "Gymnasium": Dumbbell,
+  "Gardens": TreePine, "Jogging Track": Footprints, "Meditation Zone": Sparkles,
+  "Community Hall": Users, "Indoor Games": Gamepad2,
+};
+
 const statIconMap: Record<string, any> = {
   eye: Eye, trending: TrendingUp, alert: AlertTriangle, clock: Clock,
 };
 
+// Build data object from builder profile, falling back to static projectData
+function buildData(builder: any) {
+  const fp = builder?.floor_plans_data || {};
+  const hasFp = Object.keys(fp).length > 0 && Object.values(fp).some((arr: any) => arr?.length > 0);
+
+  // Build floor plans by facing from DB data
+  const floorPlansByFacing: Record<string, FloorPlan[]> = {};
+  const floorPlansByBhk: Record<string, FloorPlan[]> = {};
+  if (hasFp) {
+    for (const [cat, plans] of Object.entries(fp)) {
+      if (!Array.isArray(plans)) continue;
+      if (!floorPlansByBhk[cat]) floorPlansByBhk[cat] = [];
+      for (const p of plans as any[]) {
+        const plan: FloorPlan = {
+          name: p.name || cat, size: p.size || "", facing: p.facing || "East",
+          carpetArea: p.carpetArea || "", beds: p.beds || 2, baths: p.baths || 2,
+          balconies: p.balconies || 1, image: p.image || "", priceRange: p.priceRange || "",
+          highlights: p.highlights || [],
+        };
+        floorPlansByBhk[cat].push(plan);
+        const facing = plan.facing;
+        if (!floorPlansByFacing[facing]) floorPlansByFacing[facing] = [];
+        floorPlansByFacing[facing].push(plan);
+      }
+    }
+  }
+
+  const amenityNames = builder?.amenities || [];
+  const amenityIcons = amenityNames.map((name: string) => ({
+    name, icon: Object.keys(amenityIconMap).find((k) => name.toLowerCase().includes(k.toLowerCase())) ? name : name,
+  }));
+
+  const hasDbData = builder && (builder.builder_name || builder.tagline);
+
+  return {
+    name: builder?.builder_name || projectData.name,
+    tagline: builder?.tagline || projectData.tagline,
+    subtitle: builder?.project_subtitle || builder?.description || projectData.subtitle,
+    location: builder?.project_location || projectData.location,
+    heroImage: builder?.hero_image || (builder?.images?.[0]) || projectData.heroImage,
+    masterPlanImage: builder?.master_plan_image || projectData.masterPlanImage,
+    brochureUrl: builder?.brochure_url || projectData.brochureUrl,
+    liveStats: projectData.liveStats,
+    about: {
+      description: builder?.description || projectData.about.description,
+      features: builder?.about_features?.length > 0 ? builder.about_features : projectData.about.features,
+      highlights: [
+        { label: "Configuration", value: builder?.bhk_types_offered || projectData.about.highlights[0]?.value || "—" },
+        { label: "Size Range", value: builder?.size_range || projectData.about.highlights[1]?.value || "—" },
+        { label: "Land Area", value: builder?.land_area || projectData.about.highlights[2]?.value || "—" },
+        { label: "Total Units", value: builder?.total_units_count?.toString() || projectData.about.highlights[3]?.value || "—" },
+        { label: "Floors", value: builder?.total_floors_count || projectData.about.highlights[4]?.value || "—" },
+      ],
+    },
+    amenities: {
+      icons: amenityIcons.length > 0 ? amenityIcons.map((a: any) => ({ name: a.name, icon: Object.keys(iconMap).find((k) => a.name.toLowerCase().includes(k.toLowerCase())) || "Shield" })) : projectData.amenities.icons,
+      images: builder?.clubhouse_images?.length > 0
+        ? builder.clubhouse_images.map((src: string, i: number) => ({ src, label: `Amenity ${i + 1}`, desc: builder.clubhouse_description || "" }))
+        : projectData.amenities.images,
+    },
+    floorPlansByFacing: Object.keys(floorPlansByFacing).length > 0 ? floorPlansByFacing : projectData.floorPlansByFacing,
+    floorPlans: Object.keys(floorPlansByBhk).length > 0 ? floorPlansByBhk : projectData.floorPlans,
+    gallery: builder?.gallery_images?.length > 0
+      ? builder.gallery_images.map((src: string, i: number) => ({ src, label: `Gallery ${i + 1}` }))
+      : projectData.gallery,
+    map: {
+      lat: builder?.latitude || projectData.map.lat,
+      lng: builder?.longitude || projectData.map.lng,
+      embedUrl: `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${builder?.longitude || projectData.map.lng}!3d${builder?.latitude || projectData.map.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`,
+      mapsUrl: builder?.google_maps_link || projectData.map.mapsUrl,
+      address: builder?.project_location || projectData.map.address,
+    },
+    trust: [
+      { label: "Total Units", value: builder?.total_units_count?.toString() || "480" },
+      { label: "Towers", value: builder?.towers_count?.toString() || "4" },
+      { label: "Floors", value: builder?.total_floors_count || "G+25" },
+      { label: "RERA No", value: builder?.rera_number || "—" },
+      { label: "Experience", value: builder?.years_of_experience ? `${builder.years_of_experience}+ Years` : "25+ Years" },
+    ],
+    timeline: projectData.timeline,
+    contact: {
+      phone: builder?.phone || projectData.contact.phone,
+      whatsapp: builder?.whatsapp || builder?.phone || projectData.contact.whatsapp,
+      whatsappMessage: `Hi, I'm interested in ${builder?.builder_name || projectData.name}. Please share more details.`,
+      address: builder?.project_location || projectData.contact.address,
+    },
+    aiBudgetRanges: projectData.aiBudgetRanges,
+    aiFacings: Object.keys(floorPlansByFacing).length > 0 ? Object.keys(floorPlansByFacing) : projectData.aiFacings,
+  };
+}
+
 const NAV_ITEMS = ["Home", "About", "Amenities", "Master Plan", "Floor Plans", "Gallery", "Location", "Contact"];
 const SECTION_IDS = ["home", "about", "amenities", "masterplan", "floorplans", "gallery", "location", "contact"];
 
-const d = projectData;
-
 const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
+  const navigate = useNavigate();
+  const d = useMemo(() => buildData(builder), [builder]);
+
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [fpTab, setFpTab] = useState<string>("East");
+  const [fpTab, setFpTab] = useState<string>(Object.keys(d.floorPlansByFacing)[0] || "East");
   const [galleryOpen, setGalleryOpen] = useState<string | null>(null);
   const [masterPlanOpen, setMasterPlanOpen] = useState(false);
 
-  // AI Home Finder state - conversational flow
   const [aiStep, setAiStep] = useState(0);
   const [aiBhk, setAiBhk] = useState<string | null>(null);
   const [aiBudget, setAiBudget] = useState<string | null>(null);
@@ -68,12 +170,11 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   };
 
   const aiResults = useMemo(() => {
-    if (aiStep < 3) return null;
-    if (!aiBhk || !aiFacing) return null;
+    if (aiStep < 3 || !aiBhk || !aiFacing) return null;
     const facingPlans = d.floorPlansByFacing[aiFacing as keyof typeof d.floorPlansByFacing] || [];
     const bhkNum = parseInt(aiBhk);
     return facingPlans.filter((p) => p.beds === bhkNum);
-  }, [aiStep, aiBhk, aiBudget, aiFacing]);
+  }, [aiStep, aiBhk, aiBudget, aiFacing, d.floorPlansByFacing]);
 
   const handleAiSelect = (step: number, value: string) => {
     if (step === 0) { setAiBhk(value); setAiStep(1); }
@@ -81,9 +182,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
     else if (step === 2) { setAiFacing(value); setAiStep(3); }
   };
 
-  const resetAi = () => {
-    setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null);
-  };
+  const resetAi = () => { setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null); };
 
   const handleEnquiry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +192,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   };
 
   const facingKeys = Object.keys(d.floorPlansByFacing);
+  const bhkCategories = Object.keys(d.floorPlans);
 
   return (
     <div className="luxury-dark bg-[hsl(220,60%,8%)] min-h-screen text-white" style={{ scrollBehavior: "smooth" }}>
@@ -111,27 +211,34 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
               </button>
             ))}
           </div>
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild className="lg:hidden">
-              <button><Menu className="h-6 w-6 text-white" /></button>
-            </SheetTrigger>
-            <SheetContent side="right" className="bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)] w-64">
-              <div className="flex flex-col gap-4 mt-8">
-                {NAV_ITEMS.map((item, i) => (
-                  <button key={item} onClick={() => scrollTo(SECTION_IDS[i])}
-                    className={cn("text-left text-lg py-2", activeSection === SECTION_IDS[i] ? "text-[hsl(43,74%,52%)]" : "text-white/70")}>
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="flex items-center gap-2">
+            {builder?.id && (
+              <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-white/50 hover:text-white/80">
+                <Edit className="h-4 w-4" />
+              </button>
+            )}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <button><Menu className="h-6 w-6 text-white" /></button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)] w-64">
+                <div className="flex flex-col gap-4 mt-8">
+                  {NAV_ITEMS.map((item, i) => (
+                    <button key={item} onClick={() => scrollTo(SECTION_IDS[i])}
+                      className={cn("text-left text-lg py-2", activeSection === SECTION_IDS[i] ? "text-[hsl(43,74%,52%)]" : "text-white/70")}>
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </nav>
 
       {/* HERO */}
       <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-        <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
+        {d.heroImage && <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,60%,8%)]/70 via-[hsl(220,60%,8%)]/50 to-[hsl(220,60%,8%)]/90" />
         <div className="relative z-10 text-center max-w-3xl px-4">
           <p className="text-[hsl(43,74%,52%)] text-sm tracking-[0.3em] uppercase mb-4">Premium Residences</p>
@@ -141,11 +248,13 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             <Button variant="gold" size="lg" className="rounded-full px-8" onClick={() => scrollTo("contact")}>
               Book a Private Tour
             </Button>
-            <a href={d.brochureUrl} download>
-              <Button variant="goldOutline" size="lg" className="rounded-full px-8">
-                <Download className="h-4 w-4 mr-2" /> Download Brochure
-              </Button>
-            </a>
+            {d.brochureUrl && (
+              <a href={d.brochureUrl} download>
+                <Button variant="goldOutline" size="lg" className="rounded-full px-8">
+                  <Download className="h-4 w-4 mr-2" /> Download Brochure
+                </Button>
+              </a>
+            )}
           </div>
         </div>
         <button onClick={() => scrollTo("livestats")} className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
@@ -153,7 +262,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </button>
       </section>
 
-      {/* LIVE STATS — Compact ticker-style */}
+      {/* LIVE STATS */}
       <section id="livestats" className="bg-[hsl(220,60%,8%)] border-y border-[hsl(43,74%,52%)]/10">
         <div className="max-w-6xl mx-auto px-4 py-0">
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[hsl(215,28%,22%)]">
@@ -164,19 +273,13 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
                   <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
                     s.color === "green" ? "bg-green-500/10" : s.color === "amber" ? "bg-amber-500/10" : "bg-red-500/10"
                   )}>
-                    {Icon && <Icon className={cn("h-4 w-4",
-                      s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400"
-                    )} />}
+                    {Icon && <Icon className={cn("h-4 w-4", s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400")} />}
                   </div>
                   <div className="min-w-0">
-                    <p className={cn("text-sm font-semibold leading-tight",
-                      s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400"
-                    )}>
+                    <p className={cn("text-sm font-semibold leading-tight", s.color === "green" ? "text-green-400" : s.color === "amber" ? "text-amber-400" : "text-red-400")}>
                       {s.text.split(" ").slice(0, 2).join(" ")}
                     </p>
-                    <p className="text-white/40 text-xs truncate">
-                      {s.text.split(" ").slice(2).join(" ")}
-                    </p>
+                    <p className="text-white/40 text-xs truncate">{s.text.split(" ").slice(2).join(" ")}</p>
                   </div>
                   <span className={cn("ml-auto h-2 w-2 rounded-full animate-pulse flex-shrink-0",
                     s.color === "green" ? "bg-green-500" : s.color === "amber" ? "bg-amber-500" : "bg-red-500"
@@ -212,7 +315,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </div>
       </section>
 
-      {/* AI HOME FINDER — Conversational flow */}
+      {/* AI HOME FINDER */}
       <section className="py-20 px-4 bg-[hsl(220,39%,11%)]">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
@@ -223,133 +326,97 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             <h2 className="font-serif italic text-3xl md:text-4xl text-white mb-2">Find Your Perfect Home</h2>
             <p className="text-white/50 text-sm">Tell us your preferences and we'll find your ideal floor plan</p>
           </div>
-
-          {/* Progress bar */}
           <div className="flex items-center gap-1 mb-8 max-w-md mx-auto">
             {[0, 1, 2].map((step) => (
-              <div key={step} className="flex-1 flex items-center gap-1">
-                <div className={cn("h-1.5 flex-1 rounded-full transition-all duration-500",
-                  aiStep > step ? "bg-[hsl(43,74%,52%)]" : aiStep === step ? "bg-[hsl(43,74%,52%)]/50" : "bg-[hsl(215,28%,22%)]"
-                )} />
-              </div>
+              <div key={step} className="flex-1"><div className={cn("h-1.5 rounded-full transition-all duration-500",
+                aiStep > step ? "bg-[hsl(43,74%,52%)]" : aiStep === step ? "bg-[hsl(43,74%,52%)]/50" : "bg-[hsl(215,28%,22%)]"
+              )} /></div>
             ))}
           </div>
-
-          {/* Conversational cards */}
           <div className="space-y-4">
             {/* Step 0: BHK */}
-            <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300",
-              aiStep === 0 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
-              aiStep > 0 ? "opacity-60" : ""
-            )}>
+            <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all", aiStep === 0 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]", aiStep > 0 ? "opacity-60" : "")}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
-                    <Home className="h-4 w-4 text-[hsl(43,74%,52%)]" />
-                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center"><Home className="h-4 w-4 text-[hsl(43,74%,52%)]" /></div>
                   <div>
-                    <p className="text-white text-sm font-medium">How many bedrooms do you need?</p>
+                    <p className="text-white text-sm font-medium">How many bedrooms?</p>
                     {aiBhk && aiStep > 0 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiBhk} BHK selected</p>}
                   </div>
                 </div>
-                {aiStep > 0 && (
-                  <button onClick={() => { setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null); }}
-                    className="text-white/40 hover:text-white/70 text-xs">Change</button>
-                )}
+                {aiStep > 0 && <button onClick={() => { setAiStep(0); setAiBhk(null); setAiBudget(null); setAiFacing(null); }} className="text-white/40 hover:text-white/70 text-xs">Change</button>}
               </div>
               {aiStep === 0 && (
                 <div className="flex gap-3">
-                  {["2", "3"].map((b) => (
-                    <button key={b} onClick={() => handleAiSelect(0, b)}
-                      className="flex-1 py-4 rounded-xl text-center bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 transition-all group">
-                      <p className="text-2xl font-bold text-white group-hover:text-[hsl(43,74%,52%)] transition-colors">{b}</p>
-                      <p className="text-white/40 text-xs mt-1">BHK</p>
-                    </button>
-                  ))}
+                  {bhkCategories.map((cat) => {
+                    const num = cat.replace("BHK", "");
+                    return (
+                      <button key={cat} onClick={() => handleAiSelect(0, num)}
+                        className="flex-1 py-4 rounded-xl text-center bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 transition-all group">
+                        <p className="text-2xl font-bold text-white group-hover:text-[hsl(43,74%,52%)] transition-colors">{num}</p>
+                        <p className="text-white/40 text-xs mt-1">BHK</p>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
-
             {/* Step 1: Budget */}
             {aiStep >= 1 && (
-              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300 animate-fade-in",
-                aiStep === 1 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
-                aiStep > 1 ? "opacity-60" : ""
-              )}>
+              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all animate-fade-in", aiStep === 1 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]", aiStep > 1 ? "opacity-60" : "")}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
-                      <TrendingUp className="h-4 w-4 text-[hsl(43,74%,52%)]" />
-                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center"><TrendingUp className="h-4 w-4 text-[hsl(43,74%,52%)]" /></div>
                     <div>
-                      <p className="text-white text-sm font-medium">What's your budget range?</p>
-                      {aiBudget && aiStep > 1 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiBudget} selected</p>}
+                      <p className="text-white text-sm font-medium">Budget range?</p>
+                      {aiBudget && aiStep > 1 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiBudget}</p>}
                     </div>
                   </div>
-                  {aiStep > 1 && (
-                    <button onClick={() => { setAiStep(1); setAiBudget(null); setAiFacing(null); }}
-                      className="text-white/40 hover:text-white/70 text-xs">Change</button>
-                  )}
+                  {aiStep > 1 && <button onClick={() => { setAiStep(1); setAiBudget(null); setAiFacing(null); }} className="text-white/40 hover:text-white/70 text-xs">Change</button>}
                 </div>
                 {aiStep === 1 && (
                   <div className="grid grid-cols-2 gap-3">
                     {d.aiBudgetRanges.map((b) => (
                       <button key={b} onClick={() => handleAiSelect(1, b)}
-                        className="py-3 px-4 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">
-                        {b}
-                      </button>
+                        className="py-3 px-4 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">{b}</button>
                     ))}
                   </div>
                 )}
               </div>
             )}
-
             {/* Step 2: Facing */}
             {aiStep >= 2 && (
-              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all duration-300 animate-fade-in",
-                aiStep === 2 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]",
-                aiStep > 2 ? "opacity-60" : ""
-              )}>
+              <div className={cn("bg-[hsl(215,28%,17%)] rounded-2xl p-6 border transition-all animate-fade-in", aiStep === 2 ? "border-[hsl(43,74%,52%)]/30" : "border-[hsl(215,28%,22%)]", aiStep > 2 ? "opacity-60" : "")}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center">
-                      <Compass className="h-4 w-4 text-[hsl(43,74%,52%)]" />
-                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[hsl(43,74%,52%)]/10 flex items-center justify-center"><Compass className="h-4 w-4 text-[hsl(43,74%,52%)]" /></div>
                     <div>
                       <p className="text-white text-sm font-medium">Preferred direction?</p>
                       {aiFacing && aiStep > 2 && <p className="text-[hsl(43,74%,52%)] text-xs mt-0.5">{aiFacing} facing</p>}
                     </div>
                   </div>
-                  {aiStep > 2 && (
-                    <button onClick={() => { setAiStep(2); setAiFacing(null); }}
-                      className="text-white/40 hover:text-white/70 text-xs">Change</button>
-                  )}
+                  {aiStep > 2 && <button onClick={() => { setAiStep(2); setAiFacing(null); }} className="text-white/40 hover:text-white/70 text-xs">Change</button>}
                 </div>
                 {aiStep === 2 && (
                   <div className="grid grid-cols-3 gap-2">
                     {d.aiFacings.map((f) => (
                       <button key={f} onClick={() => handleAiSelect(2, f)}
-                        className="py-3 px-3 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">
-                        {f}
-                      </button>
+                        className="py-3 px-3 rounded-xl text-sm font-medium bg-[hsl(220,39%,11%)] border border-[hsl(215,28%,22%)] hover:border-[hsl(43,74%,52%)]/50 hover:bg-[hsl(43,74%,52%)]/5 text-white/70 hover:text-white transition-all">{f}</button>
                     ))}
                   </div>
                 )}
               </div>
             )}
           </div>
-
-          {/* Results */}
+          {/* AI Results */}
           {aiStep === 3 && aiResults !== null && (
             <div className="mt-8 animate-fade-in">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-white text-lg font-medium">
-                    {aiResults.length > 0 ? `We found ${aiResults.length} perfect match${aiResults.length > 1 ? "es" : ""}` : "No exact match for this combination"}
+                    {aiResults.length > 0 ? `We found ${aiResults.length} perfect match${aiResults.length > 1 ? "es" : ""}` : "No exact match"}
                   </h3>
-                  <p className="text-white/40 text-sm mt-1">
-                    {aiBhk} BHK • {aiBudget} • {aiFacing} facing
-                  </p>
+                  <p className="text-white/40 text-sm mt-1">{aiBhk} BHK • {aiBudget} • {aiFacing} facing</p>
                 </div>
                 <button onClick={resetAi} className="flex items-center gap-1.5 text-[hsl(43,74%,52%)] text-sm hover:underline">
                   <RotateCcw className="h-3.5 w-3.5" /> Start over
@@ -357,16 +424,12 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
               </div>
               {aiResults.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {aiResults.map((p) => (
-                    <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} showHighlights />
-                  ))}
+                  {aiResults.map((p) => <FloorPlanCard key={p.name} plan={p} onEnquire={() => scrollTo("contact")} showHighlights />)}
                 </div>
               ) : (
                 <div className="bg-[hsl(215,28%,17%)] rounded-2xl p-8 text-center border border-[hsl(215,28%,22%)]">
-                  <p className="text-white/50 mb-4">Try adjusting your preferences for more results</p>
-                  <Button variant="goldOutline" onClick={resetAi} className="rounded-full">
-                    <RotateCcw className="h-4 w-4 mr-2" /> Try Again
-                  </Button>
+                  <p className="text-white/50 mb-4">Try adjusting your preferences</p>
+                  <Button variant="goldOutline" onClick={resetAi} className="rounded-full"><RotateCcw className="h-4 w-4 mr-2" /> Try Again</Button>
                 </div>
               )}
             </div>
@@ -380,47 +443,53 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
           <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-10">World-Class Amenities</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-10">
             {d.amenities.icons.map((a) => {
-              const Icon = iconMap[a.icon];
+              const Icon = iconMap[a.icon] || amenityIconMap[a.name] || Shield;
               return (
                 <div key={a.name} className="flex items-center gap-3 bg-[hsl(215,28%,17%)] rounded-xl p-4 hover:border-[hsl(43,74%,52%)]/30 border border-transparent transition-all">
-                  {Icon && <Icon className="h-5 w-5 text-[hsl(43,74%,52%)]" />}
+                  <Icon className="h-5 w-5 text-[hsl(43,74%,52%)]" />
                   <span className="text-white/80 text-sm">{a.name}</span>
                 </div>
               );
             })}
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {d.amenities.images.map((a) => (
-              <div key={a.label} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
-                <img src={a.src} alt={a.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-white font-semibold text-sm">{a.label}</p>
-                  <p className="text-white/60 text-xs mt-1">{a.desc}</p>
+          {d.amenities.images.length > 0 && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {d.amenities.images.map((a) => (
+                <div key={a.label} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
+                  <img src={a.src} alt={a.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-white font-semibold text-sm">{a.label}</p>
+                    {a.desc && <p className="text-white/60 text-xs mt-1">{a.desc}</p>}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* MASTER PLAN */}
-      <section id="masterplan" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Master Plan</h2>
-          <div className="border-2 border-[hsl(43,74%,52%)]/30 rounded-2xl overflow-hidden cursor-pointer" onClick={() => setMasterPlanOpen(true)}>
-            <img src={d.masterPlanImage} alt="Master Plan" loading="lazy" className="w-full hover:scale-[1.02] transition-transform duration-500" />
-          </div>
-          <p className="text-white/40 text-sm text-center mt-4">Click to enlarge</p>
-        </div>
-      </section>
-      <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
-        <DialogContent className="max-w-5xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
-          <img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" />
-        </DialogContent>
-      </Dialog>
+      {d.masterPlanImage && (
+        <>
+          <section id="masterplan" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Master Plan</h2>
+              <div className="border-2 border-[hsl(43,74%,52%)]/30 rounded-2xl overflow-hidden cursor-pointer" onClick={() => setMasterPlanOpen(true)}>
+                <img src={d.masterPlanImage} alt="Master Plan" loading="lazy" className="w-full hover:scale-[1.02] transition-transform duration-500" />
+              </div>
+              <p className="text-white/40 text-sm text-center mt-4">Click to enlarge</p>
+            </div>
+          </section>
+          <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
+            <DialogContent className="max-w-5xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
+              <img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" />
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
-      {/* FLOOR PLANS — By Facing */}
+      {/* FLOOR PLANS */}
       <section id="floorplans" className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-2">Floor Plans</h2>
@@ -443,26 +512,30 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
       </section>
 
       {/* GALLERY */}
-      <section id="gallery" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Gallery</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {d.gallery.map((g) => (
-              <div key={g.label} className="group relative rounded-xl overflow-hidden aspect-[4/3] cursor-pointer" onClick={() => setGalleryOpen(g.src)}>
-                <img src={g.src} alt={g.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                  <span className="text-white font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">{g.label}</span>
-                </div>
+      {d.gallery.length > 0 && (
+        <>
+          <section id="gallery" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Gallery</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {d.gallery.map((g) => (
+                  <div key={g.label} className="group relative rounded-xl overflow-hidden aspect-[4/3] cursor-pointer" onClick={() => setGalleryOpen(g.src)}>
+                    <img src={g.src} alt={g.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                      <span className="text-white font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">{g.label}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
-        <DialogContent className="max-w-4xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
-          {galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}
-        </DialogContent>
-      </Dialog>
+            </div>
+          </section>
+          <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
+            <DialogContent className="max-w-4xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
+              {galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       {/* LOCATION */}
       <section id="location" className="py-20 px-4">
@@ -566,15 +639,11 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
       <div className="bg-[hsl(220,60%,8%)] border-y border-[hsl(215,28%,22%)] py-4 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-center gap-3">
           <Phone className="h-5 w-5 text-[hsl(43,74%,52%)]" />
-          <a href={`tel:${d.contact.phone}`} className="text-white text-lg font-medium tracking-wide hover:text-[hsl(43,74%,52%)] transition-colors">
-            {d.contact.phone}
-          </a>
+          <a href={`tel:${d.contact.phone}`} className="text-white text-lg font-medium tracking-wide hover:text-[hsl(43,74%,52%)] transition-colors">{d.contact.phone}</a>
           <span className="text-white/30 mx-2">|</span>
           <MessageCircle className="h-5 w-5 text-green-500" />
           <a href={`https://wa.me/${d.contact.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(d.contact.whatsappMessage)}`} target="_blank" rel="noopener noreferrer"
-            className="text-white text-lg font-medium tracking-wide hover:text-green-400 transition-colors">
-            {d.contact.whatsapp}
-          </a>
+            className="text-white text-lg font-medium tracking-wide hover:text-green-400 transition-colors">{d.contact.whatsapp}</a>
         </div>
       </div>
 
@@ -583,8 +652,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         <div className="max-w-6xl mx-auto text-center">
           <p className="font-serif italic text-[hsl(43,74%,52%)] text-lg">{d.name}</p>
           <p className="text-white/40 text-sm mt-1">{d.tagline}</p>
-          <p className="text-white/30 text-xs mt-4">&copy; {new Date().getFullYear()} Prestige Group. All rights reserved.</p>
-          <p className="text-white/20 text-xs mt-1">Made with ❤️ by Prestige Group</p>
+          <p className="text-white/30 text-xs mt-4">&copy; {new Date().getFullYear()} {d.name}. All rights reserved.</p>
         </div>
       </footer>
 
@@ -605,10 +673,13 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
 
 const FloorPlanCard = ({ plan, onEnquire, showHighlights = false }: { plan: FloorPlan; onEnquire: () => void; showHighlights?: boolean }) => (
   <div className="bg-[hsl(215,28%,17%)] rounded-xl border border-[hsl(215,28%,22%)] overflow-hidden hover:border-[hsl(43,74%,52%)]/30 hover:-translate-y-1 transition-all group">
-    <div className="aspect-square overflow-hidden relative bg-[hsl(220,60%,8%)]">
-      <img src={plan.image} alt={plan.name} loading="lazy" width={1024} height={1024} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
-    </div>
+    {plan.image && (
+      <div className="aspect-square overflow-hidden relative bg-[hsl(220,60%,8%)]">
+        <img src={plan.image} alt={plan.name} loading="lazy" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
+      </div>
+    )}
     <div className="p-4 border-t border-[hsl(215,28%,22%)]">
+      <p className="text-white font-medium text-sm mb-1">{plan.name}</p>
       <div className="flex items-center justify-between mb-2">
         <p className="text-[hsl(43,74%,52%)] font-semibold text-sm">{plan.facing} Facing</p>
         {plan.priceRange && <span className="text-[hsl(43,74%,52%)] text-xs font-semibold">{plan.priceRange}</span>}
@@ -616,14 +687,12 @@ const FloorPlanCard = ({ plan, onEnquire, showHighlights = false }: { plan: Floo
       <div className="flex gap-4 text-xs text-white/60">
         <span className="flex items-center gap-1"><Bed className="h-3 w-3" />{plan.beds} Bed</span>
         <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{plan.baths} Bath</span>
-        <span className="flex items-center gap-1"><Square className="h-3 w-3" />{plan.carpetArea}</span>
+        <span className="flex items-center gap-1"><Square className="h-3 w-3" />{plan.carpetArea || plan.size}</span>
       </div>
-      {showHighlights && plan.highlights && plan.highlights.length > 0 && (
+      {showHighlights && plan.highlights?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {plan.highlights.map((h) => (
-            <span key={h} className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(43,74%,52%)]/10 text-[hsl(43,74%,52%)] border border-[hsl(43,74%,52%)]/20">
-              {h}
-            </span>
+            <span key={h} className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(43,74%,52%)]/10 text-[hsl(43,74%,52%)] border border-[hsl(43,74%,52%)]/20">{h}</span>
           ))}
         </div>
       )}

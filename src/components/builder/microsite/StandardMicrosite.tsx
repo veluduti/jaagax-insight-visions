@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Phone, MessageCircle, X, Mail, Globe, Shield, Star, MapPin,
-  Award, Building2, ChevronUp, Users, User, ChevronRight, Download, Briefcase, Eye, Target
+  Award, Building2, ChevronUp, Users, User, ChevronRight, Download, Briefcase, Eye, Target, Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Props {
-  builder: any;
-}
+interface Props { builder: any; }
 
 const formatPrice = (val: number | null) => {
   if (!val) return "";
@@ -25,6 +23,8 @@ const formatPrice = (val: number | null) => {
 const SECTIONS = [
   { id: "about", label: "About" },
   { id: "projects", label: "Projects" },
+  { id: "floorplans", label: "Floor Plans" },
+  { id: "gallery", label: "Gallery" },
   { id: "location", label: "Location" },
   { id: "trust", label: "Trust" },
   { id: "contact", label: "Contact" },
@@ -37,7 +37,17 @@ const StandardMicrosite = ({ builder }: Props) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
   const [contactOpen, setContactOpen] = useState(false);
+  const [fpTab, setFpTab] = useState("2BHK");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const floorPlans = builder?.floor_plans_data || {};
+  const fpCategories = Object.keys(floorPlans).filter(k => Array.isArray(floorPlans[k]) && floorPlans[k].length > 0);
+  const galleryImages = builder?.gallery_images || [];
+  const hasFloorPlans = fpCategories.length > 0;
+
+  useEffect(() => {
+    if (fpCategories.length > 0 && !fpCategories.includes(fpTab)) setFpTab(fpCategories[0]);
+  }, []);
 
   useEffect(() => {
     const fetch = async () => {
@@ -67,15 +77,18 @@ const StandardMicrosite = ({ builder }: Props) => {
   };
 
   const handleDownloadBrochure = () => {
-    toast.info("Brochure download will be available soon. Contact the builder for details.");
+    if (builder.brochure_url) {
+      window.open(builder.brochure_url, "_blank");
+    } else {
+      toast.info("Brochure download will be available soon.");
+    }
   };
 
   const offices = Array.isArray(builder.office_addresses) ? builder.office_addresses : [];
 
   return (
     <div className="min-h-screen bg-[#F7F8F6] text-[#1a2a1a]">
-
-      {/* ═══ HEADER ═══ */}
+      {/* HEADER */}
       <header className={cn(
         "fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4 md:px-8 transition-all duration-300",
         headerSolid ? "bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-sm" : "bg-transparent"
@@ -87,28 +100,30 @@ const StandardMicrosite = ({ builder }: Props) => {
           {headerSolid && builder.logo && <img src={builder.logo} alt="" className="h-7 w-7 rounded-lg object-contain" />}
           <span className={cn("text-xs font-semibold tracking-wider uppercase transition-all", headerSolid ? "opacity-100 text-gray-800" : "opacity-0")}>{builder.builder_name}</span>
         </div>
-        <Button size="sm" onClick={() => setContactOpen(true)} className="text-xs rounded-full px-5 bg-emerald-600 text-white hover:bg-emerald-700 font-medium">
-          Enquire
-        </Button>
+        <div className="flex items-center gap-2">
+          {builder.id && (
+            <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className={cn("transition-colors", headerSolid ? "text-gray-400 hover:text-gray-700" : "text-white/50 hover:text-white")}>
+              <Edit className="h-4 w-4" />
+            </button>
+          )}
+          <Button size="sm" onClick={() => setContactOpen(true)} className="text-xs rounded-full px-5 bg-emerald-600 text-white hover:bg-emerald-700 font-medium">Enquire</Button>
+        </div>
       </header>
 
-      {/* ═══ HERO — 50-60vh ═══ */}
+      {/* HERO */}
       <section className="relative h-[55vh] min-h-[360px] flex items-end overflow-hidden">
-        {builder.images?.[0] ? (
-          <img src={builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover" />
+        {(builder.hero_image || builder.images?.[0]) ? (
+          <img src={builder.hero_image || builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 to-emerald-600" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
-
         <div className="relative z-10 w-full max-w-5xl mx-auto px-5 md:px-8 pb-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 {builder.logo && <img src={builder.logo} alt="" className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md p-1.5 border border-white/15 object-contain" />}
-                <Badge className="bg-white/10 backdrop-blur-md text-white/90 border border-white/15 text-[10px] font-medium px-3 py-1 rounded-full">
-                  Standard Builder
-                </Badge>
+                <Badge className="bg-white/10 backdrop-blur-md text-white/90 border border-white/15 text-[10px] font-medium px-3 py-1 rounded-full">Standard Builder</Badge>
               </div>
               <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">{builder.builder_name}</h1>
               {builder.tagline && <p className="text-white/50 text-sm max-w-md">{builder.tagline}</p>}
@@ -116,7 +131,6 @@ const StandardMicrosite = ({ builder }: Props) => {
                 <div className="flex items-center gap-1.5">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                   <span className="text-white text-sm font-medium">{builder.customer_rating}/5</span>
-                  {builder.total_reviews > 0 && <span className="text-white/40 text-xs">({builder.total_reviews} reviews)</span>}
                 </div>
               )}
             </div>
@@ -132,7 +146,7 @@ const StandardMicrosite = ({ builder }: Props) => {
         </div>
       </section>
 
-      {/* ═══ STATS BAR ═══ */}
+      {/* STATS BAR */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-5 md:px-8 py-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -151,11 +165,15 @@ const StandardMicrosite = ({ builder }: Props) => {
         </div>
       </div>
 
-      {/* ═══ SECTION NAV ═══ */}
+      {/* SECTION NAV */}
       <nav className="sticky top-14 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-none">
           <div className="flex items-center h-11 gap-1 px-5 md:px-8 min-w-max">
-            {SECTIONS.map(s => (
+            {SECTIONS.filter(s => {
+              if (s.id === "floorplans" && !hasFloorPlans) return false;
+              if (s.id === "gallery" && galleryImages.length === 0) return false;
+              return true;
+            }).map(s => (
               <button key={s.id} onClick={() => scrollToSection(s.id)} className={cn(
                 "px-4 py-2 text-xs font-medium rounded-full transition-all whitespace-nowrap",
                 activeSection === s.id ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
@@ -165,15 +183,31 @@ const StandardMicrosite = ({ builder }: Props) => {
         </div>
       </nav>
 
-      {/* ═══ CONTENT ═══ */}
+      {/* CONTENT */}
       <div className="max-w-5xl mx-auto px-5 md:px-8 py-8 space-y-8">
-
         {/* About */}
         <section ref={el => (sectionRefs.current["about"] = el)} className="space-y-4">
           <h2 className="text-lg font-bold flex items-center gap-2"><Briefcase className="h-4 w-4 text-emerald-600" /> About {builder.builder_name}</h2>
           {builder.description && (
             <div className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
               <p className="text-sm text-gray-600 leading-relaxed">{builder.description}</p>
+            </div>
+          )}
+          {/* Highlights */}
+          {(builder.bhk_types_offered || builder.size_range || builder.land_area) && (
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {[
+                { label: "Configuration", value: builder.bhk_types_offered },
+                { label: "Size Range", value: builder.size_range },
+                { label: "Land Area", value: builder.land_area },
+                { label: "Total Units", value: builder.total_units_count },
+                { label: "Floors", value: builder.total_floors_count },
+              ].filter(h => h.value).map(h => (
+                <div key={h.label} className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100/50 text-center">
+                  <p className="text-sm font-bold text-emerald-700">{h.value}</p>
+                  <p className="text-[10px] text-emerald-600/60 mt-0.5">{h.label}</p>
+                </div>
+              ))}
             </div>
           )}
           {(builder.about_mission || builder.about_vision) && (
@@ -197,13 +231,13 @@ const StandardMicrosite = ({ builder }: Props) => {
           )}
         </section>
 
-        {/* Projects — 2-3 column grid */}
+        {/* Projects */}
         {projects.length > 0 && (
           <section ref={el => (sectionRefs.current["projects"] = el)} className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold flex items-center gap-2"><Building2 className="h-4 w-4 text-emerald-600" /> Projects</h2>
               <Button variant="outline" size="sm" onClick={handleDownloadBrochure} className="rounded-full text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                <Download className="h-3.5 w-3.5" /> Download Brochure
+                <Download className="h-3.5 w-3.5" /> Brochure
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -233,9 +267,83 @@ const StandardMicrosite = ({ builder }: Props) => {
           </section>
         )}
 
+        {/* Floor Plans */}
+        {hasFloorPlans && (
+          <section ref={el => (sectionRefs.current["floorplans"] = el)} className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2"><Building2 className="h-4 w-4 text-emerald-600" /> Floor Plans</h2>
+            <div className="flex gap-2 mb-4">
+              {fpCategories.map(cat => (
+                <Button key={cat} variant={fpTab === cat ? "default" : "outline"} size="sm" onClick={() => setFpTab(cat)}
+                  className={fpTab === cat ? "bg-emerald-600 hover:bg-emerald-700" : ""}>{cat}</Button>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(floorPlans[fpTab] || []).map((fp: any, i: number) => (
+                <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                  {fp.image && (
+                    <div className="aspect-square bg-gray-50 overflow-hidden">
+                      <img src={fp.image} alt={fp.name} className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-semibold text-sm text-gray-800">{fp.name}</h4>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{fp.facing} facing</span>
+                      {fp.priceRange && <span className="font-bold text-emerald-600">{fp.priceRange}</span>}
+                    </div>
+                    <div className="flex gap-3 text-xs text-gray-400">
+                      <span>{fp.beds} Bed</span>
+                      <span>{fp.baths} Bath</span>
+                      <span>{fp.carpetArea || fp.size}</span>
+                    </div>
+                    {fp.highlights?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {fp.highlights.map((h: string) => <Badge key={h} className="text-[9px] bg-emerald-50 text-emerald-600 border-0 px-2 py-0.5">{h}</Badge>)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Gallery */}
+        {galleryImages.length > 0 && (
+          <section ref={el => (sectionRefs.current["gallery"] = el)} className="space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2"><Eye className="h-4 w-4 text-emerald-600" /> Gallery</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              {galleryImages.map((img: string, i: number) => (
+                <div key={i} className="rounded-xl overflow-hidden aspect-[4/3] bg-gray-100">
+                  <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Location */}
         <section ref={el => (sectionRefs.current["location"] = el)} className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" /> Locations</h2>
+          <h2 className="text-lg font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" /> Location</h2>
+          {(builder.latitude && builder.longitude) && (
+            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-3">
+              <iframe
+                src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${builder.longitude}!3d${builder.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
+                width="100%" height="300" className="border-0" loading="lazy" allowFullScreen title="Location" />
+            </div>
+          )}
+          {builder.project_location && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-gray-100 shadow-sm text-sm text-gray-600">
+              <MapPin className="h-4 w-4 text-emerald-600 flex-shrink-0" /> {builder.project_location}
+            </div>
+          )}
+          {builder.google_maps_link && (
+            <a href={builder.google_maps_link} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="rounded-full text-xs gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+                <MapPin className="h-3.5 w-3.5" /> Open in Google Maps
+              </Button>
+            </a>
+          )}
           {builder.operating_cities?.length > 0 && (
             <div className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
               <p className="text-sm text-gray-500 mb-3">Active in {builder.operating_cities.length} {builder.operating_cities.length === 1 ? 'city' : 'cities'}</p>
@@ -248,16 +356,6 @@ const StandardMicrosite = ({ builder }: Props) => {
               </div>
             </div>
           )}
-          {offices.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {offices.map((o: any, i: number) => (
-                <div key={i} className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm">
-                  <p className="font-medium text-sm text-gray-800">{o.city}</p>
-                  <p className="text-xs text-gray-400 mt-1">{o.address}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
         {/* Trust */}
@@ -265,10 +363,10 @@ const StandardMicrosite = ({ builder }: Props) => {
           <h2 className="text-lg font-bold flex items-center gap-2"><Shield className="h-4 w-4 text-emerald-600" /> Trust & Credibility</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: "Rating", value: builder.customer_rating ? `${builder.customer_rating}/5` : "—", show: true },
-              { label: "Projects Done", value: builder.completed_projects_count || 0, show: true },
-              { label: "Experience", value: builder.years_of_experience ? `${builder.years_of_experience} yrs` : "—", show: true },
-              { label: "Units Delivered", value: (builder.total_units_delivered || 0).toLocaleString("en-IN"), show: true },
+              { label: "Rating", value: builder.customer_rating ? `${builder.customer_rating}/5` : "—" },
+              { label: "Projects Done", value: builder.completed_projects_count || 0 },
+              { label: "Experience", value: builder.years_of_experience ? `${builder.years_of_experience} yrs` : "—" },
+              { label: "Units Delivered", value: (builder.total_units_delivered || 0).toLocaleString("en-IN") },
             ].map(t => (
               <div key={t.label} className="p-4 rounded-xl bg-white border border-gray-100 shadow-sm text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
                 <p className="text-xl font-bold text-emerald-700">{t.value}</p>
@@ -296,7 +394,7 @@ const StandardMicrosite = ({ builder }: Props) => {
           <div className="p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <Button className="h-11 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 gap-2" onClick={() => window.open(`tel:${builder.phone}`)}>
-                <Phone className="h-4 w-4" /> Call Now
+                <Phone className="h-4 w-4" /> {builder.phone}
               </Button>
               {builder.whatsapp ? (
                 <Button variant="outline" className="h-11 rounded-xl border-green-200 text-green-600 hover:bg-green-50 gap-2" onClick={() => window.open(`https://wa.me/${builder.whatsapp.replace(/[^0-9]/g, "")}`)}>

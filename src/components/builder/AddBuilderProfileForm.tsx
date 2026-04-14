@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Building2, User, Briefcase, Image, Phone, Layers, Globe, Award, Users, Target,
   Check, Wifi, Car, Dumbbell, Trees, Shield, Waves, Wind, Droplets,
-  Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2
+  Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2,
+  MapPin, Plus, Trash2, FileText, Compass
 } from "lucide-react";
 
 const AMENITY_OPTIONS = [
@@ -33,6 +35,20 @@ const AMENITY_OPTIONS = [
 
 const UNIT_TYPES = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "Villa", "Penthouse", "Duplex", "Studio", "Plot"];
 const SPECIALIZATIONS = ["Luxury Residences", "Affordable Housing", "Commercial Spaces", "Retail Malls", "Villas", "Gated Communities", "Townships", "Hospitality", "SEZ & Tech Parks", "Plotted Development"];
+const FACING_OPTIONS = ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"];
+
+interface FloorPlanVariant {
+  name: string;
+  size: string;
+  facing: string;
+  carpetArea: string;
+  beds: number;
+  baths: number;
+  balconies: number;
+  image: string;
+  priceRange: string;
+  highlights: string[];
+}
 
 const classifyBuilder = (data: { priceRangeMax: number; amenities: string[]; videos: string[] }): "luxury" | "standard" | "budget" => {
   if (data.priceRangeMax > 10000000 || data.amenities.length > 8 || data.videos.length > 0) return "luxury";
@@ -40,8 +56,13 @@ const classifyBuilder = (data: { priceRangeMax: number; amenities: string[]; vid
   return "budget";
 };
 
-const AddBuilderProfileForm = () => {
+const emptyFloorPlan = (): FloorPlanVariant => ({
+  name: "", size: "", facing: "East", carpetArea: "", beds: 2, baths: 2, balconies: 1, image: "", priceRange: "", highlights: [],
+});
+
+const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!editId);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -53,7 +74,6 @@ const AddBuilderProfileForm = () => {
     amenities: [] as string[], images: [] as string[], imageInput: "",
     videos: [] as string[], videoInput: "",
     phone: "", whatsapp: "", email: "",
-    // New fields
     logo: "", website: "", establishedYear: "",
     companyRegistrationNumber: "", aboutMission: "", aboutVision: "",
     specializations: [] as string[],
@@ -62,7 +82,67 @@ const AddBuilderProfileForm = () => {
     awards: [] as string[], awardInput: "",
     operatingCities: [] as string[], operatingCityInput: "",
     socialLinkedin: "", socialFacebook: "", socialInstagram: "", socialYoutube: "",
+    // New project fields
+    projectSubtitle: "", projectLocation: "", heroImage: "",
+    bhkTypesOffered: "", sizeRange: "", landArea: "",
+    totalUnitsCount: "", totalFloorsCount: "", towersCount: "",
+    clubhouseDescription: "", clubhouseImages: [] as string[], clubhouseImageInput: "",
+    masterPlanImage: "",
+    galleryImages: [] as string[], galleryImageInput: "",
+    latitude: "", longitude: "", googleMapsLink: "",
+    brochureUrl: "",
+    aboutFeatures: [] as string[], aboutFeatureInput: "",
   });
+
+  const [floorPlans, setFloorPlans] = useState<Record<string, FloorPlanVariant[]>>({
+    "2BHK": [emptyFloorPlan()],
+    "3BHK": [emptyFloorPlan()],
+  });
+  const [activeFpTab, setActiveFpTab] = useState("2BHK");
+  const [highlightInput, setHighlightInput] = useState<Record<string, string>>({});
+
+  // Load existing profile for edit
+  useEffect(() => {
+    if (!editId) return;
+    const load = async () => {
+      const { data } = await supabase.from("builder_profiles").select("*").eq("id", editId).single();
+      if (!data) { setIsLoading(false); return; }
+      const b = data as any;
+      const social = (b.social_links || {}) as Record<string, string>;
+      setForm({
+        builderName: b.builder_name || "", tagline: b.tagline || "", description: b.description || "",
+        yearsOfExperience: b.years_of_experience?.toString() || "", certifications: b.certifications || "", reraNumber: b.rera_number || "",
+        numberOfProjects: b.number_of_projects?.toString() || "", priceRangeMin: b.price_range_min?.toString() || "", priceRangeMax: b.price_range_max?.toString() || "",
+        unitTypes: b.unit_types || [], locations: b.locations || [], locationInput: "",
+        amenities: b.amenities || [], images: b.images || [], imageInput: "",
+        videos: b.videos || [], videoInput: "",
+        phone: b.phone || "", whatsapp: b.whatsapp || "", email: b.email || "",
+        logo: b.logo || "", website: b.website || "", establishedYear: b.established_year?.toString() || "",
+        companyRegistrationNumber: b.company_registration_number || "", aboutMission: b.about_mission || "", aboutVision: b.about_vision || "",
+        specializations: b.specializations || [],
+        completedProjectsCount: b.completed_projects_count?.toString() || "", ongoingProjectsCount: b.ongoing_projects_count?.toString() || "", upcomingProjectsCount: b.upcoming_projects_count?.toString() || "",
+        totalUnitsDelivered: b.total_units_delivered?.toString() || "", totalLandDevelopedSqft: b.total_land_developed_sqft?.toString() || "",
+        awards: b.awards || [], awardInput: "",
+        operatingCities: b.operating_cities || [], operatingCityInput: "",
+        socialLinkedin: social.linkedin || "", socialFacebook: social.facebook || "", socialInstagram: social.instagram || "", socialYoutube: social.youtube || "",
+        projectSubtitle: b.project_subtitle || "", projectLocation: b.project_location || "", heroImage: b.hero_image || "",
+        bhkTypesOffered: b.bhk_types_offered || "", sizeRange: b.size_range || "", landArea: b.land_area || "",
+        totalUnitsCount: b.total_units_count?.toString() || "", totalFloorsCount: b.total_floors_count || "", towersCount: b.towers_count?.toString() || "",
+        clubhouseDescription: b.clubhouse_description || "", clubhouseImages: b.clubhouse_images || [], clubhouseImageInput: "",
+        masterPlanImage: b.master_plan_image || "",
+        galleryImages: b.gallery_images || [], galleryImageInput: "",
+        latitude: b.latitude?.toString() || "", longitude: b.longitude?.toString() || "", googleMapsLink: b.google_maps_link || "",
+        brochureUrl: b.brochure_url || "",
+        aboutFeatures: b.about_features || [], aboutFeatureInput: "",
+      });
+      if (b.floor_plans_data && Object.keys(b.floor_plans_data).length > 0) {
+        setFloorPlans(b.floor_plans_data);
+        setActiveFpTab(Object.keys(b.floor_plans_data)[0] || "2BHK");
+      }
+      setIsLoading(false);
+    };
+    load();
+  }, [editId]);
 
   const updateField = (field: string, value: any) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -73,14 +153,52 @@ const AddBuilderProfileForm = () => {
     }));
   };
 
-  const addToArray = (field: "locations" | "images" | "videos" | "awards" | "operatingCities", inputField: string) => {
+  const addToArray = (field: string, inputField: string) => {
     if ((form as any)[inputField]?.trim()) {
-      setForm((prev) => ({ ...prev, [field]: [...(prev as any)[field], (prev as any)[inputField].trim()], [inputField]: "" }));
+      setForm((prev) => ({ ...prev, [field]: [...((prev as any)[field] || []), (prev as any)[inputField].trim()], [inputField]: "" }));
     }
   };
 
-  const removeFromArray = (field: "locations" | "images" | "videos" | "awards" | "operatingCities", index: number) => {
-    setForm((prev) => ({ ...prev, [field]: (prev as any)[field].filter((_: any, i: number) => i !== index) }));
+  const removeFromArray = (field: string, index: number) => {
+    setForm((prev) => ({ ...prev, [field]: ((prev as any)[field] || []).filter((_: any, i: number) => i !== index) }));
+  };
+
+  // Floor plan helpers
+  const addFloorPlanVariant = (category: string) => {
+    setFloorPlans((prev) => ({ ...prev, [category]: [...(prev[category] || []), emptyFloorPlan()] }));
+  };
+  const removeFloorPlanVariant = (category: string, index: number) => {
+    setFloorPlans((prev) => ({ ...prev, [category]: prev[category].filter((_, i) => i !== index) }));
+  };
+  const updateFloorPlan = (category: string, index: number, field: string, value: any) => {
+    setFloorPlans((prev) => ({
+      ...prev,
+      [category]: prev[category].map((fp, i) => i === index ? { ...fp, [field]: value } : fp),
+    }));
+  };
+  const addFpHighlight = (category: string, index: number) => {
+    const key = `${category}-${index}`;
+    const val = highlightInput[key]?.trim();
+    if (!val) return;
+    setFloorPlans((prev) => ({
+      ...prev,
+      [category]: prev[category].map((fp, i) => i === index ? { ...fp, highlights: [...fp.highlights, val] } : fp),
+    }));
+    setHighlightInput((prev) => ({ ...prev, [key]: "" }));
+  };
+  const removeFpHighlight = (category: string, fpIndex: number, hlIndex: number) => {
+    setFloorPlans((prev) => ({
+      ...prev,
+      [category]: prev[category].map((fp, i) => i === fpIndex ? { ...fp, highlights: fp.highlights.filter((_, j) => j !== hlIndex) } : fp),
+    }));
+  };
+  const addFpCategory = () => {
+    const cats = Object.keys(floorPlans);
+    const next = `${cats.length + 1}BHK`;
+    if (!floorPlans[next]) {
+      setFloorPlans((prev) => ({ ...prev, [next]: [emptyFloorPlan()] }));
+      setActiveFpTab(next);
+    }
   };
 
   const handleSubmit = async () => {
@@ -103,7 +221,14 @@ const AddBuilderProfileForm = () => {
     if (form.socialInstagram) socialLinks.instagram = form.socialInstagram;
     if (form.socialYoutube) socialLinks.youtube = form.socialYoutube;
 
-    const { error } = await supabase.from("builder_profiles").insert({
+    // Clean floor plans - remove empty entries
+    const cleanedFloorPlans: Record<string, FloorPlanVariant[]> = {};
+    for (const [cat, plans] of Object.entries(floorPlans)) {
+      const valid = plans.filter((p) => p.name.trim() || p.size.trim());
+      if (valid.length > 0) cleanedFloorPlans[cat] = valid;
+    }
+
+    const payload = {
       user_id: userData?.user?.id || null,
       builder_name: form.builderName,
       tagline: form.tagline || null,
@@ -138,20 +263,49 @@ const AddBuilderProfileForm = () => {
       awards: form.awards,
       operating_cities: form.operatingCities,
       social_links: Object.keys(socialLinks).length > 0 ? socialLinks : null,
-    } as any);
+      // New project fields
+      project_subtitle: form.projectSubtitle || null,
+      project_location: form.projectLocation || null,
+      hero_image: form.heroImage || null,
+      bhk_types_offered: form.bhkTypesOffered || null,
+      size_range: form.sizeRange || null,
+      land_area: form.landArea || null,
+      total_units_count: Number(form.totalUnitsCount) || 0,
+      total_floors_count: form.totalFloorsCount || null,
+      towers_count: Number(form.towersCount) || 0,
+      clubhouse_description: form.clubhouseDescription || null,
+      clubhouse_images: form.clubhouseImages,
+      master_plan_image: form.masterPlanImage || null,
+      floor_plans_data: cleanedFloorPlans,
+      gallery_images: form.galleryImages,
+      latitude: Number(form.latitude) || null,
+      longitude: Number(form.longitude) || null,
+      google_maps_link: form.googleMapsLink || null,
+      brochure_url: form.brochureUrl || null,
+      about_features: form.aboutFeatures,
+    } as any;
+
+    let error;
+    if (editId) {
+      const res = await supabase.from("builder_profiles").update(payload).eq("id", editId);
+      error = res.error;
+    } else {
+      const res = await supabase.from("builder_profiles").insert(payload);
+      error = res.error;
+    }
 
     setIsSubmitting(false);
     if (error) {
-      toast({ title: "Error", description: "Failed to create builder profile.", variant: "destructive" });
+      toast({ title: "Error", description: `Failed to ${editId ? "update" : "create"} builder profile.`, variant: "destructive" });
       return;
     }
-    toast({ title: "Success!", description: `Builder profile created as "${type}" category.` });
+    toast({ title: "Success!", description: `Builder profile ${editId ? "updated" : "created"} as "${type}" category.` });
     navigate("/");
   };
 
   const currentType = classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos });
 
-  const ArrayInputField = ({ label, field, inputField, placeholder }: { label: string; field: any; inputField: string; placeholder: string }) => (
+  const ArrayInputField = ({ label, field, inputField, placeholder }: { label: string; field: string; inputField: string; placeholder: string }) => (
     <div>
       <label className="text-sm font-medium mb-1.5 block">{label}</label>
       <div className="flex gap-2">
@@ -159,9 +313,9 @@ const AddBuilderProfileForm = () => {
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray(field, inputField))} />
         <Button type="button" variant="outline" onClick={() => addToArray(field, inputField)}>Add</Button>
       </div>
-      {(form as any)[field]?.length > 0 && (
+      {((form as any)[field] || []).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {(form as any)[field].map((item: string, i: number) => (
+          {((form as any)[field] || []).map((item: string, i: number) => (
             <Badge key={i} variant="secondary" className="gap-1">{item}<X className="h-3 w-3 cursor-pointer" onClick={() => removeFromArray(field, i)} /></Badge>
           ))}
         </div>
@@ -169,17 +323,25 @@ const AddBuilderProfileForm = () => {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto pt-20 pb-24 px-4 space-y-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-primary/10"><Building2 className="h-7 w-7 text-primary" /></div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Add Builder Profile</h1>
-          <p className="text-sm text-muted-foreground">Create a comprehensive builder profile</p>
+          <h1 className="text-2xl font-bold text-foreground">{editId ? "Edit" : "Add"} Builder Profile</h1>
+          <p className="text-sm text-muted-foreground">Create a comprehensive builder profile with project details</p>
         </div>
       </div>
 
-      {/* Basic Info */}
+      {/* ═══ BASIC INFO ═══ */}
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><User className="h-5 w-5 text-primary" />Basic Information</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -188,16 +350,36 @@ const AddBuilderProfileForm = () => {
             <div><label className="text-sm font-medium mb-1.5 block">Established Year</label><Input type="number" value={form.establishedYear} onChange={(e) => updateField("establishedYear", e.target.value)} placeholder="e.g. 1986" /></div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Tagline</label><Input value={form.tagline} onChange={(e) => updateField("tagline", e.target.value)} placeholder="e.g. Building Dreams Since 1986" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label className="text-sm font-medium mb-1.5 block">Project Subtitle</label><Input value={form.projectSubtitle} onChange={(e) => updateField("projectSubtitle", e.target.value)} placeholder="e.g. Premium 2 & 3 BHK Residences" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Project Location (Full Address)</label><Input value={form.projectLocation} onChange={(e) => updateField("projectLocation", e.target.value)} placeholder="e.g. Survey No. 42, Narsingi, Hyderabad" /></div>
+          </div>
           <div><label className="text-sm font-medium mb-1.5 block">About / Description</label><Textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Tell us about the builder..." rows={4} /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-sm font-medium mb-1.5 block">Mission Statement</label><Textarea value={form.aboutMission} onChange={(e) => updateField("aboutMission", e.target.value)} placeholder="Our mission..." rows={2} /></div>
-            <div><label className="text-sm font-medium mb-1.5 block">Vision Statement</label><Textarea value={form.aboutVision} onChange={(e) => updateField("aboutVision", e.target.value)} placeholder="Our vision..." rows={2} /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Mission</label><Textarea value={form.aboutMission} onChange={(e) => updateField("aboutMission", e.target.value)} placeholder="Our mission..." rows={2} /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Vision</label><Textarea value={form.aboutVision} onChange={(e) => updateField("aboutVision", e.target.value)} placeholder="Our vision..." rows={2} /></div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label><Input value={form.logo} onChange={(e) => updateField("logo", e.target.value)} placeholder="https://example.com/logo.png" /></div>
+          <ArrayInputField label="About Features / Highlights" field="aboutFeatures" inputField="aboutFeatureInput" placeholder="e.g. Smart home automation" />
         </CardContent>
       </Card>
 
-      {/* Business & Legal */}
+      {/* ═══ PROJECT HIGHLIGHTS ═══ */}
+      <Card>
+        <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Target className="h-5 w-5 text-primary" />Project Highlights</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div><label className="text-sm font-medium mb-1.5 block">BHK Types</label><Input value={form.bhkTypesOffered} onChange={(e) => updateField("bhkTypesOffered", e.target.value)} placeholder="e.g. 2 & 3 BHK" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Size Range</label><Input value={form.sizeRange} onChange={(e) => updateField("sizeRange", e.target.value)} placeholder="e.g. 1,250–2,200 Sft" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Land Area</label><Input value={form.landArea} onChange={(e) => updateField("landArea", e.target.value)} placeholder="e.g. 5.5 Acres" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Total Units</label><Input type="number" value={form.totalUnitsCount} onChange={(e) => updateField("totalUnitsCount", e.target.value)} placeholder="e.g. 480" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Floors</label><Input value={form.totalFloorsCount} onChange={(e) => updateField("totalFloorsCount", e.target.value)} placeholder="e.g. G+25" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Towers</label><Input type="number" value={form.towersCount} onChange={(e) => updateField("towersCount", e.target.value)} placeholder="e.g. 4" /></div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ═══ BUSINESS & LEGAL ═══ */}
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Briefcase className="h-5 w-5 text-primary" />Business & Legal</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -211,7 +393,7 @@ const AddBuilderProfileForm = () => {
         </CardContent>
       </Card>
 
-      {/* Project Portfolio */}
+      {/* ═══ PROJECT PORTFOLIO ═══ */}
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Layers className="h-5 w-5 text-primary" />Project Portfolio</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -248,7 +430,7 @@ const AddBuilderProfileForm = () => {
         </CardContent>
       </Card>
 
-      {/* Amenities */}
+      {/* ═══ AMENITIES ═══ */}
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Shield className="h-5 w-5 text-primary" />Amenities</CardTitle></CardHeader>
         <CardContent>
@@ -267,45 +449,126 @@ const AddBuilderProfileForm = () => {
         </CardContent>
       </Card>
 
-      {/* Media */}
+      {/* ═══ FLOOR PLANS ═══ */}
       <Card>
-        <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Image className="h-5 w-5 text-primary" />Media Upload</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1.5 block">Image URLs</label>
-            <div className="flex gap-2">
-              <Input value={form.imageInput} onChange={(e) => updateField("imageInput", e.target.value)} placeholder="Paste image URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("images", "imageInput"))} />
-              <Button type="button" variant="outline" onClick={() => addToArray("images", "imageInput")}><Upload className="h-4 w-4 mr-1" /> Add</Button>
-            </div>
-            {form.images.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {form.images.map((img, i) => (
-                  <div key={i} className="relative group">
-                    <img src={img} alt="" className="w-20 h-20 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
-                    <button onClick={() => removeFromArray("images", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
-                  </div>
-                ))}
-              </div>
-            )}
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg"><Compass className="h-5 w-5 text-primary" />Floor Plans</CardTitle>
+            <Button type="button" variant="outline" size="sm" onClick={addFpCategory}><Plus className="h-3 w-3 mr-1" /> Add Category</Button>
           </div>
-          <div>
-            <label className="text-sm font-medium mb-1.5 block">Video URLs</label>
-            <div className="flex gap-2">
-              <Input value={form.videoInput} onChange={(e) => updateField("videoInput", e.target.value)} placeholder="Paste YouTube URL" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray("videos", "videoInput"))} />
-              <Button type="button" variant="outline" onClick={() => addToArray("videos", "videoInput")}><Upload className="h-4 w-4 mr-1" /> Add</Button>
-            </div>
-            {form.videos.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {form.videos.map((v, i) => (
-                  <Badge key={i} variant="secondary" className="gap-1 max-w-[250px] truncate">{v}<X className="h-3 w-3 cursor-pointer flex-shrink-0" onClick={() => removeFromArray("videos", i)} /></Badge>
-                ))}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Category tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {Object.keys(floorPlans).map((cat) => (
+              <Button key={cat} type="button" variant={activeFpTab === cat ? "default" : "outline"} size="sm" onClick={() => setActiveFpTab(cat)}>{cat}</Button>
+            ))}
+          </div>
+
+          {/* Variants for active tab */}
+          <div className="space-y-4">
+            {(floorPlans[activeFpTab] || []).map((fp, idx) => (
+              <div key={idx} className="border rounded-lg p-4 space-y-3 relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Variant {idx + 1}</span>
+                  {(floorPlans[activeFpTab] || []).length > 1 && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeFloorPlanVariant(activeFpTab, idx)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input placeholder="Type Name (e.g. Type A Compact)" value={fp.name} onChange={(e) => updateFloorPlan(activeFpTab, idx, "name", e.target.value)} />
+                  <Input placeholder="Size (e.g. 1,250 Sft)" value={fp.size} onChange={(e) => updateFloorPlan(activeFpTab, idx, "size", e.target.value)} />
+                  <Select value={fp.facing} onValueChange={(v) => updateFloorPlan(activeFpTab, idx, "facing", v)}>
+                    <SelectTrigger><SelectValue placeholder="Facing" /></SelectTrigger>
+                    <SelectContent>
+                      {FACING_OPTIONS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="Carpet Area (e.g. 925 Sft)" value={fp.carpetArea} onChange={(e) => updateFloorPlan(activeFpTab, idx, "carpetArea", e.target.value)} />
+                  <Input type="number" placeholder="Beds" value={fp.beds} onChange={(e) => updateFloorPlan(activeFpTab, idx, "beds", Number(e.target.value))} />
+                  <Input type="number" placeholder="Baths" value={fp.baths} onChange={(e) => updateFloorPlan(activeFpTab, idx, "baths", Number(e.target.value))} />
+                  <Input type="number" placeholder="Balconies" value={fp.balconies} onChange={(e) => updateFloorPlan(activeFpTab, idx, "balconies", Number(e.target.value))} />
+                  <Input placeholder="Price Range (e.g. ₹80L–1Cr)" value={fp.priceRange} onChange={(e) => updateFloorPlan(activeFpTab, idx, "priceRange", e.target.value)} />
+                </div>
+                <Input placeholder="Floor Plan Image URL" value={fp.image} onChange={(e) => updateFloorPlan(activeFpTab, idx, "image", e.target.value)} />
+                {/* Highlights */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Highlights</label>
+                  <div className="flex gap-2">
+                    <Input placeholder="e.g. Morning sunlight" value={highlightInput[`${activeFpTab}-${idx}`] || ""}
+                      onChange={(e) => setHighlightInput((prev) => ({ ...prev, [`${activeFpTab}-${idx}`]: e.target.value }))}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addFpHighlight(activeFpTab, idx))} />
+                    <Button type="button" variant="outline" size="sm" onClick={() => addFpHighlight(activeFpTab, idx)}>Add</Button>
+                  </div>
+                  {fp.highlights.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {fp.highlights.map((h, hi) => (
+                        <Badge key={hi} variant="secondary" className="text-xs gap-1">{h}<X className="h-2.5 w-2.5 cursor-pointer" onClick={() => removeFpHighlight(activeFpTab, idx, hi)} /></Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            ))}
+            <Button type="button" variant="outline" className="w-full" onClick={() => addFloorPlanVariant(activeFpTab)}>
+              <Plus className="h-4 w-4 mr-2" /> Add {activeFpTab} Variant
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Contact & Social */}
+      {/* ═══ MEDIA ═══ */}
+      <Card>
+        <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Image className="h-5 w-5 text-primary" />Media & Gallery</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div><label className="text-sm font-medium mb-1.5 block">Hero Image URL</label><Input value={form.heroImage} onChange={(e) => updateField("heroImage", e.target.value)} placeholder="Main hero background image URL" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Master Plan Image URL</label><Input value={form.masterPlanImage} onChange={(e) => updateField("masterPlanImage", e.target.value)} placeholder="Master plan / site layout image URL" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Brochure PDF URL</label><Input value={form.brochureUrl} onChange={(e) => updateField("brochureUrl", e.target.value)} placeholder="https://example.com/brochure.pdf" /></div>
+
+          <ArrayInputField label="Project Images" field="images" inputField="imageInput" placeholder="Paste image URL" />
+          {form.images.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {form.images.map((img, i) => (
+                <div key={i} className="relative group">
+                  <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  <button onClick={() => removeFromArray("images", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <ArrayInputField label="Gallery Images" field="galleryImages" inputField="galleryImageInput" placeholder="Gallery image URL" />
+          {form.galleryImages.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {form.galleryImages.map((img, i) => (
+                <div key={i} className="relative group">
+                  <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                  <button onClick={() => removeFromArray("galleryImages", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <ArrayInputField label="Clubhouse Images" field="clubhouseImages" inputField="clubhouseImageInput" placeholder="Clubhouse image URL" />
+          <div><label className="text-sm font-medium mb-1.5 block">Clubhouse Description</label><Textarea value={form.clubhouseDescription} onChange={(e) => updateField("clubhouseDescription", e.target.value)} placeholder="Describe the clubhouse..." rows={2} /></div>
+
+          <ArrayInputField label="Video URLs" field="videos" inputField="videoInput" placeholder="Paste YouTube URL" />
+        </CardContent>
+      </Card>
+
+      {/* ═══ LOCATION / MAP ═══ */}
+      <Card>
+        <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><MapPin className="h-5 w-5 text-primary" />Location & Map</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label className="text-sm font-medium mb-1.5 block">Latitude</label><Input value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} placeholder="e.g. 17.3885" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Longitude</label><Input value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} placeholder="e.g. 78.3365" /></div>
+          </div>
+          <div><label className="text-sm font-medium mb-1.5 block">Google Maps Link</label><Input value={form.googleMapsLink} onChange={(e) => updateField("googleMapsLink", e.target.value)} placeholder="https://www.google.com/maps/place/..." /></div>
+        </CardContent>
+      </Card>
+
+      {/* ═══ CONTACT & SOCIAL ═══ */}
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Phone className="h-5 w-5 text-primary" />Contact & Social</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -341,7 +604,7 @@ const AddBuilderProfileForm = () => {
         <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
         <Button onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
-          Submit Builder Profile
+          {editId ? "Update" : "Submit"} Builder Profile
         </Button>
       </div>
     </div>
