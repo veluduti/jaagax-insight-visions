@@ -145,6 +145,10 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     latitude: "", longitude: "", googleMapsLink: "",
     brochureUrl: "",
     aboutFeatures: [] as string[], aboutFeatureInput: "",
+    // Amenity images with descriptions
+    amenityImages: [] as { url: string; description: string }[],
+    amenityImageUrl: "",
+    amenityImageDesc: "",
   });
 
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
