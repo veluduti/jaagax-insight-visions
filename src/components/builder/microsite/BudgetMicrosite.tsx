@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import BuilderLocationMap from "./BuilderLocationMap";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Phone, MessageCircle, Mail, Shield, Star, MapPin,
@@ -210,9 +211,7 @@ const BudgetMicrosite = ({ builder }: Props) => {
         {/* Location */}
         {(builder.latitude && builder.longitude) && (
           <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-            <iframe
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${builder.longitude - 0.01}%2C${builder.latitude - 0.01}%2C${builder.longitude + 0.01}%2C${builder.latitude + 0.01}&layer=mapnik&marker=${builder.latitude}%2C${builder.longitude}`}
-              width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location" />
+            <BuilderLocationMap lat={builder.latitude} lng={builder.longitude} builderName={builder.builder_name} height="200px" />
             {builder.google_maps_link && (
               <a href={builder.google_maps_link} target="_blank" rel="noopener noreferrer" className="block p-2.5 text-center text-xs text-blue-600 font-medium hover:bg-blue-50">
                 Open in Google Maps
