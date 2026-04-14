@@ -50,9 +50,9 @@ interface FloorPlanVariant {
   highlights: string[];
 }
 
-const classifyBuilder = (data: { priceRangeMax: number; amenities: string[]; videos: string[] }): "luxury" | "standard" | "budget" => {
-  if (data.priceRangeMax > 10000000 || data.amenities.length > 8 || data.videos.length > 0) return "luxury";
-  if (data.priceRangeMax > 4000000) return "standard";
+const classifyBuilder = (numberOfProjects: number): "luxury" | "standard" | "budget" => {
+  if (numberOfProjects >= 100) return "luxury";
+  if (numberOfProjects >= 50) return "standard";
   return "budget";
 };
 
@@ -212,7 +212,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     }
 
     setIsSubmitting(true);
-    const type = classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos });
+    const type = classifyBuilder(Number(form.numberOfProjects) || 0);
     const { data: userData } = await supabase.auth.getUser();
 
     const socialLinks: Record<string, string> = {};
@@ -296,14 +296,15 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
     setIsSubmitting(false);
     if (error) {
-      toast({ title: "Error", description: `Failed to ${editId ? "update" : "create"} builder profile.`, variant: "destructive" });
+      console.error("Builder profile error:", error.message, error.details, error.hint);
+      toast({ title: "Error", description: `Failed to ${editId ? "update" : "create"} builder profile: ${error.message}`, variant: "destructive" });
       return;
     }
     toast({ title: "Success!", description: `Builder profile ${editId ? "updated" : "created"} as "${type}" category.` });
     navigate("/");
   };
 
-  const currentType = classifyBuilder({ priceRangeMax: Number(form.priceRangeMax) || 0, amenities: form.amenities, videos: form.videos });
+  const currentType = classifyBuilder(Number(form.numberOfProjects) || 0);
 
   const ArrayInputField = ({ label, field, inputField, placeholder }: { label: string; field: string; inputField: string; placeholder: string }) => (
     <div>
