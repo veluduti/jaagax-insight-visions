@@ -62,6 +62,7 @@ import PropertyReels from "./pages/PropertyReels";
 import InnovationHub from "./pages/InnovationHub";
 import HotelManagerDashboard from "./pages/HotelManagerDashboard";
 import AddBuilderProfile from "./pages/AddBuilderProfile";
+import EditBuilderProfile from "./pages/EditBuilderProfile";
 import BuilderProfileDetail from "./pages/BuilderProfileDetail";
 import { LocationProvider } from "./contexts/LocationContext";
 
@@ -111,6 +112,7 @@ const App = () => (
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/reels" element={<PropertyReels />} />
           <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
+          <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
           <Route path="/builder-profile/:id" element={<BuilderProfileDetail />} />
           <Route path="/innovation" element={<InnovationHub />} />
           
