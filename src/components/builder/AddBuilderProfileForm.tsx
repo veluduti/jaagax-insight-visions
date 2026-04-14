@@ -12,7 +12,7 @@ import {
   Building2, User, Briefcase, Image, Phone, Layers, Globe, Award, Users, Target,
   Check, Wifi, Car, Dumbbell, Trees, Shield, Waves, Wind, Droplets,
   Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2,
-  MapPin, Plus, Trash2, FileText, Compass
+  MapPin, Plus, Trash2, FileText, Compass, Clock
 } from "lucide-react";
 
 const AMENITY_OPTIONS = [
@@ -37,6 +37,40 @@ const UNIT_TYPES = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "Villa", "Penth
 const SPECIALIZATIONS = ["Luxury Residences", "Affordable Housing", "Commercial Spaces", "Retail Malls", "Villas", "Gated Communities", "Townships", "Hospitality", "SEZ & Tech Parks", "Plotted Development"];
 const FACING_OPTIONS = ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"];
 
+// Known locations for auto lat/lng
+const LOCATION_COORDS: Record<string, { lat: number; lng: number }> = {
+  "narsingi": { lat: 17.3616, lng: 78.3573 },
+  "kondapur": { lat: 17.4577, lng: 78.3531 },
+  "gachibowli": { lat: 17.4401, lng: 78.3489 },
+  "madhapur": { lat: 17.4484, lng: 78.3908 },
+  "hitech city": { lat: 17.4435, lng: 78.3772 },
+  "banjara hills": { lat: 17.4156, lng: 78.4347 },
+  "jubilee hills": { lat: 17.4325, lng: 78.4073 },
+  "kukatpally": { lat: 17.4947, lng: 78.3996 },
+  "miyapur": { lat: 17.4969, lng: 78.3537 },
+  "manikonda": { lat: 17.4008, lng: 78.3867 },
+  "kokapet": { lat: 17.3869, lng: 78.3289 },
+  "tellapur": { lat: 17.4348, lng: 78.2907 },
+  "bachupally": { lat: 17.5381, lng: 78.3668 },
+  "nallagandla": { lat: 17.4497, lng: 78.3144 },
+  "shamshabad": { lat: 17.2432, lng: 78.4288 },
+  "kompally": { lat: 17.5532, lng: 78.4878 },
+  "lb nagar": { lat: 17.3497, lng: 78.5481 },
+  "uppal": { lat: 17.4039, lng: 78.5640 },
+  "dilsukhnagar": { lat: 17.3673, lng: 78.5247 },
+  "ameerpet": { lat: 17.4375, lng: 78.4483 },
+  "begumpet": { lat: 17.4432, lng: 78.4707 },
+  "secunderabad": { lat: 17.4399, lng: 78.4983 },
+  "attapur": { lat: 17.3683, lng: 78.4107 },
+  "bandlaguda": { lat: 17.3333, lng: 78.3922 },
+  "financial district": { lat: 17.4218, lng: 78.3384 },
+  "puppalguda": { lat: 17.3807, lng: 78.3756 },
+  "mokila": { lat: 17.3888, lng: 78.2630 },
+  "shadnagar": { lat: 17.0699, lng: 78.2075 },
+  "adibatla": { lat: 17.2665, lng: 78.5236 },
+  "maheshwaram": { lat: 17.1583, lng: 78.4250 },
+};
+
 interface FloorPlanVariant {
   name: string;
   size: string;
@@ -50,6 +84,12 @@ interface FloorPlanVariant {
   highlights: string[];
 }
 
+interface TimelineEntry {
+  year: string;
+  title: string;
+  desc: string;
+}
+
 const classifyBuilder = (numberOfProjects: number): "luxury" | "standard" | "budget" => {
   if (numberOfProjects >= 100) return "luxury";
   if (numberOfProjects >= 50) return "standard";
@@ -59,6 +99,20 @@ const classifyBuilder = (numberOfProjects: number): "luxury" | "standard" | "bud
 const emptyFloorPlan = (): FloorPlanVariant => ({
   name: "", size: "", facing: "East", carpetArea: "", beds: 2, baths: 2, balconies: 1, image: "", priceRange: "", highlights: [],
 });
+
+const emptyTimeline = (): TimelineEntry => ({ year: "", title: "", desc: "" });
+
+// Try to auto-detect lat/lng from project location text
+const autoDetectCoords = (location: string): { lat: string; lng: string } | null => {
+  if (!location) return null;
+  const lower = location.toLowerCase();
+  for (const [key, coords] of Object.entries(LOCATION_COORDS)) {
+    if (lower.includes(key)) {
+      return { lat: coords.lat.toString(), lng: coords.lng.toString() };
+    }
+  }
+  return null;
+};
 
 const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +136,6 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     awards: [] as string[], awardInput: "",
     operatingCities: [] as string[], operatingCityInput: "",
     socialLinkedin: "", socialFacebook: "", socialInstagram: "", socialYoutube: "",
-    // New project fields
     projectSubtitle: "", projectLocation: "", heroImage: "",
     bhkTypesOffered: "", sizeRange: "", landArea: "",
     totalUnitsCount: "", totalFloorsCount: "", towersCount: "",
@@ -94,12 +147,23 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     aboutFeatures: [] as string[], aboutFeatureInput: "",
   });
 
+  const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
+
   const [floorPlans, setFloorPlans] = useState<Record<string, FloorPlanVariant[]>>({
     "2BHK": [emptyFloorPlan()],
     "3BHK": [emptyFloorPlan()],
   });
   const [activeFpTab, setActiveFpTab] = useState("2BHK");
   const [highlightInput, setHighlightInput] = useState<Record<string, string>>({});
+
+  // Auto-detect coordinates when project location changes
+  useEffect(() => {
+    if (form.latitude || form.longitude) return; // Don't override manual entries
+    const coords = autoDetectCoords(form.projectLocation);
+    if (coords) {
+      setForm((prev) => ({ ...prev, latitude: coords.lat, longitude: coords.lng }));
+    }
+  }, [form.projectLocation]);
 
   // Load existing profile for edit
   useEffect(() => {
@@ -139,6 +203,10 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
         setFloorPlans(b.floor_plans_data);
         setActiveFpTab(Object.keys(b.floor_plans_data)[0] || "2BHK");
       }
+      // Load timeline
+      if (Array.isArray(b.timeline_data) && b.timeline_data.length > 0) {
+        setTimelineEntries(b.timeline_data);
+      }
       setIsLoading(false);
     };
     load();
@@ -161,6 +229,13 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
   const removeFromArray = (field: string, index: number) => {
     setForm((prev) => ({ ...prev, [field]: ((prev as any)[field] || []).filter((_: any, i: number) => i !== index) }));
+  };
+
+  // Timeline helpers
+  const addTimelineEntry = () => setTimelineEntries((prev) => [...prev, emptyTimeline()]);
+  const removeTimelineEntry = (index: number) => setTimelineEntries((prev) => prev.filter((_, i) => i !== index));
+  const updateTimelineEntry = (index: number, field: keyof TimelineEntry, value: string) => {
+    setTimelineEntries((prev) => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
   };
 
   // Floor plan helpers
@@ -221,12 +296,15 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     if (form.socialInstagram) socialLinks.instagram = form.socialInstagram;
     if (form.socialYoutube) socialLinks.youtube = form.socialYoutube;
 
-    // Clean floor plans - remove empty entries
+    // Clean floor plans
     const cleanedFloorPlans: Record<string, FloorPlanVariant[]> = {};
     for (const [cat, plans] of Object.entries(floorPlans)) {
       const valid = plans.filter((p) => p.name.trim() || p.size.trim());
       if (valid.length > 0) cleanedFloorPlans[cat] = valid;
     }
+
+    // Clean timeline
+    const cleanedTimeline = timelineEntries.filter((t) => t.year.trim() && t.title.trim());
 
     const payload = {
       user_id: userData?.user?.id || null,
@@ -263,7 +341,6 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       awards: form.awards,
       operating_cities: form.operatingCities,
       social_links: Object.keys(socialLinks).length > 0 ? socialLinks : null,
-      // New project fields
       project_subtitle: form.projectSubtitle || null,
       project_location: form.projectLocation || null,
       hero_image: form.heroImage || null,
@@ -283,6 +360,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       google_maps_link: form.googleMapsLink || null,
       brochure_url: form.brochureUrl || null,
       about_features: form.aboutFeatures,
+      timeline_data: cleanedTimeline.length > 0 ? cleanedTimeline : null,
     } as any;
 
     let error;
@@ -353,7 +431,13 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           <div><label className="text-sm font-medium mb-1.5 block">Tagline</label><Input value={form.tagline} onChange={(e) => updateField("tagline", e.target.value)} placeholder="e.g. Building Dreams Since 1986" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="text-sm font-medium mb-1.5 block">Project Subtitle</label><Input value={form.projectSubtitle} onChange={(e) => updateField("projectSubtitle", e.target.value)} placeholder="e.g. Premium 2 & 3 BHK Residences" /></div>
-            <div><label className="text-sm font-medium mb-1.5 block">Project Location (Full Address)</label><Input value={form.projectLocation} onChange={(e) => updateField("projectLocation", e.target.value)} placeholder="e.g. Survey No. 42, Narsingi, Hyderabad" /></div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Project Location (Full Address)</label>
+              <Input value={form.projectLocation} onChange={(e) => updateField("projectLocation", e.target.value)} placeholder="e.g. Survey No. 42, Kondapur, Hyderabad" />
+              {form.projectLocation && autoDetectCoords(form.projectLocation) && (
+                <p className="text-xs text-green-600 mt-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> Location auto-detected for map</p>
+              )}
+            </div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">About / Description</label><Textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="Tell us about the builder..." rows={4} /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -362,6 +446,35 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label><Input value={form.logo} onChange={(e) => updateField("logo", e.target.value)} placeholder="https://example.com/logo.png" /></div>
           <ArrayInputField label="About Features / Highlights" field="aboutFeatures" inputField="aboutFeatureInput" placeholder="e.g. Smart home automation" />
+        </CardContent>
+      </Card>
+
+      {/* ═══ OUR LEGACY / TIMELINE ═══ */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg"><Clock className="h-5 w-5 text-primary" />Our Legacy (Timeline)</CardTitle>
+            <Button type="button" variant="outline" size="sm" onClick={addTimelineEntry}><Plus className="h-3 w-3 mr-1" /> Add Entry</Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Add milestones to show your builder's journey. Leave empty to hide this section.</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {timelineEntries.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">No timeline entries yet. Click "Add Entry" to start building your legacy.</p>
+          )}
+          {timelineEntries.map((entry, idx) => (
+            <div key={idx} className="border rounded-lg p-4 space-y-3 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Milestone {idx + 1}</span>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeTimelineEntry(idx)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Year (e.g. 1998)" value={entry.year} onChange={(e) => updateTimelineEntry(idx, "year", e.target.value)} />
+                <Input placeholder="Title (e.g. Founded)" value={entry.title} onChange={(e) => updateTimelineEntry(idx, "title", e.target.value)} />
+              </div>
+              <Textarea placeholder="Description (e.g. Established with a vision for quality living)" value={entry.desc} onChange={(e) => updateTimelineEntry(idx, "desc", e.target.value)} rows={2} />
+            </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -459,14 +572,11 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Category tabs */}
           <div className="flex gap-2 flex-wrap">
             {Object.keys(floorPlans).map((cat) => (
               <Button key={cat} type="button" variant={activeFpTab === cat ? "default" : "outline"} size="sm" onClick={() => setActiveFpTab(cat)}>{cat}</Button>
             ))}
           </div>
-
-          {/* Variants for active tab */}
           <div className="space-y-4">
             {(floorPlans[activeFpTab] || []).map((fp, idx) => (
               <div key={idx} className="border rounded-lg p-4 space-y-3 relative">
@@ -492,7 +602,6 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
                   <Input placeholder="Price Range (e.g. ₹80L–1Cr)" value={fp.priceRange} onChange={(e) => updateFloorPlan(activeFpTab, idx, "priceRange", e.target.value)} />
                 </div>
                 <Input placeholder="Floor Plan Image URL" value={fp.image} onChange={(e) => updateFloorPlan(activeFpTab, idx, "image", e.target.value)} />
-                {/* Highlights */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Highlights</label>
                   <div className="flex gap-2">
@@ -562,10 +671,17 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><MapPin className="h-5 w-5 text-primary" />Location & Map</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-sm font-medium mb-1.5 block">Latitude</label><Input value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} placeholder="e.g. 17.3885" /></div>
-            <div><label className="text-sm font-medium mb-1.5 block">Longitude</label><Input value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} placeholder="e.g. 78.3365" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Latitude</label><Input value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} placeholder="e.g. 17.3885 (auto-detected from location)" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Longitude</label><Input value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} placeholder="e.g. 78.3365 (auto-detected from location)" /></div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Google Maps Link</label><Input value={form.googleMapsLink} onChange={(e) => updateField("googleMapsLink", e.target.value)} placeholder="https://www.google.com/maps/place/..." /></div>
+          {form.latitude && form.longitude && (
+            <div className="rounded-xl overflow-hidden border border-border">
+              <iframe
+                src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${form.longitude}!3d${form.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
+                width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location Preview" />
+            </div>
+          )}
         </CardContent>
       </Card>
 

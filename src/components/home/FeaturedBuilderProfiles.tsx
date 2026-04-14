@@ -64,7 +64,7 @@ const FeaturedBuilderProfiles = () => {
         <div className="flex items-center justify-between mb-lg">
           <div className="flex items-center gap-2">
             <Building2 className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl md:text-3xl font-bold">Featured Builders</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">Builder Profiles</h2>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/builders")}>
             View All <ChevronRight className="h-4 w-4 ml-1" />
