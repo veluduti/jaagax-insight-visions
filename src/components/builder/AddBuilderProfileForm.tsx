@@ -368,6 +368,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       brochure_url: form.brochureUrl || null,
       about_features: form.aboutFeatures,
       timeline_data: cleanedTimeline.length > 0 ? cleanedTimeline : null,
+      amenity_images: form.amenityImages.length > 0 ? form.amenityImages : null,
     } as any;
 
     let error;
