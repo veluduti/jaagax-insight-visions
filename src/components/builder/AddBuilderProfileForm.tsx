@@ -91,7 +91,7 @@ interface TimelineEntry {
 }
 
 const classifyBuilder = (numberOfProjects: number): "luxury" | "standard" | "budget" => {
-  if (numberOfProjects >= 100) return "luxury";
+  if (numberOfProjects > 100) return "luxury";
   if (numberOfProjects >= 50) return "standard";
   return "budget";
 };

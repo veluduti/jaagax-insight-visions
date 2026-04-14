@@ -211,7 +211,7 @@ const BudgetMicrosite = ({ builder }: Props) => {
         {(builder.latitude && builder.longitude) && (
           <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
             <iframe
-              src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${builder.longitude}!3d${builder.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${builder.longitude - 0.01}%2C${builder.latitude - 0.01}%2C${builder.longitude + 0.01}%2C${builder.latitude + 0.01}&layer=mapnik&marker=${builder.latitude}%2C${builder.longitude}`}
               width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location" />
             {builder.google_maps_link && (
               <a href={builder.google_maps_link} target="_blank" rel="noopener noreferrer" className="block p-2.5 text-center text-xs text-blue-600 font-medium hover:bg-blue-50">
