@@ -114,7 +114,12 @@ function buildData(builder: any) {
       { label: "RERA No", value: builder?.rera_number || "—" },
       { label: "Experience", value: builder?.years_of_experience ? `${builder.years_of_experience}+ Years` : "25+ Years" },
     ],
-    timeline: projectData.timeline,
+    timeline: Array.isArray(builder?.timeline_data) && builder.timeline_data.length > 0
+      ? builder.timeline_data
+      : projectData.timeline,
+    hasTimeline: Array.isArray(builder?.timeline_data) && builder.timeline_data.length > 0
+      ? true
+      : !hasDbData, // show static only if no DB data
     contact: {
       phone: builder?.phone || projectData.contact.phone,
       whatsapp: builder?.whatsapp || builder?.phone || projectData.contact.whatsapp,
