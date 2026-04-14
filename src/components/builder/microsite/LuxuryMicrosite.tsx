@@ -573,26 +573,28 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         </div>
       </section>
 
-      {/* TIMELINE */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-10">Our Legacy</h2>
-          <div className="relative">
-            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-[hsl(215,28%,22%)]" />
-            {d.timeline.map((t, i) => (
-              <div key={t.year} className={cn("relative flex mb-10 last:mb-0", i % 2 === 0 ? "md:justify-start" : "md:justify-end")}>
-                <div className="absolute left-4 md:left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(43,74%,52%)] mt-1.5" />
-                <div className={cn("ml-10 md:ml-0 md:w-[45%] bg-[hsl(215,28%,17%)] rounded-xl p-5 border border-[hsl(215,28%,22%)]",
-                  i % 2 === 0 ? "md:mr-auto md:pr-8" : "md:ml-auto md:pl-8")}>
-                  <p className="text-[hsl(43,74%,52%)] text-sm font-bold">{t.year}</p>
-                  <p className="text-white font-medium mt-1">{t.title}</p>
-                  <p className="text-white/50 text-sm mt-1">{t.desc}</p>
+      {/* TIMELINE / OUR LEGACY - only shown when data exists */}
+      {d.hasTimeline && d.timeline.length > 0 && (
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-10">Our Legacy</h2>
+            <div className="relative">
+              <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-[hsl(215,28%,22%)]" />
+              {d.timeline.map((t: any, i: number) => (
+                <div key={t.year} className={cn("relative flex mb-10 last:mb-0", i % 2 === 0 ? "md:justify-start" : "md:justify-end")}>
+                  <div className="absolute left-4 md:left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[hsl(43,74%,52%)] mt-1.5" />
+                  <div className={cn("ml-10 md:ml-0 md:w-[45%] bg-[hsl(215,28%,17%)] rounded-xl p-5 border border-[hsl(215,28%,22%)]",
+                    i % 2 === 0 ? "md:mr-auto md:pr-8" : "md:ml-auto md:pl-8")}>
+                    <p className="text-[hsl(43,74%,52%)] text-sm font-bold">{t.year}</p>
+                    <p className="text-white font-medium mt-1">{t.title}</p>
+                    <p className="text-white/50 text-sm mt-1">{t.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CONTACT */}
       <section id="contact" className="py-20 px-4 bg-[hsl(220,39%,11%)]">
