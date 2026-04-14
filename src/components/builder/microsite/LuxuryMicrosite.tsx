@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { projectData, type FloorPlan } from "@/data/projectData";
+import { generateBrochure } from "@/utils/generateBrochure";
 import BuilderLocationMap from "./BuilderLocationMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,9 +93,11 @@ function buildData(builder: any) {
     },
     amenities: {
       icons: amenityIcons.length > 0 ? amenityIcons.map((a: any) => ({ name: a.name, icon: Object.keys(iconMap).find((k) => a.name.toLowerCase().includes(k.toLowerCase())) || "Shield" })) : projectData.amenities.icons,
-      images: builder?.clubhouse_images?.length > 0
-        ? builder.clubhouse_images.map((src: string, i: number) => ({ src, label: `Amenity ${i + 1}`, desc: builder.clubhouse_description || "" }))
-        : projectData.amenities.images,
+      images: Array.isArray(builder?.amenity_images) && builder.amenity_images.length > 0
+        ? builder.amenity_images.map((img: any) => ({ src: img.url || img.src, label: img.description || "", desc: "" }))
+        : builder?.clubhouse_images?.length > 0
+          ? builder.clubhouse_images.map((src: string, i: number) => ({ src, label: builder.clubhouse_description || "", desc: "" }))
+          : projectData.amenities.images,
     },
     floorPlansByFacing: Object.keys(floorPlansByFacing).length > 0 ? floorPlansByFacing : projectData.floorPlansByFacing,
     floorPlans: Object.keys(floorPlansByBhk).length > 0 ? floorPlansByBhk : projectData.floorPlans,
@@ -253,12 +256,16 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             <Button variant="gold" size="lg" className="rounded-full px-8" onClick={() => scrollTo("contact")}>
               Book a Private Tour
             </Button>
-            {d.brochureUrl && (
+            {d.brochureUrl ? (
               <a href={d.brochureUrl} download>
                 <Button variant="goldOutline" size="lg" className="rounded-full px-8">
                   <Download className="h-4 w-4 mr-2" /> Download Brochure
                 </Button>
               </a>
+            ) : (
+              <Button variant="goldOutline" size="lg" className="rounded-full px-8" onClick={() => generateBrochure(builder || {})}>
+                <Download className="h-4 w-4 mr-2" /> Download Brochure
+              </Button>
             )}
           </div>
         </div>
@@ -459,14 +466,17 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
           </div>
           {d.amenities.images.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {d.amenities.images.map((a) => (
-                <div key={a.label} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
-                  <img src={a.src} alt={a.label} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-semibold text-sm">{a.label}</p>
-                    {a.desc && <p className="text-white/60 text-xs mt-1">{a.desc}</p>}
-                  </div>
+              {d.amenities.images.map((a, idx) => (
+                <div key={a.src + idx} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
+                  <img src={a.src} alt={a.label || `Amenity`} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  {a.label && (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <p className="text-white font-semibold text-sm">{a.label}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -632,11 +642,12 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
                 <span className="text-white/80 text-sm text-center">WhatsApp</span>
                 <span className="text-white/50 text-xs">{d.contact.whatsapp}</span>
               </a>
-              <div className="bg-[hsl(215,28%,17%)] border border-[hsl(215,28%,22%)] rounded-xl p-5 flex flex-col items-center gap-3">
+              <a href={d.map.mapsUrl || `https://www.google.com/maps?q=${d.map.lat},${d.map.lng}`} target="_blank" rel="noopener noreferrer"
+                className="bg-[hsl(215,28%,17%)] border border-[hsl(215,28%,22%)] rounded-xl p-5 flex flex-col items-center gap-3 hover:border-[hsl(43,74%,52%)]/40 transition-all cursor-pointer">
                 <MapPin className="h-6 w-6 text-[hsl(43,74%,52%)]" />
                 <span className="text-white/80 text-sm text-center">Visit Us</span>
                 <span className="text-white/50 text-xs text-center">{d.contact.address}</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>

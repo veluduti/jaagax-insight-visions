@@ -1,0 +1,1 @@
+ALTER TABLE public.builder_profiles ADD COLUMN IF NOT EXISTS amenity_images jsonb DEFAULT NULL;

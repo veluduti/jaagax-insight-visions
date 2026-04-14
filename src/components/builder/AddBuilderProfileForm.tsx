@@ -145,6 +145,10 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     latitude: "", longitude: "", googleMapsLink: "",
     brochureUrl: "",
     aboutFeatures: [] as string[], aboutFeatureInput: "",
+    // Amenity images with descriptions
+    amenityImages: [] as { url: string; description: string }[],
+    amenityImageUrl: "",
+    amenityImageDesc: "",
   });
 
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -198,6 +202,9 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
         latitude: b.latitude?.toString() || "", longitude: b.longitude?.toString() || "", googleMapsLink: b.google_maps_link || "",
         brochureUrl: b.brochure_url || "",
         aboutFeatures: b.about_features || [], aboutFeatureInput: "",
+        amenityImages: Array.isArray(b.amenity_images) ? b.amenity_images : [],
+        amenityImageUrl: "",
+        amenityImageDesc: "",
       });
       if (b.floor_plans_data && Object.keys(b.floor_plans_data).length > 0) {
         setFloorPlans(b.floor_plans_data);
@@ -361,6 +368,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       brochure_url: form.brochureUrl || null,
       about_features: form.aboutFeatures,
       timeline_data: cleanedTimeline.length > 0 ? cleanedTimeline : null,
+      amenity_images: form.amenityImages.length > 0 ? form.amenityImages : null,
     } as any;
 
     let error;
@@ -662,6 +670,37 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           <ArrayInputField label="Clubhouse Images" field="clubhouseImages" inputField="clubhouseImageInput" placeholder="Clubhouse image URL" />
           <div><label className="text-sm font-medium mb-1.5 block">Clubhouse Description</label><Textarea value={form.clubhouseDescription} onChange={(e) => updateField("clubhouseDescription", e.target.value)} placeholder="Describe the clubhouse..." rows={2} /></div>
 
+          {/* Amenity Images with Descriptions */}
+          <div>
+            <label className="text-sm font-medium mb-1.5 block">Amenity Images (with descriptions)</label>
+            <div className="flex gap-2">
+              <Input value={form.amenityImageUrl} onChange={(e) => updateField("amenityImageUrl", e.target.value)} placeholder="Amenity image URL" className="flex-1" />
+              <Input value={form.amenityImageDesc} onChange={(e) => updateField("amenityImageDesc", e.target.value)} placeholder="Description (optional)" className="flex-1" />
+              <Button type="button" variant="outline" onClick={() => {
+                if (form.amenityImageUrl.trim()) {
+                  setForm((prev) => ({
+                    ...prev,
+                    amenityImages: [...prev.amenityImages, { url: prev.amenityImageUrl.trim(), description: prev.amenityImageDesc.trim() }],
+                    amenityImageUrl: "",
+                    amenityImageDesc: "",
+                  }));
+                }
+              }}>Add</Button>
+            </div>
+            {form.amenityImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.amenityImages.map((img, i) => (
+                  <div key={i} className="relative group">
+                    <img src={img.url} alt={img.description} className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    <p className="text-[10px] text-muted-foreground truncate max-w-[64px]">{img.description || "No desc"}</p>
+                    <button onClick={() => setForm((prev) => ({ ...prev, amenityImages: prev.amenityImages.filter((_, j) => j !== i) }))}
+                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <ArrayInputField label="Video URLs" field="videos" inputField="videoInput" placeholder="Paste YouTube URL" />
         </CardContent>
       </Card>
@@ -678,8 +717,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           {form.latitude && form.longitude && (
             <div className="rounded-xl overflow-hidden border border-border">
               <iframe
-                src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${form.longitude}!3d${form.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
-                width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location Preview" />
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.01}%2C${Number(form.latitude) - 0.01}%2C${Number(form.longitude) + 0.01}%2C${Number(form.latitude) + 0.01}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
+                width="100%" height="200" className="border-0" loading="lazy" title="Location Preview" />
             </div>
           )}
         </CardContent>

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import BuilderLocationMap from "./BuilderLocationMap";
+import { generateBrochure } from "@/utils/generateBrochure";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Phone, MessageCircle, X, Mail, Globe, Shield, Star, MapPin,
@@ -81,7 +82,7 @@ const StandardMicrosite = ({ builder }: Props) => {
     if (builder.brochure_url) {
       window.open(builder.brochure_url, "_blank");
     } else {
-      toast.info("Brochure download will be available soon.");
+      generateBrochure(builder);
     }
   };
 
