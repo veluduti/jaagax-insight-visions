@@ -717,8 +717,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
           {form.latitude && form.longitude && (
             <div className="rounded-xl overflow-hidden border border-border">
               <iframe
-                src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${form.longitude}!3d${form.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`}
-                width="100%" height="200" className="border-0" loading="lazy" allowFullScreen title="Location Preview" />
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.01}%2C${Number(form.latitude) - 0.01}%2C${Number(form.longitude) + 0.01}%2C${Number(form.latitude) + 0.01}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
+                width="100%" height="200" className="border-0" loading="lazy" title="Location Preview" />
             </div>
           )}
         </CardContent>
