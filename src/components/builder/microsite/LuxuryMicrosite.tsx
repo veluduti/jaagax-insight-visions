@@ -103,7 +103,6 @@ function buildData(builder: any) {
     map: {
       lat: builder?.latitude || projectData.map.lat,
       lng: builder?.longitude || projectData.map.lng,
-      embedUrl: `https://www.openstreetmap.org/export/embed.html?bbox=${(builder?.longitude || projectData.map.lng) - 0.01}%2C${(builder?.latitude || projectData.map.lat) - 0.01}%2C${(builder?.longitude || projectData.map.lng) + 0.01}%2C${(builder?.latitude || projectData.map.lat) + 0.01}&layer=mapnik&marker=${builder?.latitude || projectData.map.lat}%2C${builder?.longitude || projectData.map.lng}`,
       mapsUrl: builder?.google_maps_link || projectData.map.mapsUrl,
       address: builder?.project_location || projectData.map.address,
     },
@@ -547,7 +546,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
         <div className="max-w-6xl mx-auto">
           <h2 className="font-serif italic text-3xl md:text-4xl text-[hsl(43,74%,52%)] mb-8">Location</h2>
           <div className="rounded-2xl overflow-hidden border border-[hsl(215,28%,22%)] mb-4">
-            <iframe src={d.map.embedUrl} width="100%" height="400" className="border-0" loading="lazy" allowFullScreen title="Location Map" />
+            <BuilderLocationMap lat={d.map.lat} lng={d.map.lng} builderName={d.name} height="400px" />
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-white/70">

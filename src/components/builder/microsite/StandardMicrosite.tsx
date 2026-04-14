@@ -327,9 +327,7 @@ const StandardMicrosite = ({ builder }: Props) => {
           <h2 className="text-lg font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" /> Location</h2>
           {(builder.latitude && builder.longitude) && (
             <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-3">
-              <iframe
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${builder.longitude - 0.01}%2C${builder.latitude - 0.01}%2C${builder.longitude + 0.01}%2C${builder.latitude + 0.01}&layer=mapnik&marker=${builder.latitude}%2C${builder.longitude}`}
-                width="100%" height="300" className="border-0" loading="lazy" allowFullScreen title="Location" />
+              <BuilderLocationMap lat={builder.latitude} lng={builder.longitude} builderName={builder.builder_name} height="300px" />
             </div>
           )}
           {builder.project_location && (
