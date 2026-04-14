@@ -267,7 +267,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
                 <Download className="h-4 w-4 mr-2" /> Download Brochure
               </Button>
             )}
-        </div>
+          </div>
         <button onClick={() => scrollTo("livestats")} className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
           <ChevronDown className="h-8 w-8" />
         </button>
