@@ -461,8 +461,8 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
           </div>
           {d.amenities.images.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {d.amenities.images.map((a) => (
-                <div key={a.src + i} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
+              {d.amenities.images.map((a, idx) => (
+                <div key={a.src + idx} className="group relative rounded-xl overflow-hidden aspect-[4/3]">
                   <img src={a.src} alt={a.label || `Amenity`} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   {a.label && (
                     <>

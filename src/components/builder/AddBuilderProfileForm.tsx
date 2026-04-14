@@ -202,6 +202,9 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
         latitude: b.latitude?.toString() || "", longitude: b.longitude?.toString() || "", googleMapsLink: b.google_maps_link || "",
         brochureUrl: b.brochure_url || "",
         aboutFeatures: b.about_features || [], aboutFeatureInput: "",
+        amenityImages: Array.isArray(b.amenity_images) ? b.amenity_images : [],
+        amenityImageUrl: "",
+        amenityImageDesc: "",
       });
       if (b.floor_plans_data && Object.keys(b.floor_plans_data).length > 0) {
         setFloorPlans(b.floor_plans_data);
