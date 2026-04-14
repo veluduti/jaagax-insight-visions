@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { projectData, type FloorPlan } from "@/data/projectData";
+import { generateBrochure } from "@/utils/generateBrochure";
 import BuilderLocationMap from "./BuilderLocationMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,14 +256,17 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             <Button variant="gold" size="lg" className="rounded-full px-8" onClick={() => scrollTo("contact")}>
               Book a Private Tour
             </Button>
-            {d.brochureUrl && (
+            {d.brochureUrl ? (
               <a href={d.brochureUrl} download>
                 <Button variant="goldOutline" size="lg" className="rounded-full px-8">
                   <Download className="h-4 w-4 mr-2" /> Download Brochure
                 </Button>
               </a>
+            ) : (
+              <Button variant="goldOutline" size="lg" className="rounded-full px-8" onClick={() => generateBrochure(builder || {})}>
+                <Download className="h-4 w-4 mr-2" /> Download Brochure
+              </Button>
             )}
-          </div>
         </div>
         <button onClick={() => scrollTo("livestats")} className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
           <ChevronDown className="h-8 w-8" />
