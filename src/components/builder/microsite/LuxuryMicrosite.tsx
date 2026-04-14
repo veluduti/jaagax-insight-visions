@@ -103,7 +103,7 @@ function buildData(builder: any) {
     map: {
       lat: builder?.latitude || projectData.map.lat,
       lng: builder?.longitude || projectData.map.lng,
-      embedUrl: `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d5000!2d${builder?.longitude || projectData.map.lng}!3d${builder?.latitude || projectData.map.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`,
+      embedUrl: `https://www.openstreetmap.org/export/embed.html?bbox=${(builder?.longitude || projectData.map.lng) - 0.01}%2C${(builder?.latitude || projectData.map.lat) - 0.01}%2C${(builder?.longitude || projectData.map.lng) + 0.01}%2C${(builder?.latitude || projectData.map.lat) + 0.01}&layer=mapnik&marker=${builder?.latitude || projectData.map.lat}%2C${builder?.longitude || projectData.map.lng}`,
       mapsUrl: builder?.google_maps_link || projectData.map.mapsUrl,
       address: builder?.project_location || projectData.map.address,
     },
