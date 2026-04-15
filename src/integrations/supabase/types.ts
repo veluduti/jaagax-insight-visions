@@ -720,6 +720,51 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_requests: {
+        Row: {
+          city: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          rejection_reason: string | null
+          requested_role: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_role: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -856,6 +901,24 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      review_signup_request: {
+        Args: {
+          _decision: string
+          _rejection_reason?: string
+          _request_id: string
+        }
+        Returns: undefined
+      }
+      submit_signup_request: {
+        Args: {
+          _city: string
+          _email: string
+          _full_name: string
+          _requested_role: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
