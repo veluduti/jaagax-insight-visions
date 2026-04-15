@@ -62,12 +62,16 @@ export default function AdminDashboard() {
       { count: usersCount },
       { count: propertiesCount },
       { count: projectsCount },
-      { data: verifications }
+      { data: verifications },
+      { count: agentsCount },
+      { count: pendingVisitsCount }
     ] = await Promise.all([
       supabase.from("users").select("*", { count: 'exact', head: true }),
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
-      supabase.from("property_verifications").select("*").eq("status", "assigned")
+      supabase.from("property_verifications").select("*").eq("status", "assigned"),
+      supabase.from("agents").select("*", { count: 'exact', head: true }),
+      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending")
     ]);
 
     setStats({
@@ -75,7 +79,18 @@ export default function AdminDashboard() {
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
       verificationsPending: verifications?.length || 0,
+      totalAgents: agentsCount || 0,
+      pendingVisits: pendingVisitsCount || 0,
     });
+  };
+
+  const fetchVisitBookings = async () => {
+    const { data } = await supabase
+      .from("visit_bookings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setVisitBookings(data || []);
   };
 
   const runTrustAnalysis = async (entityType: string, entityId: number) => {
