@@ -197,12 +197,41 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+          {/* Agent & Visit Stats */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Agents</p>
+                    <p className="text-2xl font-bold">{stats.totalAgents}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pending Visits</p>
+                    <p className="text-2xl font-bold">{stats.pendingVisits}</p>
+                  </div>
+                  <CalendarCheck className="h-8 w-8 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="flex flex-wrap w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
