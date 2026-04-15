@@ -153,12 +153,31 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
 
-  const [floorPlans, setFloorPlans] = useState<Record<string, FloorPlanVariant[]>>({
-    "2BHK": [emptyFloorPlan()],
-    "3BHK": [emptyFloorPlan()],
-  });
-  const [activeFpTab, setActiveFpTab] = useState("2BHK");
+  const [floorPlans, setFloorPlans] = useState<Record<string, FloorPlanVariant[]>>({});
+  const [activeFpTab, setActiveFpTab] = useState("");
   const [highlightInput, setHighlightInput] = useState<Record<string, string>>({});
+
+  // Sync floor plan categories with selected unit types
+  useEffect(() => {
+    if (form.unitTypes.length === 0) {
+      // Keep existing plans but don't auto-create
+      return;
+    }
+    setFloorPlans((prev) => {
+      const updated: Record<string, FloorPlanVariant[]> = {};
+      for (const ut of form.unitTypes) {
+        const key = ut.replace(/\s+/g, ""); // "2 BHK" → "2BHK", "Villa" → "Villa"
+        updated[key] = prev[key] || [emptyFloorPlan()];
+      }
+      return updated;
+    });
+    // Set active tab to first unit type if current tab is invalid
+    const firstKey = form.unitTypes[0]?.replace(/\s+/g, "") || "";
+    setActiveFpTab((prev) => {
+      const validKeys = form.unitTypes.map(u => u.replace(/\s+/g, ""));
+      return validKeys.includes(prev) ? prev : firstKey;
+    });
+  }, [form.unitTypes]);
 
   // Auto-detect coordinates when project location changes
   useEffect(() => {
@@ -275,9 +294,16 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
     }));
   };
   const addFpCategory = () => {
-    const cats = Object.keys(floorPlans);
-    const next = `${cats.length + 1}BHK`;
-    if (!floorPlans[next]) {
+    // Find unit types not yet in floor plans
+    const existing = Object.keys(floorPlans);
+    const available = form.unitTypes.map(u => u.replace(/\s+/g, "")).filter(k => !existing.includes(k));
+    if (available.length > 0) {
+      const next = available[0];
+      setFloorPlans((prev) => ({ ...prev, [next]: [emptyFloorPlan()] }));
+      setActiveFpTab(next);
+    } else {
+      // If all unit types already have plans, allow custom
+      const next = `Custom${existing.length + 1}`;
       setFloorPlans((prev) => ({ ...prev, [next]: [emptyFloorPlan()] }));
       setActiveFpTab(next);
     }
@@ -576,8 +602,13 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg"><Compass className="h-5 w-5 text-primary" />Floor Plans</CardTitle>
-            <Button type="button" variant="outline" size="sm" onClick={addFpCategory}><Plus className="h-3 w-3 mr-1" /> Add Category</Button>
+            {form.unitTypes.length > Object.keys(floorPlans).length && (
+              <Button type="button" variant="outline" size="sm" onClick={addFpCategory}><Plus className="h-3 w-3 mr-1" /> Add Category</Button>
+            )}
           </div>
+          {form.unitTypes.length === 0 && (
+            <p className="text-xs text-amber-600 mt-1">Please select Unit Types in Project Portfolio section first. Floor plan categories are created based on your selected unit types.</p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2 flex-wrap">
