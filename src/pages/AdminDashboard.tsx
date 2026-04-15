@@ -51,14 +51,7 @@ export default function AdminDashboard() {
 
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      setUser(data);
-    }
+    setUser(user);
   };
 
   const fetchStats = async () => {
