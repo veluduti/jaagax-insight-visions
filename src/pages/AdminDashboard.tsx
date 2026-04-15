@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
   Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare,
-  Activity
+  Activity, CalendarCheck, MapPin, Phone
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -30,7 +30,10 @@ export default function AdminDashboard() {
     totalProperties: 0,
     totalProjects: 0,
     verificationsPending: 0,
+    totalAgents: 0,
+    pendingVisits: 0,
   });
+  const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
@@ -39,6 +42,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchUser();
     fetchStats();
+    fetchVisitBookings();
   }, []);
 
   const fetchUser = async () => {
@@ -58,12 +62,16 @@ export default function AdminDashboard() {
       { count: usersCount },
       { count: propertiesCount },
       { count: projectsCount },
-      { data: verifications }
+      { data: verifications },
+      { count: agentsCount },
+      { count: pendingVisitsCount }
     ] = await Promise.all([
       supabase.from("users").select("*", { count: 'exact', head: true }),
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
-      supabase.from("property_verifications").select("*").eq("status", "assigned")
+      supabase.from("property_verifications").select("*").eq("status", "assigned"),
+      supabase.from("agents").select("*", { count: 'exact', head: true }),
+      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending")
     ]);
 
     setStats({
@@ -71,7 +79,18 @@ export default function AdminDashboard() {
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
       verificationsPending: verifications?.length || 0,
+      totalAgents: agentsCount || 0,
+      pendingVisits: pendingVisitsCount || 0,
     });
+  };
+
+  const fetchVisitBookings = async () => {
+    const { data } = await supabase
+      .from("visit_bookings")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setVisitBookings(data || []);
   };
 
   const runTrustAnalysis = async (entityType: string, entityId: number) => {
@@ -178,12 +197,41 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+          {/* Agent & Visit Stats */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Agents</p>
+                    <p className="text-2xl font-bold">{stats.totalAgents}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pending Visits</p>
+                    <p className="text-2xl font-bold">{stats.pendingVisits}</p>
+                  </div>
+                  <CalendarCheck className="h-8 w-8 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="flex flex-wrap w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
@@ -229,7 +277,49 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* FRM Dashboard */}
+          {/* Visit Bookings */}
+          <TabsContent value="visits" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarCheck className="h-5 w-5 text-primary" />
+                  Visit Bookings ({visitBookings.length})
+                </CardTitle>
+                <CardDescription>All property visit requests across the platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {visitBookings.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No visit bookings yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {visitBookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="space-y-1">
+                          <p className="font-medium">{booking.buyer_name || 'Unknown Buyer'}</p>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{booking.buyer_phone || 'N/A'}</span>
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{booking.city || 'N/A'}, {booking.locality || ''}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            📅 {booking.visit_date} • 🕒 {booking.visit_time || 'TBD'}
+                          </p>
+                        </div>
+                        <Badge variant={
+                          booking.status === 'confirmed' ? 'default' :
+                          booking.status === 'pending' ? 'secondary' :
+                          booking.status === 'completed' ? 'outline' : 'destructive'
+                        }>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
           <TabsContent value="frm" className="space-y-6">
             <Card>
               <CardContent className="p-6">
