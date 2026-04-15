@@ -108,26 +108,30 @@ export const useAuth = () => {
       }
       
       if (data.user) {
-        console.log("Creating user role for:", data.user.id, dbRole);
-        
-        // Use SECURITY DEFINER function to bypass RLS during signup
-        const { error: roleError } = await supabase
-          .rpc("assign_user_role", {
-            _user_id: data.user.id,
-            _role: dbRole,
-          });
-
-        if (roleError) {
-          console.error("Error inserting role:", roleError);
-          return { error: roleError };
+        // For buyers, assign role directly. For agents/builders, submit approval request.
+        if (dbRole === 'customer') {
+          const { error: roleError } = await supabase
+            .rpc("assign_user_role", {
+              _user_id: data.user.id,
+              _role: dbRole,
+            });
+          if (roleError) {
+            console.error("Error inserting role:", roleError);
+          }
         }
-
-        console.log("User role created successfully");
-        setRole(selectedRole);
         
-        setTimeout(() => {
-          fetchUserRole(data.user.id);
-        }, 500);
+        // Submit signup request for admin visibility (and approval for non-buyers)
+        const { error: reqError } = await supabase
+          .rpc("submit_signup_request", {
+            _user_id: data.user.id,
+            _email: email,
+            _full_name: name || null,
+            _city: city || null,
+            _requested_role: dbRole,
+          });
+        if (reqError) {
+          console.error("Error submitting signup request:", reqError);
+        }
       }
 
       return { error: null };

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
   Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare,
-  Activity, CalendarCheck, MapPin, Phone
+  Activity, CalendarCheck, MapPin, Phone, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -32,56 +32,80 @@ export default function AdminDashboard() {
     verificationsPending: 0,
     totalAgents: 0,
     pendingVisits: 0,
+    pendingSignups: 0,
   });
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
+  const [signupRequests, setSignupRequests] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUser();
     fetchStats();
     fetchVisitBookings();
+    fetchSignupRequests();
   }, []);
 
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      setUser(data);
-    }
+    setUser(user);
   };
 
   const fetchStats = async () => {
     const [
-      { count: usersCount },
       { count: propertiesCount },
       { count: projectsCount },
-      { data: verifications },
       { count: agentsCount },
-      { count: pendingVisitsCount }
+      { count: pendingVisitsCount },
+      { count: pendingSignupsCount }
     ] = await Promise.all([
-      supabase.from("users").select("*", { count: 'exact', head: true }),
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
-      supabase.from("property_verifications").select("*").eq("status", "assigned"),
       supabase.from("agents").select("*", { count: 'exact', head: true }),
-      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending")
+      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending"),
+      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending")
     ]);
 
     setStats({
-      totalUsers: usersCount || 0,
+      totalUsers: 0,
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
-      verificationsPending: verifications?.length || 0,
+      verificationsPending: 0,
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
+      pendingSignups: pendingSignupsCount || 0,
     });
+  };
+
+  const fetchSignupRequests = async () => {
+    const { data } = await supabase
+      .from("signup_requests")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setSignupRequests(data || []);
+  };
+
+  const handleReviewSignup = async (requestId: string, decision: "approved" | "rejected", reason?: string) => {
+    setReviewingId(requestId);
+    try {
+      const { error } = await supabase.rpc("review_signup_request", {
+        _request_id: requestId,
+        _decision: decision,
+        _rejection_reason: reason || null,
+      });
+      if (error) throw error;
+      toast.success(`Signup request ${decision}`);
+      fetchSignupRequests();
+      fetchStats();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to review request");
+    } finally {
+      setReviewingId(null);
+    }
   };
 
   const fetchVisitBookings = async () => {
@@ -231,6 +255,12 @@ export default function AdminDashboard() {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="flex flex-wrap w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="signups" className="relative">
+              Signup Requests
+              {stats.pendingSignups > 0 && (
+                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5">{stats.pendingSignups}</span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
@@ -275,6 +305,71 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Signup Requests */}
+          <TabsContent value="signups" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Signup Requests ({signupRequests.length})
+                </CardTitle>
+                <CardDescription>Approve or reject new user registrations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {signupRequests.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No signup requests yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {signupRequests.map((req) => (
+                      <div key={req.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="space-y-1">
+                          <p className="font-medium">{req.full_name || req.email}</p>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span>{req.email}</span>
+                            <Badge variant="outline">{req.requested_role}</Badge>
+                            {req.city && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{req.city}</span>}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(req.created_at).toLocaleDateString()} • {new Date(req.created_at).toLocaleTimeString()}
+                          </p>
+                          {req.rejection_reason && (
+                            <p className="text-xs text-destructive">Reason: {req.rejection_reason}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {req.status === 'pending' ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => handleReviewSignup(req.id, 'approved')}
+                                disabled={reviewingId === req.id}
+                              >
+                                {reviewingId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleReviewSignup(req.id, 'rejected', 'Not eligible at this time')}
+                                disabled={reviewingId === req.id}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          ) : (
+                            <Badge variant={req.status === 'approved' ? 'default' : 'destructive'}>
+                              {req.status}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Visit Bookings */}

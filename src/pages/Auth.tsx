@@ -150,6 +150,9 @@ export default function Auth() {
         const { error } = await signIn(email, password);
 
         if (error) {
+          if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
+          }
           if (error.message.includes("Invalid login credentials")) {
             throw new Error("Invalid email or password");
           }
@@ -163,9 +166,8 @@ export default function Auth() {
         
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
-            // Automatically switch to login mode
             setIsLogin(true);
-            setPassword(""); // Clear password so user enters their actual password
+            setPassword("");
             toast.error("This email is already registered. Please sign in with your password.", {
               duration: 5000,
             });
@@ -175,11 +177,17 @@ export default function Auth() {
           throw error;
         }
 
-        toast.success("Account created! Redirecting...");
-        // Longer delay for signup to ensure role and profile are created
-        setTimeout(() => {
-          redirectToDashboard();
-        }, 1500);
+        if (selectedRole === "buyer") {
+          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
+        } else {
+          toast.success("Account created! Please check your email to verify. Your account will be activated after admin approval.", { duration: 8000 });
+        }
+        
+        // Switch to login mode so user can sign in after email confirmation
+        setIsLogin(true);
+        setPassword("");
+        setLoading(false);
+        return;
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
