@@ -63,29 +63,56 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     const [
-      { count: usersCount },
       { count: propertiesCount },
       { count: projectsCount },
-      { data: verifications },
       { count: agentsCount },
-      { count: pendingVisitsCount }
+      { count: pendingVisitsCount },
+      { count: pendingSignupsCount }
     ] = await Promise.all([
-      supabase.from("users").select("*", { count: 'exact', head: true }),
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
-      supabase.from("property_verifications").select("*").eq("status", "assigned"),
       supabase.from("agents").select("*", { count: 'exact', head: true }),
-      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending")
+      supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending"),
+      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending")
     ]);
 
     setStats({
-      totalUsers: usersCount || 0,
+      totalUsers: 0,
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
-      verificationsPending: verifications?.length || 0,
+      verificationsPending: 0,
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
+      pendingSignups: pendingSignupsCount || 0,
     });
+  };
+
+  const fetchSignupRequests = async () => {
+    const { data } = await supabase
+      .from("signup_requests")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setSignupRequests(data || []);
+  };
+
+  const handleReviewSignup = async (requestId: string, decision: "approved" | "rejected", reason?: string) => {
+    setReviewingId(requestId);
+    try {
+      const { error } = await supabase.rpc("review_signup_request", {
+        _request_id: requestId,
+        _decision: decision,
+        _rejection_reason: reason || null,
+      });
+      if (error) throw error;
+      toast.success(`Signup request ${decision}`);
+      fetchSignupRequests();
+      fetchStats();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to review request");
+    } finally {
+      setReviewingId(null);
+    }
   };
 
   const fetchVisitBookings = async () => {
