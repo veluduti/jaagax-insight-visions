@@ -150,6 +150,9 @@ export default function Auth() {
         const { error } = await signIn(email, password);
 
         if (error) {
+          if (error.message.includes("Email not confirmed")) {
+            throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
+          }
           if (error.message.includes("Invalid login credentials")) {
             throw new Error("Invalid email or password");
           }
