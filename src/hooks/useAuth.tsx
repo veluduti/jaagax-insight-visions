@@ -110,12 +110,12 @@ export const useAuth = () => {
       if (data.user) {
         console.log("Creating user role for:", data.user.id, dbRole);
         
+        // Use SECURITY DEFINER function to bypass RLS during signup
         const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert([{
-            user_id: data.user.id,
-            role: dbRole as "admin" | "agent" | "builder" | "customer" | "driver" | "hotel_manager",
-          }]);
+          .rpc("assign_user_role", {
+            _user_id: data.user.id,
+            _role: dbRole,
+          });
 
         if (roleError) {
           console.error("Error inserting role:", roleError);

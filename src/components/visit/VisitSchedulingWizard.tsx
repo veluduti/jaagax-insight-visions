@@ -119,7 +119,8 @@ export const VisitSchedulingWizard = ({
         const { data, error } = await supabase
           .from('agents')
           .select('id, name, photo_url, trust_score, agency_name, sales_count, cities_served, languages')
-          .contains('cities_served', [city])
+          .ilike('cities_served', `%${city}%`)
+          .eq('verified', true)
           .order('trust_score', { ascending: false })
           .limit(10);
 
@@ -132,6 +133,7 @@ export const VisitSchedulingWizard = ({
         const { data, error } = await supabase
           .from('agents')
           .select('id, name, photo_url, trust_score, agency_name, sales_count, cities_served, languages')
+          .eq('verified', true)
           .order('trust_score', { ascending: false })
           .limit(10);
 
