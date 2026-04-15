@@ -132,6 +132,69 @@ export type Database = {
           },
         ]
       }
+      agents: {
+        Row: {
+          agency_name: string | null
+          bio: string | null
+          cities_served: string | null
+          created_at: string
+          email: string | null
+          experience_years: number | null
+          id: string
+          languages: string | null
+          localities_served: string | null
+          name: string
+          phone: string
+          photo_url: string | null
+          sales_count: number | null
+          specializations: string[] | null
+          trust_score: number | null
+          updated_at: string
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          agency_name?: string | null
+          bio?: string | null
+          cities_served?: string | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          languages?: string | null
+          localities_served?: string | null
+          name: string
+          phone: string
+          photo_url?: string | null
+          sales_count?: number | null
+          specializations?: string[] | null
+          trust_score?: number | null
+          updated_at?: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          agency_name?: string | null
+          bio?: string | null
+          cities_served?: string | null
+          created_at?: string
+          email?: string | null
+          experience_years?: number | null
+          id?: string
+          languages?: string | null
+          localities_served?: string | null
+          name?: string
+          phone?: string
+          photo_url?: string | null
+          sales_count?: number | null
+          specializations?: string[] | null
+          trust_score?: number | null
+          updated_at?: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       builder_profiles: {
         Row: {
           about_features: string[] | null
@@ -675,6 +738,75 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_bookings: {
+        Row: {
+          agent_id: string | null
+          buyer_email: string | null
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          city: string | null
+          created_at: string
+          id: string
+          locality: string | null
+          notes: string | null
+          property_id: string | null
+          status: string
+          updated_at: string
+          visit_date: string
+          visit_time: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          locality?: string | null
+          notes?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+          visit_date: string
+          visit_time?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          locality?: string | null
+          notes?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+          visit_date?: string
+          visit_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_packages: {
         Row: {
           base_discount_percentage: number | null
@@ -719,6 +851,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
