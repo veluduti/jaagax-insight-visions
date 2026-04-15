@@ -48,7 +48,7 @@ const FeaturedBuilderProfiles = () => {
       const { data } = await supabase
         .from("builder_profiles" as any)
         .select(
-          "id, builder_name, tagline, type, price_range_min, price_range_max, images, locations, number_of_projects, years_of_experience",
+          "id, builder_name, tagline, type, price_range_min, price_range_max, images, locations, project_location, number_of_projects, years_of_experience",
         )
         .order("created_at", { ascending: false })
         .limit(10);
@@ -118,10 +118,12 @@ const FeaturedBuilderProfiles = () => {
 
                 {/* Details */}
                 <div className="p-md space-y-2">
-                  {b.locations?.length > 0 && (
+                  {(b.locations?.length > 0 || b.project_location) && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3.5 w-3.5" />
-                      <span className="line-clamp-1">{b.locations.slice(0, 2).join(", ")}</span>
+                      <span className="line-clamp-1">
+                        {b.locations?.length > 0 ? b.locations.slice(0, 2).join(", ") : b.project_location}
+                      </span>
                     </div>
                   )}
 
