@@ -277,7 +277,49 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* FRM Dashboard */}
+          {/* Visit Bookings */}
+          <TabsContent value="visits" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarCheck className="h-5 w-5 text-primary" />
+                  Visit Bookings ({visitBookings.length})
+                </CardTitle>
+                <CardDescription>All property visit requests across the platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {visitBookings.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No visit bookings yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {visitBookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="space-y-1">
+                          <p className="font-medium">{booking.buyer_name || 'Unknown Buyer'}</p>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{booking.buyer_phone || 'N/A'}</span>
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{booking.city || 'N/A'}, {booking.locality || ''}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            📅 {booking.visit_date} • 🕒 {booking.visit_time || 'TBD'}
+                          </p>
+                        </div>
+                        <Badge variant={
+                          booking.status === 'confirmed' ? 'default' :
+                          booking.status === 'pending' ? 'secondary' :
+                          booking.status === 'completed' ? 'outline' : 'destructive'
+                        }>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
           <TabsContent value="frm" className="space-y-6">
             <Card>
               <CardContent className="p-6">
