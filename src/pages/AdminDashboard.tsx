@@ -32,17 +32,21 @@ export default function AdminDashboard() {
     verificationsPending: 0,
     totalAgents: 0,
     pendingVisits: 0,
+    pendingSignups: 0,
   });
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
+  const [signupRequests, setSignupRequests] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUser();
     fetchStats();
     fetchVisitBookings();
+    fetchSignupRequests();
   }, []);
 
   const fetchUser = async () => {
