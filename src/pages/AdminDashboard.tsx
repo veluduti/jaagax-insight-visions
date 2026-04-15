@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Shield, CheckCircle, BarChart3, Settings, LogOut, Users,
   Building2, Home, TrendingUp, AlertCircle, Eye, Star, Calendar, MessageSquare,
-  Activity, CalendarCheck, MapPin, Phone
+  Activity, CalendarCheck, MapPin, Phone, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
