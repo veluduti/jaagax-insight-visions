@@ -30,7 +30,10 @@ export default function AdminDashboard() {
     totalProperties: 0,
     totalProjects: 0,
     verificationsPending: 0,
+    totalAgents: 0,
+    pendingVisits: 0,
   });
+  const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
@@ -39,6 +42,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchUser();
     fetchStats();
+    fetchVisitBookings();
   }, []);
 
   const fetchUser = async () => {
