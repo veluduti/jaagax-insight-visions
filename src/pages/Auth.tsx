@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle } from "lucide-react";
+import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle, Phone } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,13 +43,14 @@ const roleConfig = {
   },
 };
 
-const cities = ["Hyderabad", "Vijayawada"];
+const cities = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Pune", "Delhi"];
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
   const [showPassword, setShowPassword] = useState(false);
@@ -61,23 +62,17 @@ export default function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
   
-  // Check if user came from password reset link
   const isPasswordReset = searchParams.get("reset") === "true";
-
-  // Only allow buyer, agent, and builder roles for public signup
   const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
 
   useEffect(() => {
-    // Wait for both user and role to be loaded before redirecting
     if (user && role && !authLoading) {
       redirectToDashboard();
     }
   }, [user, role, authLoading, redirectToDashboard]);
 
-  // Handle password reset flow
   useEffect(() => {
     if (isPasswordReset) {
-      // Check if user has a valid session from the reset link
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           setIsResettingPassword(true);
@@ -88,22 +83,17 @@ export default function Auth() {
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
-
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
       if (error) throw error;
-      
       toast.success("Password updated successfully!");
       setIsResettingPassword(false);
       setNewPassword("");
-      // Clear URL params
       navigate("/auth", { replace: true });
     } catch (error: any) {
       toast.error(error.message || "Failed to update password");
@@ -114,41 +104,27 @@ export default function Auth() {
 
   const validateForm = () => {
     if (!isLogin) {
-      if (!name.trim()) {
-        toast.error("Name is required");
-        return false;
-      }
-      if (!city) {
-        toast.error("Please select your city");
+      if (!name.trim()) { toast.error("Name is required"); return false; }
+      if (!city) { toast.error("Please select your city"); return false; }
+      if ((selectedRole === "agent" || selectedRole === "builder") && !phone.trim()) {
+        toast.error("Phone number is required for agents and builders");
         return false;
       }
     }
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email");
-      return false;
-    }
-    
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return false;
-    }
-    
+    if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
+    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
     return true;
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setLoading(true);
 
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
-
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -158,19 +134,14 @@ export default function Auth() {
           }
           throw error;
         }
-
         toast.success("Welcome back!");
-        // The useEffect will handle redirect once role is loaded
       } else {
-        const { error } = await signUp(email, password, selectedRole, city, name);
-        
+        const { error } = await signUp(email, password, selectedRole, city, name, phone);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
             setIsLogin(true);
             setPassword("");
-            toast.error("This email is already registered. Please sign in with your password.", {
-              duration: 5000,
-            });
+            toast.error("This email is already registered. Please sign in.", { duration: 5000 });
             setLoading(false);
             return;
           }
@@ -182,8 +153,6 @@ export default function Auth() {
         } else {
           toast.success("Account created! Please check your email to verify. Your account will be activated after admin approval.", { duration: 8000 });
         }
-        
-        // Switch to login mode so user can sign in after email confirmation
         setIsLogin(true);
         setPassword("");
         setLoading(false);
@@ -197,146 +166,91 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 relative overflow-hidden">
-      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
-      {/* Logo */}
       <div className="absolute top-8 left-8 z-20">
-        <button 
-          onClick={() => navigate("/")}
-          className="text-3xl font-bold text-gradient hover:opacity-80 transition-opacity"
-        >
+        <button onClick={() => navigate("/")} className="text-3xl font-bold text-gradient hover:opacity-80 transition-opacity">
           JaagaX
         </button>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-6xl mx-auto relative z-10"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-6xl mx-auto relative z-10">
         <div className="grid md:grid-cols-2 gap-8 items-center">
-          {/* Left Side - Info */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="hidden md:block"
-          >
-            <h1 className="text-5xl font-bold mb-6">
-              Welcome to <span className="text-gradient">JaagaX</span>
-            </h1>
-            <p className="text-muted-foreground text-xl mb-8">
-              India's most intelligent real estate platform powered by AI
-            </p>
-            
+          {/* Left Side */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="hidden md:block">
+            <h1 className="text-5xl font-bold mb-6">Welcome to <span className="text-gradient">JaagaX</span></h1>
+            <p className="text-muted-foreground text-xl mb-8">India's most intelligent real estate platform powered by AI</p>
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 glass-panel rounded-lg">
-                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-primary" />
+              {[
+                { icon: Shield, title: "Verified Properties", desc: "AI-verified listings you can trust" },
+                { icon: Home, title: "Smart Recommendations", desc: "Personalized property matches" },
+                { icon: Building2, title: "Market Intelligence", desc: "AI-powered market insights" },
+              ].map((item) => (
+                <div key={item.title} className="flex items-center gap-4 p-4 glass-panel rounded-lg">
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <item.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">Verified Properties</h3>
-                  <p className="text-sm text-muted-foreground">AI-verified listings you can trust</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4 p-4 glass-panel rounded-lg">
-                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Home className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Smart Recommendations</h3>
-                  <p className="text-sm text-muted-foreground">Personalized property matches</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4 p-4 glass-panel rounded-lg">
-                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Market Intelligence</h3>
-                  <p className="text-sm text-muted-foreground">AI-powered market insights</p>
-                </div>
-              </div>
+              ))}
             </div>
           </motion.div>
 
           {/* Right Side - Auth Form */}
           <Card className="glass-panel border-primary/20 p-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-2">
-                {isLogin ? "Sign In" : "Create Account"}
-              </h2>
-              <p className="text-muted-foreground">
-                {isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}
-              </p>
+              <h2 className="text-3xl font-bold mb-2">{isLogin ? "Sign In" : "Create Account"}</h2>
+              <p className="text-muted-foreground">{isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}</p>
             </div>
 
             <form onSubmit={handleAuth} className="space-y-6">
               <AnimatePresence mode="wait">
                 {!isLogin && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4"
-                  >
-                    {/* Name */}
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="flex items-center gap-2">
-                        <UserCircle className="h-4 w-4" />
-                        Full Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your name"
-                      />
+                      <Label htmlFor="name" className="flex items-center gap-2"><UserCircle className="h-4 w-4" />Full Name</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" />
                     </div>
 
-                    {/* City */}
                     <div className="space-y-2">
-                      <Label htmlFor="city" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        City
-                      </Label>
+                      <Label htmlFor="city" className="flex items-center gap-2"><MapPin className="h-4 w-4" />City</Label>
                       <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your city" />
-                        </SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Select your city" /></SelectTrigger>
                         <SelectContent>
-                          {cities.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
+                          {cities.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {/* Role Selection */}
+                    {/* Phone - required for agent/builder */}
+                    {(selectedRole === "agent" || selectedRole === "builder") && (
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
+                        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       <Label>I am a</Label>
                       <div className="grid grid-cols-2 gap-3">
-                        {allowedSignupRoles.map((role) => {
-                          const config = roleConfig[role];
+                        {allowedSignupRoles.map((r) => {
+                          const config = roleConfig[r];
                           const Icon = config.icon;
                           return (
-                            <button
-                              key={role}
-                              type="button"
-                              onClick={() => setSelectedRole(role)}
+                            <button key={r} type="button" onClick={() => setSelectedRole(r)}
                               className={`p-4 rounded-xl border-2 transition-all ${
-                                selectedRole === role
+                                selectedRole === r
                                   ? `${config.borderColor} bg-gradient-to-br ${config.color} glow-effect`
                                   : "border-border bg-muted/20 hover:border-primary/30"
                               }`}
                             >
-                              <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedRole === role ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedRole === r ? 'text-primary' : 'text-muted-foreground'}`} />
                               <p className="text-sm font-medium">{config.title}</p>
                             </button>
                           );
@@ -347,152 +261,67 @@ export default function Auth() {
                 )}
               </AnimatePresence>
 
-              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
+                <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2">
-                  <Lock className="h-4 w-4" />
-                  Password
-                </Label>
+                <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {!isLogin && (
-                  <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
-                )}
+                {!isLogin && <p className="text-xs text-muted-foreground">Minimum 6 characters</p>}
                 {isLogin && (
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-xs text-primary hover:underline font-medium mt-1"
-                  >
+                  <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
                     Forgot password?
                   </button>
                 )}
               </div>
 
               <Button type="submit" className="w-full" disabled={loading} size="lg">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isLogin ? "Signing in..." : "Creating account..."}
-                  </>
-                ) : (
-                  isLogin ? "Sign In" : "Create Account"
-                )}
+                {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? "Signing in..." : "Creating account..."}</>) : (isLogin ? "Sign In" : "Create Account")}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline text-sm font-medium"
-              >
-                {isLogin
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
+              <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline text-sm font-medium">
+                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
               </button>
             </div>
           </Card>
         </div>
       </motion.div>
 
-      {/* Password Reset Modal */}
-      <ForgotPasswordModal
-        isOpen={showForgotPassword}
-        onClose={() => setShowForgotPassword(false)}
-        defaultEmail={email}
-      />
+      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={email} />
 
-      {/* Password Reset Form Modal */}
       <AnimatePresence>
         {isResettingPassword && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-panel border-primary/20 p-8 rounded-xl max-w-md w-full"
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="glass-panel border-primary/20 p-8 rounded-xl max-w-md w-full">
               <div className="text-center mb-6">
                 <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
                   <Lock className="h-8 w-8 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold">Set New Password</h2>
-                <p className="text-muted-foreground mt-2">
-                  Enter your new password below
-                </p>
+                <p className="text-muted-foreground mt-2">Enter your new password below</p>
               </div>
-
               <form onSubmit={handlePasswordUpdate} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password" className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    New Password
-                  </Label>
+                  <Label htmlFor="new-password" className="flex items-center gap-2"><Lock className="h-4 w-4" />New Password</Label>
                   <div className="relative">
-                    <Input
-                      id="new-password"
-                      type={showPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pr-10 h-12"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <Input id="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="pr-10 h-12" autoFocus />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
                 </div>
-
                 <Button type="submit" className="w-full h-12" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    "Update Password"
-                  )}
+                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</>) : "Update Password"}
                 </Button>
               </form>
             </motion.div>
