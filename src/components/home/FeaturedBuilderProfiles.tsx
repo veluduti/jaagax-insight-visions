@@ -15,6 +15,7 @@ interface BuilderProfile {
   price_range_max: number | null;
   images: string[];
   locations: string[];
+  project_location: string | null;
   number_of_projects: number | null;
   years_of_experience: number | null;
 }
