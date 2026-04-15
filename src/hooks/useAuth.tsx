@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
-// Map database roles to app roles
 const mapDbRoleToAppRole = (dbRole: string): UserRole => {
   if (dbRole === "customer") return "buyer";
   return dbRole as UserRole;
@@ -23,11 +22,8 @@ export const useAuth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
+          setTimeout(() => { fetchUserRole(session.user.id); }, 0);
         } else {
           setRole(null);
           setLoading(false);
@@ -38,7 +34,6 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
       if (session?.user) {
         fetchUserRole(session.user.id);
       } else {
@@ -63,7 +58,6 @@ export const useAuth = () => {
       } else if (data) {
         setRole(mapDbRoleToAppRole(data.role));
       } else {
-        console.log("No role found, defaulting to buyer");
         setRole("buyer");
       }
     } catch (error) {
@@ -75,68 +69,57 @@ export const useAuth = () => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
-  const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string) => {
+  const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
-      // Map app role to database role
       const dbRole = selectedRole === "buyer" ? "customer" : selectedRole;
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            role: dbRole,
-            city: city || null,
-            name: name || null,
-          }
+          data: { role: dbRole, city: city || null, name: name || null, phone: phone || null },
         },
       });
 
-      if (error) {
-        console.error("Signup error:", error);
-        return { error };
-      }
-      
+      if (error) return { error };
+
       if (data.user) {
-        // For buyers, assign role directly. For agents/builders, submit approval request.
+        // Buyers get role immediately
         if (dbRole === 'customer') {
-          const { error: roleError } = await supabase
-            .rpc("assign_user_role", {
-              _user_id: data.user.id,
-              _role: dbRole,
-            });
-          if (roleError) {
-            console.error("Error inserting role:", roleError);
-          }
-        }
-        
-        // Submit signup request for admin visibility (and approval for non-buyers)
-        const { error: reqError } = await supabase
-          .rpc("submit_signup_request", {
+          const { error: roleError } = await supabase.rpc("assign_user_role", {
             _user_id: data.user.id,
-            _email: email,
-            _full_name: name || null,
-            _city: city || null,
-            _requested_role: dbRole,
+            _role: dbRole,
           });
-        if (reqError) {
-          console.error("Error submitting signup request:", reqError);
+          if (roleError) console.error("Error inserting role:", roleError);
+        }
+
+        // Submit signup request for all roles (admin visibility + approval for non-buyers)
+        const { error: reqError } = await supabase.rpc("submit_signup_request", {
+          _user_id: data.user.id,
+          _email: email,
+          _full_name: name || null,
+          _city: city || null,
+          _requested_role: dbRole,
+        });
+        if (reqError) console.error("Error submitting signup request:", reqError);
+
+        // Store phone in signup_requests if provided
+        if (phone) {
+          await supabase
+            .from('signup_requests')
+            .update({ phone })
+            .eq('user_id', data.user.id);
         }
       }
 
       return { error: null };
     } catch (error: any) {
-      console.error("Signup exception:", error);
       return { error };
     }
   };
@@ -154,7 +137,6 @@ export const useAuth = () => {
 
   const redirectToDashboard = () => {
     if (!role) return;
-    
     switch (role) {
       case "buyer":
       case "customer":
@@ -177,14 +159,5 @@ export const useAuth = () => {
     }
   };
 
-  return {
-    user,
-    session,
-    role,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-    redirectToDashboard,
-  };
+  return { user, session, role, loading, signIn, signUp, signOut, redirectToDashboard };
 };
