@@ -134,12 +134,42 @@ export default function AdminPanel() {
   const handleReviewSignup = async (requestId: string, decision: "approved" | "rejected", reason?: string) => {
     setReviewingId(requestId);
     try {
-      const { error } = await supabase.rpc("review_signup_request", {
-        _request_id: requestId,
-        _decision: decision,
-        _rejection_reason: reason || null,
-      });
-      if (error) throw error;
+      const request = signupRequests.find(r => r.id === requestId);
+      if (!request) throw new Error("Request not found");
+
+      // Update the signup request status
+      const { error: updateError } = await supabase
+        .from("signup_requests")
+        .update({
+          status: decision,
+          rejection_reason: decision === "rejected" ? (reason || null) : null,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", requestId);
+      if (updateError) throw updateError;
+
+      // If approved, assign the user role
+      if (decision === "approved") {
+        const roleToAssign = request.requested_role === "buyer" ? "customer" : request.requested_role;
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: request.user_id, role: roleToAssign })
+        if (roleError && !roleError.message?.includes("duplicate")) throw roleError;
+
+        // Auto-create agent profile if role is agent
+        if (request.requested_role === "agent") {
+          await supabase.from("agents").upsert({
+            user_id: request.user_id,
+            name: request.full_name || "Agent",
+            email: request.email,
+            phone: request.phone || "0000000000",
+            cities_served: request.city || "Hyderabad",
+            verified: true,
+            trust_score: 75,
+          }, { onConflict: "user_id" });
+        }
+      }
+
       toast.success(`Request ${decision} successfully`);
       await Promise.all([fetchSignupRequests(), fetchStats()]);
     } catch (err: any) {
