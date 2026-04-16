@@ -135,6 +135,8 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
+        navigate("/dashboard");
+        return;
       } else {
         const { error } = await signUp(email, password, selectedRole, city, name, phone);
         if (error) {
