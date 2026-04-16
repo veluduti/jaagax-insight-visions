@@ -36,6 +36,7 @@ import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminPanel from "./pages/AdminPanel";
 import AIAdvisor from "./pages/AIAdvisor";
 import AIAdvisorResults from "./pages/AIAdvisorResults";
 import AIAdvisorProperty from "./pages/AIAdvisorProperty";
@@ -174,9 +175,10 @@ const App = () => (
           <Route path="/dashboard/seller" element={<SellerDashboard />} />
           <Route path="/dashboard/admin" element={
             <ProtectedRoute allowedRole="admin">
-              <AdminDashboard />
+              <AdminPanel />
             </ProtectedRoute>
           } />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/dashboard/admin/frm" element={
             <ProtectedRoute allowedRole="admin">
               <AdminFRMDashboard />
