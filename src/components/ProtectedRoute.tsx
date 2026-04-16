@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { ensureApprovedRoleForUser, resolveUserAccess } from "@/lib/authRoleResolver";
 
 type AppRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
@@ -16,10 +17,12 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
   const location = useLocation();
 
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      setTimeout(() => checkAuth(), 0);
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setTimeout(() => {
+        void checkAuth(session?.user?.id, session?.user?.email);
+      }, 0);
     });
 
     return () => {
@@ -27,52 +30,39 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
     };
   }, [allowedRole]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (sessionUserId?: string, sessionEmail?: string | null) => {
+    setLoading(true);
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setIsAuthorized(false);
-        setLoading(false);
-        return;
+      let userId = sessionUserId;
+      let email = sessionEmail;
+
+      if (!userId) {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          setIsAuthorized(false);
+          setLoading(false);
+          return;
+        }
+
+        userId = session.user.id;
+        email = session.user.email;
       }
 
-      // For admin role, check directly
-      if (allowedRole === 'admin') {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-        setIsAuthorized(!!roleData);
-        setLoading(false);
-        return;
+      const access = await resolveUserAccess(userId, email);
+
+      if (access.approvalStatus === "approved" && !access.hasAssignedRole && access.requestedRole) {
+        await ensureApprovedRoleForUser(userId, access.requestedRole);
       }
 
-      // Map buyer to customer for DB lookup
-      const rolesToCheck = allowedRole === 'buyer' 
-        ? ['customer', 'buyer'] 
-        : [allowedRole];
+      const hasRole = allowedRole === "admin"
+        ? access.resolvedDbRole === "admin"
+        : allowedRole === "buyer"
+          ? access.resolvedRole === "buyer" || access.resolvedRole === "customer"
+          : access.resolvedRole === allowedRole;
 
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id);
-
-      let hasRole = roleData?.some(r => rolesToCheck.includes(r.role as any));
-
-      if (!hasRole) {
-        const { data: signupData } = await supabase
-          .from("signup_requests")
-          .select("requested_role, status")
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-
-        hasRole = !!signupData && signupData.status === "approved" && rolesToCheck.includes(signupData.requested_role as any);
-      }
-
-      setIsAuthorized(!!hasRole);
+      setIsAuthorized(Boolean(hasRole));
     } catch (error) {
       setIsAuthorized(false);
     } finally {
