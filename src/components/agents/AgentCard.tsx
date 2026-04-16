@@ -17,8 +17,8 @@ interface AgentCardProps {
     id: string;
     name: string | null;
     agency_name: string | null;
-    languages: string[] | null;
-    cities_served: string[] | null;
+    languages: string | string[] | null;
+    cities_served: string | string[] | null;
     sales_count: number | null;
     rent_count: number | null;
     photo_url: string | null;
@@ -81,14 +81,14 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         {/* Languages */}
         <div className="flex items-center gap-2 mb-2 text-sm">
           <Languages className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">{(agent.languages || []).join(", ")}</span>
+          <span className="text-muted-foreground">{Array.isArray(agent.languages) ? agent.languages.join(", ") : (agent.languages || "N/A")}</span>
         </div>
 
         {/* Cities */}
         <div className="flex items-center gap-2 mb-4 text-sm">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground line-clamp-1">
-            {(agent.cities_served || []).join(", ")}
+            {Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "N/A")}
           </span>
         </div>
 
