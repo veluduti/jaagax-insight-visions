@@ -41,9 +41,11 @@ export default function AdminPanel() {
 
   const checkAdminAndLoad = async () => {
     try {
+      // Skip auth check - allow direct access to admin dashboard
       setIsAdmin(true);
       await loadAllData();
     } catch (err) {
+      console.error("Failed to load admin data:", err);
       toast.error("Failed to load admin data");
     } finally {
       setLoading(false);
