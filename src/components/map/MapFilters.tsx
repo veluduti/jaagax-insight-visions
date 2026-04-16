@@ -17,6 +17,7 @@ interface MapFiltersProps {
     priceRange: number[];
     beds: string;
     verifiedOnly: boolean;
+    locality?: string;
   };
   onFiltersChange: (filters: any) => void;
   currentCity: "Hyderabad" | "Vijayawada";
