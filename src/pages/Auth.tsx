@@ -155,11 +155,11 @@ export default function Auth() {
         }
         setIsLogin(true);
         setPassword("");
-        setLoading(false);
         return;
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
+    } finally {
       setLoading(false);
     }
   };
