@@ -133,18 +133,44 @@ const App = () => (
           <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
           <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
           
-          {/* Role-based Dashboards - Authentication temporarily disabled for testing */}
+          {/* Role-based Dashboards */}
           <Route path="/dashboard/buyer" element={
-            <BuyerOnboardingGuard>
-              <BuyerDashboard />
-            </BuyerOnboardingGuard>
+            <ProtectedRoute allowedRole="buyer">
+              <BuyerOnboardingGuard>
+                <BuyerDashboard />
+              </BuyerOnboardingGuard>
+            </ProtectedRoute>
           } />
-          <Route path="/dashboard/agent" element={<AgentDashboard />} />
-          <Route path="/dashboard/agent/visits" element={<AgentVisitsDashboard />} />
-          <Route path="/dashboard/agent/verifications" element={<AgentVerificationDashboard />} />
-          <Route path="/dashboard/builder" element={<BuilderDashboard />} />
-          <Route path="/dashboard/builder/visits" element={<BuilderVisitsDashboard />} />
-          <Route path="/builder-visits" element={<BuilderVisitsDashboard />} />
+          <Route path="/dashboard/agent" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/agent/visits" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentVisitsDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/agent/verifications" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentVerificationDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/builder" element={
+            <ProtectedRoute allowedRole="builder">
+              <BuilderDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/builder/visits" element={
+            <ProtectedRoute allowedRole="builder">
+              <BuilderVisitsDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/builder-visits" element={
+            <ProtectedRoute allowedRole="builder">
+              <BuilderVisitsDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/seller" element={<SellerDashboard />} />
           <Route path="/dashboard/admin" element={
             <ProtectedRoute allowedRole="admin">
@@ -156,7 +182,11 @@ const App = () => (
               <AdminFRMDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard/hotel-manager" element={<HotelManagerDashboard />} />
+          <Route path="/dashboard/hotel-manager" element={
+            <ProtectedRoute allowedRole="hotel_manager">
+              <HotelManagerDashboard />
+            </ProtectedRoute>
+          } />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

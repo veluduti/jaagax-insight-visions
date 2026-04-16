@@ -60,14 +60,17 @@ export default function Auth() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
+  const { signIn, signUp, user, role, loading: authLoading, approvalStatus, redirectToDashboard } = useAuth();
   
   const isPasswordReset = searchParams.get("reset") === "true";
   const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
 
   useEffect(() => {
-    if (user && role && !authLoading) {
-      redirectToDashboard();
+    if (!authLoading && user) {
+      if (role) {
+        redirectToDashboard();
+      }
+      // If user is logged in but has no role, they stay on auth page (pending approval)
     }
   }, [user, role, authLoading, redirectToDashboard]);
 
@@ -106,10 +109,7 @@ export default function Auth() {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
       if (!city) { toast.error("Please select your city"); return false; }
-      if ((selectedRole === "agent" || selectedRole === "builder") && !phone.trim()) {
-        toast.error("Phone number is required for agents and builders");
-        return false;
-      }
+      if (!phone.trim()) { toast.error("Phone number is required"); return false; }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
@@ -228,13 +228,10 @@ export default function Auth() {
                       </Select>
                     </div>
 
-                    {/* Phone - required for agent/builder */}
-                    {(selectedRole === "agent" || selectedRole === "builder") && (
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
-                        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
+                      <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
+                    </div>
 
                     <div className="space-y-3">
                       <Label>I am a</Label>
