@@ -146,8 +146,16 @@ const App = () => (
           <Route path="/dashboard/builder/visits" element={<BuilderVisitsDashboard />} />
           <Route path="/builder-visits" element={<BuilderVisitsDashboard />} />
           <Route path="/dashboard/seller" element={<SellerDashboard />} />
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard/admin/frm" element={<AdminFRMDashboard />} />
+          <Route path="/dashboard/admin" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/admin/frm" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminFRMDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/hotel-manager" element={<HotelManagerDashboard />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

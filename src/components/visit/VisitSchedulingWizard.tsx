@@ -13,6 +13,7 @@ import {
   Calendar as CalendarIcon, ArrowRight, ArrowLeft, CheckCircle2, Send
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface Agent {
   id: string;
@@ -59,6 +60,7 @@ const STEPS = [
 export const VisitSchedulingWizard = ({
   propertyId, propertyTitle, locality, city, onSuccess,
 }: VisitSchedulingWizardProps) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
@@ -152,6 +154,13 @@ export const VisitSchedulingWizard = ({
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error('Please sign in to schedule a visit');
+        navigate('/auth');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('schedule-visit', {
         body: {
           propertyId,
@@ -168,11 +177,20 @@ export const VisitSchedulingWizard = ({
           specialRequests,
         },
       });
+
       if (error) throw error;
       toast.success('Visit request sent successfully!');
       onSuccess(data.booking.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error scheduling visit:', error);
+
+      const errorMessage = String(error?.message || '');
+      if (errorMessage.toLowerCase().includes('unauthorized') || errorMessage.includes('401')) {
+        toast.error('Please sign in to schedule a visit');
+        navigate('/auth');
+        return;
+      }
+
       toast.error('Failed to schedule visit');
     } finally {
       setLoading(false);
