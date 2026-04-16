@@ -151,9 +151,10 @@ export default function AdminPanel() {
       // If approved, assign the user role
       if (decision === "approved") {
         const roleToAssign = request.requested_role === "buyer" ? "customer" : request.requested_role;
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({ user_id: request.user_id, role: roleToAssign })
+        const { error: roleError } = await supabase.rpc("assign_user_role", {
+          _user_id: request.user_id,
+          _role: roleToAssign,
+        });
         if (roleError && !roleError.message?.includes("duplicate")) throw roleError;
 
         // Auto-create agent profile if role is agent
