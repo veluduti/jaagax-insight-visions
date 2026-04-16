@@ -24,8 +24,8 @@ interface Agent {
   id: string;
   name: string | null;
   agency_name: string | null;
-  languages: string[] | null;
-  cities_served: string[] | null;
+  languages: string | string[] | null;
+  cities_served: string | string[] | null;
   sales_count: number | null;
   rent_count: number | null;
   photo_url: string | null;
@@ -107,6 +107,12 @@ const Agents = () => {
     }
   };
 
+const toArray = (val: string | string[] | null | undefined): string[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  return val.split(',').map(s => s.trim()).filter(Boolean);
+};
+
   const applyFilters = () => {
     let filtered = [...agents];
 
@@ -115,14 +121,14 @@ const Agents = () => {
       filtered = filtered.filter(
         (agent) =>
           (agent.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (agent.cities_served || []).some(city => city.toLowerCase().includes(searchQuery.toLowerCase()))
+          toArray(agent.cities_served).some(city => city.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
     // City filter
     if (cityFilter !== "all") {
       filtered = filtered.filter((agent) =>
-        (agent.cities_served || []).some(city => city.toLowerCase().includes(cityFilter.toLowerCase()))
+        toArray(agent.cities_served).some(city => city.toLowerCase().includes(cityFilter.toLowerCase()))
       );
     }
 
@@ -147,7 +153,7 @@ const Agents = () => {
   const cities = Array.from(
     new Set(
       agents
-        .flatMap((agent) => agent.cities_served || [])
+        .flatMap((agent) => toArray(agent.cities_served))
         .filter(Boolean)
     )
   );
