@@ -273,6 +273,11 @@ const Map = () => {
         }
       }
 
+      // Locality filter from search
+      if (filters.locality) {
+        query = query.ilike("locality", `%${filters.locality}%`);
+      }
+
       // Price range filter
       query = query
         .gte("price", filters.priceRange[0])
