@@ -83,10 +83,12 @@ const Map = () => {
     if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
       setCurrentCity(cityParam);
     }
-    
-    // Fetch properties when filters change
+  }, [searchParams]);
+
+  // Refetch whenever filters or city change
+  useEffect(() => {
     fetchProperties();
-  }, [searchParams, currentCity]);
+  }, [filters, currentCity]);
 
   // City coordinates
   const cityCoordinates = {
