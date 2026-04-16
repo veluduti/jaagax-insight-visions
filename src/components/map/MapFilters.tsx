@@ -57,6 +57,17 @@ const MapFilters = ({ filters, onFiltersChange, currentCity, onCityChange }: Map
     }
   }, [searchQuery, localities]);
 
+  const updateFilter = (key: string, value: any) => {
+    onFiltersChange({ ...filters, [key]: value });
+  };
+
+  const handleLocalitySelect = (locality: string) => {
+    setSearchQuery(locality);
+    setShowSuggestions(false);
+    // Filter will happen via the existing filter mechanism
+    onFiltersChange({ ...filters, locality });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -104,12 +115,30 @@ const MapFilters = ({ filters, onFiltersChange, currentCity, onCityChange }: Map
         {/* Main Filters */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Location Search */}
-          <div className="md:col-span-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50">
-            <Search className="h-5 w-5 text-primary flex-shrink-0" />
-            <Input
-              placeholder="Search location or community"
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-            />
+          <div className="md:col-span-4 relative">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50">
+              <Search className="h-5 w-5 text-primary flex-shrink-0" />
+              <Input
+                placeholder="Search locality (e.g., Gachibowli)"
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              />
+              {searchQuery && (
+                <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setSearchQuery(""); updateFilter("locality", undefined); }}>✕</button>
+              )}
+            </div>
+            {showSuggestions && filteredLocalities.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-30 max-h-48 overflow-y-auto">
+                {filteredLocalities.map(loc => (
+                  <div key={loc} className="px-4 py-2 hover:bg-muted cursor-pointer text-sm" onMouseDown={() => handleLocalitySelect(loc)}>
+                    <MapPin className="h-3 w-3 inline mr-2 text-primary" />{loc}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Property Type */}
