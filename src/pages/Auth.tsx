@@ -228,13 +228,10 @@ export default function Auth() {
                       </Select>
                     </div>
 
-                    {/* Phone - required for agent/builder */}
-                    {(selectedRole === "agent" || selectedRole === "builder") && (
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
-                        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
+                      <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
+                    </div>
 
                     <div className="space-y-3">
                       <Label>I am a</Label>
