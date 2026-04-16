@@ -39,7 +39,7 @@ const Dashboard = () => {
   }, [user, role, loading, navigate]);
 
   // User is logged in but has no role — pending approval
-  if (!loading && user && !role) {
+  if (!loading && user && !role && approvalStatus === "pending") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
         <Card className="glass-panel border-primary/20 p-8 max-w-md w-full text-center">
