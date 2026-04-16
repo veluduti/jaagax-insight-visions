@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,14 +14,16 @@ export const NotificationBell = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const channelNameRef = useRef(
+    `notifications-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`
+  );
 
   useEffect(() => {
     fetchNotifications();
     
     // Set up realtime subscription for new notifications
-    const channelName = `notifications-${Date.now()}`;
     const channel = supabase
-      .channel(channelName)
+      .channel(channelNameRef.current)
       .on(
         'postgres_changes',
         {
