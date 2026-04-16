@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const Navigation = () => {
+  // Navigation component
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role } = useAuth();
