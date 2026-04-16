@@ -68,6 +68,7 @@ const Map = () => {
         [1000000, 50000000],
       beds: searchParams.get('beds') || "any",
       verifiedOnly: false,
+      locality: undefined as string | undefined,
     };
   };
   
