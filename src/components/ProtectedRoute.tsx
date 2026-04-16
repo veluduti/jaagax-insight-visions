@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-type AppRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver";
+type AppRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -37,27 +37,31 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
         return;
       }
 
-      // Check if user has the required role (handle buyer/customer mapping)
-      const dbRole = allowedRole === 'buyer' ? 'customer' : allowedRole;
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", dbRole as any)
-        .maybeSingle();
-
-      // Also allow buyer to access if they have customer role
-      if (!roleData && allowedRole === 'buyer') {
-        const { data: customerRole } = await supabase
+      // For admin role, check directly
+      if (allowedRole === 'admin') {
+        const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", session.user.id)
-          .eq("role", "customer" as any)
+          .eq("role", "admin")
           .maybeSingle();
-        setIsAuthorized(!!customerRole);
-      } else {
         setIsAuthorized(!!roleData);
+        setLoading(false);
+        return;
       }
+
+      // Map buyer to customer for DB lookup
+      const rolesToCheck = allowedRole === 'buyer' 
+        ? ['customer', 'buyer'] 
+        : [allowedRole];
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+
+      const hasRole = roleData?.some(r => rolesToCheck.includes(r.role as any));
+      setIsAuthorized(!!hasRole);
     } catch (error) {
       setIsAuthorized(false);
     } finally {
