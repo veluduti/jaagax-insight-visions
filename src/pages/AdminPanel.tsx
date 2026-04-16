@@ -41,28 +41,12 @@ export default function AdminPanel() {
 
   const checkAdminAndLoad = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (!roleData) {
-        toast.error("Access denied. Admin role required.");
-        navigate("/auth");
-        return;
-      }
+      // Skip auth check - allow direct access to admin dashboard
       setIsAdmin(true);
       await loadAllData();
     } catch (err) {
-      toast.error("Failed to verify admin access");
-      navigate("/auth");
+      console.error("Failed to load admin data:", err);
+      toast.error("Failed to load admin data");
     } finally {
       setLoading(false);
     }
