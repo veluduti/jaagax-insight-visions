@@ -44,8 +44,8 @@ interface Agent {
   name: string | null;
   photo_url: string | null;
   agency_name: string | null;
-  cities_served: string[] | null;
-  languages: string[] | null;
+  cities_served: string | string[] | null;
+  languages: string | string[] | null;
   sales_count: number | null;
   rent_count: number | null;
   trust_score: number | null;
@@ -415,11 +415,11 @@ const AgentDetail = () => {
               <div className="flex flex-wrap gap-3 mb-6">
                 <Badge variant="outline" className="py-2 px-4">
                   <MapPin className="h-4 w-4 mr-2" />
-                  {(agent.cities_served || []).join(", ")}
+                 {Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "N/A")}
                 </Badge>
                 <Badge variant="outline" className="py-2 px-4">
                   <Languages className="h-4 w-4 mr-2" />
-                  {(agent.languages || []).join(", ")}
+                 {Array.isArray(agent.languages) ? agent.languages.join(", ") : (agent.languages || "N/A")}
                 </Badge>
               </div>
 
@@ -468,10 +468,10 @@ const AgentDetail = () => {
           </h2>
           <p className="text-muted-foreground leading-relaxed">
             {agent.name} is a verified real estate agent with {agent.agency_name}, specializing in 
-            properties across {agent.cities_served}. With {totalDeals} successful deals completed, 
+            properties across {Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "N/A")}. With {totalDeals} successful deals completed, 
             including {agent.sales_count} sales and {agent.rent_count} rentals, {agent.name} brings 
             extensive market knowledge and a proven track record of client satisfaction. 
-            Fluent in {agent.languages}, ensuring clear communication with diverse clients. 
+            Fluent in {Array.isArray(agent.languages) ? agent.languages.join(", ") : (agent.languages || "N/A")}, ensuring clear communication with diverse clients. 
             Trust Score of {agent.trust_score}/100 reflects commitment to transparency and professionalism.
           </p>
         </motion.div>
@@ -631,7 +631,7 @@ const AgentDetail = () => {
             <AgentExpertise 
               salesCount={agent.sales_count || 0}
               rentCount={agent.rent_count || 0}
-              citiesServed={(agent.cities_served || []).join(", ")}
+              citiesServed={Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "")}
             />
 
             {/* Performance Metrics */}
@@ -658,7 +658,7 @@ const AgentDetail = () => {
           <h3 className="text-2xl font-bold mb-3">Ready to find your perfect property?</h3>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
             Contact {agent.name} today to discuss your requirements and get expert guidance 
-            on properties in {agent.cities_served}.
+            on properties in {Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "N/A")}.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Button size="lg" onClick={handleCall}>
