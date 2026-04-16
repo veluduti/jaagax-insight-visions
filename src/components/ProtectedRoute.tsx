@@ -60,7 +60,18 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
         .select("role")
         .eq("user_id", session.user.id);
 
-      const hasRole = roleData?.some(r => rolesToCheck.includes(r.role as any));
+      let hasRole = roleData?.some(r => rolesToCheck.includes(r.role as any));
+
+      if (!hasRole) {
+        const { data: signupData } = await supabase
+          .from("signup_requests")
+          .select("requested_role, status")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        hasRole = !!signupData && signupData.status === "approved" && rolesToCheck.includes(signupData.requested_role as any);
+      }
+
       setIsAuthorized(!!hasRole);
     } catch (error) {
       setIsAuthorized(false);

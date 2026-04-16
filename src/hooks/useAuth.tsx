@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -68,10 +68,14 @@ export const useAuth = () => {
 
       if (signupData) {
         setApprovalStatus(signupData.status);
+      } else {
+        setApprovalStatus(null);
       }
 
       if (roleData) {
         setRole(mapDbRoleToAppRole(roleData.role));
+      } else if (signupData?.status === "approved" && signupData.requested_role) {
+        setRole(mapDbRoleToAppRole(signupData.requested_role));
       } else {
         // No role assigned yet - user is pending approval
         setRole(null);
@@ -174,7 +178,7 @@ export const useAuth = () => {
     return { error };
   };
 
-  const redirectToDashboard = () => {
+  const redirectToDashboard = useCallback(() => {
     if (!role) return;
     switch (role) {
       case "buyer":
@@ -196,7 +200,7 @@ export const useAuth = () => {
       default:
         navigate("/");
     }
-  };
+  }, [navigate, role]);
 
   return { user, session, role, loading, approvalStatus, signIn, signUp, signOut, redirectToDashboard };
 };
