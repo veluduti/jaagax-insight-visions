@@ -19,8 +19,9 @@ export const NotificationBell = () => {
     fetchNotifications();
     
     // Set up realtime subscription for new notifications
+    const channelName = `notifications-${Date.now()}`;
     const channel = supabase
-      .channel('notifications-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
