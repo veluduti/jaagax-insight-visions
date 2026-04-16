@@ -2,13 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { ensureApprovedRoleForUser, normalizeDbRole, resolveUserAccess, type AppUserRole } from "@/lib/authRoleResolver";
 
-export type UserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
-
-const mapDbRoleToAppRole = (dbRole: string): UserRole => {
-  if (dbRole === "customer") return "buyer";
-  return dbRole as UserRole;
-};
+export type UserRole = AppUserRole;
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,65 +15,48 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const handleSession = (nextSession: Session | null) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (nextSession?.user) {
+        setLoading(true);
+        setTimeout(() => {
+          void fetchUserRole(nextSession.user.id, nextSession.user.email);
+        }, 0);
+      } else {
+        setRole(null);
+        setApprovalStatus(null);
+        setLoading(false);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => { fetchUserRole(session.user.id); }, 0);
-        } else {
-          setRole(null);
-          setApprovalStatus(null);
-          setLoading(false);
-        }
+      (_event, nextSession) => {
+        handleSession(nextSession);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      handleSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string, email?: string | null) => {
     try {
-      // Fetch role
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const access = await resolveUserAccess(userId, email);
 
-      if (roleError) {
-        console.error("Error fetching user role:", roleError);
+      setApprovalStatus(access.approvalStatus);
+
+      if (access.approvalStatus === "approved" && !access.hasAssignedRole && access.requestedRole) {
+        await ensureApprovedRoleForUser(userId, access.requestedRole);
       }
 
-      // Fetch approval status
-      const { data: signupData } = await supabase
-        .from("signup_requests")
-        .select("status, requested_role")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (signupData) {
-        setApprovalStatus(signupData.status);
+      if (access.resolvedRole) {
+        setRole(access.resolvedRole);
       } else {
-        setApprovalStatus(null);
-      }
-
-      if (roleData) {
-        setRole(mapDbRoleToAppRole(roleData.role));
-      } else if (signupData?.status === "approved" && signupData.requested_role) {
-        setRole(mapDbRoleToAppRole(signupData.requested_role));
-      } else {
-        // No role assigned yet - user is pending approval
         setRole(null);
       }
     } catch (error) {
@@ -92,20 +71,21 @@ export const useAuth = () => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error };
 
-    // Check approval status for non-buyer roles
     if (data.user) {
-      const { data: signupData } = await supabase
-        .from("signup_requests")
-        .select("status, requested_role")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
+      const access = await resolveUserAccess(data.user.id, data.user.email);
 
-      if (signupData && signupData.requested_role !== 'customer') {
-        if (signupData.status === 'pending') {
+      if (access.approvalStatus === "approved" && !access.hasAssignedRole && access.requestedRole) {
+        await ensureApprovedRoleForUser(data.user.id, access.requestedRole);
+      }
+
+      const requestedDbRole = normalizeDbRole(access.requestedRole);
+
+      if (access.approvalStatus && requestedDbRole !== "customer") {
+        if (access.approvalStatus === "pending") {
           await supabase.auth.signOut();
           return { error: { message: "Your account is pending admin approval. Please wait for approval before signing in." } as any };
         }
-        if (signupData.status === 'rejected') {
+        if (access.approvalStatus === "rejected") {
           await supabase.auth.signOut();
           return { error: { message: "Your account registration was rejected. Please contact support." } as any };
         }
