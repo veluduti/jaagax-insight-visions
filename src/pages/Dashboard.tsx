@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, approvalStatus, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,11 +14,49 @@ const Dashboard = () => {
       if (!user) {
         navigate("/auth");
       } else if (role) {
-        // Redirect to role-specific dashboard
-        navigate(`/dashboard/${role}`);
+        switch (role) {
+          case "buyer":
+          case "customer":
+            navigate("/dashboard/buyer");
+            break;
+          case "agent":
+            navigate("/dashboard/agent");
+            break;
+          case "builder":
+            navigate("/dashboard/builder");
+            break;
+          case "admin":
+            navigate("/dashboard/admin");
+            break;
+          case "hotel_manager":
+            navigate("/dashboard/hotel-manager");
+            break;
+          default:
+            navigate("/");
+        }
       }
     }
   }, [user, role, loading, navigate]);
+
+  // User is logged in but has no role — pending approval
+  if (!loading && user && !role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+        <Card className="glass-panel border-primary/20 p-8 max-w-md w-full text-center">
+          <div className="mx-auto h-16 w-16 rounded-full bg-yellow-500/20 flex items-center justify-center mb-4">
+            <Clock className="h-8 w-8 text-yellow-500" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Account Pending Approval</h2>
+          <p className="text-muted-foreground mb-6">
+            Your account is awaiting admin approval. You'll be able to access your dashboard once approved.
+          </p>
+          <Button variant="outline" onClick={() => signOut()} className="w-full">
+            Sign Out
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
