@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, MapPin, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MapFiltersProps {
   filters: {
@@ -24,10 +25,37 @@ interface MapFiltersProps {
 
 const MapFilters = ({ filters, onFiltersChange, currentCity, onCityChange }: MapFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [localities, setLocalities] = useState<string[]>([]);
+  const [filteredLocalities, setFilteredLocalities] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const updateFilter = (key: string, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
+  // Fetch unique localities for search
+  useEffect(() => {
+    const fetchLocalities = async () => {
+      const { data } = await supabase
+        .from("properties")
+        .select("locality")
+        .eq("city", currentCity);
+      if (data) {
+        const unique = [...new Set(data.map(d => d.locality).filter(Boolean))];
+        setLocalities(unique);
+      }
+    };
+    fetchLocalities();
+  }, [currentCity]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = localities.filter(l =>
+        l.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredLocalities(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [searchQuery, localities]);
 
   return (
     <motion.div
