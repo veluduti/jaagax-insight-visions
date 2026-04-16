@@ -157,7 +157,7 @@ const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
               className="w-full"
               onClick={() => {
                 onClose();
-                navigate(`/property/${property.id}`);
+                window.open(`/property/${property.id}`, "_blank");
               }}
             >
               <ExternalLink className="h-5 w-5 mr-2" />

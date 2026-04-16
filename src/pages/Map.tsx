@@ -68,6 +68,7 @@ const Map = () => {
         [1000000, 50000000],
       beds: searchParams.get('beds') || "any",
       verifiedOnly: false,
+      locality: undefined as string | undefined,
     };
   };
   
@@ -83,10 +84,12 @@ const Map = () => {
     if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
       setCurrentCity(cityParam);
     }
-    
-    // Fetch properties when filters change
+  }, [searchParams]);
+
+  // Refetch whenever filters or city change
+  useEffect(() => {
     fetchProperties();
-  }, [searchParams, currentCity]);
+  }, [filters, currentCity]);
 
   // City coordinates
   const cityCoordinates = {
@@ -268,6 +271,11 @@ const Map = () => {
         } else {
           query = query.eq("bhk", bedsNum);
         }
+      }
+
+      // Locality filter from search
+      if (filters.locality) {
+        query = query.ilike("locality", `%${filters.locality}%`);
       }
 
       // Price range filter

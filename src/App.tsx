@@ -62,6 +62,7 @@ import Promotions from "./pages/Promotions";
 import PropertyReels from "./pages/PropertyReels";
 import InnovationHub from "./pages/InnovationHub";
 import HotelManagerDashboard from "./pages/HotelManagerDashboard";
+import CompareProperties from "./pages/CompareProperties";
 import AddBuilderProfile from "./pages/AddBuilderProfile";
 import EditBuilderProfile from "./pages/EditBuilderProfile";
 import BuilderProfileDetail from "./pages/BuilderProfileDetail";
@@ -116,6 +117,7 @@ const App = () => (
           <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
           <Route path="/builder-profile/:id" element={<BuilderProfileDetail />} />
           <Route path="/innovation" element={<InnovationHub />} />
+          <Route path="/compare" element={<CompareProperties />} />
           
           {/* AI Advisor Routes */}
           <Route path="/ai-advisor" element={<AIAdvisor />} />
