@@ -516,47 +516,124 @@ export default function AdminPanel() {
           </TabsContent>
 
           {/* === PROPERTIES === */}
-          <TabsContent value="properties">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5 text-blue-500" />
-                  Properties ({properties.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {properties.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6">No properties</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead>Locality</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Verified</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {properties.map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
-                          <TableCell>{p.city}</TableCell>
-                          <TableCell>{p.locality}</TableCell>
-                          <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
-                          <TableCell>{p.type || "N/A"}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.verified ? "default" : "secondary"}>{p.verified ? "Yes" : "No"}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="properties" className="space-y-4">
+            {(() => {
+              const pendingProps = properties.filter((p) => (p.verification_status || "pending") === "pending");
+              const reviewedProps = properties.filter((p) => (p.verification_status || "pending") !== "pending");
+              return (
+                <>
+                  <Card className="border-orange-500/40">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-orange-500">
+                        <AlertCircle className="h-5 w-5" />
+                        Pending Property Verifications ({pendingProps.length})
+                      </CardTitle>
+                      <CardDescription>Review properties submitted by builders. Approve to mark verified.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {pendingProps.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6">No pending properties 🎉</p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Title</TableHead>
+                              <TableHead>Location</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Config</TableHead>
+                              <TableHead>RERA</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pendingProps.map((p) => (
+                              <TableRow key={p.id}>
+                                <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
+                                <TableCell>{p.locality}, {p.city}</TableCell>
+                                <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
+                                <TableCell className="text-xs">{p.bhk ? `${p.bhk} BHK` : "N/A"} • {p.area_sqft || "N/A"} sqft</TableCell>
+                                <TableCell className="text-xs">
+                                  {p.rera_id ? (
+                                    <Badge variant="outline" className="text-green-500">{p.rera_id}</Badge>
+                                  ) : (
+                                    <span className="text-muted-foreground">None</span>
+                                  )}
+                                  {p.rera_document_url && (
+                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">View doc</a>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleReviewProperty(p.id, "approved")}
+                                      disabled={reviewingId === p.id}
+                                    >
+                                      {reviewingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleReviewProperty(p.id, "rejected")}
+                                      disabled={reviewingId === p.id}
+                                    >
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Home className="h-5 w-5 text-blue-500" />
+                        All Reviewed Properties ({reviewedProps.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {reviewedProps.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6">No reviewed properties yet</p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Title</TableHead>
+                              <TableHead>City</TableHead>
+                              <TableHead>Locality</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {reviewedProps.map((p) => (
+                              <TableRow key={p.id}>
+                                <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
+                                <TableCell>{p.city}</TableCell>
+                                <TableCell>{p.locality}</TableCell>
+                                <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
+                                <TableCell>
+                                  <Badge variant={p.verification_status === "approved" ? "default" : "destructive"}>
+                                    {p.verification_status || (p.verified ? "approved" : "pending")}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
           </TabsContent>
 
           {/* === BUILDERS === */}
