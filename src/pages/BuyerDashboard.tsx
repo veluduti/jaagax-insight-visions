@@ -59,6 +59,7 @@ const BuyerDashboard = () => {
   useEffect(() => {
     fetchUserData();
     fetchProperties();
+    fetchAvailableCities();
     fetchFavorites();
     fetchVisitBookings();
     
