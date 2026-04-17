@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 import MyBookings from "@/components/buyer/MyBookings";
 import MyVisits from "@/components/buyer/MyVisits";
+import MyFavorites from "@/components/buyer/MyFavorites";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Property {
@@ -524,19 +525,10 @@ const BuyerDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Your Favorite Properties</CardTitle>
-                <CardDescription>Properties you've saved for later ({favorites.length})</CardDescription>
+                <CardDescription>Properties you've saved by tapping the heart icon</CardDescription>
               </CardHeader>
               <CardContent>
-                {favorites.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
-                    <p className="text-muted-foreground mb-4">Start saving properties you like</p>
-                    <Button onClick={() => navigate("/map")}>Browse Properties</Button>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">You have {favorites.length} favorite properties</p>
-                )}
+                <MyFavorites />
               </CardContent>
             </Card>
           </TabsContent>
