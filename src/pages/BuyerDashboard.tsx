@@ -95,6 +95,10 @@ const BuyerDashboard = () => {
     calculateEMI();
   }, [loanAmount, interestRate, loanTenure]);
 
+  useEffect(() => {
+    fetchProperties(cityFilter);
+  }, [cityFilter]);
+
   const fetchUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
