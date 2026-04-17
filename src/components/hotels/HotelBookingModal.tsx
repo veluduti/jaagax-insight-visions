@@ -89,7 +89,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Hotel className="h-5 w-5 text-primary" />
-            {bookingType === "with_visit" ? "Book with Site Visit" : "Book Hotel Only"}
+            {bookingType === "visit_stay" ? "Book with Site Visit" : "Book Hotel Only"}
           </DialogTitle>
           <DialogDescription>{hotel.name}</DialogDescription>
         </DialogHeader>
