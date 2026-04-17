@@ -13,6 +13,7 @@ import {
   Sparkles, RefreshCw, Mail
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import BookingsPanel from "@/components/admin/BookingsPanel";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
@@ -259,6 +260,7 @@ export default function AdminPanel() {
               )}
             </TabsTrigger>
             <TabsTrigger value="visits">Visits</TabsTrigger>
+            <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
             <TabsTrigger value="properties">Properties</TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
@@ -428,6 +430,11 @@ export default function AdminPanel() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* === HOTEL BOOKINGS === */}
+          <TabsContent value="bookings">
+            <BookingsPanel />
           </TabsContent>
 
           {/* === AGENTS === */}
