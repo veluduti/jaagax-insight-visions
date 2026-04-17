@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronUp, ChevronDown, Film, Sparkles } from "lucide-react";
+import { ArrowLeft, Film, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import PropertyReelCard from "@/components/reels/PropertyReelCard";
@@ -25,14 +24,28 @@ interface Property {
   address: string | null;
 }
 
-const SAMPLE_REELS = [
-  "https://www.youtube.com/shorts/QH2-TGUlwu4",
-  "https://www.youtube.com/shorts/aqz-KE-bpKQ",
-  "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+// Property-tour style YouTube Shorts (real-estate / home walkthroughs)
+const PROPERTY_REELS = [
+  "https://www.youtube.com/shorts/3v-yqmehjGE",
+  "https://www.youtube.com/shorts/8wzIyiHwScE",
+  "https://www.youtube.com/shorts/Yx6UgfQreYY",
+  "https://www.youtube.com/shorts/GgnClrx8N2k",
+  "https://www.youtube.com/shorts/qg__8GAVcrs",
+  "https://www.youtube.com/shorts/E7wJTI-1dvQ",
+  "https://www.youtube.com/shorts/8a2RrZmUmbQ",
+  "https://www.youtube.com/shorts/oBgi_DbyAtM",
+  "https://www.youtube.com/shorts/xkV0Sb9Ftvo",
+  "https://www.youtube.com/shorts/ulOu7B2tlWQ",
+  "https://www.youtube.com/shorts/jL8x2gqBfKA",
+  "https://www.youtube.com/shorts/X0tOpBuYasI",
+  "https://www.youtube.com/shorts/oP8KbtbKAFo",
+  "https://www.youtube.com/shorts/u4aBSPdVKUo",
+  "https://www.youtube.com/shorts/NV0qaiTAZ_w",
 ];
 
 const Promotions = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -41,64 +54,52 @@ const Promotions = () => {
 
   useEffect(() => {
     const fetchProperties = async () => {
-      // Pull from properties in our DB; prioritize ones with video_urls,
-      // fallback to verified properties with sample reel videos so the feed is never empty.
-      const { data: withVideos } = await supabase
+      // Pull verified properties first, fall back to any if not enough.
+      const { data: verified } = await supabase
         .from("properties")
         .select("*")
-        .not("video_urls", "is", null)
-        .limit(20);
+        .eq("verified", true)
+        .limit(15);
 
-      const videoOnes = (withVideos || [])
-        .filter((p: any) => Array.isArray(p.video_urls) && p.video_urls.length > 0)
-        .map((p: any) => ({
-          ...p,
-          video_urls: p.video_urls as string[],
-          images: p.images as string[] | null,
-        }));
-
-      let final: Property[] = videoOnes;
-
-      if (final.length < 5) {
-        const { data: fallback } = await supabase
+      let pool: any[] = verified || [];
+      if (pool.length < 15) {
+        const { data: extra } = await supabase
           .from("properties")
           .select("*")
-          .eq("verified", true)
-          .limit(10);
-
-        const enriched = (fallback || []).map((p: any, i: number) => ({
-          ...p,
-          video_urls: [SAMPLE_REELS[i % SAMPLE_REELS.length]],
-          images: p.images as string[] | null,
-        }));
-        const existingIds = new Set(final.map((p) => p.id));
-        final = [...final, ...enriched.filter((p) => !existingIds.has(p.id))];
+          .limit(15 - pool.length);
+        const ids = new Set(pool.map((p) => p.id));
+        pool = [...pool, ...(extra || []).filter((p) => !ids.has(p.id))];
       }
 
-      setProperties(final);
+      const reels: Property[] = pool.slice(0, 15).map((p: any, i: number) => {
+        const existing = Array.isArray(p.video_urls) ? p.video_urls.filter(Boolean) : [];
+        const videos = existing.length > 0 ? existing : [PROPERTY_REELS[i % PROPERTY_REELS.length]];
+        return {
+          ...p,
+          video_urls: videos as string[],
+          images: p.images as string[] | null,
+        };
+      });
+
+      setProperties(reels);
       setLoading(false);
     };
     fetchProperties();
   }, []);
 
-  const goNext = useCallback(() => {
-    setCurrentIndex((i) => Math.min(i + 1, properties.length - 1));
-  }, [properties.length]);
-
-  const goPrev = useCallback(() => {
-    setCurrentIndex((i) => Math.max(i - 1, 0));
-  }, []);
-
+  // Track current reel based on scroll position
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === "j") goNext();
-      if (e.key === "ArrowUp" || e.key === "k") goPrev();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [goNext, goPrev]);
+    const container = containerRef.current;
+    if (!container) return;
 
-  const currentProperty = properties[currentIndex];
+    const handleScroll = () => {
+      const idx = Math.round(container.scrollTop / container.clientHeight);
+      if (idx !== currentIndex) setCurrentIndex(idx);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [currentIndex]);
 
   if (loading) {
     return (
@@ -114,7 +115,7 @@ const Promotions = () => {
         <Film className="h-16 w-16 text-muted-foreground" />
         <h2 className="text-xl font-semibold">No Property Reels Yet</h2>
         <p className="text-white/60 text-sm text-center max-w-sm">
-          Promotions feed properties from our projects. Add a property with a video to see it here.
+          Add a property to start showcasing it as a promotion reel.
         </p>
         <Button variant="outline" onClick={() => navigate(-1)} className="text-white border-white/20">
           Go Back
@@ -125,72 +126,71 @@ const Promotions = () => {
 
   return (
     <div className="h-screen w-full bg-black relative overflow-hidden">
-      {/* Back button */}
-      <div className="absolute top-4 left-4 z-20">
+      {/* Back button (fixed overlay) */}
+      <div className="absolute top-4 left-4 z-30">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
-          className="text-white hover:bg-white/20"
+          className="text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Title + counter */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+      {/* Title (fixed overlay) */}
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
         <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-white font-bold text-base">Promotions</span>
+        <span className="text-white font-bold text-sm">Promotions</span>
       </div>
-      <div className="absolute top-5 right-4 z-20">
-        <span className="text-white/70 text-sm font-medium">
+
+      {/* Counter (fixed overlay) */}
+      <div className="absolute top-5 right-4 z-30 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+        <span className="text-white/90 text-xs font-medium">
           {currentIndex + 1} / {properties.length}
         </span>
       </div>
 
-      {/* Current reel */}
-      <div className="h-full w-full">
-        <PropertyReelCard
-          property={currentProperty}
-          isActive={true}
-          onViewDetails={() => {
-            setDrawerTab("details");
-            setDrawerOpen(true);
-          }}
-          onBookVisit={() => {
-            setDrawerTab("book");
-            setDrawerOpen(true);
-          }}
-        />
+      {/* Vertical scroll-snap reels feed */}
+      <div
+        ref={containerRef}
+        className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {properties.map((property, idx) => (
+          <div
+            key={property.id}
+            className="h-screen w-full snap-start snap-always relative"
+          >
+            <PropertyReelCard
+              property={property}
+              isActive={idx === currentIndex}
+              onViewDetails={() => {
+                setDrawerTab("details");
+                setDrawerOpen(true);
+              }}
+              onBookVisit={() => {
+                setDrawerTab("book");
+                setDrawerOpen(true);
+              }}
+            />
+          </div>
+        ))}
       </div>
 
-      {/* Navigation arrows */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goPrev}
-          disabled={currentIndex === 0}
-          className="text-white hover:bg-white/20 disabled:opacity-30"
-        >
-          <ChevronUp className="h-6 w-6" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goNext}
-          disabled={currentIndex === properties.length - 1}
-          className="text-white hover:bg-white/20 disabled:opacity-30"
-        >
-          <ChevronDown className="h-6 w-6" />
-        </Button>
-      </div>
+      {/* Swipe-up hint on first reel */}
+      {currentIndex === 0 && properties.length > 1 && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 text-white/70 text-xs flex flex-col items-center gap-1 animate-bounce pointer-events-none">
+          <span>Swipe up for more</span>
+          <span className="text-base">↑</span>
+        </div>
+      )}
 
       {/* Property drawer */}
       <ReelPropertyDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        property={currentProperty}
+        property={properties[currentIndex]}
         activeTab={drawerTab}
       />
     </div>
