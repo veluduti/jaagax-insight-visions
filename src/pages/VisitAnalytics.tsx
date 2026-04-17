@@ -32,6 +32,24 @@ const VisitAnalytics = () => {
 
   useEffect(() => {
     fetchVisitData();
+
+    // Real-time updates: refetch when any visit_booking changes
+    let channel: any;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      channel = supabase
+        .channel(`visit-analytics-${user.id}`)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'visit_bookings',
+          filter: `buyer_id=eq.${user.id}`,
+        }, () => {
+          fetchVisitData();
+        })
+        .subscribe();
+    })();
+
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
 
   const fetchVisitData = async () => {
@@ -53,6 +71,13 @@ const VisitAnalytics = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Parse "Rating: X/5" from notes column
+  const parseRating = (notes: string | null): number | null => {
+    if (!notes) return null;
+    const m = notes.match(/Rating:\s*(\d+(?:\.\d+)?)\s*\/\s*5/i);
+    return m ? parseFloat(m[1]) : null;
   };
 
   // Derived stats
@@ -90,10 +115,16 @@ const VisitAnalytics = () => {
   });
   const topLocality = Object.entries(localityCounts).sort((a, b) => b[1] - a[1])[0];
 
+  // Real ratings from notes
+  const ratings = visits.map(v => parseRating(v.notes)).filter((r): r is number => r !== null);
+  const avgRating = ratings.length > 0 ? (ratings.reduce((s, r) => s + r, 0) / ratings.length) : 0;
+  const ratingDist = [0, 0, 0, 0, 0, 0];
+  ratings.forEach(r => { const idx = Math.round(r); if (idx >= 1 && idx <= 5) ratingDist[idx]++; });
+  const ratingDistPct = ratingDist.map(c => ratings.length > 0 ? Math.round((c / ratings.length) * 100) : 0);
+
   // BHK preference (not available in visit_bookings, skip)
 
-  // Rating distribution (mock since no feedback table)
-  const ratingDist = [0, 2, 5, 15, 25, 53]; // 0-5 star %
+  // (rating distribution computed above from real notes)
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
