@@ -278,7 +278,7 @@ export default function BuilderDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Projects</p>
+                  <p className="text-sm text-muted-foreground">My Properties</p>
                   <p className="text-2xl font-bold">{stats.totalProjects}</p>
                 </div>
                 <Building2 className="h-8 w-8 text-primary" />
@@ -302,13 +302,26 @@ export default function BuilderDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Units</p>
+                  <p className="text-sm text-muted-foreground">Total Units (BHK)</p>
                   <p className="text-2xl font-bold">{stats.totalUnits}</p>
                 </div>
                 <Home className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Views</p>
+                  <p className="text-2xl font-bold">{stats.totalViews}</p>
+                </div>
+                <Eye className="h-8 w-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
           <Card>
             <CardContent className="p-6">
