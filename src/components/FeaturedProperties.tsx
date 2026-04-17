@@ -36,7 +36,18 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
 
   useEffect(() => {
     fetchProperties();
+    fetchFavorites();
   }, [detectedCity]);
+
+  const fetchFavorites = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("favorites")
+      .select("property_id")
+      .eq("user_id", user.id);
+    if (data) setFavorites(data.map((r: any) => r.property_id));
+  };
 
   const fetchProperties = async () => {
     try {
@@ -87,10 +98,20 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
-    );
+  const toggleFavorite = async (id: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    const isFav = favorites.includes(id);
+    if (isFav) {
+      await (supabase as any).from("favorites").delete().eq("user_id", user.id).eq("property_id", id);
+      setFavorites((prev) => prev.filter((f) => f !== id));
+    } else {
+      const { error } = await (supabase as any).from("favorites").insert({ user_id: user.id, property_id: id });
+      if (!error) setFavorites((prev) => [...prev, id]);
+    }
   };
 
   if (loading) {
