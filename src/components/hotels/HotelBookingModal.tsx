@@ -57,12 +57,18 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase.from("hotel_bookings").insert({
+      if (!user) {
+        toast.error("Please login to book", { description: "Redirecting to login..." });
+        onClose();
+        navigate("/auth");
+        return;
+      }
+
+      const { data: inserted, error } = await supabase.from("hotel_bookings").insert({
         hotel_id: hotel.id,
-        user_id: user?.id || null,
+        user_id: user.id,
         guest_name: guestName.trim(),
-        guest_email: guestEmail.trim() || null,
+        guest_email: guestEmail.trim() || user.email || null,
         guest_phone: guestPhone.trim() || null,
         check_in: format(checkIn, "yyyy-MM-dd"),
         check_out: format(checkOut, "yyyy-MM-dd"),
@@ -72,13 +78,32 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
         booking_type: bookingType,
         special_requests: specialRequests.trim() || null,
         total_amount: totalAmount,
-        status: "pending",
-      });
+        status: "confirmed",
+      }).select().single();
 
       if (error) throw error;
 
-      toast.success("Booking confirmed!", { description: `${hotel.name} • ${nights} night(s) • ₹${totalAmount.toLocaleString()}` });
+      // Fire-and-forget notifications (user + admin via WhatsApp/in-app)
+      supabase.functions.invoke("send-booking-confirmation", {
+        body: {
+          bookingId: inserted?.id,
+          hotelName: hotel.name,
+          guestName: guestName.trim(),
+          guestPhone: guestPhone.trim(),
+          guestEmail: guestEmail.trim() || user.email,
+          checkIn: format(checkIn, "dd MMM yyyy"),
+          checkOut: format(checkOut, "dd MMM yyyy"),
+          totalAmount,
+          bookingType,
+        },
+      }).catch((e) => console.warn("Notification failed:", e));
+
+      toast.success("🎉 Booking Confirmed!", {
+        description: `${hotel.name} • ${nights} night(s) • ₹${totalAmount.toLocaleString()}`,
+        action: { label: "View Bookings", onClick: () => navigate("/dashboard/buyer?tab=bookings") },
+      });
       onClose();
+      setTimeout(() => navigate("/dashboard/buyer?tab=bookings"), 800);
     } catch (err: any) {
       console.error("Booking error:", err);
       toast.error("Booking failed", { description: err.message || "Please try again" });
