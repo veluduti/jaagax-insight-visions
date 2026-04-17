@@ -23,7 +23,7 @@ interface HotelBookingModalProps {
     price_per_night: number;
     discount_percentage: number | null;
   };
-  bookingType: "hotel_only" | "with_visit";
+  bookingType: "hotel_only" | "visit_stay";
 }
 
 const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingModalProps) => {
