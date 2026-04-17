@@ -27,32 +27,46 @@ serve(async (req) => {
 
     const { bookingId, approved, notes, rejectionReason } = await req.json();
 
+    // Get booking with property + builder info
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
-      .select('*, properties(id, title, builder_id, submitted_by), agents(name, user_id)')
+      .select('*, properties(id, title, builder_id, submitted_by, city, locality)')
       .eq('id', bookingId)
       .single();
 
     if (bookingError || !booking) {
-      console.error('Booking fetch error:', bookingError);
       return new Response(JSON.stringify({ error: 'Booking not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const property = booking.properties as any;
-    const builderUserId = property?.builder_id || property?.submitted_by;
+    // Verify the caller is the assigned agent
+    const { data: agentRow } = await supabase
+      .from('agents')
+      .select('id, name')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    // Verify caller is the builder OR admin
-    const { data: adminCheck } = await supabase.rpc('is_admin', { _user_id: user.id });
-    if (!adminCheck && builderUserId !== user.id) {
+    const isAdmin = await supabase.rpc('is_admin', { _user_id: user.id });
+    if (!isAdmin.data && (!agentRow || agentRow.id !== booking.agent_id)) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const newStatus = approved ? 'confirmed' : 'cancelled';
+    const property = booking.properties as any;
+    const hasBuilder = !!(property?.builder_id || property?.submitted_by);
+
+    let newStatus: string;
+    if (!approved) {
+      newStatus = 'cancelled';
+    } else if (hasBuilder) {
+      newStatus = 'pending_builder';
+    } else {
+      newStatus = 'confirmed';
+    }
+
     const updateData: Record<string, unknown> = {
       status: newStatus,
       updated_at: new Date().toISOString(),
     };
-    if (notes) updateData.notes = (booking.notes ? booking.notes + '\n\n[Builder]: ' : '[Builder]: ') + notes;
+    if (notes) updateData.notes = (booking.notes ? booking.notes + '\n\n[Agent]: ' : '[Agent]: ') + notes;
 
     const { error: updateError } = await supabase
       .from('visit_bookings')
@@ -66,40 +80,45 @@ serve(async (req) => {
 
     // Notify buyer
     if (booking.buyer_id) {
+      const buyerTitle = !approved
+        ? 'Visit request declined'
+        : hasBuilder
+          ? 'Agent confirmed — awaiting builder'
+          : 'Visit confirmed!';
+      const buyerMsg = !approved
+        ? `Your visit was declined by the agent. ${rejectionReason ? 'Reason: ' + rejectionReason : ''}`
+        : hasBuilder
+          ? `${agentRow?.name || 'Your agent'} confirmed your visit to ${property?.title}. Now waiting for the builder to prepare.`
+          : `${agentRow?.name || 'Your agent'} confirmed your visit to ${property?.title} on ${booking.visit_date}.`;
+
       await supabase.from('notifications').insert({
         user_id: booking.buyer_id,
         type: 'booking',
-        title: approved ? 'Visit confirmed by builder!' : 'Visit declined by builder',
-        message: approved
-          ? `Your visit to ${property?.title} on ${booking.visit_date} at ${booking.visit_time} is fully confirmed. The builder is preparing for you.`
-          : `Unfortunately the builder declined this visit. ${rejectionReason ? 'Reason: ' + rejectionReason : ''}`,
+        title: buyerTitle,
+        message: buyerMsg,
         metadata: { booking_id: bookingId, property_id: property?.id, status: newStatus },
       });
     }
 
-    // Notify agent
-    const agentUserId = (booking.agents as any)?.user_id;
-    if (agentUserId) {
+    // Notify builder if needed
+    if (approved && hasBuilder) {
+      const builderUserId = property.builder_id || property.submitted_by;
       await supabase.from('notifications').insert({
-        user_id: agentUserId,
+        user_id: builderUserId,
         type: 'booking',
-        title: approved ? 'Builder confirmed visit' : 'Builder declined visit',
-        message: approved
-          ? `Builder approved the visit to ${property?.title} on ${booking.visit_date}. You're all set.`
-          : `Builder declined the visit to ${property?.title}. ${rejectionReason ? 'Reason: ' + rejectionReason : ''}`,
-        metadata: { booking_id: bookingId, property_id: property?.id, status: newStatus },
+        title: 'New site visit to prepare',
+        message: `${booking.buyer_name || 'A buyer'} will visit ${property?.title} on ${booking.visit_date} at ${booking.visit_time}. Agent ${agentRow?.name || ''} has confirmed. Please review in Visit Approvals.`,
+        metadata: { booking_id: bookingId, property_id: property?.id, action: 'builder_review' },
       });
     }
-
-    console.log(`Visit ${bookingId} ${approved ? 'approved' : 'rejected'} by builder ${user.id}`);
 
     return new Response(
       JSON.stringify({ success: true, status: newStatus }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: unknown) {
-    console.error('Error in approve-visit function:', error);
+  } catch (error) {
+    console.error('Error in agent-confirm-visit:', error);
     return new Response(
       JSON.stringify({ error: 'An error occurred processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
