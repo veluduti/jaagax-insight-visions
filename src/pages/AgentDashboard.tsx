@@ -76,13 +76,11 @@ export default function AgentDashboard() {
 
       if (visits) {
         setVisitStats({
-          upcomingVisits: visits.filter(v => 
-            ["confirmed", "agent_pending", "builder_pending"].includes(v.status)
+          upcomingVisits: visits.filter(v =>
+            ["confirmed", "pending_builder", "in_progress"].includes(v.status)
           ).length,
           completedVisits: visits.filter(v => v.status === "completed").length,
-          pendingApprovals: visits.filter(v => 
-            v.status === "agent_pending"
-          ).length,
+          pendingApprovals: visits.filter(v => v.status === "pending_agent").length,
           totalVisits: visits.length,
         });
       }
