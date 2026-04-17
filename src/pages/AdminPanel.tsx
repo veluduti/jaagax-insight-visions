@@ -118,10 +118,44 @@ export default function AdminPanel() {
   const fetchProperties = async () => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, verified, type, created_at")
+      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     setProperties(data || []);
+  };
+
+  const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
+    setReviewingId(propertyId);
+    try {
+      const update: any = {
+        verification_status: decision,
+        verified: decision === "approved",
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("properties").update(update).eq("id", propertyId);
+      if (error) throw error;
+
+      // Notify the builder who submitted
+      const prop = properties.find((p) => p.id === propertyId);
+      if (prop?.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: prop.submitted_by,
+          type: decision === "approved" ? "property_approved" : "property_rejected",
+          title: decision === "approved" ? "Property Verified ✅" : "Property Rejected",
+          message: decision === "approved"
+            ? `Your property "${prop.title}" has been verified and is now live.`
+            : `Your property "${prop.title}" was rejected. Please review and resubmit.`,
+          link: "/dashboard/builder",
+        });
+      }
+
+      toast.success(`Property ${decision} successfully`);
+      await Promise.all([fetchProperties(), fetchStats()]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to review property");
+    } finally {
+      setReviewingId(null);
+    }
   };
 
   const fetchBuilders = async () => {
