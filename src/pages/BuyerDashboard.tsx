@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 import MyBookings from "@/components/buyer/MyBookings";
 import MyVisits from "@/components/buyer/MyVisits";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Property {
   id: string;
@@ -46,6 +47,8 @@ const BuyerDashboard = () => {
   const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   
   // EMI Calculator State
   const [loanAmount, setLoanAmount] = useState(5000000);
@@ -56,6 +59,7 @@ const BuyerDashboard = () => {
   useEffect(() => {
     fetchUserData();
     fetchProperties();
+    fetchAvailableCities();
     fetchFavorites();
     fetchVisitBookings();
     
@@ -91,6 +95,10 @@ const BuyerDashboard = () => {
     calculateEMI();
   }, [loanAmount, interestRate, loanTenure]);
 
+  useEffect(() => {
+    fetchProperties(cityFilter);
+  }, [cityFilter]);
+
   const fetchUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -104,13 +112,25 @@ const BuyerDashboard = () => {
     setLoading(false);
   };
 
-  const fetchProperties = async () => {
-    const { data } = await supabase
+  const fetchProperties = async (city: string = cityFilter) => {
+    let query = supabase
       .from("properties")
       .select("*")
-      .limit(6)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(24);
+    if (city && city !== "all") {
+      query = query.ilike("city", city);
+    }
+    const { data } = await query;
     if (data) setProperties(data);
+  };
+
+  const fetchAvailableCities = async () => {
+    const { data } = await supabase.from("properties").select("city").not("city", "is", null);
+    if (data) {
+      const unique = Array.from(new Set(data.map((d: any) => d.city).filter(Boolean))).sort();
+      setAvailableCities(unique as string[]);
+    }
   };
 
   const fetchFavorites = async () => {
@@ -383,9 +403,27 @@ const BuyerDashboard = () => {
             )}
 
             <Card>
-              <CardHeader>
-                <CardTitle>All Recommended Properties</CardTitle>
-                <CardDescription>Based on your preferences and search history</CardDescription>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <CardTitle>All Recommended Properties</CardTitle>
+                  <CardDescription>
+                    {cityFilter === "all" ? "Based on your preferences and search history" : `Showing properties in ${cityFilter}`}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2 min-w-[200px]">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Select value={cityFilter} onValueChange={setCityFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Cities</SelectItem>
+                      {availableCities.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {properties.length === 0 ? (
