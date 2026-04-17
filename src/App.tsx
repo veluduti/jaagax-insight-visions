@@ -35,6 +35,7 @@ import SellerDashboard from "./pages/SellerDashboard";
 import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AddProject from "./pages/AddProject";
+import BuilderPromotions from "./pages/BuilderPromotions";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPanel from "./pages/AdminPanel";
@@ -91,6 +92,7 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/builder/add-project" element={<AddProject />} />
+          <Route path="/builder/promotions" element={<BuilderPromotions />} />
           <Route path="/property/:id" element={<PropertyDetail />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:city" element={<TransactionsCity />} />
