@@ -49,19 +49,31 @@ const MyBookings = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    const { data: rows, error } = await supabase
       .from("hotel_bookings")
-      .select("*, partner_hotels(name, city, locality)")
+      .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (data) {
+    if (error) {
+      console.error("Bookings fetch error:", error);
+      setLoading(false);
+      return;
+    }
+
+    if (rows && rows.length > 0) {
+      const hotelIds = [...new Set(rows.map((b: any) => b.hotel_id).filter(Boolean))];
+      const { data: hotels } = await supabase
+        .from("partner_hotels")
+        .select("id, name, city, locality")
+        .in("id", hotelIds);
+
+      const hotelMap = new Map((hotels || []).map((h: any) => [h.id, h]));
       setBookings(
-        data.map((b: any) => ({
-          ...b,
-          hotel: b.partner_hotels,
-        }))
+        rows.map((b: any) => ({ ...b, hotel: hotelMap.get(b.hotel_id) }))
       );
+    } else {
+      setBookings([]);
     }
     setLoading(false);
   };

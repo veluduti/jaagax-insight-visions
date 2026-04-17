@@ -13,6 +13,7 @@ import { format, differenceInDays, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface HotelBookingModalProps {
   open: boolean;
@@ -23,7 +24,7 @@ interface HotelBookingModalProps {
     price_per_night: number;
     discount_percentage: number | null;
   };
-  bookingType: "hotel_only" | "with_visit";
+  bookingType: "hotel_only" | "visit_stay";
 }
 
 const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingModalProps) => {
@@ -37,13 +38,16 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
   const [roomType, setRoomType] = useState("Standard");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const discountedPrice = hotel.discount_percentage
-    ? hotel.price_per_night * (1 - hotel.discount_percentage / 100)
+  const discountPct = Number(hotel.discount_percentage) || 0;
+  const discountedPrice = discountPct > 0
+    ? hotel.price_per_night * (1 - discountPct / 100)
     : hotel.price_per_night;
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
   const totalAmount = Math.round(discountedPrice * nights * parseInt(numRooms || "1"));
+  const originalAmount = Math.round(hotel.price_per_night * nights * parseInt(numRooms || "1"));
 
   const handleSubmit = async () => {
     if (!guestName.trim()) { toast.error("Please enter guest name"); return; }
@@ -53,12 +57,18 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase.from("hotel_bookings").insert({
+      if (!user) {
+        toast.error("Please login to book", { description: "Redirecting to login..." });
+        onClose();
+        navigate("/auth");
+        return;
+      }
+
+      const { data: inserted, error } = await supabase.from("hotel_bookings").insert({
         hotel_id: hotel.id,
-        user_id: user?.id || null,
+        user_id: user.id,
         guest_name: guestName.trim(),
-        guest_email: guestEmail.trim() || null,
+        guest_email: guestEmail.trim() || user.email || null,
         guest_phone: guestPhone.trim() || null,
         check_in: format(checkIn, "yyyy-MM-dd"),
         check_out: format(checkOut, "yyyy-MM-dd"),
@@ -68,13 +78,32 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
         booking_type: bookingType,
         special_requests: specialRequests.trim() || null,
         total_amount: totalAmount,
-        status: "pending",
-      });
+        status: "confirmed",
+      }).select().single();
 
       if (error) throw error;
 
-      toast.success("Booking confirmed!", { description: `${hotel.name} • ${nights} night(s) • ₹${totalAmount.toLocaleString()}` });
+      // Fire-and-forget notifications (user + admin via WhatsApp/in-app)
+      supabase.functions.invoke("send-booking-confirmation", {
+        body: {
+          bookingId: inserted?.id,
+          hotelName: hotel.name,
+          guestName: guestName.trim(),
+          guestPhone: guestPhone.trim(),
+          guestEmail: guestEmail.trim() || user.email,
+          checkIn: format(checkIn, "dd MMM yyyy"),
+          checkOut: format(checkOut, "dd MMM yyyy"),
+          totalAmount,
+          bookingType,
+        },
+      }).catch((e) => console.warn("Notification failed:", e));
+
+      toast.success("🎉 Booking Confirmed!", {
+        description: `${hotel.name} • ${nights} night(s) • ₹${totalAmount.toLocaleString()}`,
+        action: { label: "View Bookings", onClick: () => navigate("/dashboard/buyer?tab=bookings") },
+      });
       onClose();
+      setTimeout(() => navigate("/dashboard/buyer?tab=bookings"), 800);
     } catch (err: any) {
       console.error("Booking error:", err);
       toast.error("Booking failed", { description: err.message || "Please try again" });
@@ -89,7 +118,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Hotel className="h-5 w-5 text-primary" />
-            {bookingType === "with_visit" ? "Book with Site Visit" : "Book Hotel Only"}
+            {bookingType === "visit_stay" ? "Book with Site Visit" : "Book Hotel Only"}
           </DialogTitle>
           <DialogDescription>{hotel.name}</DialogDescription>
         </DialogHeader>
@@ -185,19 +214,19 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           {/* Price Summary */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span>₹{Math.round(discountedPrice).toLocaleString()} × {nights} night(s) × {numRooms} room(s)</span>
-              <span>₹{totalAmount.toLocaleString()}</span>
+              <span>₹{hotel.price_per_night.toLocaleString()} × {nights} night × {numRooms} room</span>
+              <span className={discountPct > 0 ? "line-through text-muted-foreground" : ""}>₹{originalAmount.toLocaleString()}</span>
             </div>
-            {hotel.discount_percentage && hotel.discount_percentage > 0 && (
-              <div className="flex justify-between text-sm text-emerald-600">
-                <span>JaagaX Discount ({hotel.discount_percentage}%)</span>
-                <span>-₹{Math.round(hotel.price_per_night * nights * parseInt(numRooms) - totalAmount).toLocaleString()}</span>
+            {discountPct > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                <span>JaagaX Discount ({discountPct}%)</span>
+                <span>-₹{(originalAmount - totalAmount).toLocaleString()}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>₹{totalAmount.toLocaleString()}</span>
+              <span>Total Payable</span>
+              <span className="text-primary">₹{totalAmount.toLocaleString()}</span>
             </div>
           </div>
 
