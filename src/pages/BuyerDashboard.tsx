@@ -403,9 +403,27 @@ const BuyerDashboard = () => {
             )}
 
             <Card>
-              <CardHeader>
-                <CardTitle>All Recommended Properties</CardTitle>
-                <CardDescription>Based on your preferences and search history</CardDescription>
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <CardTitle>All Recommended Properties</CardTitle>
+                  <CardDescription>
+                    {cityFilter === "all" ? "Based on your preferences and search history" : `Showing properties in ${cityFilter}`}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2 min-w-[200px]">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Select value={cityFilter} onValueChange={setCityFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Cities</SelectItem>
+                      {availableCities.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {properties.length === 0 ? (
