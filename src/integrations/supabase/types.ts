@@ -432,6 +432,54 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_journey_events: {
+        Row: {
+          booked_at: string | null
+          contacted_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          property_id: string
+          shortlisted_at: string | null
+          stage: string
+          updated_at: string
+          user_id: string
+          viewed_at: string | null
+          visit_scheduled_at: string | null
+          visited_at: string | null
+        }
+        Insert: {
+          booked_at?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id: string
+          shortlisted_at?: string | null
+          stage?: string
+          updated_at?: string
+          user_id: string
+          viewed_at?: string | null
+          visit_scheduled_at?: string | null
+          visited_at?: string | null
+        }
+        Update: {
+          booked_at?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id?: string
+          shortlisted_at?: string | null
+          stage?: string
+          updated_at?: string
+          user_id?: string
+          viewed_at?: string | null
+          visit_scheduled_at?: string | null
+          visited_at?: string | null
+        }
+        Relationships: []
+      }
       hotel_bookings: {
         Row: {
           booking_type: string | null
