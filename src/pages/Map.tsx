@@ -329,11 +329,16 @@ const Map = () => {
       const property = clusterProps[0];
       const isCluster = clusterProps.length > 1;
 
-      // Create custom marker element
+      // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
       const el = document.createElement("div");
       el.className = "property-marker";
       el.style.cursor = "pointer";
-      el.style.transition = "all 0.2s ease";
+
+      // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
+      const inner = document.createElement("div");
+      inner.style.transition = "transform 0.2s ease";
+      inner.style.transformOrigin = "center center";
+      el.appendChild(inner);
 
       if (isCluster) {
         // Cluster marker - use safe DOM manipulation
@@ -351,7 +356,7 @@ const Map = () => {
           text-align: center;
         `;
         clusterDiv.textContent = String(clusterProps.length);
-        el.appendChild(clusterDiv);
+        inner.appendChild(clusterDiv);
       } else {
         // Single property marker with type icon - use safe DOM manipulation
         const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
@@ -384,16 +389,16 @@ const Map = () => {
         
         markerDiv.appendChild(emojiSpan);
         markerDiv.appendChild(priceText);
-        el.appendChild(markerDiv);
+        inner.appendChild(markerDiv);
       }
 
-      // Add hover effect
+      // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.1) translateY(-2px)";
+        inner.style.transform = "scale(1.1) translateY(-2px)";
         el.style.zIndex = "1000";
       });
       el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
+        inner.style.transform = "scale(1)";
         el.style.zIndex = "auto";
       });
 
