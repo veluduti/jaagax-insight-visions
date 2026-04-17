@@ -470,11 +470,41 @@ const Map = () => {
     setCurrentCity(city);
   };
   
-  // Save current search
-  const handleSaveSearch = () => {
-    const searchUrl = `${window.location.origin}/map?city=${currentCity}&transactionType=${filters.transactionType}&propertyType=${filters.propertyType}&beds=${filters.beds}&priceRange=${filters.priceRange[1]}`;
-    navigator.clipboard.writeText(searchUrl);
-    sonnerToast.success("Search URL copied to clipboard!");
+  // Save current search to user's saved searches
+  const handleSaveSearch = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      sonnerToast.error("Please sign in to save searches");
+      navigate("/auth");
+      return;
+    }
+
+    const defaultName = `${filters.beds !== "any" ? filters.beds + " BHK " : ""}${filters.propertyType !== "any" ? filters.propertyType + " " : ""}in ${currentCity}${filters.priceRange?.[1] ? " under ₹" + (filters.priceRange[1] / 100000).toFixed(0) + "L" : ""}`;
+    const name = window.prompt("Name this search:", defaultName.trim());
+    if (!name) return;
+
+    const filtersJson = {
+      city: currentCity,
+      transactionType: filters.transactionType,
+      propertyType: filters.propertyType,
+      bhk: filters.beds,
+      priceMin: filters.priceRange?.[0],
+      priceMax: filters.priceRange?.[1],
+    };
+
+    const { error } = await (supabase as any).from("saved_searches").insert({
+      user_id: user.id,
+      name,
+      filters: filtersJson,
+      alerts_enabled: true,
+      last_count: properties.length,
+    });
+
+    if (error) {
+      sonnerToast.error("Failed to save search");
+      return;
+    }
+    sonnerToast.success("Search saved! View it in your dashboard.");
   };
   
   // Share current view
