@@ -103,8 +103,8 @@ export default function AIAdvisor() {
     setIsLoading(true);
 
     try {
-      // Build conversation context for follow-up questions
-      const contextMessages = messages.slice(-4).map(m => ({
+      // Send full conversation history so AI has memory like ChatGPT
+      const contextMessages = messages.map(m => ({
         role: m.role,
         content: m.content
       }));
