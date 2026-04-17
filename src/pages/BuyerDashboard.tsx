@@ -403,29 +403,37 @@ const BuyerDashboard = () => {
             )}
 
             <Card>
-              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle>All Recommended Properties</CardTitle>
-                  <CardDescription>
-                    {cityFilter === "all" ? "Based on your preferences and search history" : `Showing properties in ${cityFilter}`}
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2 min-w-[200px]">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle>All Recommended Properties</CardTitle>
+                <CardDescription>
+                  {cityFilter === "all" ? "Based on your preferences and search history" : `Showing properties in ${cityFilter}`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* City Filter Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 mb-6 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Filter className="h-4 w-4 text-primary" />
+                    <span>Filter by City:</span>
+                  </div>
                   <Select value={cityFilter} onValueChange={setCityFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by city" />
+                    <SelectTrigger className="w-full sm:w-[240px] bg-background">
+                      <SelectValue placeholder="Select a city" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background z-50">
                       <SelectItem value="all">All Cities</SelectItem>
                       {availableCities.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {cityFilter !== "all" && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {properties.length} {properties.length === 1 ? "property" : "properties"} in {cityFilter}
+                    </Badge>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent>
+
                 {properties.length === 0 ? (
                   <div className="text-center py-12">
                     <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
