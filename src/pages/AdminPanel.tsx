@@ -136,8 +136,20 @@ export default function AdminPanel() {
         verified: decision === "approved",
         updated_at: new Date().toISOString(),
       };
-      const { error } = await supabase.from("properties").update(update).eq("id", propertyId);
+      const { data, error } = await supabase
+        .from("properties")
+        .update(update)
+        .eq("id", propertyId)
+        .select("id, verification_status, verified");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Update blocked — you may not have permission. Please log in as admin.");
+      }
+
+      // Optimistic local update so the row instantly reflects the new status
+      setProperties((prev) =>
+        prev.map((p) => (p.id === propertyId ? { ...p, ...data[0] } : p))
+      );
 
       // Notify the builder who submitted
       const prop = properties.find((p) => p.id === propertyId);
@@ -154,7 +166,7 @@ export default function AdminPanel() {
       }
 
       toast.success(`Property ${decision} successfully`);
-      await Promise.all([fetchProperties(), fetchStats()]);
+      await fetchStats();
     } catch (err: any) {
       toast.error(err.message || "Failed to review property");
     } finally {
