@@ -792,6 +792,8 @@ export type Database = {
           locality: string
           longitude: number | null
           price: number
+          rera_document_url: string | null
+          rera_id: string | null
           retail_centres: number | null
           submitted_by: string | null
           title: string
@@ -824,6 +826,8 @@ export type Database = {
           locality: string
           longitude?: number | null
           price?: number
+          rera_document_url?: string | null
+          rera_id?: string | null
           retail_centres?: number | null
           submitted_by?: string | null
           title: string
@@ -856,6 +860,8 @@ export type Database = {
           locality?: string
           longitude?: number | null
           price?: number
+          rera_document_url?: string | null
+          rera_id?: string | null
           retail_centres?: number | null
           submitted_by?: string | null
           title?: string
