@@ -47,19 +47,36 @@ export default function PropertyReelCard({ property, isActive, onViewDetails, on
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const videoUrl = property.video_urls[0];
-  const embedUrl = extractEmbedUrl(videoUrl);
+  const isDirectVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(videoUrl);
+  const embedUrl = isDirectVideo ? videoUrl : extractEmbedUrl(videoUrl);
+  const posterImage = property.images?.[0];
 
   return (
     <div className="relative w-full h-full bg-black snap-start snap-always">
-      {/* Video embed */}
+      {/* Video player */}
       {isActive ? (
-        <iframe
-          src={embedUrl}
-          className="absolute inset-0 w-full h-full"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          title={property.title}
-        />
+        isDirectVideo ? (
+          <video
+            key={videoUrl}
+            src={videoUrl}
+            poster={posterImage}
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <iframe
+            src={embedUrl}
+            className="absolute inset-0 w-full h-full"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            title={property.title}
+          />
+        )
+      ) : posterImage ? (
+        <img src={posterImage} alt={property.title} className="absolute inset-0 w-full h-full object-cover opacity-70" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
           <Building2 className="h-16 w-16 text-muted-foreground/30" />
