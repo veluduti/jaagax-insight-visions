@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Calendar, MapPin, User, Phone, Clock, Navigation as NavigationIcon } from "lucide-react";
+import { Calendar, MapPin, User, Phone, Clock, Navigation as NavigationIcon, CheckCircle, XCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 
 interface VisitBooking {
@@ -32,7 +33,11 @@ const AgentVisitsDashboard = () => {
   const navigate = useNavigate();
   const [visits, setVisits] = useState<VisitBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("upcoming");
+  const [filter, setFilter] = useState<"all" | "pending" | "upcoming" | "completed">("pending");
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [actionNotes, setActionNotes] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchAgentVisits();
@@ -95,8 +100,10 @@ const AgentVisitsDashboard = () => {
         .order("visit_date", { ascending: true })
         .order("visit_time", { ascending: true });
 
-      if (filter === "upcoming") {
-        query = query.in("status", ["confirmed", "pending_approval"]);
+      if (filter === "pending") {
+        query = query.eq("status", "pending_agent");
+      } else if (filter === "upcoming") {
+        query = query.in("status", ["confirmed", "pending_builder", "in_progress"]);
       } else if (filter === "completed") {
         query = query.in("status", ["completed", "cancelled"]);
       }
@@ -113,10 +120,35 @@ const AgentVisitsDashboard = () => {
     }
   };
 
+  const handleAgentDecision = async (bookingId: string, approved: boolean) => {
+    if (!approved && !rejectReason.trim()) {
+      toast.error("Please provide a reason for declining");
+      return;
+    }
+    setProcessing(true);
+    try {
+      const { error } = await supabase.functions.invoke("agent-confirm-visit", {
+        body: { bookingId, approved, notes: actionNotes, rejectionReason: rejectReason },
+      });
+      if (error) throw error;
+      toast.success(approved ? "Visit confirmed! Buyer & builder notified." : "Visit declined. Buyer notified.");
+      setActionId(null);
+      setActionNotes("");
+      setRejectReason("");
+      fetchAgentVisits();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to update visit");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       confirmed: "bg-primary text-primary-foreground",
-      pending_approval: "bg-yellow-500 text-white",
+      pending_agent: "bg-yellow-500 text-white",
+      pending_builder: "bg-orange-500 text-white",
       in_progress: "bg-blue-500 text-white",
       completed: "bg-green-500 text-white",
       cancelled: "bg-destructive text-destructive-foreground",
@@ -147,24 +179,18 @@ const AgentVisitsDashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 mb-6">
-            <Button
-              variant={filter === "upcoming" ? "default" : "outline"}
-              onClick={() => setFilter("upcoming")}
-            >
-              Upcoming Visits
+          <div className="flex flex-wrap gap-3 mb-6">
+            <Button variant={filter === "pending" ? "default" : "outline"} onClick={() => setFilter("pending")}>
+              Pending My Confirmation
             </Button>
-            <Button
-              variant={filter === "completed" ? "default" : "outline"}
-              onClick={() => setFilter("completed")}
-            >
+            <Button variant={filter === "upcoming" ? "default" : "outline"} onClick={() => setFilter("upcoming")}>
+              Upcoming
+            </Button>
+            <Button variant={filter === "completed" ? "default" : "outline"} onClick={() => setFilter("completed")}>
               Completed
             </Button>
-            <Button
-              variant={filter === "all" ? "default" : "outline"}
-              onClick={() => setFilter("all")}
-            >
-              All Visits
+            <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
+              All
             </Button>
           </div>
 
@@ -268,6 +294,57 @@ const AgentVisitsDashboard = () => {
                       <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                         <div className="text-xs text-muted-foreground mb-1">Notes</div>
                         <div className="text-sm">{visit.notes}</div>
+                      </div>
+                    )}
+
+                    {visit.status === "pending_agent" && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        {actionId === visit.id ? (
+                          <>
+                            <Textarea
+                              placeholder="Notes for the buyer (optional)"
+                              value={actionNotes}
+                              onChange={(e) => setActionNotes(e.target.value)}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                className="flex-1"
+                                disabled={processing}
+                                onClick={() => handleAgentDecision(visit.id, true)}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Confirm Visit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                disabled={processing}
+                                onClick={() => { setActionId(null); setActionNotes(""); setRejectReason(""); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                            <div className="pt-3 border-t">
+                              <Textarea
+                                placeholder="Reason for declining (required)"
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                              />
+                              <Button
+                                variant="destructive"
+                                className="w-full mt-2"
+                                disabled={processing || !rejectReason.trim()}
+                                onClick={() => handleAgentDecision(visit.id, false)}
+                              >
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Decline Request
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <Button className="w-full" onClick={() => setActionId(visit.id)}>
+                            Review Request
+                          </Button>
+                        )}
                       </div>
                     )}
 

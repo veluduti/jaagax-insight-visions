@@ -71,19 +71,18 @@ export const SiteVisitBookingModal = ({ open, onOpenChange, projectId, projectNa
         return;
       }
 
-      // Insert into visit_bookings table (which exists)
+      // Insert into visit_bookings table
       const { data: visitBooking, error: visitError } = await supabase
         .from("visit_bookings")
         .insert({
-          project_id: projectId,
-          user_id: user.id,
+          buyer_id: user.id,
           buyer_name: validated.name,
           buyer_email: validated.email,
           buyer_phone: validated.phone,
           visit_date: selectedDate.toISOString().split('T')[0],
           visit_time: selectedTime,
-          notes: validated.notes || null,
-          status: "pending",
+          notes: `[Project ${projectId}] ${validated.notes || ""}`.trim(),
+          status: "pending_agent",
         })
         .select()
         .single();

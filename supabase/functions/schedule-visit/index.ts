@@ -6,14 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function generateVerificationCode(): string {
-  return Math.random().toString(36).substring(2, 10).toUpperCase();
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -35,77 +27,61 @@ serve(async (req) => {
     }
 
     const bookingData = await req.json();
-
-    // Ensure the booking is created for the authenticated user
     const userId = user.id;
 
-    const otp = generateOTP();
-    const verificationCode = generateVerificationCode();
-
+    // Get property to find city/locality and check builder
     const { data: property } = await supabase
       .from('properties')
-      .select('city, locality, builder_id, title')
+      .select('city, locality, builder_id, submitted_by, title')
       .eq('id', bookingData.propertyId)
       .single();
-
-    const requiresBuilderApproval = !!property?.builder_id;
-    const initialStatus = requiresBuilderApproval ? 'pending_approval' : 'confirmed';
 
     // Auto-assign agent if not provided
     let agentId = bookingData.agentId;
     if (bookingData.autoAssign && !agentId) {
       let agent = null;
 
-      if (property?.city && !agent) {
+      if (property?.city) {
         const { data } = await supabase
           .from('agents')
-          .select('id, name, phone')
-          .contains('cities_served', [property.city])
-          .eq('is_online', true)
+          .select('id, name, phone, user_id')
+          .ilike('cities_served', `%${property.city}%`)
           .order('trust_score', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
         agent = data;
       }
 
       if (!agent) {
         const { data } = await supabase
           .from('agents')
-          .select('id, name, phone')
-          .eq('is_online', true)
+          .select('id, name, phone, user_id')
           .order('trust_score', { ascending: false })
           .limit(1)
-          .single();
-        agent = data;
-      }
-
-      if (!agent) {
-        const { data } = await supabase
-          .from('agents')
-          .select('id, name, phone')
-          .order('trust_score', { ascending: false })
-          .limit(1)
-          .single();
+          .maybeSingle();
         agent = data;
       }
 
       agentId = agent?.id || null;
     }
 
+    // NEW FLOW: Always start at pending_agent (agent must confirm first)
+    const initialStatus = 'pending_agent';
+
     const { data: booking, error: bookingError } = await supabase
       .from('visit_bookings')
       .insert({
-        user_id: userId,
+        buyer_id: userId,
         property_id: bookingData.propertyId,
         agent_id: agentId,
         visit_date: bookingData.visitDate,
         visit_time: bookingData.visitTime,
-        otp_code: otp,
-        verification_code: verificationCode,
         buyer_name: bookingData.userName,
         buyer_email: bookingData.userEmail,
         buyer_phone: bookingData.userPhone,
         notes: bookingData.specialRequests || null,
+        city: property?.city || null,
+        locality: property?.locality || null,
         status: initialStatus,
       })
       .select()
@@ -114,33 +90,41 @@ serve(async (req) => {
     if (bookingError) {
       console.error('Booking insert error:', bookingError);
       return new Response(
-        JSON.stringify({ error: 'Failed to create booking' }),
+        JSON.stringify({ error: 'Failed to create booking', details: bookingError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send notifications (non-fatal)
-    try {
-      if (requiresBuilderApproval) {
-        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'visit_pending_approval' } });
-        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'builder_approval_needed' } });
-      } else {
-        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'visit_confirmed' } });
-      }
-    } catch (notifError) {
-      console.error('Notification error (non-fatal):', notifError);
-    }
+    // Notify buyer (in-app)
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      type: 'booking',
+      title: 'Visit request submitted',
+      message: `Your visit request for ${property?.title || 'the property'} on ${bookingData.visitDate} has been sent to the agent for confirmation.`,
+      metadata: { booking_id: booking.id, property_id: bookingData.propertyId },
+    });
 
+    // Notify the assigned agent so they can review & confirm
     if (agentId) {
-      try {
-        await supabase.functions.invoke('send-visit-update', { body: { bookingId: booking.id, templateType: 'agent_new_assignment' } });
-      } catch (notifError) {
-        console.error('Agent notification error (non-fatal):', notifError);
+      const { data: agentRow } = await supabase
+        .from('agents')
+        .select('user_id, name')
+        .eq('id', agentId)
+        .maybeSingle();
+
+      if (agentRow?.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: agentRow.user_id,
+          type: 'booking',
+          title: 'New visit request',
+          message: `${bookingData.userName} requested a site visit for ${property?.title || 'a property'} on ${bookingData.visitDate} at ${bookingData.visitTime}. Please review and confirm.`,
+          metadata: { booking_id: booking.id, property_id: bookingData.propertyId, action: 'agent_confirm' },
+        });
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, booking, otp, verificationCode, status: booking.status }),
+      JSON.stringify({ success: true, booking, status: booking.status }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
