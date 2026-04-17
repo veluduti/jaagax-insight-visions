@@ -82,12 +82,11 @@ export default function BuilderDashboard() {
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      setUser(data);
+      setUser({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0],
+      });
     }
     setLoading(false);
   };
