@@ -616,20 +616,7 @@ const BuyerDashboard = () => {
 
           {/* Saved Searches */}
           <TabsContent value="searches">
-            <Card>
-              <CardHeader>
-                <CardTitle>Saved Searches</CardTitle>
-                <CardDescription>Get alerts when new properties match your criteria</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No saved searches</h3>
-                  <p className="text-muted-foreground mb-4">Save your search criteria to get instant alerts</p>
-                  <Button onClick={() => navigate("/map")}>Start Searching</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SavedSearchesPanel />
           </TabsContent>
 
           {/* Alerts */}
