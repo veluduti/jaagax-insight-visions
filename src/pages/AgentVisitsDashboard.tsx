@@ -120,10 +120,35 @@ const AgentVisitsDashboard = () => {
     }
   };
 
+  const handleAgentDecision = async (bookingId: string, approved: boolean) => {
+    if (!approved && !rejectReason.trim()) {
+      toast.error("Please provide a reason for declining");
+      return;
+    }
+    setProcessing(true);
+    try {
+      const { error } = await supabase.functions.invoke("agent-confirm-visit", {
+        body: { bookingId, approved, notes: actionNotes, rejectionReason: rejectReason },
+      });
+      if (error) throw error;
+      toast.success(approved ? "Visit confirmed! Buyer & builder notified." : "Visit declined. Buyer notified.");
+      setActionId(null);
+      setActionNotes("");
+      setRejectReason("");
+      fetchAgentVisits();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to update visit");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       confirmed: "bg-primary text-primary-foreground",
-      pending_approval: "bg-yellow-500 text-white",
+      pending_agent: "bg-yellow-500 text-white",
+      pending_builder: "bg-orange-500 text-white",
       in_progress: "bg-blue-500 text-white",
       completed: "bg-green-500 text-white",
       cancelled: "bg-destructive text-destructive-foreground",
