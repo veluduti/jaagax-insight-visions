@@ -204,21 +204,22 @@ const VisitAnalytics = () => {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.2</div>
+              <div className="text-2xl font-bold">{avgRating > 0 ? avgRating.toFixed(1) : "—"}</div>
               <div className="flex mt-1 mb-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`w-3 h-3 ${star <= 4 ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
+                    className={`w-3 h-3 ${star <= Math.round(avgRating) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
                   />
                 ))}
+                <span className="text-xs text-muted-foreground ml-2">({ratings.length})</span>
               </div>
               <div className="space-y-1">
                 {[5, 4, 3, 2, 1].map(s => (
                   <div key={s} className="flex items-center gap-1.5">
                     <span className="text-[10px] w-4 text-right">{s}★</span>
-                    <Progress value={ratingDist[s]} className="h-1.5 flex-1" />
-                    <span className="text-[10px] w-8 text-muted-foreground">{ratingDist[s]}%</span>
+                    <Progress value={ratingDistPct[s]} className="h-1.5 flex-1" />
+                    <span className="text-[10px] w-8 text-muted-foreground">{ratingDistPct[s]}%</span>
                   </div>
                 ))}
               </div>
