@@ -100,8 +100,10 @@ const AgentVisitsDashboard = () => {
         .order("visit_date", { ascending: true })
         .order("visit_time", { ascending: true });
 
-      if (filter === "upcoming") {
-        query = query.in("status", ["confirmed", "pending_approval"]);
+      if (filter === "pending") {
+        query = query.eq("status", "pending_agent");
+      } else if (filter === "upcoming") {
+        query = query.in("status", ["confirmed", "pending_builder", "in_progress"]);
       } else if (filter === "completed") {
         query = query.in("status", ["completed", "cancelled"]);
       }
