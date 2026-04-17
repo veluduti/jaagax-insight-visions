@@ -11,7 +11,7 @@ import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Layers, Navigation as Nav3D, Bookmark, Share2, Info, ChevronDown } from "lucide-react";
+import { Layers, Navigation as Nav3D, Bookmark, Share2, Info, ChevronDown, ArrowLeft, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
@@ -46,6 +46,8 @@ const Map = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showAILens, setShowAILens] = useState(false);
   const navigate = useNavigate();
 
   // Auto-set city from detected location
@@ -253,8 +255,8 @@ const Map = () => {
     try {
       let query = supabase.from("properties").select("*");
 
-      // Filter by city
-      query = query.eq("city", currentCity);
+      // Filter by city (case-insensitive)
+      query = query.ilike("city", currentCity);
 
       if (filters.verifiedOnly) {
         query = query.eq("verified", true);
@@ -522,13 +524,57 @@ const Map = () => {
         </div>
       )}
 
-      {/* Top Filters */}
+      {/* Top Filters - toggleable */}
       <MapFilters
         filters={filters}
         onFiltersChange={setFilters}
         currentCity={currentCity}
         onCityChange={changeCity}
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
       />
+
+      {/* Top Left - Back + Filter Toggle */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="absolute top-6 left-6 z-20 flex gap-2"
+      >
+        <Button
+          onClick={() => navigate("/dashboard")}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Back to Dashboard"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span className="ml-2 hidden sm:inline">Back</span>
+        </Button>
+        {!showFilters && (
+          <Button
+            onClick={() => setShowFilters(true)}
+            variant="outline"
+            size="lg"
+            className="glass-panel shadow-lg"
+            title="Show Filters"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+            <span className="ml-2 hidden sm:inline">Filters</span>
+          </Button>
+        )}
+        {!showAILens && (
+          <Button
+            onClick={() => setShowAILens(true)}
+            variant="outline"
+            size="lg"
+            className="glass-panel shadow-lg glow-effect"
+            title="AI Area Lens"
+          >
+            <Sparkles className="h-5 w-5" />
+            <span className="ml-2 hidden sm:inline">AI Lens</span>
+          </Button>
+        )}
+      </motion.div>
 
       {/* Control Buttons - Top Right */}
       <motion.div
@@ -616,8 +662,15 @@ const Map = () => {
         )}
       </AnimatePresence>
 
-      {/* AI Area Lens */}
-      <AIAreaLens map={map.current} properties={properties} />
+      {/* AI Area Lens - toggleable */}
+      {showAILens && (
+        <AIAreaLens
+          map={map.current}
+          properties={properties}
+          currentCity={currentCity}
+          onClose={() => setShowAILens(false)}
+        />
+      )}
 
       {/* Property Drawer */}
       <AnimatePresence>
