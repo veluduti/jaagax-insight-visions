@@ -179,24 +179,18 @@ const AgentVisitsDashboard = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 mb-6">
-            <Button
-              variant={filter === "upcoming" ? "default" : "outline"}
-              onClick={() => setFilter("upcoming")}
-            >
-              Upcoming Visits
+          <div className="flex flex-wrap gap-3 mb-6">
+            <Button variant={filter === "pending" ? "default" : "outline"} onClick={() => setFilter("pending")}>
+              Pending My Confirmation
             </Button>
-            <Button
-              variant={filter === "completed" ? "default" : "outline"}
-              onClick={() => setFilter("completed")}
-            >
+            <Button variant={filter === "upcoming" ? "default" : "outline"} onClick={() => setFilter("upcoming")}>
+              Upcoming
+            </Button>
+            <Button variant={filter === "completed" ? "default" : "outline"} onClick={() => setFilter("completed")}>
               Completed
             </Button>
-            <Button
-              variant={filter === "all" ? "default" : "outline"}
-              onClick={() => setFilter("all")}
-            >
-              All Visits
+            <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
+              All
             </Button>
           </div>
 
