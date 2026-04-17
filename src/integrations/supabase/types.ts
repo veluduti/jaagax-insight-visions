@@ -864,6 +864,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_searches: {
+        Row: {
+          alerts_enabled: boolean
+          created_at: string
+          filters: Json
+          id: string
+          last_checked_at: string | null
+          last_count: number
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts_enabled?: boolean
+          created_at?: string
+          filters?: Json
+          id?: string
+          last_checked_at?: string | null
+          last_count?: number
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts_enabled?: boolean
+          created_at?: string
+          filters?: Json
+          id?: string
+          last_checked_at?: string | null
+          last_count?: number
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       signup_requests: {
         Row: {
           city: string | null
