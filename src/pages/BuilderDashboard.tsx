@@ -557,7 +557,7 @@ export default function BuilderDashboard() {
                     <CardTitle>Your Projects</CardTitle>
                     <CardDescription>Manage and track your real estate projects</CardDescription>
                   </div>
-                  <Button onClick={() => navigate("/projects")}>
+                  <Button onClick={() => navigate("/builder/add-project")}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Project
                   </Button>
@@ -568,8 +568,8 @@ export default function BuilderDashboard() {
                   <div className="text-center py-12">
                     <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-                    <p className="text-muted-foreground mb-4">Start by adding your first project</p>
-                    <Button onClick={() => navigate("/projects")}>
+                    <p className="text-muted-foreground mb-4">Launch your first real estate project — set name, location, units, pricing, RERA & media in one flow.</p>
+                    <Button onClick={() => navigate("/builder/add-project")}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Project
                     </Button>

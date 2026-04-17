@@ -698,76 +698,124 @@ export type Database = {
       }
       projects: {
         Row: {
+          address: string | null
           amenities: string[] | null
           area_range: string | null
           avg_price: number | null
           bhk_types: string | null
+          brochure_url: string | null
           builder_name: string | null
           city: string | null
           created_at: string | null
           description: string | null
+          environmental_clearance_url: string | null
+          floors_per_tower: number | null
           id: string
           image: string | null
           images: string[] | null
+          is_draft: boolean | null
           latitude: number | null
+          launch_date: string | null
+          layout_plan_url: string | null
           locality: string | null
           longitude: number | null
+          master_plan_url: string | null
           name: string | null
+          pincode: string | null
           possession_date: string | null
           price_max: number | null
           price_min: number | null
+          price_per_sqft: number | null
+          project_type: string | null
+          rera_document_url: string | null
           rera_id: string | null
           status: string | null
+          submitted_by: string | null
+          total_towers: number | null
+          total_units: number | null
           trust_score: number | null
           verified: boolean | null
+          videos: string[] | null
         }
         Insert: {
+          address?: string | null
           amenities?: string[] | null
           area_range?: string | null
           avg_price?: number | null
           bhk_types?: string | null
+          brochure_url?: string | null
           builder_name?: string | null
           city?: string | null
           created_at?: string | null
           description?: string | null
+          environmental_clearance_url?: string | null
+          floors_per_tower?: number | null
           id?: string
           image?: string | null
           images?: string[] | null
+          is_draft?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
+          layout_plan_url?: string | null
           locality?: string | null
           longitude?: number | null
+          master_plan_url?: string | null
           name?: string | null
+          pincode?: string | null
           possession_date?: string | null
           price_max?: number | null
           price_min?: number | null
+          price_per_sqft?: number | null
+          project_type?: string | null
+          rera_document_url?: string | null
           rera_id?: string | null
           status?: string | null
+          submitted_by?: string | null
+          total_towers?: number | null
+          total_units?: number | null
           trust_score?: number | null
           verified?: boolean | null
+          videos?: string[] | null
         }
         Update: {
+          address?: string | null
           amenities?: string[] | null
           area_range?: string | null
           avg_price?: number | null
           bhk_types?: string | null
+          brochure_url?: string | null
           builder_name?: string | null
           city?: string | null
           created_at?: string | null
           description?: string | null
+          environmental_clearance_url?: string | null
+          floors_per_tower?: number | null
           id?: string
           image?: string | null
           images?: string[] | null
+          is_draft?: boolean | null
           latitude?: number | null
+          launch_date?: string | null
+          layout_plan_url?: string | null
           locality?: string | null
           longitude?: number | null
+          master_plan_url?: string | null
           name?: string | null
+          pincode?: string | null
           possession_date?: string | null
           price_max?: number | null
           price_min?: number | null
+          price_per_sqft?: number | null
+          project_type?: string | null
+          rera_document_url?: string | null
           rera_id?: string | null
           status?: string | null
+          submitted_by?: string | null
+          total_towers?: number | null
+          total_units?: number | null
           trust_score?: number | null
           verified?: boolean | null
+          videos?: string[] | null
         }
         Relationships: []
       }
