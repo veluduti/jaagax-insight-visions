@@ -126,7 +126,7 @@ export default function BuilderDashboard() {
       const { data: pendingVisits } = await supabase
         .from("visit_bookings")
         .select("id, property_id")
-        .eq("status", "pending");
+        .eq("status", "pending_builder");
 
       const count = (pendingVisits || []).filter(visit => 
         allPropertyIds.includes(visit.property_id || "")
