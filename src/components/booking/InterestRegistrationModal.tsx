@@ -52,12 +52,11 @@ export const InterestRegistrationModal = ({ open, onOpenChange, projectId, proje
         const { error: bookingError } = await supabase
           .from("visit_bookings")
           .insert({
-            project_id: projectId,
-            user_id: user.id,
+            buyer_id: user.id,
             buyer_name: validated.name,
             buyer_email: validated.email,
             buyer_phone: validated.phone,
-            notes: validated.message ? `Interest: ${validated.message}` : "Interest registered",
+            notes: `[Project ${projectId}] ${validated.message ? `Interest: ${validated.message}` : "Interest registered"}`,
             visit_date: new Date().toISOString().split('T')[0],
             visit_time: "TBD",
             status: "interest",
