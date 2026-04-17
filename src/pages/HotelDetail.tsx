@@ -58,7 +58,7 @@ const HotelDetail = () => {
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [bookingType, setBookingType] = useState<"hotel_only" | "with_visit">("hotel_only");
+  const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
 
   useEffect(() => {
     if (!id) return;
@@ -307,7 +307,7 @@ const HotelDetail = () => {
                     )}
                   </div>
                   <CardContent className="p-6 space-y-4">
-                    <Button className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("with_visit"); setBookingModalOpen(true); }}>
+                    <Button className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("visit_stay"); setBookingModalOpen(true); }}>
                       <Calendar className="h-5 w-5" />
                       Book with Site Visit
                     </Button>
