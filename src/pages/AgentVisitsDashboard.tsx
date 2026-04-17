@@ -297,7 +297,56 @@ const AgentVisitsDashboard = () => {
                       </div>
                     )}
 
-                    {visit.status === "confirmed" && (
+                    {visit.status === "pending_agent" && (
+                      <div className="mt-4 pt-4 border-t space-y-3">
+                        {actionId === visit.id ? (
+                          <>
+                            <Textarea
+                              placeholder="Notes for the buyer (optional)"
+                              value={actionNotes}
+                              onChange={(e) => setActionNotes(e.target.value)}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                className="flex-1"
+                                disabled={processing}
+                                onClick={() => handleAgentDecision(visit.id, true)}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Confirm Visit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                disabled={processing}
+                                onClick={() => { setActionId(null); setActionNotes(""); setRejectReason(""); }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                            <div className="pt-3 border-t">
+                              <Textarea
+                                placeholder="Reason for declining (required)"
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                              />
+                              <Button
+                                variant="destructive"
+                                className="w-full mt-2"
+                                disabled={processing || !rejectReason.trim()}
+                                onClick={() => handleAgentDecision(visit.id, false)}
+                              >
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Decline Request
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <Button className="w-full" onClick={() => setActionId(visit.id)}>
+                            Review Request
+                          </Button>
+                        )}
+                      </div>
+                    )}
                       <div className="mt-4 flex gap-2">
                         <Button
                           variant="default"
