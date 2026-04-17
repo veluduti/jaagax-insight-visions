@@ -107,13 +107,25 @@ const BuyerDashboard = () => {
     setLoading(false);
   };
 
-  const fetchProperties = async () => {
-    const { data } = await supabase
+  const fetchProperties = async (city: string = cityFilter) => {
+    let query = supabase
       .from("properties")
       .select("*")
-      .limit(6)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(24);
+    if (city && city !== "all") {
+      query = query.ilike("city", city);
+    }
+    const { data } = await query;
     if (data) setProperties(data);
+  };
+
+  const fetchAvailableCities = async () => {
+    const { data } = await supabase.from("properties").select("city").not("city", "is", null);
+    if (data) {
+      const unique = Array.from(new Set(data.map((d: any) => d.city).filter(Boolean))).sort();
+      setAvailableCities(unique as string[]);
+    }
   };
 
   const fetchFavorites = async () => {
