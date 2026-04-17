@@ -33,7 +33,11 @@ const AgentVisitsDashboard = () => {
   const navigate = useNavigate();
   const [visits, setVisits] = useState<VisitBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed">("upcoming");
+  const [filter, setFilter] = useState<"all" | "pending" | "upcoming" | "completed">("pending");
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [actionNotes, setActionNotes] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchAgentVisits();
