@@ -1,253 +1,295 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
+
+const PLATFORM_KNOWLEDGE = `
+You are JAAGA X AI Advisor — an expert Indian real estate assistant. You behave like ChatGPT/Gemini: friendly, knowledgeable, conversational, and helpful for ANY question the user asks (real estate, general, casual, or platform-specific).
+
+═══════════════════════════════════════
+ABOUT JAAGA X (the platform you live in)
+═══════════════════════════════════════
+JAAGA X (tagline: "Choose Your Place") is India's premium real estate discovery platform with AI-powered guidance. Key features users can access:
+
+🏠 PROPERTY DISCOVERY
+- Browse verified properties (apartments, villas, plots, houses) at /properties and /search
+- Map-based exploration at /map with AI Area Lens
+- Property reels (TikTok-style video tours) at /reels and /promotions
+- Sneak Peek listings (fresh unverified arrivals)
+- 360° virtual tours on property detail pages
+
+🏗️ NEW PROJECTS & BUILDERS
+- Browse new launches at /projects
+- Detailed builder microsites (Luxury / Standard / Budget tiers)
+- RERA-verified projects with trust scores, master plans, brochures
+- Builder Trust Program with delivery confidence badges
+
+👨‍💼 AGENTS
+- Find verified agents at /agents
+- Agent leaderboard, comparison, and AI-matched recommendations
+- Live agent location sharing during visits
+
+📅 SITE VISITS & STAYS
+- Schedule property visits with auto-confirm or builder approval
+- Bundle visits with hotel stays via Visit + Stay Planner
+- Live visit tracking, QR/OTP verification, post-visit insights
+
+🏨 HOTELS
+- Book partner hotels at /hotels for property visits
+- Hotel + property bundles with discounts
+
+📊 INTELLIGENCE
+- Transactions market data at /transactions
+- Community & locality insights at /communities
+- Price predictions, EMI calculator, property comparison
+- Innovation Hub with voice search and smart visit clustering
+
+🎯 USER ROLES
+- Buyer (default), Agent, Builder (self-signup) — Admin/Hotel Manager (DB only)
+- Buyer dashboard tracks favorites, journey, bookings, saved searches
+
+🌆 CITIES COVERED
+Hyderabad, Bangalore, Mumbai, Pune, Delhi NCR, Chennai, Kolkata, Ahmedabad, and 50+ more.
+
+═══════════════════════════════════════
+YOUR PERSONALITY & STYLE
+═══════════════════════════════════════
+- Warm, conversational, helpful — like talking to a knowledgeable friend
+- Use Indian currency format (₹, Lakhs, Crores) and Indian English
+- Format responses with markdown (bold, bullet points, headings) for readability
+- Be CONCISE for simple questions, DETAILED when explaining complex topics
+- Use emojis sparingly to add warmth (🏡 📍 ✨ 💡)
+- If user asks something unrelated to real estate (weather, jokes, coding, life advice), still respond helpfully like ChatGPT would
+- If user asks "what can you do?" or "help" — describe your capabilities
+
+═══════════════════════════════════════
+ANSWERING RULES
+═══════════════════════════════════════
+1. PROPERTY SEARCH: When user wants to find properties (e.g., "3BHK in Gachibowli under 1Cr"), I'll provide you live property data from our DB. Summarize the matches and recommend top picks.
+
+2. GENERAL REAL ESTATE Q&A: Use your knowledge of Indian real estate markets, RERA, home loans, EMI, stamp duty, registration, vastu, builder reputations, locality trends, etc.
+
+3. PLATFORM HOWTO: If asked "how do I book a visit?" or "how to find an agent?" — explain step by step using JAAGA X features above and link them with markdown like [Find Agents](/agents).
+
+4. ANYTHING ELSE: Answer like ChatGPT — be helpful, accurate, friendly. Don't refuse normal questions.
+
+5. NEVER make up specific property listings, prices, or builder names that weren't in the DB context provided to you. For general market trends, your knowledge is fine.
+`;
 
 interface PropertyFilters {
   city?: string;
   locality?: string;
-  beds?: number;
   bhk?: number;
   min_price?: number;
   max_price?: number;
-  trust_score_min?: number;
   type?: string;
-  verified?: boolean;
+  trust_score_min?: number;
+}
+
+async function callAI(messages: any[], jsonMode = false): Promise<any> {
+  const body: any = {
+    model: "google/gemini-2.5-flash",
+    messages,
+    temperature: jsonMode ? 0.2 : 0.75,
+  };
+  if (jsonMode) {
+    body.response_format = { type: "json_object" };
+  }
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const t = await res.text();
+    console.error("AI gateway error:", res.status, t);
+    if (res.status === 429)
+      throw new Error("Rate limit exceeded. Please wait a moment and try again.");
+    if (res.status === 402)
+      throw new Error("AI credits exhausted. Please add credits to continue.");
+    throw new Error("AI service error");
+  }
+
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+async function detectIntentAndFilters(
+  query: string,
+  history: any[]
+): Promise<{ isPropertySearch: boolean; filters: PropertyFilters }> {
+  const historyStr = history
+    .slice(-4)
+    .map((m) => `${m.role}: ${m.content}`)
+    .join("\n");
+
+  const content = await callAI(
+    [
+      {
+        role: "system",
+        content: `You are a query classifier for a real estate platform. Given the user's latest message and conversation history, decide:
+1. Is the user actively trying to SEARCH/FIND specific property listings RIGHT NOW? (true/false)
+2. If yes, extract structured filters.
+
+Return ONLY valid JSON:
+{
+  "isPropertySearch": boolean,
+  "filters": {
+    "city": "string optional",
+    "locality": "string optional",
+    "bhk": number optional,
+    "min_price": number optional in INR,
+    "max_price": number optional in INR,
+    "type": "Apartment|Villa|Plot|House optional",
+    "trust_score_min": number optional 0-100
+  }
+}
+
+Only set isPropertySearch=true when the user clearly wants listings (e.g. "show me 3bhk in Mumbai", "find villas under 2cr", "any verified flats in Gachibowli").
+Set false for: greetings, general questions ("what is RERA?", "how do home loans work?"), platform howto ("how do I book a visit?"), casual chat, follow-up clarifications without new search intent.`,
+      },
+      {
+        role: "user",
+        content: `History:\n${historyStr}\n\nLatest message: ${query}`,
+      },
+    ],
+    true
+  );
+
+  try {
+    const parsed = JSON.parse(content);
+    return {
+      isPropertySearch: !!parsed.isPropertySearch,
+      filters: parsed.filters || {},
+    };
+  } catch {
+    return { isPropertySearch: false, filters: {} };
+  }
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, userId } = await req.json();
-    console.log('AI Property Advisor request:', { query, userId });
-
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error("AI service not configured (missing LOVABLE_API_KEY)");
     }
 
-    // Step 1: Parse user query using OpenAI
-    const parseResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
+    const { query, userId, conversationContext } = await req.json();
+    if (!query || typeof query !== "string") {
+      return new Response(
+        JSON.stringify({ success: false, error: "Query is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("AI Advisor request:", { query, userId });
+
+    const history = Array.isArray(conversationContext) ? conversationContext : [];
+
+    // Step 1: Classify intent
+    const { isPropertySearch, filters } = await detectIntentAndFilters(
+      query,
+      history
+    );
+    console.log("Intent:", { isPropertySearch, filters });
+
+    let properties: any[] = [];
+    let propertyContextBlock = "";
+
+    // Step 2: If property search, query DB
+    if (isPropertySearch) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      let q = supabase
+        .from("properties")
+        .select(
+          "id, title, city, locality, price, area_sqft, bedrooms, bathrooms, bhk, type, trust_score, verified, images, description"
+        )
+        .eq("verified", true);
+
+      if (filters.city) q = q.ilike("city", `%${filters.city}%`);
+      if (filters.locality) q = q.ilike("locality", `%${filters.locality}%`);
+      if (filters.bhk) q = q.eq("bhk", filters.bhk);
+      if (filters.min_price) q = q.gte("price", filters.min_price);
+      if (filters.max_price) q = q.lte("price", filters.max_price);
+      if (filters.type) q = q.eq("type", filters.type);
+      if (filters.trust_score_min)
+        q = q.gte("trust_score", filters.trust_score_min);
+
+      const { data, error } = await q.limit(12);
+      if (error) console.error("DB error:", error);
+      properties = data || [];
+
+      if (properties.length > 0) {
+        propertyContextBlock = `\n\n[LIVE DATA — ${properties.length} matching properties from database:]\n${properties
+          .slice(0, 8)
+          .map(
+            (p, i) =>
+              `${i + 1}. ${p.title} — ${p.locality}, ${p.city} | ${p.bhk || "?"}BHK | ₹${(p.price / 100000).toFixed(2)}L | ${p.area_sqft || "?"} sqft | Trust: ${p.trust_score || "N/A"}/100`
+          )
+          .join("\n")}`;
+      } else {
+        propertyContextBlock = `\n\n[LIVE DATA — No verified properties matched these filters in our DB. Suggest the user broaden filters or try nearby localities.]`;
+      }
+    }
+
+    // Step 3: Build conversational reply
+    const chatMessages = [
+      { role: "system", content: PLATFORM_KNOWLEDGE },
+      ...history.slice(-6).map((m: any) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      })),
+      {
+        role: "user",
+        content: query + propertyContextBlock,
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a real estate query parser for Indian properties. Parse natural language queries into structured filters.
-Return ONLY valid JSON with this exact structure:
-{
-  "filters": {
-    "city": string (e.g., "Mumbai", "Bangalore", "Hyderabad"),
-    "locality": string (optional),
-    "beds": number (optional),
-    "bhk": number (optional),
-    "min_price": number (optional, in INR),
-    "max_price": number (optional, in INR),
-    "trust_score_min": number (optional, 0-100),
-    "type": string (optional: "Apartment", "Villa", "Plot", "House"),
-    "verified": boolean (optional)
-  },
-  "ai_comment": "Brief explanation of the search"
-}
+    ];
 
-Examples:
-- "3BHK in Gachibowli under 1 crore" → {"filters": {"locality": "Gachibowli", "bhk": 3, "max_price": 10000000}, "ai_comment": "Searching for 3BHK apartments in Gachibowli under ₹1 Crore"}
-- "verified properties in Mumbai" → {"filters": {"city": "Mumbai", "verified": true}, "ai_comment": "Finding verified properties in Mumbai"}
-- "high trust score villa near Bangalore" → {"filters": {"city": "Bangalore", "type": "Villa", "trust_score_min": 80}, "ai_comment": "Looking for high-trust villas near Bangalore"}`
-          },
-          {
-            role: 'user',
-            content: query
-          }
-        ],
-        temperature: 0.3,
-      }),
-    });
+    const aiSummary = await callAI(chatMessages, false);
 
-    if (!parseResponse.ok) {
-      console.error('OpenAI parse error:', await parseResponse.text());
-      throw new Error('Failed to parse query with AI');
-    }
-
-    const parseData = await parseResponse.json();
-    const parsedContent = parseData.choices[0].message.content;
-    console.log('Parsed content:', parsedContent);
-    
-    let parsedResult;
-    try {
-      parsedResult = JSON.parse(parsedContent);
-    } catch (e) {
-      console.error('JSON parse error:', e, parsedContent);
-      throw new Error('AI returned invalid JSON');
-    }
-
-    const filters: PropertyFilters = parsedResult.filters || {};
-    const aiComment = parsedResult.ai_comment || 'Finding properties that match your requirements';
-
-    // Step 2: Query Supabase properties table
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    let propertyQuery = supabase
-      .from('properties')
-      .select(`
-        id, title, city, locality, price, area_sqft, bedrooms, bathrooms, bhk, type,
-        trust_score, verified, images, description
-      `)
-      .eq('verified', true);
-
-    // Apply filters
-    if (filters.city) {
-      propertyQuery = propertyQuery.ilike('city', `%${filters.city}%`);
-    }
-    if (filters.locality) {
-      propertyQuery = propertyQuery.ilike('locality', `%${filters.locality}%`);
-    }
-    if (filters.beds) {
-      propertyQuery = propertyQuery.eq('bedrooms', filters.beds);
-    }
-    if (filters.bhk) {
-      propertyQuery = propertyQuery.eq('bhk', filters.bhk);
-    }
-    if (filters.min_price) {
-      propertyQuery = propertyQuery.gte('price', filters.min_price);
-    }
-    if (filters.max_price) {
-      propertyQuery = propertyQuery.lte('price', filters.max_price);
-    }
-    if (filters.trust_score_min) {
-      propertyQuery = propertyQuery.gte('trust_score', filters.trust_score_min);
-    }
-    if (filters.type) {
-      propertyQuery = propertyQuery.eq('type', filters.type);
-    }
-
-    const { data: properties, error: propertiesError } = await propertyQuery.limit(20);
-
-    if (propertiesError) {
-      console.error('Supabase query error:', propertiesError);
-      throw propertiesError;
-    }
-
-    console.log(`Found ${properties?.length || 0} properties`);
-
-    // Step 3: Get community insights if locality is specified
-    let communityInsights = null;
-    if (filters.locality && filters.city) {
-      const { data: communityData } = await supabase
-        .from('community_profiles')
-        .select('*')
-        .ilike('locality', `%${filters.locality}%`)
-        .ilike('city', `%${filters.city}%`)
-        .maybeSingle();
-      
-      communityInsights = communityData;
-    }
-
-    // Step 4: Generate AI summary and recommendations
-    const summaryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert Indian real estate advisor. Provide concise, helpful insights about property matches.
-Focus on: location benefits, price value, trust factors, and lifestyle fit.
-Keep responses under 150 words and use Indian currency format (₹).`
-          },
-          {
-            role: 'user',
-            content: `User query: "${query}"
-            
-Found ${properties?.length || 0} properties matching:
-${JSON.stringify(filters, null, 2)}
-
-${properties && properties.length > 0 ? `Sample properties:
-${properties.slice(0, 3).map(p => `- ${p.title} in ${p.locality}, ${p.city}: ₹${(p.price / 100000).toFixed(2)}L, ${p.bhk}BHK, Trust Score: ${p.trust_score || 'N/A'}`).join('\n')}` : ''}
-
-${communityInsights ? `Community insights for ${filters.locality}:
-- AI Rating: ${communityInsights.ai_rating}/10
-- Average Price: ₹${(communityInsights.avg_price / 100000).toFixed(2)}L
-- Appreciation Rate: ${communityInsights.appreciation_rate}%
-- Summary: ${communityInsights.ai_summary}` : ''}
-
-Provide a friendly summary explaining why these properties are good matches and any key insights.`
-          }
-        ],
-        temperature: 0.7,
-      }),
-    });
-
-    if (!summaryResponse.ok) {
-      console.error('OpenAI summary error:', await summaryResponse.text());
-      throw new Error('Failed to generate AI summary');
-    }
-
-    const summaryData = await summaryResponse.json();
-    const aiSummary = summaryData.choices[0].message.content;
-
-    // Step 5: Store session if user is authenticated
-    if (userId) {
-      await supabase
-        .from('ai_sessions')
-        .insert({
-          user_id: userId,
-          query,
-          response: {
-            filters,
-            property_count: properties?.length || 0,
-            ai_comment: aiComment,
-            ai_summary: aiSummary,
-          },
-          filters: filters,
-        });
-    }
-
-    // Return results
     return new Response(
       JSON.stringify({
         success: true,
-        filters,
-        aiComment,
+        aiComment: isPropertySearch
+          ? `Found ${properties.length} matches`
+          : "Conversational response",
         aiSummary,
-        properties: properties || [],
-        communityInsights,
-        totalResults: properties?.length || 0,
+        filters: isPropertySearch ? filters : null,
+        properties,
+        totalResults: properties.length,
+        isPropertySearch,
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('Error in ai-property-advisor:', error);
+    console.error("ai-property-advisor error:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
