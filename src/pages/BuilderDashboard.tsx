@@ -260,15 +260,33 @@ export default function BuilderDashboard() {
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div>
               <h1 className="text-2xl font-bold">Welcome, {user?.name || "Builder"}!</h1>
               <p className="text-muted-foreground">Manage your projects and properties</p>
             </div>
-            <Button onClick={handleSignOut} variant="outline">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const res = await seedBuilderSampleProperties();
+                  if (res.success) {
+                    toast.success(`Added ${res.count} sample properties to your account`);
+                    fetchProperties();
+                    fetchPendingVisitsCount();
+                  } else {
+                    toast.error(res.error || "Failed to add samples");
+                  }
+                }}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Load Sample Properties
+              </Button>
+              <Button onClick={handleSignOut} variant="outline">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
