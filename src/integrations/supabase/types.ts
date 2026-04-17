@@ -793,12 +793,14 @@ export type Database = {
           longitude: number | null
           price: number
           retail_centres: number | null
+          submitted_by: string | null
           title: string
           total_floors: number | null
           total_parking: number | null
           trust_score: number | null
           type: string | null
           updated_at: string | null
+          verification_status: string
           verified: boolean | null
           video_urls: string[] | null
         }
@@ -823,12 +825,14 @@ export type Database = {
           longitude?: number | null
           price?: number
           retail_centres?: number | null
+          submitted_by?: string | null
           title: string
           total_floors?: number | null
           total_parking?: number | null
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
+          verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
         }
@@ -853,12 +857,14 @@ export type Database = {
           longitude?: number | null
           price?: number
           retail_centres?: number | null
+          submitted_by?: string | null
           title?: string
           total_floors?: number | null
           total_parking?: number | null
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
+          verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
         }
