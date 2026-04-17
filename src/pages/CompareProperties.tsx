@@ -296,7 +296,7 @@ const CompareProperties = () => {
                   <Button className="w-full" onClick={() => window.open(`/property/${prop.id}`, "_blank")}>
                     <ExternalLink className="h-4 w-4 mr-2" />View Details
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => navigate(`/visit/schedule?property=${prop.id}`)}>
+                  <Button variant="outline" className="w-full" onClick={() => navigate(`/visit/schedule/${prop.id}`)}>
                     <Calendar className="h-4 w-4 mr-2" />Schedule Visit
                   </Button>
                 </div>
