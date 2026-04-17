@@ -22,6 +22,7 @@ import MyBookings from "@/components/buyer/MyBookings";
 import MyVisits from "@/components/buyer/MyVisits";
 import MyFavorites from "@/components/buyer/MyFavorites";
 import AlertsPanel from "@/components/buyer/AlertsPanel";
+import SavedSearchesPanel from "@/components/buyer/SavedSearchesPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Property {
