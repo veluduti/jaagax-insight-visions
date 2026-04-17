@@ -82,12 +82,11 @@ export default function BuilderDashboard() {
   const fetchUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      setUser(data);
+      setUser({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0],
+      });
     }
     setLoading(false);
   };
@@ -141,25 +140,27 @@ export default function BuilderDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
-      .from("projects")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (data) {
-      setProjects(data as Project[]);
-      setStats(prev => ({
-        ...prev,
-        totalProjects: data.length,
-        verifiedProjects: data.filter(p => p.verified).length,
-        totalUnits: data.length * 50,
-        totalViews: Math.floor(Math.random() * 10000) + 2000,
-      }));
-      
-      // Auto-select first project for forecast
-      if (data.length > 0 && !selectedProject) {
-        fetchProjectForecast(data[0] as Project);
-      }
+    // Find this builder's profile to scope projects by builder name
+    const { data: builderProfile } = await supabase
+      .from("builder_profiles")
+      .select("builder_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    let projectData: any[] = [];
+    if (builderProfile?.builder_name) {
+      const { data } = await supabase
+        .from("projects")
+        .select("*")
+        .ilike("builder_name", `%${builderProfile.builder_name}%`)
+        .order("created_at", { ascending: false });
+      projectData = data || [];
+    }
+
+    setProjects(projectData as Project[]);
+
+    if (projectData.length > 0 && !selectedProject) {
+      fetchProjectForecast(projectData[0] as Project);
     }
   };
 
@@ -172,15 +173,25 @@ export default function BuilderDashboard() {
       .select("*")
       .eq("submitted_by", user.id)
       .order("created_at", { ascending: false });
-    
+
     if (error) {
       console.error("Error fetching properties:", error);
       return;
     }
 
-    if (data) {
-      setProperties(data as Property[]);
-    }
+    const list = (data || []) as Property[];
+    setProperties(list);
+
+    // Stats derived from this builder's own properties
+    const totalUnits = list.reduce((sum, p) => sum + (p.bhk || 0), 0);
+    const verifiedCount = list.filter((p) => p.verified).length;
+
+    setStats((prev) => ({
+      ...prev,
+      totalProjects: list.length,
+      verifiedProjects: verifiedCount,
+      totalUnits,
+    }));
   };
 
   const fetchPerformanceData = async () => {
@@ -267,7 +278,7 @@ export default function BuilderDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Projects</p>
+                  <p className="text-sm text-muted-foreground">My Properties</p>
                   <p className="text-2xl font-bold">{stats.totalProjects}</p>
                 </div>
                 <Building2 className="h-8 w-8 text-primary" />
@@ -291,7 +302,7 @@ export default function BuilderDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Units</p>
+                  <p className="text-sm text-muted-foreground">Total Units (BHK)</p>
                   <p className="text-2xl font-bold">{stats.totalUnits}</p>
                 </div>
                 <Home className="h-8 w-8 text-blue-500" />
@@ -311,6 +322,7 @@ export default function BuilderDashboard() {
             </CardContent>
           </Card>
         </div>
+
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
