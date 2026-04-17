@@ -34,19 +34,38 @@ const MyFavorites = () => {
       setLoading(false);
       return;
     }
-    const { data, error } = await supabase
+    const { data: favRows, error: favErr } = await supabase
       .from("favorites")
-      .select("id, property_id, properties(*)")
+      .select("id, property_id, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    if (error) {
-      console.error(error);
+    if (favErr) {
+      console.error("favorites fetch error", favErr);
       setLoading(false);
       return;
     }
-    const mapped: FavoriteProperty[] = (data || [])
-      .filter((row: any) => row.properties)
-      .map((row: any) => ({ favorite_id: row.id, ...row.properties }));
+    const propertyIds = (favRows || []).map((r: any) => r.property_id);
+    if (propertyIds.length === 0) {
+      setFavorites([]);
+      setLoading(false);
+      return;
+    }
+    const { data: props, error: propErr } = await supabase
+      .from("properties")
+      .select("*")
+      .in("id", propertyIds);
+    if (propErr) {
+      console.error("properties fetch error", propErr);
+      setLoading(false);
+      return;
+    }
+    const propMap = new Map((props || []).map((p: any) => [p.id, p]));
+    const mapped: FavoriteProperty[] = (favRows || [])
+      .map((row: any) => {
+        const p: any = propMap.get(row.property_id);
+        return p ? { favorite_id: row.id, ...p } : null;
+      })
+      .filter(Boolean) as FavoriteProperty[];
     setFavorites(mapped);
     setLoading(false);
   };
