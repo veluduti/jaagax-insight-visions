@@ -16,6 +16,8 @@ import { motion } from "framer-motion";
 import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
 import RERAUploadModal from "@/components/builder/RERAUploadModal";
 import DocumentationModal from "@/components/builder/DocumentationModal";
+import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
+import { Sparkles } from "lucide-react";
 
 interface Project {
   id: string;
@@ -429,11 +431,29 @@ export default function BuilderDashboard() {
                   <div className="text-center py-12">
                     <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
-                    <p className="text-muted-foreground mb-4">Start by adding your first property</p>
-                    <Button onClick={() => setActiveTab("add-property")}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Property
-                    </Button>
+                    <p className="text-muted-foreground mb-4">Add your first property or load a few samples to explore the dashboard</p>
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <Button onClick={() => setActiveTab("add-property")}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Property
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={async () => {
+                          const res = await seedBuilderSampleProperties();
+                          if (res.success) {
+                            toast.success(`Added ${res.count} sample properties`);
+                            fetchProperties();
+                            fetchPendingVisitsCount();
+                          } else {
+                            toast.error(res.error || "Failed to add samples");
+                          }
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Load Sample Properties
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
