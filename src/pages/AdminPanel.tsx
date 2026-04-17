@@ -26,6 +26,7 @@ export default function AdminPanel() {
     totalAgents: 0,
     pendingVisits: 0,
     pendingSignups: 0,
+    pendingProperties: 0,
     totalBuilders: 0,
   });
   const [signupRequests, setSignupRequests] = useState<any[]>([]);
@@ -72,6 +73,7 @@ export default function AdminPanel() {
       { count: pendingVisitsCount },
       { count: pendingSignupsCount },
       { count: buildersCount },
+      { count: pendingPropertiesCount },
     ] = await Promise.all([
       supabase.from("properties").select("*", { count: "exact", head: true }),
       supabase.from("projects").select("*", { count: "exact", head: true }),
@@ -79,6 +81,7 @@ export default function AdminPanel() {
       supabase.from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("builder_profiles").select("*", { count: "exact", head: true }),
+      supabase.from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending"),
     ]);
     setStats({
       totalProperties: propertiesCount || 0,
@@ -86,6 +89,7 @@ export default function AdminPanel() {
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
       pendingSignups: pendingSignupsCount || 0,
+      pendingProperties: pendingPropertiesCount || 0,
       totalBuilders: buildersCount || 0,
     });
   };
@@ -296,7 +300,12 @@ export default function AdminPanel() {
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="properties" className="relative">
+              Properties
+              {stats.pendingProperties > 0 && (
+                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5">{stats.pendingProperties}</span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
           </TabsList>
 
