@@ -38,6 +38,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
   const [roomType, setRoomType] = useState("Standard");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const discountPct = Number(hotel.discount_percentage) || 0;
   const discountedPrice = discountPct > 0
