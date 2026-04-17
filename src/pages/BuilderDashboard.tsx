@@ -429,12 +429,13 @@ export default function BuilderDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="properties">My Properties</TabsTrigger>
             <TabsTrigger value="add-property">Add Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="promotions" onClick={() => navigate("/builder/promotions")}>Promotions</TabsTrigger>
           </TabsList>
 
           {/* My Properties Tab */}

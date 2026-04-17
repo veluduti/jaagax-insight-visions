@@ -819,6 +819,184 @@ export type Database = {
         }
         Relationships: []
       }
+      promotion_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          promotion_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          promotion_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          promotion_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_events_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotion_plans: {
+        Row: {
+          badge_label: string | null
+          benefits: string[] | null
+          created_at: string | null
+          duration_days: number
+          homepage_featured: boolean | null
+          id: string
+          is_active: boolean | null
+          map_highlight: boolean | null
+          name: string
+          price: number
+          search_boost: number | null
+          sort_order: number | null
+          tier: string
+        }
+        Insert: {
+          badge_label?: string | null
+          benefits?: string[] | null
+          created_at?: string | null
+          duration_days: number
+          homepage_featured?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          map_highlight?: boolean | null
+          name: string
+          price: number
+          search_boost?: number | null
+          sort_order?: number | null
+          tier: string
+        }
+        Update: {
+          badge_label?: string | null
+          benefits?: string[] | null
+          created_at?: string | null
+          duration_days?: number
+          homepage_featured?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          map_highlight?: boolean | null
+          name?: string
+          price?: number
+          search_boost?: number | null
+          sort_order?: number | null
+          tier?: string
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          amount_paid: number
+          badge_label: string | null
+          builder_id: string
+          clicks_count: number | null
+          created_at: string | null
+          duration_days: number
+          end_date: string
+          homepage_featured: boolean | null
+          id: string
+          leads_at_start: number | null
+          leads_count: number | null
+          map_highlight: boolean | null
+          payment_reference: string | null
+          payment_status: string
+          plan_id: string | null
+          plan_name: string
+          project_id: string | null
+          property_id: string | null
+          search_boost: number | null
+          start_date: string
+          status: string
+          target_type: string
+          tier: string
+          updated_at: string | null
+          views_at_start: number | null
+          views_count: number | null
+        }
+        Insert: {
+          amount_paid: number
+          badge_label?: string | null
+          builder_id: string
+          clicks_count?: number | null
+          created_at?: string | null
+          duration_days: number
+          end_date: string
+          homepage_featured?: boolean | null
+          id?: string
+          leads_at_start?: number | null
+          leads_count?: number | null
+          map_highlight?: boolean | null
+          payment_reference?: string | null
+          payment_status?: string
+          plan_id?: string | null
+          plan_name: string
+          project_id?: string | null
+          property_id?: string | null
+          search_boost?: number | null
+          start_date?: string
+          status?: string
+          target_type: string
+          tier: string
+          updated_at?: string | null
+          views_at_start?: number | null
+          views_count?: number | null
+        }
+        Update: {
+          amount_paid?: number
+          badge_label?: string | null
+          builder_id?: string
+          clicks_count?: number | null
+          created_at?: string | null
+          duration_days?: number
+          end_date?: string
+          homepage_featured?: boolean | null
+          id?: string
+          leads_at_start?: number | null
+          leads_count?: number | null
+          map_highlight?: boolean | null
+          payment_reference?: string | null
+          payment_status?: string
+          plan_id?: string | null
+          plan_name?: string
+          project_id?: string | null
+          property_id?: string | null
+          search_boost?: number | null
+          start_date?: string
+          status?: string
+          target_type?: string
+          tier?: string
+          updated_at?: string | null
+          views_at_start?: number | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "promotion_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       properties: {
         Row: {
           address: string | null
