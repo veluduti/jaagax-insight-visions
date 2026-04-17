@@ -38,12 +38,14 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const discountedPrice = hotel.discount_percentage
-    ? hotel.price_per_night * (1 - hotel.discount_percentage / 100)
+  const discountPct = Number(hotel.discount_percentage) || 0;
+  const discountedPrice = discountPct > 0
+    ? hotel.price_per_night * (1 - discountPct / 100)
     : hotel.price_per_night;
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
   const totalAmount = Math.round(discountedPrice * nights * parseInt(numRooms || "1"));
+  const originalAmount = Math.round(hotel.price_per_night * nights * parseInt(numRooms || "1"));
 
   const handleSubmit = async () => {
     if (!guestName.trim()) { toast.error("Please enter guest name"); return; }
