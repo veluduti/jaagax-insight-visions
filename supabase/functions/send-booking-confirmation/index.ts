@@ -1,87 +1,137 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface BookingConfirmationRequest {
-  visitorName: string;
-  visitorEmail: string;
-  projectName: string;
-  visitDate: string;
-  visitTime: string;
-  bookingId: string;
+interface Payload {
+  bookingId?: string;
+  hotelName: string;
+  guestName: string;
+  guestPhone?: string;
+  guestEmail?: string;
+  checkIn: string;
+  checkOut: string;
+  totalAmount: number;
+  bookingType: string;
+  action?: "created" | "updated" | "cancelled";
+  agentId?: string;
+  propertyId?: string;
+}
+
+function formatPhone(phone: string): string {
+  let c = phone.replace(/[\s\-\(\)]/g, "").replace("whatsapp:", "");
+  if (c.startsWith("+")) return c;
+  if (c.startsWith("91") && c.length === 12) return "+" + c;
+  if (c.length === 10 && /^\d+$/.test(c)) return "+91" + c;
+  return c.startsWith("+") ? c : "+" + c;
+}
+
+async function sendWhatsApp(to: string, body: string) {
+  const sid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const token = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const from = Deno.env.get("TWILIO_WHATSAPP_NUMBER");
+  if (!sid || !token || !from) {
+    console.warn("Twilio not configured — skipping WhatsApp");
+    return;
+  }
+  const fromNum = from.startsWith("whatsapp:") ? from : `whatsapp:${from}`;
+  const toNum = `whatsapp:${formatPhone(to)}`;
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+  const auth = btoa(`${sid}:${token}`);
+  const params = new URLSearchParams({ To: toNum, From: fromNum, Body: body });
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+    const text = await r.text();
+    console.log(`WhatsApp -> ${toNum} status=${r.status}`, text.slice(0, 200));
+  } catch (e) {
+    console.error("WhatsApp send failed:", e);
+  }
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { 
-      visitorName, 
-      visitorEmail, 
-      projectName, 
-      visitDate, 
-      visitTime,
-      bookingId 
-    }: BookingConfirmationRequest = await req.json();
+    const p: Payload = await req.json();
+    const action = p.action || "created";
+    const verb = action === "cancelled" ? "Cancelled" : action === "updated" ? "Updated" : "Confirmed";
 
-    console.log("Sending booking confirmation email to:", visitorEmail);
-
-    // In production, integrate with Resend or another email service
-    // For now, we'll log the email content
-    const emailContent = {
-      to: visitorEmail,
-      from: "noreply@yourdomain.com",
-      subject: `Site Visit Confirmed - ${projectName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">Site Visit Confirmed!</h2>
-          <p>Dear ${visitorName},</p>
-          <p>Your site visit to <strong>${projectName}</strong> has been successfully scheduled.</p>
-          
-          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Visit Details:</h3>
-            <p><strong>Project:</strong> ${projectName}</p>
-            <p><strong>Date:</strong> ${visitDate}</p>
-            <p><strong>Time:</strong> ${visitTime}</p>
-            <p><strong>Booking ID:</strong> ${bookingId}</p>
-          </div>
-
-          <p>Our team will contact you shortly to confirm the details and provide directions to the site.</p>
-          
-          <p>If you need to reschedule or cancel, please contact us at support@yourdomain.com</p>
-          
-          <p>We look forward to showing you around!</p>
-          
-          <p>Best regards,<br>The Real Estate Team</p>
-        </div>
-      `,
-    };
-
-    console.log("Email would be sent:", emailContent);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Booking confirmation logged (email service not configured)" 
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // 1. Admin in-app notification
+    const adminTitle = `🏨 Booking ${verb}: ${p.hotelName}`;
+    const adminMsg = `${p.guestName} • ${p.checkIn} → ${p.checkOut} • ₹${p.totalAmount.toLocaleString()} • ${p.bookingType === "visit_stay" ? "Visit + Stay" : "Hotel Only"}${p.guestPhone ? ` • ${p.guestPhone}` : ""}`;
+
+    await supabase.from("notifications").insert({
+      recipient_role: "admin",
+      type: `hotel_booking_${action}`,
+      title: adminTitle,
+      message: adminMsg,
+      related_id: p.bookingId,
+      metadata: p as any,
+    });
+
+    // 2. Notify assigned agent (if visit_stay)
+    if (p.agentId && p.bookingType === "visit_stay") {
+      const { data: agent } = await supabase
+        .from("agents")
+        .select("user_id, phone, name")
+        .eq("id", p.agentId)
+        .maybeSingle();
+      if (agent?.user_id) {
+        await supabase.from("notifications").insert({
+          user_id: agent.user_id,
+          recipient_role: "agent",
+          type: `hotel_booking_${action}`,
+          title: `🏨 Visit + Stay booked: ${p.hotelName}`,
+          message: adminMsg,
+          related_id: p.bookingId,
+        });
+      }
+      if (agent?.phone) {
+        await sendWhatsApp(
+          agent.phone,
+          `Hi ${agent.name || "Agent"}, ${p.guestName} booked a Visit+Stay at ${p.hotelName} (${p.checkIn} → ${p.checkOut}). Please prepare.`,
+        );
+      }
+    }
+
+    // 3. WhatsApp to buyer
+    if (p.guestPhone) {
+      const userBody =
+        action === "cancelled"
+          ? `Hi ${p.guestName}, your booking at ${p.hotelName} has been cancelled.`
+          : action === "updated"
+            ? `Hi ${p.guestName}, your booking at ${p.hotelName} was updated. New dates: ${p.checkIn} → ${p.checkOut}. Total: ₹${p.totalAmount.toLocaleString()}.`
+            : `Hi ${p.guestName}! 🎉 Your booking at ${p.hotelName} is confirmed.\nCheck-in: ${p.checkIn}\nCheck-out: ${p.checkOut}\nTotal: ₹${p.totalAmount.toLocaleString()}\nBooking ID: ${p.bookingId?.slice(0, 8)}`;
+      await sendWhatsApp(p.guestPhone, userBody);
+    }
+
+    // 4. Optional admin WhatsApp
+    const adminPhone = Deno.env.get("ADMIN_WHATSAPP");
+    if (adminPhone) {
+      await sendWhatsApp(adminPhone, `📢 ${adminTitle}\n${adminMsg}`);
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error("Error in send-booking-confirmation:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error("send-booking-confirmation error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
