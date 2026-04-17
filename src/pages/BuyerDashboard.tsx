@@ -633,20 +633,7 @@ const BuyerDashboard = () => {
 
           {/* Alerts */}
           <TabsContent value="alerts">
-            <Card>
-              <CardHeader>
-                <CardTitle>Property Alerts</CardTitle>
-                <CardDescription>Stay updated with new listings and price changes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Bell className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No alerts</h3>
-                  <p className="text-muted-foreground mb-4">Enable notifications to get instant property alerts</p>
-                  <Button>Enable Notifications</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertsPanel />
           </TabsContent>
         </Tabs>
 
