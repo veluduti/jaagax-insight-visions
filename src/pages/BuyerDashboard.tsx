@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 import MyBookings from "@/components/buyer/MyBookings";
+import MyVisits from "@/components/buyer/MyVisits";
 
 interface Property {
   id: string;
