@@ -26,6 +26,7 @@ export default function AdminPanel() {
     totalAgents: 0,
     pendingVisits: 0,
     pendingSignups: 0,
+    pendingProperties: 0,
     totalBuilders: 0,
   });
   const [signupRequests, setSignupRequests] = useState<any[]>([]);
@@ -72,6 +73,7 @@ export default function AdminPanel() {
       { count: pendingVisitsCount },
       { count: pendingSignupsCount },
       { count: buildersCount },
+      { count: pendingPropertiesCount },
     ] = await Promise.all([
       supabase.from("properties").select("*", { count: "exact", head: true }),
       supabase.from("projects").select("*", { count: "exact", head: true }),
@@ -79,6 +81,7 @@ export default function AdminPanel() {
       supabase.from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("builder_profiles").select("*", { count: "exact", head: true }),
+      supabase.from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending"),
     ]);
     setStats({
       totalProperties: propertiesCount || 0,
@@ -86,6 +89,7 @@ export default function AdminPanel() {
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
       pendingSignups: pendingSignupsCount || 0,
+      pendingProperties: pendingPropertiesCount || 0,
       totalBuilders: buildersCount || 0,
     });
   };
@@ -118,10 +122,44 @@ export default function AdminPanel() {
   const fetchProperties = async () => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, verified, type, created_at")
+      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     setProperties(data || []);
+  };
+
+  const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
+    setReviewingId(propertyId);
+    try {
+      const update: any = {
+        verification_status: decision,
+        verified: decision === "approved",
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("properties").update(update).eq("id", propertyId);
+      if (error) throw error;
+
+      // Notify the builder who submitted
+      const prop = properties.find((p) => p.id === propertyId);
+      if (prop?.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: prop.submitted_by,
+          type: decision === "approved" ? "property_approved" : "property_rejected",
+          title: decision === "approved" ? "Property Verified ✅" : "Property Rejected",
+          message: decision === "approved"
+            ? `Your property "${prop.title}" has been verified and is now live.`
+            : `Your property "${prop.title}" was rejected. Please review and resubmit.`,
+          link: "/dashboard/builder",
+        });
+      }
+
+      toast.success(`Property ${decision} successfully`);
+      await Promise.all([fetchProperties(), fetchStats()]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to review property");
+    } finally {
+      setReviewingId(null);
+    }
   };
 
   const fetchBuilders = async () => {
@@ -262,7 +300,12 @@ export default function AdminPanel() {
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
+            <TabsTrigger value="properties" className="relative">
+              Properties
+              {stats.pendingProperties > 0 && (
+                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5">{stats.pendingProperties}</span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
           </TabsList>
 
@@ -482,47 +525,124 @@ export default function AdminPanel() {
           </TabsContent>
 
           {/* === PROPERTIES === */}
-          <TabsContent value="properties">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="h-5 w-5 text-blue-500" />
-                  Properties ({properties.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {properties.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6">No properties</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead>Locality</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Verified</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {properties.map((p) => (
-                        <TableRow key={p.id}>
-                          <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
-                          <TableCell>{p.city}</TableCell>
-                          <TableCell>{p.locality}</TableCell>
-                          <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
-                          <TableCell>{p.type || "N/A"}</TableCell>
-                          <TableCell>
-                            <Badge variant={p.verified ? "default" : "secondary"}>{p.verified ? "Yes" : "No"}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="properties" className="space-y-4">
+            {(() => {
+              const pendingProps = properties.filter((p) => (p.verification_status || "pending") === "pending");
+              const reviewedProps = properties.filter((p) => (p.verification_status || "pending") !== "pending");
+              return (
+                <>
+                  <Card className="border-orange-500/40">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-orange-500">
+                        <AlertCircle className="h-5 w-5" />
+                        Pending Property Verifications ({pendingProps.length})
+                      </CardTitle>
+                      <CardDescription>Review properties submitted by builders. Approve to mark verified.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {pendingProps.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6">No pending properties 🎉</p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Title</TableHead>
+                              <TableHead>Location</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Config</TableHead>
+                              <TableHead>RERA</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pendingProps.map((p) => (
+                              <TableRow key={p.id}>
+                                <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
+                                <TableCell>{p.locality}, {p.city}</TableCell>
+                                <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
+                                <TableCell className="text-xs">{p.bhk ? `${p.bhk} BHK` : "N/A"} • {p.area_sqft || "N/A"} sqft</TableCell>
+                                <TableCell className="text-xs">
+                                  {p.rera_id ? (
+                                    <Badge variant="outline" className="text-green-500">{p.rera_id}</Badge>
+                                  ) : (
+                                    <span className="text-muted-foreground">None</span>
+                                  )}
+                                  {p.rera_document_url && (
+                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">View doc</a>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleReviewProperty(p.id, "approved")}
+                                      disabled={reviewingId === p.id}
+                                    >
+                                      {reviewingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleReviewProperty(p.id, "rejected")}
+                                      disabled={reviewingId === p.id}
+                                    >
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Home className="h-5 w-5 text-blue-500" />
+                        All Reviewed Properties ({reviewedProps.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {reviewedProps.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-6">No reviewed properties yet</p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Title</TableHead>
+                              <TableHead>City</TableHead>
+                              <TableHead>Locality</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {reviewedProps.map((p) => (
+                              <TableRow key={p.id}>
+                                <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
+                                <TableCell>{p.city}</TableCell>
+                                <TableCell>{p.locality}</TableCell>
+                                <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
+                                <TableCell>
+                                  <Badge variant={p.verification_status === "approved" ? "default" : "destructive"}>
+                                    {p.verification_status || (p.verified ? "approved" : "pending")}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
           </TabsContent>
 
           {/* === BUILDERS === */}
