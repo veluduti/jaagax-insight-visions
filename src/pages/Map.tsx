@@ -356,7 +356,7 @@ const Map = () => {
           text-align: center;
         `;
         clusterDiv.textContent = String(clusterProps.length);
-        el.appendChild(clusterDiv);
+        inner.appendChild(clusterDiv);
       } else {
         // Single property marker with type icon - use safe DOM manipulation
         const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
@@ -389,16 +389,16 @@ const Map = () => {
         
         markerDiv.appendChild(emojiSpan);
         markerDiv.appendChild(priceText);
-        el.appendChild(markerDiv);
+        inner.appendChild(markerDiv);
       }
 
-      // Add hover effect
+      // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
       el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.1) translateY(-2px)";
+        inner.style.transform = "scale(1.1) translateY(-2px)";
         el.style.zIndex = "1000";
       });
       el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
+        inner.style.transform = "scale(1)";
         el.style.zIndex = "auto";
       });
 
