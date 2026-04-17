@@ -323,18 +323,6 @@ export default function BuilderDashboard() {
           </Card>
         </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Views</p>
-                  <p className="text-2xl font-bold">{stats.totalViews}</p>
-                </div>
-                <Eye className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
