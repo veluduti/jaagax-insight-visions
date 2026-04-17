@@ -347,6 +347,8 @@ const AgentVisitsDashboard = () => {
                         )}
                       </div>
                     )}
+
+                    {visit.status === "confirmed" && (
                       <div className="mt-4 flex gap-2">
                         <Button
                           variant="default"
