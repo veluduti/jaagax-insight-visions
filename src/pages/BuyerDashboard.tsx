@@ -47,6 +47,8 @@ const BuyerDashboard = () => {
   const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   
   // EMI Calculator State
   const [loanAmount, setLoanAmount] = useState(5000000);
