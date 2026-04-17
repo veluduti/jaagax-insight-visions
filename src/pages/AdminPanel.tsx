@@ -432,6 +432,11 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
+          {/* === HOTEL BOOKINGS === */}
+          <TabsContent value="bookings">
+            <BookingsPanel />
+          </TabsContent>
+
           {/* === AGENTS === */}
           <TabsContent value="agents">
             <Card>
