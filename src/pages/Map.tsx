@@ -329,11 +329,16 @@ const Map = () => {
       const property = clusterProps[0];
       const isCluster = clusterProps.length > 1;
 
-      // Create custom marker element
+      // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
       const el = document.createElement("div");
       el.className = "property-marker";
       el.style.cursor = "pointer";
-      el.style.transition = "all 0.2s ease";
+
+      // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
+      const inner = document.createElement("div");
+      inner.style.transition = "transform 0.2s ease";
+      inner.style.transformOrigin = "center center";
+      el.appendChild(inner);
 
       if (isCluster) {
         // Cluster marker - use safe DOM manipulation
