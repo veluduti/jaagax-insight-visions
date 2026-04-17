@@ -187,19 +187,19 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           {/* Price Summary */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span>₹{Math.round(discountedPrice).toLocaleString()} × {nights} night(s) × {numRooms} room(s)</span>
-              <span>₹{totalAmount.toLocaleString()}</span>
+              <span>₹{hotel.price_per_night.toLocaleString()} × {nights} night × {numRooms} room</span>
+              <span className={discountPct > 0 ? "line-through text-muted-foreground" : ""}>₹{originalAmount.toLocaleString()}</span>
             </div>
-            {hotel.discount_percentage && hotel.discount_percentage > 0 && (
-              <div className="flex justify-between text-sm text-emerald-600">
-                <span>JaagaX Discount ({hotel.discount_percentage}%)</span>
-                <span>-₹{Math.round(hotel.price_per_night * nights * parseInt(numRooms) - totalAmount).toLocaleString()}</span>
+            {discountPct > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                <span>JaagaX Discount ({discountPct}%)</span>
+                <span>-₹{(originalAmount - totalAmount).toLocaleString()}</span>
               </div>
             )}
             <Separator />
             <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>₹{totalAmount.toLocaleString()}</span>
+              <span>Total Payable</span>
+              <span className="text-primary">₹{totalAmount.toLocaleString()}</span>
             </div>
           </div>
 
