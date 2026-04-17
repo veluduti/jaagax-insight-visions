@@ -435,7 +435,6 @@ export default function BuilderDashboard() {
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="promotions" onClick={() => navigate("/builder/promotions")}>Promotions</TabsTrigger>
           </TabsList>
 
           {/* My Properties Tab */}
