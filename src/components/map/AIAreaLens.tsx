@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,11 @@ import type mapboxgl from "mapbox-gl";
 interface AIAreaLensProps {
   map: mapboxgl.Map | null;
   properties: any[];
+  currentCity?: string;
+  onClose?: () => void;
 }
 
-const AIAreaLens = ({ map, properties }: AIAreaLensProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const AIAreaLens = ({ map, properties, currentCity, onClose }: AIAreaLensProps) => {
   const [areaStats, setAreaStats] = useState({
     avgPricePerSqft: 0,
     avgPrice: 0,
@@ -28,44 +29,32 @@ const AIAreaLens = ({ map, properties }: AIAreaLensProps) => {
   const [aiResponse, setAiResponse] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Calculate area statistics from visible properties
   const recalcStats = useCallback(() => {
-    if (!map || properties.length === 0) return;
-
+    if (!map || properties.length === 0) {
+      setAreaStats(s => ({ ...s, totalListings: 0 }));
+      return;
+    }
     const bounds = map.getBounds();
     const visible = properties.filter((prop) => {
       const lat = prop.latitude ?? prop.lat;
       const lng = prop.longitude ?? prop.lng;
       if (!lat || !lng) return false;
-      return (
-        lng >= bounds.getWest() &&
-        lng <= bounds.getEast() &&
-        lat >= bounds.getSouth() &&
-        lat <= bounds.getNorth()
-      );
+      return lng >= bounds.getWest() && lng <= bounds.getEast() && lat >= bounds.getSouth() && lat <= bounds.getNorth();
     });
 
-    const totalPrice = visible.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-    const totalArea = visible.reduce((sum: number, p: any) => sum + (p.area_sqft || 0), 0);
+    const totalPrice = visible.reduce((s: number, p: any) => s + (p.price || 0), 0);
+    const totalArea = visible.reduce((s: number, p: any) => s + (p.area_sqft || 0), 0);
     const verifiedCount = visible.filter((p: any) => p.verified).length;
-
     const typeBreakdown: Record<string, number> = {};
     const bhkBreakdown: Record<string, number> = {};
+    const localityCounts: Record<string, number> = {};
     visible.forEach((p: any) => {
       const t = p.type || "Other";
       typeBreakdown[t] = (typeBreakdown[t] || 0) + 1;
-      if (p.bhk) {
-        const b = `${p.bhk}BHK`;
-        bhkBreakdown[b] = (bhkBreakdown[b] || 0) + 1;
-      }
-    });
-
-    // Find most common locality
-    const localityCounts: Record<string, number> = {};
-    visible.forEach((p: any) => {
+      if (p.bhk) bhkBreakdown[`${p.bhk}BHK`] = (bhkBreakdown[`${p.bhk}BHK`] || 0) + 1;
       if (p.locality) localityCounts[p.locality] = (localityCounts[p.locality] || 0) + 1;
     });
-    const topLocality = Object.entries(localityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Current Area";
+    const topLocality = Object.entries(localityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || (currentCity ?? "Current Area");
 
     setAreaStats({
       avgPricePerSqft: totalArea > 0 ? Math.round(totalPrice / totalArea) : 0,
@@ -76,7 +65,7 @@ const AIAreaLens = ({ map, properties }: AIAreaLensProps) => {
       typeBreakdown,
       bhkBreakdown,
     });
-  }, [map, properties]);
+  }, [map, properties, currentCity]);
 
   useEffect(() => {
     recalcStats();
@@ -86,72 +75,99 @@ const AIAreaLens = ({ map, properties }: AIAreaLensProps) => {
     }
   }, [map, properties, recalcStats]);
 
+  // Smart local responder — Google-like deterministic answers using full property dataset
+  const localResponder = (query: string): string => {
+    const q = query.toLowerCase();
+    const fmtP = (p: number) => p >= 10000000 ? `₹${(p/10000000).toFixed(2)}Cr` : `₹${(p/100000).toFixed(1)}L`;
+
+    // City scope detection
+    const cityFilter = (props: any[]) => {
+      if (q.includes("hyderabad")) return props.filter(p => (p.city || "").toLowerCase().includes("hyderabad"));
+      if (q.includes("vijayawada")) return props.filter(p => (p.city || "").toLowerCase().includes("vijayawada"));
+      return props;
+    };
+    let scope = cityFilter(properties);
+
+    // Locality detection
+    const localityMatch = scope.find(p => p.locality && q.includes((p.locality as string).toLowerCase()));
+    if (localityMatch) scope = scope.filter(p => (p.locality || "").toLowerCase() === (localityMatch.locality as string).toLowerCase());
+
+    // BHK detection
+    const bhkMatch = q.match(/(\d)\s*bhk/);
+    if (bhkMatch) scope = scope.filter(p => p.bhk === parseInt(bhkMatch[1]));
+
+    // Type detection
+    const types = ["villa", "apartment", "plot", "penthouse", "office", "commercial"];
+    const typeWord = types.find(t => q.includes(t));
+    if (typeWord) scope = scope.filter(p => (p.type || "").toLowerCase().includes(typeWord));
+
+    // Price ceiling
+    const underMatch = q.match(/under\s*(?:₹|rs\.?)?\s*(\d+(?:\.\d+)?)\s*(cr|l|crore|lakh)?/i);
+    if (underMatch) {
+      const num = parseFloat(underMatch[1]);
+      const unit = (underMatch[2] || "l").toLowerCase();
+      const ceiling = unit.startsWith("c") ? num * 10000000 : num * 100000;
+      scope = scope.filter(p => p.price <= ceiling);
+    }
+
+    // Verified filter
+    if (q.includes("verified")) scope = scope.filter(p => p.verified);
+
+    // Cheapest / luxury keywords
+    if (q.includes("cheap") || q.includes("affordable") || q.includes("budget")) {
+      scope = [...scope].sort((a, b) => a.price - b.price);
+    } else if (q.includes("luxury") || q.includes("premium") || q.includes("expensive")) {
+      scope = [...scope].sort((a, b) => b.price - a.price);
+    }
+
+    if (scope.length === 0) {
+      return `I couldn't find matching properties. Try broader filters or check the other city.`;
+    }
+
+    // "show all" / "list" intent
+    if (q.includes("show all") || q.includes("list") || q.includes("all properties") || q.includes("how many")) {
+      const top = scope.slice(0, 5).map(p =>
+        `• ${p.title} — ${p.locality}, ${p.city} — ${fmtP(p.price)}${p.bhk ? ` (${p.bhk}BHK)` : ""}${p.verified ? " ✓" : ""}`
+      ).join("\n");
+      return `Found ${scope.length} matching properties:\n${top}${scope.length > 5 ? `\n…and ${scope.length - 5} more` : ""}`;
+    }
+
+    // Default summary
+    const totalPrice = scope.reduce((s, p) => s + (p.price || 0), 0);
+    const totalArea = scope.reduce((s, p) => s + (p.area_sqft || 0), 0);
+    const ppsqft = totalArea > 0 ? Math.round(totalPrice / totalArea) : 0;
+    const verified = scope.filter(p => p.verified).length;
+    const top = scope.slice(0, 3).map(p => `${p.title} (${fmtP(p.price)})`).join(", ");
+    return `Found ${scope.length} properties${ppsqft ? `, avg ₹${ppsqft}/sqft` : ""}, ${verified} verified. Top: ${top}.`;
+  };
+
   const handleAIQuery = async () => {
     if (!aiQuery.trim()) return;
     setIsAiLoading(true);
     setAiResponse("");
+    const queryText = aiQuery;
 
+    // Try edge function first, fall back to local
     try {
-      // Build context from properties
-      const context = {
-        totalProperties: properties.length,
-        areaName: areaStats.areaName,
-        avgPricePerSqft: areaStats.avgPricePerSqft,
-        avgPriceLakhs: areaStats.avgPrice.toFixed(1),
-        verifiedCount: areaStats.verifiedCount,
-        totalListings: areaStats.totalListings,
-        typeBreakdown: areaStats.typeBreakdown,
-        bhkBreakdown: areaStats.bhkBreakdown,
-        properties: properties.slice(0, 20).map(p => ({
-          title: p.title,
-          locality: p.locality,
-          city: p.city,
-          price: p.price,
-          area_sqft: p.area_sqft,
-          bhk: p.bhk,
-          type: p.type,
-          verified: p.verified,
-          trust_score: p.trust_score,
-        })),
-      };
-
       const { data, error } = await supabase.functions.invoke("ai-property-expert", {
         body: {
-          query: aiQuery,
-          context: JSON.stringify(context),
+          query: queryText,
+          context: JSON.stringify({
+            city: currentCity,
+            totalProperties: properties.length,
+            properties: properties.slice(0, 30).map(p => ({
+              title: p.title, locality: p.locality, city: p.city,
+              price: p.price, area_sqft: p.area_sqft, bhk: p.bhk,
+              type: p.type, verified: p.verified,
+            })),
+          }),
           mode: "area_lens",
         },
       });
-
-      if (error) throw error;
-      setAiResponse(data?.response || data?.answer || "I couldn't find specific information for that query. Try asking about prices, property types, or verified listings in this area.");
-    } catch (err: any) {
-      console.error("AI query error:", err);
-      // Fallback: generate response from local data
-      const query = aiQuery.toLowerCase();
-      let response = "";
-
-      if (query.includes("verified")) {
-        response = `There are ${areaStats.verifiedCount} JaagaX Verified™ properties out of ${areaStats.totalListings} total listings in ${areaStats.areaName}. Verified properties have undergone thorough documentation checks.`;
-      } else if (query.includes("luxury") || query.includes("premium")) {
-        const luxuryProps = properties.filter(p => p.price > 20000000);
-        response = `Found ${luxuryProps.length} luxury properties (above ₹2Cr) in the visible area. ${luxuryProps.slice(0, 3).map(p => `${p.title} at ₹${(p.price / 10000000).toFixed(1)}Cr`).join(", ")}.`;
-      } else if (query.includes("invest")) {
-        response = `${areaStats.areaName} shows an average price of ₹${areaStats.avgPricePerSqft}/sqft. With ${areaStats.verifiedCount} verified listings out of ${areaStats.totalListings}, this area has good transparency. Properties here range across ${Object.keys(areaStats.typeBreakdown).join(", ")}.`;
-      } else if (query.includes("cheap") || query.includes("affordable") || query.includes("budget")) {
-        const affordable = properties.filter(p => p.price < 5000000).sort((a, b) => a.price - b.price);
-        response = affordable.length > 0
-          ? `Found ${affordable.length} affordable properties (under ₹50L). Most affordable: ${affordable.slice(0, 3).map(p => `${p.title} at ₹${(p.price / 100000).toFixed(0)}L`).join(", ")}.`
-          : `No properties under ₹50L in the current view. Try expanding the map or adjusting filters.`;
-      } else if (query.includes("villa")) {
-        const villas = properties.filter(p => p.type?.toLowerCase().includes("villa"));
-        response = villas.length > 0
-          ? `Found ${villas.length} villas: ${villas.slice(0, 3).map(p => `${p.title} (${p.bhk}BHK, ₹${(p.price / 100000).toFixed(0)}L)`).join(", ")}.`
-          : "No villas found in the current area. Try searching in Jubilee Hills or Narsingi.";
-      } else {
-        response = `In ${areaStats.areaName}: ${areaStats.totalListings} properties, avg ₹${areaStats.avgPricePerSqft}/sqft, ${areaStats.verifiedCount} verified. Types: ${Object.entries(areaStats.typeBreakdown).map(([k, v]) => `${k}(${v})`).join(", ")}. BHK: ${Object.entries(areaStats.bhkBreakdown).map(([k, v]) => `${k}(${v})`).join(", ")}.`;
-      }
-      setAiResponse(response);
+      if (error || !data?.response) throw new Error("fallback");
+      setAiResponse(data.response);
+    } catch {
+      setAiResponse(localResponder(queryText));
     } finally {
       setIsAiLoading(false);
       setAiQuery("");
@@ -159,172 +175,117 @@ const AIAreaLens = ({ map, properties }: AIAreaLensProps) => {
   };
 
   return (
-    <>
-      {/* Compact Widget */}
-      <AnimatePresence>
-        {!isExpanded && (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="absolute bottom-6 left-6 z-20 w-full max-w-md"
+    >
+      <Card className="glass-panel p-6 space-y-4 max-h-[70vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect">
+              <Sparkles className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="font-bold">AI Area Lens</h3>
+              <p className="text-sm text-muted-foreground">{areaStats.areaName} · {currentCity}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} title="Close">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <TrendingUp className="h-4 w-4 text-primary mb-1" />
+            <p className="text-xl font-bold">₹{areaStats.avgPricePerSqft}</p>
+            <p className="text-xs text-muted-foreground">Avg/sqft</p>
+          </div>
+          <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <MapPin className="h-4 w-4 text-primary mb-1" />
+            <p className="text-xl font-bold">{areaStats.verifiedCount}</p>
+            <p className="text-xs text-muted-foreground">Verified</p>
+          </div>
+          <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <Home className="h-4 w-4 text-primary mb-1" />
+            <p className="text-xl font-bold">{areaStats.totalListings}</p>
+            <p className="text-xs text-muted-foreground">Listings</p>
+          </div>
+        </div>
+
+        {Object.keys(areaStats.typeBreakdown).length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">Property Types</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(areaStats.typeBreakdown).map(([type, count]) => (
+                <Badge key={type} variant="outline" className="text-xs">{type} ({count})</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        {Object.keys(areaStats.bhkBreakdown).length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground">BHK Distribution</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(areaStats.bhkBreakdown).sort().map(([bhk, count]) => (
+                <Badge key={bhk} variant="secondary" className="text-xs">{bhk} ({count})</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Ask JaagaXGPT about {currentCity || "this area"}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAIQuery()}
+              placeholder={`e.g., Show all 3BHK in ${currentCity || "Hyderabad"}`}
+              className="flex-1"
+              disabled={isAiLoading}
+            />
+            <Button onClick={handleAIQuery} size="icon" className="glow-effect" disabled={isAiLoading}>
+              {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {aiResponse && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-24 left-6 z-10"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20"
           >
-            <Card className="glass-panel p-4 max-w-sm cursor-pointer hover:scale-105 transition-transform" onClick={() => setIsExpanded(true)}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect">
-                  <Sparkles className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm">AI Area Lens</h3>
-                  <p className="text-xs text-muted-foreground">{areaStats.areaName}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-lg font-bold text-primary">₹{areaStats.avgPricePerSqft}</p>
-                  <p className="text-xs text-muted-foreground">Avg/sqft</p>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-primary">{areaStats.verifiedCount}</p>
-                  <p className="text-xs text-muted-foreground">Verified</p>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-primary">{areaStats.totalListings}</p>
-                  <p className="text-xs text-muted-foreground">Listings</p>
-                </div>
-              </div>
-            </Card>
+            <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{aiResponse}</p>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Expanded Panel */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="absolute bottom-6 left-6 z-10 w-full max-w-md"
-          >
-            <Card className="glass-panel p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center glow-effect">
-                    <Sparkles className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold">AI Area Lens</h3>
-                    <p className="text-sm text-muted-foreground">{areaStats.areaName}</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsExpanded(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-xl font-bold">₹{areaStats.avgPricePerSqft}</p>
-                  <p className="text-xs text-muted-foreground">Avg/sqft</p>
-                </div>
-                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MapPin className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-xl font-bold">{areaStats.verifiedCount}</p>
-                  <p className="text-xs text-muted-foreground">Verified</p>
-                </div>
-                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Home className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-xl font-bold">{areaStats.totalListings}</p>
-                  <p className="text-xs text-muted-foreground">Listings</p>
-                </div>
-              </div>
-
-              {/* Type & BHK Breakdown */}
-              {Object.keys(areaStats.typeBreakdown).length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground">Property Types</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {Object.entries(areaStats.typeBreakdown).map(([type, count]) => (
-                      <Badge key={type} variant="outline" className="text-xs">
-                        {type} ({count})
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {Object.keys(areaStats.bhkBreakdown).length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground">BHK Distribution</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {Object.entries(areaStats.bhkBreakdown).sort().map(([bhk, count]) => (
-                      <Badge key={bhk} variant="secondary" className="text-xs">
-                        {bhk} ({count})
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* AI Query Input */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Ask JaagaXGPT about this area
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    value={aiQuery}
-                    onChange={(e) => setAiQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAIQuery()}
-                    placeholder="e.g., Show luxury flats under ₹1Cr"
-                    className="flex-1"
-                    disabled={isAiLoading}
-                  />
-                  <Button onClick={handleAIQuery} size="icon" className="glow-effect" disabled={isAiLoading}>
-                    {isAiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              {/* AI Response */}
-              {aiResponse && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20"
-                >
-                  <p className="text-sm text-foreground/90 leading-relaxed">{aiResponse}</p>
-                </motion.div>
-              )}
-
-              {/* Quick Suggestions */}
-              <div className="flex flex-wrap gap-2">
-                {["Verified properties", "Best for investment", "Luxury villas", "Affordable under ₹50L", "3BHK apartments"].map(q => (
-                  <Badge
-                    key={q}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-primary/10 text-xs"
-                    onClick={() => { setAiQuery(q); }}
-                  >
-                    {q}
-                  </Badge>
-                ))}
-              </div>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        <div className="flex flex-wrap gap-2">
+          {[
+            `Show all properties in ${currentCity || "Hyderabad"}`,
+            "Verified properties",
+            "Luxury villas",
+            "Affordable under ₹50L",
+            "3BHK apartments",
+          ].map(q => (
+            <Badge
+              key={q}
+              variant="outline"
+              className="cursor-pointer hover:bg-primary/10 text-xs"
+              onClick={() => setAiQuery(q)}
+            >
+              {q}
+            </Badge>
+          ))}
+        </div>
+      </Card>
+    </motion.div>
   );
 };
 
