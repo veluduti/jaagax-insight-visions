@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Calendar, MapPin, User, Phone, Clock, Navigation as NavigationIcon } from "lucide-react";
+import { Calendar, MapPin, User, Phone, Clock, Navigation as NavigationIcon, CheckCircle, XCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 
 interface VisitBooking {
