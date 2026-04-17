@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 import MyBookings from "@/components/buyer/MyBookings";
 import MyVisits from "@/components/buyer/MyVisits";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Property {
   id: string;
