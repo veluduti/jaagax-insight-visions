@@ -322,7 +322,7 @@ const BuyerDashboard = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="recommended" className="space-y-6">
+        <Tabs value={searchParams.get("tab") || "recommended"} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
