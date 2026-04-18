@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText } from "lucide-react";
+import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function HotelPartnersPanel() {
