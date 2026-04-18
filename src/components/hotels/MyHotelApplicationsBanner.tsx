@@ -34,7 +34,7 @@ const MyHotelApplicationsBanner = () => {
     (async () => {
       const results = await Promise.all(
         local.map(async (l) => {
-          const { data } = await supabase.rpc("get_hotel_application_status", { _id: l.id });
+          const { data } = await (supabase as any).rpc("get_hotel_application_status", { _id: l.id });
           return data?.[0] as AppStatus | undefined;
         })
       );
