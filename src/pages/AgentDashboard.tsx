@@ -22,10 +22,9 @@ interface AgentProfile {
   email?: string;
   photo_url: string | null;
   agency_name: string | null;
-  cities_served: string[] | null;
-  languages: string[] | null;
+  cities_served: string[] | string | null;
+  languages: string[] | string | null;
   sales_count: number | null;
-  rent_count: number | null;
   trust_score: number | null;
   verified: boolean | null;
 }
@@ -40,7 +39,8 @@ interface Property {
   type: string | null;
   bedrooms: number | null;
   images: any;
-  active: boolean | null;
+  verified: boolean | null;
+  verification_status: string | null;
 }
 
 export default function AgentDashboard() {
