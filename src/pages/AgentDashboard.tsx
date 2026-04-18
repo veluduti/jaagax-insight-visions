@@ -800,13 +800,10 @@ export default function AgentDashboard() {
         {/* ===== Listings & Analytics ===== */}
         <div className="grid lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2 border-border/60">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />My Listings ({stats.totalProperties})
               </CardTitle>
-              <Button size="sm" variant="outline" onClick={() => navigate("/sell")}>
-                <Plus className="h-4 w-4 mr-1" />Add Property
-              </Button>
             </CardHeader>
             <CardContent>
               {properties.length === 0 ? (
