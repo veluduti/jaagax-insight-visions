@@ -624,6 +624,108 @@ export type Database = {
           },
         ]
       }
+      hotel_partner_applications: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          approved_hotel_id: string | null
+          business_registration_url: string | null
+          business_type: string
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string
+          created_at: string
+          email: string
+          gst_certificate_url: string | null
+          hotel_name: string
+          id: string
+          id_proof_url: string | null
+          latitude: number | null
+          locality: string
+          longitude: number | null
+          owner_name: string
+          phone: string
+          photos: string[] | null
+          pincode: string | null
+          price_max: number | null
+          price_min: number | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          room_types: string[] | null
+          status: string
+          total_rooms: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          approved_hotel_id?: string | null
+          business_registration_url?: string | null
+          business_type?: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city: string
+          created_at?: string
+          email: string
+          gst_certificate_url?: string | null
+          hotel_name: string
+          id?: string
+          id_proof_url?: string | null
+          latitude?: number | null
+          locality: string
+          longitude?: number | null
+          owner_name: string
+          phone: string
+          photos?: string[] | null
+          pincode?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          room_types?: string[] | null
+          status?: string
+          total_rooms?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          approved_hotel_id?: string | null
+          business_registration_url?: string | null
+          business_type?: string
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string
+          created_at?: string
+          email?: string
+          gst_certificate_url?: string | null
+          hotel_name?: string
+          id?: string
+          id_proof_url?: string | null
+          latitude?: number | null
+          locality?: string
+          longitude?: number | null
+          owner_name?: string
+          phone?: string
+          photos?: string[] | null
+          pincode?: string | null
+          price_max?: number | null
+          price_min?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          room_types?: string[] | null
+          status?: string
+          total_rooms?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
