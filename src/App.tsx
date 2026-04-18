@@ -60,6 +60,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import NaturalLiving from "./pages/NaturalLiving";
 import Hotels from "./pages/Hotels";
 import HotelDetail from "./pages/HotelDetail";
+import HotelPartnerOnboarding from "./pages/HotelPartnerOnboarding";
+import HotelPartnerStatus from "./pages/HotelPartnerStatus";
 import Promotions from "./pages/Promotions";
 import PropertyReels from "./pages/PropertyReels";
 import InnovationHub from "./pages/InnovationHub";
@@ -114,6 +116,8 @@ const App = () => (
           <Route path="/sell-property" element={<SellProperty />} />
           <Route path="/natural-living" element={<NaturalLiving />} />
           <Route path="/hotels" element={<Hotels />} />
+          <Route path="/hotels/partner" element={<HotelPartnerOnboarding />} />
+          <Route path="/hotels/partner/status" element={<HotelPartnerStatus />} />
           <Route path="/hotels/:id" element={<HotelDetail />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/reels" element={<PropertyReels />} />
