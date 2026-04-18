@@ -250,9 +250,9 @@ export default function AgentDashboard() {
         >
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <Avatar className="h-32 w-32">
-              <AvatarImage src={agentProfile.photo_url} />
+              <AvatarImage src={agentProfile.photo_url || undefined} />
               <AvatarFallback className="text-2xl">
-                {agentProfile.name.charAt(0)}
+                {(agentProfile.name || "A").charAt(0)}
               </AvatarFallback>
             </Avatar>
 
