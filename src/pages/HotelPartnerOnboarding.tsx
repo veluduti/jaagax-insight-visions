@@ -147,12 +147,22 @@ export default function HotelPartnerOnboarding() {
     if (err) return toast.error(err);
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("hotel_partner_applications").insert({
-        user_id: userId,
-        ...data,
-        status: "pending",
-      } as any);
+      const { data: inserted, error } = await supabase
+        .from("hotel_partner_applications")
+        .insert({
+          user_id: userId,
+          ...data,
+          status: "pending",
+        } as any)
+        .select("id")
+        .single();
       if (error) throw error;
+      // Persist application id locally so anonymous applicants can track status
+      try {
+        const existing = JSON.parse(localStorage.getItem("hotel_partner_applications") || "[]");
+        const next = [{ id: inserted.id, hotel_name: data.hotel_name, submitted_at: new Date().toISOString() }, ...existing].slice(0, 10);
+        localStorage.setItem("hotel_partner_applications", JSON.stringify(next));
+      } catch {}
       setSubmitted(true);
     } catch (e: any) {
       toast.error(e.message || "Submission failed");

@@ -1465,6 +1465,20 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      get_hotel_application_status: {
+        Args: { _id: string }
+        Returns: {
+          approved_hotel_id: string
+          city: string
+          created_at: string
+          hotel_name: string
+          id: string
+          locality: string
+          rejection_reason: string
+          reviewed_at: string
+          status: string
+        }[]
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       review_signup_request: {
         Args: {
