@@ -250,9 +250,9 @@ export default function AgentDashboard() {
         >
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <Avatar className="h-32 w-32">
-              <AvatarImage src={agentProfile.photo_url} />
+              <AvatarImage src={agentProfile.photo_url || undefined} />
               <AvatarFallback className="text-2xl">
-                {agentProfile.name.charAt(0)}
+                {(agentProfile.name || "A").charAt(0)}
               </AvatarFallback>
             </Avatar>
 
@@ -292,13 +292,25 @@ export default function AgentDashboard() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant="outline">
-                  <MapPin className="h-3 w-3 mr-1" />
-                  {(agentProfile.cities_served || []).join(", ")}
-                </Badge>
-                <Badge variant="outline">
-                  {(agentProfile.languages || []).join(", ")}
-                </Badge>
+                {(() => {
+                  const cities = Array.isArray(agentProfile.cities_served)
+                    ? agentProfile.cities_served.join(", ")
+                    : (agentProfile.cities_served as any) || "";
+                  const langs = Array.isArray(agentProfile.languages)
+                    ? agentProfile.languages.join(", ")
+                    : (agentProfile.languages as any) || "";
+                  return (
+                    <>
+                      {cities && (
+                        <Badge variant="outline">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {cities}
+                        </Badge>
+                      )}
+                      {langs && <Badge variant="outline">{langs}</Badge>}
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="flex gap-2 flex-wrap">
