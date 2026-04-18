@@ -474,10 +474,6 @@ export default function AgentDashboard() {
                     <Button onClick={() => navigate(`/agent/${agentProfile.id}`)} size="sm">
                       <Eye className="h-4 w-4 mr-2" />View Public Profile
                     </Button>
-                    <Button variant="outline" size="sm"
-                      onClick={() => navigate("/dashboard/agent/verifications")}>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />Verifications
-                    </Button>
                   </div>
                 </div>
               </div>
