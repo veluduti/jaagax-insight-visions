@@ -777,7 +777,9 @@ export type Database = {
           id: string
           images: string[] | null
           is_active: boolean | null
+          latitude: number | null
           locality: string
+          longitude: number | null
           manager_id: string | null
           name: string
           partner_since: string | null
@@ -802,7 +804,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           locality: string
+          longitude?: number | null
           manager_id?: string | null
           name: string
           partner_since?: string | null
@@ -827,7 +831,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           locality?: string
+          longitude?: number | null
           manager_id?: string | null
           name?: string
           partner_since?: string | null
