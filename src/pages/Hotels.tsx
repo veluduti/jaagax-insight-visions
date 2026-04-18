@@ -205,7 +205,9 @@ const Hotels = () => {
           </div>
         </section>
 
-        {/* Coming Soon Notice */}
+        {/* My Hotel Partner Application status (anonymous tracking via localStorage) */}
+        <MyHotelApplicationsBanner />
+
         <section className="py-8 px-4">
           <div className="container mx-auto max-w-7xl">
             <Card className="bg-amber-500/10 border-amber-500/20">
