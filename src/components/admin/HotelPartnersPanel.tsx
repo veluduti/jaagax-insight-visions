@@ -18,60 +18,13 @@ export default function HotelPartnersPanel() {
   const [viewing, setViewing] = useState<any | null>(null);
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
-  const [accessState, setAccessState] = useState<"checking" | "needs-auth" | "ready" | "forbidden">("checking");
-
   useEffect(() => {
-    let mounted = true;
-
-    const bootstrap = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!mounted) return;
-
-      if (!user) {
-        setAccessState("needs-auth");
-        setLoading(false);
-        return;
-      }
-
-      const { data: isAdmin, error } = await supabase.rpc("is_admin", { _user_id: user.id });
-      if (!mounted) return;
-
-      if (error) {
-        toast.error(error.message || "Unable to verify admin access");
-        setAccessState("forbidden");
-        setLoading(false);
-        return;
-      }
-
-      if (!isAdmin) {
-        setAccessState("forbidden");
-        setLoading(false);
-        return;
-      }
-
-      setAccessState("ready");
-      await load();
-
-      const channel = supabase
-        .channel("hotel_partner_apps_admin")
-        .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    };
-
-    let cleanup: (() => void) | undefined;
-    bootstrap().then((result) => {
-      cleanup = result;
-    });
-
-    return () => {
-      mounted = false;
-      cleanup?.();
-    };
+    load();
+    const channel = supabase
+      .channel("hotel_partner_apps_admin")
+      .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const load = async () => {
@@ -140,27 +93,8 @@ export default function HotelPartnersPanel() {
           </Button>
         </CardHeader>
         <CardContent>
-          {loading || accessState === "checking" ? (
+          {loading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          ) : accessState === "needs-auth" ? (
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-6 text-center">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">Admin sign-in required</h3>
-              <p className="mx-auto mb-4 max-w-xl text-sm text-muted-foreground">
-                There is a pending hotel partner request in the backend, but only a signed-in admin can view and approve it here.
-              </p>
-              <Button variant="premium" onClick={() => navigate("/auth?redirect=/admin")}>
-                <LogIn className="mr-2 h-4 w-4" /> Sign in as admin
-              </Button>
-            </div>
-          ) : accessState === "forbidden" ? (
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-6 text-center">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">Admin access only</h3>
-              <p className="mx-auto max-w-xl text-sm text-muted-foreground">
-                This section can only be used by an account with admin access.
-              </p>
-            </div>
           ) : (
             <>
               <h3 className="font-semibold mb-2 text-amber-400">Pending ({pending.length})</h3>
