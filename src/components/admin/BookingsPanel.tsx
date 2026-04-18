@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Hotel, Loader2, Bell, RefreshCw } from "lucide-react";
+import { Hotel, Loader2, Bell, RefreshCw, MapPin, User } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -36,23 +36,66 @@ interface Notification {
   read: boolean;
   created_at: string;
   related_id: string | null;
+  metadata?: any;
 }
+
+interface VisitBooking {
+  id: string;
+  buyer_name: string | null;
+  buyer_phone: string | null;
+  buyer_email: string | null;
+  visit_date: string;
+  visit_time: string | null;
+  status: string;
+  city: string | null;
+  locality: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  agent_id: string | null;
+  property_id: string | null;
+  properties?: { title: string } | null;
+  agents?: { name: string; phone: string | null } | null;
+}
+
+const VISIT_STATUS_LABEL: Record<string, string> = {
+  pending: "Pending",
+  pending_agent: "Awaiting agent",
+  pending_builder: "Agent confirmed → Builder",
+  confirmed: "Confirmed",
+  in_progress: "In progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+const visitStatusVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
+  if (s === "confirmed" || s === "in_progress") return "default";
+  if (s === "cancelled") return "destructive";
+  if (s === "completed") return "secondary";
+  return "outline";
+};
 
 const BookingsPanel = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [visits, setVisits] = useState<VisitBooking[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [{ data: rows }, { data: notifs }] = await Promise.all([
+    const [{ data: rows }, { data: visitRows }, { data: notifs }] = await Promise.all([
       supabase.from("hotel_bookings").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase
+        .from("visit_bookings")
+        .select(`*, properties(title), agents(name, phone)`)
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase
         .from("notifications")
         .select("*")
-        .like("type", "hotel_booking_%")
+        .or("type.like.hotel_booking_%,type.eq.admin_visit_event,type.eq.visit_request")
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(80),
     ]);
 
     if (rows && rows.length > 0) {
@@ -63,18 +106,20 @@ const BookingsPanel = () => {
     } else {
       setBookings([]);
     }
+    setVisits((visitRows as any) || []);
     setNotifications((notifs as any) || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchAll();
-    // realtime
     const ch = supabase
       .channel("admin-bookings")
       .on("postgres_changes", { event: "*", schema: "public", table: "hotel_bookings" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "visit_bookings" }, () => fetchAll())
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, (p: any) => {
-        if (p.new?.type?.startsWith("hotel_booking_")) {
+        const t = p.new?.type;
+        if (t?.startsWith("hotel_booking_") || t === "admin_visit_event" || t === "visit_request") {
           toast.info(p.new.title, { description: p.new.message });
           fetchAll();
         }
