@@ -196,6 +196,76 @@ const BookingsPanel = () => {
         </CardContent>
       </Card>
 
+      {/* Visit Bookings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            All Site Visit Bookings ({visits.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {visits.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">No visit bookings yet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Buyer</TableHead>
+                    <TableHead>Property</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Visit</TableHead>
+                    <TableHead>Agent</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last update</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visits.map((v) => (
+                    <TableRow key={v.id}>
+                      <TableCell>
+                        <div className="font-medium text-sm">{v.buyer_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{v.buyer_phone || v.buyer_email || "—"}</div>
+                      </TableCell>
+                      <TableCell className="text-sm font-medium">{v.properties?.title || "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {v.locality || "—"}{v.city ? `, ${v.city}` : ""}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {format(new Date(v.visit_date), "dd MMM yy")}
+                        <div className="text-muted-foreground">{v.visit_time || "TBD"}</div>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {v.agents?.name ? (
+                          <div className="flex items-center gap-1.5">
+                            <User className="h-3 w-3 text-primary" />
+                            <div>
+                              <div className="font-medium">{v.agents.name}</div>
+                              {v.agents.phone && <div className="text-muted-foreground">{v.agents.phone}</div>}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Unassigned</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={visitStatusVariant(v.status)} className="text-xs">
+                          {VISIT_STATUS_LABEL[v.status] || v.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {format(new Date(v.updated_at), "dd MMM, HH:mm")}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Bookings table */}
       <Card>
         <CardHeader>
