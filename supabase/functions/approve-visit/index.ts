@@ -91,6 +91,27 @@ serve(async (req) => {
       });
     }
 
+    // Notify all admins of builder decision
+    const { data: admins } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if (admins && admins.length > 0) {
+      const adminTitle = approved ? 'Builder approved visit' : 'Builder declined visit';
+      const adminMsg = approved
+        ? `Builder approved the visit by ${booking.buyer_name || 'buyer'} to ${property?.title} on ${booking.visit_date}. Visit fully confirmed.`
+        : `Builder declined the visit to ${property?.title}. ${rejectionReason ? 'Reason: ' + rejectionReason : ''}`;
+      const adminRows = admins.map((a: any) => ({
+        user_id: a.user_id,
+        type: 'admin_visit_event',
+        title: adminTitle,
+        message: adminMsg,
+        metadata: { booking_id: bookingId, property_id: property?.id, step: approved ? 'builder_approved' : 'builder_declined', status: newStatus },
+      }));
+      await supabase.from('notifications').insert(adminRows);
+    }
+
     console.log(`Visit ${bookingId} ${approved ? 'approved' : 'rejected'} by builder ${user.id}`);
 
     return new Response(

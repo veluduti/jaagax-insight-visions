@@ -132,9 +132,46 @@ export type Database = {
           },
         ]
       }
+      agent_ratings: {
+        Row: {
+          agent_id: string
+          booking_id: string
+          buyer_id: string
+          created_at: string
+          id: string
+          property_id: string | null
+          rating: number
+          review: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          booking_id: string
+          buyer_id: string
+          created_at?: string
+          id?: string
+          property_id?: string | null
+          rating: number
+          review?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          booking_id?: string
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          property_id?: string | null
+          rating?: number
+          review?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           agency_name: string | null
+          avg_rating: number | null
           bio: string | null
           cities_served: string | null
           created_at: string
@@ -148,6 +185,7 @@ export type Database = {
           photo_url: string | null
           sales_count: number | null
           specializations: string[] | null
+          total_ratings: number | null
           trust_score: number | null
           updated_at: string
           user_id: string | null
@@ -155,6 +193,7 @@ export type Database = {
         }
         Insert: {
           agency_name?: string | null
+          avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
           created_at?: string
@@ -168,6 +207,7 @@ export type Database = {
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
+          total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
           user_id?: string | null
@@ -175,6 +215,7 @@ export type Database = {
         }
         Update: {
           agency_name?: string | null
+          avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
           created_at?: string
@@ -188,6 +229,7 @@ export type Database = {
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
+          total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
           user_id?: string | null

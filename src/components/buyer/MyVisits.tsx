@@ -31,7 +31,8 @@ interface Visit {
   created_at: string;
   updated_at: string;
   properties?: { id: string; title: string; city: string | null; locality: string | null; images: any; price: number | null } | null;
-  agents?: { name: string; phone: string | null; photo_url: string | null } | null;
+  agents?: { id?: string; name: string; phone: string | null; photo_url: string | null } | null;
+  my_rating?: { rating: number; review: string | null } | null;
 }
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80";
@@ -70,22 +71,24 @@ const MyVisits = () => {
   const fetchVisits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("visit_bookings")
-      .select(`*, properties(id, title, city, locality, images, price), agents(name, phone, photo_url)`)
-      .or(`buyer_id.eq.${user.id},user_id.eq.${user.id}` as any)
+      .select(`*, properties(id, title, city, locality, images, price), agents(id, name, phone, photo_url)`)
+      .eq("buyer_id", user.id)
       .order("visit_date", { ascending: false });
-    if (error) {
-      // fallback by buyer_id only
-      const { data: d2 } = await supabase
-        .from("visit_bookings")
-        .select(`*, properties(id, title, city, locality, images, price), agents(name, phone, photo_url)`)
-        .eq("buyer_id", user.id)
-        .order("visit_date", { ascending: false });
-      setVisits((d2 as any) || []);
-    } else {
-      setVisits((data as any) || []);
+    const list: any[] = (data as any) || [];
+
+    if (list.length > 0) {
+      const ids = list.map((v) => v.id);
+      const { data: ratings } = await supabase
+        .from("agent_ratings" as any)
+        .select("booking_id, rating, review")
+        .in("booking_id", ids);
+      const map = new Map((ratings || []).map((r: any) => [r.booking_id, r]));
+      list.forEach((v) => { v.my_rating = map.get(v.id) || null; });
     }
+
+    setVisits(list);
     setLoading(false);
   };
 
@@ -116,9 +119,11 @@ const MyVisits = () => {
   };
 
   const handleCancel = async (id: string) => {
-    const { error } = await supabase.from("visit_bookings").update({ status: "cancelled" }).eq("id", id);
+    const { error } = await supabase.functions.invoke("buyer-update-visit", {
+      body: { bookingId: id, action: "cancel" },
+    });
     if (error) toast.error("Failed to cancel");
-    else { toast.success("Visit cancelled"); fetchVisits(); }
+    else { toast.success("Visit cancelled — agent and admins notified"); fetchVisits(); }
   };
 
   const openReschedule = (v: Visit) => {
@@ -127,24 +132,39 @@ const MyVisits = () => {
 
   const submitReschedule = async () => {
     if (!rescheduleVisit) return;
-    const { error } = await supabase.from("visit_bookings")
-      .update({ visit_date: newDate, visit_time: newTime, status: "confirmed" })
-      .eq("id", rescheduleVisit.id);
+    const { error } = await supabase.functions.invoke("buyer-update-visit", {
+      body: { bookingId: rescheduleVisit.id, action: "reschedule", newDate, newTime },
+    });
     if (error) toast.error("Reschedule failed");
-    else { toast.success("Visit rescheduled"); setRescheduleOpen(false); fetchVisits(); }
+    else { toast.success("Rescheduled — agent will reconfirm"); setRescheduleOpen(false); fetchVisits(); }
   };
 
   const openRating = (v: Visit) => {
-    setRatingVisit(v); setStars(0); setFeedback(""); setRatingOpen(true);
+    setRatingVisit(v);
+    setStars(v.my_rating?.rating || 0);
+    setFeedback(v.my_rating?.review || "");
+    setRatingOpen(true);
   };
 
   const submitRating = async () => {
     if (!ratingVisit || stars === 0) { toast.error("Please select a rating"); return; }
-    const ratingNote = `Rating: ${stars}/5${feedback ? ` | Feedback: ${feedback}` : ""}`;
-    const newNotes = ratingVisit.notes ? `${ratingVisit.notes}\n${ratingNote}` : ratingNote;
-    const { error } = await supabase.from("visit_bookings").update({ notes: newNotes }).eq("id", ratingVisit.id);
-    if (error) toast.error("Failed to save rating");
-    else { toast.success("Thanks for your feedback!"); setRatingOpen(false); fetchVisits(); }
+    if (!ratingVisit.agent_id) { toast.error("No agent on this booking to rate"); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Login required"); return; }
+
+    const { error } = await supabase.from("agent_ratings" as any).upsert({
+      booking_id: ratingVisit.id,
+      agent_id: ratingVisit.agent_id,
+      buyer_id: user.id,
+      property_id: ratingVisit.property_id,
+      rating: stars,
+      review: feedback || null,
+    }, { onConflict: "booking_id" });
+
+    if (error) { toast.error("Failed to save rating"); return; }
+    toast.success("Thanks! Your rating helps other buyers find great agents.");
+    setRatingOpen(false);
+    fetchVisits();
   };
 
   const addToFavorites = async (propertyId: string | null) => {
@@ -286,8 +306,7 @@ const VisitCard = ({ v, formatDate, statusBadge, onView, onCancel, onReschedule,
   const isScheduled = SCHEDULED_STATUSES.includes(v.status);
   const isCompleted = v.status === "completed";
   const isCancelled = v.status === "cancelled";
-  const ratingMatch = v.notes?.match(/Rating:\s*(\d(?:\.\d)?)\s*\/\s*5/i);
-  const rating = ratingMatch ? parseFloat(ratingMatch[1]) : null;
+  const rating = v.my_rating?.rating ?? null;
 
   return (
     <Card className="overflow-hidden">

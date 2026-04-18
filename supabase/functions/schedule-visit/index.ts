@@ -105,6 +105,7 @@ serve(async (req) => {
     });
 
     // Notify the assigned agent so they can review & confirm
+    let agentName = '';
     if (agentId) {
       const { data: agentRow } = await supabase
         .from('agents')
@@ -112,15 +113,35 @@ serve(async (req) => {
         .eq('id', agentId)
         .maybeSingle();
 
+      agentName = agentRow?.name || '';
+
       if (agentRow?.user_id) {
         await supabase.from('notifications').insert({
           user_id: agentRow.user_id,
-          type: 'booking',
+          type: 'visit_request',
           title: 'New visit request',
           message: `${bookingData.userName} requested a site visit for ${property?.title || 'a property'} on ${bookingData.visitDate} at ${bookingData.visitTime}. Please review and confirm.`,
           metadata: { booking_id: booking.id, property_id: bookingData.propertyId, action: 'agent_confirm' },
         });
       }
+    }
+
+    // Notify all admins
+    const { data: admins } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if (admins && admins.length > 0) {
+      const adminMsg = `${bookingData.userName} booked a visit to ${property?.title || 'a property'} on ${bookingData.visitDate} at ${bookingData.visitTime}.${agentName ? ` Assigned to agent ${agentName}.` : ' (No agent assigned yet)'}`;
+      const adminRows = admins.map((a: any) => ({
+        user_id: a.user_id,
+        type: 'admin_visit_event',
+        title: 'New visit booking',
+        message: adminMsg,
+        metadata: { booking_id: booking.id, property_id: bookingData.propertyId, agent_id: agentId, agent_name: agentName, step: 'created' },
+      }));
+      await supabase.from('notifications').insert(adminRows);
     }
 
     return new Response(

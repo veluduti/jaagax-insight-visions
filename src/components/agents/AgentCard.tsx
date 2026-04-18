@@ -10,6 +10,7 @@ import {
   MapPin,
   MessageCircle,
   Eye,
+  Star,
 } from "lucide-react";
 
 interface AgentCardProps {
@@ -24,6 +25,8 @@ interface AgentCardProps {
     photo_url: string | null;
     trust_score: number | null;
     verified: boolean | null;
+    avg_rating?: number | null;
+    total_ratings?: number | null;
   };
   index: number;
 }
@@ -61,10 +64,19 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
           </div>
         </div>
 
-        {/* Trust Score */}
-        <Badge variant="secondary" className="mb-3">
-          Trust Score: {agent.trust_score || 0}%
-        </Badge>
+        {/* Trust + Rating */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <Badge variant="secondary">
+            Trust Score: {agent.trust_score || 0}%
+          </Badge>
+          {(agent.total_ratings ?? 0) > 0 && (
+            <Badge variant="outline" className="gap-1">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              {Number(agent.avg_rating || 0).toFixed(1)}
+              <span className="text-muted-foreground ml-0.5">({agent.total_ratings})</span>
+            </Badge>
+          )}
+        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
