@@ -93,27 +93,8 @@ export default function HotelPartnersPanel() {
           </Button>
         </CardHeader>
         <CardContent>
-          {loading || accessState === "checking" ? (
+          {loading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          ) : accessState === "needs-auth" ? (
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-6 text-center">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">Admin sign-in required</h3>
-              <p className="mx-auto mb-4 max-w-xl text-sm text-muted-foreground">
-                There is a pending hotel partner request in the backend, but only a signed-in admin can view and approve it here.
-              </p>
-              <Button variant="premium" onClick={() => navigate("/auth?redirect=/admin")}>
-                <LogIn className="mr-2 h-4 w-4" /> Sign in as admin
-              </Button>
-            </div>
-          ) : accessState === "forbidden" ? (
-            <div className="rounded-lg border border-border/60 bg-muted/20 p-6 text-center">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">Admin access only</h3>
-              <p className="mx-auto max-w-xl text-sm text-muted-foreground">
-                This section can only be used by an account with admin access.
-              </p>
-            </div>
           ) : (
             <>
               <h3 className="font-semibold mb-2 text-amber-400">Pending ({pending.length})</h3>
