@@ -528,7 +528,7 @@ export default function AgentDashboard() {
                           className="w-full h-full object-cover"
                         />
                         <Badge className="absolute top-2 right-2 bg-primary">
-                          {property.active ? "Active" : "Inactive"}
+                          {property.verified ? "Verified" : "Pending"}
                         </Badge>
                       </div>
                       <CardContent className="p-4">
