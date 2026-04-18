@@ -11,59 +11,49 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { 
-  Camera, MapPin, FileCheck, Upload, CheckCircle2, 
-  XCircle, Clock, Navigation as NavigationIcon, Loader2
+import {
+  Camera, MapPin, FileCheck, Upload, CheckCircle2,
+  XCircle, Clock, Navigation as NavigationIcon, Loader2, ShieldCheck, Building2
 } from "lucide-react";
-import { format } from "date-fns";
 
-interface PropertyVerification {
+interface PendingProperty {
   id: string;
-  property_id: string;
-  assigned_at: string;
-  status: string;
-  verification_type: string;
-  location_verified: boolean;
-  documents_verified: boolean;
-  photos_match: boolean;
-  agent_notes: string | null;
-  verification_photos: any;
-  gps_coordinates: any;
-  properties?: {
-    id: string;
-    title: string;
-    address: string;
-    locality: string | null;
-    city: string | null;
-    price: number;
-    images: any;
-  };
+  title: string;
+  address: string | null;
+  locality: string | null;
+  city: string | null;
+  price: number;
+  images: string[] | null;
+  verification_status: string;
+  verified: boolean | null;
+  rera_id: string | null;
+  created_at: string | null;
+  builder_id: string | null;
 }
 
 const AgentVerificationDashboard = () => {
   const navigate = useNavigate();
-  const [verifications, setVerifications] = useState<PropertyVerification[]>([]);
+  const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeVerification, setActiveVerification] = useState<PropertyVerification | null>(null);
+  const [active, setActive] = useState<PendingProperty | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [capturingLocation, setCapturingLocation] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Form state for active verification
-  const [formState, setFormState] = useState({
-    locationVerified: false,
-    documentsVerified: false,
-    photosMatch: false,
-    agentNotes: "",
-    capturedPhotos: [] as string[],
-    gpsCoordinates: null as { lat: number; lng: number } | null,
+  const [capturing, setCapturing] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [form, setForm] = useState({
+    locationOk: false,
+    documentsOk: false,
+    photosOk: false,
+    notes: "",
+    photos: [] as string[],
+    gps: null as { lat: number; lng: number } | null,
   });
 
   useEffect(() => {
-    fetchVerifications();
+    fetchPending();
   }, []);
 
-  const fetchVerifications = async () => {
+  const fetchPending = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -72,155 +62,110 @@ const AgentVerificationDashboard = () => {
         return;
       }
 
-      // Get agent ID
-      const { data: agentData } = await supabase
-        .from("agents")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!agentData) {
-        toast.error("Agent profile not found");
-        return;
-      }
-
+      // Properties needing verification: not verified yet
       const { data, error } = await supabase
-        .from("property_verifications")
-        .select(`
-          *,
-          properties (
-            id, title, address, locality, city, price, images
-          )
-        `)
-        .eq("agent_id", agentData.id)
-        .in("status", ["assigned", "in_progress"])
-        .order("assigned_at", { ascending: false });
+        .from("properties")
+        .select("id, title, address, locality, city, price, images, verification_status, verified, rera_id, created_at, builder_id")
+        .or("verified.is.null,verified.eq.false")
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (error) throw error;
-      setVerifications((data || []) as PropertyVerification[]);
-    } catch (error) {
-      console.error("Error fetching verifications:", error);
-      toast.error("Failed to load verifications");
+      setProperties((data || []) as PendingProperty[]);
+    } catch (e: any) {
+      console.error("Verifications fetch error:", e);
+      toast.error(e?.message || "Failed to load properties");
     } finally {
       setLoading(false);
     }
   };
 
-  const startVerification = (verification: PropertyVerification) => {
-    setActiveVerification(verification);
-    setFormState({
-      locationVerified: verification.location_verified || false,
-      documentsVerified: verification.documents_verified || false,
-      photosMatch: verification.photos_match || false,
-      agentNotes: verification.agent_notes || "",
-      capturedPhotos: Array.isArray(verification.verification_photos) 
-        ? verification.verification_photos 
-        : [],
-      gpsCoordinates: verification.gps_coordinates || null,
+  const startVerify = (p: PendingProperty) => {
+    setActive(p);
+    setForm({
+      locationOk: false,
+      documentsOk: false,
+      photosOk: false,
+      notes: "",
+      photos: [],
+      gps: null,
     });
   };
 
-  const captureGPSLocation = () => {
+  const captureGPS = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation not supported by your browser");
+      toast.error("Geolocation not supported");
       return;
     }
-
-    setCapturingLocation(true);
+    setCapturing(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormState(prev => ({
-          ...prev,
-          gpsCoordinates: {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          },
-        }));
-        toast.success("GPS location captured!");
-        setCapturingLocation(false);
+      (pos) => {
+        setForm((p) => ({ ...p, gps: { lat: pos.coords.latitude, lng: pos.coords.longitude } }));
+        toast.success("GPS captured");
+        setCapturing(false);
       },
-      (error) => {
-        toast.error("Failed to get location: " + error.message);
-        setCapturingLocation(false);
+      (err) => {
+        toast.error("Location error: " + err.message);
+        setCapturing(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || !activeVerification) return;
-
-    const uploadPromises = Array.from(files).map(async (file) => {
-      const fileName = `verifications/${activeVerification.id}/${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from("property-images")
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from("property-images")
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    });
-
+  const uploadPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !active) return;
     try {
-      const uploadedUrls = await Promise.all(uploadPromises);
-      setFormState(prev => ({
-        ...prev,
-        capturedPhotos: [...prev.capturedPhotos, ...uploadedUrls],
-      }));
+      const urls = await Promise.all(
+        Array.from(files).map(async (f) => {
+          const path = `verifications/${active.id}/${Date.now()}-${f.name.replace(/\s+/g, "_")}`;
+          const { error } = await supabase.storage.from("rera-documents").upload(path, f);
+          if (error) throw error;
+          const { data } = supabase.storage.from("rera-documents").getPublicUrl(path);
+          return data.publicUrl;
+        })
+      );
+      setForm((p) => ({ ...p, photos: [...p.photos, ...urls] }));
       toast.success(`${files.length} photo(s) uploaded`);
-    } catch (error) {
-      toast.error("Failed to upload photos");
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed");
     }
   };
 
-  const submitVerification = async () => {
-    if (!activeVerification) return;
-
-    if (!formState.gpsCoordinates) {
-      toast.error("Please capture GPS location first");
-      return;
-    }
-
-    if (formState.capturedPhotos.length === 0) {
-      toast.error("Please upload at least one verification photo");
-      return;
+  const submit = async () => {
+    if (!active) return;
+    if (!form.gps) return toast.error("Capture GPS location first");
+    if (form.photos.length === 0) return toast.error("Upload at least one photo");
+    if (!form.locationOk || !form.documentsOk || !form.photosOk) {
+      return toast.error("Complete the verification checklist");
     }
 
     setSubmitting(true);
     try {
       const { error } = await supabase
-        .from("property_verifications")
+        .from("properties")
         .update({
-          status: "completed",
-          completed_at: new Date().toISOString(),
-          location_verified: formState.locationVerified,
-          documents_verified: formState.documentsVerified,
-          photos_match: formState.photosMatch,
-          agent_notes: formState.agentNotes,
-          verification_photos: formState.capturedPhotos,
-          gps_coordinates: formState.gpsCoordinates,
-          final_status: "pending_review",
+          verified: true,
+          verification_status: "verified",
+          latitude: form.gps.lat,
+          longitude: form.gps.lng,
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", activeVerification.id);
+        .eq("id", active.id);
 
       if (error) throw error;
-
-      toast.success("Verification report submitted for admin review!");
-      setActiveVerification(null);
-      fetchVerifications();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit verification");
+      toast.success("Property verified successfully!");
+      setActive(null);
+      fetchPending();
+    } catch (e: any) {
+      toast.error(e?.message || "Submit failed");
     } finally {
       setSubmitting(false);
     }
   };
 
   const formatPrice = (price: number) => {
+    if (!price) return "—";
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
     return `₹${(price / 100000).toFixed(2)} L`;
   };
@@ -231,277 +176,204 @@ const AgentVerificationDashboard = () => {
 
       <div className="pt-24 pb-16">
         <div className="container-padding max-w-6xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4 text-gradient">Property Verifications</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <ShieldCheck className="w-8 h-8 text-primary" />
+              <h1 className="text-4xl font-bold">Property Verifications</h1>
+            </div>
             <p className="text-muted-foreground">
-              Complete field verification reports for assigned properties
+              Visit pending properties, capture GPS &amp; photos, and verify listings to earn trust points.
             </p>
           </div>
 
-          {/* Active Verification Form */}
-          {activeVerification && (
-            <Card className="glass-card mb-8 border-primary/50">
+          {/* Stats strip */}
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            <Card className="border-border/60">
+              <CardContent className="p-4 text-center">
+                <Clock className="w-5 h-5 text-primary mx-auto mb-1" />
+                <p className="text-2xl font-bold">{properties.length}</p>
+                <p className="text-xs text-muted-foreground">Pending</p>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60">
+              <CardContent className="p-4 text-center">
+                <CheckCircle2 className="w-5 h-5 text-primary mx-auto mb-1" />
+                <p className="text-2xl font-bold">{form.photos.length}</p>
+                <p className="text-xs text-muted-foreground">Photos Captured</p>
+              </CardContent>
+            </Card>
+            <Card className="border-border/60">
+              <CardContent className="p-4 text-center">
+                <MapPin className="w-5 h-5 text-primary mx-auto mb-1" />
+                <p className="text-2xl font-bold">{form.gps ? "✓" : "—"}</p>
+                <p className="text-xs text-muted-foreground">GPS Status</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Active form */}
+          {active && (
+            <Card className="mb-8 border-primary/50">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <FileCheck className="w-5 h-5 text-primary" />
-                      Verification In Progress
+                      Verifying: {active.title}
                     </CardTitle>
                     <CardDescription>
-                      {activeVerification.properties?.title}
+                      {active.address || `${active.locality}, ${active.city}`}
                     </CardDescription>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setActiveVerification(null)}
-                  >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    Cancel
+                  <Button variant="ghost" size="sm" onClick={() => setActive(null)}>
+                    <XCircle className="w-4 h-4 mr-1" /> Close
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Property Info */}
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Address:</span>
-                      <p className="font-medium">{activeVerification.properties?.address}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Price:</span>
-                      <p className="font-medium">{formatPrice(activeVerification.properties?.price || 0)}</p>
-                    </div>
+                <div className="p-4 bg-muted/50 rounded-lg grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Price:</span>
+                    <p className="font-medium">{formatPrice(active.price)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">RERA ID:</span>
+                    <p className="font-medium">{active.rera_id || "Not provided"}</p>
                   </div>
                 </div>
 
-                {/* GPS Capture */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <NavigationIcon className="w-4 h-4" />
-                    GPS Location
+                    <NavigationIcon className="w-4 h-4" /> GPS Location
                   </Label>
-                  <div className="flex gap-3 items-center">
-                    <Button
-                      variant="outline"
-                      onClick={captureGPSLocation}
-                      disabled={capturingLocation}
-                    >
-                      {capturingLocation ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <MapPin className="w-4 h-4 mr-2" />
-                      )}
+                  <div className="flex gap-3 items-center flex-wrap">
+                    <Button variant="outline" onClick={captureGPS} disabled={capturing}>
+                      {capturing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <MapPin className="w-4 h-4 mr-2" />}
                       Capture Location
                     </Button>
-                    {formState.gpsCoordinates && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        ✓ {formState.gpsCoordinates.lat.toFixed(6)}, {formState.gpsCoordinates.lng.toFixed(6)}
+                    {form.gps && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        ✓ {form.gps.lat.toFixed(5)}, {form.gps.lng.toFixed(5)}
                       </Badge>
                     )}
                   </div>
                 </div>
 
-                {/* Photo Upload */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Camera className="w-4 h-4" />
-                    Verification Photos
+                    <Camera className="w-4 h-4" /> Site Photos
                   </Label>
-                  <div className="flex gap-3 items-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Photos
+                  <div className="flex gap-3 items-center flex-wrap">
+                    <Button variant="outline" onClick={() => fileRef.current?.click()}>
+                      <Upload className="w-4 h-4 mr-2" /> Upload Photos
                     </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {formState.capturedPhotos.length} photo(s) uploaded
-                    </span>
+                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={uploadPhotos} />
+                    <span className="text-sm text-muted-foreground">{form.photos.length} uploaded</span>
                   </div>
-                  {formState.capturedPhotos.length > 0 && (
+                  {form.photos.length > 0 && (
                     <div className="flex gap-2 flex-wrap mt-2">
-                      {formState.capturedPhotos.map((photo, idx) => (
-                        <img 
-                          key={idx} 
-                          src={photo} 
-                          alt={`Verification ${idx + 1}`}
-                          className="w-20 h-20 object-cover rounded-lg border"
-                        />
+                      {form.photos.map((p, i) => (
+                        <img key={i} src={p} alt={`shot ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border" />
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Verification Checklist */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <Label>Verification Checklist</Label>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
+                  {[
+                    { k: "locationOk", l: "Property location matches the listed address" },
+                    { k: "documentsOk", l: "Builder/owner documents are valid (RERA, ownership)" },
+                    { k: "photosOk", l: "Listed photos accurately represent the property" },
+                  ].map((c) => (
+                    <div key={c.k} className="flex items-center gap-3">
                       <Checkbox
-                        id="location"
-                        checked={formState.locationVerified}
-                        onCheckedChange={(checked) => 
-                          setFormState(prev => ({ ...prev, locationVerified: !!checked }))
-                        }
+                        id={c.k}
+                        checked={(form as any)[c.k]}
+                        onCheckedChange={(v) => setForm((p) => ({ ...p, [c.k]: !!v }))}
                       />
-                      <Label htmlFor="location" className="font-normal">
-                        Property location matches the address
-                      </Label>
+                      <Label htmlFor={c.k} className="font-normal">{c.l}</Label>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id="documents"
-                        checked={formState.documentsVerified}
-                        onCheckedChange={(checked) => 
-                          setFormState(prev => ({ ...prev, documentsVerified: !!checked }))
-                        }
-                      />
-                      <Label htmlFor="documents" className="font-normal">
-                        Builder documents are valid and verified
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id="photos"
-                        checked={formState.photosMatch}
-                        onCheckedChange={(checked) => 
-                          setFormState(prev => ({ ...prev, photosMatch: !!checked }))
-                        }
-                      />
-                      <Label htmlFor="photos" className="font-normal">
-                        Listed photos accurately represent the property
-                      </Label>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Agent Notes */}
-                <div className="space-y-3">
-                  <Label htmlFor="notes">Verification Notes</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Field Notes</Label>
                   <Textarea
                     id="notes"
-                    placeholder="Add detailed observations, concerns, or recommendations..."
-                    value={formState.agentNotes}
-                    onChange={(e) => setFormState(prev => ({ ...prev, agentNotes: e.target.value }))}
                     rows={4}
+                    placeholder="Observations, concerns, neighborhood notes..."
+                    value={form.notes}
+                    onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                   />
                 </div>
 
-                {/* Submit */}
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={submitVerification}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="w-5 h-5 mr-2" />
-                  )}
-                  Submit Verification Report
+                <Button className="w-full" size="lg" onClick={submit} disabled={submitting}>
+                  {submitting ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
+                  Mark Property as Verified
                 </Button>
               </CardContent>
             </Card>
           )}
 
-          {/* Verifications List */}
+          {/* List */}
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <Skeleton className="h-24 w-full" />
-                  </CardContent>
-                </Card>
+                <Card key={i}><CardContent className="p-6"><Skeleton className="h-24 w-full" /></CardContent></Card>
               ))}
             </div>
-          ) : verifications.length === 0 ? (
-            <Card className="glass-card p-12 text-center">
-              <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
+          ) : properties.length === 0 ? (
+            <Card className="p-12 text-center">
+              <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-primary" />
               <h3 className="text-lg font-semibold mb-2">All caught up!</h3>
-              <p className="text-muted-foreground mb-4">No pending verifications</p>
-              <Button onClick={() => navigate("/dashboard/agent")}>
-                Back to Dashboard
-              </Button>
+              <p className="text-muted-foreground mb-4">No properties pending verification right now.</p>
+              <Button onClick={() => navigate("/dashboard/agent")}>Back to Dashboard</Button>
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              {verifications.map((verification) => (
-                <Card 
-                  key={verification.id} 
-                  className={`glass-card hover:shadow-lg transition-all ${
-                    activeVerification?.id === verification.id ? 'ring-2 ring-primary' : ''
-                  }`}
-                >
+              {properties.map((p) => (
+                <Card key={p.id} className={`hover:shadow-lg transition-all ${active?.id === p.id ? "ring-2 ring-primary" : ""}`}>
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          {verification.properties?.title}
-                        </CardTitle>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg truncate">{p.title}</CardTitle>
                         <CardDescription className="flex items-center gap-1 mt-1">
                           <MapPin className="w-3 h-3" />
-                          {verification.properties?.locality}, {verification.properties?.city}
+                          {p.locality || "—"}, {p.city || "—"}
                         </CardDescription>
                       </div>
-                      <Badge className={
-                        verification.status === "assigned" 
-                          ? "bg-yellow-500" 
-                          : "bg-blue-500"
-                      }>
-                        {verification.status === "assigned" ? (
-                          <><Clock className="w-3 h-3 mr-1" />Pending</>
-                        ) : (
-                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />In Progress</>
-                        )}
+                      <Badge className="bg-yellow-500 shrink-0">
+                        <Clock className="w-3 h-3 mr-1" /> Pending
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Type:</span>
-                        <span className="font-medium capitalize">{verification.verification_type}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Assigned:</span>
-                        <span className="font-medium">
-                          {format(new Date(verification.assigned_at), "MMM dd, yyyy")}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Price:</span>
+                        <span className="font-medium">{formatPrice(p.price)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">RERA:</span>
+                        <span className="font-medium">{p.rera_id ? "Provided" : "Missing"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Listed:</span>
                         <span className="font-medium">
-                          {formatPrice(verification.properties?.price || 0)}
+                          {p.created_at ? new Date(p.created_at).toLocaleDateString() : "—"}
                         </span>
                       </div>
                     </div>
-
-                    <Button
-                      className="w-full mt-4"
-                      onClick={() => startVerification(verification)}
-                      disabled={activeVerification?.id === verification.id}
-                    >
-                      <FileCheck className="w-4 h-4 mr-2" />
-                      {activeVerification?.id === verification.id 
-                        ? "Currently Editing" 
-                        : "Start Verification"
-                      }
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <Button variant="outline" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
+                        <Building2 className="w-4 h-4 mr-1" /> View
+                      </Button>
+                      <Button onClick={() => startVerify(p)} disabled={active?.id === p.id}>
+                        <FileCheck className="w-4 h-4 mr-1" />
+                        {active?.id === p.id ? "Editing" : "Verify"}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
