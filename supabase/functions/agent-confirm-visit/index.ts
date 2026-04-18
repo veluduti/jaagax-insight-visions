@@ -112,6 +112,29 @@ serve(async (req) => {
       });
     }
 
+    // Notify all admins of agent decision
+    const { data: admins } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if (admins && admins.length > 0) {
+      const adminTitle = approved
+        ? (hasBuilder ? 'Agent confirmed — builder pending' : 'Agent confirmed visit')
+        : 'Agent declined visit';
+      const adminMsg = approved
+        ? `Agent ${agentRow?.name || 'unknown'} confirmed the visit by ${booking.buyer_name || 'buyer'} to ${property?.title} on ${booking.visit_date}.${hasBuilder ? ' Awaiting builder approval.' : ''}`
+        : `Agent ${agentRow?.name || 'unknown'} declined the visit by ${booking.buyer_name || 'buyer'} to ${property?.title}. ${rejectionReason ? 'Reason: ' + rejectionReason : ''}`;
+      const adminRows = admins.map((a: any) => ({
+        user_id: a.user_id,
+        type: 'admin_visit_event',
+        title: adminTitle,
+        message: adminMsg,
+        metadata: { booking_id: bookingId, property_id: property?.id, agent_id: booking.agent_id, agent_name: agentRow?.name, step: approved ? 'agent_confirmed' : 'agent_declined', status: newStatus },
+      }));
+      await supabase.from('notifications').insert(adminRows);
+    }
+
     return new Response(
       JSON.stringify({ success: true, status: newStatus }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
