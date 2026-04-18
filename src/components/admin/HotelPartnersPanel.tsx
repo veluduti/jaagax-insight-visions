@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText } from "lucide-react";
+import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function HotelPartnersPanel() {
@@ -17,7 +17,14 @@ export default function HotelPartnersPanel() {
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("hotel_partner_apps_admin")
+      .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -75,9 +82,14 @@ export default function HotelPartnersPanel() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Hotel Partner Applications</CardTitle>
-          <CardDescription>Verify and approve incoming partner hotel registrations</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle>Hotel Partner Applications</CardTitle>
+            <CardDescription>Verify and approve incoming partner hotel registrations</CardDescription>
+          </div>
+          <Button size="sm" variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
