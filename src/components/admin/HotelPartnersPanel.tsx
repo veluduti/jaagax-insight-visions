@@ -17,7 +17,14 @@ export default function HotelPartnersPanel() {
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("hotel_partner_apps_admin")
+      .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const load = async () => {
     setLoading(true);
