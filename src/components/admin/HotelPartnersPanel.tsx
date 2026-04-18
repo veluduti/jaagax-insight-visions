@@ -82,9 +82,14 @@ export default function HotelPartnersPanel() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Hotel Partner Applications</CardTitle>
-          <CardDescription>Verify and approve incoming partner hotel registrations</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div>
+            <CardTitle>Hotel Partner Applications</CardTitle>
+            <CardDescription>Verify and approve incoming partner hotel registrations</CardDescription>
+          </div>
+          <Button size="sm" variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
