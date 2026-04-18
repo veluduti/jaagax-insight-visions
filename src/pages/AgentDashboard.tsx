@@ -514,7 +514,7 @@ export default function AgentDashboard() {
             <TabsContent value="active" className="mt-6">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties
-                  .filter(p => p.active !== false)
+                  .filter(p => p.verified === true)
                   .map((property) => (
                     <Card 
                       key={property.id} 
