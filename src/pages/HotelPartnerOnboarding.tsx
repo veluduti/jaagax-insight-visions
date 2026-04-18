@@ -67,15 +67,12 @@ export default function HotelPartnerOnboarding() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        toast.error("Please sign in to apply as a hotel partner");
-        navigate("/auth?redirect=/hotels/partner");
-        return;
+      if (user) {
+        setUserId(user.id);
+        setData((d) => ({ ...d, email: d.email || user.email || "" }));
       }
-      setUserId(user.id);
-      setData((d) => ({ ...d, email: d.email || user.email || "" }));
     });
-  }, [navigate]);
+  }, []);
 
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setData((d) => ({ ...d, [k]: v }));
   const toggleInArray = (k: "room_types" | "amenities", val: string) =>
