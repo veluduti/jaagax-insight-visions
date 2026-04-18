@@ -291,15 +291,15 @@ export default function AgentDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Sales</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.sales_count}</p>
+                  <p className="text-2xl font-bold text-primary">{agentProfile.sales_count ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Rentals</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.rent_count}</p>
+                  <p className="text-sm text-muted-foreground">Visits Done</p>
+                  <p className="text-2xl font-bold text-primary">{visitStats.completedVisits}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Trust Score</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.trust_score}/100</p>
+                  <p className="text-2xl font-bold text-primary">{agentProfile.trust_score ?? 0}/100</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Listings</p>
