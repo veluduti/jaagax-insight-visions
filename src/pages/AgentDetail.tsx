@@ -125,46 +125,24 @@ const AgentDetail = () => {
       setProperties((propertiesData || []) as Property[]);
       setFilteredProperties((propertiesData || []) as Property[]);
 
-      // Fetch agent reviews (agent_reviews table uses UUID, but agents table uses integer)
-      // Using mock reviews for demonstration
-      setReviews([
-        {
-          id: "1",
-          rating: 5,
-          feedback: "Outstanding service! Helped me find the perfect property within my budget. Very knowledgeable about the local market and extremely professional throughout the process.",
-          created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-          reviewer_id: "user1",
-          property_type: "3 BHK Apartment",
-          transaction_type: "Sale",
-        },
-        {
-          id: "2",
-          rating: 5,
-          feedback: "Highly recommended! Made the entire home buying process smooth and stress-free. Always available to answer questions and provided excellent guidance.",
-          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          reviewer_id: "user2",
-          property_type: "Villa",
-          transaction_type: "Sale",
-        },
-        {
-          id: "3",
-          rating: 4,
-          feedback: "Great experience working with this agent. Very responsive and helped negotiate a good deal. Would definitely work with them again.",
-          created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-          reviewer_id: "user3",
-          property_type: "2 BHK Flat",
-          transaction_type: "Rent",
-        },
-        {
-          id: "4",
-          rating: 5,
-          feedback: "Professional, knowledgeable, and trustworthy. Took the time to understand my requirements and showed only relevant properties. Excellent market insights!",
-          created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-          reviewer_id: "user4",
-          property_type: "4 BHK Penthouse",
-          transaction_type: "Sale",
-        },
-      ]);
+      // Fetch real agent ratings from agent_ratings table
+      const { data: ratingsData } = await supabase
+        .from("agent_ratings" as any)
+        .select("id, rating, review, created_at, buyer_id, property_id")
+        .eq("agent_id", agentId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      const realReviews: Review[] = ((ratingsData as any) || []).map((r: any) => ({
+        id: r.id,
+        rating: r.rating,
+        feedback: r.review || "",
+        created_at: r.created_at,
+        reviewer_id: r.buyer_id,
+        property_type: null,
+        transaction_type: null,
+      }));
+      setReviews(realReviews);
     } catch (error) {
       toast.error("Failed to load agent profile");
     } finally {
