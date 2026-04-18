@@ -188,11 +188,7 @@ const App = () => (
               <AdminPanel />
             </ProtectedRoute>
           } />
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/dashboard/admin/frm" element={
             <ProtectedRoute allowedRole="admin">
               <AdminFRMDashboard />
