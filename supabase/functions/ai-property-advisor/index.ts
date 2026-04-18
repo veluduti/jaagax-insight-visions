@@ -83,9 +83,22 @@ Set true only for clear listing searches. Set false for greetings, general quest
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(content);
+    // Strip placeholder/empty values ("?", "", null, "N/A") that the LLM emits
+    const rawFilters = parsed.filters || {};
+    const cleanFilters: PropertyFilters = {};
+    for (const [k, v] of Object.entries(rawFilters)) {
+      if (v === null || v === undefined) continue;
+      if (typeof v === "string") {
+        const t = v.trim();
+        if (!t || t === "?" || t.toLowerCase() === "n/a" || t.toLowerCase() === "any") continue;
+        (cleanFilters as any)[k] = t;
+      } else if (typeof v === "number" && !isNaN(v) && v > 0) {
+        (cleanFilters as any)[k] = v;
+      }
+    }
     return {
       isPropertySearch: !!parsed.isPropertySearch,
-      filters: parsed.filters || {},
+      filters: cleanFilters,
     };
   } catch (e) {
     console.error("Intent detection failed:", e);
@@ -125,21 +138,40 @@ serve(async (req) => {
     if (isPropertySearch) {
       try {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        let q = supabase
-          .from("properties")
-          .select("id, title, city, locality, price, area_sqft, bedrooms, bhk, type, trust_score, verified")
-          .eq("verified", true);
 
-        if (filters.city) q = q.ilike("city", `%${filters.city}%`);
-        if (filters.locality) q = q.ilike("locality", `%${filters.locality}%`);
-        if (filters.bhk) q = q.eq("bhk", filters.bhk);
-        if (filters.min_price) q = q.gte("price", filters.min_price);
-        if (filters.max_price) q = q.lte("price", filters.max_price);
-        if (filters.type) q = q.eq("type", filters.type);
+        const runQuery = async (relax: "none" | "drop-bhk" | "drop-city") => {
+          let q = supabase
+            .from("properties")
+            .select("id, title, city, locality, price, area_sqft, bedrooms, bhk, type, trust_score, verified")
+            .eq("verified", true);
 
-        const { data, error } = await q.limit(10);
-        if (error) console.error("DB error:", error);
-        properties = data || [];
+          if (relax !== "drop-city" && filters.city) {
+            // Treat Hyderabad/Bengaluru/Bangalore as fuzzy
+            const c = String(filters.city).toLowerCase();
+            if (c.includes("bengal") || c.includes("bangal")) {
+              q = q.or("city.ilike.%bengaluru%,city.ilike.%bangalore%");
+            } else {
+              q = q.ilike("city", `%${filters.city}%`);
+            }
+          }
+          if (filters.locality) q = q.ilike("locality", `%${filters.locality}%`);
+          if (relax !== "drop-bhk" && filters.bhk) q = q.eq("bhk", filters.bhk);
+          if (filters.min_price) q = q.gte("price", filters.min_price);
+          if (filters.max_price) q = q.lte("price", filters.max_price);
+          if (filters.type) q = q.ilike("type", `%${filters.type}%`);
+
+          const { data, error } = await q.limit(10);
+          if (error) console.error("DB error:", error);
+          return data || [];
+        };
+
+        properties = await runQuery("none");
+        if (properties.length === 0 && filters.bhk) {
+          properties = await runQuery("drop-bhk");
+        }
+        if (properties.length === 0 && filters.city) {
+          properties = await runQuery("drop-city");
+        }
 
         if (properties.length > 0) {
           liveDataBlock = `\n\n[LIVE DATA — ${properties.length} matching properties]\n${properties
