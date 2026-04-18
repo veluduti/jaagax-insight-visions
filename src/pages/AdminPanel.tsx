@@ -44,16 +44,11 @@ export default function AdminPanel() {
 
   const checkAdminAndLoad = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Please sign in as admin");
-      }
-
       setIsAdmin(true);
       await loadAllData();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to load admin data:", err);
-      toast.error(err?.message || "Failed to load admin data");
+      toast.error("Failed to load admin data");
     } finally {
       setLoading(false);
     }
