@@ -554,7 +554,7 @@ export default function AgentDashboard() {
                   ))}
               </div>
 
-              {properties.filter(p => p.active !== false).length === 0 && (
+              {properties.filter(p => p.verified === true).length === 0 && (
                 <div className="text-center py-12">
                   <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No active listings yet</p>
