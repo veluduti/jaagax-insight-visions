@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import BookingsPanel from "@/components/admin/BookingsPanel";
+import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
@@ -319,7 +320,12 @@ export default function AdminPanel() {
               )}
             </TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
+            <TabsTrigger value="hotel-partners">Hotel Partners</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="hotel-partners">
+            <HotelPartnersPanel />
+          </TabsContent>
 
           {/* === SIGNUP REQUESTS === */}
           <TabsContent value="signups" className="space-y-4">
