@@ -105,7 +105,7 @@ export default function AdminPanel() {
   const fetchVisitBookings = async () => {
     const { data } = await supabase
       .from("visit_bookings")
-      .select("*")
+      .select("*, agents(name, phone)")
       .order("created_at", { ascending: false })
       .limit(100);
     setVisitBookings(data || []);
@@ -460,26 +460,43 @@ export default function AdminPanel() {
                         <TableHead>Buyer</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Location</TableHead>
+                        <TableHead>Approved Agent</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Time</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {visitBookings.map((b) => (
-                        <TableRow key={b.id}>
-                          <TableCell className="font-medium">{b.buyer_name || "N/A"}</TableCell>
-                          <TableCell>{b.buyer_phone || "N/A"}</TableCell>
-                          <TableCell>{b.city || ""}{b.locality ? `, ${b.locality}` : ""}</TableCell>
-                          <TableCell>{b.visit_date}</TableCell>
-                          <TableCell>{b.visit_time || "TBD"}</TableCell>
-                          <TableCell>
-                            <Badge variant={b.status === "confirmed" ? "default" : b.status === "pending" ? "secondary" : "destructive"}>
-                              {b.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {visitBookings.map((b) => {
+                        const agentName = b.agents?.name;
+                        const isApproved = b.agent_id && ["confirmed", "pending_builder", "completed"].includes(b.status);
+                        return (
+                          <TableRow key={b.id}>
+                            <TableCell className="font-medium">{b.buyer_name || "N/A"}</TableCell>
+                            <TableCell>{b.buyer_phone || "N/A"}</TableCell>
+                            <TableCell>{b.city || ""}{b.locality ? `, ${b.locality}` : ""}</TableCell>
+                            <TableCell>
+                              {isApproved && agentName ? (
+                                <div className="flex items-center gap-1.5">
+                                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                                  <span className="font-medium text-sm">{agentName}</span>
+                                </div>
+                              ) : agentName ? (
+                                <span className="text-xs text-muted-foreground">{agentName} (assigned)</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">— Unassigned —</span>
+                              )}
+                            </TableCell>
+                            <TableCell>{b.visit_date}</TableCell>
+                            <TableCell>{b.visit_time || "TBD"}</TableCell>
+                            <TableCell>
+                              <Badge variant={b.status === "confirmed" ? "default" : b.status === "pending" ? "secondary" : "destructive"}>
+                                {b.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 )}
