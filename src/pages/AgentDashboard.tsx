@@ -22,10 +22,9 @@ interface AgentProfile {
   email?: string;
   photo_url: string | null;
   agency_name: string | null;
-  cities_served: string[] | null;
-  languages: string[] | null;
+  cities_served: string[] | string | null;
+  languages: string[] | string | null;
   sales_count: number | null;
-  rent_count: number | null;
   trust_score: number | null;
   verified: boolean | null;
 }
@@ -40,7 +39,8 @@ interface Property {
   type: string | null;
   bedrooms: number | null;
   images: any;
-  active: boolean | null;
+  verified: boolean | null;
+  verification_status: string | null;
 }
 
 export default function AgentDashboard() {
@@ -67,6 +67,27 @@ export default function AgentDashboard() {
     fetchUserAndProfile();
   }, []);
 
+  // Realtime: re-fetch when visits, properties, favorites, or agent profile changes
+  useEffect(() => {
+    if (!agentProfile?.id || !user?.id) return;
+    const ch = supabase
+      .channel(`agent-dashboard-${agentProfile.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'visit_bookings', filter: `agent_id=eq.${agentProfile.id}` }, () => {
+        fetchVisitStats(agentProfile.id);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'properties' }, () => {
+        fetchAgentProperties(user.id, agentProfile.id);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'favorites' }, () => {
+        fetchAgentProperties(user.id, agentProfile.id);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agents', filter: `id=eq.${agentProfile.id}` }, (payload: any) => {
+        if (payload.new) setAgentProfile((prev) => ({ ...(prev as AgentProfile), ...payload.new }));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [agentProfile?.id, user?.id]);
+
   const fetchVisitStats = async (agentId: string) => {
     try {
       const { data: visits } = await supabase
@@ -80,7 +101,7 @@ export default function AgentDashboard() {
             ["confirmed", "pending_builder", "in_progress"].includes(v.status)
           ).length,
           completedVisits: visits.filter(v => v.status === "completed").length,
-          pendingApprovals: visits.filter(v => v.status === "pending_agent").length,
+          pendingApprovals: visits.filter(v => v.status === "pending_agent" || v.status === "pending").length,
           totalVisits: visits.length,
         });
       }
@@ -110,42 +131,23 @@ export default function AgentDashboard() {
 
     setUser(fallbackUser);
 
-    // Find agent profile linked to this user
     const { data: agentData, error } = await supabase
       .from("agents")
       .select("*")
       .eq("user_id", authUser.id)
       .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching agent profile:", error);
+    if (error || !agentData) {
+      if (error) console.error("Error fetching agent profile:", error);
       setAgentProfile({
         id: authUser.id,
         name: fallbackUser.name,
         email: authUser.email,
         photo_url: null,
         agency_name: null,
-        cities_served: fallbackUser.city ? [fallbackUser.city] : [],
+        cities_served: fallbackUser.city,
         languages: null,
         sales_count: 0,
-        rent_count: 0,
-        trust_score: 75,
-        verified: true,
-      });
-      return;
-    }
-
-    if (!agentData) {
-      setAgentProfile({
-        id: authUser.id,
-        name: fallbackUser.name,
-        email: authUser.email,
-        photo_url: null,
-        agency_name: null,
-        cities_served: fallbackUser.city ? [fallbackUser.city] : [],
-        languages: null,
-        sales_count: 0,
-        rent_count: 0,
         trust_score: 75,
         verified: true,
       });
@@ -153,35 +155,49 @@ export default function AgentDashboard() {
     }
 
     setAgentProfile(agentData as AgentProfile);
-    fetchAgentProperties(agentData.id);
+    fetchAgentProperties(authUser.id, agentData.id);
     fetchVisitStats(agentData.id);
   };
 
-  const fetchAgentProperties = async (agentId: string) => {
+  const fetchAgentProperties = async (userId: string, agentId: string) => {
     const { data } = await supabase
       .from("properties")
       .select("*")
-      .eq("builder_id", agentId)
+      .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
       .order("created_at", { ascending: false });
 
     if (data) {
       setProperties(data as Property[]);
+      const propertyIds = data.map((p: any) => p.id);
+
+      let savedCount = 0;
+      let viewsCount = 0;
+      if (propertyIds.length > 0) {
+        const [{ count: favCount }, { count: viewCount }] = await Promise.all([
+          supabase.from("favorites").select("*", { count: "exact", head: true }).in("property_id", propertyIds),
+          supabase.from("buyer_journey_events").select("*", { count: "exact", head: true }).in("property_id", propertyIds),
+        ]);
+        savedCount = favCount || 0;
+        viewsCount = viewCount || 0;
+      }
+
       setStats({
         totalProperties: data.length,
-        activeListings: data.filter(p => p.active !== false).length,
-        viewsThisMonth: Math.floor(Math.random() * 1000) + 500,
-        savedByUsers: Math.floor(Math.random() * 100) + 20,
+        activeListings: data.filter((p: any) => p.verified === true).length,
+        viewsThisMonth: viewsCount,
+        savedByUsers: savedCount,
       });
-      
-      // Fetch AI lead ranking
+
       fetchLeadRanking();
+    } else {
+      setProperties([]);
+      setStats({ totalProperties: 0, activeListings: 0, viewsThisMonth: 0, savedByUsers: 0 });
     }
   };
 
   const fetchLeadRanking = async () => {
     setLoadingLeads(true);
     try {
-      // Mock leads data
       const mockLeads = [
         { leadId: '1', name: 'Rajesh Kumar', budget: 8000000, viewedProperties: 7, contacted: true },
         { leadId: '2', name: 'Priya Sharma', budget: 5000000, viewedProperties: 3, contacted: false },
@@ -275,15 +291,15 @@ export default function AgentDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Sales</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.sales_count}</p>
+                  <p className="text-2xl font-bold text-primary">{agentProfile.sales_count ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Rentals</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.rent_count}</p>
+                  <p className="text-sm text-muted-foreground">Visits Done</p>
+                  <p className="text-2xl font-bold text-primary">{visitStats.completedVisits}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Trust Score</p>
-                  <p className="text-2xl font-bold text-primary">{agentProfile.trust_score}/100</p>
+                  <p className="text-2xl font-bold text-primary">{agentProfile.trust_score ?? 0}/100</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Listings</p>
@@ -498,7 +514,7 @@ export default function AgentDashboard() {
             <TabsContent value="active" className="mt-6">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties
-                  .filter(p => p.active !== false)
+                  .filter(p => p.verified === true)
                   .map((property) => (
                     <Card 
                       key={property.id} 
@@ -512,7 +528,7 @@ export default function AgentDashboard() {
                           className="w-full h-full object-cover"
                         />
                         <Badge className="absolute top-2 right-2 bg-primary">
-                          {property.active ? "Active" : "Inactive"}
+                          {property.verified ? "Verified" : "Pending"}
                         </Badge>
                       </div>
                       <CardContent className="p-4">
@@ -538,7 +554,7 @@ export default function AgentDashboard() {
                   ))}
               </div>
 
-              {properties.filter(p => p.active !== false).length === 0 && (
+              {properties.filter(p => p.verified === true).length === 0 && (
                 <div className="text-center py-12">
                   <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No active listings yet</p>
@@ -561,7 +577,7 @@ export default function AgentDashboard() {
                         className="w-full h-full object-cover"
                       />
                       <Badge className="absolute top-2 right-2">
-                        {property.active ? "Active" : "Inactive"}
+                        {property.verified ? "Verified" : "Pending"}
                       </Badge>
                     </div>
                     <CardContent className="p-4">
