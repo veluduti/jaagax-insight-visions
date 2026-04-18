@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
+import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 
 interface PartnerHotel {
   id: string;
