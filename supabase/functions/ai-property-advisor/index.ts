@@ -83,9 +83,22 @@ Set true only for clear listing searches. Set false for greetings, general quest
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content || "{}";
     const parsed = JSON.parse(content);
+    // Strip placeholder/empty values ("?", "", null, "N/A") that the LLM emits
+    const rawFilters = parsed.filters || {};
+    const cleanFilters: PropertyFilters = {};
+    for (const [k, v] of Object.entries(rawFilters)) {
+      if (v === null || v === undefined) continue;
+      if (typeof v === "string") {
+        const t = v.trim();
+        if (!t || t === "?" || t.toLowerCase() === "n/a" || t.toLowerCase() === "any") continue;
+        (cleanFilters as any)[k] = t;
+      } else if (typeof v === "number" && !isNaN(v) && v > 0) {
+        (cleanFilters as any)[k] = v;
+      }
+    }
     return {
       isPropertySearch: !!parsed.isPropertySearch,
-      filters: parsed.filters || {},
+      filters: cleanFilters,
     };
   } catch (e) {
     console.error("Intent detection failed:", e);
