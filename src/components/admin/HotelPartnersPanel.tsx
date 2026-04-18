@@ -18,60 +18,13 @@ export default function HotelPartnersPanel() {
   const [viewing, setViewing] = useState<any | null>(null);
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
-  const [accessState, setAccessState] = useState<"checking" | "needs-auth" | "ready" | "forbidden">("checking");
-
   useEffect(() => {
-    let mounted = true;
-
-    const bootstrap = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!mounted) return;
-
-      if (!user) {
-        setAccessState("needs-auth");
-        setLoading(false);
-        return;
-      }
-
-      const { data: isAdmin, error } = await supabase.rpc("is_admin", { _user_id: user.id });
-      if (!mounted) return;
-
-      if (error) {
-        toast.error(error.message || "Unable to verify admin access");
-        setAccessState("forbidden");
-        setLoading(false);
-        return;
-      }
-
-      if (!isAdmin) {
-        setAccessState("forbidden");
-        setLoading(false);
-        return;
-      }
-
-      setAccessState("ready");
-      await load();
-
-      const channel = supabase
-        .channel("hotel_partner_apps_admin")
-        .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    };
-
-    let cleanup: (() => void) | undefined;
-    bootstrap().then((result) => {
-      cleanup = result;
-    });
-
-    return () => {
-      mounted = false;
-      cleanup?.();
-    };
+    load();
+    const channel = supabase
+      .channel("hotel_partner_apps_admin")
+      .on("postgres_changes", { event: "*", schema: "public", table: "hotel_partner_applications" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const load = async () => {
