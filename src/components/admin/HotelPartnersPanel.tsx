@@ -63,7 +63,7 @@ export default function HotelPartnersPanel() {
       };
     };
 
-    let cleanup: (() => void) | void;
+    let cleanup: (() => void) | undefined;
     bootstrap().then((result) => {
       cleanup = result;
     });
