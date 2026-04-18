@@ -67,15 +67,12 @@ export default function HotelPartnerOnboarding() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        toast.error("Please sign in to apply as a hotel partner");
-        navigate("/auth?redirect=/hotels/partner");
-        return;
+      if (user) {
+        setUserId(user.id);
+        setData((d) => ({ ...d, email: d.email || user.email || "" }));
       }
-      setUserId(user.id);
-      setData((d) => ({ ...d, email: d.email || user.email || "" }));
     });
-  }, [navigate]);
+  }, []);
 
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setData((d) => ({ ...d, [k]: v }));
   const toggleInArray = (k: "room_types" | "amenities", val: string) =>
@@ -122,18 +119,17 @@ export default function HotelPartnerOnboarding() {
   };
 
   const uploadFile = async (file: File, bucket: "hotel-photos" | "hotel-documents", key: string) => {
-    if (!userId) return;
     setUploading(key);
     try {
       const ext = file.name.split(".").pop();
-      const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const folder = userId || "anon";
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
       if (error) throw error;
       if (bucket === "hotel-photos") {
         const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
         update("photos", [...data.photos, pub.publicUrl]);
       } else {
-        // private bucket — store path; serve via signed URL on read
         if (key === "business_registration_url") update("business_registration_url", path);
         if (key === "id_proof_url") update("id_proof_url", path);
         if (key === "gst_certificate_url") update("gst_certificate_url", path);
@@ -149,7 +145,6 @@ export default function HotelPartnerOnboarding() {
   const submit = async () => {
     const err = validateStep();
     if (err) return toast.error(err);
-    if (!userId) return;
     setSubmitting(true);
     try {
       const { error } = await supabase.from("hotel_partner_applications").insert({
