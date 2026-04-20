@@ -144,21 +144,35 @@ export default function SellProperty() {
   // Init map on step 2
   useEffect(() => {
     if (step !== 2) return;
-    if (!mapContainer.current || mapRef.current) return;
+    if (mapRef.current) return;
+
+    let cancelled = false;
+    let ro: ResizeObserver | null = null;
+    let map: mapboxgl.Map | null = null;
+
+    const tryInit = (attempt = 0) => {
+      if (cancelled) return;
+      const el = mapContainer.current;
+      if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) {
+        if (attempt < 30) return setTimeout(() => tryInit(attempt + 1), 100);
+        return;
+      }
     const center: [number, number] = form.longitude && form.latitude
       ? [form.longitude, form.latitude]
       : [78.4867, 17.3850];
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
+    map = new mapboxgl.Map({
+      container: el,
       style: "mapbox://styles/mapbox/streets-v12",
       center,
       zoom: 12,
     });
     mapRef.current = map;
 
-    map.on("load", () => map.resize());
+    map.on("load", () => map?.resize());
     // Fix white/empty map when container size changes
-    setTimeout(() => map.resize(), 200);
+    [50, 200, 500, 1000].forEach((d) => setTimeout(() => map?.resize(), d));
+    ro = new ResizeObserver(() => map?.resize());
+    ro.observe(el);
 
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
@@ -205,7 +219,16 @@ export default function SellProperty() {
       setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
       toast.success("Location pinned");
     });
-    return () => { map.remove(); mapRef.current = null; markerRef.current = null; };
+    };
+
+    tryInit();
+    return () => {
+      cancelled = true;
+      ro?.disconnect();
+      map?.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
   }, [step]);
 
   const useMyLocation = () => {
