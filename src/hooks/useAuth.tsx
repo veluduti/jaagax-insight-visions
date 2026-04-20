@@ -69,7 +69,7 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error };
+    if (error) return { error, resolvedRole: null as UserRole | null };
 
     if (data.user) {
       const access = await resolveUserAccess(data.user.id, data.user.email);
@@ -83,16 +83,18 @@ export const useAuth = () => {
       if (access.approvalStatus && requestedDbRole !== "customer") {
         if (access.approvalStatus === "pending") {
           await supabase.auth.signOut();
-          return { error: { message: "Your account is pending admin approval. Please wait for approval before signing in." } as any };
+          return { error: { message: "Your account is pending admin approval. Please wait for approval before signing in." } as any, resolvedRole: null };
         }
         if (access.approvalStatus === "rejected") {
           await supabase.auth.signOut();
-          return { error: { message: "Your account registration was rejected. Please contact support." } as any };
+          return { error: { message: "Your account registration was rejected. Please contact support." } as any, resolvedRole: null };
         }
       }
+
+      return { error: null, resolvedRole: access.resolvedRole };
     }
 
-    return { error: null };
+    return { error: null, resolvedRole: null };
   };
 
   const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
@@ -131,20 +133,17 @@ export const useAuth = () => {
         });
         if (reqError) console.error("Error submitting signup request:", reqError);
 
-        // Overwrite requested_role to 'seller' for routing if applicable
-        if (selectedRole === "seller") {
-          await supabase
-            .from('signup_requests')
-            .update({ requested_role: 'seller' })
-            .eq('user_id', data.user.id);
-        }
+        // Overwrite requested_role to 'seller' for routing if applicable + store phone in same update
+        const updates: Record<string, any> = {};
+        if (selectedRole === "seller") updates.requested_role = "seller";
+        if (phone) updates.phone = phone;
 
-        // Store phone in signup_requests if provided
-        if (phone) {
-          await supabase
+        if (Object.keys(updates).length > 0) {
+          const { error: updErr } = await supabase
             .from('signup_requests')
-            .update({ phone })
+            .update(updates)
             .eq('user_id', data.user.id);
+          if (updErr) console.error("Error updating signup_requests:", updErr);
         }
       }
 
