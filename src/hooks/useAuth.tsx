@@ -98,14 +98,14 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      const dbRole = selectedRole === "buyer" ? "customer" : selectedRole;
+      const dbRole = (selectedRole === "buyer" || selectedRole === "seller") ? "customer" : selectedRole;
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: { role: dbRole, city: city || null, name: name || null, phone: phone || null },
+          data: { role: dbRole, requested_role: selectedRole, city: city || null, name: name || null, phone: phone || null },
         },
       });
 
@@ -121,7 +121,7 @@ export const useAuth = () => {
           if (roleError) console.error("Error inserting role:", roleError);
         }
 
-        // Submit signup request for all roles
+        // Submit signup request (RPC only accepts customer/agent/builder)
         const { error: reqError } = await supabase.rpc("submit_signup_request", {
           _user_id: data.user.id,
           _email: email,
@@ -130,6 +130,14 @@ export const useAuth = () => {
           _requested_role: dbRole,
         });
         if (reqError) console.error("Error submitting signup request:", reqError);
+
+        // Overwrite requested_role to 'seller' for routing if applicable
+        if (selectedRole === "seller") {
+          await supabase
+            .from('signup_requests')
+            .update({ requested_role: 'seller' })
+            .eq('user_id', data.user.id);
+        }
 
         // Store phone in signup_requests if provided
         if (phone) {
@@ -164,6 +172,9 @@ export const useAuth = () => {
       case "buyer":
       case "customer":
         navigate("/dashboard/buyer");
+        break;
+      case "seller":
+        navigate("/dashboard/seller");
         break;
       case "agent":
         navigate("/dashboard/agent");

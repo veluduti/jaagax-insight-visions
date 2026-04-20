@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle, Phone } from "lucide-react";
+import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle, Phone, Tag } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,13 @@ const roleConfig = {
     description: "Showcase projects and manage developments",
     color: "from-orange-500/20 to-red-500/20",
     borderColor: "border-orange-500/50",
+  },
+  seller: {
+    icon: Tag,
+    title: "Property Seller",
+    description: "List your property and reach verified buyers",
+    color: "from-emerald-500/20 to-teal-500/20",
+    borderColor: "border-emerald-500/50",
   },
   admin: {
     icon: Shield,
@@ -63,7 +70,7 @@ export default function Auth() {
   const { signIn, signUp, user, role, loading: authLoading, approvalStatus, redirectToDashboard } = useAuth();
   
   const isPasswordReset = searchParams.get("reset") === "true";
-  const allowedSignupRoles: UserRole[] = ["buyer", "agent", "builder"];
+  const allowedSignupRoles: UserRole[] = ["buyer", "seller", "agent", "builder"];
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -150,7 +157,7 @@ export default function Auth() {
           throw error;
         }
 
-        if (selectedRole === "buyer") {
+        if (selectedRole === "buyer" || selectedRole === "seller") {
           toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
         } else {
           toast.success("Account created! Please check your email to verify. Your account will be activated after admin approval.", { duration: 8000 });

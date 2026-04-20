@@ -19,6 +19,9 @@ const Dashboard = () => {
           case "customer":
             navigate("/dashboard/buyer");
             break;
+          case "seller":
+            navigate("/dashboard/seller");
+            break;
           case "agent":
             navigate("/dashboard/agent");
             break;

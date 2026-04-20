@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppUserRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
+export type AppUserRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
 type SignupSnapshot = {
   status: string;
@@ -18,14 +18,18 @@ export type AccessResolution = {
 const ROLE_PRIORITY = ["admin", "hotel_manager", "builder", "agent", "customer", "buyer", "driver"] as const;
 const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer", "agent", "builder"]);
 
-export const mapDbRoleToAppRole = (dbRole: string): AppUserRole => {
-  if (dbRole === "customer") return "buyer";
+export const mapDbRoleToAppRole = (dbRole: string, requestedRole?: string | null): AppUserRole => {
+  if (dbRole === "customer") {
+    if (requestedRole === "seller") return "seller";
+    return "buyer";
+  }
   return dbRole as AppUserRole;
 };
 
 export const normalizeDbRole = (role?: string | null) => {
   if (!role) return null;
-  return role === "buyer" ? "customer" : role;
+  if (role === "buyer" || role === "seller") return "customer";
+  return role;
 };
 
 const pickPreferredDbRole = (roles: Array<string | null | undefined>) => {
@@ -88,7 +92,7 @@ export const resolveUserAccess = async (userId: string, email?: string | null): 
     approvalStatus,
     requestedRole,
     resolvedDbRole,
-    resolvedRole: resolvedDbRole ? mapDbRoleToAppRole(resolvedDbRole) : null,
+    resolvedRole: resolvedDbRole ? mapDbRoleToAppRole(resolvedDbRole, requestedRole) : null,
     hasAssignedRole: Boolean(assignedDbRole),
   };
 };
