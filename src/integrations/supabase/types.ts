@@ -1305,6 +1305,39 @@ export type Database = {
           },
         ]
       }
+      property_chat_messages: {
+        Row: {
+          agent_user_id: string
+          created_at: string
+          id: string
+          message: string
+          property_id: string
+          read_at: string | null
+          seller_user_id: string
+          sender_id: string
+        }
+        Insert: {
+          agent_user_id: string
+          created_at?: string
+          id?: string
+          message: string
+          property_id: string
+          read_at?: string | null
+          seller_user_id: string
+          sender_id: string
+        }
+        Update: {
+          agent_user_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          property_id?: string
+          read_at?: string | null
+          seller_user_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           alerts_enabled: boolean
