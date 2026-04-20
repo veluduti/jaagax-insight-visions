@@ -275,18 +275,29 @@ export default function SellerDashboard() {
                 <TabsTrigger value="rejected">Rejected ({counts.rejected})</TabsTrigger>
                 <TabsTrigger value="draft">Drafts ({counts.draft})</TabsTrigger>
               </TabsList>
-              {["all", "pending", "approved", "rejected", "draft"].map((s) => {
+              {(["all", "pending", "approved", "rejected", "draft"] as const).map((s) => {
                 const list = filterProperties(s);
+                const emptyMeta: Record<string, { icon: any; iconColor: string; title: string; subtext: string; cta?: string }> = {
+                  all: { icon: Home, iconColor: "text-emerald-500", title: "No properties yet", subtext: "Start by listing your first property", cta: "Add Property" },
+                  pending: { icon: Clock, iconColor: "text-amber-500", title: "No properties pending approval", subtext: "Once you submit a property, it will appear here for verification", cta: "Add Property" },
+                  approved: { icon: CheckCircle2, iconColor: "text-emerald-500", title: "No live properties", subtext: "Your approved properties will appear here" },
+                  rejected: { icon: XCircle, iconColor: "text-rose-500", title: "No rejected properties", subtext: "All your listings are approved or pending" },
+                  draft: { icon: Edit, iconColor: "text-slate-500", title: "No drafts available", subtext: "Start creating a property and save it as draft", cta: "Add Property" },
+                };
+                const meta = emptyMeta[s];
+                const EmptyIcon = meta.icon;
                 return (
                   <TabsContent key={s} value={s} className="mt-6">
                     {list.length === 0 ? (
                       <div className="text-center py-16 border-2 border-dashed rounded-xl">
-                        <Home className="h-16 w-16 mx-auto mb-3 text-muted-foreground opacity-40" />
-                        <p className="font-semibold mb-1">No properties here</p>
-                        <p className="text-sm text-muted-foreground mb-4">Start by listing your first property</p>
-                        <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                          <Plus className="h-4 w-4 mr-1" />Add Property
-                        </Button>
+                        <EmptyIcon className={`h-16 w-16 mx-auto mb-3 ${meta.iconColor} opacity-60`} />
+                        <p className="font-semibold mb-1">{meta.title}</p>
+                        <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{meta.subtext}</p>
+                        {meta.cta && (
+                          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                            <Plus className="h-4 w-4 mr-1" />{meta.cta}
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
