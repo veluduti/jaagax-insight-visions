@@ -31,6 +31,7 @@ import {
   PhoneCall, MessageSquare, Briefcase, Target, ListChecks,
   XCircle, Share2, FileText, Sparkles, ArrowRight, IndianRupee,
 } from "lucide-react";
+import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
 
 /* ============================================================
    Types
