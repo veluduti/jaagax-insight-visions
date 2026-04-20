@@ -29,18 +29,18 @@ serve(async (req) => {
     const bookingData = await req.json();
     const userId = user.id;
 
-    // Get property to find city/locality and check builder
+    // Get property to find city/locality + the strictly-assigned agent
     const { data: property } = await supabase
       .from('properties')
-      .select('city, locality, builder_id, submitted_by, title')
+      .select('city, locality, builder_id, submitted_by, title, assigned_agent_id')
       .eq('id', bookingData.propertyId)
       .single();
 
-    // Auto-assign agent if not provided
-    let agentId = bookingData.agentId;
-    if (bookingData.autoAssign && !agentId) {
-      let agent = null;
+    // STRICT RULE: Use the assigned agent first. Only fall back to auto-pick when none.
+    let agentId = property?.assigned_agent_id || bookingData.agentId || null;
 
+    if (!agentId && bookingData.autoAssign) {
+      let agent = null;
       if (property?.city) {
         const { data } = await supabase
           .from('agents')
@@ -51,7 +51,6 @@ serve(async (req) => {
           .maybeSingle();
         agent = data;
       }
-
       if (!agent) {
         const { data } = await supabase
           .from('agents')
@@ -61,7 +60,6 @@ serve(async (req) => {
           .maybeSingle();
         agent = data;
       }
-
       agentId = agent?.id || null;
     }
 

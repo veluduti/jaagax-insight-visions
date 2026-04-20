@@ -497,13 +497,14 @@ const PropertyDetail = () => {
               <PaymentPlans propertyPrice={property.price} status={property.status} />
             </AuthGate>
             
-            {/* Agents Listing - Primary + Nearby */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact agents">
+            {/* Agents Listing — strict: only the assigned agent handles this property */}
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact your agent">
               <NearbyAgents
                 primaryAgent={agent}
                 city={property.city}
                 locality={property.locality}
                 propertyId={property.id}
+                exclusiveAssignedAgent={!!agent}
               />
             </AuthGate>
           </div>
