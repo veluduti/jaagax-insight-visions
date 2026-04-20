@@ -165,7 +165,7 @@ const PropertyDetail = () => {
         images: parsedImages,
         video_urls: Array.isArray(dbProperty.video_urls) ? dbProperty.video_urls : [],
         description: dbProperty.description || "",
-        agent_id: null,
+        agent_id: dbProperty.assigned_agent_id || null,
         project_id: null,
         building_name: dbProperty.building_name ?? null,
         total_floors: dbProperty.total_floors ?? null,
@@ -174,8 +174,18 @@ const PropertyDetail = () => {
         elevators: dbProperty.elevators ?? null,
         retail_centres: dbProperty.retail_centres ?? null,
       };
-      
+
       setProperty(mappedProperty);
+
+      // Load the assigned agent (the only agent who can handle this property)
+      if (dbProperty.assigned_agent_id) {
+        const { data: agentData } = await supabase
+          .from("agents")
+          .select("*")
+          .eq("id", dbProperty.assigned_agent_id)
+          .maybeSingle();
+        if (agentData) setAgent(agentData as any);
+      }
 
       // Fetch AI valuation
       fetchAIValuation(mappedProperty);
