@@ -1,404 +1,666 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Upload, Home, DollarSign, MapPin, Phone, Mail, User, Building2, FileText, Check } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import {
+  Home, MapPin, Bed, IndianRupee, Sparkles, ImagePlus, FileCheck2,
+  ChevronLeft, ChevronRight, CheckCircle2, Save, X, Loader2, Upload, FileText
+} from "lucide-react";
+
+const MAPBOX_TOKEN = "pk.eyJ1IjoiamFhZ2F4IiwiYSI6ImNtNHk2dXY4OTBzNXcyaXNjMGVwZWZ6cWoifQ.w6YeIJDxLfsxxJfPrDt-Pw";
+mapboxgl.accessToken = MAPBOX_TOKEN;
+
+const STEPS = [
+  { id: 1, label: "Basic Info", icon: Home },
+  { id: 2, label: "Location", icon: MapPin },
+  { id: 3, label: "Details", icon: Bed },
+  { id: 4, label: "Pricing", icon: IndianRupee },
+  { id: 5, label: "Amenities", icon: Sparkles },
+  { id: 6, label: "Media", icon: ImagePlus },
+  { id: 7, label: "Documents", icon: FileCheck2 },
+];
+
+const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata", "Ahmedabad"];
+const PROPERTY_TYPES = ["Apartment", "Villa", "Plot", "Independent House"];
+const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
+const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
+const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
+
+interface FormState {
+  title: string;
+  type: string;
+  listing_type: string;
+  description: string;
+  city: string;
+  locality: string;
+  address: string;
+  pincode: string;
+  latitude: number | null;
+  longitude: number | null;
+  bedrooms: string;
+  bathrooms: string;
+  balconies: string;
+  area_sqft: string;
+  floor_number: string;
+  total_floors: string;
+  furnishing: string;
+  property_age: string;
+  price: string;
+  price_negotiable: boolean;
+  maintenance_charges: string;
+  booking_amount: string;
+  amenities: string[];
+  images: string[];
+  video_urls: string[];
+  ownership_proof_url: string;
+  id_proof_url: string;
+}
+
+const initialForm: FormState = {
+  title: "", type: "", listing_type: "sale", description: "",
+  city: "", locality: "", address: "", pincode: "", latitude: null, longitude: null,
+  bedrooms: "", bathrooms: "", balconies: "", area_sqft: "", floor_number: "", total_floors: "",
+  furnishing: "", property_age: "",
+  price: "", price_negotiable: false, maintenance_charges: "", booking_amount: "",
+  amenities: [], images: [], video_urls: [],
+  ownership_proof_url: "", id_proof_url: "",
+};
 
 export default function SellProperty() {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    propertyType: "",
-    transactionType: "sale",
-    city: "",
-    locality: "",
-    price: "",
-    area: "",
-    bhk: "",
-    title: "",
-    description: "",
-    name: "",
-    email: "",
-    phone: "",
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const editId = params.get("edit");
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [user, setUser] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) { navigate("/auth?redirect=/sell-property"); return; }
+      setUser(data.user);
+    });
+  }, [navigate]);
+
+  // Load existing property for edit
+  useEffect(() => {
+    if (!editId || !user) return;
+    (async () => {
+      const { data } = await supabase.from("properties").select("*").eq("id", editId).maybeSingle();
+      if (data && data.submitted_by === user.id) {
+        setForm({
+          title: data.title || "",
+          type: data.type || "",
+          listing_type: (data as any).listing_type || "sale",
+          description: data.description || "",
+          city: data.city || "",
+          locality: data.locality || "",
+          address: data.address || "",
+          pincode: (data as any).pincode || "",
+          latitude: data.latitude ? Number(data.latitude) : null,
+          longitude: data.longitude ? Number(data.longitude) : null,
+          bedrooms: data.bedrooms?.toString() || "",
+          bathrooms: data.bathrooms?.toString() || "",
+          balconies: (data as any).balconies?.toString() || "",
+          area_sqft: data.area_sqft?.toString() || "",
+          floor_number: (data as any).floor_number?.toString() || "",
+          total_floors: data.total_floors?.toString() || "",
+          furnishing: (data as any).furnishing || "",
+          property_age: (data as any).property_age || "",
+          price: data.price?.toString() || "",
+          price_negotiable: (data as any).price_negotiable || false,
+          maintenance_charges: (data as any).maintenance_charges?.toString() || "",
+          booking_amount: (data as any).booking_amount?.toString() || "",
+          amenities: (data as any).amenities || [],
+          images: data.images || [],
+          video_urls: data.video_urls || [],
+          ownership_proof_url: ((data as any).document_urls?.ownership_proof) || "",
+          id_proof_url: ((data as any).document_urls?.id_proof) || "",
+        });
+      }
+    })();
+  }, [editId, user]);
+
+  // Init map on step 2
+  useEffect(() => {
+    if (step !== 2 || !mapContainer.current || mapRef.current) return;
+    const center: [number, number] = form.longitude && form.latitude
+      ? [form.longitude, form.latitude]
+      : [78.4867, 17.3850];
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/streets-v12",
+      center,
+      zoom: 12,
+    });
+    mapRef.current = map;
+    if (form.latitude && form.longitude) {
+      markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat(center).addTo(map);
+    }
+    map.on("click", (e) => {
+      const { lng, lat } = e.lngLat;
+      if (markerRef.current) markerRef.current.remove();
+      markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat([lng, lat]).addTo(map);
+      setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
+      toast.success("Location pinned");
+    });
+    return () => { map.remove(); mapRef.current = null; markerRef.current = null; };
+  }, [step]);
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return toast.error("Geolocation unavailable");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude, longitude } = pos.coords;
+      setForm((f) => ({ ...f, latitude, longitude }));
+      if (mapRef.current) {
+        mapRef.current.flyTo({ center: [longitude, latitude], zoom: 15 });
+        if (markerRef.current) markerRef.current.remove();
+        markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat([longitude, latitude]).addTo(mapRef.current);
+      }
+      toast.success("Location captured");
+    }, () => toast.error("Failed to get location"));
+  };
+
+  const validateStep = (s: number): string | null => {
+    switch (s) {
+      case 1:
+        if (!form.title.trim()) return "Property title is required";
+        if (!form.type) return "Property type is required";
+        if (!form.description.trim() || form.description.length < 30) return "Description (min 30 chars)";
+        return null;
+      case 2:
+        if (!form.city) return "City is required";
+        if (!form.locality.trim()) return "Locality is required";
+        if (!form.address.trim()) return "Address is required";
+        return null;
+      case 3:
+        if (form.type !== "Plot" && !form.bedrooms) return "Bedrooms required";
+        if (!form.area_sqft) return "Area is required";
+        return null;
+      case 4:
+        if (!form.price) return "Expected price is required";
+        return null;
+      case 6:
+        if (form.images.length < 3) return "Upload at least 3 images";
+        return null;
+      case 7:
+        if (!form.ownership_proof_url) return "Ownership proof is required";
+        if (!form.id_proof_url) return "ID proof is required";
+        return null;
+    }
+    return null;
+  };
+
+  const handleNext = () => {
+    const err = validateStep(step);
+    if (err) return toast.error(err);
+    setStep((s) => Math.min(7, s + 1));
+  };
+
+  const uploadFile = async (file: File, bucket: string, kind: string): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      setUploading(kind);
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
+      if (error) throw error;
+      if (bucket === "property-images") {
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+        return data.publicUrl;
+      }
+      // signed URL for private docs
+      const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 60 * 24 * 365);
+      return signed?.signedUrl || path;
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+      return null;
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files) return;
+    const uploaded: string[] = [];
+    for (const f of Array.from(files).slice(0, 10 - form.images.length)) {
+      const url = await uploadFile(f, "property-images", "image");
+      if (url) uploaded.push(url);
+    }
+    setForm((f) => ({ ...f, images: [...f.images, ...uploaded] }));
+  };
+
+  const handleDocUpload = async (file: File | null, key: "ownership_proof_url" | "id_proof_url") => {
+    if (!file) return;
+    const url = await uploadFile(file, "property-documents", key);
+    if (url) setForm((f) => ({ ...f, [key]: url }));
+  };
+
+  const buildPayload = (asDraft: boolean) => ({
+    submitted_by: user.id,
+    title: form.title,
+    type: form.type,
+    listing_type: form.listing_type,
+    description: form.description,
+    city: form.city,
+    locality: form.locality,
+    address: form.address,
+    pincode: form.pincode || null,
+    latitude: form.latitude,
+    longitude: form.longitude,
+    bedrooms: form.bedrooms ? parseInt(form.bedrooms) : null,
+    bhk: form.bedrooms ? parseInt(form.bedrooms) : null,
+    bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
+    balconies: form.balconies ? parseInt(form.balconies) : null,
+    area_sqft: form.area_sqft ? parseFloat(form.area_sqft) : null,
+    floor_number: form.floor_number ? parseInt(form.floor_number) : null,
+    total_floors: form.total_floors ? parseInt(form.total_floors) : null,
+    furnishing: form.furnishing || null,
+    property_age: form.property_age || null,
+    price: form.price ? parseFloat(form.price) : 0,
+    price_negotiable: form.price_negotiable,
+    maintenance_charges: form.maintenance_charges ? parseFloat(form.maintenance_charges) : null,
+    booking_amount: form.booking_amount ? parseFloat(form.booking_amount) : null,
+    amenities: form.amenities,
+    images: form.images,
+    video_urls: form.video_urls,
+    document_urls: { ownership_proof: form.ownership_proof_url, id_proof: form.id_proof_url },
+    verification_status: asDraft ? "draft" : "pending",
+    verified: false,
+    is_draft: asDraft,
+    rejection_reason: null,
   });
 
-  const [images, setImages] = useState<File[]>([]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImages([...images, ...Array.from(e.target.files)]);
-    }
+  const handleSaveDraft = async () => {
+    if (!user) return;
+    setSavingDraft(true);
+    try {
+      const payload = buildPayload(true);
+      if (editId) {
+        await supabase.from("properties").update(payload).eq("id", editId);
+      } else {
+        await supabase.from("properties").insert(payload);
+      }
+      toast.success("Draft saved");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally { setSavingDraft(false); }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form
-    if (!formData.propertyType || !formData.city || !formData.locality || !formData.name || !formData.phone) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
+  const handleSubmit = async () => {
+    for (let s = 1; s <= 7; s++) {
+      const err = validateStep(s);
+      if (err) { setStep(s); return toast.error(err); }
+    }
+    setSubmitting(true);
+    try {
+      const payload = buildPayload(false);
+      let propId = editId;
+      if (editId) {
+        const { error } = await supabase.from("properties").update(payload).eq("id", editId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
+        if (error) throw error;
+        propId = data.id;
+      }
+      // Notify admins
+      const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (admins?.length) {
+        await supabase.from("notifications").insert(admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "property_submitted",
+          title: "New Property Awaiting Verification",
+          message: `${form.title} (${form.city}) submitted by seller for review.`,
+          link: "/admin",
+        })));
+      }
+      toast.success("Submitted for verification!", {
+        description: "Your property will go live after admin approval.",
       });
-      return;
-    }
-
-    toast({
-      title: "Listing Submitted!",
-      description: "Our team will review your property and contact you within 24 hours.",
-    });
-    
-    console.log("Form submitted:", formData);
+      navigate("/dashboard/seller");
+    } catch (e: any) {
+      toast.error(e.message || "Submission failed");
+    } finally { setSubmitting(false); }
   };
+
+  const progress = (step / 7) * 100;
+  const StepIcon = STEPS[step - 1].icon;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">
       <Navigation />
-      
-      <main className="pt-24 pb-12">
-        <div className="container mx-auto px-4">
-          {/* Hero Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              List Your Property with{" "}
-              <span className="text-gradient">JaagaX</span>
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
+        {/* Header */}
+        <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-emerald-500/15 text-emerald-500"><Home className="h-6 w-6" /></span>
+              {editId ? "Edit Listing" : "List Your Property"}
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect with thousands of verified buyers and get the best deal for your property
-            </p>
-          </motion.div>
-
-          {/* Benefits Section */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Check className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Get Best Price</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Our AI-powered valuation ensures you get the market's best price
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Check className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Verified Buyers</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Connect only with serious, pre-verified buyers
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Check className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold">Quick Sale</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  List for free and close deals 40% faster than competitors
-                </p>
-              </CardContent>
-            </Card>
+            <p className="text-sm text-muted-foreground mt-1">Step {step} of 7 — {STEPS[step - 1].label}</p>
           </div>
+          <Button variant="outline" onClick={() => navigate("/dashboard/seller")}><X className="h-4 w-4 mr-1" />Cancel</Button>
+        </div>
 
-          {/* Main Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="max-w-4xl mx-auto">
-              <CardContent className="pt-8">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* Property Details Section */}
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                      <Home className="h-6 w-6 text-primary" />
-                      Property Details
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6">
+        {/* Progress */}
+        <div className="mb-6">
+          <Progress value={progress} className="h-2 bg-secondary [&>div]:bg-emerald-500" />
+          <div className="hidden md:flex justify-between mt-3">
+            {STEPS.map((s) => {
+              const Icon = s.icon;
+              const done = step > s.id;
+              const active = step === s.id;
+              return (
+                <button key={s.id} onClick={() => setStep(s.id)} className="flex flex-col items-center gap-1 group">
+                  <div className={`h-9 w-9 rounded-full flex items-center justify-center border-2 transition-all ${
+                    done ? "bg-emerald-500 border-emerald-500 text-white"
+                    : active ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                    : "border-muted text-muted-foreground"
+                  }`}>
+                    {done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  </div>
+                  <span className={`text-[11px] ${active ? "text-emerald-500 font-medium" : "text-muted-foreground"}`}>{s.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Step content */}
+        <Card className="border-emerald-500/20 shadow-lg">
+          <CardContent className="p-6 md:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-6">
+                  <StepIcon className="h-5 w-5 text-emerald-500" />
+                  <h2 className="text-xl font-semibold">{STEPS[step - 1].label}</h2>
+                </div>
+
+                {step === 1 && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Property Title *</Label>
+                      <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        placeholder="e.g. Spacious 3BHK Apartment in Gachibowli" />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="propertyType">Property Type *</Label>
-                        <Select
-                          value={formData.propertyType}
-                          onValueChange={(value) => setFormData({ ...formData, propertyType: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select property type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="apartment">Apartment</SelectItem>
-                            <SelectItem value="villa">Villa</SelectItem>
-                            <SelectItem value="townhouse">Townhouse</SelectItem>
-                            <SelectItem value="penthouse">Penthouse</SelectItem>
-                            <SelectItem value="land">Land/Plot</SelectItem>
-                            <SelectItem value="commercial">Commercial</SelectItem>
-                          </SelectContent>
+                        <Label>Property Type *</Label>
+                        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                          <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                          <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                         </Select>
                       </div>
-
                       <div>
-                        <Label htmlFor="transactionType">Listing Type *</Label>
-                        <Select
-                          value={formData.transactionType}
-                          onValueChange={(value) => setFormData({ ...formData, transactionType: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
+                        <Label>Listing Type *</Label>
+                        <Select value={form.listing_type} onValueChange={(v) => setForm({ ...form, listing_type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="sale">For Sale</SelectItem>
                             <SelectItem value="rent">For Rent</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-
-                      <div>
-                        <Label htmlFor="city">City *</Label>
-                        <Select
-                          value={formData.city}
-                          onValueChange={(value) => setFormData({ ...formData, city: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select city" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Mumbai">Mumbai</SelectItem>
-                            <SelectItem value="Delhi">Delhi</SelectItem>
-                            <SelectItem value="Bangalore">Bangalore</SelectItem>
-                            <SelectItem value="Hyderabad">Hyderabad</SelectItem>
-                            <SelectItem value="Chennai">Chennai</SelectItem>
-                            <SelectItem value="Pune">Pune</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="locality">Locality *</Label>
-                        <Input
-                          id="locality"
-                          placeholder="Enter locality"
-                          value={formData.locality}
-                          onChange={(e) => setFormData({ ...formData, locality: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="bhk">BHK Configuration</Label>
-                        <Select
-                          value={formData.bhk}
-                          onValueChange={(value) => setFormData({ ...formData, bhk: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select BHK" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 BHK</SelectItem>
-                            <SelectItem value="2">2 BHK</SelectItem>
-                            <SelectItem value="3">3 BHK</SelectItem>
-                            <SelectItem value="4">4 BHK</SelectItem>
-                            <SelectItem value="5">5+ BHK</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="area">Area (sq.ft)</Label>
-                        <Input
-                          id="area"
-                          type="number"
-                          placeholder="Enter area"
-                          value={formData.area}
-                          onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <Label htmlFor="price">
-                          {formData.transactionType === "rent" ? "Rent per month (₹)" : "Price (₹)"}
-                        </Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          placeholder="Enter price"
-                          value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <Label htmlFor="title">Property Title</Label>
-                        <Input
-                          id="title"
-                          placeholder="e.g., Spacious 3BHK with Sea View"
-                          value={formData.title}
-                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          placeholder="Describe your property, amenities, unique features..."
-                          rows={5}
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        />
-                      </div>
+                    </div>
+                    <div>
+                      <Label>Description *</Label>
+                      <Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                        placeholder="Describe the property, neighborhood, and unique features (min 30 chars)" />
+                      <p className="text-xs text-muted-foreground mt-1">{form.description.length} chars</p>
                     </div>
                   </div>
+                )}
 
-                  {/* Images Section */}
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                      <Upload className="h-6 w-6 text-primary" />
-                      Property Images
-                    </h2>
-                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground mb-4">
-                        Upload high-quality images of your property (Max 10 images)
-                      </p>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageUpload}
-                        className="max-w-xs mx-auto"
-                      />
-                      {images.length > 0 && (
-                        <p className="mt-4 text-sm text-primary">
-                          {images.length} image(s) selected
-                        </p>
+                {step === 2 && (
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>City *</Label>
+                        <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
+                          <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                          <SelectContent>{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Locality *</Label>
+                        <Input value={form.locality} onChange={(e) => setForm({ ...form, locality: e.target.value })} placeholder="e.g. Gachibowli" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Full Address *</Label>
+                      <Textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Building, street, landmark" />
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Pin Code</Label>
+                        <Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="500032" />
+                      </div>
+                      <div className="md:col-span-2 flex items-end gap-2">
+                        <Button type="button" variant="outline" onClick={useMyLocation} className="w-full">
+                          <MapPin className="h-4 w-4 mr-1" />Use my current location
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Pin location on map (click to drop pin)</Label>
+                      <div ref={mapContainer} className="h-72 w-full rounded-lg overflow-hidden border mt-2" />
+                      {form.latitude && form.longitude && (
+                        <p className="text-xs text-emerald-500 mt-2">📍 {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}</p>
                       )}
                     </div>
                   </div>
+                )}
 
-                  {/* Contact Details Section */}
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                      <User className="h-6 w-6 text-primary" />
-                      Contact Details
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6">
+                {step === 3 && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {form.type !== "Plot" && (
+                      <>
+                        <div><Label>Bedrooms (BHK) *</Label>
+                          <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
+                        </div>
+                        <div><Label>Bathrooms</Label>
+                          <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
+                        </div>
+                        <div><Label>Balconies</Label>
+                          <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
+                        </div>
+                      </>
+                    )}
+                    <div><Label>Area (sq ft) *</Label>
+                      <Input type="number" value={form.area_sqft} onChange={(e) => setForm({ ...form, area_sqft: e.target.value })} />
+                    </div>
+                    {form.type !== "Plot" && (
+                      <>
+                        <div><Label>Floor Number</Label>
+                          <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
+                        </div>
+                        <div><Label>Total Floors</Label>
+                          <Input type="number" value={form.total_floors} onChange={(e) => setForm({ ...form, total_floors: e.target.value })} />
+                        </div>
+                        <div><Label>Furnishing</Label>
+                          <Select value={form.furnishing} onValueChange={(v) => setForm({ ...form, furnishing: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{FURNISHING.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label>Property Age</Label>
+                          <Select value={form.property_age} onValueChange={(v) => setForm({ ...form, property_age: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{PROPERTY_AGE.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {step === 4 && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Expected Price (₹) *</Label>
+                      <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 7500000" />
+                      {form.price && (
+                        <p className="text-xs text-emerald-500 mt-1">
+                          ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
                       <div>
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          placeholder="Enter your name"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
+                        <p className="font-medium">Price Negotiable</p>
+                        <p className="text-xs text-muted-foreground">Allow buyers to negotiate</p>
                       </div>
-
+                      <Switch checked={form.price_negotiable} onCheckedChange={(v) => setForm({ ...form, price_negotiable: v })} />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="phone">Phone Number *</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="+91 XXXXX XXXXX"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        />
+                        <Label>Maintenance Charges (₹/mo)</Label>
+                        <Input type="number" value={form.maintenance_charges} onChange={(e) => setForm({ ...form, maintenance_charges: e.target.value })} />
                       </div>
-
-                      <div className="md:col-span-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="your.email@example.com"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        />
+                      <div>
+                        <Label>Booking Amount (₹)</Label>
+                        <Input type="number" value={form.booking_amount} onChange={(e) => setForm({ ...form, booking_amount: e.target.value })} />
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Submit Button */}
-                  <div className="pt-6 border-t">
-                    <Button type="submit" size="lg" className="w-full md:w-auto px-12">
-                      Submit Property Listing
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-4">
-                      By submitting, you agree to our Terms of Service and Privacy Policy
-                    </p>
+                {step === 5 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {AMENITIES.map((a) => {
+                        const active = form.amenities.includes(a);
+                        return (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => setForm((f) => ({
+                              ...f,
+                              amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
+                            }))}
+                            className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                              active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
+                            }`}
+                          >
+                            {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
+                            {a}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
+                )}
 
-          {/* FAQ Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-16"
-          >
-            <h2 className="text-3xl font-bold text-center mb-8">
-              Frequently Asked Questions
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Is listing my property free?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Yes! Listing your property on JaagaX is completely free. No hidden charges.
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">How long does verification take?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Our team typically reviews and verifies listings within 24-48 hours.
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Can I edit my listing later?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Yes, you can update your property details, images, and price anytime.
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Who will contact me?</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Only verified buyers and agents on our platform will be able to reach you.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.div>
+                {step === 6 && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Property Images * (min 3, max 10)</Label>
+                      <label className="mt-2 block border-2 border-dashed border-emerald-500/40 rounded-xl p-8 text-center cursor-pointer hover:bg-emerald-500/5 transition">
+                        <Upload className="h-10 w-10 mx-auto text-emerald-500 mb-2" />
+                        <p className="text-sm font-medium">Click or drag to upload images</p>
+                        <p className="text-xs text-muted-foreground">JPG, PNG up to 5MB each</p>
+                        <input type="file" accept="image/*" multiple className="hidden"
+                          onChange={(e) => handleImageUpload(e.target.files)} />
+                      </label>
+                      {uploading === "image" && <p className="text-xs text-emerald-500 mt-2 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Uploading…</p>}
+                      {form.images.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                          {form.images.map((url, i) => (
+                            <div key={i} className="relative group rounded-lg overflow-hidden border">
+                              <img src={url} alt="" className="w-full h-28 object-cover" />
+                              <button onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }))}
+                                className="absolute top-1 right-1 p-1 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition">
+                                <X className="h-3 w-3 text-white" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">{form.images.length}/10 uploaded</p>
+                    </div>
+                  </div>
+                )}
+
+                {step === 7 && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Documents are securely stored and only visible to verification admins.</p>
+                    {([
+                      { key: "ownership_proof_url" as const, label: "Ownership Proof *", desc: "Sale deed, allotment letter, or property tax receipt" },
+                      { key: "id_proof_url" as const, label: "ID Proof *", desc: "Aadhaar, PAN, or Passport" },
+                    ]).map((doc) => (
+                      <div key={doc.key} className="p-4 rounded-xl border-2 border-dashed border-emerald-500/30">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div>
+                            <p className="font-medium flex items-center gap-2"><FileText className="h-4 w-4 text-emerald-500" />{doc.label}</p>
+                            <p className="text-xs text-muted-foreground">{doc.desc}</p>
+                          </div>
+                          {form[doc.key] && <Badge className="bg-emerald-500"><CheckCircle2 className="h-3 w-3 mr-1" />Uploaded</Badge>}
+                        </div>
+                        <Input type="file" accept="image/*,application/pdf"
+                          onChange={(e) => handleDocUpload(e.target.files?.[0] || null, doc.key)} />
+                        {uploading === doc.key && <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Uploading…</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+
+        {/* Sticky footer actions */}
+        <div className="sticky bottom-4 mt-6 z-30">
+          <Card className="border-emerald-500/30 shadow-xl bg-background/95 backdrop-blur">
+            <CardContent className="p-4 flex items-center justify-between gap-2 flex-wrap">
+              <Button variant="outline" disabled={step === 1} onClick={() => setStep(s => s - 1)}>
+                <ChevronLeft className="h-4 w-4 mr-1" />Back
+              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="ghost" onClick={handleSaveDraft} disabled={savingDraft || !user}>
+                  {savingDraft ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+                  Save Draft
+                </Button>
+                {step < 7 ? (
+                  <Button onClick={handleNext} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                    Next<ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={submitting} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                    Submit for Verification
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

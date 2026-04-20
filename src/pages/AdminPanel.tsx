@@ -122,18 +122,25 @@ export default function AdminPanel() {
   const fetchProperties = async () => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft")
+      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft, document_urls, listing_type, images")
       .order("created_at", { ascending: false })
       .limit(200);
     setProperties(data || []);
   };
 
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
+    let reason: string | null = null;
+    if (decision === "rejected") {
+      reason = window.prompt("Reason for rejection (visible to seller):", "Listing details need clarification") || null;
+      if (!reason) return;
+    }
     setReviewingId(propertyId);
     try {
       const update: any = {
         verification_status: decision,
         verified: decision === "approved",
+        rejection_reason: decision === "rejected" ? reason : null,
+        is_draft: false,
         updated_at: new Date().toISOString(),
       };
       const { data, error } = await supabase
@@ -602,7 +609,16 @@ export default function AdminPanel() {
                                     <span className="text-muted-foreground">None</span>
                                   )}
                                   {p.rera_document_url && (
-                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">View doc</a>
+                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">RERA doc</a>
+                                  )}
+                                  {p.document_urls?.ownership_proof && (
+                                    <a href={p.document_urls.ownership_proof} target="_blank" rel="noreferrer" className="block text-primary underline">Ownership</a>
+                                  )}
+                                  {p.document_urls?.id_proof && (
+                                    <a href={p.document_urls.id_proof} target="_blank" rel="noreferrer" className="block text-primary underline">ID proof</a>
+                                  )}
+                                  {p.listing_type && (
+                                    <Badge variant="secondary" className="mt-1 text-[10px]">{p.listing_type === "rent" ? "For Rent" : "For Sale"}</Badge>
                                   )}
                                 </TableCell>
                                 <TableCell>

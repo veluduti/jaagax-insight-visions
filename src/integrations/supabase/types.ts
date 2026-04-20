@@ -1150,10 +1150,13 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          amenities: string[] | null
           area_sqft: number | null
+          balconies: number | null
           bathrooms: number | null
           bedrooms: number | null
           bhk: number | null
+          booking_amount: number | null
           builder_id: string | null
           building_area_sqft: number | null
           building_name: string | null
@@ -1161,13 +1164,23 @@ export type Database = {
           completion_stage: string | null
           created_at: string | null
           description: string | null
+          document_urls: Json | null
           elevators: number | null
+          floor_number: number | null
+          furnishing: string | null
           id: string
           images: string[] | null
+          is_draft: boolean | null
           latitude: number | null
+          listing_type: string | null
           locality: string
           longitude: number | null
+          maintenance_charges: number | null
+          pincode: string | null
           price: number
+          price_negotiable: boolean | null
+          property_age: string | null
+          rejection_reason: string | null
           rera_document_url: string | null
           rera_id: string | null
           retail_centres: number | null
@@ -1184,10 +1197,13 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          amenities?: string[] | null
           area_sqft?: number | null
+          balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
           bhk?: number | null
+          booking_amount?: number | null
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
@@ -1195,13 +1211,23 @@ export type Database = {
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
+          document_urls?: Json | null
           elevators?: number | null
+          floor_number?: number | null
+          furnishing?: string | null
           id?: string
           images?: string[] | null
+          is_draft?: boolean | null
           latitude?: number | null
+          listing_type?: string | null
           locality: string
           longitude?: number | null
+          maintenance_charges?: number | null
+          pincode?: string | null
           price?: number
+          price_negotiable?: boolean | null
+          property_age?: string | null
+          rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
           retail_centres?: number | null
@@ -1218,10 +1244,13 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          amenities?: string[] | null
           area_sqft?: number | null
+          balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
           bhk?: number | null
+          booking_amount?: number | null
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
@@ -1229,13 +1258,23 @@ export type Database = {
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
+          document_urls?: Json | null
           elevators?: number | null
+          floor_number?: number | null
+          furnishing?: string | null
           id?: string
           images?: string[] | null
+          is_draft?: boolean | null
           latitude?: number | null
+          listing_type?: string | null
           locality?: string
           longitude?: number | null
+          maintenance_charges?: number | null
+          pincode?: string | null
           price?: number
+          price_negotiable?: boolean | null
+          property_age?: string | null
+          rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
           retail_centres?: number | null
