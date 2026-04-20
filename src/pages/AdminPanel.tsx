@@ -122,18 +122,25 @@ export default function AdminPanel() {
   const fetchProperties = async () => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft")
+      .select("id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft, document_urls, listing_type, images")
       .order("created_at", { ascending: false })
       .limit(200);
     setProperties(data || []);
   };
 
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
+    let reason: string | null = null;
+    if (decision === "rejected") {
+      reason = window.prompt("Reason for rejection (visible to seller):", "Listing details need clarification") || null;
+      if (!reason) return;
+    }
     setReviewingId(propertyId);
     try {
       const update: any = {
         verification_status: decision,
         verified: decision === "approved",
+        rejection_reason: decision === "rejected" ? reason : null,
+        is_draft: false,
         updated_at: new Date().toISOString(),
       };
       const { data, error } = await supabase
