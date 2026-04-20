@@ -38,6 +38,7 @@ import BuilderDashboard from "./pages/BuilderDashboard";
 import AddProject from "./pages/AddProject";
 import BuilderPromotions from "./pages/BuilderPromotions";
 import AgentDashboard from "./pages/AgentDashboard";
+import AgentAddProperty from "./pages/AgentAddProperty";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import AIAdvisor from "./pages/AIAdvisor";
@@ -156,6 +157,11 @@ const App = () => (
           <Route path="/dashboard/agent" element={
             <ProtectedRoute allowedRole="agent">
               <AgentDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/agent/add-property" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentAddProperty />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/agent/visits" element={
