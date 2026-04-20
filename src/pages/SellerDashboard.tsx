@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Home, BarChart, LogOut, Eye, MessageSquare, TrendingUp, IndianRupee,
-  Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw
+  Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw,
+  Phone, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
