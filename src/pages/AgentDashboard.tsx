@@ -405,6 +405,12 @@ export default function AgentDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => navigate("/dashboard/agent/add-property")} className="hidden sm:inline-flex">
+              <Plus className="w-4 h-4 mr-1.5" />Add Property
+            </Button>
+            <Button size="icon" onClick={() => navigate("/dashboard/agent/add-property")} className="sm:hidden">
+              <Plus className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               {notifications.filter((n) => !n.read).length > 0 && (
