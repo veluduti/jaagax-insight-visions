@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { ensureApprovedRoleForUser, resolveUserAccess } from "@/lib/authRoleResolver";
 
-type AppRole = "buyer" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
+type AppRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -60,7 +60,9 @@ export default function ProtectedRoute({ children, allowedRole }: ProtectedRoute
         ? access.resolvedDbRole === "admin"
         : allowedRole === "buyer"
           ? access.resolvedRole === "buyer" || access.resolvedRole === "customer"
-          : access.resolvedRole === allowedRole;
+          : allowedRole === "seller"
+            ? access.resolvedRole === "seller" || access.resolvedDbRole === "customer"
+            : access.resolvedRole === allowedRole;
 
       setIsAuthorized(Boolean(hasRole));
     } catch (error) {

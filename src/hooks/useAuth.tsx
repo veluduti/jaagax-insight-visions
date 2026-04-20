@@ -98,14 +98,14 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      const dbRole = selectedRole === "buyer" ? "customer" : selectedRole;
+      const dbRole = (selectedRole === "buyer" || selectedRole === "seller") ? "customer" : selectedRole;
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: { role: dbRole, city: city || null, name: name || null, phone: phone || null },
+          data: { role: dbRole, requested_role: selectedRole, city: city || null, name: name || null, phone: phone || null },
         },
       });
 
@@ -121,13 +121,14 @@ export const useAuth = () => {
           if (roleError) console.error("Error inserting role:", roleError);
         }
 
-        // Submit signup request for all roles
+        // Submit signup request for all roles (store seller as 'seller' in requested_role for routing)
+        const requestedRoleForRecord = selectedRole === "seller" ? "seller" : dbRole;
         const { error: reqError } = await supabase.rpc("submit_signup_request", {
           _user_id: data.user.id,
           _email: email,
           _full_name: name || null,
           _city: city || null,
-          _requested_role: dbRole,
+          _requested_role: requestedRoleForRecord,
         });
         if (reqError) console.error("Error submitting signup request:", reqError);
 
@@ -164,6 +165,9 @@ export const useAuth = () => {
       case "buyer":
       case "customer":
         navigate("/dashboard/buyer");
+        break;
+      case "seller":
+        navigate("/dashboard/seller");
         break;
       case "agent":
         navigate("/dashboard/agent");

@@ -182,7 +182,11 @@ const App = () => (
               <BuilderVisitsDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard/seller" element={<SellerDashboard />} />
+          <Route path="/dashboard/seller" element={
+            <ProtectedRoute allowedRole="seller">
+              <SellerDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/admin" element={
             <ProtectedRoute allowedRole="admin">
               <AdminPanel />
