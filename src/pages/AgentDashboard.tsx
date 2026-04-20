@@ -31,6 +31,7 @@ import {
   PhoneCall, MessageSquare, Briefcase, Target, ListChecks,
   XCircle, Share2, FileText, Sparkles, ArrowRight, IndianRupee,
 } from "lucide-react";
+import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
 
 /* ============================================================
    Types
@@ -512,6 +513,15 @@ export default function AgentDashboard() {
             </motion.div>
           ))}
         </div>
+
+        {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
+        {agentProfile.id && user?.id && (
+          <AssignedPropertiesPanel
+            agentId={agentProfile.id}
+            agentUserId={user.id}
+            agentName={agentProfile.name || "Agent"}
+          />
+        )}
 
         {/* ===== Today's Tasks + Notifications strip ===== */}
         <div className="grid lg:grid-cols-3 gap-4">

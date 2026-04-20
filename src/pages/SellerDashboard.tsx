@@ -7,14 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Home, BarChart, LogOut, Eye, MessageSquare, TrendingUp, IndianRupee,
-  Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw
+  Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw,
+  Phone, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
+import PropertyChat from "@/components/chat/PropertyChat";
 
 interface AssignedAgent {
   id: string;
+  user_id: string | null;
   name: string;
   phone: string;
   email: string | null;
@@ -56,6 +59,7 @@ export default function SellerDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [chatProperty, setChatProperty] = useState<Property | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => { init(); }, []);
@@ -81,7 +85,7 @@ export default function SellerDashboard() {
     if (agentIds.length) {
       const { data: agents } = await supabase
         .from("agents")
-        .select("id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
+        .select("id, user_id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
         .in("id", agentIds);
       (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
     }
@@ -172,15 +176,23 @@ export default function SellerDashboard() {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <a href={`tel:${p.assigned_agent.phone}`} className="flex-1">
-                    <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                      <MessageSquare className="h-3 w-3 mr-1" />Call
+                  <Button
+                    size="sm"
+                    className="flex-1 h-7 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white"
+                    onClick={() => setChatProperty(p)}
+                    disabled={!p.assigned_agent?.user_id}
+                  >
+                    <MessageSquare className="h-3 w-3 mr-1" />Chat
+                  </Button>
+                  <a href={`tel:${p.assigned_agent.phone}`}>
+                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2">
+                      <Phone className="h-3 w-3" />
                     </Button>
                   </a>
                   {p.assigned_agent.email && (
-                    <a href={`mailto:${p.assigned_agent.email}`} className="flex-1">
-                      <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                        Email
+                    <a href={`mailto:${p.assigned_agent.email}`}>
+                      <Button size="sm" variant="outline" className="h-7 text-[11px] px-2">
+                        <Mail className="h-3 w-3" />
                       </Button>
                     </a>
                   )}
@@ -377,6 +389,24 @@ export default function SellerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {chatProperty && chatProperty.assigned_agent?.user_id && user?.id && (
+        <PropertyChat
+          open={!!chatProperty}
+          onOpenChange={(o) => !o && setChatProperty(null)}
+          propertyId={chatProperty.id}
+          propertyTitle={chatProperty.title}
+          agentUserId={chatProperty.assigned_agent.user_id}
+          sellerUserId={user.id}
+          currentUserId={user.id}
+          counterpart={{
+            name: chatProperty.assigned_agent.name,
+            photo_url: chatProperty.assigned_agent.photo_url,
+            phone: chatProperty.assigned_agent.phone,
+            role: "agent",
+          }}
+        />
+      )}
     </div>
   );
 }
