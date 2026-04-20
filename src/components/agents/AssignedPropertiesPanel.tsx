@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, MapPin, IndianRupee, Bed, Bath, Maximize2, Phone, Mail,
-  MessageSquare, ExternalLink, UserCheck, Sparkles,
+  MapPin, Bed, Bath, Maximize2, Phone, Mail,
+  MessageSquare, ExternalLink, UserCheck, Sparkles, BadgeCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import PropertyChat from "@/components/chat/PropertyChat";
@@ -108,101 +108,84 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
             </p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid md:grid-cols-2 gap-2">
             {properties.map((p, i) => {
               const img =
                 (Array.isArray(p.images) && p.images[0]) ||
-                "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600";
+                "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
               return (
                 <motion.div
                   key={p.id}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
+                  transition={{ delay: i * 0.03 }}
+                  className="group relative flex gap-3 rounded-xl border bg-card hover:bg-accent/30 hover:border-emerald-500/40 hover:shadow-md transition-all p-2.5"
                 >
-                  <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-lg transition-all h-full flex flex-col">
-                    <div className="relative h-32">
-                      <img src={img} alt={p.title} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <Badge className="absolute top-2 left-2 bg-emerald-500 text-white border-0 gap-1">
-                        <UserCheck className="h-3 w-3" />Yours
-                      </Badge>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-white font-semibold text-sm line-clamp-1 drop-shadow">{p.title}</p>
-                        <p className="text-white/80 text-[11px] flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />{p.locality}, {p.city}
-                        </p>
+                  {/* Thumbnail */}
+                  <div className="relative h-20 w-20 shrink-0 rounded-lg overflow-hidden">
+                    <img src={img} alt={p.title} className="w-full h-full object-cover" />
+                    {p.verified && (
+                      <div className="absolute top-1 left-1 bg-emerald-500 rounded-full p-0.5">
+                        <BadgeCheck className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between gap-1">
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold text-sm truncate leading-tight">{p.title}</p>
+                        <p className="text-xs font-bold text-emerald-600 shrink-0">{formatPrice(p.price)}</p>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
+                        <MapPin className="h-3 w-3 shrink-0" />{p.locality}, {p.city}
+                      </p>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                        {p.bedrooms != null && <span className="flex items-center gap-0.5"><Bed className="h-2.5 w-2.5" />{p.bedrooms}</span>}
+                        {p.bathrooms != null && <span className="flex items-center gap-0.5"><Bath className="h-2.5 w-2.5" />{p.bathrooms}</span>}
+                        {p.area_sqft != null && <span className="flex items-center gap-0.5"><Maximize2 className="h-2.5 w-2.5" />{p.area_sqft}sqft</span>}
+                        <span className="ml-auto truncate max-w-[80px]" title={p.owner_name || "Owner"}>
+                          👤 {p.owner_name || "Owner"}
+                        </span>
                       </div>
                     </div>
-                    <CardContent className="p-3 space-y-2 flex-1 flex flex-col">
-                      <div className="flex items-center justify-between">
-                        <p className="text-base font-bold text-emerald-600 flex items-center">
-                          <IndianRupee className="h-3.5 w-3.5" />{formatPrice(p.price).replace("₹", "")}
-                        </p>
-                        <Badge variant={p.verified ? "default" : "outline"} className="text-[10px]">
-                          {p.verified ? "Live" : p.verification_status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                        {p.bedrooms != null && <span className="flex items-center gap-0.5"><Bed className="h-3 w-3" />{p.bedrooms}</span>}
-                        {p.bathrooms != null && <span className="flex items-center gap-0.5"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
-                        {p.area_sqft != null && <span className="flex items-center gap-0.5"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
-                      </div>
 
-                      {/* Owner block */}
-                      <div className="rounded-lg border bg-muted/30 p-2 space-y-1.5">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground">Owner</p>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7">
-                            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                              {(p.owner_name || "O").charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{p.owner_name || "Owner"}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">
-                              {p.owner_phone || p.owner_email || "Contact via chat"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          {p.owner_phone && (
-                            <a href={`tel:${p.owner_phone}`} className="flex-1">
-                              <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                                <Phone className="h-3 w-3 mr-1" />Call
-                              </Button>
-                            </a>
-                          )}
-                          {p.owner_email && (
-                            <a href={`mailto:${p.owner_email}`} className="flex-1">
-                              <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                                <Mail className="h-3 w-3 mr-1" />Email
-                              </Button>
-                            </a>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-1.5 mt-auto pt-1">
-                        <Button
-                          size="sm"
-                          className="flex-1 h-8 bg-emerald-500 hover:bg-emerald-600 text-white"
-                          onClick={() => setChatTarget(p)}
-                          disabled={!p.submitted_by}
-                        >
-                          <MessageSquare className="h-3.5 w-3.5 mr-1" />Chat
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8"
-                          onClick={() => window.open(`/property/${p.id}`, "_blank")}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    {/* Action row */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        className="flex-1 h-7 bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] px-2"
+                        onClick={() => setChatTarget(p)}
+                        disabled={!p.submitted_by}
+                      >
+                        <MessageSquare className="h-3 w-3 mr-1" />Chat Owner
+                      </Button>
+                      {p.owner_phone && (
+                        <a href={`tel:${p.owner_phone}`}>
+                          <Button size="icon" variant="outline" className="h-7 w-7" title={`Call ${p.owner_phone}`}>
+                            <Phone className="h-3 w-3" />
+                          </Button>
+                        </a>
+                      )}
+                      {p.owner_email && (
+                        <a href={`mailto:${p.owner_email}`}>
+                          <Button size="icon" variant="outline" className="h-7 w-7" title={p.owner_email}>
+                            <Mail className="h-3 w-3" />
+                          </Button>
+                        </a>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-7 w-7"
+                        title="View property"
+                        onClick={() => window.open(`/property/${p.id}`, "_blank")}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
                 </motion.div>
               );
             })}
