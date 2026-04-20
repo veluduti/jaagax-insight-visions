@@ -83,7 +83,7 @@ export default function SellerDashboard() {
     if (agentIds.length) {
       const { data: agents } = await supabase
         .from("agents")
-        .select("id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
+        .select("id, user_id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
         .in("id", agentIds);
       (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
     }
