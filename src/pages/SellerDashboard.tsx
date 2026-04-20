@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
+import PropertyChat from "@/components/chat/PropertyChat";
 
 interface AssignedAgent {
   id: string;
