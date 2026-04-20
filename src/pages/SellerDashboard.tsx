@@ -49,9 +49,8 @@ export default function SellerDashboard() {
 
   const init = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { navigate("/auth?redirect=/dashboard/seller"); return; }
     setUser(user);
-    await fetchProperties(user.id);
+    if (user) await fetchProperties(user.id);
     setLoading(false);
   };
 
