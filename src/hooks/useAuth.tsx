@@ -121,16 +121,23 @@ export const useAuth = () => {
           if (roleError) console.error("Error inserting role:", roleError);
         }
 
-        // Submit signup request for all roles (store seller as 'seller' in requested_role for routing)
-        const requestedRoleForRecord = selectedRole === "seller" ? "seller" : dbRole;
+        // Submit signup request (RPC only accepts customer/agent/builder)
         const { error: reqError } = await supabase.rpc("submit_signup_request", {
           _user_id: data.user.id,
           _email: email,
           _full_name: name || null,
           _city: city || null,
-          _requested_role: requestedRoleForRecord,
+          _requested_role: dbRole,
         });
         if (reqError) console.error("Error submitting signup request:", reqError);
+
+        // Overwrite requested_role to 'seller' for routing if applicable
+        if (selectedRole === "seller") {
+          await supabase
+            .from('signup_requests')
+            .update({ requested_role: 'seller' })
+            .eq('user_id', data.user.id);
+        }
 
         // Store phone in signup_requests if provided
         if (phone) {
