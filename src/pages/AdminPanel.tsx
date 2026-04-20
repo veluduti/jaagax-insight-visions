@@ -609,7 +609,16 @@ export default function AdminPanel() {
                                     <span className="text-muted-foreground">None</span>
                                   )}
                                   {p.rera_document_url && (
-                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">View doc</a>
+                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">RERA doc</a>
+                                  )}
+                                  {p.document_urls?.ownership_proof && (
+                                    <a href={p.document_urls.ownership_proof} target="_blank" rel="noreferrer" className="block text-primary underline">Ownership</a>
+                                  )}
+                                  {p.document_urls?.id_proof && (
+                                    <a href={p.document_urls.id_proof} target="_blank" rel="noreferrer" className="block text-primary underline">ID proof</a>
+                                  )}
+                                  {p.listing_type && (
+                                    <Badge variant="secondary" className="mt-1 text-[10px]">{p.listing_type === "rent" ? "For Rent" : "For Sale"}</Badge>
                                   )}
                                 </TableCell>
                                 <TableCell>
