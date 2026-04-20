@@ -58,6 +58,7 @@ export default function SellerDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [chatProperty, setChatProperty] = useState<Property | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => { init(); }, []);
