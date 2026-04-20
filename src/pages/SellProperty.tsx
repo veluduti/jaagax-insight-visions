@@ -219,7 +219,16 @@ export default function SellProperty() {
       setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
       toast.success("Location pinned");
     });
-    return () => { map.remove(); mapRef.current = null; markerRef.current = null; };
+    };
+
+    tryInit();
+    return () => {
+      cancelled = true;
+      ro?.disconnect();
+      map?.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
   }, [step]);
 
   const useMyLocation = () => {
