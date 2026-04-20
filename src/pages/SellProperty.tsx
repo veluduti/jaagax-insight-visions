@@ -22,7 +22,11 @@ import {
   ChevronLeft, ChevronRight, CheckCircle2, Save, X, Loader2, Upload, FileText
 } from "lucide-react";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoiamFhZ2F4IiwiYSI6ImNtNHk2dXY4OTBzNXcyaXNjMGVwZWZ6cWoifQ.w6YeIJDxLfsxxJfPrDt-Pw";
+const MAPBOX_TOKEN =
+  import.meta.env.VITE_MAPBOX_TOKEN ||
+  import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+  "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
+
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 const STEPS = [
@@ -169,6 +173,13 @@ export default function SellProperty() {
     mapRef.current = map;
 
     map.on("load", () => map?.resize());
+    map.on("styleimagemissing", () => map?.resize());
+    map.on("error", (event) => {
+      const message = typeof event?.error?.message === "string" ? event.error.message.toLowerCase() : "";
+      if (message.includes("401") || message.includes("403") || message.includes("token") || message.includes("unauthorized")) {
+        toast.error("Map could not load with the current key. Reloading with the public map key.");
+      }
+    });
     // Fix white/empty map when container size changes
     [50, 200, 500, 1000].forEach((d) => setTimeout(() => map?.resize(), d));
     ro = new ResizeObserver(() => map?.resize());
