@@ -16,6 +16,7 @@ import PropertyChat from "@/components/chat/PropertyChat";
 
 interface AssignedAgent {
   id: string;
+  user_id: string | null;
   name: string;
   phone: string;
   email: string | null;
