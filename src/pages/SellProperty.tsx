@@ -143,7 +143,8 @@ export default function SellProperty() {
 
   // Init map on step 2
   useEffect(() => {
-    if (step !== 2 || !mapContainer.current || mapRef.current) return;
+    if (step !== 2) return;
+    if (!mapContainer.current || mapRef.current) return;
     const center: [number, number] = form.longitude && form.latitude
       ? [form.longitude, form.latitude]
       : [78.4867, 17.3850];
@@ -154,13 +155,53 @@ export default function SellProperty() {
       zoom: 12,
     });
     mapRef.current = map;
+
+    map.on("load", () => map.resize());
+    // Fix white/empty map when container size changes
+    setTimeout(() => map.resize(), 200);
+
+    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    const geocoder = new MapboxGeocoder({
+      accessToken: MAPBOX_TOKEN,
+      mapboxgl: mapboxgl as any,
+      marker: false,
+      placeholder: "Search location, area, or address",
+      countries: "in",
+    });
+    map.addControl(geocoder as any, "top-left");
+
+    geocoder.on("result", (e: any) => {
+      const [lng, lat] = e.result.center;
+      if (markerRef.current) markerRef.current.remove();
+      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
+        .setLngLat([lng, lat]).addTo(map);
+      markerRef.current.on("dragend", () => {
+        const ll = markerRef.current!.getLngLat();
+        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
+      });
+      setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
+      toast.success("Location selected");
+    });
+
     if (form.latitude && form.longitude) {
-      markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat(center).addTo(map);
+      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
+        .setLngLat(center).addTo(map);
+      markerRef.current.on("dragend", () => {
+        const ll = markerRef.current!.getLngLat();
+        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
+      });
     }
+
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;
       if (markerRef.current) markerRef.current.remove();
-      markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat([lng, lat]).addTo(map);
+      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
+        .setLngLat([lng, lat]).addTo(map);
+      markerRef.current.on("dragend", () => {
+        const ll = markerRef.current!.getLngLat();
+        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
+      });
       setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
       toast.success("Location pinned");
     });
