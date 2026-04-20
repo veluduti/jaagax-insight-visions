@@ -15,6 +15,7 @@ import {
 import Navigation from "@/components/Navigation";
 import BookingsPanel from "@/components/admin/BookingsPanel";
 import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
+import AssignAgentPanel from "@/components/admin/AssignAgentPanel";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
@@ -578,75 +579,12 @@ export default function AdminPanel() {
                         <AlertCircle className="h-5 w-5" />
                         Pending Property Verifications ({pendingProps.length})
                       </CardTitle>
-                      <CardDescription>Review properties submitted by builders. Approve to mark verified.</CardDescription>
+                      <CardDescription>
+                        Seller listings → pick a nearby agent to assign + approve. Agent listings → just approve (the listing agent is already assigned).
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {pendingProps.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-6">No pending properties 🎉</p>
-                      ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Title</TableHead>
-                              <TableHead>Location</TableHead>
-                              <TableHead>Price</TableHead>
-                              <TableHead>Config</TableHead>
-                              <TableHead>RERA</TableHead>
-                              <TableHead>Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {pendingProps.map((p) => (
-                              <TableRow key={p.id}>
-                                <TableCell className="font-medium max-w-[200px] truncate">{p.title}</TableCell>
-                                <TableCell>{p.locality}, {p.city}</TableCell>
-                                <TableCell>₹{Number(p.price).toLocaleString("en-IN")}</TableCell>
-                                <TableCell className="text-xs">{p.bhk ? `${p.bhk} BHK` : "N/A"} • {p.area_sqft || "N/A"} sqft</TableCell>
-                                <TableCell className="text-xs">
-                                  {p.rera_id ? (
-                                    <Badge variant="outline" className="text-green-500">{p.rera_id}</Badge>
-                                  ) : (
-                                    <span className="text-muted-foreground">None</span>
-                                  )}
-                                  {p.rera_document_url && (
-                                    <a href={p.rera_document_url} target="_blank" rel="noreferrer" className="block text-primary underline mt-1">RERA doc</a>
-                                  )}
-                                  {p.document_urls?.ownership_proof && (
-                                    <a href={p.document_urls.ownership_proof} target="_blank" rel="noreferrer" className="block text-primary underline">Ownership</a>
-                                  )}
-                                  {p.document_urls?.id_proof && (
-                                    <a href={p.document_urls.id_proof} target="_blank" rel="noreferrer" className="block text-primary underline">ID proof</a>
-                                  )}
-                                  {p.listing_type && (
-                                    <Badge variant="secondary" className="mt-1 text-[10px]">{p.listing_type === "rent" ? "For Rent" : "For Sale"}</Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleReviewProperty(p.id, "approved")}
-                                      disabled={reviewingId === p.id}
-                                    >
-                                      {reviewingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                                      Approve
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => handleReviewProperty(p.id, "rejected")}
-                                      disabled={reviewingId === p.id}
-                                    >
-                                      <XCircle className="h-3 w-3 mr-1" />
-                                      Reject
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      )}
+                      <AssignAgentPanel />
                     </CardContent>
                   </Card>
 
