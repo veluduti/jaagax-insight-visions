@@ -389,6 +389,24 @@ export default function SellerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {chatProperty && chatProperty.assigned_agent?.user_id && user?.id && (
+        <PropertyChat
+          open={!!chatProperty}
+          onOpenChange={(o) => !o && setChatProperty(null)}
+          propertyId={chatProperty.id}
+          propertyTitle={chatProperty.title}
+          agentUserId={chatProperty.assigned_agent.user_id}
+          sellerUserId={user.id}
+          currentUserId={user.id}
+          counterpart={{
+            name: chatProperty.assigned_agent.name,
+            photo_url: chatProperty.assigned_agent.photo_url,
+            phone: chatProperty.assigned_agent.phone,
+            role: "agent",
+          }}
+        />
+      )}
     </div>
   );
 }
