@@ -131,7 +131,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        const { error, resolvedRole } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -142,7 +142,16 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        // Route directly based on freshly-resolved role to avoid state-propagation races
+        const dest =
+          resolvedRole === "seller" ? "/dashboard/seller"
+          : resolvedRole === "agent" ? "/dashboard/agent"
+          : resolvedRole === "builder" ? "/dashboard/builder"
+          : resolvedRole === "admin" ? "/dashboard/admin"
+          : resolvedRole === "hotel_manager" ? "/dashboard/hotel-manager"
+          : resolvedRole === "buyer" || resolvedRole === "customer" ? "/dashboard/buyer"
+          : "/dashboard";
+        navigate(dest);
         return;
       } else {
         const { error } = await signUp(email, password, selectedRole, city, name, phone);
