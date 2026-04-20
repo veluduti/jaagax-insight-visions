@@ -13,6 +13,17 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 
+interface AssignedAgent {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  photo_url: string | null;
+  agency_name: string | null;
+  experience_years: number | null;
+  avg_rating: number | null;
+}
+
 interface Property {
   id: string;
   title: string;
@@ -30,6 +41,8 @@ interface Property {
   is_draft: boolean | null;
   listing_type: string | null;
   created_at: string;
+  assigned_agent_id: string | null;
+  assigned_agent?: AssignedAgent | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
@@ -57,10 +70,22 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, rejection_reason, is_draft, listing_type, created_at")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
-    setProperties((data as any) || []);
+
+    const props = (data as any[]) || [];
+    // Hydrate assigned_agent for each property that has one
+    const agentIds = Array.from(new Set(props.map((p) => p.assigned_agent_id).filter(Boolean)));
+    let agentMap: Record<string, AssignedAgent> = {};
+    if (agentIds.length) {
+      const { data: agents } = await supabase
+        .from("agents")
+        .select("id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
+        .in("id", agentIds);
+      (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
+    }
+    setProperties(props.map((p) => ({ ...p, assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null })));
   };
 
   const handleSignOut = async () => {
@@ -124,6 +149,47 @@ export default function SellerDashboard() {
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400">
                 <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
                 <p className="mt-0.5">{p.rejection_reason}</p>
+              </div>
+            )}
+            {status === "approved" && p.assigned_agent && (
+              <div className="p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+                <p className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Your Dedicated Agent
+                </p>
+                <div className="flex items-center gap-2">
+                  {p.assigned_agent.photo_url ? (
+                    <img src={p.assigned_agent.photo_url} alt={p.assigned_agent.name} className="h-8 w-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-600">
+                      {p.assigned_agent.name.charAt(0)}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{p.assigned_agent.name}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {p.assigned_agent.agency_name || "Independent"} · {p.assigned_agent.experience_years || 0}y exp
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <a href={`tel:${p.assigned_agent.phone}`} className="flex-1">
+                    <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
+                      <MessageSquare className="h-3 w-3 mr-1" />Call
+                    </Button>
+                  </a>
+                  {p.assigned_agent.email && (
+                    <a href={`mailto:${p.assigned_agent.email}`} className="flex-1">
+                      <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
+                        Email
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+            {status === "approved" && !p.assigned_agent && (
+              <div className="p-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs text-amber-600 dark:text-amber-400">
+                Live but no agent assigned yet — we'll notify you once one is.
               </div>
             )}
             <div className="flex gap-2 pt-1">

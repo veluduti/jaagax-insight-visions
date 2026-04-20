@@ -17,21 +17,29 @@ interface NearbyAgentsProps {
   city: string;
   locality: string;
   propertyId: string;
+  /** When true, hide all other agents — only the primaryAgent (assigned agent) is shown */
+  exclusiveAssignedAgent?: boolean;
 }
 
-export default function NearbyAgents({ primaryAgent, city, locality, propertyId }: NearbyAgentsProps) {
+export default function NearbyAgents({ primaryAgent, city, locality, propertyId, exclusiveAssignedAgent = false }: NearbyAgentsProps) {
   const navigate = useNavigate();
   const [nearbyAgents, setNearbyAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (exclusiveAssignedAgent) {
+      // Strict rule: only the assigned agent is allowed to handle this listing
+      setNearbyAgents([]);
+      setLoading(false);
+      return;
+    }
     fetchNearbyAgents();
-  }, [city, locality]);
+  }, [city, locality, exclusiveAssignedAgent]);
 
   const fetchNearbyAgents = async () => {
     try {
       setLoading(true);
-      
+
       // Query agents serving this city/locality
       const { data, error } = await supabase
         .from("agents")
@@ -156,18 +164,22 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5 text-primary" />
-          Contact Agents
+          {exclusiveAssignedAgent ? "Your Dedicated Agent" : "Contact Agents"}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {primaryAgent ? "Primary agent and nearby specialists" : "Agents serving this area"}
+          {exclusiveAssignedAgent
+            ? "This property is exclusively handled by the assigned agent below. All enquiries and visits route to them."
+            : primaryAgent
+            ? "Primary agent and nearby specialists"
+            : "Agents serving this area"}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Primary Agent */}
+        {/* Primary / Assigned Agent */}
         {primaryAgent && <AgentMiniCard agent={primaryAgent} isPrimary />}
 
-        {/* Nearby Agents */}
-        {loading ? (
+        {/* Nearby Agents — hidden when exclusive */}
+        {exclusiveAssignedAgent ? null : loading ? (
           <>
             <Skeleton className="h-40 w-full rounded-xl" />
             <Skeleton className="h-40 w-full rounded-xl" />
@@ -199,7 +211,7 @@ export default function NearbyAgents({ primaryAgent, city, locality, propertyId 
           )
         )}
 
-        {nearbyAgents.length > (primaryAgent ? 3 : 0) && (
+        {!exclusiveAssignedAgent && nearbyAgents.length > (primaryAgent ? 3 : 0) && (
           <Button
             variant="ghost"
             className="w-full"

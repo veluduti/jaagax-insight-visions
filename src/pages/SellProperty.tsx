@@ -364,6 +364,9 @@ export default function SellProperty() {
     verified: false,
     is_draft: asDraft,
     rejection_reason: null,
+    listed_by: "seller",
+    // Sellers do NOT get to pick the agent — admin assigns one during approval
+    assigned_agent_id: null,
   });
 
   const handleSaveDraft = async () => {

@@ -1152,6 +1152,7 @@ export type Database = {
           address: string | null
           amenities: string[] | null
           area_sqft: number | null
+          assigned_agent_id: string | null
           balconies: number | null
           bathrooms: number | null
           bedrooms: number | null
@@ -1172,6 +1173,7 @@ export type Database = {
           images: string[] | null
           is_draft: boolean | null
           latitude: number | null
+          listed_by: string | null
           listing_type: string | null
           locality: string
           longitude: number | null
@@ -1199,6 +1201,7 @@ export type Database = {
           address?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
+          assigned_agent_id?: string | null
           balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -1219,6 +1222,7 @@ export type Database = {
           images?: string[] | null
           is_draft?: boolean | null
           latitude?: number | null
+          listed_by?: string | null
           listing_type?: string | null
           locality: string
           longitude?: number | null
@@ -1246,6 +1250,7 @@ export type Database = {
           address?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
+          assigned_agent_id?: string | null
           balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -1266,6 +1271,7 @@ export type Database = {
           images?: string[] | null
           is_draft?: boolean | null
           latitude?: number | null
+          listed_by?: string | null
           listing_type?: string | null
           locality?: string
           longitude?: number | null
@@ -1289,7 +1295,15 @@ export type Database = {
           verified?: boolean | null
           video_urls?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "properties_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_searches: {
         Row: {
