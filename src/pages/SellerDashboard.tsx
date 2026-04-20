@@ -175,15 +175,23 @@ export default function SellerDashboard() {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <a href={`tel:${p.assigned_agent.phone}`} className="flex-1">
-                    <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                      <MessageSquare className="h-3 w-3 mr-1" />Call
+                  <Button
+                    size="sm"
+                    className="flex-1 h-7 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white"
+                    onClick={() => setChatProperty(p)}
+                    disabled={!p.assigned_agent?.user_id}
+                  >
+                    <MessageSquare className="h-3 w-3 mr-1" />Chat
+                  </Button>
+                  <a href={`tel:${p.assigned_agent.phone}`}>
+                    <Button size="sm" variant="outline" className="h-7 text-[11px] px-2">
+                      <Phone className="h-3 w-3" />
                     </Button>
                   </a>
                   {p.assigned_agent.email && (
-                    <a href={`mailto:${p.assigned_agent.email}`} className="flex-1">
-                      <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
-                        Email
+                    <a href={`mailto:${p.assigned_agent.email}`}>
+                      <Button size="sm" variant="outline" className="h-7 text-[11px] px-2">
+                        <Mail className="h-3 w-3" />
                       </Button>
                     </a>
                   )}
