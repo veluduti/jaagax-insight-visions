@@ -514,6 +514,15 @@ export default function AgentDashboard() {
           ))}
         </div>
 
+        {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
+        {agentProfile.id && user?.id && (
+          <AssignedPropertiesPanel
+            agentId={agentProfile.id}
+            agentUserId={user.id}
+            agentName={agentProfile.name || "Agent"}
+          />
+        )}
+
         {/* ===== Today's Tasks + Notifications strip ===== */}
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Tasks */}
