@@ -223,8 +223,45 @@ export default function AgentAddProperty() {
         submitted_by: user.id,
       };
 
-      const { error } = await supabase.from("properties").insert(payload);
+      // Look up the agent's own agents.id row so we can mark them as the assigned agent
+      const { data: agentRow } = await supabase
+        .from("agents")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const fullPayload = {
+        ...payload,
+        listed_by: "agent",
+        // For agent-listed properties, the agent IS the assigned agent automatically
+        assigned_agent_id: agentRow?.id || null,
+      };
+
+      const { data: inserted, error } = await supabase
+        .from("properties")
+        .insert(fullPayload)
+        .select("id, title, city")
+        .single();
       if (error) throw error;
+
+      // Notify admins so they can approve
+      if (!asDraft && inserted) {
+        const { data: admins } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+        if (admins?.length) {
+          await supabase.from("notifications").insert(
+            admins.map((a: any) => ({
+              user_id: a.user_id,
+              type: "property_submitted",
+              title: "Agent listing — needs verification",
+              message: `${inserted.title} (${inserted.city || "N/A"}) submitted by agent. Listing agent already assigned.`,
+              link: "/admin",
+            }))
+          );
+        }
+      }
 
       toast.success(
         asDraft
