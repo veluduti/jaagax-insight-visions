@@ -244,7 +244,7 @@ export default function SellerDashboard() {
             </Card>
           </motion.div>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 hover:shadow-lg">
+            <Card className="cursor-pointer border-2 hover:shadow-lg" onClick={() => navigate("/dashboard/seller/analytics")}>
               <CardContent className="p-5 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-orange-500/15"><BarChart className="h-6 w-6 text-orange-500" /></div>
                 <div>

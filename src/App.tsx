@@ -32,6 +32,7 @@ import EventDetail from "./pages/EventDetail";
 import Map from "./pages/Map";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import SellerDashboard from "./pages/SellerDashboard";
+import SellerAnalytics from "./pages/SellerAnalytics";
 import SellProperty from "./pages/SellProperty";
 import BuilderDashboard from "./pages/BuilderDashboard";
 import AddProject from "./pages/AddProject";
@@ -185,6 +186,11 @@ const App = () => (
           <Route path="/dashboard/seller" element={
             <ProtectedRoute allowedRole="seller">
               <SellerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/seller/analytics" element={
+            <ProtectedRoute allowedRole="seller">
+              <SellerAnalytics />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/admin" element={
