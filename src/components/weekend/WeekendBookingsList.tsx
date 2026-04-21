@@ -21,9 +21,10 @@ interface Props {
   scope: "buyer" | "agent" | "admin";
   agentId?: string | null; // for agent scope
   userId?: string | null; // current user id
+  kind?: BookingKind | "all"; // filter by booking kind
 }
 
-export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
+export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Props) => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | WeekendStatus>("all");
@@ -31,17 +32,23 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
 
   const [view, setView] = useState<"active" | "history">("active");
 
+  const isQuick = kind === "quick_visit";
+  const headerMeta = isQuick
+    ? { label: "Quick Visit Package", icon: Zap, sub: "Single-property concierge visits" }
+    : { label: "Weekend Property Explorer", icon: Sparkles, sub: "2-day visit + stay bookings" };
+
   const load = async () => {
     setLoading(true);
     let q = supabase.from("weekend_bookings").select("*").order("created_at", { ascending: false });
     if (scope === "buyer" && userId) q = q.eq("buyer_id", userId);
     if (scope === "agent" && agentId) q = q.eq("agent_id", agentId);
+    if (kind !== "all") q = q.eq("booking_kind", kind);
     const { data } = await q;
     setItems(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [scope, agentId, userId]);
+  useEffect(() => { load(); }, [scope, agentId, userId, kind]);
 
   // Realtime
   useEffect(() => {
