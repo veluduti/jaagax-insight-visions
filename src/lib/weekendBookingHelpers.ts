@@ -62,6 +62,13 @@ export async function notifyAdmins(title: string, message: string, link?: string
   );
 }
 
+export type BookingKind = "weekend" | "quick_visit";
+
+export const BOOKING_KIND_META: Record<BookingKind, { label: string; short: string; emoji: string }> = {
+  weekend: { label: "Weekend Property Explorer", short: "Weekend", emoji: "✨" },
+  quick_visit: { label: "Quick Visit Package", short: "Quick Visit", emoji: "⚡" },
+};
+
 export function formatINR(n?: number | null) {
   if (n == null) return "—";
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
