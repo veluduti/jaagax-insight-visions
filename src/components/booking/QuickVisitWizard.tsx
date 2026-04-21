@@ -56,12 +56,27 @@ const STEPS_NO_PROPERTY = [
 const QUICK_VISIT_FEE = 499; // platform concierge fee
 
 export const QuickVisitWizard = ({
-  open, onClose, propertyId, propertyTitle,
-  propertyCity = "Hyderabad", propertyLocality = "", propertyPrice = 0,
+  open, onClose, propertyId: initialPropertyId, propertyTitle: initialPropertyTitle,
+  propertyCity: initialPropertyCity = "Hyderabad",
+  propertyLocality: initialPropertyLocality = "",
+  propertyPrice: initialPropertyPrice = 0,
 }: QuickVisitWizardProps) => {
-  const [step, setStep] = useState(1);
+  const requiresPropertyPick = !initialPropertyId;
+  const STEPS = requiresPropertyPick ? STEPS_WITH_PROPERTY : STEPS_NO_PROPERTY;
+
+  const [step, setStep] = useState(requiresPropertyPick ? 0 : 1);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // Property selection (when not pre-selected)
+  const [propertyId, setPropertyId] = useState<string>(initialPropertyId || "");
+  const [propertyTitle, setPropertyTitle] = useState<string>(initialPropertyTitle || "");
+  const [propertyCity, setPropertyCity] = useState<string>(initialPropertyCity);
+  const [propertyLocality, setPropertyLocality] = useState<string>(initialPropertyLocality);
+  const [propertyPrice, setPropertyPrice] = useState<number>(initialPropertyPrice);
+  const [propertyOptions, setPropertyOptions] = useState<PropertyOption[]>([]);
+  const [propertySearch, setPropertySearch] = useState("");
+  const [loadingProps, setLoadingProps] = useState(false);
 
   const [visitDate, setVisitDate] = useState<Date | undefined>();
   const [visitTime, setVisitTime] = useState("11:00");
@@ -84,33 +99,69 @@ export const QuickVisitWizard = ({
     });
   }, [open]);
 
+  // Fetch property options when picker is shown
+  useEffect(() => {
+    if (!open || !requiresPropertyPick) return;
+    setLoadingProps(true);
+    supabase
+      .from("properties")
+      .select("id,title,city,locality,price,images")
+      .eq("verification_status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setPropertyOptions((data || []) as PropertyOption[]);
+        setLoadingProps(false);
+      });
+  }, [open, requiresPropertyPick]);
+
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
-        setStep(1);
+        setStep(requiresPropertyPick ? 0 : 1);
         setCreatedBookingId(null);
         setSubmitting(false);
         setVisitDate(undefined);
         setNotes("");
+        if (requiresPropertyPick) {
+          setPropertyId("");
+          setPropertyTitle("");
+          setPropertyLocality("");
+        }
       }, 300);
     }
-  }, [open]);
+  }, [open, requiresPropertyPick]);
 
   const estimatedTotal = QUICK_VISIT_FEE;
   const bookingAmount = QUICK_VISIT_FEE;
 
+  const filteredProps = useMemo(() => {
+    const q = propertySearch.trim().toLowerCase();
+    if (!q) return propertyOptions;
+    return propertyOptions.filter(p =>
+      p.title?.toLowerCase().includes(q) ||
+      p.city?.toLowerCase().includes(q) ||
+      p.locality?.toLowerCase().includes(q),
+    );
+  }, [propertyOptions, propertySearch]);
+
   const canNext = useMemo(() => {
     switch (step) {
+      case 0: return !!propertyId;
       case 1: return !!visitDate && !!visitTime;
       case 2: return name.trim() && email.trim() && phone.trim().length >= 10;
       case 3: return true;
       default: return false;
     }
-  }, [step, visitDate, visitTime, name, email, phone]);
+  }, [step, propertyId, visitDate, visitTime, name, email, phone]);
 
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Please sign in to book a visit");
+      return;
+    }
+    if (!propertyId) {
+      toast.error("Please choose a property to visit");
       return;
     }
     // Buyer-only guard
