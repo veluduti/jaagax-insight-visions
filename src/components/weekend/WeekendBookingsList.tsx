@@ -29,6 +29,8 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
   const [filter, setFilter] = useState<"all" | WeekendStatus>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const [view, setView] = useState<"active" | "history">("active");
+
   const load = async () => {
     setLoading(true);
     let q = supabase.from("weekend_bookings").select("*").order("created_at", { ascending: false });
@@ -49,14 +51,18 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
     return () => { supabase.removeChannel(ch); };
   }, [scope, agentId, userId]);
 
-  const filtered = filter === "all" ? items : items.filter(i => i.status === filter);
+  const deleteBooking = async (id: string) => {
+    const { error } = await supabase.from("weekend_bookings").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Booking deleted");
+    load();
+  };
 
-  const counts = items.reduce((acc, i) => { acc[i.status] = (acc[i.status] || 0) + 1; return acc; }, {} as Record<string, number>);
-
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+  const viewItems = items.filter(i => view === "history" ? HISTORY_STATUSES.has(i.status) : !HISTORY_STATUSES.has(i.status));
+  const filtered = filter === "all" ? viewItems : viewItems.filter(i => i.status === filter);
+  const counts = viewItems.reduce((acc, i) => { acc[i.status] = (acc[i.status] || 0) + 1; return acc; }, {} as Record<string, number>);
+  const historyCount = items.filter(i => HISTORY_STATUSES.has(i.status)).length;
+  const activeCount = items.length - historyCount;
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center shadow-md">
             <Sparkles className="h-5 w-5 text-white" />
