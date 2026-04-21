@@ -104,9 +104,28 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
         <div className="grid sm:grid-cols-2 gap-3">
           {filtered.map((b, i) => {
             const status = WEEKEND_STATUSES[b.status as WeekendStatus] || WEEKEND_STATUSES.pending_confirmation;
+            const interestedCount = b.interested_property_ids?.length || 0;
+            const hasInterest = interestedCount > 0;
+            const dealClosed = b.status === "deal_closed" || b.status === "rated";
+            const remainingDue = dealClosed && b.deal_amount && b.final_payment_status !== "paid";
+            const canDelete = scope === "buyer" || scope === "admin";
             return (
               <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Card className="cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group" onClick={() => setSelectedId(b.id)}>
+                <Card className={`cursor-pointer hover:shadow-md transition-all group relative ${hasInterest && !dealClosed ? "border-emerald-500/50 ring-1 ring-emerald-500/20 shadow-[0_0_0_1px_hsl(var(--primary)/0.05)]" : "hover:border-primary/30"}`} onClick={() => setSelectedId(b.id)}>
+                  {hasInterest && !dealClosed && (
+                    <div className="absolute -top-2 left-3 z-10">
+                      <Badge className="bg-emerald-500 text-primary-foreground text-[10px] gap-1 shadow-md">
+                        <ThumbsUp className="h-2.5 w-2.5" />Buyer interested in {interestedCount}
+                      </Badge>
+                    </div>
+                  )}
+                  {remainingDue && (
+                    <div className="absolute -top-2 right-3 z-10">
+                      <Badge className="bg-amber-500 text-primary-foreground text-[10px] gap-1 shadow-md animate-pulse">
+                        <IndianRupee className="h-2.5 w-2.5" />Final payment due
+                      </Badge>
+                    </div>
+                  )}
                   <CardContent className="p-3.5 space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -127,15 +146,46 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
                       </div>
                       <div className="rounded-md bg-muted/40 p-1.5">
                         <p className="text-muted-foreground text-[10px] uppercase">Properties</p>
-                        <p className="font-medium flex items-center gap-1"><Building2 className="h-3 w-3" />{b.selected_property_ids?.length || 0} selected</p>
+                        <p className="font-medium flex items-center gap-1"><Building2 className="h-3 w-3" />{b.selected_property_ids?.length || 0} selected{hasInterest ? ` · ${interestedCount}❤` : ""}</p>
                       </div>
                     </div>
 
+                    {dealClosed && (
+                      <div className="rounded-md bg-emerald-500/10 border border-emerald-500/30 p-2 text-xs flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                        <Handshake className="h-3 w-3" />
+                        Deal closed · {formatINR(b.deal_amount)}
+                        {b.agent_rating && <span className="ml-auto">★ {b.agent_rating}/5</span>}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between border-t pt-2">
                       <span className="text-sm font-semibold text-primary flex items-center gap-0.5"><IndianRupee className="h-3 w-3" />{formatINR(b.estimated_total).replace("₹", "")}</span>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs group-hover:translate-x-0.5 transition-transform">
-                        Open <ArrowRight className="h-3 w-3 ml-0.5" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {canDelete && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => e.stopPropagation()}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete this booking?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently remove the booking, its itinerary and activity log. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteBooking(b.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                        <Button size="sm" variant="ghost" className="h-7 text-xs group-hover:translate-x-0.5 transition-transform">
+                          Open <ArrowRight className="h-3 w-3 ml-0.5" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
