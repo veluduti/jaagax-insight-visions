@@ -528,7 +528,16 @@ export default function AgentDashboard() {
         {agentProfile.id && user?.id && (
           <Card className="border-primary/20">
             <CardContent className="p-4 md:p-5">
-              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} />
+              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ===== Quick Visit Package Bookings ===== */}
+        {agentProfile.id && user?.id && (
+          <Card className="border-amber-500/20">
+            <CardContent className="p-4 md:p-5">
+              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
             </CardContent>
           </Card>
         )}

@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { WEEKEND_STATUSES, formatINR, WeekendStatus } from "@/lib/weekendBookingHelpers";
+import { WEEKEND_STATUSES, formatINR, WeekendStatus, BOOKING_KIND_META, BookingKind } from "@/lib/weekendBookingHelpers";
 import { WeekendBookingDetailDrawer } from "./WeekendBookingDetailDrawer";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Sparkles, Calendar, MapPin, Building2, ArrowRight, Loader2,
-  User, IndianRupee, ClipboardList, Trash2, ThumbsUp, History as HistoryIcon, Handshake,
+  User, IndianRupee, ClipboardList, Trash2, ThumbsUp, History as HistoryIcon, Handshake, Zap,
 } from "lucide-react";
 
 const HISTORY_STATUSES = new Set(["deal_closed", "rated", "cancelled"]);
@@ -21,9 +21,10 @@ interface Props {
   scope: "buyer" | "agent" | "admin";
   agentId?: string | null; // for agent scope
   userId?: string | null; // current user id
+  kind?: BookingKind | "all"; // filter by booking kind
 }
 
-export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
+export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Props) => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | WeekendStatus>("all");
@@ -31,17 +32,23 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
 
   const [view, setView] = useState<"active" | "history">("active");
 
+  const isQuick = kind === "quick_visit";
+  const headerMeta = isQuick
+    ? { label: "Quick Visit Package", icon: Zap, sub: "Single-property concierge visits" }
+    : { label: "Weekend Property Explorer", icon: Sparkles, sub: "2-day visit + stay bookings" };
+
   const load = async () => {
     setLoading(true);
     let q = supabase.from("weekend_bookings").select("*").order("created_at", { ascending: false });
     if (scope === "buyer" && userId) q = q.eq("buyer_id", userId);
     if (scope === "agent" && agentId) q = q.eq("agent_id", agentId);
+    if (kind !== "all") q = q.eq("booking_kind", kind);
     const { data } = await q;
     setItems(data || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [scope, agentId, userId]);
+  useEffect(() => { load(); }, [scope, agentId, userId, kind]);
 
   // Realtime
   useEffect(() => {
@@ -69,12 +76,12 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center shadow-md">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          <div className={`h-9 w-9 rounded-xl flex items-center justify-center shadow-md ${isQuick ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-gradient-to-br from-primary to-purple-500"}`}>
+            <headerMeta.icon className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold leading-tight">Weekend Property Explorer</h3>
-            <p className="text-xs text-muted-foreground">2-day visit + stay bookings · {items.length} total</p>
+            <h3 className="font-semibold leading-tight">{headerMeta.label}</h3>
+            <p className="text-xs text-muted-foreground">{headerMeta.sub} · {items.length} total</p>
           </div>
         </div>
         <Tabs value={view} onValueChange={(v) => { setView(v as any); setFilter("all"); }}>

@@ -330,6 +330,7 @@ export default function AdminPanel() {
             <TabsTrigger value="builders">Builders</TabsTrigger>
             <TabsTrigger value="hotel-partners">Hotel Partners</TabsTrigger>
             <TabsTrigger value="weekend">Weekend Explorer</TabsTrigger>
+            <TabsTrigger value="quick-visits">Quick Visits</TabsTrigger>
           </TabsList>
 
           <TabsContent value="hotel-partners">
@@ -339,7 +340,15 @@ export default function AdminPanel() {
           <TabsContent value="weekend">
             <Card>
               <CardContent className="p-4 md:p-6">
-                <WeekendBookingsList scope="admin" />
+                <WeekendBookingsList scope="admin" kind="weekend" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="quick-visits">
+            <Card>
+              <CardContent className="p-4 md:p-6">
+                <WeekendBookingsList scope="admin" kind="quick_visit" />
               </CardContent>
             </Card>
           </TabsContent>
