@@ -208,6 +208,19 @@ export const WeekendExplorerWizard = ({
       toast.error("Please sign in to book");
       return;
     }
+    // Buyer-only guard: block agents/builders/admins/hotel managers from booking
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    const roles = (roleRows || []).map((r: any) => r.role);
+    const nonBuyerRole = roles.find((r: string) => r && r !== "customer" && r !== "buyer");
+    if (nonBuyerRole) {
+      toast.error("Only buyers can book the Weekend Explorer", {
+        description: `Your account role is "${nonBuyerRole}". Please use a buyer account.`,
+      });
+      return;
+    }
     if (!startDate || !endDate) return;
     setSubmitting(true);
     try {
