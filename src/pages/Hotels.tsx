@@ -14,6 +14,8 @@ import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
 import { WeekendExplorerWizard } from "@/components/booking/WeekendExplorerWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface PartnerHotel {
   id: string;
