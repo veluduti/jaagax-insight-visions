@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
+import { WeekendExplorerWizard } from "@/components/booking/WeekendExplorerWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 
 interface PartnerHotel {
@@ -100,6 +101,7 @@ const Hotels = () => {
   const [showVisitStayModal, setShowVisitStayModal] = useState(false);
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [preSelectedPackage, setPreSelectedPackage] = useState<VisitPackage | null>(null);
+  const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai"];
 
@@ -259,8 +261,13 @@ const Hotels = () => {
                       <Button 
                         size="sm"
                         onClick={() => {
-                          setPreSelectedPackage(pkg);
-                          setShowVisitStayModal(true);
+                          // Weekend Property Explorer (2-day) → premium guided wizard
+                          if (pkg.duration_days >= 2 || /weekend/i.test(pkg.name)) {
+                            setWeekendPackage(pkg);
+                          } else {
+                            setPreSelectedPackage(pkg);
+                            setShowVisitStayModal(true);
+                          }
                         }}
                       >
                         Book Now
@@ -416,6 +423,17 @@ const Hotels = () => {
           hotel={selectedHotel}
         />
       )}
+
+      {/* Weekend Property Explorer Wizard */}
+      <WeekendExplorerWizard
+        open={!!weekendPackage}
+        onClose={() => setWeekendPackage(null)}
+        packageId={weekendPackage?.id}
+        packageName={weekendPackage?.name}
+        packageDuration={weekendPackage?.duration_days || 2}
+        packageDiscount={weekendPackage?.base_discount_percentage || 15}
+        defaultCity={selectedCity !== "all" ? selectedCity : "Hyderabad"}
+      />
     </div>
   );
 };
