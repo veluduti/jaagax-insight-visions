@@ -534,7 +534,12 @@ const BuyerDashboard = () => {
 
           {/* Weekend Property Explorer */}
           <TabsContent value="weekend">
-            <WeekendBookingsList scope="buyer" userId={user?.id} />
+            <WeekendBookingsList scope="buyer" userId={user?.id} kind="weekend" />
+          </TabsContent>
+
+          {/* Quick Visit Package */}
+          <TabsContent value="quick-visits">
+            <WeekendBookingsList scope="buyer" userId={user?.id} kind="quick_visit" />
           </TabsContent>
 
           {/* Favorites */}
