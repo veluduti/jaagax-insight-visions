@@ -8,10 +8,14 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { WEEKEND_STATUSES, formatINR, WeekendStatus } from "@/lib/weekendBookingHelpers";
 import { WeekendBookingDetailDrawer } from "./WeekendBookingDetailDrawer";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import {
   Sparkles, Calendar, MapPin, Building2, ArrowRight, Loader2,
-  User, IndianRupee, ClipboardList,
+  User, IndianRupee, ClipboardList, Trash2, ThumbsUp, History as HistoryIcon, Handshake,
 } from "lucide-react";
+
+const HISTORY_STATUSES = new Set(["deal_closed", "rated", "cancelled"]);
 
 interface Props {
   scope: "buyer" | "agent" | "admin";
