@@ -348,6 +348,10 @@ const BuyerDashboard = () => {
               <Sparkles className="h-4 w-4 mr-2" />
               Weekend
             </TabsTrigger>
+            <TabsTrigger value="quick-visits">
+              <Calendar className="h-4 w-4 mr-2" />
+              Quick Visits
+            </TabsTrigger>
             <TabsTrigger value="favorites">
               <Heart className="h-4 w-4 mr-2" />
               Favorites
