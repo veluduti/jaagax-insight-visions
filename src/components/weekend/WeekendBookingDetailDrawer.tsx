@@ -226,6 +226,37 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     load();
   };
 
+  // === BUYER: final payment after deal closed ===
+  const mockPayFinal = async () => {
+    if (!booking) return;
+    const remaining = (booking.deal_amount || booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    if (remaining <= 0) return toast.error("Nothing remaining to pay");
+    setBusy(true);
+    const ref = `MOCK-FINAL-${Date.now()}`;
+    await supabase.from("weekend_bookings").update({
+      final_payment_status: "paid",
+      final_payment_amount: remaining,
+      final_payment_reference: ref,
+      final_paid_at: new Date().toISOString(),
+      payment_status: "paid",
+    }).eq("id", booking.id);
+    await logWeekendActivity({
+      bookingId: booking.id, actorId: currentUserId, actorRole: "buyer",
+      action: "final_payment_completed",
+      description: `Final payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
+      metadata: { reference: ref, amount: remaining },
+    });
+    if (agent?.id) {
+      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
+      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Final payment received", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. Deal fully settled.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+    }
+    await notifyAdmins("Weekend booking fully paid", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}.`, "/admin?tab=weekend", { booking_id: booking.id });
+    setBusy(false);
+    toast.success("Final payment successful (simulated)");
+    onChanged?.();
+    load();
+  };
+
   // === BUYER: decision ===
   const submitDecision = async () => {
     const ok = await updateBooking({
