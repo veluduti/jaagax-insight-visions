@@ -245,6 +245,8 @@ export const WeekendExplorerWizard = ({
         agentId = agents?.[0]?.id || null;
       }
 
+      // NOTE: Per the concierge flow, we DO NOT auto-assign an agent here.
+      // The Admin reviews the request, qualifies it, then assigns the right agent.
       const { data: booking, error } = await supabase
         .from("weekend_bookings")
         .insert({
@@ -266,10 +268,10 @@ export const WeekendExplorerWizard = ({
           include_agent_assistance: true,
           estimated_total: estimatedTotal,
           booking_amount: bookingAmount,
-          agent_id: agentId,
+          agent_id: null,
           buyer_notes: notes,
           city,
-          status: "pending_confirmation",
+          status: "submitted",
         })
         .select()
         .single();
@@ -280,41 +282,19 @@ export const WeekendExplorerWizard = ({
         bookingId: booking.id,
         actorId: user.id,
         actorRole: "buyer",
-        action: "booking_created",
-        description: `Booking created for ${selectedProps.length} property visit(s) in ${city}.`,
+        action: "booking_submitted",
+        description: `Buyer submitted a 2-day Weekend Explorer request for ${selectedProps.length} property visit(s) in ${city}. Awaiting admin qualification.`,
         metadata: { property_count: selectedProps.length, estimated_total: estimatedTotal },
       });
 
-      if (agentId) {
-        await logWeekendActivity({
-          bookingId: booking.id,
-          actorRole: "system",
-          action: "agent_assigned",
-          description: `Agent assigned automatically.`,
-          metadata: { agent_id: agentId },
-        });
-        // Notify the agent (notify the user behind the agent)
-        const { data: agentRow } = await supabase.from("agents").select("user_id,name").eq("id", agentId).maybeSingle();
-        if (agentRow?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: agentRow.user_id,
-            type: "weekend_booking",
-            title: "New Weekend Explorer Request",
-            message: `${name} requested a 2-day visit (${selectedProps.length} properties) in ${city}.`,
-            link: "/dashboard/agent?tab=weekend",
-            metadata: { booking_id: booking.id },
-          });
-        }
-      }
-
-      // Notify all admins
+      // Notify all admins (they qualify and assign the agent)
       const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
       if (admins?.length) {
         await supabase.from("notifications").insert(admins.map(a => ({
           user_id: a.user_id,
           type: "weekend_booking",
-          title: "New Weekend Explorer Booking",
-          message: `${name} submitted a 2-day visit request in ${city}.`,
+          title: "🆕 Weekend Explorer request — needs qualification",
+          message: `${name} submitted a 2-day visit request in ${city}. Please review and assign an agent.`,
           link: "/admin?tab=weekend",
           metadata: { booking_id: booking.id },
         })));
@@ -325,7 +305,7 @@ export const WeekendExplorerWizard = ({
         user_id: user.id,
         type: "weekend_booking",
         title: "Request submitted ✨",
-        message: "Our agent will contact you shortly to confirm your visit plan.",
+        message: "Our concierge team is qualifying your request. We'll assign your dedicated agent shortly.",
         link: "/dashboard/buyer?tab=weekend",
         metadata: { booking_id: booking.id },
       });
