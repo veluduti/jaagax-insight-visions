@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
 import { WeekendExplorerWizard } from "@/components/booking/WeekendExplorerWizard";
+import { QuickVisitWizard } from "@/components/booking/QuickVisitWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -105,6 +106,7 @@ const Hotels = () => {
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [preSelectedPackage, setPreSelectedPackage] = useState<VisitPackage | null>(null);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
+  const [quickVisitPackage, setQuickVisitPackage] = useState<VisitPackage | null>(null);
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai"];
 
@@ -275,12 +277,12 @@ const Hotels = () => {
                             });
                             return;
                           }
-                          // Weekend Property Explorer (2-day) → premium guided wizard
+                          // Weekend Property Explorer (multi-day) → premium guided wizard
                           if (pkg.duration_days >= 2 || /weekend/i.test(pkg.name)) {
                             setWeekendPackage(pkg);
                           } else {
-                            setPreSelectedPackage(pkg);
-                            setShowVisitStayModal(true);
+                            // Quick Visit (single-day) → concierge-managed quick visit wizard
+                            setQuickVisitPackage(pkg);
                           }
                         }}
                       >
@@ -447,6 +449,13 @@ const Hotels = () => {
         packageDuration={weekendPackage?.duration_days || 2}
         packageDiscount={weekendPackage?.base_discount_percentage || 15}
         defaultCity={selectedCity !== "all" ? selectedCity : "Hyderabad"}
+      />
+
+      {/* Quick Visit Package Wizard (single-property concierge) */}
+      <QuickVisitWizard
+        open={!!quickVisitPackage}
+        onClose={() => setQuickVisitPackage(null)}
+        propertyCity={selectedCity !== "all" ? selectedCity : "Hyderabad"}
       />
     </div>
   );

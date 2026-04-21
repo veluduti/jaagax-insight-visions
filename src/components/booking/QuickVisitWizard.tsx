@@ -17,20 +17,36 @@ import { logWeekendActivity, formatINR } from "@/lib/weekendBookingHelpers";
 import {
   Zap, Building2, MapPin, CalendarIcon, ClipboardCheck,
   User, Check, ArrowRight, ArrowLeft, ShieldCheck, Loader2,
-  PartyPopper, IndianRupee, Phone, Mail,
+  PartyPopper, IndianRupee, Phone, Mail, Search, Home,
 } from "lucide-react";
 
 interface QuickVisitWizardProps {
   open: boolean;
   onClose: () => void;
-  propertyId: string;
-  propertyTitle: string;
+  propertyId?: string;
+  propertyTitle?: string;
   propertyCity?: string;
   propertyLocality?: string;
   propertyPrice?: number;
 }
 
-const STEPS = [
+interface PropertyOption {
+  id: string;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  images: string[] | null;
+}
+
+const STEPS_WITH_PROPERTY = [
+  { id: 0, label: "Property", icon: Home },
+  { id: 1, label: "Date", icon: CalendarIcon },
+  { id: 2, label: "Contact", icon: User },
+  { id: 3, label: "Notes", icon: ClipboardCheck },
+  { id: 4, label: "Submit", icon: Check },
+];
+const STEPS_NO_PROPERTY = [
   { id: 1, label: "Date", icon: CalendarIcon },
   { id: 2, label: "Contact", icon: User },
   { id: 3, label: "Notes", icon: ClipboardCheck },
@@ -40,12 +56,27 @@ const STEPS = [
 const QUICK_VISIT_FEE = 499; // platform concierge fee
 
 export const QuickVisitWizard = ({
-  open, onClose, propertyId, propertyTitle,
-  propertyCity = "Hyderabad", propertyLocality = "", propertyPrice = 0,
+  open, onClose, propertyId: initialPropertyId, propertyTitle: initialPropertyTitle,
+  propertyCity: initialPropertyCity = "Hyderabad",
+  propertyLocality: initialPropertyLocality = "",
+  propertyPrice: initialPropertyPrice = 0,
 }: QuickVisitWizardProps) => {
-  const [step, setStep] = useState(1);
+  const requiresPropertyPick = !initialPropertyId;
+  const STEPS = requiresPropertyPick ? STEPS_WITH_PROPERTY : STEPS_NO_PROPERTY;
+
+  const [step, setStep] = useState(requiresPropertyPick ? 0 : 1);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // Property selection (when not pre-selected)
+  const [propertyId, setPropertyId] = useState<string>(initialPropertyId || "");
+  const [propertyTitle, setPropertyTitle] = useState<string>(initialPropertyTitle || "");
+  const [propertyCity, setPropertyCity] = useState<string>(initialPropertyCity);
+  const [propertyLocality, setPropertyLocality] = useState<string>(initialPropertyLocality);
+  const [propertyPrice, setPropertyPrice] = useState<number>(initialPropertyPrice);
+  const [propertyOptions, setPropertyOptions] = useState<PropertyOption[]>([]);
+  const [propertySearch, setPropertySearch] = useState("");
+  const [loadingProps, setLoadingProps] = useState(false);
 
   const [visitDate, setVisitDate] = useState<Date | undefined>();
   const [visitTime, setVisitTime] = useState("11:00");
@@ -68,33 +99,69 @@ export const QuickVisitWizard = ({
     });
   }, [open]);
 
+  // Fetch property options when picker is shown
+  useEffect(() => {
+    if (!open || !requiresPropertyPick) return;
+    setLoadingProps(true);
+    supabase
+      .from("properties")
+      .select("id,title,city,locality,price,images")
+      .eq("verification_status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setPropertyOptions((data || []) as PropertyOption[]);
+        setLoadingProps(false);
+      });
+  }, [open, requiresPropertyPick]);
+
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
-        setStep(1);
+        setStep(requiresPropertyPick ? 0 : 1);
         setCreatedBookingId(null);
         setSubmitting(false);
         setVisitDate(undefined);
         setNotes("");
+        if (requiresPropertyPick) {
+          setPropertyId("");
+          setPropertyTitle("");
+          setPropertyLocality("");
+        }
       }, 300);
     }
-  }, [open]);
+  }, [open, requiresPropertyPick]);
 
   const estimatedTotal = QUICK_VISIT_FEE;
   const bookingAmount = QUICK_VISIT_FEE;
 
+  const filteredProps = useMemo(() => {
+    const q = propertySearch.trim().toLowerCase();
+    if (!q) return propertyOptions;
+    return propertyOptions.filter(p =>
+      p.title?.toLowerCase().includes(q) ||
+      p.city?.toLowerCase().includes(q) ||
+      p.locality?.toLowerCase().includes(q),
+    );
+  }, [propertyOptions, propertySearch]);
+
   const canNext = useMemo(() => {
     switch (step) {
+      case 0: return !!propertyId;
       case 1: return !!visitDate && !!visitTime;
       case 2: return name.trim() && email.trim() && phone.trim().length >= 10;
       case 3: return true;
       default: return false;
     }
-  }, [step, visitDate, visitTime, name, email, phone]);
+  }, [step, propertyId, visitDate, visitTime, name, email, phone]);
 
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Please sign in to book a visit");
+      return;
+    }
+    if (!propertyId) {
+      toast.error("Please choose a property to visit");
       return;
     }
     // Buyer-only guard
@@ -230,8 +297,8 @@ export const QuickVisitWizard = ({
 
         <ScrollArea className="max-h-[60vh]">
           <div className="p-6">
-            {/* Property summary */}
-            {step <= 4 && (
+            {/* Property summary - only after picking */}
+            {step >= 1 && step <= 4 && propertyId && (
               <Card className="mb-4 bg-muted/30 border-amber-500/20">
                 <CardContent className="p-3 flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center">
@@ -243,12 +310,76 @@ export const QuickVisitWizard = ({
                       <MapPin className="h-3 w-3" />{propertyLocality || propertyCity}
                     </p>
                   </div>
+                  {requiresPropertyPick && (
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setStep(0)}>Change</Button>
+                  )}
                   <Badge variant="outline" className="text-[10px]">1 property</Badge>
                 </CardContent>
               </Card>
             )}
 
             <AnimatePresence mode="wait">
+              {step === 0 && (
+                <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+                  <div>
+                    <h3 className="text-base font-semibold mb-1">Pick a property to visit</h3>
+                    <p className="text-sm text-muted-foreground">Quick Visit covers a single property of your choice.</p>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by title, city or locality…"
+                      className="pl-9"
+                      value={propertySearch}
+                      onChange={e => setPropertySearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                    {loadingProps && <p className="text-sm text-muted-foreground text-center py-6">Loading properties…</p>}
+                    {!loadingProps && filteredProps.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-6">No properties match your search.</p>
+                    )}
+                    {filteredProps.map(p => {
+                      const selected = propertyId === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setPropertyId(p.id);
+                            setPropertyTitle(p.title);
+                            setPropertyCity(p.city);
+                            setPropertyLocality(p.locality);
+                            setPropertyPrice(Number(p.price) || 0);
+                          }}
+                          className={cn(
+                            "w-full text-left flex items-center gap-3 p-2.5 rounded-lg border transition-all",
+                            selected ? "border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/40" : "border-border hover:bg-muted/40"
+                          )}
+                        >
+                          <div className="h-12 w-12 rounded-md bg-muted overflow-hidden shrink-0">
+                            {p.images?.[0] ? (
+                              <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center"><Building2 className="h-5 w-5 text-muted-foreground" /></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{p.title}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                              <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold flex items-center justify-end"><IndianRupee className="h-3 w-3" />{(Number(p.price) || 0).toLocaleString("en-IN")}</p>
+                            {selected && <Check className="h-4 w-4 text-amber-600 inline-block mt-0.5" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
               {step === 1 && (
                 <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                   <div>
@@ -371,7 +502,7 @@ export const QuickVisitWizard = ({
 
         {step <= 4 && (
           <div className="flex items-center justify-between gap-2 px-6 py-3 border-t bg-muted/20">
-            <Button variant="ghost" disabled={step === 1 || submitting} onClick={() => setStep(s => Math.max(1, s - 1))}>
+            <Button variant="ghost" disabled={step <= (requiresPropertyPick ? 0 : 1) || submitting} onClick={() => setStep(s => Math.max(requiresPropertyPick ? 0 : 1, s - 1))}>
               <ArrowLeft className="h-3 w-3 mr-1" />Back
             </Button>
             <p className="text-xs text-muted-foreground hidden sm:block">Step {step} of {STEPS.length}</p>
