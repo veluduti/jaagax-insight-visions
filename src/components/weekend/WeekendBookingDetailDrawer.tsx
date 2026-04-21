@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { logWeekendActivity, formatINR, WEEKEND_STATUSES, WeekendStatus } from "@/lib/weekendBookingHelpers";
+import { logWeekendActivity, formatINR, WEEKEND_STATUSES, WeekendStatus, notifyUser, notifyAdmins } from "@/lib/weekendBookingHelpers";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ import {
   User, Phone, Mail, MapPin, Calendar, Building2, Hotel, Car,
   IndianRupee, CheckCircle2, XCircle, Loader2, MessageCircle,
   Plus, Trash2, Activity, Clock, FileText, Sparkles, ShieldCheck,
+  Star, ThumbsUp, ThumbsDown, Award, Handshake, UserCheck, Target,
 } from "lucide-react";
 
 interface Props {
@@ -38,8 +40,33 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
   const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [agentNotes, setAgentNotes] = useState("");
-  const [rejectionReason, setRejectionReason] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Admin: qualify + assign
+  const [qualifyOpen, setQualifyOpen] = useState(false);
+  const [qualifyNotes, setQualifyNotes] = useState("");
+  const [availableAgents, setAvailableAgents] = useState<any[]>([]);
+  const [pickAgentId, setPickAgentId] = useState<string>("");
+
+  // Agent: decline
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+
+  // Buyer: decision
+  const [decisionOpen, setDecisionOpen] = useState(false);
+  const [decisionChoice, setDecisionChoice] = useState<"interested" | "not_interested" | "undecided">("interested");
+  const [decisionNotes, setDecisionNotes] = useState("");
+  const [interestedIds, setInterestedIds] = useState<string[]>([]);
+
+  // Agent: close deal
+  const [dealOpen, setDealOpen] = useState(false);
+  const [dealPropertyId, setDealPropertyId] = useState("");
+  const [dealAmount, setDealAmount] = useState<number | "">("");
+
+  // Buyer: rate
+  const [rateOpen, setRateOpen] = useState(false);
+  const [rateStars, setRateStars] = useState(5);
+  const [rateReview, setRateReview] = useState("");
 
   const load = async () => {
     if (!bookingId) return;
@@ -64,7 +91,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
         setHotel(h);
       } else { setHotel(null); }
       if (bk?.agent_id) {
-        const { data: a } = await supabase.from("agents").select("id,name,phone,email,photo_url").eq("id", bk.agent_id).maybeSingle();
+        const { data: a } = await supabase.from("agents").select("id,name,phone,email,photo_url,trust_score,avg_rating").eq("id", bk.agent_id).maybeSingle();
         setAgent(a);
       } else { setAgent(null); }
     } finally { setLoading(false); }
@@ -72,7 +99,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
 
   useEffect(() => { if (open && bookingId) load(); }, [open, bookingId]);
 
-  // Realtime updates for activity log
+  // Realtime
   useEffect(() => {
     if (!open || !bookingId) return;
     const ch = supabase.channel(`weekend-${bookingId}`)
@@ -83,46 +110,95 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     return () => { supabase.removeChannel(ch); };
   }, [open, bookingId]);
 
-  const updateStatus = async (status: WeekendStatus, extra: Record<string, any> = {}) => {
-    if (!booking) return;
+  const updateBooking = async (patch: Record<string, any>, action: string, description: string, metadata: Record<string, any> = {}) => {
+    if (!booking) return null;
     setBusy(true);
     try {
-      const { error } = await supabase.from("weekend_bookings").update({ status, ...extra }).eq("id", booking.id);
+      const { error } = await supabase.from("weekend_bookings").update(patch).eq("id", booking.id);
       if (error) throw error;
-      await logWeekendActivity({
-        bookingId: booking.id,
-        actorId: currentUserId,
-        actorRole: viewerRole,
-        action: "status_changed",
-        description: `Status changed to ${WEEKEND_STATUSES[status].label}`,
-        metadata: { from: booking.status, to: status, ...extra },
-      });
-      // Notify buyer
-      await supabase.from("notifications").insert({
-        user_id: booking.buyer_id,
-        type: "weekend_booking",
-        title: `Weekend booking: ${WEEKEND_STATUSES[status].label}`,
-        message: status === "awaiting_payment" ? "Agent confirmed your plan. Please complete the advance payment." : status === "confirmed" ? "Booking confirmed! Your itinerary is locked." : status === "cancelled" ? `Booking cancelled. ${extra.rejection_reason || ""}` : `Status updated to ${WEEKEND_STATUSES[status].label}`,
-        link: "/dashboard/buyer?tab=weekend",
-        metadata: { booking_id: booking.id },
-      });
+      await logWeekendActivity({ bookingId: booking.id, actorId: currentUserId, actorRole: viewerRole, action, description, metadata });
       toast.success("Updated");
       onChanged?.();
-      load();
+      await load();
+      return true;
     } catch (e: any) {
       toast.error(e.message || "Failed");
+      return null;
     } finally { setBusy(false); }
   };
 
-  const saveAgentNotes = async () => {
-    if (!booking) return;
-    setBusy(true);
-    await supabase.from("weekend_bookings").update({ agent_notes: agentNotes }).eq("id", booking.id);
-    await logWeekendActivity({ bookingId: booking.id, actorId: currentUserId, actorRole: viewerRole, action: "agent_notes_updated", description: "Agent updated notes" });
-    setBusy(false);
-    toast.success("Notes saved");
+  // === ADMIN: open qualification dialog → load agents ===
+  const openQualify = async () => {
+    setQualifyOpen(true);
+    const { data } = await supabase
+      .from("agents")
+      .select("id,name,trust_score,avg_rating,cities_served,verified")
+      .eq("verified", true)
+      .ilike("cities_served", `%${booking?.city || ""}%`)
+      .order("trust_score", { ascending: false })
+      .limit(15);
+    setAvailableAgents(data || []);
   };
 
+  const submitQualify = async () => {
+    if (!pickAgentId) return toast.error("Pick an agent to assign");
+    const { data: ag } = await supabase.from("agents").select("user_id,name").eq("id", pickAgentId).maybeSingle();
+    const ok = await updateBooking({
+      status: "agent_assigned",
+      admin_qualified_at: new Date().toISOString(),
+      admin_qualified_by: currentUserId,
+      admin_qualification_notes: qualifyNotes || null,
+      agent_id: pickAgentId,
+      agent_assigned_at: new Date().toISOString(),
+      agent_assigned_by: currentUserId,
+    }, "admin_qualified_assigned", `Admin qualified the request and assigned ${ag?.name || "an agent"}.`, { agent_id: pickAgentId, notes: qualifyNotes });
+    if (ok) {
+      if (ag?.user_id) {
+        await notifyUser(ag.user_id, "🎯 New Weekend Explorer assignment", `You've been assigned a 2-day visit for ${booking.buyer_name} in ${booking.city}. Please accept or decline.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+      }
+      await notifyUser(booking.buyer_id, "Agent assigned ✨", `${ag?.name || "Your dedicated agent"} has been assigned to your visit. Awaiting their confirmation.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+      setQualifyOpen(false); setPickAgentId(""); setQualifyNotes("");
+    }
+  };
+
+  // === AGENT: accept ===
+  const acceptAssignment = async () => {
+    const ok = await updateBooking({
+      status: "agent_accepted",
+      agent_accepted_at: new Date().toISOString(),
+    }, "agent_accepted", `Agent accepted the assignment.`);
+    if (ok) {
+      await notifyUser(booking.buyer_id, "🎉 Agent confirmed!", `Your agent has accepted and will start planning your visits.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+      await notifyAdmins("Agent accepted weekend assignment", `${agent?.name || "Agent"} accepted booking for ${booking.buyer_name}.`, "/admin?tab=weekend", { booking_id: booking.id });
+    }
+  };
+
+  const declineAssignment = async () => {
+    const ok = await updateBooking({
+      status: "submitted", // back to admin queue
+      agent_id: null,
+      agent_declined_at: new Date().toISOString(),
+      agent_decline_reason: declineReason || "No reason provided",
+    }, "agent_declined", `Agent declined the assignment. Reason: ${declineReason || "—"}`, { reason: declineReason });
+    if (ok) {
+      await notifyAdmins("⚠️ Agent declined assignment", `${agent?.name || "Agent"} declined ${booking.buyer_name}'s booking. Please reassign.`, "/admin?tab=weekend", { booking_id: booking.id });
+      setDeclineOpen(false); setDeclineReason("");
+    }
+  };
+
+  // === AGENT: planning → request payment → confirmed → in_progress → completed ===
+  const startPlanning = () => updateBooking({ status: "in_planning" }, "planning_started", "Agent started visit planning & itinerary build.");
+  const requestPayment = async () => {
+    const ok = await updateBooking({ status: "awaiting_payment" }, "payment_requested", "Agent finalized the plan and requested the advance payment.");
+    if (ok) await notifyUser(booking.buyer_id, "💳 Advance payment requested", `Please pay ${formatINR(booking.booking_amount)} to lock your itinerary.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+  };
+  const startVisits = () => updateBooking({ status: "in_progress" }, "visits_started", "Property visits in progress.");
+  const completeVisits = async () => {
+    const ok = await updateBooking({ status: "completed" }, "visits_completed", "Property visits completed. Buyer to share their decision.");
+    if (ok) await notifyUser(booking.buyer_id, "✅ Visits completed", `Please share your decision and rate your experience.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+  };
+
+  // === BUYER: payment ===
   const mockPay = async () => {
     if (!booking) return;
     setBusy(true);
@@ -136,24 +212,84 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     await logWeekendActivity({
       bookingId: booking.id, actorId: currentUserId, actorRole: "buyer",
       action: "payment_completed",
-      description: `Advance payment of ${formatINR(booking.booking_amount)} completed (mock)`,
+      description: `Advance payment of ${formatINR(booking.booking_amount)} completed (mock).`,
       metadata: { reference: ref, amount: booking.booking_amount },
     });
-    // Notify admin + agent
-    if (booking.agent_id) {
-      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", booking.agent_id).maybeSingle();
-      if (ag?.user_id) {
-        await supabase.from("notifications").insert({
-          user_id: ag.user_id, type: "weekend_booking",
-          title: "Payment received", message: `${booking.buyer_name} completed advance payment.`,
-          link: "/dashboard/agent?tab=weekend", metadata: { booking_id: booking.id },
-        });
-      }
+    if (agent?.id) {
+      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
+      if (ag?.user_id) await notifyUser(ag.user_id, "💰 Payment received", `${booking.buyer_name} paid the advance. Itinerary is locked.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
     }
+    await notifyAdmins("Weekend booking payment received", `${booking.buyer_name} paid ${formatINR(booking.booking_amount)}.`, "/admin?tab=weekend", { booking_id: booking.id });
     setBusy(false);
     toast.success("Payment successful (simulated)");
     onChanged?.();
     load();
+  };
+
+  // === BUYER: decision ===
+  const submitDecision = async () => {
+    const ok = await updateBooking({
+      status: "buyer_decided",
+      buyer_decision: decisionChoice,
+      buyer_decision_at: new Date().toISOString(),
+      buyer_decision_notes: decisionNotes || null,
+      interested_property_ids: interestedIds,
+    }, "buyer_decision", `Buyer is ${decisionChoice.replace("_", " ")}. ${decisionNotes ? "Notes: " + decisionNotes : ""}`, { decision: decisionChoice, interested_property_ids: interestedIds });
+    if (ok && agent?.id) {
+      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
+      if (ag?.user_id) await notifyUser(ag.user_id, "📣 Buyer shared their decision", `${booking.buyer_name}: ${decisionChoice.replace("_", " ")}. Time to follow up.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+    }
+    setDecisionOpen(false);
+  };
+
+  // === AGENT: close deal ===
+  const submitCloseDeal = async () => {
+    if (!dealPropertyId || !dealAmount) return toast.error("Property & amount required");
+    const ok = await updateBooking({
+      status: "deal_closed",
+      deal_closed_at: new Date().toISOString(),
+      deal_property_id: dealPropertyId,
+      deal_amount: Number(dealAmount),
+    }, "deal_closed", `Deal closed for ${formatINR(Number(dealAmount))}.`, { property_id: dealPropertyId, amount: Number(dealAmount) });
+    if (ok) {
+      await notifyUser(booking.buyer_id, "🎉 Deal closed!", `Congratulations! Your purchase has been recorded. Please rate your agent.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+      await notifyAdmins("🎉 Weekend Explorer deal closed", `${agent?.name || "Agent"} closed ${booking.buyer_name}'s deal for ${formatINR(Number(dealAmount))}.`, "/admin?tab=weekend", { booking_id: booking.id });
+      setDealOpen(false);
+    }
+  };
+
+  // === BUYER: rate agent ===
+  const submitRating = async () => {
+    if (!agent?.id) return toast.error("No agent to rate");
+    const ok = await updateBooking({
+      agent_rating: rateStars,
+      agent_review: rateReview || null,
+      agent_rated_at: new Date().toISOString(),
+      status: "rated",
+    }, "agent_rated", `Buyer rated agent ${rateStars}/5. ${rateReview ? "Review: " + rateReview : ""}`, { rating: rateStars, review: rateReview });
+    // Also record into agent_ratings (uses booking.id as booking_id)
+    if (ok) {
+      await supabase.from("agent_ratings").insert({
+        agent_id: agent.id,
+        buyer_id: booking.buyer_id,
+        booking_id: booking.id,
+        property_id: booking.deal_property_id || booking.selected_property_ids?.[0] || null,
+        rating: rateStars,
+        review: rateReview || null,
+      });
+      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
+      if (ag?.user_id) await notifyUser(ag.user_id, "⭐ You received a rating", `${booking.buyer_name} rated you ${rateStars}/5.`, "/dashboard/agent", { booking_id: booking.id });
+      setRateOpen(false);
+    }
+  };
+
+  const saveAgentNotes = async () => {
+    if (!booking) return;
+    setBusy(true);
+    await supabase.from("weekend_bookings").update({ agent_notes: agentNotes }).eq("id", booking.id);
+    await logWeekendActivity({ bookingId: booking.id, actorId: currentUserId, actorRole: viewerRole, action: "agent_notes_updated", description: "Agent updated internal notes." });
+    setBusy(false);
+    toast.success("Notes saved");
   };
 
   if (!booking) {
@@ -169,7 +305,22 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
   }
 
   const status = booking.status as WeekendStatus;
-  const statusInfo = WEEKEND_STATUSES[status] || WEEKEND_STATUSES.pending_confirmation;
+  const statusInfo = WEEKEND_STATUSES[status] || WEEKEND_STATUSES.submitted;
+
+  // Stage progression for the journey ribbon
+  const STAGES: { key: WeekendStatus | WeekendStatus[]; label: string; icon: any }[] = [
+    { key: ["submitted", "pending_confirmation"], label: "Submitted", icon: FileText },
+    { key: "admin_review", label: "Admin Review", icon: ShieldCheck },
+    { key: ["agent_assigned"], label: "Agent Assigned", icon: UserCheck },
+    { key: ["agent_accepted", "in_planning", "agent_review"], label: "Planning", icon: Activity },
+    { key: "awaiting_payment", label: "Payment", icon: IndianRupee },
+    { key: "confirmed", label: "Confirmed", icon: CheckCircle2 },
+    { key: ["in_progress"], label: "Visits", icon: Building2 },
+    { key: ["completed", "buyer_decided"], label: "Decision", icon: Target },
+    { key: ["deal_closed"], label: "Deal", icon: Handshake },
+    { key: ["rated"], label: "Rated", icon: Star },
+  ];
+  const currentStageIdx = STAGES.findIndex((s) => Array.isArray(s.key) ? (s.key as string[]).includes(status) : s.key === status);
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -185,18 +336,35 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
             </div>
             <Badge className={statusInfo.color} variant="outline">{statusInfo.label}</Badge>
           </div>
+
+          {/* Journey ribbon */}
+          <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+            {STAGES.map((s, i) => {
+              const active = i === currentStageIdx;
+              const done = i < currentStageIdx;
+              const Icon = s.icon;
+              return (
+                <div key={s.label} className="flex items-center gap-1 shrink-0">
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${active ? "bg-primary text-primary-foreground" : done ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                    <Icon className="h-2.5 w-2.5" />
+                    <span className="hidden sm:inline">{s.label}</span>
+                  </div>
+                  {i < STAGES.length - 1 && <div className={`h-px w-2 ${done ? "bg-emerald-500/40" : "bg-border"}`} />}
+                </div>
+              );
+            })}
+          </div>
         </SheetHeader>
 
         <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="mx-5 mt-3 grid grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="itinerary">Itinerary ({itinerary.length})</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="activity">Activity ({activity.length})</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1">
             <TabsContent value="overview" className="px-5 py-4 space-y-4 m-0">
-              {/* Buyer */}
               <Section icon={User} title="Buyer">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <Field label="Name" value={booking.buyer_name} />
@@ -207,7 +375,6 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {booking.buyer_notes && <p className="mt-2 text-xs italic text-muted-foreground bg-muted/40 p-2 rounded">"{booking.buyer_notes}"</p>}
               </Section>
 
-              {/* Requirements */}
               <Section icon={Building2} title="Requirements">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <Field label="Budget" value={`${formatINR(booking.budget_min)} – ${formatINR(booking.budget_max)}`} />
@@ -217,12 +384,11 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 </div>
               </Section>
 
-              {/* Properties */}
               <Section icon={Building2} title={`Selected properties (${properties.length})`}>
                 <div className="space-y-2">
                   {properties.map(p => (
                     <Card key={p.id}>
-                      <CardContent className="p-2.5 flex gap-3">
+                      <CardContent className="p-2.5 flex gap-3 items-center">
                         <div className="h-12 w-12 rounded bg-muted overflow-hidden shrink-0">
                           {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" alt="" /> : <Building2 className="h-4 w-4 m-auto mt-4 text-muted-foreground" />}
                         </div>
@@ -230,18 +396,18 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                           <p className="text-sm font-medium truncate">{p.title}</p>
                           <p className="text-xs text-muted-foreground">{p.locality}, {p.city} · {formatINR(p.price)}</p>
                         </div>
+                        {booking.interested_property_ids?.includes(p.id) && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]"><ThumbsUp className="h-2.5 w-2.5 mr-0.5" />Interested</Badge>}
+                        {booking.deal_property_id === p.id && <Badge variant="outline" className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30 text-[10px]"><Award className="h-2.5 w-2.5 mr-0.5" />Deal</Badge>}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </Section>
 
-              {/* Schedule */}
               <Section icon={Calendar} title="Schedule">
                 <div className="text-sm">{format(new Date(booking.start_date), "PPP")} → {format(new Date(booking.end_date), "PPP")}</div>
               </Section>
 
-              {/* Hotel */}
               <Section icon={Hotel} title="Stay">
                 {hotel ? (
                   <div className="text-sm">
@@ -251,12 +417,11 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 ) : <p className="text-sm text-muted-foreground">Tier: {booking.hotel_tier}</p>}
               </Section>
 
-              {/* Agent */}
               <Section icon={ShieldCheck} title="Assigned agent">
                 {agent ? (
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
-                      <p className="font-medium">{agent.name}</p>
+                      <p className="font-medium flex items-center gap-2">{agent.name} {agent.trust_score && <Badge variant="outline" className="text-[10px]">Trust {agent.trust_score}</Badge>}</p>
                       <p className="text-xs text-muted-foreground">{agent.phone} · {agent.email}</p>
                     </div>
                     {viewerRole === "buyer" && (
@@ -266,10 +431,39 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                       </div>
                     )}
                   </div>
-                ) : <p className="text-sm text-muted-foreground">Not yet assigned</p>}
+                ) : <p className="text-sm text-muted-foreground italic">Awaiting admin assignment</p>}
               </Section>
 
-              {/* Pricing */}
+              {booking.admin_qualification_notes && (
+                <Section icon={ShieldCheck} title="Admin qualification">
+                  <p className="text-sm text-muted-foreground bg-muted/40 p-2 rounded">{booking.admin_qualification_notes}</p>
+                </Section>
+              )}
+
+              {booking.buyer_decision && (
+                <Section icon={Target} title="Buyer decision">
+                  <Badge variant="outline" className="capitalize">{booking.buyer_decision.replace("_", " ")}</Badge>
+                  {booking.buyer_decision_notes && <p className="text-xs text-muted-foreground mt-2 italic">{booking.buyer_decision_notes}</p>}
+                </Section>
+              )}
+
+              {booking.deal_amount && (
+                <Section icon={Handshake} title="Deal closed">
+                  <p className="text-sm font-semibold text-emerald-600">{formatINR(booking.deal_amount)}</p>
+                  {booking.deal_closed_at && <p className="text-xs text-muted-foreground">Closed on {format(new Date(booking.deal_closed_at), "PPP")}</p>}
+                </Section>
+              )}
+
+              {booking.agent_rating && (
+                <Section icon={Star} title="Agent rating">
+                  <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map(n => <Star key={n} className={`h-4 w-4 ${n <= booking.agent_rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />)}
+                    <span className="text-sm font-medium ml-2">{booking.agent_rating}/5</span>
+                  </div>
+                  {booking.agent_review && <p className="text-xs text-muted-foreground mt-2 italic">"{booking.agent_review}"</p>}
+                </Section>
+              )}
+
               <Section icon={IndianRupee} title="Pricing">
                 <div className="space-y-1 text-sm">
                   <Row label="Estimated total" value={formatINR(booking.estimated_total)} />
@@ -280,7 +474,6 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 </div>
               </Section>
 
-              {/* Agent notes */}
               {(viewerRole === "agent" || viewerRole === "admin") && (
                 <Section icon={FileText} title="Agent notes">
                   <Textarea rows={3} value={agentNotes} onChange={e => setAgentNotes(e.target.value)} placeholder="Internal notes about this booking…" />
@@ -288,36 +481,62 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 </Section>
               )}
 
-              {/* Action zone */}
+              {/* === Action zone (role + status driven) === */}
               <div className="sticky bottom-0 bg-background -mx-5 px-5 py-3 border-t flex flex-wrap gap-2">
-                {viewerRole === "agent" && status === "pending_confirmation" && (
+                {/* ADMIN actions */}
+                {viewerRole === "admin" && (status === "submitted" || status === "pending_confirmation") && (
                   <>
-                    <Button size="sm" onClick={() => updateStatus("agent_review")} disabled={busy}><Activity className="h-3 w-3 mr-1" />Mark reviewing</Button>
-                    <Button size="sm" variant="default" onClick={() => updateStatus("awaiting_payment")} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Confirm plan → request payment</Button>
-                    <Button size="sm" variant="destructive" onClick={() => updateStatus("cancelled", { rejection_reason: rejectionReason || "Rejected by agent" })} disabled={busy}><XCircle className="h-3 w-3 mr-1" />Reject</Button>
+                    <Button size="sm" onClick={() => updateBooking({ status: "admin_review" }, "admin_review_started", "Admin started reviewing the request.")} disabled={busy}><ShieldCheck className="h-3 w-3 mr-1" />Mark reviewing</Button>
+                    <Button size="sm" variant="default" onClick={openQualify} disabled={busy}><UserCheck className="h-3 w-3 mr-1" />Qualify & assign agent</Button>
+                    <Button size="sm" variant="destructive" onClick={() => updateBooking({ status: "cancelled", rejection_reason: "Cancelled by admin" }, "cancelled", "Admin cancelled the request.")} disabled={busy}>Cancel</Button>
                   </>
                 )}
-                {viewerRole === "agent" && status === "agent_review" && (
+                {viewerRole === "admin" && status === "admin_review" && (
+                  <Button size="sm" onClick={openQualify} disabled={busy}><UserCheck className="h-3 w-3 mr-1" />Qualify & assign agent</Button>
+                )}
+                {viewerRole === "admin" && (
+                  <Select value={status} onValueChange={(v) => updateBooking({ status: v }, "status_changed", `Admin changed status to ${WEEKEND_STATUSES[v as WeekendStatus]?.label || v}.`)}>
+                    <SelectTrigger className="h-9 w-[200px] ml-auto"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(WEEKEND_STATUSES).filter(([k]) => !["pending_confirmation", "agent_review"].includes(k)).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {/* AGENT actions */}
+                {viewerRole === "agent" && status === "agent_assigned" && (
                   <>
-                    <Button size="sm" onClick={() => updateStatus("awaiting_payment")} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Confirm plan → request payment</Button>
-                    <Button size="sm" variant="destructive" onClick={() => updateStatus("cancelled", { rejection_reason: "Rejected by agent" })} disabled={busy}>Reject</Button>
+                    <Button size="sm" onClick={acceptAssignment} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Accept assignment</Button>
+                    <Button size="sm" variant="destructive" onClick={() => setDeclineOpen(true)} disabled={busy}><XCircle className="h-3 w-3 mr-1" />Decline</Button>
                   </>
+                )}
+                {viewerRole === "agent" && status === "agent_accepted" && (
+                  <Button size="sm" onClick={startPlanning} disabled={busy}><Activity className="h-3 w-3 mr-1" />Start planning</Button>
+                )}
+                {viewerRole === "agent" && status === "in_planning" && (
+                  <Button size="sm" onClick={requestPayment} disabled={busy}><IndianRupee className="h-3 w-3 mr-1" />Request advance payment</Button>
                 )}
                 {viewerRole === "agent" && status === "confirmed" && (
-                  <Button size="sm" onClick={() => updateStatus("completed")} disabled={busy}>Mark completed</Button>
+                  <Button size="sm" onClick={startVisits} disabled={busy}><Building2 className="h-3 w-3 mr-1" />Mark visits started</Button>
                 )}
+                {viewerRole === "agent" && status === "in_progress" && (
+                  <Button size="sm" onClick={completeVisits} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Mark visits completed</Button>
+                )}
+                {viewerRole === "agent" && status === "buyer_decided" && booking.buyer_decision === "interested" && (
+                  <Button size="sm" onClick={() => setDealOpen(true)} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><Handshake className="h-3 w-3 mr-1" />Close deal</Button>
+                )}
+
+                {/* BUYER actions */}
                 {viewerRole === "buyer" && status === "awaiting_payment" && (
                   <Button size="sm" onClick={mockPay} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
                     <IndianRupee className="h-3 w-3 mr-1" />Pay {formatINR(booking.booking_amount)} (advance)
                   </Button>
                 )}
-                {viewerRole === "admin" && (
-                  <Select value={status} onValueChange={(v) => updateStatus(v as WeekendStatus)}>
-                    <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(WEEKEND_STATUSES).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                {viewerRole === "buyer" && (status === "completed" || (status === "in_progress" && booking.payment_status !== "unpaid")) && !booking.buyer_decision && (
+                  <Button size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}><Target className="h-3 w-3 mr-1" />Share your decision</Button>
+                )}
+                {viewerRole === "buyer" && (status === "deal_closed" || status === "buyer_decided" || status === "completed") && !booking.agent_rating && agent && (
+                  <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-white"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
                 )}
               </div>
             </TabsContent>
@@ -354,6 +573,150 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
             </TabsContent>
           </ScrollArea>
         </Tabs>
+
+        {/* ADMIN: qualify + assign dialog */}
+        <Dialog open={qualifyOpen} onOpenChange={setQualifyOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Qualify & assign agent</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Qualification notes (optional)</Label>
+                <Textarea rows={3} value={qualifyNotes} onChange={e => setQualifyNotes(e.target.value)} placeholder="Confirmed the buyer is genuine, budget aligned, locations available…" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Assign agent</Label>
+                <Select value={pickAgentId} onValueChange={setPickAgentId}>
+                  <SelectTrigger><SelectValue placeholder="Pick an agent" /></SelectTrigger>
+                  <SelectContent>
+                    {availableAgents.length === 0 && <SelectItem value="none" disabled>No verified agents in {booking.city}</SelectItem>}
+                    {availableAgents.map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.name} · Trust {a.trust_score} · ★{a.avg_rating || "—"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setQualifyOpen(false)}>Cancel</Button>
+              <Button onClick={submitQualify} disabled={busy || !pickAgentId}>Assign agent</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* AGENT: decline dialog */}
+        <Dialog open={declineOpen} onOpenChange={setDeclineOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Decline this assignment</DialogTitle></DialogHeader>
+            <div className="space-y-1.5">
+              <Label>Why are you declining?</Label>
+              <Textarea rows={3} value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Schedule conflict, out of service area, etc." />
+              <p className="text-xs text-muted-foreground">Admin will be notified to reassign another agent.</p>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeclineOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={declineAssignment} disabled={busy}>Decline assignment</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* BUYER: decision dialog */}
+        <Dialog open={decisionOpen} onOpenChange={setDecisionOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>How were the visits?</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { v: "interested", label: "Interested", icon: ThumbsUp, cls: "border-emerald-500/40 bg-emerald-500/10" },
+                  { v: "undecided", label: "Undecided", icon: Activity, cls: "border-amber-500/40 bg-amber-500/10" },
+                  { v: "not_interested", label: "Not interested", icon: ThumbsDown, cls: "border-red-500/40 bg-red-500/10" },
+                ] as const).map(o => {
+                  const Icon = o.icon;
+                  const sel = decisionChoice === o.v;
+                  return (
+                    <button key={o.v} onClick={() => setDecisionChoice(o.v)} className={`p-3 rounded-xl border text-center transition-all ${sel ? o.cls + " ring-2 ring-primary" : "border-border hover:border-primary/30"}`}>
+                      <Icon className="h-5 w-5 mx-auto mb-1" />
+                      <p className="text-xs font-medium">{o.label}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              {decisionChoice === "interested" && properties.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label>Which properties caught your eye?</Label>
+                  <div className="space-y-1 max-h-40 overflow-auto">
+                    {properties.map(p => (
+                      <label key={p.id} className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-accent">
+                        <input type="checkbox" checked={interestedIds.includes(p.id)} onChange={(e) => setInterestedIds(prev => e.target.checked ? [...prev, p.id] : prev.filter(x => x !== p.id))} />
+                        <span className="text-sm flex-1 truncate">{p.title}</span>
+                        <span className="text-xs text-muted-foreground">{formatINR(p.price)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>Notes for the agent (optional)</Label>
+                <Textarea rows={3} value={decisionNotes} onChange={e => setDecisionNotes(e.target.value)} placeholder="What you liked / didn't like, next steps you want…" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDecisionOpen(false)}>Cancel</Button>
+              <Button onClick={submitDecision} disabled={busy}>Submit decision</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* AGENT: close deal dialog */}
+        <Dialog open={dealOpen} onOpenChange={setDealOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Close deal 🎉</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Property booked</Label>
+                <Select value={dealPropertyId} onValueChange={setDealPropertyId}>
+                  <SelectTrigger><SelectValue placeholder="Pick the property" /></SelectTrigger>
+                  <SelectContent>
+                    {(booking.interested_property_ids?.length ? properties.filter(p => booking.interested_property_ids.includes(p.id)) : properties).map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Final deal amount (₹)</Label>
+                <Input type="number" value={dealAmount} onChange={e => setDealAmount(e.target.value === "" ? "" : Number(e.target.value))} placeholder="e.g. 8500000" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDealOpen(false)}>Cancel</Button>
+              <Button onClick={submitCloseDeal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">Confirm close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* BUYER: rate agent */}
+        <Dialog open={rateOpen} onOpenChange={setRateOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Rate your agent</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-1 py-2">
+                {[1,2,3,4,5].map(n => (
+                  <button key={n} onClick={() => setRateStars(n)}>
+                    <Star className={`h-8 w-8 transition-all ${n <= rateStars ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Share your experience (optional)</Label>
+                <Textarea rows={4} value={rateReview} onChange={e => setRateReview(e.target.value)} placeholder="What stood out about your agent's service?" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRateOpen(false)}>Cancel</Button>
+              <Button onClick={submitRating} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-white">Submit rating</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SheetContent>
     </Sheet>
   );
@@ -382,7 +745,6 @@ const Row = ({ label, value }: any) => (
   <div className="flex items-center justify-between"><span className="text-muted-foreground">{label}</span><span className="font-medium">{value}</span></div>
 );
 
-// Itinerary editor
 const ItineraryEditor = ({ bookingId, items, canEdit, properties, hotel, actorId, actorRole, onChanged }: any) => {
   const [adding, setAdding] = useState<number | null>(null);
   const [draft, setDraft] = useState<any>({ item_type: "visit", title: "", start_time: "", end_time: "", location: "", notes: "", property_id: "" });
