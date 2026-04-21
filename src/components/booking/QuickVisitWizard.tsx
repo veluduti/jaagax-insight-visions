@@ -297,8 +297,8 @@ export const QuickVisitWizard = ({
 
         <ScrollArea className="max-h-[60vh]">
           <div className="p-6">
-            {/* Property summary */}
-            {step <= 4 && (
+            {/* Property summary - only after picking */}
+            {step >= 1 && step <= 4 && propertyId && (
               <Card className="mb-4 bg-muted/30 border-amber-500/20">
                 <CardContent className="p-3 flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center">
@@ -310,12 +310,76 @@ export const QuickVisitWizard = ({
                       <MapPin className="h-3 w-3" />{propertyLocality || propertyCity}
                     </p>
                   </div>
+                  {requiresPropertyPick && (
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setStep(0)}>Change</Button>
+                  )}
                   <Badge variant="outline" className="text-[10px]">1 property</Badge>
                 </CardContent>
               </Card>
             )}
 
             <AnimatePresence mode="wait">
+              {step === 0 && (
+                <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+                  <div>
+                    <h3 className="text-base font-semibold mb-1">Pick a property to visit</h3>
+                    <p className="text-sm text-muted-foreground">Quick Visit covers a single property of your choice.</p>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by title, city or locality…"
+                      className="pl-9"
+                      value={propertySearch}
+                      onChange={e => setPropertySearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                    {loadingProps && <p className="text-sm text-muted-foreground text-center py-6">Loading properties…</p>}
+                    {!loadingProps && filteredProps.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-6">No properties match your search.</p>
+                    )}
+                    {filteredProps.map(p => {
+                      const selected = propertyId === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setPropertyId(p.id);
+                            setPropertyTitle(p.title);
+                            setPropertyCity(p.city);
+                            setPropertyLocality(p.locality);
+                            setPropertyPrice(Number(p.price) || 0);
+                          }}
+                          className={cn(
+                            "w-full text-left flex items-center gap-3 p-2.5 rounded-lg border transition-all",
+                            selected ? "border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/40" : "border-border hover:bg-muted/40"
+                          )}
+                        >
+                          <div className="h-12 w-12 rounded-md bg-muted overflow-hidden shrink-0">
+                            {p.images?.[0] ? (
+                              <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center"><Building2 className="h-5 w-5 text-muted-foreground" /></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{p.title}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                              <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold flex items-center justify-end"><IndianRupee className="h-3 w-3" />{(Number(p.price) || 0).toLocaleString("en-IN")}</p>
+                            {selected && <Check className="h-4 w-4 text-amber-600 inline-block mt-0.5" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
               {step === 1 && (
                 <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                   <div>
