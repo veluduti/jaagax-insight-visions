@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { WEEKEND_STATUSES, formatINR, WeekendStatus } from "@/lib/weekendBookingHelpers";
+import { WEEKEND_STATUSES, formatINR, WeekendStatus, BOOKING_KIND_META, BookingKind } from "@/lib/weekendBookingHelpers";
 import { WeekendBookingDetailDrawer } from "./WeekendBookingDetailDrawer";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Sparkles, Calendar, MapPin, Building2, ArrowRight, Loader2,
-  User, IndianRupee, ClipboardList, Trash2, ThumbsUp, History as HistoryIcon, Handshake,
+  User, IndianRupee, ClipboardList, Trash2, ThumbsUp, History as HistoryIcon, Handshake, Zap,
 } from "lucide-react";
 
 const HISTORY_STATUSES = new Set(["deal_closed", "rated", "cancelled"]);
