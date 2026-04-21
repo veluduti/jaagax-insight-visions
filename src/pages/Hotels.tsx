@@ -277,12 +277,12 @@ const Hotels = () => {
                             });
                             return;
                           }
-                          // Weekend Property Explorer (2-day) → premium guided wizard
+                          // Weekend Property Explorer (multi-day) → premium guided wizard
                           if (pkg.duration_days >= 2 || /weekend/i.test(pkg.name)) {
                             setWeekendPackage(pkg);
                           } else {
-                            setPreSelectedPackage(pkg);
-                            setShowVisitStayModal(true);
+                            // Quick Visit (single-day) → concierge-managed quick visit wizard
+                            setQuickVisitPackage(pkg);
                           }
                         }}
                       >
