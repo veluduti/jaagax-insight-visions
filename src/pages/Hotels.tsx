@@ -450,6 +450,13 @@ const Hotels = () => {
         packageDiscount={weekendPackage?.base_discount_percentage || 15}
         defaultCity={selectedCity !== "all" ? selectedCity : "Hyderabad"}
       />
+
+      {/* Quick Visit Package Wizard (single-property concierge) */}
+      <QuickVisitWizard
+        open={!!quickVisitPackage}
+        onClose={() => setQuickVisitPackage(null)}
+        propertyCity={selectedCity !== "all" ? selectedCity : "Hyderabad"}
+      />
     </div>
   );
 };
