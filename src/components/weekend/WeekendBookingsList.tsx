@@ -63,20 +63,31 @@ export const WeekendBookingsList = ({ scope, agentId, userId }: Props) => {
   const counts = viewItems.reduce((acc, i) => { acc[i.status] = (acc[i.status] || 0) + 1; return acc; }, {} as Record<string, number>);
   const historyCount = items.filter(i => HISTORY_STATUSES.has(i.status)).length;
   const activeCount = items.length - historyCount;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center shadow-md">
-            <Sparkles className="h-5 w-5 text-white" />
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
             <h3 className="font-semibold leading-tight">Weekend Property Explorer</h3>
             <p className="text-xs text-muted-foreground">2-day visit + stay bookings · {items.length} total</p>
           </div>
         </div>
+        <Tabs value={view} onValueChange={(v) => { setView(v as any); setFilter("all"); }}>
+          <TabsList className="h-8">
+            <TabsTrigger value="active" className="text-xs gap-1"><Sparkles className="h-3 w-3" />Active ({activeCount})</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs gap-1"><HistoryIcon className="h-3 w-3" />History ({historyCount})</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Filter chips */}
       <div className="flex gap-1.5 flex-wrap">
-        <Chip active={filter === "all"} onClick={() => setFilter("all")}>All ({items.length})</Chip>
+        <Chip active={filter === "all"} onClick={() => setFilter("all")}>All ({viewItems.length})</Chip>
         {(Object.entries(WEEKEND_STATUSES) as [WeekendStatus, any][]).map(([k, v]) => (
           counts[k] ? <Chip key={k} active={filter === k} onClick={() => setFilter(k)}>{v.label} ({counts[k]})</Chip> : null
         ))}
