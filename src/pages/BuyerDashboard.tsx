@@ -14,11 +14,12 @@ import {
   Heart, MapPin, Search, Bell, Calculator, 
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel
+  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
 import MyBookings from "@/components/buyer/MyBookings";
+import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import MyVisits from "@/components/buyer/MyVisits";
 import MyFavorites from "@/components/buyer/MyFavorites";
 import AlertsPanel from "@/components/buyer/AlertsPanel";
@@ -326,7 +327,7 @@ const BuyerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={searchParams.get("tab") || "recommended"} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-9">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -342,6 +343,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="bookings">
               <Hotel className="h-4 w-4 mr-2" />
               Bookings
+            </TabsTrigger>
+            <TabsTrigger value="weekend">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Weekend
             </TabsTrigger>
             <TabsTrigger value="favorites">
               <Heart className="h-4 w-4 mr-2" />
@@ -521,6 +526,11 @@ const BuyerDashboard = () => {
           {/* My Bookings */}
           <TabsContent value="bookings">
             <MyBookings />
+          </TabsContent>
+
+          {/* Weekend Property Explorer */}
+          <TabsContent value="weekend">
+            <WeekendBookingsList scope="buyer" userId={user?.id} />
           </TabsContent>
 
           {/* Favorites */}
