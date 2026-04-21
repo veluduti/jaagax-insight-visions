@@ -16,6 +16,7 @@ import Navigation from "@/components/Navigation";
 import BookingsPanel from "@/components/admin/BookingsPanel";
 import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
 import AssignAgentPanel from "@/components/admin/AssignAgentPanel";
+import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
@@ -328,10 +329,19 @@ export default function AdminPanel() {
             </TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
             <TabsTrigger value="hotel-partners">Hotel Partners</TabsTrigger>
+            <TabsTrigger value="weekend">Weekend Explorer</TabsTrigger>
           </TabsList>
 
           <TabsContent value="hotel-partners">
             <HotelPartnersPanel />
+          </TabsContent>
+
+          <TabsContent value="weekend">
+            <Card>
+              <CardContent className="p-4 md:p-6">
+                <WeekendBookingsList scope="admin" />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* === SIGNUP REQUESTS === */}
