@@ -264,6 +264,17 @@ const Hotels = () => {
                       <Button 
                         size="sm"
                         onClick={() => {
+                          if (!user) {
+                            toast.error("Please sign in as a buyer to book");
+                            navigate("/auth");
+                            return;
+                          }
+                          if (role && role !== "buyer") {
+                            toast.error("Only buyers can book the Weekend Explorer", {
+                              description: `Your account role is "${role}". Please use a buyer account.`,
+                            });
+                            return;
+                          }
                           // Weekend Property Explorer (2-day) → premium guided wizard
                           if (pkg.duration_days >= 2 || /weekend/i.test(pkg.name)) {
                             setWeekendPackage(pkg);
