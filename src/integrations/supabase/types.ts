@@ -1662,6 +1662,7 @@ export type Database = {
           agent_review: string | null
           bhk_preference: string | null
           booking_amount: number | null
+          booking_kind: string
           budget_max: number | null
           budget_min: number | null
           buyer_decision: string | null
@@ -1717,6 +1718,7 @@ export type Database = {
           agent_review?: string | null
           bhk_preference?: string | null
           booking_amount?: number | null
+          booking_kind?: string
           budget_max?: number | null
           budget_min?: number | null
           buyer_decision?: string | null
@@ -1772,6 +1774,7 @@ export type Database = {
           agent_review?: string | null
           bhk_preference?: string | null
           booking_amount?: number | null
+          booking_kind?: string
           budget_max?: number | null
           budget_min?: number | null
           buyer_decision?: string | null
