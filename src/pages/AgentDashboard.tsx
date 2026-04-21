@@ -32,6 +32,7 @@ import {
   XCircle, Share2, FileText, Sparkles, ArrowRight, IndianRupee,
 } from "lucide-react";
 import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
+import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 
 /* ============================================================
    Types
@@ -521,6 +522,15 @@ export default function AgentDashboard() {
             agentUserId={user.id}
             agentName={agentProfile.name || "Agent"}
           />
+        )}
+
+        {/* ===== Weekend Property Explorer Bookings ===== */}
+        {agentProfile.id && user?.id && (
+          <Card className="border-primary/20">
+            <CardContent className="p-4 md:p-5">
+              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} />
+            </CardContent>
+          </Card>
         )}
 
         {/* ===== Today's Tasks + Notifications strip ===== */}
