@@ -14,6 +14,8 @@ import { VisitStayPlanner } from "@/components/booking/VisitStayPlanner";
 import { HotelOnlyBooking } from "@/components/hotels/HotelOnlyBooking";
 import { WeekendExplorerWizard } from "@/components/booking/WeekendExplorerWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface PartnerHotel {
   id: string;
@@ -48,6 +50,7 @@ const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
+  const { user, role } = useAuth();
   
   const [hotels, setHotels] = useState<PartnerHotel[]>([]);
   const [packages, setPackages] = useState<VisitPackage[]>([]);
@@ -261,6 +264,17 @@ const Hotels = () => {
                       <Button 
                         size="sm"
                         onClick={() => {
+                          if (!user) {
+                            toast.error("Please sign in as a buyer to book");
+                            navigate("/auth");
+                            return;
+                          }
+                          if (role && role !== "buyer") {
+                            toast.error("Only buyers can book the Weekend Explorer", {
+                              description: `Your account role is "${role}". Please use a buyer account.`,
+                            });
+                            return;
+                          }
                           // Weekend Property Explorer (2-day) → premium guided wizard
                           if (pkg.duration_days >= 2 || /weekend/i.test(pkg.name)) {
                             setWeekendPackage(pkg);
