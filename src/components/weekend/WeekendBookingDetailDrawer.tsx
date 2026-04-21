@@ -226,6 +226,37 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     load();
   };
 
+  // === BUYER: final payment after deal closed ===
+  const mockPayFinal = async () => {
+    if (!booking) return;
+    const remaining = (booking.deal_amount || booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    if (remaining <= 0) return toast.error("Nothing remaining to pay");
+    setBusy(true);
+    const ref = `MOCK-FINAL-${Date.now()}`;
+    await supabase.from("weekend_bookings").update({
+      final_payment_status: "paid",
+      final_payment_amount: remaining,
+      final_payment_reference: ref,
+      final_paid_at: new Date().toISOString(),
+      payment_status: "paid",
+    }).eq("id", booking.id);
+    await logWeekendActivity({
+      bookingId: booking.id, actorId: currentUserId, actorRole: "buyer",
+      action: "final_payment_completed",
+      description: `Final payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
+      metadata: { reference: ref, amount: remaining },
+    });
+    if (agent?.id) {
+      const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
+      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Final payment received", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. Deal fully settled.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+    }
+    await notifyAdmins("Weekend booking fully paid", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}.`, "/admin?tab=weekend", { booking_id: booking.id });
+    setBusy(false);
+    toast.success("Final payment successful (simulated)");
+    onChanged?.();
+    load();
+  };
+
   // === BUYER: decision ===
   const submitDecision = async () => {
     const ok = await updateBooking({
@@ -365,6 +396,34 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
 
           <ScrollArea className="flex-1">
             <TabsContent value="overview" className="px-5 py-4 space-y-4 m-0">
+              {/* PROMINENT BUYER INTEREST ALERT (admin/agent) */}
+              {viewerRole !== "buyer" && booking.interested_property_ids?.length > 0 && (
+                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-3 shadow-[0_0_30px_-10px_hsl(142_76%_36%/0.4)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-md">
+                      <ThumbsUp className="h-3.5 w-3.5 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Buyer is interested! 🎯</p>
+                      <p className="text-[11px] text-muted-foreground">{booking.buyer_name} marked {booking.interested_property_ids.length} {booking.interested_property_ids.length === 1 ? "property" : "properties"} as interesting. Time to follow up.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {properties.filter(p => booking.interested_property_ids?.includes(p.id)).map(p => (
+                      <div key={p.id} className="flex items-center gap-2 bg-background/60 rounded-md p-1.5 text-xs">
+                        <Building2 className="h-3 w-3 text-emerald-600" />
+                        <span className="font-medium flex-1 truncate">{p.title}</span>
+                        <span className="text-muted-foreground">{formatINR(p.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {booking.buyer_decision_notes && (
+                    <p className="mt-2 text-[11px] italic text-muted-foreground bg-background/60 rounded p-1.5">"{booking.buyer_decision_notes}"</p>
+                  )}
+                </motion.div>
+              )}
+
               <Section icon={User} title="Buyer">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <Field label="Name" value={booking.buyer_name} />
@@ -464,13 +523,32 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 </Section>
               )}
 
-              <Section icon={IndianRupee} title="Pricing">
+              <Section icon={IndianRupee} title="Pricing & payments">
                 <div className="space-y-1 text-sm">
                   <Row label="Estimated total" value={formatINR(booking.estimated_total)} />
                   {booking.final_total && <Row label="Final total" value={formatINR(booking.final_total)} />}
-                  <Row label="Booking advance (15%)" value={formatINR(booking.booking_amount)} />
-                  <Row label="Payment status" value={<Badge variant="outline" className="capitalize">{booking.payment_status}</Badge>} />
-                  {booking.payment_reference && <Row label="Reference" value={<span className="font-mono text-xs">{booking.payment_reference}</span>} />}
+                  <Row label="Booking advance (15%)" value={
+                    <span className="flex items-center gap-1.5">
+                      {formatINR(booking.booking_amount)}
+                      {booking.payment_status !== "unpaid" && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">Paid</Badge>}
+                    </span>
+                  } />
+                  {booking.deal_amount && (() => {
+                    const remaining = (booking.deal_amount || 0) - (booking.booking_amount || 0);
+                    return (
+                      <>
+                        <Row label="Deal amount" value={<span className="font-semibold text-emerald-600">{formatINR(booking.deal_amount)}</span>} />
+                        <Row label="Remaining to pay" value={
+                          <span className="flex items-center gap-1.5">
+                            <span className={booking.final_payment_status === "paid" ? "text-muted-foreground line-through" : "font-semibold text-amber-600"}>{formatINR(remaining)}</span>
+                            {booking.final_payment_status === "paid" && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">Settled</Badge>}
+                          </span>
+                        } />
+                        {booking.final_payment_reference && <Row label="Final ref" value={<span className="font-mono text-xs">{booking.final_payment_reference}</span>} />}
+                      </>
+                    );
+                  })()}
+                  {booking.payment_reference && <Row label="Advance ref" value={<span className="font-mono text-xs">{booking.payment_reference}</span>} />}
                 </div>
               </Section>
 
@@ -536,7 +614,13 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                   <Button size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}><Target className="h-3 w-3 mr-1" />Share your decision</Button>
                 )}
                 {viewerRole === "buyer" && (status === "deal_closed" || status === "buyer_decided" || status === "completed") && !booking.agent_rating && agent && (
-                  <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-white"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
+                  <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-primary-foreground"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
+                )}
+                {viewerRole === "buyer" && booking.deal_amount && booking.final_payment_status !== "paid" && (
+                  <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
+                    <IndianRupee className="h-3 w-3 mr-1" />
+                    Pay remaining {formatINR((booking.deal_amount || 0) - (booking.booking_amount || 0))}
+                  </Button>
                 )}
               </div>
             </TabsContent>
