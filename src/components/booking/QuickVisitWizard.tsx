@@ -502,7 +502,7 @@ export const QuickVisitWizard = ({
 
         {step <= 4 && (
           <div className="flex items-center justify-between gap-2 px-6 py-3 border-t bg-muted/20">
-            <Button variant="ghost" disabled={step === 1 || submitting} onClick={() => setStep(s => Math.max(1, s - 1))}>
+            <Button variant="ghost" disabled={step <= (requiresPropertyPick ? 0 : 1) || submitting} onClick={() => setStep(s => Math.max(requiresPropertyPick ? 0 : 1, s - 1))}>
               <ArrowLeft className="h-3 w-3 mr-1" />Back
             </Button>
             <p className="text-xs text-muted-foreground hidden sm:block">Step {step} of {STEPS.length}</p>
