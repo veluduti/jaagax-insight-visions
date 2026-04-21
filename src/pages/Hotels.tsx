@@ -106,6 +106,7 @@ const Hotels = () => {
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [preSelectedPackage, setPreSelectedPackage] = useState<VisitPackage | null>(null);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
+  const [quickVisitPackage, setQuickVisitPackage] = useState<VisitPackage | null>(null);
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai"];
 
