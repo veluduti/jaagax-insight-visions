@@ -17,20 +17,36 @@ import { logWeekendActivity, formatINR } from "@/lib/weekendBookingHelpers";
 import {
   Zap, Building2, MapPin, CalendarIcon, ClipboardCheck,
   User, Check, ArrowRight, ArrowLeft, ShieldCheck, Loader2,
-  PartyPopper, IndianRupee, Phone, Mail,
+  PartyPopper, IndianRupee, Phone, Mail, Search, Home,
 } from "lucide-react";
 
 interface QuickVisitWizardProps {
   open: boolean;
   onClose: () => void;
-  propertyId: string;
-  propertyTitle: string;
+  propertyId?: string;
+  propertyTitle?: string;
   propertyCity?: string;
   propertyLocality?: string;
   propertyPrice?: number;
 }
 
-const STEPS = [
+interface PropertyOption {
+  id: string;
+  title: string;
+  city: string;
+  locality: string;
+  price: number;
+  images: string[] | null;
+}
+
+const STEPS_WITH_PROPERTY = [
+  { id: 0, label: "Property", icon: Home },
+  { id: 1, label: "Date", icon: CalendarIcon },
+  { id: 2, label: "Contact", icon: User },
+  { id: 3, label: "Notes", icon: ClipboardCheck },
+  { id: 4, label: "Submit", icon: Check },
+];
+const STEPS_NO_PROPERTY = [
   { id: 1, label: "Date", icon: CalendarIcon },
   { id: 2, label: "Contact", icon: User },
   { id: 3, label: "Notes", icon: ClipboardCheck },
