@@ -1548,6 +1548,205 @@ export type Database = {
         }
         Relationships: []
       }
+      weekend_booking_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          booking_id: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          booking_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          booking_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekend_booking_activity_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "weekend_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekend_booking_itinerary: {
+        Row: {
+          booking_id: string
+          created_at: string
+          day_number: number
+          end_time: string | null
+          id: string
+          item_type: string
+          location: string | null
+          notes: string | null
+          property_id: string | null
+          sort_order: number | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          day_number: number
+          end_time?: string | null
+          id?: string
+          item_type: string
+          location?: string | null
+          notes?: string | null
+          property_id?: string | null
+          sort_order?: number | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          day_number?: number
+          end_time?: string | null
+          id?: string
+          item_type?: string
+          location?: string | null
+          notes?: string | null
+          property_id?: string | null
+          sort_order?: number | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekend_booking_itinerary_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "weekend_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekend_bookings: {
+        Row: {
+          agent_id: string | null
+          agent_notes: string | null
+          bhk_preference: string | null
+          booking_amount: number | null
+          budget_max: number | null
+          budget_min: number | null
+          buyer_email: string
+          buyer_id: string
+          buyer_name: string
+          buyer_notes: string | null
+          buyer_phone: string
+          city: string | null
+          created_at: string
+          end_date: string
+          estimated_total: number | null
+          final_total: number | null
+          hotel_id: string | null
+          hotel_tier: string | null
+          id: string
+          include_agent_assistance: boolean | null
+          include_transport: boolean | null
+          paid_at: string | null
+          payment_reference: string | null
+          payment_status: string
+          preferred_locations: string[] | null
+          property_type: string | null
+          rejection_reason: string | null
+          selected_property_ids: string[] | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_notes?: string | null
+          bhk_preference?: string | null
+          booking_amount?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          buyer_email: string
+          buyer_id: string
+          buyer_name: string
+          buyer_notes?: string | null
+          buyer_phone: string
+          city?: string | null
+          created_at?: string
+          end_date: string
+          estimated_total?: number | null
+          final_total?: number | null
+          hotel_id?: string | null
+          hotel_tier?: string | null
+          id?: string
+          include_agent_assistance?: boolean | null
+          include_transport?: boolean | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          preferred_locations?: string[] | null
+          property_type?: string | null
+          rejection_reason?: string | null
+          selected_property_ids?: string[] | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_notes?: string | null
+          bhk_preference?: string | null
+          booking_amount?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          buyer_email?: string
+          buyer_id?: string
+          buyer_name?: string
+          buyer_notes?: string | null
+          buyer_phone?: string
+          city?: string | null
+          created_at?: string
+          end_date?: string
+          estimated_total?: number | null
+          final_total?: number | null
+          hotel_id?: string | null
+          hotel_tier?: string | null
+          id?: string
+          include_agent_assistance?: boolean | null
+          include_transport?: boolean | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          preferred_locations?: string[] | null
+          property_type?: string | null
+          rejection_reason?: string | null
+          selected_property_ids?: string[] | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
