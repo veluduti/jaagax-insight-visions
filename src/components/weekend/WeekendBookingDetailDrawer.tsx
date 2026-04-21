@@ -614,7 +614,13 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                   <Button size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}><Target className="h-3 w-3 mr-1" />Share your decision</Button>
                 )}
                 {viewerRole === "buyer" && (status === "deal_closed" || status === "buyer_decided" || status === "completed") && !booking.agent_rating && agent && (
-                  <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-white"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
+                  <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-primary-foreground"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
+                )}
+                {viewerRole === "buyer" && booking.deal_amount && booking.final_payment_status !== "paid" && (
+                  <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
+                    <IndianRupee className="h-3 w-3 mr-1" />
+                    Pay remaining {formatINR((booking.deal_amount || 0) - (booking.booking_amount || 0))}
+                  </Button>
                 )}
               </div>
             </TabsContent>
