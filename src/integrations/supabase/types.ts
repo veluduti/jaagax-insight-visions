@@ -1679,6 +1679,10 @@ export type Database = {
           deal_property_id: string | null
           end_date: string
           estimated_total: number | null
+          final_paid_at: string | null
+          final_payment_amount: number | null
+          final_payment_reference: string | null
+          final_payment_status: string
           final_total: number | null
           hotel_id: string | null
           hotel_tier: string | null
@@ -1730,6 +1734,10 @@ export type Database = {
           deal_property_id?: string | null
           end_date: string
           estimated_total?: number | null
+          final_paid_at?: string | null
+          final_payment_amount?: number | null
+          final_payment_reference?: string | null
+          final_payment_status?: string
           final_total?: number | null
           hotel_id?: string | null
           hotel_tier?: string | null
@@ -1781,6 +1789,10 @@ export type Database = {
           deal_property_id?: string | null
           end_date?: string
           estimated_total?: number | null
+          final_paid_at?: string | null
+          final_payment_amount?: number | null
+          final_payment_reference?: string | null
+          final_payment_status?: string
           final_total?: number | null
           hotel_id?: string | null
           hotel_tier?: string | null
