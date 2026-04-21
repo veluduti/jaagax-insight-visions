@@ -91,13 +91,6 @@ export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Pr
           </TabsList>
         </Tabs>
       </div>
-        <Tabs value={view} onValueChange={(v) => { setView(v as any); setFilter("all"); }}>
-          <TabsList className="h-8">
-            <TabsTrigger value="active" className="text-xs gap-1"><Sparkles className="h-3 w-3" />Active ({activeCount})</TabsTrigger>
-            <TabsTrigger value="history" className="text-xs gap-1"><HistoryIcon className="h-3 w-3" />History ({historyCount})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
 
       {/* Filter chips */}
       <div className="flex gap-1.5 flex-wrap">
