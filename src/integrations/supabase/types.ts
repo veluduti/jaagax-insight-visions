@@ -1647,12 +1647,26 @@ export type Database = {
       }
       weekend_bookings: {
         Row: {
+          admin_qualification_notes: string | null
+          admin_qualified_at: string | null
+          admin_qualified_by: string | null
+          agent_accepted_at: string | null
+          agent_assigned_at: string | null
+          agent_assigned_by: string | null
+          agent_decline_reason: string | null
+          agent_declined_at: string | null
           agent_id: string | null
           agent_notes: string | null
+          agent_rated_at: string | null
+          agent_rating: number | null
+          agent_review: string | null
           bhk_preference: string | null
           booking_amount: number | null
           budget_max: number | null
           budget_min: number | null
+          buyer_decision: string | null
+          buyer_decision_at: string | null
+          buyer_decision_notes: string | null
           buyer_email: string
           buyer_id: string
           buyer_name: string
@@ -1660,6 +1674,9 @@ export type Database = {
           buyer_phone: string
           city: string | null
           created_at: string
+          deal_amount: number | null
+          deal_closed_at: string | null
+          deal_property_id: string | null
           end_date: string
           estimated_total: number | null
           final_total: number | null
@@ -1668,6 +1685,7 @@ export type Database = {
           id: string
           include_agent_assistance: boolean | null
           include_transport: boolean | null
+          interested_property_ids: string[] | null
           paid_at: string | null
           payment_reference: string | null
           payment_status: string
@@ -1680,12 +1698,26 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_qualification_notes?: string | null
+          admin_qualified_at?: string | null
+          admin_qualified_by?: string | null
+          agent_accepted_at?: string | null
+          agent_assigned_at?: string | null
+          agent_assigned_by?: string | null
+          agent_decline_reason?: string | null
+          agent_declined_at?: string | null
           agent_id?: string | null
           agent_notes?: string | null
+          agent_rated_at?: string | null
+          agent_rating?: number | null
+          agent_review?: string | null
           bhk_preference?: string | null
           booking_amount?: number | null
           budget_max?: number | null
           budget_min?: number | null
+          buyer_decision?: string | null
+          buyer_decision_at?: string | null
+          buyer_decision_notes?: string | null
           buyer_email: string
           buyer_id: string
           buyer_name: string
@@ -1693,6 +1725,9 @@ export type Database = {
           buyer_phone: string
           city?: string | null
           created_at?: string
+          deal_amount?: number | null
+          deal_closed_at?: string | null
+          deal_property_id?: string | null
           end_date: string
           estimated_total?: number | null
           final_total?: number | null
@@ -1701,6 +1736,7 @@ export type Database = {
           id?: string
           include_agent_assistance?: boolean | null
           include_transport?: boolean | null
+          interested_property_ids?: string[] | null
           paid_at?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -1713,12 +1749,26 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_qualification_notes?: string | null
+          admin_qualified_at?: string | null
+          admin_qualified_by?: string | null
+          agent_accepted_at?: string | null
+          agent_assigned_at?: string | null
+          agent_assigned_by?: string | null
+          agent_decline_reason?: string | null
+          agent_declined_at?: string | null
           agent_id?: string | null
           agent_notes?: string | null
+          agent_rated_at?: string | null
+          agent_rating?: number | null
+          agent_review?: string | null
           bhk_preference?: string | null
           booking_amount?: number | null
           budget_max?: number | null
           budget_min?: number | null
+          buyer_decision?: string | null
+          buyer_decision_at?: string | null
+          buyer_decision_notes?: string | null
           buyer_email?: string
           buyer_id?: string
           buyer_name?: string
@@ -1726,6 +1776,9 @@ export type Database = {
           buyer_phone?: string
           city?: string | null
           created_at?: string
+          deal_amount?: number | null
+          deal_closed_at?: string | null
+          deal_property_id?: string | null
           end_date?: string
           estimated_total?: number | null
           final_total?: number | null
@@ -1734,6 +1787,7 @@ export type Database = {
           id?: string
           include_agent_assistance?: boolean | null
           include_transport?: boolean | null
+          interested_property_ids?: string[] | null
           paid_at?: string | null
           payment_reference?: string | null
           payment_status?: string
