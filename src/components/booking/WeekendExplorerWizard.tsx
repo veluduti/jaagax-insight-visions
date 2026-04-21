@@ -644,7 +644,7 @@ export const WeekendExplorerWizard = ({
                     <ClipboardCheck className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold">Ready to submit?</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">We'll create your request as <Badge variant="outline" className="mx-1">Pending Confirmation</Badge> and notify the assigned agent immediately.</p>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">Your request will be marked <Badge variant="outline" className="mx-1">Submitted</Badge> and our concierge team will qualify it and assign your dedicated agent.</p>
                 </motion.div>
               )}
 
@@ -662,10 +662,11 @@ export const WeekendExplorerWizard = ({
                     <CardContent className="p-4 text-left text-sm space-y-1">
                       <p className="font-medium">What's next?</p>
                       <ul className="text-xs text-muted-foreground space-y-1 mt-2">
-                        <li>✓ Agent reviews your plan</li>
-                        <li>✓ Agent calls to confirm details</li>
-                        <li>✓ You pay the 15% advance</li>
-                        <li>✓ Visit itinerary is locked in</li>
+                        <li>✓ Admin qualifies your request</li>
+                        <li>✓ Dedicated agent is assigned</li>
+                        <li>✓ Agent accepts & calls to plan visits</li>
+                        <li>✓ You pay the 15% advance to lock the itinerary</li>
+                        <li>✓ Visits → your decision → close deal → rate agent</li>
                       </ul>
                     </CardContent>
                   </Card>
