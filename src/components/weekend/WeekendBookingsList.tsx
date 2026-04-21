@@ -76,14 +76,21 @@ export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Pr
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center shadow-md">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          <div className={`h-9 w-9 rounded-xl flex items-center justify-center shadow-md ${isQuick ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-gradient-to-br from-primary to-purple-500"}`}>
+            <headerMeta.icon className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold leading-tight">Weekend Property Explorer</h3>
-            <p className="text-xs text-muted-foreground">2-day visit + stay bookings · {items.length} total</p>
+            <h3 className="font-semibold leading-tight">{headerMeta.label}</h3>
+            <p className="text-xs text-muted-foreground">{headerMeta.sub} · {items.length} total</p>
           </div>
         </div>
+        <Tabs value={view} onValueChange={(v) => { setView(v as any); setFilter("all"); }}>
+          <TabsList className="h-8">
+            <TabsTrigger value="active" className="text-xs gap-1"><Sparkles className="h-3 w-3" />Active ({activeCount})</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs gap-1"><HistoryIcon className="h-3 w-3" />History ({historyCount})</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
         <Tabs value={view} onValueChange={(v) => { setView(v as any); setFilter("all"); }}>
           <TabsList className="h-8">
             <TabsTrigger value="active" className="text-xs gap-1"><Sparkles className="h-3 w-3" />Active ({activeCount})</TabsTrigger>
