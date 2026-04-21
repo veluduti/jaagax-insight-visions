@@ -50,6 +50,7 @@ const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
+  const { user, role } = useAuth();
   
   const [hotels, setHotels] = useState<PartnerHotel[]>([]);
   const [packages, setPackages] = useState<VisitPackage[]>([]);
