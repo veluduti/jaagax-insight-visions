@@ -523,13 +523,32 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 </Section>
               )}
 
-              <Section icon={IndianRupee} title="Pricing">
+              <Section icon={IndianRupee} title="Pricing & payments">
                 <div className="space-y-1 text-sm">
                   <Row label="Estimated total" value={formatINR(booking.estimated_total)} />
                   {booking.final_total && <Row label="Final total" value={formatINR(booking.final_total)} />}
-                  <Row label="Booking advance (15%)" value={formatINR(booking.booking_amount)} />
-                  <Row label="Payment status" value={<Badge variant="outline" className="capitalize">{booking.payment_status}</Badge>} />
-                  {booking.payment_reference && <Row label="Reference" value={<span className="font-mono text-xs">{booking.payment_reference}</span>} />}
+                  <Row label="Booking advance (15%)" value={
+                    <span className="flex items-center gap-1.5">
+                      {formatINR(booking.booking_amount)}
+                      {booking.payment_status !== "unpaid" && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">Paid</Badge>}
+                    </span>
+                  } />
+                  {booking.deal_amount && (() => {
+                    const remaining = (booking.deal_amount || 0) - (booking.booking_amount || 0);
+                    return (
+                      <>
+                        <Row label="Deal amount" value={<span className="font-semibold text-emerald-600">{formatINR(booking.deal_amount)}</span>} />
+                        <Row label="Remaining to pay" value={
+                          <span className="flex items-center gap-1.5">
+                            <span className={booking.final_payment_status === "paid" ? "text-muted-foreground line-through" : "font-semibold text-amber-600"}>{formatINR(remaining)}</span>
+                            {booking.final_payment_status === "paid" && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">Settled</Badge>}
+                          </span>
+                        } />
+                        {booking.final_payment_reference && <Row label="Final ref" value={<span className="font-mono text-xs">{booking.final_payment_reference}</span>} />}
+                      </>
+                    );
+                  })()}
+                  {booking.payment_reference && <Row label="Advance ref" value={<span className="font-mono text-xs">{booking.payment_reference}</span>} />}
                 </div>
               </Section>
 
