@@ -396,6 +396,34 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
 
           <ScrollArea className="flex-1">
             <TabsContent value="overview" className="px-5 py-4 space-y-4 m-0">
+              {/* PROMINENT BUYER INTEREST ALERT (admin/agent) */}
+              {viewerRole !== "buyer" && booking.interested_property_ids?.length > 0 && (
+                <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-3 shadow-[0_0_30px_-10px_hsl(142_76%_36%/0.4)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-md">
+                      <ThumbsUp className="h-3.5 w-3.5 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Buyer is interested! 🎯</p>
+                      <p className="text-[11px] text-muted-foreground">{booking.buyer_name} marked {booking.interested_property_ids.length} {booking.interested_property_ids.length === 1 ? "property" : "properties"} as interesting. Time to follow up.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    {properties.filter(p => booking.interested_property_ids?.includes(p.id)).map(p => (
+                      <div key={p.id} className="flex items-center gap-2 bg-background/60 rounded-md p-1.5 text-xs">
+                        <Building2 className="h-3 w-3 text-emerald-600" />
+                        <span className="font-medium flex-1 truncate">{p.title}</span>
+                        <span className="text-muted-foreground">{formatINR(p.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {booking.buyer_decision_notes && (
+                    <p className="mt-2 text-[11px] italic text-muted-foreground bg-background/60 rounded p-1.5">"{booking.buyer_decision_notes}"</p>
+                  )}
+                </motion.div>
+              )}
+
               <Section icon={User} title="Buyer">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <Field label="Name" value={booking.buyer_name} />
