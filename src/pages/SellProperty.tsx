@@ -119,6 +119,12 @@ interface FormState {
   video_urls: string[];
   ownership_proof_url: string;
   id_proof_url: string;
+  // Land-specific
+  plot_type: string;
+  facing_direction: string;
+  road_access: string;
+  water_availability: string;
+  electricity: string;
 }
 
 const initialForm: FormState = {
@@ -129,6 +135,7 @@ const initialForm: FormState = {
   price: "", price_negotiable: false, maintenance_charges: "", booking_amount: "",
   amenities: [], images: [], video_urls: [],
   ownership_proof_url: "", id_proof_url: "",
+  plot_type: "", facing_direction: "", road_access: "", water_availability: "", electricity: "",
 };
 
 export default function SellProperty() {
