@@ -248,7 +248,7 @@ export default function VerificationPanel() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => handlePropertyVerification(property.id, "approved")}
+                      onClick={() => handlePropertyVerification(property, "approved")}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Approve
@@ -257,7 +257,7 @@ export default function VerificationPanel() {
                       size="sm"
                       variant="destructive"
                       className="flex-1"
-                      onClick={() => handlePropertyVerification(property.id, "rejected")}
+                      onClick={() => handlePropertyVerification(property, "rejected")}
                     >
                       <XCircle className="h-4 w-4 mr-1" />
                       Reject
@@ -313,7 +313,7 @@ export default function VerificationPanel() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => handleProjectVerification(project.id, "approved")}
+                      onClick={() => handleProjectVerification(project, "approved")}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Approve
@@ -322,7 +322,7 @@ export default function VerificationPanel() {
                       size="sm"
                       variant="destructive"
                       className="flex-1"
-                      onClick={() => handleProjectVerification(project.id, "rejected")}
+                      onClick={() => handleProjectVerification(project, "rejected")}
                     >
                       <XCircle className="h-4 w-4 mr-1" />
                       Reject
