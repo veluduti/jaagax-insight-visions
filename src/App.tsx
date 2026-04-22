@@ -72,6 +72,7 @@ import CompareProperties from "./pages/CompareProperties";
 import AddBuilderProfile from "./pages/AddBuilderProfile";
 import EditBuilderProfile from "./pages/EditBuilderProfile";
 import BuilderProfileDetail from "./pages/BuilderProfileDetail";
+import PlanVisitStay from "./pages/PlanVisitStay";
 import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
@@ -135,6 +136,7 @@ const App = () => (
           <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
           
           {/* Visit Scheduling Routes */}
+          <Route path="/plan-visit-stay" element={<PlanVisitStay />} />
           <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
           <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
           <Route path="/visit/manage" element={<VisitManage />} />

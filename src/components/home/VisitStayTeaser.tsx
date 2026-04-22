@@ -46,7 +46,7 @@ const VisitStayTeaser = () => {
             <Button
               variant="outline"
               className="border-primary/50 hover:bg-primary/10 hover:border-primary group whitespace-nowrap"
-              onClick={() => navigate("/visit/schedule")}
+              onClick={() => navigate("/plan-visit-stay")}
             >
               Plan Visit + Stay
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
