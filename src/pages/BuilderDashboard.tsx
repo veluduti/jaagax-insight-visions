@@ -15,6 +15,7 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
 import RERAUploadModal from "@/components/builder/RERAUploadModal";
+import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
 import DocumentationModal from "@/components/builder/DocumentationModal";
 import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
 import { Sparkles } from "lucide-react";
