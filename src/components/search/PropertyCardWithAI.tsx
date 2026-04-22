@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface PropertyDecision {
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -127,7 +129,7 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
     if ((e.target as HTMLElement).closest(".ai-expand-btn")) {
       return;
     }
-    navigate(`/property/${property.id}`);
+    openInNewTab(propertyPath(property));
   };
 
   const toggleExpand = (e: React.MouseEvent) => {

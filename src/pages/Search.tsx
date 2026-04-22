@@ -19,9 +19,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet from "@/components/search/AdvancedFiltersSheet";
+import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -38,6 +40,7 @@ interface Property {
 
 interface Project {
   id: string;
+  slug?: string | null;
   name: string;
   builder_name: string;
   city: string;
@@ -448,7 +451,7 @@ const Search = () => {
               >
                 <Card
                   className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
-                  onClick={() => navigate(`/project/${project.id}`)}
+                  onClick={() => openInNewTab(projectPath(project))}
                 >
                   <div className="relative h-56 overflow-hidden">
                     <img
@@ -527,7 +530,7 @@ const Search = () => {
               >
                 <Card
                   className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all"
-                  onClick={() => navigate(`/property/${property.id}`)}
+                  onClick={() => openInNewTab(propertyPath(property))}
                 >
                   <div className="relative h-40 overflow-hidden">
                     <img
