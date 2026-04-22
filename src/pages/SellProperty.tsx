@@ -679,7 +679,7 @@ export default function SellProperty() {
                 {step === 6 && (
                   <div className="space-y-4">
                     <div>
-                      <Label>Property Images * (min 3, max 10)</Label>
+                      <Label>Property Images <span className="text-xs text-muted-foreground font-normal">(optional, up to 10)</span></Label>
                       <label className="mt-2 block border-2 border-dashed border-emerald-500/40 rounded-xl p-8 text-center cursor-pointer hover:bg-emerald-500/5 transition">
                         <Upload className="h-10 w-10 mx-auto text-emerald-500 mb-2" />
                         <p className="text-sm font-medium">Click or drag to upload images</p>
