@@ -13,9 +13,11 @@ import { toast } from "sonner";
 import { useLocation } from "@/contexts/LocationContext";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { openInNewTab, projectPath } from "@/lib/openInNewTab";
 
 interface Project {
   id: string;
+  slug?: string | null;
   name: string;
   builder_id: string | null;
   builder_name: string;
@@ -217,7 +219,7 @@ const Projects = () => {
       el.appendChild(markerDiv);
 
       el.addEventListener("click", () => {
-        navigate(`/project/${project.id}`);
+        openInNewTab(projectPath(project));
       });
 
       // Create popup content safely
@@ -382,7 +384,7 @@ const Projects = () => {
                   <Card
                     key={project.id}
                     className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all"
-                    onClick={() => navigate(`/project/${project.id}`)}
+                    onClick={() => openInNewTab(projectPath(project))}
                   >
                     <div className="flex gap-4 p-4">
                       {/* Image */}
@@ -475,7 +477,7 @@ const Projects = () => {
               >
                 <Card
                   className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
-                  onClick={() => navigate(`/project/${project.id}`)}
+                  onClick={() => openInNewTab(projectPath(project))}
                 >
                   {/* Image */}
                   <div className="relative h-56 overflow-hidden">
