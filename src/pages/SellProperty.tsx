@@ -328,7 +328,7 @@ export default function SellProperty() {
         if (!form.address.trim()) return "Address is required";
         return null;
       case 3:
-        if (form.type !== "Plot" && form.type !== "Agricultural Land" && !form.bedrooms) return "Bedrooms required";
+        if (!isLand(form.type) && !form.bedrooms) return "Bedrooms required";
         if (!form.area_value) return "Area is required";
         if (!form.area_unit) return "Area unit is required";
         if (toSqft(form.area_value, form.area_unit) === null) return "Enter a valid area";
