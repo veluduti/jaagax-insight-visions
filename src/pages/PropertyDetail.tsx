@@ -178,6 +178,9 @@ const PropertyDetail = () => {
 
       setProperty(mappedProperty);
 
+      // Track property view event
+      trackPropertyEvent({ propertyId: mappedProperty.id, eventType: "view" });
+
       // Load the assigned agent (the only agent who can handle this property)
       if (dbProperty.assigned_agent_id) {
         const { data: agentData } = await supabase
@@ -242,10 +245,12 @@ const PropertyDetail = () => {
         .insert({ user_id: user.id, property_id: id });
       setIsFavorite(true);
       toast.success("Added to favorites");
+      if (id) trackPropertyEvent({ propertyId: id, eventType: "save" });
     }
   };
 
   const handleShare = async () => {
+    if (id) trackPropertyEvent({ propertyId: id, eventType: "share" });
     try {
       await navigator.share({
         title: property?.title,
@@ -259,11 +264,13 @@ const PropertyDetail = () => {
   };
 
   const handleCall = () => {
+    if (id) trackPropertyEvent({ propertyId: id, eventType: "call_click" });
     // Redirect to AI Pre-Call flow instead of direct call
     setShowPreCallModal(true);
   };
 
   const handleWhatsApp = () => {
+    if (id) trackPropertyEvent({ propertyId: id, eventType: "whatsapp_click" });
     // Redirect to AI Pre-Call flow instead of direct WhatsApp
     setShowPreCallModal(true);
   };
