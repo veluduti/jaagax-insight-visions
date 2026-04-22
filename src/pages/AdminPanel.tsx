@@ -18,6 +18,7 @@ import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
 import AssignAgentPanel from "@/components/admin/AssignAgentPanel";
 import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
+import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
@@ -333,10 +334,15 @@ export default function AdminPanel() {
             <TabsTrigger value="weekend">Weekend Explorer</TabsTrigger>
             <TabsTrigger value="quick-visits">Quick Visits</TabsTrigger>
             <TabsTrigger value="rera">RERA Verifications</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rera">
             <RERAVerificationPanel />
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <PropertyDocumentsPanel />
           </TabsContent>
 
           <TabsContent value="hotel-partners">
