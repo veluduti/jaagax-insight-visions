@@ -773,7 +773,7 @@ export default function SellProperty() {
         <div className="sticky bottom-4 mt-6 z-30">
           <Card className="border-emerald-500/30 shadow-xl bg-background/95 backdrop-blur">
             <CardContent className="p-4 flex items-center justify-between gap-2 flex-wrap">
-              <Button variant="outline" disabled={step === 1} onClick={() => setStep(s => s - 1)}>
+              <Button variant="outline" disabled={step === 1} onClick={handleBack}>
                 <ChevronLeft className="h-4 w-4 mr-1" />Back
               </Button>
               <div className="flex items-center gap-2 flex-wrap">
