@@ -573,12 +573,10 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                   <Button size="sm" onClick={openQualify} disabled={busy}><UserCheck className="h-3 w-3 mr-1" />Qualify & assign agent</Button>
                 )}
                 {viewerRole === "admin" && (
-                  <Select value={status} onValueChange={(v) => updateBooking({ status: v }, "status_changed", `Admin changed status to ${WEEKEND_STATUSES[v as WeekendStatus]?.label || v}.`)}>
-                    <SelectTrigger className="h-9 w-[200px] ml-auto"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(WEEKEND_STATUSES).filter(([k]) => !["pending_confirmation", "agent_review"].includes(k)).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="ml-auto text-[11px] text-muted-foreground italic flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3" />
+                    Status is updated automatically by buyer & agent actions
+                  </div>
                 )}
 
                 {/* AGENT actions */}
@@ -600,8 +598,8 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {viewerRole === "agent" && status === "in_progress" && (
                   <Button size="sm" onClick={completeVisits} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Mark visits completed</Button>
                 )}
-                {viewerRole === "agent" && status === "buyer_decided" && booking.buyer_decision === "interested" && (
-                  <Button size="sm" onClick={() => setDealOpen(true)} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><Handshake className="h-3 w-3 mr-1" />Close deal</Button>
+                {viewerRole === "agent" && ["in_progress", "completed", "buyer_decided"].includes(status) && status !== "deal_closed" && !booking.deal_amount && (
+                  <Button size="sm" onClick={() => setDealOpen(true)} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><Handshake className="h-3 w-3 mr-1" />Close deal 🎉</Button>
                 )}
 
                 {/* BUYER actions */}
