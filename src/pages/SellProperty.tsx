@@ -44,6 +44,21 @@ const PROPERTY_TYPES = ["Apartment", "Villa", "Plot", "Independent House"];
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
 const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
 const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
+const AREA_UNITS = ["Sq.ft", "Sq.Yards", "Acres", "Cents", "Gunta"];
+// Conversion factors → square feet
+const AREA_TO_SQFT: Record<string, number> = {
+  "Sq.ft": 1,
+  "Sq.Yards": 9,
+  "Acres": 43560,
+  "Cents": 435.6,
+  "Gunta": 1089,
+};
+const toSqft = (value: string, unit: string): number | null => {
+  const n = parseFloat(value);
+  if (!isFinite(n) || n <= 0) return null;
+  const factor = AREA_TO_SQFT[unit] ?? 1;
+  return n * factor;
+};
 
 interface FormState {
   title: string;
@@ -59,7 +74,8 @@ interface FormState {
   bedrooms: string;
   bathrooms: string;
   balconies: string;
-  area_sqft: string;
+  area_value: string;
+  area_unit: string;
   floor_number: string;
   total_floors: string;
   furnishing: string;
@@ -78,7 +94,7 @@ interface FormState {
 const initialForm: FormState = {
   title: "", type: "", listing_type: "sale", description: "",
   city: "", locality: "", address: "", pincode: "", latitude: null, longitude: null,
-  bedrooms: "", bathrooms: "", balconies: "", area_sqft: "", floor_number: "", total_floors: "",
+  bedrooms: "", bathrooms: "", balconies: "", area_value: "", area_unit: "Sq.ft", floor_number: "", total_floors: "",
   furnishing: "", property_age: "",
   price: "", price_negotiable: false, maintenance_charges: "", booking_amount: "",
   amenities: [], images: [], video_urls: [],
@@ -126,7 +142,8 @@ export default function SellProperty() {
           bedrooms: data.bedrooms?.toString() || "",
           bathrooms: data.bathrooms?.toString() || "",
           balconies: (data as any).balconies?.toString() || "",
-          area_sqft: data.area_sqft?.toString() || "",
+          area_value: data.area_sqft?.toString() || "",
+          area_unit: "Sq.ft",
           floor_number: (data as any).floor_number?.toString() || "",
           total_floors: data.total_floors?.toString() || "",
           furnishing: (data as any).furnishing || "",
@@ -270,17 +287,16 @@ export default function SellProperty() {
         return null;
       case 3:
         if (form.type !== "Plot" && !form.bedrooms) return "Bedrooms required";
-        if (!form.area_sqft) return "Area is required";
+        if (!form.area_value) return "Area is required";
+        if (!form.area_unit) return "Area unit is required";
+        if (toSqft(form.area_value, form.area_unit) === null) return "Enter a valid area";
         return null;
       case 4:
         if (!form.price) return "Expected price is required";
         return null;
       case 6:
-        if (form.images.length < 3) return "Upload at least 3 images";
         return null;
       case 7:
-        if (!form.ownership_proof_url) return "Ownership proof is required";
-        if (!form.id_proof_url) return "ID proof is required";
         return null;
     }
     return null;
@@ -347,7 +363,7 @@ export default function SellProperty() {
     bhk: form.bedrooms ? parseInt(form.bedrooms) : null,
     bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
     balconies: form.balconies ? parseInt(form.balconies) : null,
-    area_sqft: form.area_sqft ? parseFloat(form.area_sqft) : null,
+    area_sqft: toSqft(form.area_value, form.area_unit),
     floor_number: form.floor_number ? parseInt(form.floor_number) : null,
     total_floors: form.total_floors ? parseInt(form.total_floors) : null,
     furnishing: form.furnishing || null,
@@ -567,8 +583,19 @@ export default function SellProperty() {
                     <div><Label>Balconies</Label>
                       <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
                     </div>
-                    <div><Label>Area (sq ft) *</Label>
-                      <Input type="number" value={form.area_sqft} onChange={(e) => setForm({ ...form, area_sqft: e.target.value })} />
+                    <div>
+                      <Label>Area Unit *</Label>
+                      <Select value={form.area_unit} onValueChange={(v) => setForm({ ...form, area_unit: v })}>
+                        <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                        <SelectContent>{AREA_UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Area Value *</Label>
+                      <Input type="number" min="0" value={form.area_value} onChange={(e) => setForm({ ...form, area_value: e.target.value })} placeholder={`Enter area in ${form.area_unit}`} />
+                      {form.area_value && form.area_unit && toSqft(form.area_value, form.area_unit) !== null && form.area_unit !== "Sq.ft" && (
+                        <p className="text-xs text-emerald-500 mt-1">≈ {new Intl.NumberFormat("en-IN").format(Math.round(toSqft(form.area_value, form.area_unit)!))} sq.ft</p>
+                      )}
                     </div>
                     <div><Label>Floor Number</Label>
                       <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
@@ -652,7 +679,7 @@ export default function SellProperty() {
                 {step === 6 && (
                   <div className="space-y-4">
                     <div>
-                      <Label>Property Images * (min 3, max 10)</Label>
+                      <Label>Property Images <span className="text-xs text-muted-foreground font-normal">(optional, up to 10)</span></Label>
                       <label className="mt-2 block border-2 border-dashed border-emerald-500/40 rounded-xl p-8 text-center cursor-pointer hover:bg-emerald-500/5 transition">
                         <Upload className="h-10 w-10 mx-auto text-emerald-500 mb-2" />
                         <p className="text-sm font-medium">Click or drag to upload images</p>
@@ -681,10 +708,10 @@ export default function SellProperty() {
 
                 {step === 7 && (
                   <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Documents are securely stored and only visible to verification admins.</p>
+                    <p className="text-sm text-muted-foreground">Documents are optional but speed up verification. They are securely stored and only visible to admins.</p>
                     {([
-                      { key: "ownership_proof_url" as const, label: "Ownership Proof *", desc: "Sale deed, allotment letter, or property tax receipt" },
-                      { key: "id_proof_url" as const, label: "ID Proof *", desc: "Aadhaar, PAN, or Passport" },
+                      { key: "ownership_proof_url" as const, label: "Ownership Proof", desc: "Sale deed, allotment letter, or property tax receipt (optional)" },
+                      { key: "id_proof_url" as const, label: "ID Proof", desc: "Aadhaar, PAN, or Passport (optional)" },
                     ]).map((doc) => (
                       <div key={doc.key} className="p-4 rounded-xl border-2 border-dashed border-emerald-500/30">
                         <div className="flex items-start justify-between gap-3 mb-2">
