@@ -95,10 +95,10 @@ const App = () => (
           } />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/project/:slug" element={<ProjectDetail />} />
           <Route path="/builder/add-project" element={<AddProject />} />
           <Route path="/builder/promotions" element={<BuilderPromotions />} />
-          <Route path="/property/:id" element={<PropertyDetail />} />
+          <Route path="/property/:slug" element={<PropertyDetail />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transactions/:city" element={<TransactionsCity />} />
           <Route path="/transactions/:city/:locality" element={<TransactionsLocality />} />
