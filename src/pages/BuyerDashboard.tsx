@@ -25,6 +25,7 @@ import MyFavorites from "@/components/buyer/MyFavorites";
 import AlertsPanel from "@/components/buyer/AlertsPanel";
 import SavedSearchesPanel from "@/components/buyer/SavedSearchesPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 
 interface Property {
   id: string;
