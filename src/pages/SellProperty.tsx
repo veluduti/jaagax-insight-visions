@@ -327,7 +327,21 @@ export default function SellProperty() {
   const handleNext = () => {
     const err = validateStep(step);
     if (err) return toast.error(err);
+    // Skip amenities step (5) for property types that don't have amenities
+    if (step === 4 && !hasAmenities(form.type)) {
+      setStep(6);
+      return;
+    }
     setStep((s) => Math.min(7, s + 1));
+  };
+
+  const handleBack = () => {
+    // Skip amenities step (5) when going back for types without amenities
+    if (step === 6 && !hasAmenities(form.type)) {
+      setStep(4);
+      return;
+    }
+    setStep((s) => Math.max(1, s - 1));
   };
 
   const uploadFile = async (file: File, bucket: string, kind: string): Promise<string | null> => {
