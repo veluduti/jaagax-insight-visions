@@ -287,17 +287,16 @@ export default function SellProperty() {
         return null;
       case 3:
         if (form.type !== "Plot" && !form.bedrooms) return "Bedrooms required";
-        if (!form.area_sqft) return "Area is required";
+        if (!form.area_value) return "Area is required";
+        if (!form.area_unit) return "Area unit is required";
+        if (toSqft(form.area_value, form.area_unit) === null) return "Enter a valid area";
         return null;
       case 4:
         if (!form.price) return "Expected price is required";
         return null;
       case 6:
-        if (form.images.length < 3) return "Upload at least 3 images";
         return null;
       case 7:
-        if (!form.ownership_proof_url) return "Ownership proof is required";
-        if (!form.id_proof_url) return "ID proof is required";
         return null;
     }
     return null;
