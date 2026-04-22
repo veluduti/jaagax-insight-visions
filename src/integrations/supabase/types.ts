@@ -1386,6 +1386,36 @@ export type Database = {
         }
         Relationships: []
       }
+      property_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          property_id: string
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          property_id: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          property_id?: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       rera_verifications: {
         Row: {
           admin_notes: string | null
