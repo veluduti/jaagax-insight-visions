@@ -44,6 +44,21 @@ const PROPERTY_TYPES = ["Apartment", "Villa", "Plot", "Independent House"];
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
 const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
 const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
+const AREA_UNITS = ["Sq.ft", "Sq.Yards", "Acres", "Cents", "Gunta"];
+// Conversion factors → square feet
+const AREA_TO_SQFT: Record<string, number> = {
+  "Sq.ft": 1,
+  "Sq.Yards": 9,
+  "Acres": 43560,
+  "Cents": 435.6,
+  "Gunta": 1089,
+};
+const toSqft = (value: string, unit: string): number | null => {
+  const n = parseFloat(value);
+  if (!isFinite(n) || n <= 0) return null;
+  const factor = AREA_TO_SQFT[unit] ?? 1;
+  return n * factor;
+};
 
 interface FormState {
   title: string;
