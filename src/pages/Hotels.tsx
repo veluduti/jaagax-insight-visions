@@ -215,23 +215,6 @@ const Hotels = () => {
         {/* My Hotel Partner Application status (anonymous tracking via localStorage) */}
         <MyHotelApplicationsBanner />
 
-        <section className="py-8 px-4">
-          <div className="container mx-auto max-w-7xl">
-            <Card className="bg-amber-500/10 border-amber-500/20">
-              <CardContent className="py-6">
-                <div className="flex items-center gap-4">
-                  <Construction className="h-8 w-8 text-amber-500 shrink-0" />
-                  <div>
-                    <h3 className="font-semibold text-amber-700 dark:text-amber-400">Feature Under Development</h3>
-                    <p className="text-sm text-muted-foreground">
-                      The partner hotels system is being set up. The hotels shown below are preview data.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
 
         {/* Packages Section */}
         <section className="py-8 px-4">
