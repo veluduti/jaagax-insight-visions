@@ -51,16 +51,16 @@ const Navigation = () => {
     { key: "buyRent", label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
     { key: "newProjects", label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
     { key: "sellProperty", label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
-  ] as const;
+  ];
 
-  const allExploreItems = [
+  const allExploreItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
     { key: "communities", label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
     { key: "agents", label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
     { key: "always", label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
     { key: "marketIndex", label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
     { key: "always", label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
     { key: "always", label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
-  ] as const;
+  ];
 
   const propertiesItems = allPropertiesItems.filter(
     (i) => i.key === "always" || canSee(role, i.key as any)
