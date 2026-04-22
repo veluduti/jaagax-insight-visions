@@ -19,6 +19,8 @@ interface PendingProperty {
   bhk: number | null;
   images: any;
   verification_status: string | null;
+  listed_by: string | null;
+  submitted_by: string | null;
 }
 
 interface PendingProject {
@@ -43,11 +45,14 @@ export default function VerificationPanel() {
   const fetchPendingSubmissions = async () => {
     setLoading(true);
     try {
+      // Builder-submitted properties → straight Approve/Reject, no agent assignment.
+      // Seller/agent properties are handled by the "Assign Agent" panel.
       const [propertiesRes, projectsRes] = await Promise.all([
         supabase
           .from("properties")
           .select("*")
           .eq("verification_status", "pending")
+          .eq("listed_by", "builder")
           .order("created_at", { ascending: false }),
         supabase
           .from("projects")
@@ -67,21 +72,41 @@ export default function VerificationPanel() {
   };
 
   const handlePropertyVerification = async (
-    propertyId: string,
+    property: PendingProperty,
     status: "approved" | "rejected"
   ) => {
+    let reason: string | null = null;
+    if (status === "rejected") {
+      reason = window.prompt("Reason for rejection (visible to builder):", "Listing details need clarification");
+      if (!reason) return;
+    }
     try {
       const { error } = await supabase
         .from("properties")
         .update({
           verification_status: status,
           verified: status === "approved",
+          rejection_reason: status === "rejected" ? reason : null,
         })
-        .eq("id", propertyId);
+        .eq("id", property.id);
 
       if (error) throw error;
 
-      setProperties(prev => prev.filter(p => p.id !== propertyId));
+      // Notify the builder (submitter)
+      if (property.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: property.submitted_by,
+          type: status === "approved" ? "property_approved" : "property_rejected",
+          title: status === "approved" ? "Property approved & live" : "Property rejected",
+          message:
+            status === "approved"
+              ? `${property.title} has been approved and is now visible to buyers.`
+              : `${property.title} was rejected. Reason: ${reason}. You can edit and resubmit.`,
+          link: status === "approved" ? `/property/${property.id}` : "/dashboard/builder",
+        });
+      }
+
+      setProperties(prev => prev.filter(p => p.id !== property.id));
 
       toast.success(
         status === "approved"
@@ -94,20 +119,45 @@ export default function VerificationPanel() {
   };
 
   const handleProjectVerification = async (
-    projectId: string,
+    project: PendingProject,
     status: "approved" | "rejected"
   ) => {
+    let reason: string | null = null;
+    if (status === "rejected") {
+      reason = window.prompt("Reason for rejection (visible to builder):", "Project details need clarification");
+      if (!reason) return;
+    }
     try {
       const { error } = await supabase
         .from("projects")
         .update({
           verified: status === "approved",
         })
-        .eq("id", projectId);
+        .eq("id", project.id);
 
       if (error) throw error;
 
-      setProjects(prev => prev.filter(p => p.id !== projectId));
+      // Notify the builder (submitter)
+      const { data: proj } = await supabase
+        .from("projects")
+        .select("submitted_by")
+        .eq("id", project.id)
+        .maybeSingle();
+
+      if (proj?.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: proj.submitted_by,
+          type: status === "approved" ? "project_approved" : "project_rejected",
+          title: status === "approved" ? "Project approved & live" : "Project rejected",
+          message:
+            status === "approved"
+              ? `${project.name} has been approved and is now visible to buyers.`
+              : `${project.name} was rejected. Reason: ${reason}.`,
+          link: status === "approved" ? `/projects/${project.id}` : "/dashboard/builder",
+        });
+      }
+
+      setProjects(prev => prev.filter(p => p.id !== project.id));
 
       toast.success(
         status === "approved"
@@ -198,7 +248,7 @@ export default function VerificationPanel() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => handlePropertyVerification(property.id, "approved")}
+                      onClick={() => handlePropertyVerification(property, "approved")}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Approve
@@ -207,7 +257,7 @@ export default function VerificationPanel() {
                       size="sm"
                       variant="destructive"
                       className="flex-1"
-                      onClick={() => handlePropertyVerification(property.id, "rejected")}
+                      onClick={() => handlePropertyVerification(property, "rejected")}
                     >
                       <XCircle className="h-4 w-4 mr-1" />
                       Reject
@@ -263,7 +313,7 @@ export default function VerificationPanel() {
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={() => handleProjectVerification(project.id, "approved")}
+                      onClick={() => handleProjectVerification(project, "approved")}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Approve
@@ -272,7 +322,7 @@ export default function VerificationPanel() {
                       size="sm"
                       variant="destructive"
                       className="flex-1"
-                      onClick={() => handleProjectVerification(project.id, "rejected")}
+                      onClick={() => handleProjectVerification(project, "rejected")}
                     >
                       <XCircle className="h-4 w-4 mr-1" />
                       Reject
