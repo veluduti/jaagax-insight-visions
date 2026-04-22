@@ -17,10 +17,20 @@ import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
 import SneakPeekListings from "@/components/home/SneakPeekListings";
 import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
+import { useAuth } from "@/hooks/useAuth";
+import { canSee } from "@/lib/roleAccess";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
+  const { role } = useAuth();
   const [activeTab, setActiveTab] = useState("properties");
+
+  const showBuyRent = canSee(role, "buyRent");
+  const showNewProjects = canSee(role, "newProjects");
+  const showTransactions = canSee(role, "transactions");
+  const showAgents = canSee(role, "agents");
+  const showCommunities = canSee(role, "communities");
+  const showMarketIndex = canSee(role, "marketIndex");
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,36 +47,36 @@ const Index = () => {
       <AIInsightStrip />
       
       {/* Dynamic Content Based on Active Tab */}
-      {activeTab === "properties" && (
+      {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
           <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
           <AISpotlight />
-          <MarketIntelligence />
+          {showMarketIndex && <MarketIntelligence />}
         </>
       )}
       
-      {activeTab === "new-projects" && (
+      {activeTab === "new-projects" && showNewProjects && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
           <VisitStayTeaser />
-          <FeaturedProperties detectedCity={detectedLocation?.city} />
-          <MarketIntelligence />
+          {showBuyRent && <FeaturedProperties detectedCity={detectedLocation?.city} />}
+          {showMarketIndex && <MarketIntelligence />}
           <TruValue />
         </>
       )}
       
-      {activeTab === "transactions" && (
+      {activeTab === "transactions" && showTransactions && (
         <>
-          <FeaturedCommunities />
-          <MarketIntelligence />
+          {showCommunities && <FeaturedCommunities />}
+          {showMarketIndex && <MarketIntelligence />}
           <TruValue />
         </>
       )}
       
-      {activeTab === "agents" && (
+      {activeTab === "agents" && showAgents && (
         <>
           <FindMyAgent />
           <AISpotlight />

@@ -19,6 +19,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { canSee } from "@/lib/roleAccess";
 
 const Navigation = () => {
   // Navigation component
@@ -46,20 +47,27 @@ const Navigation = () => {
     fetchFeatureFlag();
   }, []);
 
-  const propertiesItems = [
-    { label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
-    { label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
-    { label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
+  const allPropertiesItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
+    { key: "buyRent", label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
+    { key: "newProjects", label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
+    { key: "sellProperty", label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
   ];
 
-  const exploreItems = [
-    { label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
-    { label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
-    { label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
-    { label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
-    { label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
-    { label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
+  const allExploreItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
+    { key: "communities", label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
+    { key: "agents", label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
+    { key: "always", label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
+    { key: "marketIndex", label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
+    { key: "always", label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
+    { key: "always", label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
   ];
+
+  const propertiesItems = allPropertiesItems.filter(
+    (i) => i.key === "always" || canSee(role, i.key as any)
+  );
+  const exploreItems = allExploreItems.filter(
+    (i) => i.key === "always" || canSee(role, i.key as any)
+  );
 
   const isActive = (path: string) => {
     if (path.includes('?')) {
