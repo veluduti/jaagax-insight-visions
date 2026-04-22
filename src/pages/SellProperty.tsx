@@ -692,28 +692,38 @@ export default function SellProperty() {
 
                 {step === 5 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {AMENITIES.map((a) => {
-                        const active = form.amenities.includes(a);
-                        return (
-                          <button
-                            key={a}
-                            type="button"
-                            onClick={() => setForm((f) => ({
-                              ...f,
-                              amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
-                            }))}
-                            className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                              active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
-                            }`}
-                          >
-                            {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
-                            {a}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {hasAmenities(form.type) ? (
+                      <>
+                        <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {AMENITIES.map((a) => {
+                            const active = form.amenities.includes(a);
+                            return (
+                              <button
+                                key={a}
+                                type="button"
+                                onClick={() => setForm((f) => ({
+                                  ...f,
+                                  amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
+                                }))}
+                                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                                  active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
+                                }`}
+                              >
+                                {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
+                                {a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-10 border-2 border-dashed rounded-xl border-emerald-500/20">
+                        <Sparkles className="h-8 w-8 text-emerald-500/60 mx-auto mb-2" />
+                        <p className="text-sm font-medium">Amenities don't apply to {form.type || "this property type"}.</p>
+                        <p className="text-xs text-muted-foreground mt-1">You can continue to the next step.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
