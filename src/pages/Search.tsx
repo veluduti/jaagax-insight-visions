@@ -184,20 +184,54 @@ const Search = () => {
     }
   };
 
-  const fetchProperties = async () => {
-    let queryBuilder = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+  // Apply all advanced filters to a Supabase properties query builder
+  const applyPropertyFilters = (qb: any) => {
+    const f = advancedFilters;
+    if (f.verifiedOnly) qb = qb.eq("verified", true);
+    if (location) qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    // Buy/Rent → listing_type
+    if (searchType === "rent") qb = qb.eq("listing_type", "rent");
+    else if (searchType === "buy") qb = qb.eq("listing_type", "sale");
+    if (f.propertyType !== "any") qb = qb.eq("type", f.propertyType);
+    if (f.beds !== "any") {
+      if (f.beds === "5+") qb = qb.gte("bhk", 5);
+      else qb = qb.eq("bhk", Number(f.beds));
     }
+    if (f.bathrooms !== "any") {
+      if (f.bathrooms === "4+") qb = qb.gte("bathrooms", 4);
+      else qb = qb.eq("bathrooms", Number(f.bathrooms));
+    }
+    if (f.priceMin > 0) qb = qb.gte("price", f.priceMin);
+    if (f.priceMax > 0) qb = qb.lte("price", f.priceMax);
+    if (f.areaMin > 0) qb = qb.gte("area_sqft", f.areaMin);
+    if (f.areaMax > 0) qb = qb.lte("area_sqft", f.areaMax);
+    if (f.furnishing !== "any") qb = qb.eq("furnishing", f.furnishing);
+    if (f.amenities.length > 0) qb = qb.contains("amenities", f.amenities);
+    if (f.floorLevel !== "any") {
+      if (f.floorLevel === "ground") qb = qb.eq("floor_number", 0);
+      else if (f.floorLevel === "low") qb = qb.gte("floor_number", 1).lte("floor_number", 5);
+      else if (f.floorLevel === "mid") qb = qb.gte("floor_number", 6).lte("floor_number", 15);
+      else if (f.floorLevel === "high") qb = qb.gte("floor_number", 16);
+    }
+    if (f.parkingSpaces !== "any") {
+      if (f.parkingSpaces === "3+") qb = qb.gte("total_parking", 3);
+      else qb = qb.eq("total_parking", Number(f.parkingSpaces));
+    }
+    if (f.possessionStatus !== "any") qb = qb.eq("completion_stage", f.possessionStatus);
+    if (f.propertyAge !== "any") qb = qb.eq("property_age", f.propertyAge);
+    if (f.listedBy !== "any") qb = qb.eq("listed_by", f.listedBy);
+    if (f.postedWithin !== "any") {
+      const days = Number(f.postedWithin);
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      qb = qb.gte("created_at", since);
+    }
+    return qb;
+  };
 
-    const { data, error, count } = await queryBuilder
-      .order("trust_score", { ascending: false })
-      .limit(50);
-
+  const fetchProperties = async () => {
+    let qb = supabase.from("properties").select("*", { count: "exact" });
+    qb = applyPropertyFilters(qb);
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
       setProperties(data || []);
       setTotal(count || 0);
@@ -205,19 +239,23 @@ const Search = () => {
   };
 
   const fetchProjects = async () => {
-    let queryBuilder = supabase
-      .from("projects")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    const f = advancedFilters;
+    let qb = supabase.from("projects").select("*", { count: "exact" });
+    if (f.verifiedOnly) qb = qb.eq("verified", true);
+    if (location) qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (f.projectName) qb = qb.ilike("name", `%${f.projectName}%`);
+    if (f.propertyType !== "any") qb = qb.eq("project_type", f.propertyType);
+    if (f.priceMin > 0) qb = qb.gte("avg_price", f.priceMin);
+    if (f.priceMax > 0) qb = qb.lte("avg_price", f.priceMax);
+    if (f.amenities.length > 0) qb = qb.contains("amenities", f.amenities);
+    if (f.reraOnly) qb = qb.not("rera_id", "is", null);
+    if (f.handoverBy !== "any") {
+      const year = f.handoverBy.replace("+", "");
+      const startDate = `${year}-01-01`;
+      if (f.handoverBy.endsWith("+")) qb = qb.gte("possession_date", startDate);
+      else qb = qb.gte("possession_date", startDate).lt("possession_date", `${Number(year) + 1}-01-01`);
     }
-
-    const { data, error, count } = await queryBuilder
-      .order("trust_score", { ascending: false })
-      .limit(50);
-
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
       setProjects(data || []);
       setTotal(count || 0);
@@ -225,18 +263,9 @@ const Search = () => {
   };
 
   const fetchAgents = async () => {
-    let queryBuilder = supabase
-      .from("agents")
-      .select("*", { count: "exact" });
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
-    }
-
-    const { data, error, count } = await queryBuilder
-      .order("sales_count", { ascending: false })
-      .limit(50);
-
+    let queryBuilder = supabase.from("agents").select("*", { count: "exact" });
+    if (location) queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
+    const { data, error, count } = await queryBuilder.order("sales_count", { ascending: false }).limit(50);
     if (!error) {
       setAgents(data || []);
       setTotal(count || 0);
@@ -244,20 +273,9 @@ const Search = () => {
   };
 
   const fetchTransactions = async () => {
-    // Use properties as transaction data
-    let queryBuilder = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`locality.ilike.%${location}%,city.ilike.%${location}%`);
-    }
-
-    const { data, error, count } = await queryBuilder
-      .order("price", { ascending: false })
-      .limit(50);
-
+    let qb = supabase.from("properties").select("*", { count: "exact" }).eq("verified", true);
+    qb = applyPropertyFilters(qb);
+    const { data, error, count } = await qb.order("price", { ascending: false }).limit(50);
     if (!error) {
       setProperties(data || []);
       setTotal(count || 0);
