@@ -224,7 +224,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
               </Button>
             </div>
 
-            {(activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
+            {showFilters && (activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
               <div className="flex gap-2 items-center flex-wrap">
                 <Button
                   variant="outline"

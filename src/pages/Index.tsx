@@ -17,10 +17,20 @@ import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
 import SneakPeekListings from "@/components/home/SneakPeekListings";
 import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
+import { useAuth } from "@/hooks/useAuth";
+import { canSee } from "@/lib/roleAccess";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
+  const { role } = useAuth();
   const [activeTab, setActiveTab] = useState("properties");
+
+  const showBuyRent = canSee(role, "buyRent");
+  const showNewProjects = canSee(role, "newProjects");
+  const showTransactions = canSee(role, "transactions");
+  const showAgents = canSee(role, "agents");
+  const showCommunities = canSee(role, "communities");
+  const showMarketIndex = canSee(role, "marketIndex");
 
   return (
     <div className="min-h-screen bg-background">
