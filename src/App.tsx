@@ -126,7 +126,7 @@ const App = () => (
           <Route path="/reels" element={<PropertyReels />} />
           <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
           <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
-          <Route path="/builder-profile/:id" element={<BuilderProfileDetail />} />
+          <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
           <Route path="/innovation" element={<InnovationHub />} />
           <Route path="/compare" element={<CompareProperties />} />
           
