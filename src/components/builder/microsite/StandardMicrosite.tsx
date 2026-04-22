@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronDown, Menu, Phone, MessageCircle, MapPin, Check, Mail, Globe,
   Shield, Star, Building2, TreePine, Baby, Car, Zap, Dumbbell, Waves,
