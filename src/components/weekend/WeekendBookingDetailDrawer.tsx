@@ -194,8 +194,19 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
   };
   const startVisits = () => updateBooking({ status: "in_progress" }, "visits_started", "Property visits in progress.");
   const completeVisits = async () => {
-    const ok = await updateBooking({ status: "completed" }, "visits_completed", "Property visits completed. Buyer to share their decision.");
-    if (ok) await notifyUser(booking.buyer_id, "✅ Visits completed", `Please share your decision and rate your experience.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+    const remaining = (booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    const ok = await updateBooking({ status: "completed" }, "visits_completed", "Property visits completed. Buyer to share their decision and clear the balance payment.");
+    if (ok) {
+      await notifyUser(
+        booking.buyer_id,
+        "✅ Visits completed — balance payment due",
+        remaining > 0
+          ? `Please share your decision and pay the remaining balance of ${formatINR(remaining)} to close out your booking.`
+          : `Please share your decision and rate your experience.`,
+        "/dashboard/buyer?tab=weekend",
+        { booking_id: booking.id, remaining },
+      );
+    }
   };
 
   // === BUYER: payment ===
