@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { MapPin, Sparkles, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { canSee } from "@/lib/roleAccess";
 
 interface PropertySearchBarProps {
   activeTab: string;
@@ -14,6 +16,7 @@ interface PropertySearchBarProps {
 
 const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) => {
   const navigate = useNavigate();
+  const { role } = useAuth();
   const [searchType, setSearchType] = useState("buy");
   const [location, setLocation] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -96,12 +99,24 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
     );
   };
 
-  const navItems = [
-    { label: "Properties", value: "properties" },
-    { label: "New Projects", value: "new-projects" },
-    { label: "Transactions", value: "transactions" },
-    { label: "Agents", value: "agents" },
-  ];
+  const navItems = useMemo(() => {
+    const all = [
+      { key: "buyRent", label: "Properties", value: "properties" },
+      { key: "newProjects", label: "New Projects", value: "new-projects" },
+      { key: "transactions", label: "Transactions", value: "transactions" },
+      { key: "agents", label: "Agents", value: "agents" },
+    ];
+    return all.filter((i) => canSee(role, i.key as any));
+  }, [role]);
+
+  // If currently active tab gets hidden by role, switch to first available
+  useEffect(() => {
+    if (navItems.length > 0 && !navItems.some((i) => i.value === activeTab)) {
+      onTabChange(navItems[0].value);
+    }
+  }, [navItems, activeTab, onTabChange]);
+
+  const showFilters = canSee(role, "searchFilters");
 
   // Active filter badge count
   const activeCount = [
