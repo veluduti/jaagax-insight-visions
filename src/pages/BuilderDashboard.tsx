@@ -17,6 +17,7 @@ import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
 import RERAUploadModal from "@/components/builder/RERAUploadModal";
 import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
 import DocumentationModal from "@/components/builder/DocumentationModal";
+import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
 import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
 import { Sparkles } from "lucide-react";
 
@@ -657,37 +658,10 @@ export default function BuilderDashboard() {
 
           {/* Performance */}
           <TabsContent value="performance">
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div className="p-6 bg-primary/10 rounded-lg">
-                <Eye className="h-8 w-8 text-primary mb-2" />
-                <p className="text-sm text-muted-foreground">Total Views</p>
-                <p className="text-3xl font-bold">{performance.totalViews.toLocaleString()}</p>
-                <p className={`text-sm mt-2 ${performance.growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {performance.growthRate >= 0 ? '+' : ''}{performance.growthRate}% this month
-                </p>
-              </div>
+            <BuilderAnalyticsPanel />
 
-              <div className="p-6 bg-green-500/10 rounded-lg">
-                <TrendingUp className="h-8 w-8 text-green-600 mb-2" />
-                <p className="text-sm text-muted-foreground">Units Sold</p>
-                <p className="text-3xl font-bold">{performance.unitsSold}</p>
-                <p className="text-sm text-muted-foreground mt-2">Last 3 months</p>
-              </div>
-
-              <div className="p-6 bg-blue-500/10 rounded-lg">
-                <Building2 className="h-8 w-8 text-blue-500 mb-2" />
-                <p className="text-sm text-muted-foreground">Avg. Trust Score</p>
-                <p className="text-3xl font-bold">
-                  {performance.avgTrustScore}/100
-                </p>
-                <p className="text-sm text-green-600 mt-2">
-                  {performance.avgTrustScore >= 80 ? 'Excellent rating' : performance.avgTrustScore >= 60 ? 'Good rating' : 'Needs improvement'}
-                </p>
-              </div>
-            </div>
-
-            {/* AI Project Forecast */}
-            <Card>
+            {/* AI Project Forecast (existing) */}
+            <Card className="mt-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -775,7 +749,7 @@ export default function BuilderDashboard() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No forecast available</p>
+                  <p className="text-center text-muted-foreground py-8">Select a project to see AI forecasts</p>
                 )}
               </CardContent>
             </Card>
