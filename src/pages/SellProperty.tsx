@@ -59,7 +59,8 @@ interface FormState {
   bedrooms: string;
   bathrooms: string;
   balconies: string;
-  area_sqft: string;
+  area_value: string;
+  area_unit: string;
   floor_number: string;
   total_floors: string;
   furnishing: string;
