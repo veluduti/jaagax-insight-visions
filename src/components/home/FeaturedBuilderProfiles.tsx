@@ -75,84 +75,90 @@ const FeaturedBuilderProfiles = () => {
 
         <div className="flex gap-md overflow-x-auto pb-md snap-x snap-mandatory scrollbar-hide">
           {builders.map((b) => (
-            <Card
+            <a
               key={b.id}
-              onClick={() => navigate(`/builder-profile/${b.slug || b.id}`)}
-              className={`relative min-w-[300px] max-w-[340px] snap-start cursor-pointer overflow-hidden rounded-2xl border-0 group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl`}
+              href={`/builder-profile/${b.slug || b.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block min-w-[300px] max-w-[340px] snap-start"
             >
-              {/* Gradient border effect */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${typeGradient[b.type] || typeGradient.standard} opacity-60 rounded-2xl`}
-              />
-              <div className="absolute inset-[2px] bg-card rounded-2xl" />
+              <Card
+                className={`relative cursor-pointer overflow-hidden rounded-2xl border-0 group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl`}
+              >
+                {/* Gradient border effect */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${typeGradient[b.type] || typeGradient.standard} opacity-60 rounded-2xl`}
+                />
+                <div className="absolute inset-[2px] bg-card rounded-2xl" />
 
-              {/* Content */}
-              <div className="relative z-10">
-                {/* Image */}
-                <div className="relative h-44 overflow-hidden rounded-t-2xl">
-                  {b.images?.[0] ? (
-                    <img
-                      src={b.images[0]}
-                      alt={b.builder_name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-                      <Building2 className="h-12 w-12 text-muted-foreground/40" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
-
-                  {/* Type Badge */}
-                  <Badge
-                    className={`absolute top-3 right-3 ${typeBadgeClass[b.type] || ""} text-xs font-semibold uppercase tracking-wider`}
-                  >
-                    {b.type}
-                  </Badge>
-
-                  {/* Name overlay */}
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-lg font-bold text-primary-foreground leading-tight">{b.builder_name}</h3>
-                    {b.tagline && <p className="text-xs text-primary-foreground/80 mt-0.5 line-clamp-1">{b.tagline}</p>}
-                  </div>
-                </div>
-
-                {/* Details */}
-                <div className="p-md space-y-2">
-                  {(b.locations?.length > 0 || b.project_location) && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span className="line-clamp-1">
-                        {b.locations?.length > 0 ? b.locations.slice(0, 2).join(", ") : b.project_location}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      {b.number_of_projects ? (
-                        <span className="flex items-center gap-1">
-                          <Star className="h-3 w-3" />
-                          {b.number_of_projects} Projects
-                        </span>
-                      ) : null}
-                      {b.years_of_experience ? <span>{b.years_of_experience}+ yrs</span> : null}
-                    </div>
-                    {b.price_range_min && (
-                      <span className="text-sm font-semibold text-primary">From {formatPrice(b.price_range_min)}</span>
+                {/* Content */}
+                <div className="relative z-10">
+                  {/* Image */}
+                  <div className="relative h-44 overflow-hidden rounded-t-2xl">
+                    {b.images?.[0] ? (
+                      <img
+                        src={b.images[0]}
+                        alt={b.builder_name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                        <Building2 className="h-12 w-12 text-muted-foreground/40" />
+                      </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
+
+                    {/* Type Badge */}
+                    <Badge
+                      className={`absolute top-3 right-3 ${typeBadgeClass[b.type] || ""} text-xs font-semibold uppercase tracking-wider`}
+                    >
+                      {b.type}
+                    </Badge>
+
+                    {/* Name overlay */}
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <h3 className="text-lg font-bold text-primary-foreground leading-tight">{b.builder_name}</h3>
+                      {b.tagline && <p className="text-xs text-primary-foreground/80 mt-0.5 line-clamp-1">{b.tagline}</p>}
+                    </div>
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-1 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                  >
-                    Explore Builder <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
+                  {/* Details */}
+                  <div className="p-md space-y-2">
+                    {(b.locations?.length > 0 || b.project_location) && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span className="line-clamp-1">
+                          {b.locations?.length > 0 ? b.locations.slice(0, 2).join(", ") : b.project_location}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {b.number_of_projects ? (
+                          <span className="flex items-center gap-1">
+                            <Star className="h-3 w-3" />
+                            {b.number_of_projects} Projects
+                          </span>
+                        ) : null}
+                        {b.years_of_experience ? <span>{b.years_of_experience}+ yrs</span> : null}
+                      </div>
+                      {b.price_range_min && (
+                        <span className="text-sm font-semibold text-primary">From {formatPrice(b.price_range_min)}</span>
+                      )}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-1 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                    >
+                      Explore Builder <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </a>
           ))}
         </div>
       </div>
