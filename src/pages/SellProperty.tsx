@@ -194,6 +194,11 @@ export default function SellProperty() {
           video_urls: data.video_urls || [],
           ownership_proof_url: ((data as any).document_urls?.ownership_proof) || "",
           id_proof_url: ((data as any).document_urls?.id_proof) || "",
+          plot_type: (data as any).document_urls?.plot_type || "",
+          facing_direction: (data as any).document_urls?.facing_direction || "",
+          road_access: (data as any).document_urls?.road_access || "",
+          water_availability: (data as any).document_urls?.water_availability || "",
+          electricity: (data as any).document_urls?.electricity || "",
         });
       }
     })();
