@@ -194,8 +194,19 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
   };
   const startVisits = () => updateBooking({ status: "in_progress" }, "visits_started", "Property visits in progress.");
   const completeVisits = async () => {
-    const ok = await updateBooking({ status: "completed" }, "visits_completed", "Property visits completed. Buyer to share their decision.");
-    if (ok) await notifyUser(booking.buyer_id, "✅ Visits completed", `Please share your decision and rate your experience.`, "/dashboard/buyer?tab=weekend", { booking_id: booking.id });
+    const remaining = (booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    const ok = await updateBooking({ status: "completed" }, "visits_completed", "Property visits completed. Buyer to share their decision and clear the balance payment.");
+    if (ok) {
+      await notifyUser(
+        booking.buyer_id,
+        "✅ Visits completed — balance payment due",
+        remaining > 0
+          ? `Please share your decision and pay the remaining balance of ${formatINR(remaining)} to close out your booking.`
+          : `Please share your decision and rate your experience.`,
+        "/dashboard/buyer?tab=weekend",
+        { booking_id: booking.id, remaining },
+      );
+    }
   };
 
   // === BUYER: payment ===
@@ -226,10 +237,11 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     load();
   };
 
-  // === BUYER: final payment after deal closed ===
+  // === BUYER: balance payment after visits completed (or after deal closed) ===
   const mockPayFinal = async () => {
     if (!booking) return;
-    const remaining = (booking.deal_amount || booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    const totalDue = booking.deal_amount || booking.final_total || booking.estimated_total || 0;
+    const remaining = totalDue - (booking.booking_amount || 0);
     if (remaining <= 0) return toast.error("Nothing remaining to pay");
     setBusy(true);
     const ref = `MOCK-FINAL-${Date.now()}`;
@@ -243,16 +255,16 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     await logWeekendActivity({
       bookingId: booking.id, actorId: currentUserId, actorRole: "buyer",
       action: "final_payment_completed",
-      description: `Final payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
+      description: `Balance payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
       metadata: { reference: ref, amount: remaining },
     });
     if (agent?.id) {
       const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
-      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Final payment received", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. Deal fully settled.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Balance payment received — ready to close deal", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. You can now close the deal.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
     }
     await notifyAdmins("Weekend booking fully paid", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}.`, "/admin?tab=weekend", { booking_id: booking.id });
     setBusy(false);
-    toast.success("Final payment successful (simulated)");
+    toast.success("Balance payment successful (simulated)");
     onChanged?.();
     load();
   };
@@ -273,9 +285,51 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     setDecisionOpen(false);
   };
 
+  // === AGENT: pending-task gate before closing the deal ===
+  const getPendingDealBlockers = (): string[] => {
+    if (!booking) return [];
+    const blockers: string[] = [];
+    if (!["in_progress", "completed", "buyer_decided"].includes(booking.status)) {
+      blockers.push("Property visits are not yet completed");
+    }
+    if (booking.status === "in_progress") {
+      blockers.push("Mark visits as completed first");
+    }
+    if (!booking.buyer_decision) {
+      blockers.push("Buyer has not shared their decision yet");
+    }
+    if (booking.buyer_decision === "not_interested") {
+      blockers.push("Buyer indicated they are not interested");
+    }
+    if (booking.payment_status !== "paid" || booking.final_payment_status !== "paid") {
+      const totalDue = booking.final_total || booking.estimated_total || 0;
+      const remaining = totalDue - (booking.booking_amount || 0);
+      if (remaining > 0) blockers.push(`Buyer hasn't paid the balance of ${formatINR(remaining)}`);
+    }
+    return blockers;
+  };
+
+  const tryOpenCloseDeal = () => {
+    const blockers = getPendingDealBlockers();
+    if (blockers.length > 0) {
+      toast.error("Cannot close deal yet", {
+        description: blockers.map((b) => `• ${b}`).join("\n"),
+        duration: 6000,
+      });
+      return;
+    }
+    setDealOpen(true);
+  };
+
   // === AGENT: close deal ===
   const submitCloseDeal = async () => {
     if (!dealPropertyId || !dealAmount) return toast.error("Property & amount required");
+    // Final guard — re-check blockers at submit time
+    const blockers = getPendingDealBlockers();
+    if (blockers.length > 0) {
+      toast.error("Cannot close deal — pending items", { description: blockers.join(" • ") });
+      return;
+    }
     const ok = await updateBooking({
       status: "deal_closed",
       deal_closed_at: new Date().toISOString(),
@@ -598,9 +652,31 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {viewerRole === "agent" && status === "in_progress" && (
                   <Button size="sm" onClick={completeVisits} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Mark visits completed</Button>
                 )}
-                {viewerRole === "agent" && ["in_progress", "completed", "buyer_decided"].includes(status) && status !== "deal_closed" && !booking.deal_amount && (
-                  <Button size="sm" onClick={() => setDealOpen(true)} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><Handshake className="h-3 w-3 mr-1" />Close deal 🎉</Button>
-                )}
+                {viewerRole === "agent" && ["in_progress", "completed", "buyer_decided"].includes(status) && status !== "deal_closed" && !booking.deal_amount && (() => {
+                  const blockers = getPendingDealBlockers();
+                  const blocked = blockers.length > 0;
+                  return (
+                    <div className="flex flex-col gap-1">
+                      <Button
+                        size="sm"
+                        onClick={tryOpenCloseDeal}
+                        disabled={busy}
+                        className={blocked
+                          ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                          : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"}
+                        title={blocked ? "Pending: " + blockers.join(", ") : "Close this deal"}
+                      >
+                        <Handshake className="h-3 w-3 mr-1" />
+                        Close deal {blocked ? "🔒" : "🎉"}
+                      </Button>
+                      {blocked && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 max-w-[260px]">
+                          Pending: {blockers[0]}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* BUYER actions */}
                 {viewerRole === "buyer" && status === "awaiting_payment" && (
@@ -611,14 +687,20 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {viewerRole === "buyer" && (status === "completed" || (status === "in_progress" && booking.payment_status !== "unpaid")) && !booking.buyer_decision && (
                   <Button size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}><Target className="h-3 w-3 mr-1" />Share your decision</Button>
                 )}
+                {/* Buyer pays balance after visits completed (before or after deal close) */}
+                {viewerRole === "buyer" && booking.final_payment_status !== "paid" && ["completed", "buyer_decided", "deal_closed"].includes(status) && (() => {
+                  const totalDue = booking.deal_amount || booking.final_total || booking.estimated_total || 0;
+                  const remaining = totalDue - (booking.booking_amount || 0);
+                  if (remaining <= 0) return null;
+                  return (
+                    <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
+                      <IndianRupee className="h-3 w-3 mr-1" />
+                      Pay balance {formatINR(remaining)}
+                    </Button>
+                  );
+                })()}
                 {viewerRole === "buyer" && (status === "deal_closed" || status === "buyer_decided" || status === "completed") && !booking.agent_rating && agent && (
                   <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-primary-foreground"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
-                )}
-                {viewerRole === "buyer" && booking.deal_amount && booking.final_payment_status !== "paid" && (
-                  <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
-                    <IndianRupee className="h-3 w-3 mr-1" />
-                    Pay remaining {formatINR((booking.deal_amount || 0) - (booking.booking_amount || 0))}
-                  </Button>
                 )}
               </div>
             </TabsContent>
