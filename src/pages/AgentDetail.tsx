@@ -503,7 +503,7 @@ const AgentDetail = () => {
                     <Card
                       key={property.id}
                       className="glass-panel overflow-hidden group cursor-pointer hover:shadow-lg transition-all"
-                      onClick={() => navigate(`/property/${property.id}`)}
+                      onClick={() => window.open(`/property/${(property as any).slug || property.id}`, "_blank", "noopener,noreferrer")}
                     >
                       <div className="relative h-56 overflow-hidden">
                         <img

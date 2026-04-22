@@ -25,9 +25,11 @@ import MyFavorites from "@/components/buyer/MyFavorites";
 import AlertsPanel from "@/components/buyer/AlertsPanel";
 import SavedSearchesPanel from "@/components/buyer/SavedSearchesPanel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -391,7 +393,7 @@ const BuyerDashboard = () => {
                         key={property.id}
                         whileHover={{ y: -5 }}
                         className="cursor-pointer"
-                        onClick={() => navigate(`/property/${property.id}`)}
+                        onClick={() => openInNewTab(propertyPath(property))}
                       >
                         <Card className="overflow-hidden hover:shadow-xl transition-all">
                           <div className="relative h-32">
@@ -461,7 +463,7 @@ const BuyerDashboard = () => {
                         key={property.id}
                         whileHover={{ y: -5 }}
                         className="group cursor-pointer"
-            onClick={() => navigate(`/property/${property.id}`)}
+            onClick={() => openInNewTab(propertyPath(property))}
           >
             <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
               <div className="relative">

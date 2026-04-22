@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Bed, Bath, Maximize, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 
 interface FavoriteProperty {
   favorite_id: string;
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -130,7 +132,7 @@ const MyFavorites = () => {
               src={(Array.isArray(property.images) && property.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
               alt={property.title}
               className="w-full h-full object-cover cursor-pointer"
-              onClick={() => navigate(`/property/${property.id}`)}
+              onClick={() => openInNewTab(propertyPath(property))}
               onError={(e) => {
                 e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800";
               }}
@@ -163,7 +165,7 @@ const MyFavorites = () => {
               <span className="flex items-center gap-1"><Maximize className="h-4 w-4" />{property.area_sqft || 0} sqft</span>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button size="sm" className="flex-1" onClick={() => navigate(`/property/${property.id}`)}>
+              <Button size="sm" className="flex-1" onClick={() => openInNewTab(propertyPath(property))}>
                 <Eye className="h-4 w-4 mr-1" /> View
               </Button>
               <Button size="sm" variant="outline" onClick={() => removeFavorite(property.favorite_id)}>
