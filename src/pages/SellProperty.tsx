@@ -40,7 +40,29 @@ const STEPS = [
 ];
 
 const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata", "Ahmedabad"];
-const PROPERTY_TYPES = ["Apartment", "Villa", "Plot", "Independent House"];
+const PROPERTY_TYPES = [
+  "Apartment",
+  "Villa",
+  "House",
+  "Builder Floor",
+  "Penthouse",
+  "Plot",
+  "Agricultural Land",
+];
+// Property types that should NOT show the amenities section
+const NO_AMENITIES_TYPES = ["Plot", "Agricultural Land"];
+const hasAmenities = (t: string) => !!t && !NO_AMENITIES_TYPES.includes(t);
+
+// Convert a numeric price to a readable Indian text (Crore / Lakh / Thousand)
+const priceToWords = (value: string | number): string => {
+  const n = typeof value === "string" ? parseFloat(value) : value;
+  if (!isFinite(n) || n <= 0) return "";
+  const fmt = (x: number) => (Math.round(x * 100) / 100).toString().replace(/\.0+$/, "");
+  if (n >= 1_00_00_000) return `${fmt(n / 1_00_00_000)} Crore`;
+  if (n >= 1_00_000) return `${fmt(n / 1_00_000)} Lakh`;
+  if (n >= 1_000) return `${fmt(n / 1_000)} Thousand`;
+  return fmt(n);
+};
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
 const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
 const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
