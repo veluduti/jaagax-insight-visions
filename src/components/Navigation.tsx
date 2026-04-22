@@ -47,7 +47,7 @@ const Navigation = () => {
     fetchFeatureFlag();
   }, []);
 
-  const allPropertiesItems = [
+  const allPropertiesItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
     { key: "buyRent", label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
     { key: "newProjects", label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
     { key: "sellProperty", label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
