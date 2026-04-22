@@ -708,10 +708,10 @@ export default function SellProperty() {
 
                 {step === 7 && (
                   <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Documents are securely stored and only visible to verification admins.</p>
+                    <p className="text-sm text-muted-foreground">Documents are optional but speed up verification. They are securely stored and only visible to admins.</p>
                     {([
-                      { key: "ownership_proof_url" as const, label: "Ownership Proof *", desc: "Sale deed, allotment letter, or property tax receipt" },
-                      { key: "id_proof_url" as const, label: "ID Proof *", desc: "Aadhaar, PAN, or Passport" },
+                      { key: "ownership_proof_url" as const, label: "Ownership Proof", desc: "Sale deed, allotment letter, or property tax receipt (optional)" },
+                      { key: "id_proof_url" as const, label: "ID Proof", desc: "Aadhaar, PAN, or Passport (optional)" },
                     ]).map((doc) => (
                       <div key={doc.key} className="p-4 rounded-xl border-2 border-dashed border-emerald-500/30">
                         <div className="flex items-start justify-between gap-3 mb-2">
