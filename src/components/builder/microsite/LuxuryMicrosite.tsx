@@ -225,7 +225,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-white/50 hover:text-white/80">
                 <Edit className="h-4 w-4" />
               </button>

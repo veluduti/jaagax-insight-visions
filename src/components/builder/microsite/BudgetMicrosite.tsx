@@ -204,7 +204,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
             <span className="font-bold text-sm text-[#065f46] tracking-tight">{d.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-[#9ca3af] hover:text-[#374151]"><Edit className="h-4 w-4" /></button>
             )}
             <Button size="sm" className="rounded-full px-4 bg-[#16a34a] text-white hover:bg-[#15803d] text-xs" onClick={() => window.open(`tel:${d.contact.phone}`)}>

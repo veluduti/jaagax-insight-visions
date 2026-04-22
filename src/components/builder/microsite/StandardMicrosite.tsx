@@ -230,7 +230,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-white/50 hover:text-white"><Edit className="h-4 w-4" /></button>
             )}
             <Button size="sm" className="rounded-full px-5 bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-xs font-medium" onClick={() => scrollTo("contact")}>
