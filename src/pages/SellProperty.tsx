@@ -583,8 +583,19 @@ export default function SellProperty() {
                     <div><Label>Balconies</Label>
                       <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
                     </div>
-                    <div><Label>Area (sq ft) *</Label>
-                      <Input type="number" value={form.area_sqft} onChange={(e) => setForm({ ...form, area_sqft: e.target.value })} />
+                    <div>
+                      <Label>Area Unit *</Label>
+                      <Select value={form.area_unit} onValueChange={(v) => setForm({ ...form, area_unit: v })}>
+                        <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                        <SelectContent>{AREA_UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Area Value *</Label>
+                      <Input type="number" min="0" value={form.area_value} onChange={(e) => setForm({ ...form, area_value: e.target.value })} placeholder={`Enter area in ${form.area_unit}`} />
+                      {form.area_value && form.area_unit && toSqft(form.area_value, form.area_unit) !== null && form.area_unit !== "Sq.ft" && (
+                        <p className="text-xs text-emerald-500 mt-1">≈ {new Intl.NumberFormat("en-IN").format(Math.round(toSqft(form.area_value, form.area_unit)!))} sq.ft</p>
+                      )}
                     </div>
                     <div><Label>Floor Number</Label>
                       <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
