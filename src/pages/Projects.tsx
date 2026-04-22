@@ -146,20 +146,32 @@ const Projects = () => {
   const applyFilters = () => {
     let filtered = [...projects];
 
-    // City filter
     if (selectedCity !== "all") {
-      filtered = filtered.filter((p) => p.city === selectedCity);
+      filtered = filtered.filter((p) => p.city?.toLowerCase() === selectedCity.toLowerCase());
     }
-
-    // RERA filter
+    if (selectedType !== "all") {
+      filtered = filtered.filter((p: any) => p.project_type === selectedType);
+    }
     if (reraOnly) {
-      filtered = filtered.filter((p) => p.rera_id !== null && p.rera_id !== '' && p.rera_id.trim() !== '');
+      filtered = filtered.filter((p) => p.rera_id && p.rera_id.trim() !== '');
     }
-
-    // Price filter
     if (selectedPrice !== "all") {
       const [min, max] = selectedPrice.split("-").map(Number);
-      filtered = filtered.filter((p) => p.avg_price >= min && p.avg_price <= max);
+      filtered = filtered.filter((p) => (p.avg_price ?? 0) >= min && (p.avg_price ?? 0) <= max);
+    }
+    if (priceMin > 0) filtered = filtered.filter((p) => (p.avg_price ?? 0) >= priceMin);
+    if (priceMax > 0) filtered = filtered.filter((p) => (p.avg_price ?? 0) <= priceMax);
+    if (projectNameFilter) {
+      const q = projectNameFilter.toLowerCase();
+      filtered = filtered.filter((p) => p.name?.toLowerCase().includes(q));
+    }
+    if (handoverYear !== "any") {
+      const year = handoverYear.replace("+", "");
+      filtered = filtered.filter((p: any) => {
+        if (!p.possession_date) return false;
+        const py = new Date(p.possession_date).getFullYear();
+        return handoverYear.endsWith("+") ? py >= Number(year) : py === Number(year);
+      });
     }
 
     setFilteredProjects(filtered);
