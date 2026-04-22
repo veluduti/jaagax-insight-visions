@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,17 +38,23 @@ interface Project {
 
 const Projects = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
-  // Filter states - default city to detected location
-  const [selectedCity, setSelectedCity] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
+  // Filter states - read from URL params first, then fall back to defaults
+  const cityParam = searchParams.get("city");
+  const [selectedCity, setSelectedCity] = useState<string>(cityParam || "all");
+  const [selectedType, setSelectedType] = useState<string>(searchParams.get("propertyType") || "all");
   const [selectedPrice, setSelectedPrice] = useState<string>("all");
-  const [reraOnly, setReraOnly] = useState(false);
+  const [reraOnly, setReraOnly] = useState(searchParams.get("rera") === "1");
+  const [projectNameFilter] = useState(searchParams.get("projectName") || "");
+  const [handoverYear] = useState(searchParams.get("handoverBy") || "any");
+  const [priceMin] = useState(Number(searchParams.get("priceMin") || 0));
+  const [priceMax] = useState(Number(searchParams.get("priceMax") || 0));
 
   // Auto-set city from detected location
   useEffect(() => {
@@ -103,7 +109,7 @@ const Projects = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedCity, selectedType, selectedPrice, reraOnly, projects]);
+  }, [selectedCity, selectedType, selectedPrice, reraOnly, projects, projectNameFilter, handoverYear, priceMin, priceMax]);
 
   const fetchProjects = async () => {
     try {
