@@ -634,39 +634,7 @@ export default function BuilderDashboard() {
 
           {/* RERA Verification */}
           <TabsContent value="verification">
-            <Card>
-              <CardHeader>
-                <CardTitle>RERA Verification Status</CardTitle>
-                <CardDescription>Track your project verification status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {projects.filter(p => !p.verified).length === 0 ? (
-                    <div className="text-center py-12">
-                      <Shield className="h-16 w-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-lg font-semibold mb-2">All projects verified!</h3>
-                      <p className="text-muted-foreground">All your projects are RERA verified</p>
-                    </div>
-                  ) : (
-                    projects.filter(p => !p.verified).map((project) => (
-                      <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <AlertCircle className="h-8 w-8 text-orange-500" />
-                          <div>
-                            <h3 className="font-semibold">{project.name}</h3>
-                            <p className="text-sm text-muted-foreground">Verification pending</p>
-                          </div>
-                        </div>
-                        <Button variant="outline">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload Documents
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <BuilderRERAStatus onUpload={() => setReraModalOpen(true)} />
           </TabsContent>
 
           {/* Inventory */}
