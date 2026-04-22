@@ -637,48 +637,99 @@ export default function SellProperty() {
                 )}
 
                 {step === 3 && (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div><Label>{hasAmenities(form.type) ? "Bedrooms (BHK) *" : "Bedrooms"}</Label>
-                      <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} disabled={!hasAmenities(form.type) && !form.bedrooms ? false : false} />
+                  <div className="space-y-4">
+                    {!form.type && (
+                      <div className="p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 text-sm text-muted-foreground">
+                        Select a property type in Step 1 to see the relevant fields.
+                      </div>
+                    )}
+
+                    {/* Area is shown for all types */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Area Unit *</Label>
+                        <Select value={form.area_unit} onValueChange={(v) => setForm({ ...form, area_unit: v })}>
+                          <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                          <SelectContent>{AREA_UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Area Value *</Label>
+                        <Input type="number" min="0" value={form.area_value} onChange={(e) => setForm({ ...form, area_value: e.target.value })} placeholder={`Enter area in ${form.area_unit}`} />
+                        {form.area_value && form.area_unit && toSqft(form.area_value, form.area_unit) !== null && form.area_unit !== "Sq.ft" && (
+                          <p className="text-xs text-emerald-500 mt-1">≈ {new Intl.NumberFormat("en-IN").format(Math.round(toSqft(form.area_value, form.area_unit)!))} sq.ft</p>
+                        )}
+                      </div>
                     </div>
-                    <div><Label>{hasAmenities(form.type) ? "Bathrooms *" : "Bathrooms"}</Label>
-                      <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
-                    </div>
-                    <div><Label>Balconies</Label>
-                      <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label>Area Unit *</Label>
-                      <Select value={form.area_unit} onValueChange={(v) => setForm({ ...form, area_unit: v })}>
-                        <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
-                        <SelectContent>{AREA_UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Area Value *</Label>
-                      <Input type="number" min="0" value={form.area_value} onChange={(e) => setForm({ ...form, area_value: e.target.value })} placeholder={`Enter area in ${form.area_unit}`} />
-                      {form.area_value && form.area_unit && toSqft(form.area_value, form.area_unit) !== null && form.area_unit !== "Sq.ft" && (
-                        <p className="text-xs text-emerald-500 mt-1">≈ {new Intl.NumberFormat("en-IN").format(Math.round(toSqft(form.area_value, form.area_unit)!))} sq.ft</p>
-                      )}
-                    </div>
-                    <div><Label>Floor Number</Label>
-                      <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
-                    </div>
-                    <div><Label>Total Floors</Label>
-                      <Input type="number" value={form.total_floors} onChange={(e) => setForm({ ...form, total_floors: e.target.value })} />
-                    </div>
-                    <div><Label>Furnishing</Label>
-                      <Select value={form.furnishing} onValueChange={(v) => setForm({ ...form, furnishing: v })}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                        <SelectContent>{FURNISHING.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div><Label>Property Age</Label>
-                      <Select value={form.property_age} onValueChange={(v) => setForm({ ...form, property_age: v })}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                        <SelectContent>{PROPERTY_AGE.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
+
+                    {/* Residential fields */}
+                    {form.type && !isLand(form.type) && (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div><Label>Bedrooms (BHK) *</Label>
+                          <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
+                        </div>
+                        <div><Label>Bathrooms</Label>
+                          <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
+                        </div>
+                        <div><Label>Balconies</Label>
+                          <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
+                        </div>
+                        <div><Label>Floor Number</Label>
+                          <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
+                        </div>
+                        <div><Label>Total Floors</Label>
+                          <Input type="number" value={form.total_floors} onChange={(e) => setForm({ ...form, total_floors: e.target.value })} />
+                        </div>
+                        <div><Label>Furnishing</Label>
+                          <Select value={form.furnishing} onValueChange={(v) => setForm({ ...form, furnishing: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{FURNISHING.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-2"><Label>Property Age</Label>
+                          <Select value={form.property_age} onValueChange={(v) => setForm({ ...form, property_age: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                            <SelectContent>{PROPERTY_AGE.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Land fields */}
+                    {form.type && isLand(form.type) && (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div><Label>Plot Type</Label>
+                          <Select value={form.plot_type} onValueChange={(v) => setForm({ ...form, plot_type: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select plot type" /></SelectTrigger>
+                            <SelectContent>{LAND_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label>Facing Direction</Label>
+                          <Select value={form.facing_direction} onValueChange={(v) => setForm({ ...form, facing_direction: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select facing" /></SelectTrigger>
+                            <SelectContent>{FACING_DIRECTIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label>Road Access</Label>
+                          <Select value={form.road_access} onValueChange={(v) => setForm({ ...form, road_access: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select road width" /></SelectTrigger>
+                            <SelectContent>{ROAD_ACCESS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label>Water Availability</Label>
+                          <Select value={form.water_availability} onValueChange={(v) => setForm({ ...form, water_availability: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select water source" /></SelectTrigger>
+                            <SelectContent>{WATER_AVAILABILITY.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="md:col-span-2"><Label>Electricity</Label>
+                          <Select value={form.electricity} onValueChange={(v) => setForm({ ...form, electricity: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select electricity status" /></SelectTrigger>
+                            <SelectContent>{ELECTRICITY_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
