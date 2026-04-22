@@ -1338,6 +1338,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rera_verifications: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          document_url: string
+          id: string
+          property_id: string
+          rera_number: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          document_url: string
+          id?: string
+          property_id: string
+          rera_number: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          document_url?: string
+          id?: string
+          property_id?: string
+          rera_number?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           alerts_enabled: boolean
