@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface PreviewProperty {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -162,7 +163,7 @@ const SneakPeekPreviewModal = ({ property, open, onClose }: SneakPeekPreviewModa
               variant="outline"
               className="flex-1 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
               onClick={() => {
-                window.open(`/property/${property.id}`, '_blank');
+                window.open(`/property/${property.slug || property.id}`, '_blank', 'noopener,noreferrer');
                 onClose();
               }}
             >

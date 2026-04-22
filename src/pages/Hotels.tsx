@@ -129,7 +129,7 @@ const Hotels = () => {
   };
 
   const handleHotelClick = (hotel: PartnerHotel) => {
-    navigate(`/hotels/${hotel.id}`);
+    window.open(`/hotels/${hotel.id}`, "_blank", "noopener,noreferrer");
   };
 
   return (
