@@ -18,7 +18,7 @@ import {
   TrendingUp, ChevronRight, Users, Home, BarChart3
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdvancedFiltersSheet from "@/components/search/AdvancedFiltersSheet";
+import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 
 interface Property {
@@ -111,25 +111,31 @@ const Search = () => {
   const [loadingAI, setLoadingAI] = useState(false);
   const [total, setTotal] = useState(0);
   
-  // Advanced filters
-  const [advancedFilters, setAdvancedFilters] = useState({
-    propertyType: "residential",
-    beds: "any",
-    budget: "any",
-    handoverBy: "any",
-    paymentPlan: "any",
-    completion: "any",
-    furnishing: "any",
-    amenities: [] as string[],
-    floorLevel: "any",
-    parkingSpaces: "any",
-    monthlyRent: "any",
-    deposit: "any",
-    preferredTenants: "any",
-    availableFrom: "any",
-    possessionStatus: "any",
-    propertyAge: "any"
-  });
+  // Advanced filters initialised from URL
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(() => ({
+    ...DEFAULT_FILTERS,
+    propertyType: searchParams.get("propertyType") || "any",
+    beds: searchParams.get("beds") || "any",
+    bathrooms: searchParams.get("bathrooms") || "any",
+    priceMin: Number(searchParams.get("priceMin") || 0),
+    priceMax: Number(searchParams.get("priceMax") || 0),
+    areaMin: Number(searchParams.get("areaMin") || 0),
+    areaMax: Number(searchParams.get("areaMax") || 0),
+    furnishing: searchParams.get("furnishing") || "any",
+    amenities: searchParams.get("amenities")?.split(",").filter(Boolean) || [],
+    floorLevel: searchParams.get("floorLevel") || "any",
+    parkingSpaces: searchParams.get("parking") || "any",
+    facing: searchParams.get("facing") || "any",
+    possessionStatus: searchParams.get("status") || "any",
+    propertyAge: searchParams.get("age") || "any",
+    listedBy: searchParams.get("listedBy") || "any",
+    verifiedOnly: searchParams.get("verified") === "1",
+    postedWithin: searchParams.get("posted") || "any",
+    reraOnly: searchParams.get("rera") === "1",
+    projectName: searchParams.get("projectName") || "",
+    handoverBy: searchParams.get("handoverBy") || "any",
+    paymentPlan: searchParams.get("paymentPlan") || "any",
+  }));
   
   const lastSearchKey = useRef<string>("");
   const popularLocations = ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"];
@@ -144,7 +150,8 @@ const Search = () => {
   // Fetch data when tab or filters change
   useEffect(() => {
     fetchData();
-  }, [activeTab, location, searchType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, location, searchType, advancedFilters]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
