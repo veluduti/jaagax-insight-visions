@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 interface BuilderProfile {
   id: string;
+  slug: string | null;
   builder_name: string;
   tagline: string | null;
   type: string;
