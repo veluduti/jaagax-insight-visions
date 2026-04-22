@@ -283,6 +283,7 @@ export type Database = {
           project_subtitle: string | null
           rera_number: string | null
           size_range: string | null
+          slug: string | null
           social_links: Json | null
           specializations: string[] | null
           tagline: string | null
@@ -348,6 +349,7 @@ export type Database = {
           project_subtitle?: string | null
           rera_number?: string | null
           size_range?: string | null
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           tagline?: string | null
@@ -413,6 +415,7 @@ export type Database = {
           project_subtitle?: string | null
           rera_number?: string | null
           size_range?: string | null
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           tagline?: string | null
@@ -1945,6 +1948,10 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      generate_unique_builder_slug: {
+        Args: { _id: string; _name: string }
+        Returns: string
+      }
       get_hotel_application_status: {
         Args: { _id: string }
         Returns: {
@@ -1968,6 +1975,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      slugify: { Args: { _input: string }; Returns: string }
       submit_signup_request: {
         Args: {
           _city: string

@@ -7,20 +7,47 @@ import LuxuryMicrosite from "@/components/builder/microsite/LuxuryMicrosite";
 import StandardMicrosite from "@/components/builder/microsite/StandardMicrosite";
 import BudgetMicrosite from "@/components/builder/microsite/BudgetMicrosite";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const BuilderProfileDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const [builder, setBuilder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBuilder = async () => {
-      const { data } = await supabase.from("builder_profiles" as any).select("*").eq("id", id).single();
+      if (!slug) {
+        setLoading(false);
+        return;
+      }
+
+      // Look up by slug first; fall back to id for legacy links
+      let { data } = await supabase
+        .from("builder_profiles" as any)
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (!data && UUID_RE.test(slug)) {
+        const res = await supabase
+          .from("builder_profiles" as any)
+          .select("*")
+          .eq("id", slug)
+          .maybeSingle();
+        data = res.data;
+        // Redirect legacy UUID URL to the SEO-friendly slug
+        if (data && (data as any).slug) {
+          navigate(`/builder-profile/${(data as any).slug}`, { replace: true });
+          return;
+        }
+      }
+
       setBuilder(data as any);
       setLoading(false);
     };
-    if (id) fetchBuilder();
-  }, [id]);
+    fetchBuilder();
+  }, [slug, navigate]);
 
   if (loading) {
     return (
@@ -42,10 +69,8 @@ const BuilderProfileDetail = () => {
     );
   }
 
-  // Determine tier
   const tier = (builder.type as string) || "standard";
 
-  // Route to completely different UI per tier
   if (tier === "luxury") return <LuxuryMicrosite builder={builder} />;
   if (tier === "budget") return <BudgetMicrosite builder={builder} />;
   return <StandardMicrosite builder={builder} />;
