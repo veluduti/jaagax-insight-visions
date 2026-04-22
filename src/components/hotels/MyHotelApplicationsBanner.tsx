@@ -80,7 +80,7 @@ const MyHotelApplicationsBanner = () => {
               <div className="flex items-center gap-2">
                 {badge(a.status)}
                 {a.status === "approved" && a.approved_hotel_id && (
-                  <Button size="sm" variant="outline" onClick={() => navigate(`/hotels/${a.approved_hotel_id}`)}>
+                  <Button size="sm" variant="outline" onClick={() => window.open(`/hotels/${a.approved_hotel_id}`, "_blank", "noopener,noreferrer")}>
                     View listing <ExternalLink className="h-3 w-3 ml-1" />
                   </Button>
                 )}

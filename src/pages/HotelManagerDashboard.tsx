@@ -476,7 +476,7 @@ const HotelManagerDashboard = () => {
                             )}
                           </div>
                           <div className="flex gap-2 pt-2">
-                            <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => navigate(`/hotels/${hotel.id}`)}>
+                            <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => window.open(`/hotels/${hotel.id}`, "_blank", "noopener,noreferrer")}>
                               <Eye className="h-3 w-3" /> View
                             </Button>
                             <Button size="sm" variant="outline" className="flex-1 gap-1" onClick={() => openEditDialog(hotel)}>

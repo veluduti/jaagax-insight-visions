@@ -71,7 +71,7 @@ export default function HotelPartnerStatus() {
                     </div>
                   )}
                   {a.status === "approved" && a.approved_hotel_id && (
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/hotels/${a.approved_hotel_id}`)}>View Live Listing</Button>
+                    <Button variant="outline" size="sm" onClick={() => window.open(`/hotels/${a.approved_hotel_id}`, "_blank", "noopener,noreferrer")}>View Live Listing</Button>
                   )}
                 </CardContent>
               </Card>
