@@ -237,10 +237,11 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     load();
   };
 
-  // === BUYER: final payment after deal closed ===
+  // === BUYER: balance payment after visits completed (or after deal closed) ===
   const mockPayFinal = async () => {
     if (!booking) return;
-    const remaining = (booking.deal_amount || booking.final_total || booking.estimated_total || 0) - (booking.booking_amount || 0);
+    const totalDue = booking.deal_amount || booking.final_total || booking.estimated_total || 0;
+    const remaining = totalDue - (booking.booking_amount || 0);
     if (remaining <= 0) return toast.error("Nothing remaining to pay");
     setBusy(true);
     const ref = `MOCK-FINAL-${Date.now()}`;
@@ -254,16 +255,16 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     await logWeekendActivity({
       bookingId: booking.id, actorId: currentUserId, actorRole: "buyer",
       action: "final_payment_completed",
-      description: `Final payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
+      description: `Balance payment of ${formatINR(remaining)} completed (mock). Booking fully paid.`,
       metadata: { reference: ref, amount: remaining },
     });
     if (agent?.id) {
       const { data: ag } = await supabase.from("agents").select("user_id").eq("id", agent.id).maybeSingle();
-      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Final payment received", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. Deal fully settled.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
+      if (ag?.user_id) await notifyUser(ag.user_id, "💸 Balance payment received — ready to close deal", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}. You can now close the deal.`, "/dashboard/agent?tab=weekend", { booking_id: booking.id });
     }
     await notifyAdmins("Weekend booking fully paid", `${booking.buyer_name} paid the remaining ${formatINR(remaining)}.`, "/admin?tab=weekend", { booking_id: booking.id });
     setBusy(false);
-    toast.success("Final payment successful (simulated)");
+    toast.success("Balance payment successful (simulated)");
     onChanged?.();
     load();
   };
