@@ -652,9 +652,31 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {viewerRole === "agent" && status === "in_progress" && (
                   <Button size="sm" onClick={completeVisits} disabled={busy}><CheckCircle2 className="h-3 w-3 mr-1" />Mark visits completed</Button>
                 )}
-                {viewerRole === "agent" && ["in_progress", "completed", "buyer_decided"].includes(status) && status !== "deal_closed" && !booking.deal_amount && (
-                  <Button size="sm" onClick={() => setDealOpen(true)} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"><Handshake className="h-3 w-3 mr-1" />Close deal 🎉</Button>
-                )}
+                {viewerRole === "agent" && ["in_progress", "completed", "buyer_decided"].includes(status) && status !== "deal_closed" && !booking.deal_amount && (() => {
+                  const blockers = getPendingDealBlockers();
+                  const blocked = blockers.length > 0;
+                  return (
+                    <div className="flex flex-col gap-1">
+                      <Button
+                        size="sm"
+                        onClick={tryOpenCloseDeal}
+                        disabled={busy}
+                        className={blocked
+                          ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                          : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"}
+                        title={blocked ? "Pending: " + blockers.join(", ") : "Close this deal"}
+                      >
+                        <Handshake className="h-3 w-3 mr-1" />
+                        Close deal {blocked ? "🔒" : "🎉"}
+                      </Button>
+                      {blocked && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 max-w-[260px]">
+                          Pending: {blockers[0]}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* BUYER actions */}
                 {viewerRole === "buyer" && status === "awaiting_payment" && (
@@ -665,14 +687,20 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 {viewerRole === "buyer" && (status === "completed" || (status === "in_progress" && booking.payment_status !== "unpaid")) && !booking.buyer_decision && (
                   <Button size="sm" onClick={() => setDecisionOpen(true)} disabled={busy}><Target className="h-3 w-3 mr-1" />Share your decision</Button>
                 )}
+                {/* Buyer pays balance after visits completed (before or after deal close) */}
+                {viewerRole === "buyer" && booking.final_payment_status !== "paid" && ["completed", "buyer_decided", "deal_closed"].includes(status) && (() => {
+                  const totalDue = booking.deal_amount || booking.final_total || booking.estimated_total || 0;
+                  const remaining = totalDue - (booking.booking_amount || 0);
+                  if (remaining <= 0) return null;
+                  return (
+                    <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
+                      <IndianRupee className="h-3 w-3 mr-1" />
+                      Pay balance {formatINR(remaining)}
+                    </Button>
+                  );
+                })()}
                 {viewerRole === "buyer" && (status === "deal_closed" || status === "buyer_decided" || status === "completed") && !booking.agent_rating && agent && (
                   <Button size="sm" onClick={() => setRateOpen(true)} disabled={busy} className="bg-gradient-to-r from-amber-400 to-amber-500 text-primary-foreground"><Star className="h-3 w-3 mr-1" />Rate agent</Button>
-                )}
-                {viewerRole === "buyer" && booking.deal_amount && booking.final_payment_status !== "paid" && (
-                  <Button size="sm" onClick={mockPayFinal} disabled={busy} className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-primary-foreground">
-                    <IndianRupee className="h-3 w-3 mr-1" />
-                    Pay remaining {formatINR((booking.deal_amount || 0) - (booking.booking_amount || 0))}
-                  </Button>
                 )}
               </div>
             </TabsContent>
