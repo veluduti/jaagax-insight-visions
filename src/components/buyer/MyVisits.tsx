@@ -15,6 +15,7 @@ import {
   GitCompare, Navigation as NavIcon, CheckCircle2, CalendarClock, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { openInNewTab } from "@/lib/openInNewTab";
 
 interface Visit {
   id: string;
@@ -30,7 +31,7 @@ interface Visit {
   agent_id: string | null;
   created_at: string;
   updated_at: string;
-  properties?: { id: string; title: string; city: string | null; locality: string | null; images: any; price: number | null } | null;
+  properties?: { id: string; slug?: string | null; title: string; city: string | null; locality: string | null; images: any; price: number | null } | null;
   agents?: { id?: string; name: string; phone: string | null; photo_url: string | null } | null;
   my_rating?: { rating: number; review: string | null } | null;
 }
@@ -73,7 +74,7 @@ const MyVisits = () => {
     if (!user) { setLoading(false); return; }
     const { data } = await supabase
       .from("visit_bookings")
-      .select(`*, properties(id, title, city, locality, images, price), agents(id, name, phone, photo_url)`)
+      .select(`*, properties(id, slug, title, city, locality, images, price), agents(id, name, phone, photo_url)`)
       .eq("buyer_id", user.id)
       .order("visit_date", { ascending: false });
     const list: any[] = (data as any) || [];
@@ -214,7 +215,7 @@ const MyVisits = () => {
                   key={v.id} v={v}
                   formatDate={formatDate}
                   statusBadge={statusBadge}
-                  onView={() => v.property_id && navigate(`/property/${v.property_id}`)}
+                  onView={() => v.property_id && openInNewTab(`/property/${v.properties?.slug || v.property_id}`)}
                   onCancel={() => handleCancel(v.id)}
                   onReschedule={() => openReschedule(v)}
                   onRate={() => openRating(v)}
