@@ -76,7 +76,7 @@ const FeaturedBuilderProfiles = () => {
           {builders.map((b) => (
             <Card
               key={b.id}
-              onClick={() => navigate(`/builder-profile/${b.id}`)}
+              onClick={() => navigate(`/builder-profile/${b.slug || b.id}`)}
               className={`relative min-w-[300px] max-w-[340px] snap-start cursor-pointer overflow-hidden rounded-2xl border-0 group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl`}
             >
               {/* Gradient border effect */}
