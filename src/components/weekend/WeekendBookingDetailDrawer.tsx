@@ -285,9 +285,51 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
     setDecisionOpen(false);
   };
 
+  // === AGENT: pending-task gate before closing the deal ===
+  const getPendingDealBlockers = (): string[] => {
+    if (!booking) return [];
+    const blockers: string[] = [];
+    if (!["in_progress", "completed", "buyer_decided"].includes(booking.status)) {
+      blockers.push("Property visits are not yet completed");
+    }
+    if (booking.status === "in_progress") {
+      blockers.push("Mark visits as completed first");
+    }
+    if (!booking.buyer_decision) {
+      blockers.push("Buyer has not shared their decision yet");
+    }
+    if (booking.buyer_decision === "not_interested") {
+      blockers.push("Buyer indicated they are not interested");
+    }
+    if (booking.payment_status !== "paid" || booking.final_payment_status !== "paid") {
+      const totalDue = booking.final_total || booking.estimated_total || 0;
+      const remaining = totalDue - (booking.booking_amount || 0);
+      if (remaining > 0) blockers.push(`Buyer hasn't paid the balance of ${formatINR(remaining)}`);
+    }
+    return blockers;
+  };
+
+  const tryOpenCloseDeal = () => {
+    const blockers = getPendingDealBlockers();
+    if (blockers.length > 0) {
+      toast.error("Cannot close deal yet", {
+        description: blockers.map((b) => `• ${b}`).join("\n"),
+        duration: 6000,
+      });
+      return;
+    }
+    setDealOpen(true);
+  };
+
   // === AGENT: close deal ===
   const submitCloseDeal = async () => {
     if (!dealPropertyId || !dealAmount) return toast.error("Property & amount required");
+    // Final guard — re-check blockers at submit time
+    const blockers = getPendingDealBlockers();
+    if (blockers.length > 0) {
+      toast.error("Cannot close deal — pending items", { description: blockers.join(" • ") });
+      return;
+    }
     const ok = await updateBooking({
       status: "deal_closed",
       deal_closed_at: new Date().toISOString(),
