@@ -40,7 +40,29 @@ const STEPS = [
 ];
 
 const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata", "Ahmedabad"];
-const PROPERTY_TYPES = ["Apartment", "Villa", "Plot", "Independent House"];
+const PROPERTY_TYPES = [
+  "Apartment",
+  "Villa",
+  "House",
+  "Builder Floor",
+  "Penthouse",
+  "Plot",
+  "Agricultural Land",
+];
+// Property types that should NOT show the amenities section
+const NO_AMENITIES_TYPES = ["Plot", "Agricultural Land"];
+const hasAmenities = (t: string) => !!t && !NO_AMENITIES_TYPES.includes(t);
+
+// Convert a numeric price to a readable Indian text (Crore / Lakh / Thousand)
+const priceToWords = (value: string | number): string => {
+  const n = typeof value === "string" ? parseFloat(value) : value;
+  if (!isFinite(n) || n <= 0) return "";
+  const fmt = (x: number) => (Math.round(x * 100) / 100).toString().replace(/\.0+$/, "");
+  if (n >= 1_00_00_000) return `${fmt(n / 1_00_00_000)} Crore`;
+  if (n >= 1_00_000) return `${fmt(n / 1_00_000)} Lakh`;
+  if (n >= 1_000) return `${fmt(n / 1_000)} Thousand`;
+  return fmt(n);
+};
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
 const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
 const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
@@ -286,7 +308,7 @@ export default function SellProperty() {
         if (!form.address.trim()) return "Address is required";
         return null;
       case 3:
-        if (form.type !== "Plot" && !form.bedrooms) return "Bedrooms required";
+        if (form.type !== "Plot" && form.type !== "Agricultural Land" && !form.bedrooms) return "Bedrooms required";
         if (!form.area_value) return "Area is required";
         if (!form.area_unit) return "Area unit is required";
         if (toSqft(form.area_value, form.area_unit) === null) return "Enter a valid area";
@@ -305,7 +327,21 @@ export default function SellProperty() {
   const handleNext = () => {
     const err = validateStep(step);
     if (err) return toast.error(err);
+    // Skip amenities step (5) for property types that don't have amenities
+    if (step === 4 && !hasAmenities(form.type)) {
+      setStep(6);
+      return;
+    }
     setStep((s) => Math.min(7, s + 1));
+  };
+
+  const handleBack = () => {
+    // Skip amenities step (5) when going back for types without amenities
+    if (step === 6 && !hasAmenities(form.type)) {
+      setStep(4);
+      return;
+    }
+    setStep((s) => Math.max(1, s - 1));
   };
 
   const uploadFile = async (file: File, bucket: string, kind: string): Promise<string | null> => {
@@ -574,10 +610,10 @@ export default function SellProperty() {
 
                 {step === 3 && (
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div><Label>{form.type === "Plot" ? "Bedrooms" : "Bedrooms (BHK) *"}</Label>
-                      <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
+                    <div><Label>{hasAmenities(form.type) ? "Bedrooms (BHK) *" : "Bedrooms"}</Label>
+                      <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} disabled={!hasAmenities(form.type) && !form.bedrooms ? false : false} />
                     </div>
-                    <div><Label>{form.type === "Plot" ? "Bathrooms" : "Bathrooms *"}</Label>
+                    <div><Label>{hasAmenities(form.type) ? "Bathrooms *" : "Bathrooms"}</Label>
                       <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
                     </div>
                     <div><Label>Balconies</Label>
@@ -623,10 +659,15 @@ export default function SellProperty() {
                     <div>
                       <Label>Expected Price (₹) *</Label>
                       <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 7500000" />
-                      {form.price && (
-                        <p className="text-xs text-emerald-500 mt-1">
-                          ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
-                        </p>
+                      {form.price && parseFloat(form.price) > 0 && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
+                            ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
+                          </span>
+                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
+                            {priceToWords(form.price)}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
@@ -651,28 +692,38 @@ export default function SellProperty() {
 
                 {step === 5 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {AMENITIES.map((a) => {
-                        const active = form.amenities.includes(a);
-                        return (
-                          <button
-                            key={a}
-                            type="button"
-                            onClick={() => setForm((f) => ({
-                              ...f,
-                              amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
-                            }))}
-                            className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                              active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
-                            }`}
-                          >
-                            {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
-                            {a}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {hasAmenities(form.type) ? (
+                      <>
+                        <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {AMENITIES.map((a) => {
+                            const active = form.amenities.includes(a);
+                            return (
+                              <button
+                                key={a}
+                                type="button"
+                                onClick={() => setForm((f) => ({
+                                  ...f,
+                                  amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
+                                }))}
+                                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                                  active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
+                                }`}
+                              >
+                                {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
+                                {a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-10 border-2 border-dashed rounded-xl border-emerald-500/20">
+                        <Sparkles className="h-8 w-8 text-emerald-500/60 mx-auto mb-2" />
+                        <p className="text-sm font-medium">Amenities don't apply to {form.type || "this property type"}.</p>
+                        <p className="text-xs text-muted-foreground mt-1">You can continue to the next step.</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -737,7 +788,7 @@ export default function SellProperty() {
         <div className="sticky bottom-4 mt-6 z-30">
           <Card className="border-emerald-500/30 shadow-xl bg-background/95 backdrop-blur">
             <CardContent className="p-4 flex items-center justify-between gap-2 flex-wrap">
-              <Button variant="outline" disabled={step === 1} onClick={() => setStep(s => s - 1)}>
+              <Button variant="outline" disabled={step === 1} onClick={handleBack}>
                 <ChevronLeft className="h-4 w-4 mr-1" />Back
               </Button>
               <div className="flex items-center gap-2 flex-wrap">
