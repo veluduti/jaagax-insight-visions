@@ -47,36 +47,36 @@ const Index = () => {
       <AIInsightStrip />
       
       {/* Dynamic Content Based on Active Tab */}
-      {activeTab === "properties" && (
+      {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
           <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
           <AISpotlight />
-          <MarketIntelligence />
+          {showMarketIndex && <MarketIntelligence />}
         </>
       )}
       
-      {activeTab === "new-projects" && (
+      {activeTab === "new-projects" && showNewProjects && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
           <VisitStayTeaser />
-          <FeaturedProperties detectedCity={detectedLocation?.city} />
-          <MarketIntelligence />
+          {showBuyRent && <FeaturedProperties detectedCity={detectedLocation?.city} />}
+          {showMarketIndex && <MarketIntelligence />}
           <TruValue />
         </>
       )}
       
-      {activeTab === "transactions" && (
+      {activeTab === "transactions" && showTransactions && (
         <>
-          <FeaturedCommunities />
-          <MarketIntelligence />
+          {showCommunities && <FeaturedCommunities />}
+          {showMarketIndex && <MarketIntelligence />}
           <TruValue />
         </>
       )}
       
-      {activeTab === "agents" && (
+      {activeTab === "agents" && showAgents && (
         <>
           <FindMyAgent />
           <AISpotlight />
