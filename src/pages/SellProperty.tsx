@@ -610,10 +610,10 @@ export default function SellProperty() {
 
                 {step === 3 && (
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div><Label>{form.type === "Plot" ? "Bedrooms" : "Bedrooms (BHK) *"}</Label>
-                      <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
+                    <div><Label>{hasAmenities(form.type) ? "Bedrooms (BHK) *" : "Bedrooms"}</Label>
+                      <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} disabled={!hasAmenities(form.type) && !form.bedrooms ? false : false} />
                     </div>
-                    <div><Label>{form.type === "Plot" ? "Bathrooms" : "Bathrooms *"}</Label>
+                    <div><Label>{hasAmenities(form.type) ? "Bathrooms *" : "Bathrooms"}</Label>
                       <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
                     </div>
                     <div><Label>Balconies</Label>
