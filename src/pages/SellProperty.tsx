@@ -66,6 +66,14 @@ const priceToWords = (value: string | number): string => {
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
 const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
 const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
+// Land-specific options
+const LAND_TYPES = ["Residential Plot", "Commercial Plot", "Agricultural", "Industrial", "Farm Land"];
+const FACING_DIRECTIONS = ["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"];
+const ROAD_ACCESS = ["No Road", "10 ft", "20 ft", "30 ft", "40 ft", "60 ft+"];
+const WATER_AVAILABILITY = ["Borewell", "Municipal", "Both", "None"];
+const ELECTRICITY_OPTIONS = ["Available", "Not Available", "On Request"];
+const LAND_TYPES_SET = ["Plot", "Agricultural Land"];
+const isLand = (t: string) => LAND_TYPES_SET.includes(t);
 const AREA_UNITS = ["Sq.ft", "Sq.Yards", "Acres", "Cents", "Gunta"];
 // Conversion factors → square feet
 const AREA_TO_SQFT: Record<string, number> = {
