@@ -19,6 +19,8 @@ interface PendingProperty {
   bhk: number | null;
   images: any;
   verification_status: string | null;
+  listed_by: string | null;
+  submitted_by: string | null;
 }
 
 interface PendingProject {
@@ -43,11 +45,14 @@ export default function VerificationPanel() {
   const fetchPendingSubmissions = async () => {
     setLoading(true);
     try {
+      // Builder-submitted properties → straight Approve/Reject, no agent assignment.
+      // Seller/agent properties are handled by the "Assign Agent" panel.
       const [propertiesRes, projectsRes] = await Promise.all([
         supabase
           .from("properties")
           .select("*")
           .eq("verification_status", "pending")
+          .eq("listed_by", "builder")
           .order("created_at", { ascending: false }),
         supabase
           .from("projects")

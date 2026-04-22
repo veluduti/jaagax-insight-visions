@@ -56,12 +56,15 @@ export default function AssignAgentPanel() {
 
   const fetchPending = async () => {
     setLoading(true);
+    // Only seller & agent listings need agent assignment.
+    // Builder-listed properties are handled in the Verification panel (no agent assignment).
     const { data } = await supabase
       .from("properties")
       .select(
         "id, title, city, locality, type, price, area_sqft, bedrooms, images, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at"
       )
       .eq("verification_status", "pending")
+      .neq("listed_by", "builder")
       .order("created_at", { ascending: false });
     setProperties((data as any) || []);
     setLoading(false);
