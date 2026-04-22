@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronDown, Menu, Phone, MessageCircle, MapPin, Check, Mail, Globe,
   Shield, Star, Building2, TreePine, Baby, Car, Zap, Dumbbell, Waves,
@@ -129,7 +130,10 @@ const SECTION_IDS = ["home", "about", "amenities", "floorplans", "gallery", "loc
 // ── Navy + Blue Professional Theme ──
 const StandardMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);
@@ -226,7 +230,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-white/50 hover:text-white"><Edit className="h-4 w-4" /></button>
             )}
             <Button size="sm" className="rounded-full px-5 bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-xs font-medium" onClick={() => scrollTo("contact")}>

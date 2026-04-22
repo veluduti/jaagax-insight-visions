@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronDown, Menu, Phone, MessageCircle, MapPin, Check,
   Waves, Dumbbell, Building2, TreePine, Baby, Car, Shield, Zap,
@@ -139,7 +141,10 @@ const SECTION_IDS = ["home", "about", "amenities", "masterplan", "floorplans", "
 
 const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);
@@ -220,7 +225,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-white/50 hover:text-white/80">
                 <Edit className="h-4 w-4" />
               </button>

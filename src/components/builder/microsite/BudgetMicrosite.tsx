@@ -10,6 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Phone, MessageCircle, MapPin, Check, Mail, Globe,
   Shield, Star, Building2, TreePine, Baby, Car, Zap, Dumbbell, Waves,
@@ -124,7 +125,10 @@ function buildData(builder: any) {
 // ── White + Soft Green Light Theme ──
 const BudgetMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeTab, setActiveTab] = useState("about");
   const [fpTab, setFpTab] = useState<string>(Object.keys(d.floorPlansByFacing)[0] || "East");
@@ -200,7 +204,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
             <span className="font-bold text-sm text-[#065f46] tracking-tight">{d.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            {builder?.id && (
+            {builder?.id && canEdit && (
               <button onClick={() => navigate(`/edit-builder-profile/${builder.id}`)} className="text-[#9ca3af] hover:text-[#374151]"><Edit className="h-4 w-4" /></button>
             )}
             <Button size="sm" className="rounded-full px-4 bg-[#16a34a] text-white hover:bg-[#15803d] text-xs" onClick={() => window.open(`tel:${d.contact.phone}`)}>
