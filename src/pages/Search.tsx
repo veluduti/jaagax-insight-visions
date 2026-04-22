@@ -18,7 +18,7 @@ import {
   TrendingUp, ChevronRight, Users, Home, BarChart3
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdvancedFiltersSheet from "@/components/search/AdvancedFiltersSheet";
+import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 
 interface Property {
@@ -111,25 +111,31 @@ const Search = () => {
   const [loadingAI, setLoadingAI] = useState(false);
   const [total, setTotal] = useState(0);
   
-  // Advanced filters
-  const [advancedFilters, setAdvancedFilters] = useState({
-    propertyType: "residential",
-    beds: "any",
-    budget: "any",
-    handoverBy: "any",
-    paymentPlan: "any",
-    completion: "any",
-    furnishing: "any",
-    amenities: [] as string[],
-    floorLevel: "any",
-    parkingSpaces: "any",
-    monthlyRent: "any",
-    deposit: "any",
-    preferredTenants: "any",
-    availableFrom: "any",
-    possessionStatus: "any",
-    propertyAge: "any"
-  });
+  // Advanced filters initialised from URL
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(() => ({
+    ...DEFAULT_FILTERS,
+    propertyType: searchParams.get("propertyType") || "any",
+    beds: searchParams.get("beds") || "any",
+    bathrooms: searchParams.get("bathrooms") || "any",
+    priceMin: Number(searchParams.get("priceMin") || 0),
+    priceMax: Number(searchParams.get("priceMax") || 0),
+    areaMin: Number(searchParams.get("areaMin") || 0),
+    areaMax: Number(searchParams.get("areaMax") || 0),
+    furnishing: searchParams.get("furnishing") || "any",
+    amenities: searchParams.get("amenities")?.split(",").filter(Boolean) || [],
+    floorLevel: searchParams.get("floorLevel") || "any",
+    parkingSpaces: searchParams.get("parking") || "any",
+    facing: searchParams.get("facing") || "any",
+    possessionStatus: searchParams.get("status") || "any",
+    propertyAge: searchParams.get("age") || "any",
+    listedBy: searchParams.get("listedBy") || "any",
+    verifiedOnly: searchParams.get("verified") === "1",
+    postedWithin: searchParams.get("posted") || "any",
+    reraOnly: searchParams.get("rera") === "1",
+    projectName: searchParams.get("projectName") || "",
+    handoverBy: searchParams.get("handoverBy") || "any",
+    paymentPlan: searchParams.get("paymentPlan") || "any",
+  }));
   
   const lastSearchKey = useRef<string>("");
   const popularLocations = ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"];
@@ -144,7 +150,8 @@ const Search = () => {
   // Fetch data when tab or filters change
   useEffect(() => {
     fetchData();
-  }, [activeTab, location, searchType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, location, searchType, advancedFilters]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
@@ -177,20 +184,54 @@ const Search = () => {
     }
   };
 
-  const fetchProperties = async () => {
-    let queryBuilder = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+  // Apply all advanced filters to a Supabase properties query builder
+  const applyPropertyFilters = (qb: any) => {
+    const f = advancedFilters;
+    if (f.verifiedOnly) qb = qb.eq("verified", true);
+    if (location) qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    // Buy/Rent → listing_type
+    if (searchType === "rent") qb = qb.eq("listing_type", "rent");
+    else if (searchType === "buy") qb = qb.eq("listing_type", "sale");
+    if (f.propertyType !== "any") qb = qb.eq("type", f.propertyType);
+    if (f.beds !== "any") {
+      if (f.beds === "5+") qb = qb.gte("bhk", 5);
+      else qb = qb.eq("bhk", Number(f.beds));
     }
+    if (f.bathrooms !== "any") {
+      if (f.bathrooms === "4+") qb = qb.gte("bathrooms", 4);
+      else qb = qb.eq("bathrooms", Number(f.bathrooms));
+    }
+    if (f.priceMin > 0) qb = qb.gte("price", f.priceMin);
+    if (f.priceMax > 0) qb = qb.lte("price", f.priceMax);
+    if (f.areaMin > 0) qb = qb.gte("area_sqft", f.areaMin);
+    if (f.areaMax > 0) qb = qb.lte("area_sqft", f.areaMax);
+    if (f.furnishing !== "any") qb = qb.eq("furnishing", f.furnishing);
+    if (f.amenities.length > 0) qb = qb.contains("amenities", f.amenities);
+    if (f.floorLevel !== "any") {
+      if (f.floorLevel === "ground") qb = qb.eq("floor_number", 0);
+      else if (f.floorLevel === "low") qb = qb.gte("floor_number", 1).lte("floor_number", 5);
+      else if (f.floorLevel === "mid") qb = qb.gte("floor_number", 6).lte("floor_number", 15);
+      else if (f.floorLevel === "high") qb = qb.gte("floor_number", 16);
+    }
+    if (f.parkingSpaces !== "any") {
+      if (f.parkingSpaces === "3+") qb = qb.gte("total_parking", 3);
+      else qb = qb.eq("total_parking", Number(f.parkingSpaces));
+    }
+    if (f.possessionStatus !== "any") qb = qb.eq("completion_stage", f.possessionStatus);
+    if (f.propertyAge !== "any") qb = qb.eq("property_age", f.propertyAge);
+    if (f.listedBy !== "any") qb = qb.eq("listed_by", f.listedBy);
+    if (f.postedWithin !== "any") {
+      const days = Number(f.postedWithin);
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      qb = qb.gte("created_at", since);
+    }
+    return qb;
+  };
 
-    const { data, error, count } = await queryBuilder
-      .order("trust_score", { ascending: false })
-      .limit(50);
-
+  const fetchProperties = async () => {
+    let qb = supabase.from("properties").select("*", { count: "exact" });
+    qb = applyPropertyFilters(qb);
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
       setProperties(data || []);
       setTotal(count || 0);
@@ -198,19 +239,23 @@ const Search = () => {
   };
 
   const fetchProjects = async () => {
-    let queryBuilder = supabase
-      .from("projects")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    const f = advancedFilters;
+    let qb = supabase.from("projects").select("*", { count: "exact" });
+    if (f.verifiedOnly) qb = qb.eq("verified", true);
+    if (location) qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (f.projectName) qb = qb.ilike("name", `%${f.projectName}%`);
+    if (f.propertyType !== "any") qb = qb.eq("project_type", f.propertyType);
+    if (f.priceMin > 0) qb = qb.gte("avg_price", f.priceMin);
+    if (f.priceMax > 0) qb = qb.lte("avg_price", f.priceMax);
+    if (f.amenities.length > 0) qb = qb.contains("amenities", f.amenities);
+    if (f.reraOnly) qb = qb.not("rera_id", "is", null);
+    if (f.handoverBy !== "any") {
+      const year = f.handoverBy.replace("+", "");
+      const startDate = `${year}-01-01`;
+      if (f.handoverBy.endsWith("+")) qb = qb.gte("possession_date", startDate);
+      else qb = qb.gte("possession_date", startDate).lt("possession_date", `${Number(year) + 1}-01-01`);
     }
-
-    const { data, error, count } = await queryBuilder
-      .order("trust_score", { ascending: false })
-      .limit(50);
-
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
       setProjects(data || []);
       setTotal(count || 0);
@@ -218,18 +263,9 @@ const Search = () => {
   };
 
   const fetchAgents = async () => {
-    let queryBuilder = supabase
-      .from("agents")
-      .select("*", { count: "exact" });
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
-    }
-
-    const { data, error, count } = await queryBuilder
-      .order("sales_count", { ascending: false })
-      .limit(50);
-
+    let queryBuilder = supabase.from("agents").select("*", { count: "exact" });
+    if (location) queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
+    const { data, error, count } = await queryBuilder.order("sales_count", { ascending: false }).limit(50);
     if (!error) {
       setAgents(data || []);
       setTotal(count || 0);
@@ -237,20 +273,9 @@ const Search = () => {
   };
 
   const fetchTransactions = async () => {
-    // Use properties as transaction data
-    let queryBuilder = supabase
-      .from("properties")
-      .select("*", { count: "exact" })
-      .eq("verified", true);
-
-    if (location) {
-      queryBuilder = queryBuilder.or(`locality.ilike.%${location}%,city.ilike.%${location}%`);
-    }
-
-    const { data, error, count } = await queryBuilder
-      .order("price", { ascending: false })
-      .limit(50);
-
+    let qb = supabase.from("properties").select("*", { count: "exact" }).eq("verified", true);
+    qb = applyPropertyFilters(qb);
+    const { data, error, count } = await qb.order("price", { ascending: false }).limit(50);
     if (!error) {
       setProperties(data || []);
       setTotal(count || 0);
@@ -318,8 +343,29 @@ const Search = () => {
     params.set("tab", activeTab);
     if (location) params.set("city", location);
     if (searchType !== "buy") params.set("type", searchType);
+    const f = advancedFilters;
+    if (f.propertyType !== "any") params.set("propertyType", f.propertyType);
+    if (f.beds !== "any") params.set("beds", f.beds);
+    if (f.bathrooms !== "any") params.set("bathrooms", f.bathrooms);
+    if (f.priceMin > 0) params.set("priceMin", String(f.priceMin));
+    if (f.priceMax > 0) params.set("priceMax", String(f.priceMax));
+    if (f.areaMin > 0) params.set("areaMin", String(f.areaMin));
+    if (f.areaMax > 0) params.set("areaMax", String(f.areaMax));
+    if (f.furnishing !== "any") params.set("furnishing", f.furnishing);
+    if (f.amenities.length > 0) params.set("amenities", f.amenities.join(","));
+    if (f.floorLevel !== "any") params.set("floorLevel", f.floorLevel);
+    if (f.parkingSpaces !== "any") params.set("parking", f.parkingSpaces);
+    if (f.facing !== "any") params.set("facing", f.facing);
+    if (f.possessionStatus !== "any") params.set("status", f.possessionStatus);
+    if (f.propertyAge !== "any") params.set("age", f.propertyAge);
+    if (f.listedBy !== "any") params.set("listedBy", f.listedBy);
+    if (f.verifiedOnly) params.set("verified", "1");
+    if (f.postedWithin !== "any") params.set("posted", f.postedWithin);
+    if (f.reraOnly) params.set("rera", "1");
+    if (f.projectName) params.set("projectName", f.projectName);
+    if (f.handoverBy !== "any") params.set("handoverBy", f.handoverBy);
+    if (f.paymentPlan !== "any") params.set("paymentPlan", f.paymentPlan);
     setSearchParams(params);
-    fetchData();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -772,12 +818,7 @@ const Search = () => {
         activeTab={activeTab}
         searchType={searchType}
         filters={advancedFilters}
-        onFiltersChange={(newFilters) => {
-          setAdvancedFilters({
-            ...advancedFilters,
-            ...newFilters
-          });
-        }}
+        onFiltersChange={setAdvancedFilters}
       />
     </div>
   );

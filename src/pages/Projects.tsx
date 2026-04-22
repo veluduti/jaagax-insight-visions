@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,17 +38,23 @@ interface Project {
 
 const Projects = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
-  // Filter states - default city to detected location
-  const [selectedCity, setSelectedCity] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
+  // Filter states - read from URL params first, then fall back to defaults
+  const cityParam = searchParams.get("city");
+  const [selectedCity, setSelectedCity] = useState<string>(cityParam || "all");
+  const [selectedType, setSelectedType] = useState<string>(searchParams.get("propertyType") || "all");
   const [selectedPrice, setSelectedPrice] = useState<string>("all");
-  const [reraOnly, setReraOnly] = useState(false);
+  const [reraOnly, setReraOnly] = useState(searchParams.get("rera") === "1");
+  const [projectNameFilter] = useState(searchParams.get("projectName") || "");
+  const [handoverYear] = useState(searchParams.get("handoverBy") || "any");
+  const [priceMin] = useState(Number(searchParams.get("priceMin") || 0));
+  const [priceMax] = useState(Number(searchParams.get("priceMax") || 0));
 
   // Auto-set city from detected location
   useEffect(() => {
@@ -103,7 +109,7 @@ const Projects = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedCity, selectedType, selectedPrice, reraOnly, projects]);
+  }, [selectedCity, selectedType, selectedPrice, reraOnly, projects, projectNameFilter, handoverYear, priceMin, priceMax]);
 
   const fetchProjects = async () => {
     try {
@@ -140,20 +146,32 @@ const Projects = () => {
   const applyFilters = () => {
     let filtered = [...projects];
 
-    // City filter
     if (selectedCity !== "all") {
-      filtered = filtered.filter((p) => p.city === selectedCity);
+      filtered = filtered.filter((p) => p.city?.toLowerCase() === selectedCity.toLowerCase());
     }
-
-    // RERA filter
+    if (selectedType !== "all") {
+      filtered = filtered.filter((p: any) => p.project_type === selectedType);
+    }
     if (reraOnly) {
-      filtered = filtered.filter((p) => p.rera_id !== null && p.rera_id !== '' && p.rera_id.trim() !== '');
+      filtered = filtered.filter((p) => p.rera_id && p.rera_id.trim() !== '');
     }
-
-    // Price filter
     if (selectedPrice !== "all") {
       const [min, max] = selectedPrice.split("-").map(Number);
-      filtered = filtered.filter((p) => p.avg_price >= min && p.avg_price <= max);
+      filtered = filtered.filter((p) => (p.avg_price ?? 0) >= min && (p.avg_price ?? 0) <= max);
+    }
+    if (priceMin > 0) filtered = filtered.filter((p) => (p.avg_price ?? 0) >= priceMin);
+    if (priceMax > 0) filtered = filtered.filter((p) => (p.avg_price ?? 0) <= priceMax);
+    if (projectNameFilter) {
+      const q = projectNameFilter.toLowerCase();
+      filtered = filtered.filter((p) => p.name?.toLowerCase().includes(q));
+    }
+    if (handoverYear !== "any") {
+      const year = handoverYear.replace("+", "");
+      filtered = filtered.filter((p: any) => {
+        if (!p.possession_date) return false;
+        const py = new Date(p.possession_date).getFullYear();
+        return handoverYear.endsWith("+") ? py >= Number(year) : py === Number(year);
+      });
     }
 
     setFilteredProjects(filtered);
