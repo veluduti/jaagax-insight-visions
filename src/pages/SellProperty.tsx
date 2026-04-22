@@ -659,10 +659,15 @@ export default function SellProperty() {
                     <div>
                       <Label>Expected Price (₹) *</Label>
                       <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 7500000" />
-                      {form.price && (
-                        <p className="text-xs text-emerald-500 mt-1">
-                          ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
-                        </p>
+                      {form.price && parseFloat(form.price) > 0 && (
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
+                            ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
+                          </span>
+                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
+                            {priceToWords(form.price)}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
