@@ -841,5 +841,3 @@ const EmptyState = ({ message }: { message: string }) => (
 );
 
 export default Search;
-
-export default Search;
