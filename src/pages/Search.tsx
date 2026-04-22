@@ -343,8 +343,29 @@ const Search = () => {
     params.set("tab", activeTab);
     if (location) params.set("city", location);
     if (searchType !== "buy") params.set("type", searchType);
+    const f = advancedFilters;
+    if (f.propertyType !== "any") params.set("propertyType", f.propertyType);
+    if (f.beds !== "any") params.set("beds", f.beds);
+    if (f.bathrooms !== "any") params.set("bathrooms", f.bathrooms);
+    if (f.priceMin > 0) params.set("priceMin", String(f.priceMin));
+    if (f.priceMax > 0) params.set("priceMax", String(f.priceMax));
+    if (f.areaMin > 0) params.set("areaMin", String(f.areaMin));
+    if (f.areaMax > 0) params.set("areaMax", String(f.areaMax));
+    if (f.furnishing !== "any") params.set("furnishing", f.furnishing);
+    if (f.amenities.length > 0) params.set("amenities", f.amenities.join(","));
+    if (f.floorLevel !== "any") params.set("floorLevel", f.floorLevel);
+    if (f.parkingSpaces !== "any") params.set("parking", f.parkingSpaces);
+    if (f.facing !== "any") params.set("facing", f.facing);
+    if (f.possessionStatus !== "any") params.set("status", f.possessionStatus);
+    if (f.propertyAge !== "any") params.set("age", f.propertyAge);
+    if (f.listedBy !== "any") params.set("listedBy", f.listedBy);
+    if (f.verifiedOnly) params.set("verified", "1");
+    if (f.postedWithin !== "any") params.set("posted", f.postedWithin);
+    if (f.reraOnly) params.set("rera", "1");
+    if (f.projectName) params.set("projectName", f.projectName);
+    if (f.handoverBy !== "any") params.set("handoverBy", f.handoverBy);
+    if (f.paymentPlan !== "any") params.set("paymentPlan", f.paymentPlan);
     setSearchParams(params);
-    fetchData();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -797,12 +818,7 @@ const Search = () => {
         activeTab={activeTab}
         searchType={searchType}
         filters={advancedFilters}
-        onFiltersChange={(newFilters) => {
-          setAdvancedFilters({
-            ...advancedFilters,
-            ...newFilters
-          });
-        }}
+        onFiltersChange={setAdvancedFilters}
       />
     </div>
   );
@@ -823,5 +839,7 @@ const EmptyState = ({ message }: { message: string }) => (
     </div>
   </motion.div>
 );
+
+export default Search;
 
 export default Search;
