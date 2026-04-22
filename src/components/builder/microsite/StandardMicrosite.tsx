@@ -130,7 +130,10 @@ const SECTION_IDS = ["home", "about", "amenities", "floorplans", "gallery", "loc
 // ── Navy + Blue Professional Theme ──
 const StandardMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);

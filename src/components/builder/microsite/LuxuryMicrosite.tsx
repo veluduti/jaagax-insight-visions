@@ -141,7 +141,10 @@ const SECTION_IDS = ["home", "about", "amenities", "masterplan", "floorplans", "
 
 const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeSection, setActiveSection] = useState("home");
   const [navSolid, setNavSolid] = useState(false);

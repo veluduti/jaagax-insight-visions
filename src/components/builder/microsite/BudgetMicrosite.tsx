@@ -125,7 +125,10 @@ function buildData(builder: any) {
 // ── White + Soft Green Light Theme ──
 const BudgetMicrosite = ({ builder }: { builder?: any }) => {
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const d = useMemo(() => buildData(builder), [builder]);
+
+  const canEdit = user && role === "builder";
 
   const [activeTab, setActiveTab] = useState("about");
   const [fpTab, setFpTab] = useState<string>(Object.keys(d.floorPlansByFacing)[0] || "East");
