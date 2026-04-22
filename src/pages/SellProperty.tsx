@@ -79,7 +79,7 @@ interface FormState {
 const initialForm: FormState = {
   title: "", type: "", listing_type: "sale", description: "",
   city: "", locality: "", address: "", pincode: "", latitude: null, longitude: null,
-  bedrooms: "", bathrooms: "", balconies: "", area_sqft: "", floor_number: "", total_floors: "",
+  bedrooms: "", bathrooms: "", balconies: "", area_value: "", area_unit: "Sq.ft", floor_number: "", total_floors: "",
   furnishing: "", property_age: "",
   price: "", price_negotiable: false, maintenance_charges: "", booking_amount: "",
   amenities: [], images: [], video_urls: [],
