@@ -17,6 +17,7 @@ import BuilderTrustBadges from "@/components/home/BuilderTrustBadges";
 
 interface Project {
   id: string;
+  slug?: string | null;
   name: string;
   builder_name: string;
   city: string;
@@ -27,6 +28,10 @@ interface Project {
   rera_id: string | null;
   trust_score: number | null;
 }
+
+const openProject = (p: { slug?: string | null; id: string }) => {
+  window.open(`/project/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
+};
 
 interface NewProjectsProps {
   detectedCity?: string;
@@ -179,7 +184,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                 >
                   <Card 
                     className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
-                    onClick={() => navigate(`/project/${project.id}`)}
+                    onClick={() => openProject(project)}
                   >
                     {/* Image */}
                     <div className="relative h-56 overflow-hidden">
@@ -253,7 +258,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         className="w-full border-primary/50 hover:bg-primary/10"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/project/${project.id}`);
+                          openProject(project);
                         }}
                       >
                         Explore Project

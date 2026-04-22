@@ -10,6 +10,7 @@ import SneakPeekPreviewModal from "./SneakPeekPreviewModal";
 
 interface UnverifiedProperty {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;

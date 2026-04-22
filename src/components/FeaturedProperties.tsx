@@ -11,6 +11,7 @@ import MatchBadge from "@/components/home/MatchBadge";
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   city: string | null;
   locality: string | null;
@@ -23,6 +24,10 @@ interface Property {
   trust_score: number | null;
   bhk: number | null;
 }
+
+const openProperty = (p: { slug?: string | null; id: string }) => {
+  window.open(`/property/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
+};
 
 interface FeaturedPropertiesProps {
   detectedCity?: string;
@@ -160,7 +165,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
             >
               <Card 
                 className="card-hover overflow-hidden group cursor-pointer"
-                onClick={() => navigate(`/property/${property.id}`)}
+                onClick={() => openProperty(property)}
               >
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
@@ -238,7 +243,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                     className="w-full border-primary/50 hover:bg-primary/10 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/property/${property.id}`);
+                      openProperty(property);
                     }}
                   >
                     View Details

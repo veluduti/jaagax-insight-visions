@@ -80,19 +80,22 @@ interface Agent {
   verified: boolean | null;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const PropertyDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
+  const id = slug; // backward-compat for code below that still references `id`
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
   
-  // Validate ID parameter
+  // Validate slug parameter
   useEffect(() => {
-    if (!id) {
-      toast.error("Invalid property ID");
+    if (!slug) {
+      toast.error("Invalid property URL");
       navigate("/projects");
     }
-  }, [id, navigate]);
+  }, [slug, navigate]);
   const [property, setProperty] = useState<Property | null>(null);
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,15 +106,31 @@ const PropertyDetail = () => {
 
   useEffect(() => {
     fetchProperty();
-  }, [id]);
+  }, [slug]);
 
   const fetchProperty = async () => {
     try {
-      const { data: propertyData, error: propertyError } = await supabase
+      // Lookup by slug first; fall back to id for legacy UUID links
+      let { data: propertyData, error: propertyError } = await supabase
         .from("properties")
         .select("*")
-        .eq("id", id)
+        .eq("slug", slug as string)
         .maybeSingle();
+
+      if (!propertyData && slug && UUID_RE.test(slug)) {
+        const res = await supabase
+          .from("properties")
+          .select("*")
+          .eq("id", slug)
+          .maybeSingle();
+        propertyData = res.data;
+        propertyError = res.error;
+        if (propertyData && (propertyData as any).slug) {
+          navigate(`/property/${(propertyData as any).slug}`, { replace: true });
+          return;
+        }
+      }
+
 
       if (propertyError) throw propertyError;
       

@@ -882,6 +882,7 @@ export type Database = {
           project_type: string | null
           rera_document_url: string | null
           rera_id: string | null
+          slug: string | null
           status: string | null
           submitted_by: string | null
           total_towers: number | null
@@ -922,6 +923,7 @@ export type Database = {
           project_type?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          slug?: string | null
           status?: string | null
           submitted_by?: string | null
           total_towers?: number | null
@@ -962,6 +964,7 @@ export type Database = {
           project_type?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          slug?: string | null
           status?: string | null
           submitted_by?: string | null
           total_towers?: number | null
@@ -1189,6 +1192,7 @@ export type Database = {
           rera_document_url: string | null
           rera_id: string | null
           retail_centres: number | null
+          slug: string | null
           submitted_by: string | null
           title: string
           total_floors: number | null
@@ -1238,6 +1242,7 @@ export type Database = {
           rera_document_url?: string | null
           rera_id?: string | null
           retail_centres?: number | null
+          slug?: string | null
           submitted_by?: string | null
           title: string
           total_floors?: number | null
@@ -1287,6 +1292,7 @@ export type Database = {
           rera_document_url?: string | null
           rera_id?: string | null
           retail_centres?: number | null
+          slug?: string | null
           submitted_by?: string | null
           title?: string
           total_floors?: number | null
@@ -1950,6 +1956,14 @@ export type Database = {
       }
       generate_unique_builder_slug: {
         Args: { _id: string; _name: string }
+        Returns: string
+      }
+      generate_unique_project_slug: {
+        Args: { _id: string; _name: string }
+        Returns: string
+      }
+      generate_unique_property_slug: {
+        Args: { _id: string; _title: string }
         Returns: string
       }
       get_hotel_application_status: {

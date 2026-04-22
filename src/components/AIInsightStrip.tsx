@@ -11,6 +11,7 @@ import { Sparkles, ThumbsUp, AlertCircle, XCircle, ChevronRight, MapPin } from "
 
 interface PropertyInsight {
   id: string;
+  slug?: string | null;
   title: string;
   locality: string | null;
   city: string | null;
@@ -274,7 +275,7 @@ const AIInsightStrip = () => {
               >
                 <Card
                   className={`cursor-pointer hover:shadow-lg transition-all border-2 ${config.color}`}
-                  onClick={() => navigate(`/property/${insight.id}`)}
+                  onClick={() => window.open(`/property/${insight.slug || insight.id}`, "_blank", "noopener,noreferrer")}
                 >
                   <CardContent className="p-4">
                     {/* Category badge */}
