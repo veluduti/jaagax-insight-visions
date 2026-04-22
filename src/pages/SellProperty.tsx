@@ -363,7 +363,7 @@ export default function SellProperty() {
     bhk: form.bedrooms ? parseInt(form.bedrooms) : null,
     bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
     balconies: form.balconies ? parseInt(form.balconies) : null,
-    area_sqft: form.area_sqft ? parseFloat(form.area_sqft) : null,
+    area_sqft: toSqft(form.area_value, form.area_unit),
     floor_number: form.floor_number ? parseInt(form.floor_number) : null,
     total_floors: form.total_floors ? parseInt(form.total_floors) : null,
     furnishing: form.furnishing || null,
