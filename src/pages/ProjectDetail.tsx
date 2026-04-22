@@ -93,16 +93,17 @@ const amenityIcons: Record<string, any> = {
 };
 
 const ProjectDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams<{ slug: string }>();
+  const id = slug; // backward-compat alias
   const navigate = useNavigate();
   
-  // Validate ID parameter
+  // Validate slug parameter
   useEffect(() => {
-    if (!id) {
-      toast.error("Invalid project ID");
+    if (!slug) {
+      toast.error("Invalid project URL");
       navigate("/projects");
     }
-  }, [id, navigate]);
+  }, [slug, navigate]);
   const [project, setProject] = useState<Project | null>(null);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
@@ -123,23 +124,40 @@ const ProjectDetail = () => {
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
   ];
 
+  const PROJECT_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchProjectDetails();
     }
-  }, [id]);
+  }, [slug]);
 
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
       
-      // Fetch project
-      const { data: projectData, error: projectError } = await supabase
+      // Lookup by slug first; fall back to id for legacy UUID links
+      let { data: projectData, error: projectError } = await supabase
         .from("projects")
         .select("*")
-        .eq("id", id)
+        .eq("slug", slug as string)
         .eq("verified", true)
         .maybeSingle();
+
+      if (!projectData && slug && PROJECT_UUID_RE.test(slug)) {
+        const res = await supabase
+          .from("projects")
+          .select("*")
+          .eq("id", slug)
+          .eq("verified", true)
+          .maybeSingle();
+        projectData = res.data;
+        projectError = res.error;
+        if (projectData && (projectData as any).slug) {
+          navigate(`/project/${(projectData as any).slug}`, { replace: true });
+          return;
+        }
+      }
 
       if (projectError) throw projectError;
       
