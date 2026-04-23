@@ -348,6 +348,7 @@ const Search = () => {
     const params = new URLSearchParams();
     params.set("tab", activeTab);
     if (location) params.set("city", location);
+    if (activeTab === "properties") params.set("tier", tierFilter);
     if (searchType !== "buy") params.set("type", searchType);
     const f = advancedFilters;
     if (f.propertyType !== "any") params.set("propertyType", f.propertyType);
