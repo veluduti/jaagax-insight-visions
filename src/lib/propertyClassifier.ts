@@ -39,7 +39,7 @@ export function classifyProperty(p: ClassifyInput): PropertyTier {
     has(p.price) &&
     has(p.bhk) &&
     has(p.area_sqft) &&
-    imageCount >= 5;
+    imageCount >= 2;
 
   return isFeatured ? "featured" : "basic";
 }
@@ -55,6 +55,6 @@ export function getMissingForFeatured(p: ClassifyInput): string[] {
   if (!has(p.bhk)) missing.push("BHK");
   if (!has(p.area_sqft)) missing.push("Carpet area");
   const imageCount = Array.isArray(p.images) ? p.images.length : 0;
-  if (imageCount < 5) missing.push(`${5 - imageCount} more image(s)`);
+  if (imageCount < 2) missing.push(`${2 - imageCount} more image(s)`);
   return missing;
 }
