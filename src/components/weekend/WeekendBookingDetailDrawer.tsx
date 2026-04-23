@@ -68,6 +68,12 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
   const [rateStars, setRateStars] = useState(5);
   const [rateReview, setRateReview] = useState("");
 
+  const formatSafeDate = (value?: string | null, pattern: string = "PPP") => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : format(date, pattern);
+  };
+
   const load = async () => {
     if (!bookingId) return;
     setLoading(true);
@@ -417,7 +423,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                 <Sparkles className="h-4 w-4 text-primary" />
                 Weekend Explorer Booking
               </SheetTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">#{booking.id.slice(0, 8)} · created {format(new Date(booking.created_at), "PPp")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">#{booking.id.slice(0, 8)} · created {formatSafeDate(booking.created_at, "PPp")}</p>
             </div>
             <Badge className={statusInfo.color} variant="outline">{statusInfo.label}</Badge>
           </div>
@@ -518,7 +524,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
               </Section>
 
               <Section icon={Calendar} title="Schedule">
-                <div className="text-sm">{format(new Date(booking.start_date), "PPP")} → {format(new Date(booking.end_date), "PPP")}</div>
+                <div className="text-sm">{formatSafeDate(booking.start_date)} → {formatSafeDate(booking.end_date)}</div>
               </Section>
 
               <Section icon={Hotel} title="Stay">
@@ -563,7 +569,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
               {booking.deal_amount && (
                 <Section icon={Handshake} title="Deal closed">
                   <p className="text-sm font-semibold text-emerald-600">{formatINR(booking.deal_amount)}</p>
-                  {booking.deal_closed_at && <p className="text-xs text-muted-foreground">Closed on {format(new Date(booking.deal_closed_at), "PPP")}</p>}
+                  {booking.deal_closed_at && <p className="text-xs text-muted-foreground">Closed on {formatSafeDate(booking.deal_closed_at)}</p>}
                 </Section>
               )}
 
