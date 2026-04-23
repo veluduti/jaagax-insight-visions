@@ -422,22 +422,17 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
   const currentType = classifyBuilder(Number(form.numberOfProjects) || 0);
 
-  const ArrayInputField = ({ label, field, inputField, placeholder }: { label: string; field: string; inputField: string; placeholder: string }) => (
-    <div>
-      <label className="text-sm font-medium mb-1.5 block">{label}</label>
-      <div className="flex gap-2">
-        <Input value={(form as any)[inputField]} onChange={(e) => updateField(inputField, e.target.value)} placeholder={placeholder}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray(field, inputField))} />
-        <Button type="button" variant="outline" onClick={() => addToArray(field, inputField)}>Add</Button>
-      </div>
-      {((form as any)[field] || []).length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {((form as any)[field] || []).map((item: string, i: number) => (
-            <Badge key={i} variant="secondary" className="gap-1">{item}<X className="h-3 w-3 cursor-pointer" onClick={() => removeFromArray(field, i)} /></Badge>
-          ))}
-        </div>
-      )}
-    </div>
+  // Helper to render the focus-stable ArrayInputField with our state
+  const renderArrayField = (label: string, field: string, inputField: string, placeholder: string) => (
+    <ArrayInputField
+      label={label}
+      placeholder={placeholder}
+      inputValue={(form as any)[inputField] || ""}
+      items={((form as any)[field] || []) as string[]}
+      onInputChange={(v) => updateField(inputField, v)}
+      onAdd={() => addToArray(field, inputField)}
+      onRemove={(i) => removeFromArray(field, i)}
+    />
   );
 
   if (isLoading) {
