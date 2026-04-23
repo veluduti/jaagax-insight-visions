@@ -477,8 +477,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
             <div><label className="text-sm font-medium mb-1.5 block">Mission</label><Textarea value={form.aboutMission} onChange={(e) => updateField("aboutMission", e.target.value)} placeholder="Our mission..." rows={2} /></div>
             <div><label className="text-sm font-medium mb-1.5 block">Vision</label><Textarea value={form.aboutVision} onChange={(e) => updateField("aboutVision", e.target.value)} placeholder="Our vision..." rows={2} /></div>
           </div>
-          <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label><Input value={form.logo} onChange={(e) => updateField("logo", e.target.value)} placeholder="https://example.com/logo.png" /></div>
-          <ArrayInputField label="About Features / Highlights" field="aboutFeatures" inputField="aboutFeatureInput" placeholder="e.g. Smart home automation" />
+          <FileUploadField label="Logo" value={form.logo} onChange={(v) => updateField("logo", v)} folder="logos" placeholder="Click upload or paste logo URL" />
+          {renderArrayField("About Features / Highlights", "aboutFeatures", "aboutFeatureInput", "e.g. Smart home automation")}
         </CardContent>
       </Card>
 
