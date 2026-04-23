@@ -13,6 +13,7 @@ import {
   ArrowLeft, Home, MapPin, Building2, IndianRupee, Sparkles,
   ImagePlus, FileText, User, Save, CheckCircle2, X, Upload,
 } from "lucide-react";
+import { classifyProperty, getMissingForFeatured } from "@/lib/propertyClassifier";
 
 const PROPERTY_TYPES = ["Apartment", "Villa", "Independent House", "Plot"] as const;
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"] as const;
