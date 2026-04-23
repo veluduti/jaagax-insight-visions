@@ -92,6 +92,9 @@ const Search = () => {
   
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
+  const [tierFilter, setTierFilter] = useState<"featured" | "partial">(
+    (searchParams.get("tier") as "featured" | "partial") || "featured"
+  );
   
   // Search state - default to detected city if no search param
   const [location, setLocation] = useState(
