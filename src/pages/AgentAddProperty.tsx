@@ -120,27 +120,9 @@ export default function AgentAddProperty() {
     );
   };
 
-  const validate = (asDraft = false) => {
-    if (asDraft) return true;
-    if (!title.trim()) return "Property title is required";
-    if (!description.trim() || description.length < 30)
-      return "Description must be at least 30 characters";
-    if (!city) return "City is required";
-    if (!locality.trim()) return "Locality is required";
-    if (!address.trim()) return "Address is required";
-    if (propertyType !== "Plot" && !bedrooms) return "Bedrooms (BHK) is required";
-    if (propertyType !== "Plot" && !bathrooms) return "Bathrooms is required";
-    if (!areaSqft) return "Area (sq ft) is required";
-    if (!price) return "Expected price is required";
-    if (listingType === "rent" && !securityDeposit) return "Security deposit is required for rent";
-    if (imageFiles.length < 3) return "Upload at least 3 property images";
-    if (!ownershipFile) return "Ownership proof is mandatory";
-    if (!agentIsOwner && !authLetterFile)
-      return "Authorization letter is mandatory if agent is not owner";
-    if (!ownerName.trim()) return "Owner name is required";
-    if (!ownerPhone.trim() || ownerPhone.length < 10) return "Valid owner phone is required";
-    return true;
-  };
+  // Validation is intentionally permissive — partial data is allowed.
+  // Tier (draft / basic / featured) is computed from what was filled.
+  const validate = (_asDraft = false): true | string => true;
 
   const uploadFile = async (file: File, folder: string) => {
     const ext = file.name.split(".").pop();
