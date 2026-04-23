@@ -15,11 +15,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBuyerContext } from "@/hooks/useBuyerContext";
 import { 
   Sparkles, MapPin, SlidersHorizontal, Building2, Shield, 
-  TrendingUp, ChevronRight, Users, Home, BarChart3
+  TrendingUp, ChevronRight, Users, Home, BarChart3, Star, Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
+import { classifyProperty } from "@/lib/propertyClassifier";
 
 interface Property {
   id: string;
@@ -91,6 +92,9 @@ const Search = () => {
   
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
+  const [tierFilter, setTierFilter] = useState<"featured" | "partial">(
+    (searchParams.get("tier") as "featured" | "partial") || "featured"
+  );
   
   // Search state - default to detected city if no search param
   const [location, setLocation] = useState(
@@ -142,16 +146,13 @@ const Search = () => {
 
   const navItems = [
     { label: "Properties", value: "properties", icon: Home },
-    { label: "New Projects", value: "new-projects", icon: Building2 },
-    { label: "Transactions", value: "transactions", icon: BarChart3 },
-    { label: "Agents", value: "agents", icon: Users },
   ];
 
   // Fetch data when tab or filters change
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, location, searchType, advancedFilters]);
+  }, [activeTab, location, searchType, advancedFilters, tierFilter]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
@@ -229,12 +230,17 @@ const Search = () => {
   };
 
   const fetchProperties = async () => {
-    let qb = supabase.from("properties").select("*", { count: "exact" });
+    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
     qb = applyPropertyFilters(qb);
-    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
     if (!error) {
-      setProperties(data || []);
-      setTotal(count || 0);
+      const all = (data as any[]) || [];
+      const filtered = all.filter((p) => {
+        const tier = classifyProperty(p);
+        return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+      });
+      setProperties(filtered.slice(0, 50));
+      setTotal(filtered.length);
     }
   };
 
@@ -342,6 +348,7 @@ const Search = () => {
     const params = new URLSearchParams();
     params.set("tab", activeTab);
     if (location) params.set("city", location);
+    if (activeTab === "properties") params.set("tier", tierFilter);
     if (searchType !== "buy") params.set("type", searchType);
     const f = advancedFilters;
     if (f.propertyType !== "any") params.set("propertyType", f.propertyType);
@@ -385,7 +392,8 @@ const Search = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case "properties": return "Properties";
+      case "properties":
+        return tierFilter === "featured" ? "Featured Properties" : "Partial Properties";
       case "new-projects": return "New Projects";
       case "transactions": return "Transactions";
       case "agents": return "Agents";
@@ -704,6 +712,42 @@ const Search = () => {
 
                   {/* Search Form */}
                   <div className="p-4 space-y-3">
+                    {/* Tier Sub-Tabs (Featured / Partial) */}
+                    {activeTab === "properties" && (
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <button
+                          onClick={() => {
+                            setTierFilter("featured");
+                            const params = new URLSearchParams(searchParams);
+                            params.set("tier", "featured");
+                            setSearchParams(params);
+                          }}
+                          className={`py-2 px-4 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                            tierFilter === "featured"
+                              ? "bg-primary/10 text-primary border border-primary/30"
+                              : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                          }`}
+                        >
+                          <Star className="h-3.5 w-3.5" /> Featured
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTierFilter("partial");
+                            const params = new URLSearchParams(searchParams);
+                            params.set("tier", "partial");
+                            setSearchParams(params);
+                          }}
+                          className={`py-2 px-4 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                            tierFilter === "partial"
+                              ? "bg-primary/10 text-primary border border-primary/30"
+                              : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                          }`}
+                        >
+                          <Info className="h-3.5 w-3.5" /> Partial
+                        </button>
+                      </div>
+                    )}
+
                     {/* Transaction Type + Location + Search Row */}
                     <div className="flex gap-2 items-center flex-wrap">
                       {renderTransactionTabs()}

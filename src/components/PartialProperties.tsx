@@ -213,7 +213,7 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
             size="lg"
             variant="outline"
             className="border-primary/40 hover:bg-primary/10 hover:border-primary transition-all"
-            onClick={() => navigate("/search")}
+            onClick={() => navigate("/search?tab=properties&tier=partial")}
           >
             Explore All Listings
           </Button>
