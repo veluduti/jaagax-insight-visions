@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Users, TrendingUp, LogOut, Building2, Home, Phone, Mail, MapPin,
   CheckCircle2, Eye, Calendar, BarChart3, Clock, Bell, Plus,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
 import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
+import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 
 /* ============================================================
    Types
@@ -135,11 +137,15 @@ const lsSet = (uid: string, k: string, v: any) => {
    ============================================================ */
 export default function AgentDashboard() {
   const navigate = useNavigate();
+  const { user: authUser, role, loading: authLoading, signOut } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [visits, setVisits] = useState<VisitBooking[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [initializing, setInitializing] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({});
   const [stats, setStats] = useState({
     totalProperties: 0,
     activeListings: 0,
@@ -163,10 +169,32 @@ export default function AgentDashboard() {
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [newDeal, setNewDeal] = useState({ buyer_name: "", property_id: "", value: "", notes: "" });
 
+  const clearSectionError = (key: string) => {
+    setSectionErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   /* ---------- Load user + agent ---------- */
   useEffect(() => {
-    fetchUserAndProfile();
-  }, []);
+    if (authLoading) return;
+
+    if (!authUser) {
+      navigate("/auth");
+      return;
+    }
+
+    if (role && role !== "agent") {
+      setDashboardError("This dashboard is only available for agent accounts.");
+      setInitializing(false);
+      return;
+    }
+
+    void fetchUserAndProfile(authUser);
+  }, [authLoading, authUser, role, navigate]);
 
   // Realtime
   useEffect(() => {
@@ -197,77 +225,134 @@ export default function AgentDashboard() {
     if (user?.id) lsSet(user.id, "tasks", tasks);
   }, [tasks, user?.id]);
 
-  const fetchUserAndProfile = async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) { navigate("/auth"); return; }
+  const fetchUserAndProfile = async (authenticatedUser: NonNullable<typeof authUser>) => {
+    setInitializing(true);
+    setDashboardError(null);
 
-    setUser({
-      id: authUser.id,
-      email: authUser.email,
-      name: authUser.user_metadata?.name || authUser.email?.split("@")[0] || "Agent",
-    });
-
-    // Load CRM local
-    setLeadOverrides(lsGet(authUser.id, "leadOverrides", {}));
-    setDeals(lsGet(authUser.id, "deals", []));
-    setTasks(lsGet(authUser.id, "tasks", []));
-
-    const { data: agentData } = await supabase
-      .from("agents").select("*").eq("user_id", authUser.id).maybeSingle();
-
-    if (!agentData) {
-      setAgentProfile({
-        id: authUser.id, name: authUser.email?.split("@")[0] || "Agent",
-        email: authUser.email, photo_url: null, agency_name: null,
-        cities_served: null, languages: null, sales_count: 0,
-        trust_score: 75, verified: true,
+    try {
+      setUser({
+        id: authenticatedUser.id,
+        email: authenticatedUser.email,
+        name: authenticatedUser.user_metadata?.name || authenticatedUser.email?.split("@")[0] || "Agent",
       });
-      return;
+
+      setLeadOverrides(lsGet(authenticatedUser.id, "leadOverrides", {}));
+      setDeals(lsGet(authenticatedUser.id, "deals", []));
+      setTasks(lsGet(authenticatedUser.id, "tasks", []));
+
+      const { data: agentData, error: agentError } = await supabase
+        .from("agents").select("*").eq("user_id", authenticatedUser.id).maybeSingle();
+
+      if (agentError) {
+        throw agentError;
+      }
+
+      if (!agentData) {
+        setAgentProfile({
+          id: authenticatedUser.id,
+          name: authenticatedUser.email?.split("@")[0] || "Agent",
+          email: authenticatedUser.email,
+          photo_url: null,
+          agency_name: null,
+          cities_served: null,
+          languages: null,
+          sales_count: 0,
+          trust_score: 75,
+          verified: true,
+        });
+        await fetchNotifications(authenticatedUser.id);
+        return;
+      }
+
+      setAgentProfile(agentData as AgentProfile);
+      await Promise.allSettled([
+        fetchAgentProperties(authenticatedUser.id, agentData.id),
+        fetchVisits(agentData.id),
+        fetchNotifications(authenticatedUser.id),
+      ]);
+    } catch (error: any) {
+      console.error("Error loading agent dashboard:", error);
+      setDashboardError(error?.message || "We couldn’t load your dashboard right now.");
+      setProperties([]);
+      setVisits([]);
+      setNotifications([]);
+      setStats({ totalProperties: 0, activeListings: 0, viewsThisMonth: 0, savedByUsers: 0 });
+    } finally {
+      setInitializing(false);
     }
-    setAgentProfile(agentData as AgentProfile);
-    fetchAgentProperties(authUser.id, agentData.id);
-    fetchVisits(agentData.id);
-    fetchNotifications(authUser.id);
   };
 
   const fetchVisits = async (agentId: string) => {
-    const { data } = await supabase
-      .from("visit_bookings").select("*")
-      .eq("agent_id", agentId)
-      .order("visit_date", { ascending: false });
-    setVisits((data || []) as VisitBooking[]);
+    try {
+      const { data, error } = await supabase
+        .from("visit_bookings").select("*")
+        .eq("agent_id", agentId)
+        .order("visit_date", { ascending: false });
+
+      if (error) throw error;
+      setVisits((data || []) as VisitBooking[]);
+      clearSectionError("visits");
+    } catch (error: any) {
+      console.error("Error loading agent visits:", error);
+      setVisits([]);
+      setSectionErrors((prev) => ({ ...prev, visits: error?.message || "Unable to load visit data." }));
+    }
   };
 
   const fetchAgentProperties = async (userId: string, agentId: string) => {
-    const { data } = await supabase
-      .from("properties").select("*")
-      .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
-      .order("created_at", { ascending: false });
-    if (!data) return;
-    setProperties(data as Property[]);
-    const ids = data.map((p: any) => p.id);
-    let savedCount = 0, viewsCount = 0;
-    if (ids.length) {
-      const [{ count: f }, { count: v }] = await Promise.all([
-        supabase.from("favorites").select("*", { count: "exact", head: true }).in("property_id", ids),
-        supabase.from("buyer_journey_events").select("*", { count: "exact", head: true }).in("property_id", ids),
-      ]);
-      savedCount = f || 0; viewsCount = v || 0;
+    try {
+      const { data, error } = await supabase
+        .from("properties").select("*")
+        .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const safeProperties = (data || []) as Property[];
+      setProperties(safeProperties);
+      const ids = safeProperties.map((p: any) => p.id);
+      let savedCount = 0;
+      let viewsCount = 0;
+
+      if (ids.length) {
+        const [{ count: f }, { count: v }] = await Promise.all([
+          supabase.from("favorites").select("*", { count: "exact", head: true }).in("property_id", ids),
+          supabase.from("buyer_journey_events").select("*", { count: "exact", head: true }).in("property_id", ids),
+        ]);
+        savedCount = f || 0;
+        viewsCount = v || 0;
+      }
+
+      setStats({
+        totalProperties: safeProperties.length,
+        activeListings: safeProperties.filter((p: any) => p.verified === true).length,
+        viewsThisMonth: viewsCount,
+        savedByUsers: savedCount,
+      });
+      clearSectionError("properties");
+    } catch (error: any) {
+      console.error("Error loading agent properties:", error);
+      setProperties([]);
+      setStats({ totalProperties: 0, activeListings: 0, viewsThisMonth: 0, savedByUsers: 0 });
+      setSectionErrors((prev) => ({ ...prev, properties: error?.message || "Unable to load properties." }));
     }
-    setStats({
-      totalProperties: data.length,
-      activeListings: data.filter((p: any) => p.verified === true).length,
-      viewsThisMonth: viewsCount,
-      savedByUsers: savedCount,
-    });
   };
 
   const fetchNotifications = async (userId: string) => {
-    const { data } = await supabase
-      .from("notifications").select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }).limit(8);
-    setNotifications(data || []);
+    try {
+      const { data, error } = await supabase
+        .from("notifications").select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }).limit(8);
+
+      if (error) throw error;
+      setNotifications(data || []);
+      clearSectionError("notifications");
+    } catch (error: any) {
+      console.error("Error loading notifications:", error);
+      setNotifications([]);
+      setSectionErrors((prev) => ({ ...prev, notifications: error?.message || "Unable to load notifications." }));
+    }
   };
 
   /* ---------- Derived data ---------- */
@@ -365,17 +450,38 @@ export default function AgentDashboard() {
     setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    await signOut();
   };
 
   const formatPrice = (p: number) =>
     p >= 10000000 ? `₹${(p / 10000000).toFixed(2)} Cr` : `₹${(p / 100000).toFixed(2)} L`;
 
-  if (!user || !agentProfile) {
+  if (authLoading || initializing || !user || !agentProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background">
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading agent dashboard…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dashboardError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background p-4">
+        <Card className="w-full max-w-lg border-border/60">
+          <CardHeader>
+            <CardTitle className="text-xl">Agent dashboard unavailable</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{dashboardError}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => authUser && void fetchUserAndProfile(authUser)}>Try again</Button>
+              <Button variant="outline" onClick={() => navigate("/")}>Go Home</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -517,29 +623,35 @@ export default function AgentDashboard() {
 
         {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
         {agentProfile.id && user?.id && (
-          <AssignedPropertiesPanel
-            agentId={agentProfile.id}
-            agentUserId={user.id}
-            agentName={agentProfile.name || "Agent"}
-          />
+          <SectionErrorBoundary title="Assigned properties unavailable" description={sectionErrors.properties || "Assigned properties could not be displayed right now."}>
+            <AssignedPropertiesPanel
+              agentId={agentProfile.id}
+              agentUserId={user.id}
+              agentName={agentProfile.name || "Agent"}
+            />
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Weekend Property Explorer Bookings ===== */}
         {agentProfile.id && user?.id && (
-          <Card className="border-primary/20">
-            <CardContent className="p-4 md:p-5">
-              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
-            </CardContent>
-          </Card>
+          <SectionErrorBoundary title="Weekend bookings unavailable" description={sectionErrors.visits || "Weekend booking data could not be loaded right now."}>
+            <Card className="border-primary/20">
+              <CardContent className="p-4 md:p-5">
+                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+              </CardContent>
+            </Card>
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Quick Visit Package Bookings ===== */}
         {agentProfile.id && user?.id && (
-          <Card className="border-amber-500/20">
-            <CardContent className="p-4 md:p-5">
-              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
-            </CardContent>
-          </Card>
+          <SectionErrorBoundary title="Quick visit bookings unavailable" description={sectionErrors.visits || "Quick visit data could not be loaded right now."}>
+            <Card className="border-amber-500/20">
+              <CardContent className="p-4 md:p-5">
+                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
+              </CardContent>
+            </Card>
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Today's Tasks + Notifications strip ===== */}
