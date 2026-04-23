@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Users, TrendingUp, LogOut, Building2, Home, Phone, Mail, MapPin,
   CheckCircle2, Eye, Calendar, BarChart3, Clock, Bell, Plus,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
 import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
+import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 
 /* ============================================================
    Types
@@ -135,11 +137,15 @@ const lsSet = (uid: string, k: string, v: any) => {
    ============================================================ */
 export default function AgentDashboard() {
   const navigate = useNavigate();
+  const { user: authUser, role, loading: authLoading, signOut } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [visits, setVisits] = useState<VisitBooking[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [initializing, setInitializing] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({});
   const [stats, setStats] = useState({
     totalProperties: 0,
     activeListings: 0,
@@ -163,10 +169,32 @@ export default function AgentDashboard() {
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [newDeal, setNewDeal] = useState({ buyer_name: "", property_id: "", value: "", notes: "" });
 
+  const clearSectionError = (key: string) => {
+    setSectionErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   /* ---------- Load user + agent ---------- */
   useEffect(() => {
-    fetchUserAndProfile();
-  }, []);
+    if (authLoading) return;
+
+    if (!authUser) {
+      navigate("/auth");
+      return;
+    }
+
+    if (role && role !== "agent") {
+      setDashboardError("This dashboard is only available for agent accounts.");
+      setInitializing(false);
+      return;
+    }
+
+    void fetchUserAndProfile(authUser);
+  }, [authLoading, authUser, role, navigate]);
 
   // Realtime
   useEffect(() => {
@@ -197,37 +225,61 @@ export default function AgentDashboard() {
     if (user?.id) lsSet(user.id, "tasks", tasks);
   }, [tasks, user?.id]);
 
-  const fetchUserAndProfile = async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) { navigate("/auth"); return; }
+  const fetchUserAndProfile = async (authenticatedUser: NonNullable<typeof authUser>) => {
+    setInitializing(true);
+    setDashboardError(null);
 
-    setUser({
-      id: authUser.id,
-      email: authUser.email,
-      name: authUser.user_metadata?.name || authUser.email?.split("@")[0] || "Agent",
-    });
-
-    // Load CRM local
-    setLeadOverrides(lsGet(authUser.id, "leadOverrides", {}));
-    setDeals(lsGet(authUser.id, "deals", []));
-    setTasks(lsGet(authUser.id, "tasks", []));
-
-    const { data: agentData } = await supabase
-      .from("agents").select("*").eq("user_id", authUser.id).maybeSingle();
-
-    if (!agentData) {
-      setAgentProfile({
-        id: authUser.id, name: authUser.email?.split("@")[0] || "Agent",
-        email: authUser.email, photo_url: null, agency_name: null,
-        cities_served: null, languages: null, sales_count: 0,
-        trust_score: 75, verified: true,
+    try {
+      setUser({
+        id: authenticatedUser.id,
+        email: authenticatedUser.email,
+        name: authenticatedUser.user_metadata?.name || authenticatedUser.email?.split("@")[0] || "Agent",
       });
-      return;
+
+      setLeadOverrides(lsGet(authenticatedUser.id, "leadOverrides", {}));
+      setDeals(lsGet(authenticatedUser.id, "deals", []));
+      setTasks(lsGet(authenticatedUser.id, "tasks", []));
+
+      const { data: agentData, error: agentError } = await supabase
+        .from("agents").select("*").eq("user_id", authenticatedUser.id).maybeSingle();
+
+      if (agentError) {
+        throw agentError;
+      }
+
+      if (!agentData) {
+        setAgentProfile({
+          id: authenticatedUser.id,
+          name: authenticatedUser.email?.split("@")[0] || "Agent",
+          email: authenticatedUser.email,
+          photo_url: null,
+          agency_name: null,
+          cities_served: null,
+          languages: null,
+          sales_count: 0,
+          trust_score: 75,
+          verified: true,
+        });
+        await fetchNotifications(authenticatedUser.id);
+        return;
+      }
+
+      setAgentProfile(agentData as AgentProfile);
+      await Promise.allSettled([
+        fetchAgentProperties(authenticatedUser.id, agentData.id),
+        fetchVisits(agentData.id),
+        fetchNotifications(authenticatedUser.id),
+      ]);
+    } catch (error: any) {
+      console.error("Error loading agent dashboard:", error);
+      setDashboardError(error?.message || "We couldn’t load your dashboard right now.");
+      setProperties([]);
+      setVisits([]);
+      setNotifications([]);
+      setStats({ totalProperties: 0, activeListings: 0, viewsThisMonth: 0, savedByUsers: 0 });
+    } finally {
+      setInitializing(false);
     }
-    setAgentProfile(agentData as AgentProfile);
-    fetchAgentProperties(authUser.id, agentData.id);
-    fetchVisits(agentData.id);
-    fetchNotifications(authUser.id);
   };
 
   const fetchVisits = async (agentId: string) => {
