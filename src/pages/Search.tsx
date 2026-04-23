@@ -152,7 +152,7 @@ const Search = () => {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, location, searchType, advancedFilters]);
+  }, [activeTab, location, searchType, advancedFilters, tierFilter]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
