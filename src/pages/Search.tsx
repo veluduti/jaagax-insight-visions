@@ -15,11 +15,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBuyerContext } from "@/hooks/useBuyerContext";
 import { 
   Sparkles, MapPin, SlidersHorizontal, Building2, Shield, 
-  TrendingUp, ChevronRight, Users, Home, BarChart3
+  TrendingUp, ChevronRight, Users, Home, BarChart3, Star, Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
+import { classifyProperty } from "@/lib/propertyClassifier";
 
 interface Property {
   id: string;
