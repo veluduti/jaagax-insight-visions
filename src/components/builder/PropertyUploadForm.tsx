@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +20,7 @@ import {
   Building2, Upload, MapPin, Image as ImageIcon, X, Loader2, Lock,
   IndianRupee, Home, Sparkles, FileText, Phone, Map as MapIcon, Compass,
 } from "lucide-react";
+import { classifyProperty, getMissingForFeatured } from "@/lib/propertyClassifier";
 
 const AMENITY_OPTIONS = [
   "Gym", "Swimming Pool", "Lift", "Security", "Power Backup",
