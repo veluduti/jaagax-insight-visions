@@ -433,7 +433,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
           <Building2 className="h-5 w-5" /> Add New Property
         </CardTitle>
         <CardDescription>
-          Provide complete information for the best buyer experience. Required fields are marked *.
+          Fill what you have — we'll save the rest. Provide title, type, status, location, price, BHK, area and 5+ images to qualify as a <strong>Featured</strong> listing.
         </CardDescription>
       </CardHeader>
       <CardContent>
