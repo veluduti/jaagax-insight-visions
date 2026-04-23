@@ -268,7 +268,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
             size="lg" 
             variant="outline" 
             className="border-primary/50 hover:bg-primary/10 hover:border-primary transition-all"
-            onClick={() => navigate('/map')}
+            onClick={() => navigate('/search')}
           >
             View All Properties
           </Button>
