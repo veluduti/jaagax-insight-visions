@@ -392,7 +392,8 @@ const Search = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case "properties": return "Properties";
+      case "properties":
+        return tierFilter === "featured" ? "Featured Properties" : "Partial Properties";
       case "new-projects": return "New Projects";
       case "transactions": return "Transactions";
       case "agents": return "Agents";
