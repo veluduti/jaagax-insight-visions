@@ -122,11 +122,7 @@ const PropertyReels = () => {
         <PropertyReelCard
           property={currentProperty}
           isActive={true}
-          onViewDetails={() => {
-            setDrawerTab("details");
-            setDrawerOpen(true);
-          }}
-          onBookVisit={() => {
+          onVisit={() => {
             setDrawerTab("book");
             setDrawerOpen(true);
           }}

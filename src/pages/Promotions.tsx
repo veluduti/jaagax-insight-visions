@@ -4,7 +4,6 @@ import { ArrowLeft, Film, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import PropertyReelCard from "@/components/reels/PropertyReelCard";
-import ReelPropertyDrawer from "@/components/reels/ReelPropertyDrawer";
 
 interface Property {
   id: string;
@@ -17,14 +16,8 @@ interface Property {
   verified: boolean | null;
   video_urls: string[];
   images: string[] | null;
-  description: string | null;
-  area_sqft: number | null;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  address: string | null;
 }
 
-// Property-tour style YouTube Shorts (real-estate / home walkthroughs)
 const PROPERTY_REELS = [
   "https://www.youtube.com/shorts/3v-yqmehjGE",
   "https://www.youtube.com/shorts/8wzIyiHwScE",
@@ -49,12 +42,9 @@ const Promotions = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerTab, setDrawerTab] = useState<"details" | "book">("details");
 
   useEffect(() => {
     const fetchProperties = async () => {
-      // Pull verified properties first, fall back to any if not enough.
       const { data: verified } = await supabase
         .from("properties")
         .select("*")
@@ -87,19 +77,26 @@ const Promotions = () => {
     fetchProperties();
   }, []);
 
-  // Track current reel based on scroll position
+  // Track active reel using IntersectionObserver for accuracy
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || properties.length === 0) return;
 
-    const handleScroll = () => {
-      const idx = Math.round(container.scrollTop / container.clientHeight);
-      if (idx !== currentIndex) setCurrentIndex(idx);
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [currentIndex]);
+    const reelEls = container.querySelectorAll<HTMLDivElement>("[data-reel-index]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            const idx = Number((entry.target as HTMLElement).dataset.reelIndex);
+            setCurrentIndex(idx);
+          }
+        });
+      },
+      { root: container, threshold: [0.6] }
+    );
+    reelEls.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [properties.length]);
 
   if (loading) {
     return (
@@ -125,74 +122,60 @@ const Promotions = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-black relative overflow-hidden">
+    <div className="min-h-screen w-full bg-neutral-950 relative flex items-center justify-center py-4 sm:py-6">
       {/* Back button (fixed overlay) */}
-      <div className="absolute top-4 left-4 z-30">
+      <div className="fixed top-4 left-4 z-40">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
-          className="text-white hover:bg-white/20 bg-black/30 backdrop-blur-sm"
+          className="text-white hover:bg-white/20 bg-black/40 backdrop-blur-sm rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Title (fixed overlay) */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+      {/* Title */}
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
         <Sparkles className="h-4 w-4 text-primary" />
         <span className="text-white font-bold text-sm">Promotions</span>
       </div>
 
-      {/* Counter (fixed overlay) */}
-      <div className="absolute top-5 right-4 z-30 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full">
+      {/* Counter */}
+      <div className="fixed top-5 right-4 z-40 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
         <span className="text-white/90 text-xs font-medium">
           {currentIndex + 1} / {properties.length}
         </span>
       </div>
 
-      {/* Vertical scroll-snap reels feed */}
+      {/* Centered mobile-style reel container */}
       <div
         ref={containerRef}
-        className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: "none" }}
+        className="relative w-full max-w-[420px] h-[90vh] overflow-y-scroll snap-y snap-mandatory rounded-2xl shadow-2xl bg-black scrollbar-hide"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {properties.map((property, idx) => (
           <div
             key={property.id}
-            className="h-screen w-full snap-start snap-always relative"
+            data-reel-index={idx}
+            className="h-[90vh] w-full snap-start snap-always relative"
           >
             <PropertyReelCard
               property={property}
               isActive={idx === currentIndex}
-              onViewDetails={() => {
-                setDrawerTab("details");
-                setDrawerOpen(true);
-              }}
-              onBookVisit={() => {
-                setDrawerTab("book");
-                setDrawerOpen(true);
-              }}
+              onVisit={() => navigate(`/property/${property.id}`)}
             />
           </div>
         ))}
+
+        {/* Swipe-up hint on first reel */}
+        {currentIndex === 0 && properties.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 text-white/70 text-[11px] flex flex-col items-center gap-0.5 animate-bounce pointer-events-none">
+            <span>Swipe up</span>
+            <span className="text-base leading-none">↑</span>
+          </div>
+        )}
       </div>
-
-      {/* Swipe-up hint on first reel */}
-      {currentIndex === 0 && properties.length > 1 && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 text-white/70 text-xs flex flex-col items-center gap-1 animate-bounce pointer-events-none">
-          <span>Swipe up for more</span>
-          <span className="text-base">↑</span>
-        </div>
-      )}
-
-      {/* Property drawer */}
-      <ReelPropertyDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        property={properties[currentIndex]}
-        activeTab={drawerTab}
-      />
     </div>
   );
 };
