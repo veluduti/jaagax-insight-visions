@@ -243,14 +243,29 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
     setIsSubmitting(true);
     try {
-      const isDraft = !!values.is_draft;
-      const payload: any = {
+      // Classify based on the data the user actually provided
+      const tier = classifyProperty({
         title: values.title,
-        description: values.description,
         type: values.type,
-        completion_stage: values.completion_stage,
         listing_type: values.listing_type,
-        furnishing: values.furnishing,
+        city: values.city,
+        locality: values.locality,
+        price: toNum(values.price),
+        bhk: toNum(values.bhk),
+        area_sqft: toNum(values.area_sqft),
+        images: imageFiles,
+      });
+
+      // Drafts: either explicitly chosen, OR auto-classified as draft (missing essentials)
+      const isDraft = !!values.is_draft || tier === "draft";
+
+      const payload: any = {
+        title: values.title || "Untitled property",
+        description: values.description || null,
+        type: values.type || null,
+        completion_stage: values.completion_stage || null,
+        listing_type: values.listing_type || null,
+        furnishing: values.furnishing || null,
         property_age: values.property_age || null,
 
         bhk: toNum(values.bhk),
@@ -266,10 +281,10 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         building_area_sqft: toNum(values.building_area_sqft),
         elevators: toNum(values.elevators),
 
-        city: values.city,
-        locality: values.locality,
-        address: values.address,
-        pincode: values.pincode,
+        city: values.city || "Unknown",
+        locality: values.locality || "Unknown",
+        address: values.address || null,
+        pincode: values.pincode || null,
         latitude: toNum(values.latitude),
         longitude: toNum(values.longitude),
 
@@ -297,13 +312,15 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
           contact_name: values.show_contact ? values.contact_name || null : null,
           contact_phone: values.show_contact ? values.contact_phone || null : null,
           show_contact: values.show_contact,
+          listing_tier: tier,
         },
 
         listed_by: "builder",
         submitted_by: user.id,
         is_draft: isDraft,
         verification_status: isDraft ? "draft" : "pending",
-        verified: false,
+        // Featured listings auto-publish; basic listings still need admin review
+        verified: tier === "featured" && !isDraft,
       };
 
       const { data: inserted, error } = await supabase
@@ -333,12 +350,35 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         }
       }
 
-      toast.success(isDraft ? "Property saved as draft" : "Property submitted! Awaiting admin verification.");
+      // Tier-based feedback + navigation
+      if (tier === "draft") {
+        toast.info("Saved as draft — add a title, type and city to publish.");
+      } else if (tier === "basic") {
+        const missing = getMissingForFeatured({
+          title: values.title, type: values.type, listing_type: values.listing_type,
+          city: values.city, locality: values.locality, price: toNum(values.price),
+          bhk: toNum(values.bhk), area_sqft: toNum(values.area_sqft), images: imageFiles,
+        });
+        toast.success("Listed as a basic property", {
+          description: missing.length
+            ? `To unlock featured placement add: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "…" : ""}`
+            : undefined,
+        });
+      } else {
+        toast.success("🎉 Submitted as a featured listing!", {
+          description: "Eligible for promotions and reels.",
+        });
+      }
+
       form.reset();
       setAmenities([]);
       setImageFiles([]);
       setFloorPlanFiles([]);
       onSuccess?.();
+
+      // Navigate to the matching tier page
+      if (tier === "featured") navigate("/featured-properties");
+      else if (tier === "basic") navigate("/partial-properties");
     } catch (error: any) {
       console.error("Error submitting property:", error);
       toast.error(error?.message || "Failed to submit property");
