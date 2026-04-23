@@ -711,6 +711,42 @@ const Search = () => {
 
                   {/* Search Form */}
                   <div className="p-4 space-y-3">
+                    {/* Tier Sub-Tabs (Featured / Partial) */}
+                    {activeTab === "properties" && (
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <button
+                          onClick={() => {
+                            setTierFilter("featured");
+                            const params = new URLSearchParams(searchParams);
+                            params.set("tier", "featured");
+                            setSearchParams(params);
+                          }}
+                          className={`py-2 px-4 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                            tierFilter === "featured"
+                              ? "bg-primary/10 text-primary border border-primary/30"
+                              : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                          }`}
+                        >
+                          <Star className="h-3.5 w-3.5" /> Featured
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTierFilter("partial");
+                            const params = new URLSearchParams(searchParams);
+                            params.set("tier", "partial");
+                            setSearchParams(params);
+                          }}
+                          className={`py-2 px-4 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                            tierFilter === "partial"
+                              ? "bg-primary/10 text-primary border border-primary/30"
+                              : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                          }`}
+                        >
+                          <Info className="h-3.5 w-3.5" /> Partial
+                        </button>
+                      </div>
+                    )}
+
                     {/* Transaction Type + Location + Search Row */}
                     <div className="flex gap-2 items-center flex-wrap">
                       {renderTransactionTabs()}
