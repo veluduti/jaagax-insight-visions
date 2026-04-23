@@ -3,7 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, ExternalLink, Pencil, Plus, Loader2, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Building2, ExternalLink, Pencil, Plus, Loader2, MapPin, Copy, Check, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Profile {
@@ -22,6 +24,7 @@ interface Profile {
 const BuilderMyProfileCard = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +70,32 @@ const BuilderMyProfileCard = () => {
   }
 
   const publicHref = `/builder-profile/${profile.slug || profile.id}`;
+  const shareUrl = `${window.location.origin}${publicHref}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Profile link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleShare = async () => {
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({
+          title: profile.builder_name,
+          text: `Check out ${profile.builder_name} on JAAGA X`,
+          url: shareUrl,
+        });
+      } catch { /* cancelled */ }
+    } else {
+      void handleCopy();
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
