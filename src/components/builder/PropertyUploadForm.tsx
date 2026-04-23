@@ -122,6 +122,7 @@ const SectionHeading = ({ icon: Icon, title, subtitle }: { icon: any; title: str
 );
 
 export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProps) {
+  const navigate = useNavigate();
   const { user, role, loading: authLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<string[]>([]);
