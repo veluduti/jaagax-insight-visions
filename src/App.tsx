@@ -73,6 +73,8 @@ import AddBuilderProfile from "./pages/AddBuilderProfile";
 import EditBuilderProfile from "./pages/EditBuilderProfile";
 import BuilderProfileDetail from "./pages/BuilderProfileDetail";
 import PlanVisitStay from "./pages/PlanVisitStay";
+import FeaturedPropertiesPage from "./pages/FeaturedPropertiesPage";
+import PartialPropertiesPage from "./pages/PartialPropertiesPage";
 import { LocationProvider } from "./contexts/LocationContext";
 
 const queryClient = new QueryClient();
@@ -129,6 +131,8 @@ const App = () => (
           <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
           <Route path="/innovation" element={<InnovationHub />} />
           <Route path="/compare" element={<CompareProperties />} />
+          <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
+          <Route path="/partial-properties" element={<PartialPropertiesPage />} />
           
           {/* AI Advisor Routes */}
           <Route path="/ai-advisor" element={<AIAdvisor />} />
