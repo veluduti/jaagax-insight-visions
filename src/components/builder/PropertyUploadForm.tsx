@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +20,7 @@ import {
   Building2, Upload, MapPin, Image as ImageIcon, X, Loader2, Lock,
   IndianRupee, Home, Sparkles, FileText, Phone, Map as MapIcon, Compass,
 } from "lucide-react";
+import { classifyProperty, getMissingForFeatured } from "@/lib/propertyClassifier";
 
 const AMENITY_OPTIONS = [
   "Gym", "Swimming Pool", "Lift", "Security", "Power Backup",
@@ -26,24 +28,27 @@ const AMENITY_OPTIONS = [
   "Children's Play Area", "Jogging Track", "Indoor Games", "Spa",
 ];
 
+// All fields optional — the form is intentionally permissive.
+// Property tier (draft / basic / featured) is derived AFTER submit
+// via the shared classifier in src/lib/propertyClassifier.ts.
 const propertySchema = z.object({
   // Basics
-  title: z.string().trim().min(5, "Title must be at least 5 characters").max(120),
-  description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000),
-  type: z.enum(["Apartment", "Villa", "Plot", "Commercial", "Penthouse", "Townhouse"]),
-  completion_stage: z.enum(["Ready", "Under Construction", "New Launch", "Resale"]),
-  listing_type: z.enum(["sale", "rent"]),
-  furnishing: z.enum(["Furnished", "Semi-Furnished", "Unfurnished"]),
+  title: z.string().trim().max(120).optional().or(z.literal("")),
+  description: z.string().trim().max(2000).optional().or(z.literal("")),
+  type: z.string().optional().or(z.literal("")),
+  completion_stage: z.string().optional().or(z.literal("")),
+  listing_type: z.string().optional().or(z.literal("")),
+  furnishing: z.string().optional().or(z.literal("")),
   property_age: z.string().optional(),
   facing_direction: z.string().optional(),
   ownership_type: z.string().optional(),
 
   // Configuration
-  bhk: z.string().min(1, "BHK required"),
-  bedrooms: z.string().min(1, "Bedrooms required"),
-  bathrooms: z.string().min(1, "Bathrooms required"),
+  bhk: z.string().optional(),
+  bedrooms: z.string().optional(),
+  bathrooms: z.string().optional(),
   balconies: z.string().optional(),
-  area_sqft: z.string().min(1, "Area is required"),
+  area_sqft: z.string().optional(),
   floor_number: z.string().optional(),
 
   // Building
@@ -54,16 +59,16 @@ const propertySchema = z.object({
   elevators: z.string().optional(),
 
   // Location
-  city: z.string().trim().min(2, "City required").max(80),
-  locality: z.string().trim().min(2, "Locality required").max(80),
-  address: z.string().trim().min(5, "Full address required").max(300),
-  pincode: z.string().trim().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  locality: z.string().trim().max(80).optional().or(z.literal("")),
+  address: z.string().trim().max(300).optional().or(z.literal("")),
+  pincode: z.string().trim().optional().or(z.literal("")),
   nearby_landmarks: z.string().optional(),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
 
   // Pricing
-  price: z.string().min(1, "Price is required"),
+  price: z.string().optional(),
   price_per_sqft: z.string().optional(),
   maintenance_charges: z.string().optional(),
   booking_amount: z.string().optional(),
@@ -117,6 +122,7 @@ const SectionHeading = ({ icon: Icon, title, subtitle }: { icon: any; title: str
 );
 
 export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProps) {
+  const navigate = useNavigate();
   const { user, role, loading: authLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amenities, setAmenities] = useState<string[]>([]);
@@ -237,14 +243,29 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
     setIsSubmitting(true);
     try {
-      const isDraft = !!values.is_draft;
-      const payload: any = {
+      // Classify based on the data the user actually provided
+      const tier = classifyProperty({
         title: values.title,
-        description: values.description,
         type: values.type,
-        completion_stage: values.completion_stage,
         listing_type: values.listing_type,
-        furnishing: values.furnishing,
+        city: values.city,
+        locality: values.locality,
+        price: toNum(values.price),
+        bhk: toNum(values.bhk),
+        area_sqft: toNum(values.area_sqft),
+        images: imageFiles,
+      });
+
+      // Drafts: either explicitly chosen, OR auto-classified as draft (missing essentials)
+      const isDraft = !!values.is_draft || tier === "draft";
+
+      const payload: any = {
+        title: values.title || "Untitled property",
+        description: values.description || null,
+        type: values.type || null,
+        completion_stage: values.completion_stage || null,
+        listing_type: values.listing_type || null,
+        furnishing: values.furnishing || null,
         property_age: values.property_age || null,
 
         bhk: toNum(values.bhk),
@@ -260,10 +281,10 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         building_area_sqft: toNum(values.building_area_sqft),
         elevators: toNum(values.elevators),
 
-        city: values.city,
-        locality: values.locality,
-        address: values.address,
-        pincode: values.pincode,
+        city: values.city || "Unknown",
+        locality: values.locality || "Unknown",
+        address: values.address || null,
+        pincode: values.pincode || null,
         latitude: toNum(values.latitude),
         longitude: toNum(values.longitude),
 
@@ -291,13 +312,15 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
           contact_name: values.show_contact ? values.contact_name || null : null,
           contact_phone: values.show_contact ? values.contact_phone || null : null,
           show_contact: values.show_contact,
+          listing_tier: tier,
         },
 
         listed_by: "builder",
         submitted_by: user.id,
         is_draft: isDraft,
         verification_status: isDraft ? "draft" : "pending",
-        verified: false,
+        // Featured listings auto-publish; basic listings still need admin review
+        verified: tier === "featured" && !isDraft,
       };
 
       const { data: inserted, error } = await supabase
@@ -327,12 +350,35 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
         }
       }
 
-      toast.success(isDraft ? "Property saved as draft" : "Property submitted! Awaiting admin verification.");
+      // Tier-based feedback + navigation
+      if (tier === "draft") {
+        toast.info("Saved as draft — add a title, type and city to publish.");
+      } else if (tier === "basic") {
+        const missing = getMissingForFeatured({
+          title: values.title, type: values.type, listing_type: values.listing_type,
+          city: values.city, locality: values.locality, price: toNum(values.price),
+          bhk: toNum(values.bhk), area_sqft: toNum(values.area_sqft), images: imageFiles,
+        });
+        toast.success("Listed as a basic property", {
+          description: missing.length
+            ? `To unlock featured placement add: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "…" : ""}`
+            : undefined,
+        });
+      } else {
+        toast.success("🎉 Submitted as a featured listing!", {
+          description: "Eligible for promotions and reels.",
+        });
+      }
+
       form.reset();
       setAmenities([]);
       setImageFiles([]);
       setFloorPlanFiles([]);
       onSuccess?.();
+
+      // Navigate to the matching tier page
+      if (tier === "featured") navigate("/featured-properties");
+      else if (tier === "basic") navigate("/partial-properties");
     } catch (error: any) {
       console.error("Error submitting property:", error);
       toast.error(error?.message || "Failed to submit property");
@@ -387,7 +433,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
           <Building2 className="h-5 w-5" /> Add New Property
         </CardTitle>
         <CardDescription>
-          Provide complete information for the best buyer experience. Required fields are marked *.
+          Fill what you have — we'll save the rest. Provide title, type, status, location, price, BHK, area and 5+ images to qualify as a <strong>Featured</strong> listing.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -400,7 +446,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="title" render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Property Title *</FormLabel>
+                    <FormLabel>Property Title</FormLabel>
                     <FormControl><Input placeholder="3 BHK Luxury Apartment in Gachibowli" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -408,7 +454,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Property Type *</FormLabel>
+                    <FormLabel>Property Type</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -423,7 +469,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="listing_type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Property Status *</FormLabel>
+                    <FormLabel>Property Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -437,7 +483,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="completion_stage" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Completion Stage *</FormLabel>
+                    <FormLabel>Completion Stage</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -453,7 +499,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="furnishing" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Furnishing *</FormLabel>
+                    <FormLabel>Furnishing</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -514,7 +560,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description *</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Describe the property features, amenities, location highlights..." className="min-h-[110px]" {...field} />
                   </FormControl>
@@ -529,21 +575,21 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="bhk" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>BHK *</FormLabel>
+                    <FormLabel>BHK</FormLabel>
                     <FormControl><Input type="number" placeholder="3" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bedrooms *</FormLabel>
+                    <FormLabel>Bedrooms</FormLabel>
                     <FormControl><Input type="number" placeholder="3" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="bathrooms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bathrooms *</FormLabel>
+                    <FormLabel>Bathrooms</FormLabel>
                     <FormControl><Input type="number" placeholder="2" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -557,7 +603,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                 )} />
                 <FormField control={form.control} name="area_sqft" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Carpet Area (sq.ft) *</FormLabel>
+                    <FormLabel>Carpet Area (sq.ft)</FormLabel>
                     <FormControl><Input type="number" placeholder="1200" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -612,7 +658,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <SectionHeading icon={MapPin} title="Location" subtitle="Address, PIN code & coordinates" />
               <FormField control={form.control} name="address" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Address *</FormLabel>
+                  <FormLabel>Full Address</FormLabel>
                   <FormControl><Input placeholder="Tower A, Prestige Lakeside Habitat, Whitefield" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -620,21 +666,21 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="city" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City *</FormLabel>
+                    <FormLabel>City</FormLabel>
                     <FormControl><Input placeholder="Hyderabad" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="locality" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Locality *</FormLabel>
+                    <FormLabel>Locality</FormLabel>
                     <FormControl><Input placeholder="Gachibowli" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="pincode" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>PIN Code *</FormLabel>
+                    <FormLabel>PIN Code</FormLabel>
                     <FormControl><Input placeholder="500032" maxLength={6} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -694,7 +740,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="price" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Price (₹) *</FormLabel>
+                    <FormLabel>Total Price (₹)</FormLabel>
                     <FormControl><Input type="number" placeholder="5000000" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -794,7 +840,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
               {/* Property Images */}
               <div className="space-y-2">
-                <FormLabel>Property Images * <span className="text-xs text-muted-foreground">(JPG/PNG, max 8MB each)</span></FormLabel>
+                <FormLabel>Property Images <span className="text-xs text-muted-foreground">(JPG/PNG, max 8MB each)</span></FormLabel>
                 <input
                   ref={imageInputRef}
                   type="file" accept="image/*" multiple className="hidden"

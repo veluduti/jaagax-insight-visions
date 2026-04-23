@@ -13,6 +13,7 @@ import {
   ArrowLeft, Home, MapPin, Building2, IndianRupee, Sparkles,
   ImagePlus, FileText, User, Save, CheckCircle2, X, Upload,
 } from "lucide-react";
+import { classifyProperty, getMissingForFeatured } from "@/lib/propertyClassifier";
 
 const PROPERTY_TYPES = ["Apartment", "Villa", "Independent House", "Plot"] as const;
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"] as const;
@@ -120,27 +121,9 @@ export default function AgentAddProperty() {
     );
   };
 
-  const validate = (asDraft = false) => {
-    if (asDraft) return true;
-    if (!title.trim()) return "Property title is required";
-    if (!description.trim() || description.length < 30)
-      return "Description must be at least 30 characters";
-    if (!city) return "City is required";
-    if (!locality.trim()) return "Locality is required";
-    if (!address.trim()) return "Address is required";
-    if (propertyType !== "Plot" && !bedrooms) return "Bedrooms (BHK) is required";
-    if (propertyType !== "Plot" && !bathrooms) return "Bathrooms is required";
-    if (!areaSqft) return "Area (sq ft) is required";
-    if (!price) return "Expected price is required";
-    if (listingType === "rent" && !securityDeposit) return "Security deposit is required for rent";
-    if (imageFiles.length < 3) return "Upload at least 3 property images";
-    if (!ownershipFile) return "Ownership proof is mandatory";
-    if (!agentIsOwner && !authLetterFile)
-      return "Authorization letter is mandatory if agent is not owner";
-    if (!ownerName.trim()) return "Owner name is required";
-    if (!ownerPhone.trim() || ownerPhone.length < 10) return "Valid owner phone is required";
-    return true;
-  };
+  // Validation is intentionally permissive — partial data is allowed.
+  // Tier (draft / basic / featured) is computed from what was filled.
+  const validate = (_asDraft = false): true | string => true;
 
   const uploadFile = async (file: File, folder: string) => {
     const ext = file.name.split(".").pop();
@@ -191,14 +174,28 @@ export default function AgentAddProperty() {
         docs.security_deposit = securityDeposit;
       }
 
-      const payload: any = {
-        title: title.trim(),
-        description: description.trim(),
+      // Classify based on what was actually filled in
+      const tier = classifyProperty({
+        title,
         type: propertyType,
         listing_type: listingType,
         city,
-        locality: locality.trim(),
-        address: address.trim(),
+        locality,
+        price: price ? Number(price) : null,
+        bhk: bedrooms ? Number(bedrooms) : null,
+        area_sqft: areaSqft ? Number(areaSqft) : null,
+        images: imageUrls,
+      });
+      const finalDraft = asDraft || tier === "draft";
+
+      const payload: any = {
+        title: title.trim() || "Untitled property",
+        description: description.trim() || null,
+        type: propertyType || null,
+        listing_type: listingType || null,
+        city: city || "Unknown",
+        locality: locality.trim() || "Unknown",
+        address: address.trim() || null,
         pincode: pincode || null,
         latitude, longitude,
         bedrooms: bedrooms ? Number(bedrooms) : null,
@@ -216,10 +213,11 @@ export default function AgentAddProperty() {
         amenities,
         images: imageUrls,
         video_urls: videoUrls,
-        document_urls: docs,
-        is_draft: asDraft,
-        verification_status: asDraft ? "draft" : "pending",
-        verified: false,
+        document_urls: { ...docs, listing_tier: tier },
+        is_draft: finalDraft,
+        verification_status: finalDraft ? "draft" : "pending",
+        // Featured listings auto-publish; basic listings still need admin review
+        verified: tier === "featured" && !finalDraft,
         submitted_by: user.id,
       };
 
@@ -245,7 +243,7 @@ export default function AgentAddProperty() {
       if (error) throw error;
 
       // Notify admins so they can approve
-      if (!asDraft && inserted) {
+      if (!finalDraft && inserted) {
         const { data: admins } = await supabase
           .from("user_roles")
           .select("user_id")
@@ -263,12 +261,30 @@ export default function AgentAddProperty() {
         }
       }
 
-      toast.success(
-        asDraft
-          ? "Saved as draft"
-          : "Property submitted successfully. It will be reviewed before going live."
-      );
-      navigate("/dashboard/agent");
+      // Tier-based feedback + navigation
+      if (tier === "draft") {
+        toast.info("Saved as draft — add a title, type and city to publish.");
+        navigate("/dashboard/agent");
+      } else if (tier === "basic") {
+        const missing = getMissingForFeatured({
+          title, type: propertyType, listing_type: listingType,
+          city, locality, price: price ? Number(price) : null,
+          bhk: bedrooms ? Number(bedrooms) : null,
+          area_sqft: areaSqft ? Number(areaSqft) : null,
+          images: imageUrls,
+        });
+        toast.success("Listed as a basic property", {
+          description: missing.length
+            ? `To unlock featured placement add: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "…" : ""}`
+            : undefined,
+        });
+        navigate("/partial-properties");
+      } else {
+        toast.success("🎉 Submitted as a featured listing!", {
+          description: "Eligible for promotions and reels.",
+        });
+        navigate("/featured-properties");
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to submit property");

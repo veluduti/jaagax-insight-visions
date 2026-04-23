@@ -2,6 +2,7 @@ import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
+import PartialProperties from "@/components/PartialProperties";
 import NewProjects from "@/components/NewProjects";
 import AISpotlight from "@/components/AISpotlight";
 import AIInsightStrip from "@/components/AIInsightStrip";
@@ -51,6 +52,7 @@ const Index = () => {
       {activeTab === "properties" && showBuyRent && (
         <>
           <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <PartialProperties detectedCity={detectedLocation?.city} />
           <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
