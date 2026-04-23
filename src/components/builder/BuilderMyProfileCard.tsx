@@ -128,18 +128,35 @@ const BuilderMyProfileCard = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Button asChild variant="outline">
-          <Link to={publicHref} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-4 w-4 mr-2" /> View Public Profile
-          </Link>
-        </Button>
-        <Button onClick={() => navigate(`/edit-builder-profile/${profile.id}`)}>
-          <Pencil className="h-4 w-4 mr-2" /> Edit Profile
-        </Button>
-        <Button variant="ghost" onClick={() => navigate("/add-builder-profile")}>
-          <Plus className="h-4 w-4 mr-2" /> Add Another
-        </Button>
+      <CardContent className="space-y-4">
+        <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <Share2 className="h-3.5 w-3.5" /> Your shareable profile link
+          </div>
+          <div className="flex gap-2">
+            <Input readOnly value={shareUrl} className="text-xs font-mono bg-background" onFocus={(e) => e.currentTarget.select()} />
+            <Button type="button" variant="outline" size="icon" onClick={handleCopy} aria-label="Copy link">
+              {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+            </Button>
+            <Button type="button" variant="outline" size="icon" onClick={handleShare} aria-label="Share">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Share this link with buyers, partners, or on social media.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to={publicHref} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4 mr-2" /> View Public Profile
+            </Link>
+          </Button>
+          <Button onClick={() => navigate(`/edit-builder-profile/${profile.id}`)}>
+            <Pencil className="h-4 w-4 mr-2" /> Edit Profile
+          </Button>
+          <Button variant="ghost" onClick={() => navigate("/add-builder-profile")}>
+            <Plus className="h-4 w-4 mr-2" /> Add Another
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
