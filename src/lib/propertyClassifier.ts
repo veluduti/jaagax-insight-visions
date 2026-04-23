@@ -39,7 +39,7 @@ export function classifyProperty(p: ClassifyInput): PropertyTier {
     has(p.price) &&
     has(p.bhk) &&
     has(p.area_sqft) &&
-    imageCount >= 5;
+    imageCount >= 2;
 
   return isFeatured ? "featured" : "basic";
 }
