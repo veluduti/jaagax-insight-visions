@@ -26,24 +26,27 @@ const AMENITY_OPTIONS = [
   "Children's Play Area", "Jogging Track", "Indoor Games", "Spa",
 ];
 
+// All fields optional — the form is intentionally permissive.
+// Property tier (draft / basic / featured) is derived AFTER submit
+// via the shared classifier in src/lib/propertyClassifier.ts.
 const propertySchema = z.object({
   // Basics
-  title: z.string().trim().min(5, "Title must be at least 5 characters").max(120),
-  description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000),
-  type: z.enum(["Apartment", "Villa", "Plot", "Commercial", "Penthouse", "Townhouse"]),
-  completion_stage: z.enum(["Ready", "Under Construction", "New Launch", "Resale"]),
-  listing_type: z.enum(["sale", "rent"]),
-  furnishing: z.enum(["Furnished", "Semi-Furnished", "Unfurnished"]),
+  title: z.string().trim().max(120).optional().or(z.literal("")),
+  description: z.string().trim().max(2000).optional().or(z.literal("")),
+  type: z.string().optional().or(z.literal("")),
+  completion_stage: z.string().optional().or(z.literal("")),
+  listing_type: z.string().optional().or(z.literal("")),
+  furnishing: z.string().optional().or(z.literal("")),
   property_age: z.string().optional(),
   facing_direction: z.string().optional(),
   ownership_type: z.string().optional(),
 
   // Configuration
-  bhk: z.string().min(1, "BHK required"),
-  bedrooms: z.string().min(1, "Bedrooms required"),
-  bathrooms: z.string().min(1, "Bathrooms required"),
+  bhk: z.string().optional(),
+  bedrooms: z.string().optional(),
+  bathrooms: z.string().optional(),
   balconies: z.string().optional(),
-  area_sqft: z.string().min(1, "Area is required"),
+  area_sqft: z.string().optional(),
   floor_number: z.string().optional(),
 
   // Building
@@ -54,16 +57,16 @@ const propertySchema = z.object({
   elevators: z.string().optional(),
 
   // Location
-  city: z.string().trim().min(2, "City required").max(80),
-  locality: z.string().trim().min(2, "Locality required").max(80),
-  address: z.string().trim().min(5, "Full address required").max(300),
-  pincode: z.string().trim().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  locality: z.string().trim().max(80).optional().or(z.literal("")),
+  address: z.string().trim().max(300).optional().or(z.literal("")),
+  pincode: z.string().trim().optional().or(z.literal("")),
   nearby_landmarks: z.string().optional(),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
 
   // Pricing
-  price: z.string().min(1, "Price is required"),
+  price: z.string().optional(),
   price_per_sqft: z.string().optional(),
   maintenance_charges: z.string().optional(),
   booking_amount: z.string().optional(),
