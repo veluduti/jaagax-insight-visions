@@ -283,43 +283,76 @@ export default function AgentDashboard() {
   };
 
   const fetchVisits = async (agentId: string) => {
-    const { data } = await supabase
-      .from("visit_bookings").select("*")
-      .eq("agent_id", agentId)
-      .order("visit_date", { ascending: false });
-    setVisits((data || []) as VisitBooking[]);
+    try {
+      const { data, error } = await supabase
+        .from("visit_bookings").select("*")
+        .eq("agent_id", agentId)
+        .order("visit_date", { ascending: false });
+
+      if (error) throw error;
+      setVisits((data || []) as VisitBooking[]);
+      clearSectionError("visits");
+    } catch (error: any) {
+      console.error("Error loading agent visits:", error);
+      setVisits([]);
+      setSectionErrors((prev) => ({ ...prev, visits: error?.message || "Unable to load visit data." }));
+    }
   };
 
   const fetchAgentProperties = async (userId: string, agentId: string) => {
-    const { data } = await supabase
-      .from("properties").select("*")
-      .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
-      .order("created_at", { ascending: false });
-    if (!data) return;
-    setProperties(data as Property[]);
-    const ids = data.map((p: any) => p.id);
-    let savedCount = 0, viewsCount = 0;
-    if (ids.length) {
-      const [{ count: f }, { count: v }] = await Promise.all([
-        supabase.from("favorites").select("*", { count: "exact", head: true }).in("property_id", ids),
-        supabase.from("buyer_journey_events").select("*", { count: "exact", head: true }).in("property_id", ids),
-      ]);
-      savedCount = f || 0; viewsCount = v || 0;
+    try {
+      const { data, error } = await supabase
+        .from("properties").select("*")
+        .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const safeProperties = (data || []) as Property[];
+      setProperties(safeProperties);
+      const ids = safeProperties.map((p: any) => p.id);
+      let savedCount = 0;
+      let viewsCount = 0;
+
+      if (ids.length) {
+        const [{ count: f }, { count: v }] = await Promise.all([
+          supabase.from("favorites").select("*", { count: "exact", head: true }).in("property_id", ids),
+          supabase.from("buyer_journey_events").select("*", { count: "exact", head: true }).in("property_id", ids),
+        ]);
+        savedCount = f || 0;
+        viewsCount = v || 0;
+      }
+
+      setStats({
+        totalProperties: safeProperties.length,
+        activeListings: safeProperties.filter((p: any) => p.verified === true).length,
+        viewsThisMonth: viewsCount,
+        savedByUsers: savedCount,
+      });
+      clearSectionError("properties");
+    } catch (error: any) {
+      console.error("Error loading agent properties:", error);
+      setProperties([]);
+      setStats({ totalProperties: 0, activeListings: 0, viewsThisMonth: 0, savedByUsers: 0 });
+      setSectionErrors((prev) => ({ ...prev, properties: error?.message || "Unable to load properties." }));
     }
-    setStats({
-      totalProperties: data.length,
-      activeListings: data.filter((p: any) => p.verified === true).length,
-      viewsThisMonth: viewsCount,
-      savedByUsers: savedCount,
-    });
   };
 
   const fetchNotifications = async (userId: string) => {
-    const { data } = await supabase
-      .from("notifications").select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }).limit(8);
-    setNotifications(data || []);
+    try {
+      const { data, error } = await supabase
+        .from("notifications").select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }).limit(8);
+
+      if (error) throw error;
+      setNotifications(data || []);
+      clearSectionError("notifications");
+    } catch (error: any) {
+      console.error("Error loading notifications:", error);
+      setNotifications([]);
+      setSectionErrors((prev) => ({ ...prev, notifications: error?.message || "Unable to load notifications." }));
+    }
   };
 
   /* ---------- Derived data ---------- */
@@ -417,17 +450,38 @@ export default function AgentDashboard() {
     setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    await signOut();
   };
 
   const formatPrice = (p: number) =>
     p >= 10000000 ? `₹${(p / 10000000).toFixed(2)} Cr` : `₹${(p / 100000).toFixed(2)} L`;
 
-  if (!user || !agentProfile) {
+  if (authLoading || initializing || !user || !agentProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background">
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading agent dashboard…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dashboardError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/30 to-background p-4">
+        <Card className="w-full max-w-lg border-border/60">
+          <CardHeader>
+            <CardTitle className="text-xl">Agent dashboard unavailable</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{dashboardError}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => authUser && void fetchUserAndProfile(authUser)}>Try again</Button>
+              <Button variant="outline" onClick={() => navigate("/")}>Go Home</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -569,29 +623,35 @@ export default function AgentDashboard() {
 
         {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
         {agentProfile.id && user?.id && (
-          <AssignedPropertiesPanel
-            agentId={agentProfile.id}
-            agentUserId={user.id}
-            agentName={agentProfile.name || "Agent"}
-          />
+          <SectionErrorBoundary title="Assigned properties unavailable" description={sectionErrors.properties || "Assigned properties could not be displayed right now."}>
+            <AssignedPropertiesPanel
+              agentId={agentProfile.id}
+              agentUserId={user.id}
+              agentName={agentProfile.name || "Agent"}
+            />
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Weekend Property Explorer Bookings ===== */}
         {agentProfile.id && user?.id && (
-          <Card className="border-primary/20">
-            <CardContent className="p-4 md:p-5">
-              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
-            </CardContent>
-          </Card>
+          <SectionErrorBoundary title="Weekend bookings unavailable" description={sectionErrors.visits || "Weekend booking data could not be loaded right now."}>
+            <Card className="border-primary/20">
+              <CardContent className="p-4 md:p-5">
+                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+              </CardContent>
+            </Card>
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Quick Visit Package Bookings ===== */}
         {agentProfile.id && user?.id && (
-          <Card className="border-amber-500/20">
-            <CardContent className="p-4 md:p-5">
-              <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
-            </CardContent>
-          </Card>
+          <SectionErrorBoundary title="Quick visit bookings unavailable" description={sectionErrors.visits || "Quick visit data could not be loaded right now."}>
+            <Card className="border-amber-500/20">
+              <CardContent className="p-4 md:p-5">
+                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
+              </CardContent>
+            </Card>
+          </SectionErrorBoundary>
         )}
 
         {/* ===== Today's Tasks + Notifications strip ===== */}
