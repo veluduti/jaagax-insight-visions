@@ -230,12 +230,17 @@ const Search = () => {
   };
 
   const fetchProperties = async () => {
-    let qb = supabase.from("properties").select("*", { count: "exact" });
+    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
     qb = applyPropertyFilters(qb);
-    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
     if (!error) {
-      setProperties(data || []);
-      setTotal(count || 0);
+      const all = (data as any[]) || [];
+      const filtered = all.filter((p) => {
+        const tier = classifyProperty(p);
+        return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+      });
+      setProperties(filtered.slice(0, 50));
+      setTotal(filtered.length);
     }
   };
 
