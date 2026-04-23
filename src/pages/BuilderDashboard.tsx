@@ -19,6 +19,7 @@ import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
 import DocumentationModal from "@/components/builder/DocumentationModal";
 import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
 import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
+import BuilderMyProfileCard from "@/components/builder/BuilderMyProfileCard";
 import { Sparkles } from "lucide-react";
 
 interface Project {
