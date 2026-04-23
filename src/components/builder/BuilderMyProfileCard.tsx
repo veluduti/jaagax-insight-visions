@@ -66,7 +66,7 @@ const BuilderMyProfileCard = () => {
     );
   }
 
-  const publicHref = profile.slug ? `/builders/${profile.slug}` : `/builders/${profile.id}`;
+  const publicHref = `/builder-profile/${profile.slug || profile.id}`;
 
   return (
     <Card className="overflow-hidden">
