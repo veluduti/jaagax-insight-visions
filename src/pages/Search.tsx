@@ -146,9 +146,6 @@ const Search = () => {
 
   const navItems = [
     { label: "Properties", value: "properties", icon: Home },
-    { label: "New Projects", value: "new-projects", icon: Building2 },
-    { label: "Transactions", value: "transactions", icon: BarChart3 },
-    { label: "Agents", value: "agents", icon: Users },
   ];
 
   // Fetch data when tab or filters change
