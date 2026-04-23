@@ -14,6 +14,10 @@ import {
   Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2,
   MapPin, Plus, Trash2, FileText, Compass, Clock
 } from "lucide-react";
+import ArrayInputField from "@/components/builder/form/ArrayInputField";
+import FileUploadField from "@/components/builder/form/FileUploadField";
+import MultiFileUploadField from "@/components/builder/form/MultiFileUploadField";
+import MapLocationPicker from "@/components/builder/form/MapLocationPicker";
 
 const AMENITY_OPTIONS = [
   { name: "Swimming Pool", icon: Waves },
