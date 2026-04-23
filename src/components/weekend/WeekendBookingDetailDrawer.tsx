@@ -735,7 +735,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                         {a.actor_role && <span className="text-xs text-muted-foreground">by {a.actor_role}</span>}
                       </div>
                       {a.description && <p className="text-xs text-muted-foreground mt-1">{a.description}</p>}
-                      <p className="text-[10px] text-muted-foreground/70 mt-0.5"><Clock className="h-2.5 w-2.5 inline mr-0.5" />{format(new Date(a.created_at), "PPp")}</p>
+                      <p className="text-[10px] text-muted-foreground/70 mt-0.5"><Clock className="h-2.5 w-2.5 inline mr-0.5" />{formatSafeDate(a.created_at, "PPp")}</p>
                     </div>
                   </motion.div>
                 ))}
