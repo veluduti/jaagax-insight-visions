@@ -5,10 +5,12 @@ import heroImage from "@/assets/hero-cityscape.jpg";
 interface HeroProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  showSearchBar?: boolean;
 }
 const Hero = ({
   activeTab,
-  onTabChange
+  onTabChange,
+  showSearchBar = true,
 }: HeroProps) => {
   const statCards = [{
     icon: Building2,
@@ -111,18 +113,20 @@ const Hero = ({
             </motion.div>
 
             {/* Right Content - Search Bar */}
-            <motion.div initial={{
-            opacity: 0,
-            x: 30
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} transition={{
-            duration: 0.6,
-            delay: 0.3
-          }} className="flex-1 w-full max-w-2xl">
-              <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
-            </motion.div>
+            {showSearchBar && (
+              <motion.div initial={{
+              opacity: 0,
+              x: 30
+            }} animate={{
+              opacity: 1,
+              x: 0
+            }} transition={{
+              duration: 0.6,
+              delay: 0.3
+            }} className="flex-1 w-full max-w-2xl">
+                <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
+              </motion.div>
+            )}
           </div>
 
           {/* Stats Cards - Mobile Only */}
