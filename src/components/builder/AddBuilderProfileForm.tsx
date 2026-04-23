@@ -536,7 +536,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
             <div><label className="text-sm font-medium mb-1.5 block">CIN / Registration</label><Input value={form.companyRegistrationNumber} onChange={(e) => updateField("companyRegistrationNumber", e.target.value)} placeholder="e.g. U45200KA1986PLC007191" /></div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Certifications</label><Input value={form.certifications} onChange={(e) => updateField("certifications", e.target.value)} placeholder="e.g. ISO 9001, IGBC Gold" /></div>
-          <ArrayInputField label="Awards & Recognition" field="awards" inputField="awardInput" placeholder="e.g. Best Builder Award 2023" />
+          {renderArrayField("Awards & Recognition", "awards", "awardInput", "e.g. Best Builder Award 2023")}
         </CardContent>
       </Card>
 
@@ -572,8 +572,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
               ))}
             </div>
           </div>
-          <ArrayInputField label="Locations" field="locations" inputField="locationInput" placeholder="e.g. Gachibowli, Hyderabad" />
-          <ArrayInputField label="Operating Cities" field="operatingCities" inputField="operatingCityInput" placeholder="e.g. Hyderabad" />
+          {renderArrayField("Locations", "locations", "locationInput", "e.g. Gachibowli, Hyderabad")}
+          {renderArrayField("Operating Cities", "operatingCities", "operatingCityInput", "e.g. Hyderabad")}
         </CardContent>
       </Card>
 
