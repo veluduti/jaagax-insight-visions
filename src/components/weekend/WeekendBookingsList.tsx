@@ -70,6 +70,11 @@ export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Pr
   const counts = viewItems.reduce((acc, i) => { acc[i.status] = (acc[i.status] || 0) + 1; return acc; }, {} as Record<string, number>);
   const historyCount = items.filter(i => HISTORY_STATUSES.has(i.status)).length;
   const activeCount = items.length - historyCount;
+  const formatBookingDate = (value?: string | null) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : format(date, "MMM d");
+  };
 
   return (
     <div className="space-y-4">
@@ -149,7 +154,7 @@ export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Pr
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-md bg-muted/40 p-1.5">
                         <p className="text-muted-foreground text-[10px] uppercase">Dates</p>
-                        <p className="font-medium flex items-center gap-1"><Calendar className="h-3 w-3" />{format(new Date(b.start_date), "MMM d")} – {format(new Date(b.end_date), "MMM d")}</p>
+                        <p className="font-medium flex items-center gap-1"><Calendar className="h-3 w-3" />{formatBookingDate(b.start_date)} – {formatBookingDate(b.end_date)}</p>
                       </div>
                       <div className="rounded-md bg-muted/40 p-1.5">
                         <p className="text-muted-foreground text-[10px] uppercase">Properties</p>

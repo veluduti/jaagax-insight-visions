@@ -31,11 +31,12 @@ const Index = () => {
   const showAgents = canSee(role, "agents");
   const showCommunities = canSee(role, "communities");
   const showMarketIndex = canSee(role, "marketIndex");
+  const showSellerSearch = role !== "seller";
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <Hero activeTab={activeTab} onTabChange={setActiveTab} />
+      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
       
       {/* Intent Chips - Thin strip for user mindset */}
       <IntentChips />
