@@ -14,6 +14,10 @@ import {
   Zap, Baby, Dog, Flower2, Gamepad2, BookOpen, Coffee, Upload, X, Loader2,
   MapPin, Plus, Trash2, FileText, Compass, Clock
 } from "lucide-react";
+import ArrayInputField from "@/components/builder/form/ArrayInputField";
+import FileUploadField from "@/components/builder/form/FileUploadField";
+import MultiFileUploadField from "@/components/builder/form/MultiFileUploadField";
+import MapLocationPicker from "@/components/builder/form/MapLocationPicker";
 
 const AMENITY_OPTIONS = [
   { name: "Swimming Pool", icon: Waves },
@@ -418,22 +422,17 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
   const currentType = classifyBuilder(Number(form.numberOfProjects) || 0);
 
-  const ArrayInputField = ({ label, field, inputField, placeholder }: { label: string; field: string; inputField: string; placeholder: string }) => (
-    <div>
-      <label className="text-sm font-medium mb-1.5 block">{label}</label>
-      <div className="flex gap-2">
-        <Input value={(form as any)[inputField]} onChange={(e) => updateField(inputField, e.target.value)} placeholder={placeholder}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addToArray(field, inputField))} />
-        <Button type="button" variant="outline" onClick={() => addToArray(field, inputField)}>Add</Button>
-      </div>
-      {((form as any)[field] || []).length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {((form as any)[field] || []).map((item: string, i: number) => (
-            <Badge key={i} variant="secondary" className="gap-1">{item}<X className="h-3 w-3 cursor-pointer" onClick={() => removeFromArray(field, i)} /></Badge>
-          ))}
-        </div>
-      )}
-    </div>
+  // Helper to render the focus-stable ArrayInputField with our state
+  const renderArrayField = (label: string, field: string, inputField: string, placeholder: string) => (
+    <ArrayInputField
+      label={label}
+      placeholder={placeholder}
+      inputValue={(form as any)[inputField] || ""}
+      items={((form as any)[field] || []) as string[]}
+      onInputChange={(v) => updateField(inputField, v)}
+      onAdd={() => addToArray(field, inputField)}
+      onRemove={(i) => removeFromArray(field, i)}
+    />
   );
 
   if (isLoading) {
@@ -478,8 +477,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
             <div><label className="text-sm font-medium mb-1.5 block">Mission</label><Textarea value={form.aboutMission} onChange={(e) => updateField("aboutMission", e.target.value)} placeholder="Our mission..." rows={2} /></div>
             <div><label className="text-sm font-medium mb-1.5 block">Vision</label><Textarea value={form.aboutVision} onChange={(e) => updateField("aboutVision", e.target.value)} placeholder="Our vision..." rows={2} /></div>
           </div>
-          <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label><Input value={form.logo} onChange={(e) => updateField("logo", e.target.value)} placeholder="https://example.com/logo.png" /></div>
-          <ArrayInputField label="About Features / Highlights" field="aboutFeatures" inputField="aboutFeatureInput" placeholder="e.g. Smart home automation" />
+          <FileUploadField label="Logo" value={form.logo} onChange={(v) => updateField("logo", v)} folder="logos" placeholder="Click upload or paste logo URL" />
+          {renderArrayField("About Features / Highlights", "aboutFeatures", "aboutFeatureInput", "e.g. Smart home automation")}
         </CardContent>
       </Card>
 
@@ -537,7 +536,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
             <div><label className="text-sm font-medium mb-1.5 block">CIN / Registration</label><Input value={form.companyRegistrationNumber} onChange={(e) => updateField("companyRegistrationNumber", e.target.value)} placeholder="e.g. U45200KA1986PLC007191" /></div>
           </div>
           <div><label className="text-sm font-medium mb-1.5 block">Certifications</label><Input value={form.certifications} onChange={(e) => updateField("certifications", e.target.value)} placeholder="e.g. ISO 9001, IGBC Gold" /></div>
-          <ArrayInputField label="Awards & Recognition" field="awards" inputField="awardInput" placeholder="e.g. Best Builder Award 2023" />
+          {renderArrayField("Awards & Recognition", "awards", "awardInput", "e.g. Best Builder Award 2023")}
         </CardContent>
       </Card>
 
@@ -573,8 +572,8 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
               ))}
             </div>
           </div>
-          <ArrayInputField label="Locations" field="locations" inputField="locationInput" placeholder="e.g. Gachibowli, Hyderabad" />
-          <ArrayInputField label="Operating Cities" field="operatingCities" inputField="operatingCityInput" placeholder="e.g. Hyderabad" />
+          {renderArrayField("Locations", "locations", "locationInput", "e.g. Gachibowli, Hyderabad")}
+          {renderArrayField("Operating Cities", "operatingCities", "operatingCityInput", "e.g. Hyderabad")}
         </CardContent>
       </Card>
 
@@ -670,35 +669,14 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><Image className="h-5 w-5 text-primary" />Media & Gallery</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div><label className="text-sm font-medium mb-1.5 block">Hero Image URL</label><Input value={form.heroImage} onChange={(e) => updateField("heroImage", e.target.value)} placeholder="Main hero background image URL" /></div>
-          <div><label className="text-sm font-medium mb-1.5 block">Master Plan Image URL</label><Input value={form.masterPlanImage} onChange={(e) => updateField("masterPlanImage", e.target.value)} placeholder="Master plan / site layout image URL" /></div>
-          <div><label className="text-sm font-medium mb-1.5 block">Brochure PDF URL</label><Input value={form.brochureUrl} onChange={(e) => updateField("brochureUrl", e.target.value)} placeholder="https://example.com/brochure.pdf" /></div>
+          <FileUploadField label="Hero Image" value={form.heroImage} onChange={(v) => updateField("heroImage", v)} folder="hero" placeholder="Click upload or paste URL" />
+          <FileUploadField label="Master Plan Image" value={form.masterPlanImage} onChange={(v) => updateField("masterPlanImage", v)} folder="master-plan" placeholder="Click upload or paste URL" />
+          <FileUploadField label="Brochure (PDF)" value={form.brochureUrl} onChange={(v) => updateField("brochureUrl", v)} folder="brochures" accept="application/pdf" placeholder="Click upload or paste PDF URL" preview="file" />
 
-          <ArrayInputField label="Project Images" field="images" inputField="imageInput" placeholder="Paste image URL" />
-          {form.images.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {form.images.map((img, i) => (
-                <div key={i} className="relative group">
-                  <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
-                  <button onClick={() => removeFromArray("images", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
-                </div>
-              ))}
-            </div>
-          )}
+          <MultiFileUploadField label="Project Images" values={form.images} onChange={(urls) => updateField("images", urls)} folder="project-images" />
+          <MultiFileUploadField label="Gallery Images" values={form.galleryImages} onChange={(urls) => updateField("galleryImages", urls)} folder="gallery" />
+          <MultiFileUploadField label="Clubhouse Images" values={form.clubhouseImages} onChange={(urls) => updateField("clubhouseImages", urls)} folder="clubhouse" />
 
-          <ArrayInputField label="Gallery Images" field="galleryImages" inputField="galleryImageInput" placeholder="Gallery image URL" />
-          {form.galleryImages.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {form.galleryImages.map((img, i) => (
-                <div key={i} className="relative group">
-                  <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
-                  <button onClick={() => removeFromArray("galleryImages", i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <ArrayInputField label="Clubhouse Images" field="clubhouseImages" inputField="clubhouseImageInput" placeholder="Clubhouse image URL" />
           <div><label className="text-sm font-medium mb-1.5 block">Clubhouse Description</label><Textarea value={form.clubhouseDescription} onChange={(e) => updateField("clubhouseDescription", e.target.value)} placeholder="Describe the clubhouse..." rows={2} /></div>
 
           {/* Amenity Images with Descriptions */}
@@ -724,7 +702,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
                   <div key={i} className="relative group">
                     <img src={img.url} alt={img.description} className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
                     <p className="text-[10px] text-muted-foreground truncate max-w-[64px]">{img.description || "No desc"}</p>
-                    <button onClick={() => setForm((prev) => ({ ...prev, amenityImages: prev.amenityImages.filter((_, j) => j !== i) }))}
+                    <button type="button" onClick={() => setForm((prev) => ({ ...prev, amenityImages: prev.amenityImages.filter((_, j) => j !== i) }))}
                       className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                   </div>
                 ))}
@@ -732,7 +710,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
             )}
           </div>
 
-          <ArrayInputField label="Video URLs" field="videos" inputField="videoInput" placeholder="Paste YouTube URL" />
+          {renderArrayField("Video URLs", "videos", "videoInput", "Paste YouTube URL")}
         </CardContent>
       </Card>
 
@@ -740,18 +718,17 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
       <Card>
         <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-lg"><MapPin className="h-5 w-5 text-primary" />Location & Map</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          <MapLocationPicker
+            lat={form.latitude ? Number(form.latitude) : null}
+            lng={form.longitude ? Number(form.longitude) : null}
+            onChange={(lat, lng) => setForm((prev) => ({ ...prev, latitude: lat.toString(), longitude: lng.toString() }))}
+            label="Click anywhere on the map to drop a pin, then drag it to fine-tune your project location"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-sm font-medium mb-1.5 block">Latitude</label><Input value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} placeholder="e.g. 17.3885 (auto-detected from location)" /></div>
-            <div><label className="text-sm font-medium mb-1.5 block">Longitude</label><Input value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} placeholder="e.g. 78.3365 (auto-detected from location)" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Latitude</label><Input value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} placeholder="e.g. 17.3885" /></div>
+            <div><label className="text-sm font-medium mb-1.5 block">Longitude</label><Input value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} placeholder="e.g. 78.3365" /></div>
           </div>
-          <div><label className="text-sm font-medium mb-1.5 block">Google Maps Link</label><Input value={form.googleMapsLink} onChange={(e) => updateField("googleMapsLink", e.target.value)} placeholder="https://www.google.com/maps/place/..." /></div>
-          {form.latitude && form.longitude && (
-            <div className="rounded-xl overflow-hidden border border-border">
-              <iframe
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(form.longitude) - 0.01}%2C${Number(form.latitude) - 0.01}%2C${Number(form.longitude) + 0.01}%2C${Number(form.latitude) + 0.01}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
-                width="100%" height="200" className="border-0" loading="lazy" title="Location Preview" />
-            </div>
-          )}
+          <div><label className="text-sm font-medium mb-1.5 block">Google Maps Link (optional)</label><Input value={form.googleMapsLink} onChange={(e) => updateField("googleMapsLink", e.target.value)} placeholder="https://www.google.com/maps/place/..." /></div>
         </CardContent>
       </Card>
 

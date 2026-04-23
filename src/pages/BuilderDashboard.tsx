@@ -19,6 +19,7 @@ import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
 import DocumentationModal from "@/components/builder/DocumentationModal";
 import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
 import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
+import BuilderMyProfileCard from "@/components/builder/BuilderMyProfileCard";
 import { Sparkles } from "lucide-react";
 
 interface Project {
@@ -432,12 +433,18 @@ export default function BuilderDashboard() {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
             <TabsTrigger value="add-property">Add Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
+
+          {/* My Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            <BuilderMyProfileCard />
+          </TabsContent>
 
           {/* My Properties Tab */}
           <TabsContent value="properties" className="space-y-6">
