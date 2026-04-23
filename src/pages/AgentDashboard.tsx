@@ -632,7 +632,73 @@ export default function AgentDashboard() {
           </SectionErrorBoundary>
         )}
 
-        {/* ===== Weekend Property Explorer Bookings ===== */}
+        {/* ===== Your Properties (added by this agent) ===== */}
+        <SectionErrorBoundary title="Your properties unavailable" description={sectionErrors.properties || "Your properties could not be displayed right now."}>
+          <Card className="border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Home className="h-5 w-5 text-primary" />
+                  Your Properties
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {properties.length} {properties.length === 1 ? "listing" : "listings"} you've added
+                </p>
+              </div>
+              <Button size="sm" onClick={() => navigate("/agent/add-property")}>
+                <Plus className="h-4 w-4 mr-1" /> Add Property
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {properties.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  You haven't added any properties yet. Click "Add Property" to list your first one.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {properties.slice(0, 6).map((p) => (
+                    <Card
+                      key={p.id}
+                      className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => window.open(`/property/${p.id}`, "_blank", "noopener,noreferrer")}
+                    >
+                      <div className="relative h-32 bg-muted overflow-hidden">
+                        <img
+                          src={
+                            Array.isArray(p.images) && p.images[0]
+                              ? p.images[0]
+                              : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600"
+                          }
+                          alt={p.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600";
+                          }}
+                        />
+                        <Badge
+                          variant={p.verified ? "default" : "secondary"}
+                          className="absolute top-2 right-2"
+                        >
+                          {p.verified ? "Verified" : "Pending"}
+                        </Badge>
+                      </div>
+                      <CardContent className="p-3">
+                        <h4 className="font-medium text-sm line-clamp-1">{p.title}</h4>
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {p.locality || "—"}, {p.city || "—"}
+                        </p>
+                        <p className="text-sm font-bold text-primary mt-1">
+                          {p.price ? `₹${(p.price / 10000000).toFixed(2)} Cr` : "Price on request"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </SectionErrorBoundary>
+
         {agentProfile.id && user?.id && (
           <SectionErrorBoundary title="Weekend bookings unavailable" description={sectionErrors.visits || "Weekend booking data could not be loaded right now."}>
             <Card className="border-primary/20">

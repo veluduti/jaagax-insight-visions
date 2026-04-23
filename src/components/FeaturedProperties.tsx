@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PropertyWhyLink from "@/components/home/PropertyWhyLink";
 import MatchBadge from "@/components/home/MatchBadge";
+import { classifyProperty } from "@/lib/propertyClassifier";
 
 interface Property {
   id: string;
@@ -56,45 +57,39 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
 
   const fetchProperties = async () => {
     try {
-      let query = (supabase
-        .from("properties" as any)
-        .select("*") as any)
-        .eq("verified", true)
+      let query: any = (supabase.from("properties" as any).select("*") as any)
+        .neq("is_draft", true)
         .not("title", "is", null)
-        .not("city", "is", null)
-        .not("locality", "is", null)
-        .not("price", "is", null)
-        .gt("price", 0);
+        .not("city", "is", null);
 
-      // Filter by detected city if available
       if (detectedCity) {
         query = query.ilike("city", `%${detectedCity}%`);
       }
 
       const { data, error } = await query
         .order("trust_score", { ascending: false })
-        .limit(4);
+        .limit(40);
 
       if (error) throw error;
-      
-      // If no properties found in detected city, fetch from anywhere
-      if ((!data || data.length === 0) && detectedCity) {
-        const { data: fallbackData, error: fallbackError } = await (supabase
-          .from("properties" as any)
-          .select("*") as any)
-          .eq("verified", true)
+
+      const featured = ((data as any[]) || [])
+        .filter((p) => classifyProperty(p) === "featured")
+        .slice(0, 4);
+
+      // Fallback to other cities if none matched
+      if (featured.length === 0 && detectedCity) {
+        const { data: fb } = await (supabase.from("properties" as any).select("*") as any)
+          .neq("is_draft", true)
           .not("title", "is", null)
           .not("city", "is", null)
-          .not("locality", "is", null)
-          .not("price", "is", null)
-          .gt("price", 0)
           .order("trust_score", { ascending: false })
-          .limit(4);
-
-        if (fallbackError) throw fallbackError;
-        setProperties((fallbackData as any) || []);
+          .limit(40);
+        const featuredFb = ((fb as any[]) || [])
+          .filter((p) => classifyProperty(p) === "featured")
+          .slice(0, 4);
+        setProperties(featuredFb);
       } else {
-        setProperties((data as any) || []);
+        setProperties(featured);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
