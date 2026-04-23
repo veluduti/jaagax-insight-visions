@@ -446,7 +446,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="title" render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Property Title *</FormLabel>
+                    <FormLabel>Property Title</FormLabel>
                     <FormControl><Input placeholder="3 BHK Luxury Apartment in Gachibowli" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -454,7 +454,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Property Type *</FormLabel>
+                    <FormLabel>Property Type</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -469,7 +469,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="listing_type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Property Status *</FormLabel>
+                    <FormLabel>Property Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -483,7 +483,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="completion_stage" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Completion Stage *</FormLabel>
+                    <FormLabel>Completion Stage</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -499,7 +499,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
                 <FormField control={form.control} name="furnishing" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Furnishing *</FormLabel>
+                    <FormLabel>Furnishing</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>
@@ -560,7 +560,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description *</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Describe the property features, amenities, location highlights..." className="min-h-[110px]" {...field} />
                   </FormControl>
@@ -575,21 +575,21 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="bhk" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>BHK *</FormLabel>
+                    <FormLabel>BHK</FormLabel>
                     <FormControl><Input type="number" placeholder="3" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bedrooms *</FormLabel>
+                    <FormLabel>Bedrooms</FormLabel>
                     <FormControl><Input type="number" placeholder="3" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="bathrooms" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bathrooms *</FormLabel>
+                    <FormLabel>Bathrooms</FormLabel>
                     <FormControl><Input type="number" placeholder="2" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -603,7 +603,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                 )} />
                 <FormField control={form.control} name="area_sqft" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Carpet Area (sq.ft) *</FormLabel>
+                    <FormLabel>Carpet Area (sq.ft)</FormLabel>
                     <FormControl><Input type="number" placeholder="1200" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -658,7 +658,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <SectionHeading icon={MapPin} title="Location" subtitle="Address, PIN code & coordinates" />
               <FormField control={form.control} name="address" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Address *</FormLabel>
+                  <FormLabel>Full Address</FormLabel>
                   <FormControl><Input placeholder="Tower A, Prestige Lakeside Habitat, Whitefield" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -666,21 +666,21 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="city" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City *</FormLabel>
+                    <FormLabel>City</FormLabel>
                     <FormControl><Input placeholder="Hyderabad" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="locality" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Locality *</FormLabel>
+                    <FormLabel>Locality</FormLabel>
                     <FormControl><Input placeholder="Gachibowli" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="pincode" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>PIN Code *</FormLabel>
+                    <FormLabel>PIN Code</FormLabel>
                     <FormControl><Input placeholder="500032" maxLength={6} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -740,7 +740,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="price" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Price (₹) *</FormLabel>
+                    <FormLabel>Total Price (₹)</FormLabel>
                     <FormControl><Input type="number" placeholder="5000000" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -840,7 +840,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
 
               {/* Property Images */}
               <div className="space-y-2">
-                <FormLabel>Property Images * <span className="text-xs text-muted-foreground">(JPG/PNG, max 8MB each)</span></FormLabel>
+                <FormLabel>Property Images <span className="text-xs text-muted-foreground">(JPG/PNG, max 8MB each)</span></FormLabel>
                 <input
                   ref={imageInputRef}
                   type="file" accept="image/*" multiple className="hidden"
