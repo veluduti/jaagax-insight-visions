@@ -116,13 +116,13 @@ const ProjectDetail = () => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
 
-  const galleryImages = [
-    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
-    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
-  ];
+  const galleryImages = (project?.images && project.images.length > 0)
+    ? project.images
+    : [
+        project?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
+        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+      ];
 
   const PROJECT_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
