@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Image, Video, Maximize2, Download, X, ChevronLeft, ChevronRight,
-  Play, Pause, Volume2, VolumeX, Maximize, FileText
+  Play, Pause, Volume2, VolumeX, Maximize, FileText, ZoomIn, ZoomOut, RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +34,16 @@ export default function MediaHub({
   const [mediaType, setMediaType] = useState<"image" | "video" | "360">("image");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [zoom, setZoom] = useState(1);
+
+  // Reset zoom when image changes or modal closes
+  useEffect(() => {
+    setZoom(1);
+  }, [currentImageIndex, showFullscreen]);
+
+  const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 4));
+  const zoomOut = () => setZoom((z) => Math.max(z - 0.25, 1));
+  const resetZoom = () => setZoom(1);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -85,7 +95,8 @@ export default function MediaHub({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="w-full h-full object-cover"
+              onClick={() => openFullscreen("image")}
+              className="w-full h-full object-cover cursor-zoom-in"
               loading="lazy"
             />
           </AnimatePresence>
@@ -158,7 +169,13 @@ export default function MediaHub({
               {images.map((img, idx) => (
                 <motion.button
                   key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
+                  onClick={() => {
+                    if (idx === currentImageIndex) {
+                      openFullscreen("image");
+                    } else {
+                      setCurrentImageIndex(idx);
+                    }
+                  }}
                   whileHover={{ scale: 1.05 }}
                   className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
                     idx === currentImageIndex
@@ -311,11 +328,31 @@ export default function MediaHub({
 
             {mediaType === "image" && (
               <>
-                <img
-                  src={images[currentImageIndex]}
-                  alt={propertyTitle}
-                  className="w-full h-full object-contain"
-                />
+                <div className="w-full h-full overflow-auto flex items-center justify-center">
+                  <img
+                    src={images[currentImageIndex]}
+                    alt={propertyTitle}
+                    style={{ transform: `scale(${zoom})`, transition: "transform 0.2s ease" }}
+                    className="max-w-full max-h-full object-contain origin-center"
+                  />
+                </div>
+
+                {/* Zoom controls */}
+                <div className="absolute top-4 left-4 z-50 flex gap-2">
+                  <Button variant="secondary" size="icon" onClick={zoomIn} className="backdrop-blur-sm" disabled={zoom >= 4}>
+                    <ZoomIn className="h-5 w-5" />
+                  </Button>
+                  <Button variant="secondary" size="icon" onClick={zoomOut} className="backdrop-blur-sm" disabled={zoom <= 1}>
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  <Button variant="secondary" size="icon" onClick={resetZoom} className="backdrop-blur-sm" disabled={zoom === 1}>
+                    <RotateCcw className="h-5 w-5" />
+                  </Button>
+                  <Badge variant="secondary" className="backdrop-blur-sm px-3 py-2 self-center">
+                    {Math.round(zoom * 100)}%
+                  </Badge>
+                </div>
+
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
                   <Button
                     variant="secondary"
