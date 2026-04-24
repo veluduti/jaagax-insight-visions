@@ -321,11 +321,31 @@ export default function MediaHub({
 
             {mediaType === "image" && (
               <>
-                <img
-                  src={images[currentImageIndex]}
-                  alt={propertyTitle}
-                  className="w-full h-full object-contain"
-                />
+                <div className="w-full h-full overflow-auto flex items-center justify-center">
+                  <img
+                    src={images[currentImageIndex]}
+                    alt={propertyTitle}
+                    style={{ transform: `scale(${zoom})`, transition: "transform 0.2s ease" }}
+                    className="max-w-full max-h-full object-contain origin-center"
+                  />
+                </div>
+
+                {/* Zoom controls */}
+                <div className="absolute top-4 left-4 z-50 flex gap-2">
+                  <Button variant="secondary" size="icon" onClick={zoomIn} className="backdrop-blur-sm" disabled={zoom >= 4}>
+                    <ZoomIn className="h-5 w-5" />
+                  </Button>
+                  <Button variant="secondary" size="icon" onClick={zoomOut} className="backdrop-blur-sm" disabled={zoom <= 1}>
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  <Button variant="secondary" size="icon" onClick={resetZoom} className="backdrop-blur-sm" disabled={zoom === 1}>
+                    <RotateCcw className="h-5 w-5" />
+                  </Button>
+                  <Badge variant="secondary" className="backdrop-blur-sm px-3 py-2 self-center">
+                    {Math.round(zoom * 100)}%
+                  </Badge>
+                </div>
+
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
                   <Button
                     variant="secondary"
