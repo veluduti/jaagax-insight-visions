@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Image, Video, Maximize2, Download, X, ChevronLeft, ChevronRight,
-  Play, Pause, Volume2, VolumeX, Maximize, FileText
+  Play, Pause, Volume2, VolumeX, Maximize, FileText, ZoomIn, ZoomOut, RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 
