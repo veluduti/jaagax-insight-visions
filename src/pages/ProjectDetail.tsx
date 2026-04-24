@@ -111,7 +111,7 @@ const ProjectDetail = () => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
 
-  const galleryImages: string[] =
+  const allImages: string[] =
     project?.images && project.images.length > 0
       ? project.images
       : [
@@ -119,6 +119,11 @@ const ProjectDetail = () => {
           "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600",
           "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600",
         ];
+
+  // Auto-detect floor plan images by URL keyword and split them out of the photo gallery
+  const isFloorPlan = (u: string) => /floor[-_ ]?plan|floorplan|layout|master[-_ ]?plan/i.test(u);
+  const galleryImages = allImages.filter((u) => !isFloorPlan(u));
+  const floorPlanImages = allImages.filter(isFloorPlan);
 
   const PROJECT_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -355,7 +360,8 @@ const ProjectDetail = () => {
       <MediaHub
         images={galleryImages}
         videos={project.videos || []}
-        floorplans={[]}
+        virtualTourUrl={project.virtual_tour_url || undefined}
+        floorplans={floorPlanImages}
         brochureUrl={project.brochure_url || undefined}
         propertyId={project.id}
         propertyTitle={project.name}
