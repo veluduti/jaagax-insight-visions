@@ -169,7 +169,13 @@ export default function MediaHub({
               {images.map((img, idx) => (
                 <motion.button
                   key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
+                  onClick={() => {
+                    if (idx === currentImageIndex) {
+                      openFullscreen("image");
+                    } else {
+                      setCurrentImageIndex(idx);
+                    }
+                  }}
                   whileHover={{ scale: 1.05 }}
                   className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
                     idx === currentImageIndex
