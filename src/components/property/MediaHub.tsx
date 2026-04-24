@@ -21,6 +21,12 @@ interface MediaHubProps {
   propertyTitle: string;
 }
 
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+  return m ? m[1] : null;
+}
+
 export default function MediaHub({
   images,
   videos = [],
