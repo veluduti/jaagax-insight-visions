@@ -1,83 +1,100 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth";
-import Search from "./pages/Search";
-import AgentLeaderboard from "./pages/AgentLeaderboard";
-import AgentVisitsDashboard from "./pages/AgentVisitsDashboard";
-import AgentVerificationDashboard from "./pages/AgentVerificationDashboard";
-import AdminFRMDashboard from "./pages/AdminFRMDashboard";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-import PropertyDetail from "./pages/PropertyDetail";
-import Transactions from "./pages/Transactions";
-import TransactionsCity from "./pages/TransactionsCity";
-import TransactionsLocality from "./pages/TransactionsLocality";
-import TrustScore from "./pages/TrustScore";
-import Agents from "./pages/Agents";
-import AgentDetail from "./pages/AgentDetail";
-import AgentComparison from "./pages/AgentComparison";
-import PropertyValuation from "./pages/PropertyValuation";
-import Communities from "./pages/Communities";
-import CommunitiesCity from "./pages/CommunitiesCity";
-import CommunitiesLocality from "./pages/CommunitiesLocality";
-import Guides from "./pages/Guides";
-import EventsNew from "./pages/EventsNew";
-import EventCreate from "./pages/EventCreate";
-import EventDetail from "./pages/EventDetail";
-import Map from "./pages/Map";
-import BuyerDashboard from "./pages/BuyerDashboard";
-import SellerDashboard from "./pages/SellerDashboard";
-import SellerAnalytics from "./pages/SellerAnalytics";
-import SellProperty from "./pages/SellProperty";
-import BuilderDashboard from "./pages/BuilderDashboard";
-import AddProject from "./pages/AddProject";
-import BuilderPromotions from "./pages/BuilderPromotions";
-import AgentDashboard from "./pages/AgentDashboard";
-import AgentAddProperty from "./pages/AgentAddProperty";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminPanel from "./pages/AdminPanel";
-import AIAdvisor from "./pages/AIAdvisor";
-import AIAdvisorResults from "./pages/AIAdvisorResults";
-import AIAdvisorProperty from "./pages/AIAdvisorProperty";
-import VisitSchedule from "./pages/VisitSchedule";
-import VisitConfirm from "./pages/VisitConfirm";
-import VisitManage from "./pages/VisitManage";
-import BuilderVisitsDashboard from "./pages/BuilderVisitsDashboard";
-import LiveVisitTracking from "./pages/LiveVisitTracking";
-import VisitVerify from "./pages/VisitVerify";
-import AgentLocationShare from "./pages/AgentLocationShare";
-import VisitStory from "./pages/VisitStory";
-import VisitSummary from "./pages/VisitSummary";
-import VisitAnalytics from "./pages/VisitAnalytics";
-import AgentStoryUpload from "./pages/AgentStoryUpload";
-import BuyerOnboarding from "./pages/BuyerOnboarding";
-import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
-import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import NaturalLiving from "./pages/NaturalLiving";
-import Hotels from "./pages/Hotels";
-import HotelDetail from "./pages/HotelDetail";
-import HotelPartnerOnboarding from "./pages/HotelPartnerOnboarding";
-import HotelPartnerStatus from "./pages/HotelPartnerStatus";
-import Promotions from "./pages/Promotions";
-import PropertyReels from "./pages/PropertyReels";
-import InnovationHub from "./pages/InnovationHub";
-import HotelManagerDashboard from "./pages/HotelManagerDashboard";
-import CompareProperties from "./pages/CompareProperties";
-import AddBuilderProfile from "./pages/AddBuilderProfile";
-import EditBuilderProfile from "./pages/EditBuilderProfile";
-import BuilderProfileDetail from "./pages/BuilderProfileDetail";
-import PlanVisitStay from "./pages/PlanVisitStay";
-import FeaturedPropertiesPage from "./pages/FeaturedPropertiesPage";
-import PartialPropertiesPage from "./pages/PartialPropertiesPage";
+import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import { LocationProvider } from "./contexts/LocationContext";
 
-const queryClient = new QueryClient();
+// Lazy-load all non-landing routes for fast initial paint + smaller chunks per page
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Search = lazy(() => import("./pages/Search"));
+const AgentLeaderboard = lazy(() => import("./pages/AgentLeaderboard"));
+const AgentVisitsDashboard = lazy(() => import("./pages/AgentVisitsDashboard"));
+const AgentVerificationDashboard = lazy(() => import("./pages/AgentVerificationDashboard"));
+const AdminFRMDashboard = lazy(() => import("./pages/AdminFRMDashboard"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const TransactionsCity = lazy(() => import("./pages/TransactionsCity"));
+const TransactionsLocality = lazy(() => import("./pages/TransactionsLocality"));
+const TrustScore = lazy(() => import("./pages/TrustScore"));
+const Agents = lazy(() => import("./pages/Agents"));
+const AgentDetail = lazy(() => import("./pages/AgentDetail"));
+const AgentComparison = lazy(() => import("./pages/AgentComparison"));
+const PropertyValuation = lazy(() => import("./pages/PropertyValuation"));
+const Communities = lazy(() => import("./pages/Communities"));
+const CommunitiesCity = lazy(() => import("./pages/CommunitiesCity"));
+const CommunitiesLocality = lazy(() => import("./pages/CommunitiesLocality"));
+const Guides = lazy(() => import("./pages/Guides"));
+const EventsNew = lazy(() => import("./pages/EventsNew"));
+const EventCreate = lazy(() => import("./pages/EventCreate"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const Map = lazy(() => import("./pages/Map"));
+const BuyerDashboard = lazy(() => import("./pages/BuyerDashboard"));
+const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
+const SellerAnalytics = lazy(() => import("./pages/SellerAnalytics"));
+const SellProperty = lazy(() => import("./pages/SellProperty"));
+const BuilderDashboard = lazy(() => import("./pages/BuilderDashboard"));
+const AddProject = lazy(() => import("./pages/AddProject"));
+const BuilderPromotions = lazy(() => import("./pages/BuilderPromotions"));
+const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
+const AgentAddProperty = lazy(() => import("./pages/AgentAddProperty"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const AIAdvisor = lazy(() => import("./pages/AIAdvisor"));
+const AIAdvisorResults = lazy(() => import("./pages/AIAdvisorResults"));
+const AIAdvisorProperty = lazy(() => import("./pages/AIAdvisorProperty"));
+const VisitSchedule = lazy(() => import("./pages/VisitSchedule"));
+const VisitConfirm = lazy(() => import("./pages/VisitConfirm"));
+const VisitManage = lazy(() => import("./pages/VisitManage"));
+const BuilderVisitsDashboard = lazy(() => import("./pages/BuilderVisitsDashboard"));
+const LiveVisitTracking = lazy(() => import("./pages/LiveVisitTracking"));
+const VisitVerify = lazy(() => import("./pages/VisitVerify"));
+const AgentLocationShare = lazy(() => import("./pages/AgentLocationShare"));
+const VisitStory = lazy(() => import("./pages/VisitStory"));
+const VisitSummary = lazy(() => import("./pages/VisitSummary"));
+const VisitAnalytics = lazy(() => import("./pages/VisitAnalytics"));
+const AgentStoryUpload = lazy(() => import("./pages/AgentStoryUpload"));
+const BuyerOnboarding = lazy(() => import("./pages/BuyerOnboarding"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const NaturalLiving = lazy(() => import("./pages/NaturalLiving"));
+const Hotels = lazy(() => import("./pages/Hotels"));
+const HotelDetail = lazy(() => import("./pages/HotelDetail"));
+const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
+const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
+const Promotions = lazy(() => import("./pages/Promotions"));
+const PropertyReels = lazy(() => import("./pages/PropertyReels"));
+const InnovationHub = lazy(() => import("./pages/InnovationHub"));
+const HotelManagerDashboard = lazy(() => import("./pages/HotelManagerDashboard"));
+const CompareProperties = lazy(() => import("./pages/CompareProperties"));
+const AddBuilderProfile = lazy(() => import("./pages/AddBuilderProfile"));
+const EditBuilderProfile = lazy(() => import("./pages/EditBuilderProfile"));
+const BuilderProfileDetail = lazy(() => import("./pages/BuilderProfileDetail"));
+const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
+const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
+const PartialPropertiesPage = lazy(() => import("./pages/PartialPropertiesPage"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -86,6 +103,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <LocationProvider>
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -133,12 +151,12 @@ const App = () => (
           <Route path="/compare" element={<CompareProperties />} />
           <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
           <Route path="/partial-properties" element={<PartialPropertiesPage />} />
-          
+
           {/* AI Advisor Routes */}
           <Route path="/ai-advisor" element={<AIAdvisor />} />
           <Route path="/ai-advisor/results" element={<AIAdvisorResults />} />
           <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
-          
+
           {/* Visit Scheduling Routes */}
           <Route path="/plan-visit-stay" element={<PlanVisitStay />} />
           <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
@@ -151,7 +169,7 @@ const App = () => (
           <Route path="/visit/analytics" element={<VisitAnalytics />} />
           <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
           <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
-          
+
           {/* Role-based Dashboards */}
           <Route path="/dashboard/buyer" element={
             <ProtectedRoute allowedRole="buyer">
@@ -214,10 +232,11 @@ const App = () => (
               <HotelManagerDashboard />
             </ProtectedRoute>
           } />
-          
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
         </LocationProvider>
       </BrowserRouter>
     </TooltipProvider>
