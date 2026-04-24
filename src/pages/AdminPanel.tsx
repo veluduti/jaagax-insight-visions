@@ -331,12 +331,17 @@ export default function AdminPanel() {
               )}
             </TabsTrigger>
             <TabsTrigger value="builders">Builders</TabsTrigger>
+            <TabsTrigger value="projects-review">Projects</TabsTrigger>
             <TabsTrigger value="hotel-partners">Hotel Partners</TabsTrigger>
             <TabsTrigger value="weekend">Weekend Explorer</TabsTrigger>
             <TabsTrigger value="quick-visits">Quick Visits</TabsTrigger>
             <TabsTrigger value="rera">RERA Verifications</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="projects-review" className="mt-4">
+            <VerificationPanel />
+          </TabsContent>
 
           <TabsContent value="rera">
             <RERAVerificationPanel />
