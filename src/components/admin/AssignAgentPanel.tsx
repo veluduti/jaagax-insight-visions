@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import {
   Loader2, MapPin, CheckCircle, XCircle, Star, Phone, Briefcase, UserCheck, Clock, Home, IndianRupee, ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
 interface PendingProperty {
   id: string;
@@ -50,11 +51,7 @@ export default function AssignAgentPanel() {
   const [suggestions, setSuggestions] = useState<Record<string, AgentSuggestion[]>>({});
   const [working, setWorking] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
-
-  const fetchPending = async () => {
+  const fetchPending = useCallback(async () => {
     setLoading(true);
     // Only seller & agent listings need agent assignment.
     // Builder-listed properties are handled in the Verification panel (no agent assignment).
@@ -68,7 +65,19 @@ export default function AssignAgentPanel() {
       .order("created_at", { ascending: false });
     setProperties((data as any) || []);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchPending();
+  }, [fetchPending]);
+
+  useRealtimeTableSubscription({
+    channelName: "admin-assign-agent-panel",
+    tables: ["properties"],
+    onChange: () => {
+      void fetchPending();
+    },
+  });
 
   const loadSuggestions = async (property: PendingProperty) => {
     setExpanded(property.id);
@@ -119,7 +128,7 @@ export default function AssignAgentPanel() {
     setWorking(property.id);
     try {
       // 1) Update property: assign agent + approve
-      const { error: updErr } = await supabase
+      const { data: updatedRow, error: updErr } = await supabase
         .from("properties")
         .update({
           assigned_agent_id: agent.id,
@@ -128,8 +137,11 @@ export default function AssignAgentPanel() {
           rejection_reason: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", property.id);
+        .eq("id", property.id)
+        .select("id")
+        .maybeSingle();
       if (updErr) throw updErr;
+      if (!updatedRow) throw new Error("Approval was not saved. Please use an admin account.");
 
       // 2) Notify the seller
       if (property.submitted_by) {
@@ -168,7 +180,7 @@ export default function AssignAgentPanel() {
     if (!reason) return;
     setWorking(property.id);
     try {
-      await supabase
+      const { data: updatedRow, error } = await supabase
         .from("properties")
         .update({
           verification_status: "rejected",
@@ -176,7 +188,12 @@ export default function AssignAgentPanel() {
           rejection_reason: reason,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", property.id);
+        .eq("id", property.id)
+        .select("id")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!updatedRow) throw new Error("Rejection was not saved. Please use an admin account.");
 
       if (property.submitted_by) {
         await supabase.from("notifications").insert({
@@ -272,10 +289,14 @@ export default function AssignAgentPanel() {
                         onClick={async () => {
                           setWorking(p.id);
                           try {
-                            await supabase
+                            const { data: updatedRow, error } = await supabase
                               .from("properties")
                               .update({ verification_status: "approved", verified: true, rejection_reason: null })
-                              .eq("id", p.id);
+                              .eq("id", p.id)
+                              .select("id")
+                              .maybeSingle();
+                            if (error) throw error;
+                            if (!updatedRow) throw new Error("Approval was not saved. Please use an admin account.");
                             // Notify agent (they are the submitter)
                             if (p.submitted_by) {
                               await supabase.from("notifications").insert({
