@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
 interface PendingProperty {
   id: string;
@@ -38,11 +39,7 @@ export default function VerificationPanel() {
   const [projects, setProjects] = useState<PendingProject[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchPendingSubmissions();
-  }, []);
-
-  const fetchPendingSubmissions = async () => {
+  const fetchPendingSubmissions = useCallback(async () => {
     setLoading(true);
     try {
       // Builder-submitted properties → straight Approve/Reject, no agent assignment.
@@ -69,7 +66,19 @@ export default function VerificationPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchPendingSubmissions();
+  }, [fetchPendingSubmissions]);
+
+  useRealtimeTableSubscription({
+    channelName: "admin-verification-panel",
+    tables: ["properties", "projects"],
+    onChange: () => {
+      void fetchPendingSubmissions();
+    },
+  });
 
   const handlePropertyVerification = async (
     property: PendingProperty,
@@ -81,16 +90,19 @@ export default function VerificationPanel() {
       if (!reason) return;
     }
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("properties")
         .update({
           verification_status: status,
           verified: status === "approved",
           rejection_reason: status === "rejected" ? reason : null,
         })
-        .eq("id", property.id);
+        .eq("id", property.id)
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Approval was not saved. Please use an admin account.");
 
       // Notify the builder (submitter)
       if (property.submitted_by) {
@@ -128,14 +140,17 @@ export default function VerificationPanel() {
       if (!reason) return;
     }
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("projects")
         .update({
           verified: status === "approved",
         })
-        .eq("id", project.id);
+        .eq("id", project.id)
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Approval was not saved. Please use an admin account.");
 
       // Notify the builder (submitter)
       const { data: proj } = await supabase
