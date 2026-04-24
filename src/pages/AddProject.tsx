@@ -56,6 +56,8 @@ interface Form {
   // Media
   images: string[];
   videos: string[];
+  video_url: string;
+  virtual_tour_url: string;
   master_plan_url: string;
   // Documents
   rera_id: string;
@@ -72,7 +74,7 @@ const empty: Form = {
   price_min: "", price_max: "", price_per_sqft: "",
   launch_date: "", possession_date: "",
   amenities: [],
-  images: [], videos: [], master_plan_url: "",
+  images: [], videos: [], video_url: "", virtual_tour_url: "", master_plan_url: "",
   rera_id: "", rera_document_url: "", layout_plan_url: "", brochure_url: "", environmental_clearance_url: "",
 };
 
@@ -183,7 +185,8 @@ export default function AddProject() {
         amenities: form.amenities,
         images: form.images,
         image: form.images[0] || null,
-        videos: form.videos,
+        videos: [...form.videos, ...(form.video_url ? [form.video_url] : [])],
+        virtual_tour_url: form.virtual_tour_url || null,
         master_plan_url: form.master_plan_url || null,
         rera_id: form.rera_id || null,
         rera_document_url: form.rera_document_url || null,
@@ -431,6 +434,30 @@ export default function AddProject() {
                 ))}
               </ul>
             )}
+
+            <div>
+              <Label>YouTube / Video URL (optional)</Label>
+              <Input
+                value={form.video_url}
+                onChange={(e) => set("video_url", e.target.value)}
+                placeholder="https://youtu.be/..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Paste a YouTube link to showcase your project walkthrough.
+              </p>
+            </div>
+
+            <div>
+              <Label>360° Virtual Tour URL (optional)</Label>
+              <Input
+                value={form.virtual_tour_url}
+                onChange={(e) => set("virtual_tour_url", e.target.value)}
+                placeholder="https://... (Matterport, Kuula, YouTube 360°)"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Paste a 360° tour link so buyers can explore the property immersively.
+              </p>
+            </div>
 
             <FileUploader
               label="Master Plan Image"
