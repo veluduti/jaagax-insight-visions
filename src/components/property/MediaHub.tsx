@@ -43,14 +43,29 @@ export default function MediaHub({
   const [isMuted, setIsMuted] = useState(false);
   const [zoom, setZoom] = useState(1);
 
+  // Floor plan viewer (separate from images carousel)
+  const [floorPlanViewerOpen, setFloorPlanViewerOpen] = useState(false);
+  const [floorPlanIndex, setFloorPlanIndex] = useState(0);
+  const [fpZoom, setFpZoom] = useState(1);
+
   // Reset zoom when image changes or modal closes
   useEffect(() => {
     setZoom(1);
   }, [currentImageIndex, showFullscreen]);
 
+  useEffect(() => {
+    setFpZoom(1);
+  }, [floorPlanIndex, floorPlanViewerOpen]);
+
   const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 4));
   const zoomOut = () => setZoom((z) => Math.max(z - 0.25, 1));
   const resetZoom = () => setZoom(1);
+
+  const fpZoomIn = () => setFpZoom((z) => Math.min(z + 0.25, 5));
+  const fpZoomOut = () => setFpZoom((z) => Math.max(z - 0.25, 1));
+  const fpResetZoom = () => setFpZoom(1);
+  const nextFloorPlan = () => setFloorPlanIndex((i) => (i + 1) % floorplans.length);
+  const prevFloorPlan = () => setFloorPlanIndex((i) => (i - 1 + floorplans.length) % floorplans.length);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -260,12 +275,8 @@ export default function MediaHub({
                     whileHover={{ scale: 1.02 }}
                     className="glass-panel rounded-xl p-3 cursor-pointer group"
                     onClick={() => {
-                      setMediaType("image");
-                      // Show floor plan in fullscreen by temporarily putting it as current
-                      const merged = [...images, ...floorplans];
-                      setCurrentImageIndex(images.length + idx);
-                      // Note: fullscreen reads from images prop, so we open a dedicated viewer
-                      setShowFullscreen(true);
+                      setFloorPlanIndex(idx);
+                      setFloorPlanViewerOpen(true);
                     }}
                   >
                     <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted">
@@ -463,6 +474,77 @@ export default function MediaHub({
                   </Button>
                 </div>
               </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floor Plan Viewer with Zoom */}
+      <Dialog open={floorPlanViewerOpen} onOpenChange={setFloorPlanViewerOpen}>
+        <DialogContent className="max-w-7xl h-[90vh] p-0">
+          <div className="relative w-full h-full bg-black">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setFloorPlanViewerOpen(false)}
+              className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+
+            <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
+              {floorplans[floorPlanIndex] && (
+                <img
+                  src={floorplans[floorPlanIndex]}
+                  alt={`Floor Plan ${floorPlanIndex + 1}`}
+                  style={{ transform: `scale(${fpZoom})`, transition: "transform 0.2s ease", transformOrigin: "center" }}
+                  className="max-w-full max-h-full object-contain"
+                  draggable={false}
+                />
+              )}
+            </div>
+
+            {/* Zoom controls */}
+            <div className="absolute top-4 left-4 z-50 flex gap-2">
+              <Button variant="secondary" size="icon" onClick={fpZoomIn} className="backdrop-blur-sm" disabled={fpZoom >= 5}>
+                <ZoomIn className="h-5 w-5" />
+              </Button>
+              <Button variant="secondary" size="icon" onClick={fpZoomOut} className="backdrop-blur-sm" disabled={fpZoom <= 1}>
+                <ZoomOut className="h-5 w-5" />
+              </Button>
+              <Button variant="secondary" size="icon" onClick={fpResetZoom} className="backdrop-blur-sm" disabled={fpZoom === 1}>
+                <RotateCcw className="h-5 w-5" />
+              </Button>
+              <Badge variant="secondary" className="backdrop-blur-sm px-3 py-2 self-center">
+                {Math.round(fpZoom * 100)}%
+              </Badge>
+            </div>
+
+            {/* Download */}
+            <div className="absolute top-4 right-16 z-50">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => window.open(floorplans[floorPlanIndex], "_blank")}
+                className="backdrop-blur-sm"
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Navigation */}
+            {floorplans.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                <Button variant="secondary" size="icon" onClick={prevFloorPlan} className="backdrop-blur-sm">
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Badge variant="secondary" className="backdrop-blur-sm px-4 py-2">
+                  Floor Plan {floorPlanIndex + 1} / {floorplans.length}
+                </Badge>
+                <Button variant="secondary" size="icon" onClick={nextFloorPlan} className="backdrop-blur-sm">
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
             )}
           </div>
         </DialogContent>
