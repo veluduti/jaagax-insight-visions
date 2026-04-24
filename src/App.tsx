@@ -205,17 +205,10 @@ const App = () => (
               <SellerAnalytics />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard/admin" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
+          {/* Admin routes are temporarily public — login will be added later */}
+          <Route path="/dashboard/admin" element={<AdminPanel />} />
           <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/dashboard/admin/frm" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminFRMDashboard />
-            </ProtectedRoute>
-          } />
+          <Route path="/dashboard/admin/frm" element={<AdminFRMDashboard />} />
           <Route path="/dashboard/hotel-manager" element={
             <ProtectedRoute allowedRole="hotel_manager">
               <HotelManagerDashboard />
