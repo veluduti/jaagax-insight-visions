@@ -15,8 +15,7 @@ import {
   Building2,
   MapPin,
   Shield,
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
   Sparkles,
   CheckCircle2,
   Home,
@@ -28,21 +27,26 @@ import {
   Video,
   Loader2,
   Award,
+  Hash,
+  Calendar,
+  Brain,
+  Heart,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { SiteVisitBookingModal } from "@/components/booking/SiteVisitBookingModal";
 import { InterestRegistrationModal } from "@/components/booking/InterestRegistrationModal";
 import { BuilderTrustProgram } from "@/components/builder/BuilderTrustProgram";
+import PropertyBreadcrumb from "@/components/property/PropertyBreadcrumb";
+import MediaHub from "@/components/property/MediaHub";
+import PropertyStats from "@/components/property/PropertyStats";
+import EMICalculator from "@/components/property/EMICalculator";
+import PaymentPlans from "@/components/property/PaymentPlans";
+import NearbyPOI from "@/components/property/NearbyPOI";
+import AuthGate from "@/components/property/AuthGate";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Project {
   id: string;
@@ -63,23 +67,11 @@ interface Project {
   area_range: string | null;
   status: string | null;
   possession_date: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  brochure_url?: string | null;
+  videos?: string[] | null;
   overview?: string;
-}
-
-interface Amenity {
-  id: string;
-  type: string;
-  status: string;
-}
-
-interface Unit {
-  id: string;
-  bhk: number;
-  area: number;
-  price: number;
-  facing: string | null;
-  plan_svg: string | null;
-  plan_3d: string | null;
 }
 
 const amenityIcons: Record<string, any> = {
@@ -94,9 +86,10 @@ const amenityIcons: Record<string, any> = {
 
 const ProjectDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const id = slug; // backward-compat alias
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+
   // Validate slug parameter
   useEffect(() => {
     if (!slug) {
@@ -104,6 +97,7 @@ const ProjectDetail = () => {
       navigate("/projects");
     }
   }, [slug, navigate]);
+
   const [project, setProject] = useState<Project | null>(null);
   const [amenities, setAmenities] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
@@ -116,13 +110,14 @@ const ProjectDetail = () => {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
 
-  const galleryImages = (project?.images && project.images.length > 0)
-    ? project.images
-    : [
-        project?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
-        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800",
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-      ];
+  const galleryImages: string[] =
+    project?.images && project.images.length > 0
+      ? project.images
+      : [
+          project?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600",
+          "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600",
+          "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600",
+        ];
 
   const PROJECT_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -135,8 +130,7 @@ const ProjectDetail = () => {
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
-      
-      // Determine viewer (owner/admin can view unverified projects)
+
       const { data: { user } } = await supabase.auth.getUser();
       let isPrivileged = false;
       if (user) {
@@ -147,10 +141,8 @@ const ProjectDetail = () => {
         isPrivileged = (roleRows || []).some((r: any) => r.role === "admin");
       }
 
-      // Lookup by slug first; fall back to id for legacy UUID links
       const buildQuery = (col: "slug" | "id", val: string) => {
         let q = supabase.from("projects").select("*").eq(col, val);
-        // Owners and admins can see unverified; others only verified
         if (!isPrivileged && !user) {
           q = q.eq("verified", true);
         }
@@ -169,7 +161,6 @@ const ProjectDetail = () => {
         }
       }
 
-      // If unverified and viewer isn't owner or admin, hide
       if (projectData && !projectData.verified && !isPrivileged) {
         if (!user || projectData.submitted_by !== user.id) {
           projectData = null;
@@ -177,23 +168,21 @@ const ProjectDetail = () => {
       }
 
       if (projectError) throw projectError;
-      
+
       if (!projectData) {
         setProject(null);
         setLoading(false);
         return;
       }
-      
-      // Validate critical fields
+
       if (!projectData.name || !projectData.city || !projectData.locality) {
         setProject(null);
         setLoading(false);
         return;
       }
-      
+
       setProject(projectData);
 
-      // Use amenities from project table directly
       if (projectData.amenities && projectData.amenities.length > 0) {
         const amenityIconMap: Record<string, string> = {
           'Swimming Pool': 'pool', 'Infinity Pool': 'pool', 'Olympic Pool': 'pool', 'Rooftop Pool': 'pool',
@@ -211,7 +200,6 @@ const ProjectDetail = () => {
         })));
       }
 
-      // Generate highlights from available project data
       const autoHighlights: string[] = [];
       if (projectData.bhk_types) autoHighlights.push(`Available in ${projectData.bhk_types} configurations`);
       if (projectData.area_range) autoHighlights.push(`Unit sizes: ${projectData.area_range}`);
@@ -223,7 +211,6 @@ const ProjectDetail = () => {
       if (projectData.amenities?.length) autoHighlights.push(`${projectData.amenities.length}+ world-class amenities`);
       setHighlights(autoHighlights);
 
-      // Try fetching enriched data (floor plans, specs) from edge function - non-blocking
       try {
         const { data: webData, error: webError } = await supabase.functions.invoke(
           "fetch-project-web-data",
@@ -253,7 +240,7 @@ const ProjectDetail = () => {
 
   const generateAISummary = async () => {
     if (!project) return;
-    
+
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-project-summary", {
@@ -267,12 +254,11 @@ const ProjectDetail = () => {
       if (error) throw error;
 
       if (data?.fallback) {
-        // Use fallback summary if AI service is unavailable
         setAiSummary(
           `${project.name} is a premium ${project.city}-based development by ${project.builder_name || "a renowned builder"}. ` +
           `Located in ${project.locality}, this project offers modern living spaces with world-class amenities. ` +
           `With a trust score of ${project.trust_score}/100 and ${project.rera_id ? "RERA certification" : "ongoing verification"}, ` +
-          `this project represents excellent value starting from ₹${(project.avg_price / 10000000).toFixed(2)} Crores. ` +
+          `this project represents excellent value starting from ₹${((project.avg_price || 0) / 10000000).toFixed(2)} Crores. ` +
           `The development features ${amenities.length} premium amenities including modern fitness facilities, landscaped gardens, and 24/7 security.`
         );
         toast.info(data.error || "Using fallback summary");
@@ -290,7 +276,7 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-6 py-24 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
@@ -304,164 +290,194 @@ const ProjectDetail = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-        <Navigation />
-        <div className="container mx-auto px-6 py-24 text-center">
-          <h2 className="text-2xl font-bold mb-4">Project not found</h2>
-          <Button onClick={() => navigate("/projects")}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Projects
-          </Button>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="glass-panel rounded-2xl p-8 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Building2 className="h-10 w-10 text-destructive" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Project Not Found</h2>
+              <p className="text-muted-foreground">
+                The project you're looking for doesn't exist or hasn't been approved yet.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button onClick={() => navigate("/projects")} className="flex-1 gap-2">
+                <Building2 className="h-4 w-4" />
+                Browse Projects
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
-  const AmenityIcon = amenityIcons[project.name] || amenityIcons.default;
+  const startingPrice = project.avg_price ? `₹${(project.avg_price / 10000000).toFixed(2)} Cr` : "Price on request";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="container mx-auto px-6 py-24">
-        {/* Back Button */}
+
+      {/* Back Button & Breadcrumb */}
+      <div className="container mx-auto px-4 py-4 pt-24">
         <Button
           variant="ghost"
-          onClick={() => navigate("/projects")}
-          className="mb-6"
+          onClick={() => navigate(-1)}
+          className="gap-2 mb-4"
         >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Projects
+          <ArrowLeft className="h-4 w-4" />
+          Back
         </Button>
+        <PropertyBreadcrumb
+          city={project.city}
+          locality={project.locality}
+          title={project.name}
+        />
 
-        {/* Header */}
+        {/* Project Reference */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Hash className="h-4 w-4" />
+          <span>Project Ref: <span className="font-semibold text-foreground">JX{project.id.slice(0, 8)}</span></span>
+        </div>
+      </div>
+
+      {/* Media Hub - Same as Property */}
+      <MediaHub
+        images={galleryImages}
+        videos={project.videos || []}
+        floorplans={[]}
+        brochureUrl={project.brochure_url || undefined}
+        propertyId={project.id}
+        propertyTitle={project.name}
+      />
+
+      {/* Action Buttons */}
+      <div className="container mx-auto px-4 -mt-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="glass-panel rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">{project.name}</h1>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-5 w-5" />
-                <span>{project.locality}, {project.city}</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground mb-1">Starting from</p>
-              <p className="text-3xl font-bold text-primary">
-                ₹{(project.avg_price / 10000000).toFixed(2)}Cr
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2">
             {project.rera_id && (
               <Badge variant="default" className="bg-primary/90">
                 <Shield className="h-3 w-3 mr-1" />
                 RERA: {project.rera_id}
               </Badge>
             )}
-            <Badge variant="outline" className="border-primary/50">
-              Trust Score: {project.trust_score}/100
-            </Badge>
-            <Badge variant="secondary">
-              By {project.builder_name || "Builder"}
-            </Badge>
+            {project.trust_score != null && (
+              <Badge variant="outline" className="border-primary/50">
+                Trust Score: {project.trust_score}/100
+              </Badge>
+            )}
+            <Badge variant="secondary">By {project.builder_name || "Builder"}</Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button size="lg" className="gap-2" onClick={() => setBookingModalOpen(true)}>
+              <Calendar className="h-4 w-4" />
+              Book Visit
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2"
+              onClick={() => setInterestModalOpen(true)}
+            >
+              <Heart className="h-4 w-4" />
+              Express Interest
+            </Button>
           </div>
         </motion.div>
+      </div>
 
-        {/* Gallery Carousel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <Carousel className="w-full">
-            <CarouselContent>
-              {galleryImages.map((image, index) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="relative h-64 rounded-xl overflow-hidden">
-                    <img
-                      src={image}
-                      alt={`${project.name} - Image ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                    />
+      <div className="container mx-auto px-4 py-8">
+        {/* Project Stats */}
+        <PropertyStats entityId={project.id} entityType="project" />
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Project Header Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-panel rounded-xl p-6"
+            >
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{project.name}</h1>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-5 w-5" />
+                    <span>{project.locality}, {project.city}</span>
                   </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
-          </Carousel>
-        </motion.div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground mb-1">Starting from</p>
+                  <p className="text-3xl font-bold text-primary">{startingPrice}</p>
+                </div>
+              </div>
 
-        {/* Tabs Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="builder" className="gap-1">
-                <Award className="h-3 w-3" />
-                Builder
-              </TabsTrigger>
-              <TabsTrigger value="amenities">Amenities</TabsTrigger>
-              <TabsTrigger value="floorplans">Floor Plans</TabsTrigger>
-              <TabsTrigger value="ai">AI Summary</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview">
-              <Card className="glass-panel">
-                <CardHeader>
-                  <CardTitle>Project Overview</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Project Quick Info */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    {project.builder_name && (
-                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
-                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
-                        <p className="text-xs text-muted-foreground">Builder</p>
-                        <p className="font-semibold text-sm">{project.builder_name}</p>
-                      </div>
-                    )}
-                    {project.bhk_types && (
-                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
-                        <Home className="h-5 w-5 mx-auto mb-2 text-primary" />
-                        <p className="text-xs text-muted-foreground">Configurations</p>
-                        <p className="font-semibold text-sm">{project.bhk_types}</p>
-                      </div>
-                    )}
-                    {project.area_range && (
-                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
-                        <Building2 className="h-5 w-5 mx-auto mb-2 text-primary" />
-                        <p className="text-xs text-muted-foreground">Area Range</p>
-                        <p className="font-semibold text-sm">{project.area_range}</p>
-                      </div>
-                    )}
-                    {project.status && (
-                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
-                        <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-primary" />
-                        <p className="text-xs text-muted-foreground">Status</p>
-                        <p className="font-semibold text-sm">{project.status}</p>
-                      </div>
-                    )}
-                    {project.possession_date && (
-                      <div className="p-4 rounded-lg bg-accent/10 border border-border/50 text-center">
-                        <Sparkles className="h-5 w-5 mx-auto mb-2 text-primary" />
-                        <p className="text-xs text-muted-foreground">Possession</p>
-                        <p className="font-semibold text-sm">{project.possession_date}</p>
-                      </div>
-                    )}
+              {/* Quick Info Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                {project.bhk_types && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                    <p className="text-xs text-muted-foreground">Configurations</p>
+                    <p className="font-semibold text-sm mt-1">{project.bhk_types}</p>
                   </div>
+                )}
+                {project.area_range && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                    <p className="text-xs text-muted-foreground">Area Range</p>
+                    <p className="font-semibold text-sm mt-1">{project.area_range}</p>
+                  </div>
+                )}
+                {project.status && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="font-semibold text-sm mt-1">{project.status}</p>
+                  </div>
+                )}
+                {project.possession_date && (
+                  <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
+                    <p className="text-xs text-muted-foreground">Possession</p>
+                    <p className="font-semibold text-sm mt-1">{project.possession_date}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
 
+            {/* Tabs Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="glass-panel rounded-xl p-6"
+            >
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="builder" className="gap-1">
+                    <Award className="h-3 w-3" />
+                    Builder
+                  </TabsTrigger>
+                  <TabsTrigger value="amenities">Amenities</TabsTrigger>
+                  <TabsTrigger value="floorplans">Floor Plans</TabsTrigger>
+                  <TabsTrigger value="ai">AI Summary</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="space-y-6">
                   <div>
+                    <h3 className="text-lg font-semibold mb-3">Project Overview</h3>
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {project.description ||
                         `${project.name} is a premium residential project located in the heart of ${project.locality}, ${project.city}. 
@@ -499,61 +515,37 @@ const ProjectDetail = () => {
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </TabsContent>
 
-            {/* Builder Trust Program Tab */}
-            <TabsContent value="builder">
-              {project.builder_id ? (
-                <BuilderTrustProgram 
-                  builderId={project.builder_id} 
-                  builderName={project.builder_name}
-                />
-              ) : project.builder_name ? (
-                <Card className="glass-panel">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-primary" />
-                      {project.builder_name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      {project.builder_name} is the developer of {project.name}, located in {project.locality}, {project.city}.
-                    </p>
-                    <div className="grid grid-cols-2 gap-4">
-                      {project.status && (
-                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
-                          <p className="text-xs text-muted-foreground">Project Status</p>
-                          <p className="font-semibold">{project.status}</p>
-                        </div>
-                      )}
-                      {project.possession_date && (
-                        <div className="p-3 rounded-lg bg-accent/10 border border-border/50">
-                          <p className="text-xs text-muted-foreground">Possession</p>
-                          <p className="font-semibold">{project.possession_date}</p>
-                        </div>
-                      )}
+                <TabsContent value="builder">
+                  {project.builder_id ? (
+                    <BuilderTrustProgram
+                      builderId={project.builder_id}
+                      builderName={project.builder_name}
+                    />
+                  ) : project.builder_name ? (
+                    <Card className="border-border/50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Building2 className="h-5 w-5 text-primary" />
+                          {project.builder_name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">
+                          {project.builder_name} is the developer of {project.name}, located in {project.locality}, {project.city}.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="py-12 text-center">
+                      <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">Builder information not available</p>
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="glass-panel">
-                  <CardContent className="py-12 text-center">
-                    <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Builder information not available</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
+                  )}
+                </TabsContent>
 
-            <TabsContent value="amenities">
-              <Card className="glass-panel">
-                <CardHeader>
-                  <CardTitle>Premium Amenities</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <TabsContent value="amenities">
                   {amenities.length === 0 ? (
                     <p className="text-muted-foreground">No amenities information available.</p>
                   ) : (
@@ -561,9 +553,6 @@ const ProjectDetail = () => {
                       {amenities.map((amenity, index) => {
                         const amenityType = amenity.type?.toLowerCase() || 'default';
                         const Icon = amenityIcons[amenityType] || amenityIcons.default;
-                        const amenityName = amenity.name || amenity.type;
-                        const amenityStatus = amenity.status || 'Available';
-                        
                         return (
                           <div
                             key={amenity.id || index}
@@ -573,24 +562,17 @@ const ProjectDetail = () => {
                               <Icon className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <p className="font-semibold capitalize">{amenityName}</p>
-                              <p className="text-sm text-muted-foreground capitalize">{amenityStatus}</p>
+                              <p className="font-semibold capitalize">{amenity.name || amenity.type}</p>
+                              <p className="text-sm text-muted-foreground capitalize">{amenity.status || 'Available'}</p>
                             </div>
                           </div>
                         );
                       })}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="floorplans">
-              <Card className="glass-panel">
-                <CardHeader>
-                  <CardTitle>Available Floor Plans</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <TabsContent value="floorplans">
                   {units.length === 0 ? (
                     <p className="text-muted-foreground">No floor plans available.</p>
                   ) : (
@@ -604,41 +586,18 @@ const ProjectDetail = () => {
                             <h3 className="text-xl font-bold">{unit.bhk} BHK</h3>
                             <Badge variant="outline">{unit.area} sq.ft</Badge>
                           </div>
-                          
                           <div className="mb-4">
                             <p className="text-sm text-muted-foreground mb-1">Price</p>
                             <p className="text-2xl font-bold text-primary">
                               ₹{(unit.price / 10000000).toFixed(2)}Cr
                             </p>
                           </div>
-
                           {unit.facing && (
                             <div className="mb-4">
                               <p className="text-sm text-muted-foreground mb-1">Facing</p>
                               <p className="font-medium">{unit.facing}</p>
                             </div>
                           )}
-
-                          {unit.description && (
-                            <div className="mb-4">
-                              <p className="text-sm text-muted-foreground">{unit.description}</p>
-                            </div>
-                          )}
-
-                          {unit.features && unit.features.length > 0 && (
-                            <div className="mb-4">
-                              <p className="text-sm font-medium mb-2">Key Features:</p>
-                              <ul className="space-y-1">
-                                {unit.features.map((feature: string, idx: number) => (
-                                  <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                                    {feature}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
                           {unit.plan_3d && (
                             <Button
                               variant="outline"
@@ -653,19 +612,9 @@ const ProjectDetail = () => {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="ai">
-              <Card className="glass-panel">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    AI Project Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                <TabsContent value="ai">
                   {!aiSummary ? (
                     <div className="text-center py-8">
                       <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
@@ -697,32 +646,35 @@ const ProjectDetail = () => {
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
+                </TabsContent>
+              </Tabs>
+            </motion.div>
 
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-12 p-8 rounded-xl glass-panel text-center"
-        >
-          <h3 className="text-2xl font-bold mb-4">Interested in this project?</h3>
-          <p className="text-muted-foreground mb-6">
-            Contact our team for site visits, pricing details, and exclusive offers
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" onClick={() => setBookingModalOpen(true)}>
-              Schedule Site Visit
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => setInterestModalOpen(true)}>
-              Express Interest
-            </Button>
+            {/* Nearby POI */}
+            <NearbyPOI
+              city={project.city}
+              lat={project.latitude ?? null}
+              lng={project.longitude ?? null}
+              locality={project.locality}
+            />
           </div>
-        </motion.div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* EMI Calculator */}
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
+              <EMICalculator propertyPrice={project.avg_price || 0} />
+            </AuthGate>
+
+            {/* Payment Plans */}
+            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
+              <PaymentPlans
+                propertyPrice={project.avg_price || 0}
+                status={project.status || "Ready"}
+              />
+            </AuthGate>
+          </div>
+        </div>
       </div>
 
       <Footer />
@@ -764,6 +716,25 @@ const ProjectDetail = () => {
           />
         </>
       )}
+
+      {/* Mobile Sticky CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
+        <div className="flex gap-2">
+          <Button size="lg" className="flex-1 gap-2" onClick={() => setBookingModalOpen(true)}>
+            <Calendar className="h-4 w-4" />
+            Book Visit
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="flex-1 gap-2"
+            onClick={() => setInterestModalOpen(true)}
+          >
+            <Heart className="h-4 w-4" />
+            Interest
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
