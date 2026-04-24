@@ -153,14 +153,15 @@ export default function BuilderDashboard() {
       .maybeSingle();
 
     let projectData: any[] = [];
-    if (builderProfile?.builder_name) {
-      const { data } = await supabase
-        .from("projects")
-        .select("*")
-        .ilike("builder_name", `%${builderProfile.builder_name}%`)
-        .order("created_at", { ascending: false });
-      projectData = data || [];
-    }
+    const filter = builderProfile?.builder_name
+      ? `submitted_by.eq.${user.id},builder_name.ilike.%${builderProfile.builder_name}%`
+      : `submitted_by.eq.${user.id}`;
+    const { data } = await supabase
+      .from("projects")
+      .select("*")
+      .or(filter)
+      .order("created_at", { ascending: false });
+    projectData = data || [];
 
     setProjects(projectData as Project[]);
 
