@@ -104,11 +104,30 @@ async function fetchFromOSM(lat: number, lng: number): Promise<Record<string, PO
           .join('');
         const query = `[out:json][timeout:15];(${filterBlocks});out center 25;`;
 
-        const resp = await fetch('https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'data=' + encodeURIComponent(query),
-        });
+        const endpoints = [
+          'https://overpass-api.de/api/interpreter',
+          'https://overpass.kumi.systems/api/interpreter',
+          'https://overpass.openstreetmap.ru/api/interpreter',
+        ];
+        let resp: Response | null = null;
+        for (const ep of endpoints) {
+          try {
+            const r = await fetch(ep, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'JaagaX-NearbyPlaces/1.0',
+                'Accept': 'application/json',
+              },
+              body: 'data=' + encodeURIComponent(query),
+            });
+            if (r.ok) { resp = r; break; }
+            console.error(`[OSM] ${cat.key} ${ep} HTTP ${r.status}`);
+          } catch (e) {
+            console.error(`[OSM] ${cat.key} ${ep} fetch error:`, e);
+          }
+        }
+        if (!resp) { results[cat.key] = []; return; }
 
         if (!resp.ok) {
           console.error(`[OSM] ${cat.key} HTTP ${resp.status}`);
