@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Image, Video, Maximize2, Download, X, ChevronLeft, ChevronRight,
-  Play, Pause, Volume2, VolumeX, Maximize, FileText, ZoomIn, ZoomOut, RotateCcw
+  Play, Pause, Volume2, VolumeX, Maximize, FileText, ZoomIn, ZoomOut, RotateCcw,
+  LayoutGrid, ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +19,12 @@ interface MediaHubProps {
   brochureUrl?: string;
   propertyId: string;
   propertyTitle: string;
+}
+
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+  return m ? m[1] : null;
 }
 
 export default function MediaHub({
@@ -145,7 +152,7 @@ export default function MediaHub({
 
         {/* Thumbnail Strip & Media Tabs */}
         <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="photos" className="gap-2">
               <Image className="h-4 w-4" />
               Photos ({images.length})
@@ -154,11 +161,15 @@ export default function MediaHub({
               <Video className="h-4 w-4" />
               Videos ({videos.length})
             </TabsTrigger>
+            <TabsTrigger value="floorplans" className="gap-2" disabled={floorplans.length === 0}>
+              <LayoutGrid className="h-4 w-4" />
+              Floor Plans ({floorplans.length})
+            </TabsTrigger>
             <TabsTrigger value="tour" className="gap-2" disabled={!virtualTourUrl}>
               <Maximize className="h-4 w-4" />
               360° Tour
             </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2" disabled={!floorplans.length && !brochureUrl}>
+            <TabsTrigger value="documents" className="gap-2" disabled={!brochureUrl}>
               <FileText className="h-4 w-4" />
               Documents
             </TabsTrigger>
@@ -204,17 +215,30 @@ export default function MediaHub({
           </TabsContent>
 
           <TabsContent value="videos" className="mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              {videos.map((videoUrl, idx) => (
-                <div key={idx} className="relative aspect-video rounded-lg overflow-hidden bg-black">
-                  <video
-                    src={videoUrl}
-                    controls
-                    className="w-full h-full object-cover"
-                    poster={images[0]}
-                  />
-                </div>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {videos.map((videoUrl, idx) => {
+                const ytId = getYouTubeId(videoUrl);
+                return (
+                  <div key={idx} className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                    {ytId ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}`}
+                        title={`Video ${idx + 1}`}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video
+                        src={videoUrl}
+                        controls
+                        className="w-full h-full object-cover"
+                        poster={images[0]}
+                      />
+                    )}
+                  </div>
+                );
+              })}
               {videos.length === 0 && (
                 <div className="col-span-2 glass-panel rounded-xl p-8 text-center">
                   <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -227,24 +251,96 @@ export default function MediaHub({
             </div>
           </TabsContent>
 
+          <TabsContent value="floorplans" className="mt-4">
+            {floorplans.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {floorplans.map((plan, idx) => (
+                  <motion.div
+                    key={idx}
+                    whileHover={{ scale: 1.02 }}
+                    className="glass-panel rounded-xl p-3 cursor-pointer group"
+                    onClick={() => {
+                      setMediaType("image");
+                      // Show floor plan in fullscreen by temporarily putting it as current
+                      const merged = [...images, ...floorplans];
+                      setCurrentImageIndex(images.length + idx);
+                      // Note: fullscreen reads from images prop, so we open a dedicated viewer
+                      setShowFullscreen(true);
+                    }}
+                  >
+                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={plan}
+                        alt={`Floor Plan ${idx + 1}`}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <Badge variant="secondary" className="backdrop-blur-sm gap-1">
+                          <ZoomIn className="h-3 w-3" />
+                          Click to zoom
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 px-2">
+                      <p className="font-medium text-sm">Floor Plan {idx + 1}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(plan, "_blank");
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="glass-panel rounded-xl p-8 text-center">
+                <LayoutGrid className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground mb-4">No floor plans available</p>
+                <Button variant="outline" onClick={handleRequestMedia}>
+                  Request Floor Plans
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="tour" className="mt-4">
             {virtualTourUrl ? (
-              <div className="glass-panel rounded-xl p-8 text-center space-y-4">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                  <Maximize className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">360° Virtual Tour Available</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  Experience an immersive walkthrough of this property. The tour opens in a new tab for the best viewing experience.
-                </p>
-                <Button
-                  size="lg"
-                  className="gap-2"
-                  onClick={() => window.open(virtualTourUrl, '_blank', 'noopener,noreferrer')}
-                >
-                  <Maximize className="h-5 w-5" />
-                  Launch 360° Tour
-                </Button>
+              <div className="space-y-4">
+                {getYouTubeId(virtualTourUrl) ? (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYouTubeId(virtualTourUrl)}`}
+                      title="360° Virtual Tour"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <div className="glass-panel rounded-xl p-8 text-center space-y-4">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                      <Maximize className="h-10 w-10 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold">360° Virtual Tour Available</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Experience an immersive walkthrough of this property.
+                    </p>
+                    <Button
+                      size="lg"
+                      className="gap-2"
+                      onClick={() => window.open(virtualTourUrl, '_blank', 'noopener,noreferrer')}
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      Launch 360° Tour
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="glass-panel rounded-xl p-8 text-center">
@@ -258,57 +354,49 @@ export default function MediaHub({
           </TabsContent>
 
           <TabsContent value="documents" className="mt-4">
-            <div className="space-y-4">
-              {/* Floorplans */}
-              {floorplans.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-3">Floor Plans</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {floorplans.map((plan, idx) => (
-                      <div key={idx} className="glass-panel rounded-xl p-4 cursor-pointer hover:border-primary transition-colors">
-                        <img src={plan} alt={`Floor Plan ${idx + 1}`} className="w-full h-auto rounded-lg" />
-                        <Button variant="ghost" size="sm" className="w-full mt-2">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Plan {idx + 1}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Brochure */}
-              {brochureUrl && (
-                <div>
-                  <h3 className="font-semibold mb-3">Property Brochure</h3>
-                  <div className="glass-panel rounded-xl p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FileText className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{propertyTitle}</p>
-                        <p className="text-sm text-muted-foreground">Complete property details PDF</p>
-                      </div>
+            {brochureUrl ? (
+              <div className="glass-panel rounded-2xl p-6 md:p-8 border border-primary/20">
+                <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0 border border-primary/20">
+                      <FileText className="h-8 w-8 text-primary" />
                     </div>
-                    <Button onClick={handleDownloadBrochure}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
+                    <div className="min-w-0">
+                      <Badge variant="secondary" className="mb-2 text-[10px] uppercase tracking-wider">
+                        Official Brochure
+                      </Badge>
+                      <p className="font-semibold text-base md:text-lg truncate">{propertyTitle}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Complete details, floor plans, specifications &amp; pricing
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => window.open(brochureUrl, "_blank")}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View
+                    </Button>
+                    <Button onClick={handleDownloadBrochure} size="lg" className="gap-2">
+                      <Download className="h-5 w-5" />
+                      Download PDF
                     </Button>
                   </div>
                 </div>
-              )}
-
-              {!floorplans.length && !brochureUrl && (
-                <div className="glass-panel rounded-xl p-8 text-center">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-4">No documents available</p>
-                  <Button variant="outline" onClick={handleRequestMedia}>
-                    Request Documents
-                  </Button>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="glass-panel rounded-xl p-8 text-center">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground mb-4">No documents available</p>
+                <Button variant="outline" onClick={handleRequestMedia}>
+                  Request Documents
+                </Button>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

@@ -890,6 +890,7 @@ export type Database = {
           trust_score: number | null
           verified: boolean | null
           videos: string[] | null
+          virtual_tour_url: string | null
         }
         Insert: {
           address?: string | null
@@ -931,6 +932,7 @@ export type Database = {
           trust_score?: number | null
           verified?: boolean | null
           videos?: string[] | null
+          virtual_tour_url?: string | null
         }
         Update: {
           address?: string | null
@@ -972,6 +974,7 @@ export type Database = {
           trust_score?: number | null
           verified?: boolean | null
           videos?: string[] | null
+          virtual_tour_url?: string | null
         }
         Relationships: []
       }
