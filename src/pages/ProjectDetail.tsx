@@ -136,26 +136,43 @@ const ProjectDetail = () => {
     try {
       setLoading(true);
       
+      // Determine viewer (owner/admin can view unverified projects)
+      const { data: { user } } = await supabase.auth.getUser();
+      let isPrivileged = false;
+      if (user) {
+        const { data: roleRows } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id);
+        isPrivileged = (roleRows || []).some((r: any) => r.role === "admin");
+      }
+
       // Lookup by slug first; fall back to id for legacy UUID links
-      let { data: projectData, error: projectError } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("slug", slug as string)
-        .eq("verified", true)
-        .maybeSingle();
+      const buildQuery = (col: "slug" | "id", val: string) => {
+        let q = supabase.from("projects").select("*").eq(col, val);
+        // Owners and admins can see unverified; others only verified
+        if (!isPrivileged && !user) {
+          q = q.eq("verified", true);
+        }
+        return q.maybeSingle();
+      };
+
+      let { data: projectData, error: projectError } = await buildQuery("slug", slug as string);
 
       if (!projectData && slug && PROJECT_UUID_RE.test(slug)) {
-        const res = await supabase
-          .from("projects")
-          .select("*")
-          .eq("id", slug)
-          .eq("verified", true)
-          .maybeSingle();
+        const res = await buildQuery("id", slug);
         projectData = res.data;
         projectError = res.error;
         if (projectData && (projectData as any).slug) {
           navigate(`/project/${(projectData as any).slug}`, { replace: true });
           return;
+        }
+      }
+
+      // If unverified and viewer isn't owner or admin, hide
+      if (projectData && !projectData.verified && !isPrivileged) {
+        if (!user || projectData.submitted_by !== user.id) {
+          projectData = null;
         }
       }
 
