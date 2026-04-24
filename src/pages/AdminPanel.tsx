@@ -19,6 +19,7 @@ import AssignAgentPanel from "@/components/admin/AssignAgentPanel";
 import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
+import VerificationPanel from "@/components/admin/VerificationPanel";
 import { motion } from "framer-motion";
 
 export default function AdminPanel() {
