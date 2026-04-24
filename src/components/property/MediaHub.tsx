@@ -34,6 +34,16 @@ export default function MediaHub({
   const [mediaType, setMediaType] = useState<"image" | "video" | "360">("image");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [zoom, setZoom] = useState(1);
+
+  // Reset zoom when image changes or modal closes
+  useEffect(() => {
+    setZoom(1);
+  }, [currentImageIndex, showFullscreen]);
+
+  const zoomIn = () => setZoom((z) => Math.min(z + 0.25, 4));
+  const zoomOut = () => setZoom((z) => Math.max(z - 0.25, 1));
+  const resetZoom = () => setZoom(1);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
