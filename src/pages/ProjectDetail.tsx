@@ -71,6 +71,7 @@ interface Project {
   longitude?: number | null;
   brochure_url?: string | null;
   videos?: string[] | null;
+  virtual_tour_url?: string | null;
   overview?: string;
 }
 
