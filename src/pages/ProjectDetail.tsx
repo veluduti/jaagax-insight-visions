@@ -580,8 +580,32 @@ const ProjectDetail = () => {
                 </TabsContent>
 
                 <TabsContent value="floorplans">
-                  {units.length === 0 ? (
+                  {units.length === 0 && floorPlanImages.length === 0 ? (
                     <p className="text-muted-foreground">No floor plans available.</p>
+                  ) : floorPlanImages.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {floorPlanImages.map((plan, idx) => (
+                        <div
+                          key={idx}
+                          className="rounded-lg bg-accent/10 border border-border/50 hover:border-primary/50 transition-colors overflow-hidden"
+                        >
+                          <div className="aspect-[4/3] bg-background/50 flex items-center justify-center overflow-hidden">
+                            <img
+                              src={plan}
+                              alt={`Floor Plan ${idx + 1}`}
+                              className="w-full h-full object-contain hover:scale-105 transition-transform cursor-zoom-in"
+                              onClick={() => window.open(plan, '_blank')}
+                            />
+                          </div>
+                          <div className="p-4">
+                            <h3 className="font-semibold text-base capitalize">
+                              {plan.split('/').pop()?.replace(/^floor-plan-/i, '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/-/g, ' ') || `Plan ${idx + 1}`}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mt-1">Click image to view full size</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {units.map((unit, index) => (
