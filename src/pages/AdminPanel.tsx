@@ -21,6 +21,7 @@ import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
 import { motion } from "framer-motion";
+import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -46,6 +47,15 @@ export default function AdminPanel() {
   useEffect(() => {
     checkAdminAndLoad();
   }, []);
+
+  useRealtimeTableSubscription({
+    channelName: "admin-panel-live-updates",
+    tables: ["properties", "projects", "signup_requests", "visit_bookings", "agents", "builder_profiles"],
+    onChange: () => {
+      void loadAllData();
+    },
+    enabled: isAdmin,
+  });
 
   const checkAdminAndLoad = async () => {
     try {
