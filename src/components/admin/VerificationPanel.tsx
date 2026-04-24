@@ -128,19 +128,14 @@ export default function VerificationPanel() {
       if (!reason) return;
     }
     try {
-      const { data: updated, error } = await supabase
+      const { error } = await supabase
         .from("projects")
         .update({
           verified: status === "approved",
         })
-        .eq("id", project.id)
-        .select("id, verified");
+        .eq("id", project.id);
 
       if (error) throw error;
-      if (!updated || updated.length === 0) {
-        toast.error("Update blocked — you may not have admin permission. Please re-login.");
-        return;
-      }
 
       // Notify the builder (submitter)
       const { data: proj } = await supabase
