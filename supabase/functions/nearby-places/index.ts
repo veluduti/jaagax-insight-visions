@@ -106,8 +106,8 @@ async function fetchFromOSM(lat: number, lng: number): Promise<Record<string, PO
 
         const resp = await fetch('https://overpass-api.de/api/interpreter', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: query,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'data=' + encodeURIComponent(query),
         });
 
         if (!resp.ok) {
