@@ -345,6 +345,9 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-2">
                           {req.status === 'pending' ? (
                             <>
+                              <Button size="sm" variant="outline" onClick={() => setViewingSignup(req)}>
+                                <Eye className="h-4 w-4 mr-1" /> View
+                              </Button>
                               <Button
                                 size="sm"
                                 onClick={() => handleReviewSignup(req.id, 'approved')}
