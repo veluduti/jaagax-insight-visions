@@ -104,11 +104,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ProfileBootProvider>
         <LocationProvider>
         <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/select-profile" element={<SelectProfile />} />
           <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
           <Route path="/search" element={
             <BuyerOnboardingGuard>
