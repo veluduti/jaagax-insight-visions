@@ -22,6 +22,8 @@ import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
 import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
 import { WhatsAppLogsPanel } from "@/components/admin/WhatsAppLogsPanel";
+import PendingProfilesPanel from "@/components/admin/PendingProfilesPanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
