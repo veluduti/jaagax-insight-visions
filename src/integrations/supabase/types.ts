@@ -132,6 +132,50 @@ export type Database = {
           },
         ]
       }
+      agent_profiles: {
+        Row: {
+          agency_name: string | null
+          bio: string | null
+          cities_served: string | null
+          created_at: string
+          experience_years: number | null
+          full_name: string | null
+          phone: string | null
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          agency_name?: string | null
+          bio?: string | null
+          cities_served?: string | null
+          created_at?: string
+          experience_years?: number | null
+          full_name?: string | null
+          phone?: string | null
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          agency_name?: string | null
+          bio?: string | null
+          cities_served?: string | null
+          created_at?: string
+          experience_years?: number | null
+          full_name?: string | null
+          phone?: string | null
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_ratings: {
         Row: {
           agent_id: string
@@ -438,6 +482,50 @@ export type Database = {
         }
         Relationships: []
       }
+      builder_profiles_data: {
+        Row: {
+          city: string | null
+          company_name: string | null
+          created_at: string
+          description: string | null
+          established_year: number | null
+          phone: string | null
+          profile_id: string
+          rera_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          established_year?: number | null
+          phone?: string | null
+          profile_id: string
+          rera_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          established_year?: number | null
+          phone?: string | null
+          profile_id?: string
+          rera_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_profiles_data_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buyer_context: {
         Row: {
           budget_comfort: string | null
@@ -524,6 +612,50 @@ export type Database = {
           visited_at?: string | null
         }
         Relationships: []
+      }
+      buyer_profiles: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          full_name: string | null
+          notes: string | null
+          preferred_bhk: string[] | null
+          preferred_cities: string[] | null
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          full_name?: string | null
+          notes?: string | null
+          preferred_bhk?: string[] | null
+          preferred_cities?: string[] | null
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          full_name?: string | null
+          notes?: string | null
+          preferred_bhk?: string[] | null
+          preferred_cities?: string[] | null
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {
@@ -846,6 +978,33 @@ export type Database = {
           star_rating?: number | null
           total_rooms?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1572,6 +1731,32 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          active_profile_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_profile_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_profile_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_active_profile_id_fkey"
+            columns: ["active_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visit_bookings: {
         Row: {
           agent_id: string | null
@@ -1969,6 +2154,7 @@ export type Database = {
         Args: { _id: string; _title: string }
         Returns: string
       }
+      get_active_profile_type: { Args: { _user_id: string }; Returns: string }
       get_hotel_application_status: {
         Args: { _id: string }
         Returns: {
@@ -2002,6 +2188,10 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      user_owns_profile: {
+        Args: { _profile_id: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
