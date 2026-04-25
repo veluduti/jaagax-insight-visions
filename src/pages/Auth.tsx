@@ -5,52 +5,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle, Phone, Tag } from "lucide-react";
+import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { supabase } from "@/integrations/supabase/client";
 
 const roleConfig = {
   buyer: {
     icon: Home,
-    title: "Property Buyer",
-    description: "Find your dream home with AI-powered recommendations",
+    title: "Buyer",
+    description: "Browse & book properties",
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/50",
   },
+  seller: {
+    icon: Tag,
+    title: "Seller",
+    description: "List & sell your property",
+    color: "from-emerald-500/20 to-teal-500/20",
+    borderColor: "border-emerald-500/50",
+  },
   agent: {
     icon: User,
-    title: "Real Estate Agent",
-    description: "Manage listings and connect with buyers",
+    title: "Agent",
+    description: "List & earn commissions",
     color: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/50",
   },
   builder: {
     icon: Building2,
-    title: "Property Builder",
-    description: "Showcase projects and manage developments",
+    title: "Builder",
+    description: "Showcase your projects",
     color: "from-orange-500/20 to-red-500/20",
     borderColor: "border-orange-500/50",
   },
-  seller: {
-    icon: Tag,
-    title: "Property Seller",
-    description: "List your property and reach verified buyers",
-    color: "from-emerald-500/20 to-teal-500/20",
-    borderColor: "border-emerald-500/50",
-  },
   admin: {
     icon: Shield,
-    title: "Platform Admin",
-    description: "Manage platform operations and analytics",
+    title: "Admin",
+    description: "Platform operations",
     color: "from-primary/20 to-accent/20",
     borderColor: "border-primary/50",
   },
 };
 
-const cities = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Pune", "Delhi"];
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
