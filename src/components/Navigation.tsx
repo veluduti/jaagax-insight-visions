@@ -231,17 +231,20 @@ const Navigation = () => {
               <SidebarMenu />
 
               {session ? (
-                <Button 
-                  onClick={() => navigate(`/dashboard/${role || 'buyer'}`)} 
-                  variant="default"
-                  size="sm"
-                  className="text-sm"
-                >
-                  Dashboard
-                </Button>
+                <>
+                  <ProfileSwitcher />
+                  <Button
+                    onClick={() => navigate(`/dashboard/${role || 'buyer'}`)}
+                    variant="default"
+                    size="sm"
+                    className="text-sm"
+                  >
+                    Dashboard
+                  </Button>
+                </>
               ) : (
-                <Button 
-                  onClick={() => navigate("/auth")} 
+                <Button
+                  onClick={() => navigate("/auth")}
                   variant="outline"
                   size="sm"
                   className="text-sm"
