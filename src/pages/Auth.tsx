@@ -60,6 +60,7 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -71,15 +72,33 @@ export default function Auth() {
   
   const isPasswordReset = searchParams.get("reset") === "true";
   const allowedSignupRoles: UserRole[] = ["buyer", "seller", "agent", "builder"];
+  const profileRoles: Array<{ key: "buyer" | "agent" | "builder"; label: string; desc: string }> = [
+    { key: "buyer",   label: "Buyer",   desc: "Browse & book" },
+    { key: "agent",   label: "Agent",   desc: "List & earn" },
+    { key: "builder", label: "Builder", desc: "Showcase projects" },
+  ];
+
+  const toggleRole = (r: "buyer" | "agent" | "builder") => {
+    setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
+  };
 
   useEffect(() => {
     if (!authLoading && user) {
-      if (role) {
-        redirectToDashboard();
-      }
-      // If user is logged in but has no role, they stay on auth page (pending approval)
+      // Decide redirect based on profiles count
+      (async () => {
+        const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
+        const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter((p) => p.status === "active");
+        if (list.length === 0) {
+          if (role) redirectToDashboard();
+        } else if (list.length === 1) {
+          localStorage.setItem("jaagax.activeProfileId", list[0].id);
+          navigate(`/dashboard/${list[0].type}`);
+        } else {
+          navigate("/select-profile");
+        }
+      })();
     }
-  }, [user, role, authLoading, redirectToDashboard]);
+  }, [user, role, authLoading, redirectToDashboard, navigate]);
 
   useEffect(() => {
     if (isPasswordReset) {
@@ -117,6 +136,7 @@ export default function Auth() {
       if (!name.trim()) { toast.error("Name is required"); return false; }
       if (!city) { toast.error("Please select your city"); return false; }
       if (!phone.trim()) { toast.error("Phone number is required"); return false; }
+      if (selectedRoles.length === 0) { toast.error("Please select at least one role"); return false; }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
@@ -131,7 +151,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error, resolvedRole } = await signIn(email, password);
+        const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -142,19 +162,39 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
-        // Route directly based on freshly-resolved role to avoid state-propagation races
-        const dest =
-          resolvedRole === "seller" ? "/dashboard/seller"
-          : resolvedRole === "agent" ? "/dashboard/agent"
-          : resolvedRole === "builder" ? "/dashboard/builder"
-          : resolvedRole === "admin" ? "/dashboard/admin"
-          : resolvedRole === "hotel_manager" ? "/dashboard/hotel-manager"
-          : resolvedRole === "buyer" || resolvedRole === "customer" ? "/dashboard/buyer"
-          : "/dashboard";
-        navigate(dest);
+
+        // Multi-profile login flow: fetch profiles, decide where to send the user.
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const { data: profileRows } = await supabase
+            .from("profiles" as any)
+            .select("id, type, status")
+            .eq("user_id", currentUser.id);
+          const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
+          const active = profs.filter((p) => p.status === "active");
+          if (active.length > 1) {
+            navigate("/select-profile");
+            return;
+          }
+          if (active.length === 1) {
+            localStorage.setItem("jaagax.activeProfileId", active[0].id);
+            void supabase.from("user_settings" as any).upsert({
+              user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
+            });
+            navigate(`/dashboard/${active[0].type}`);
+            return;
+          }
+          // No profiles? Send to select page (shows add-role).
+          navigate("/select-profile");
+          return;
+        }
+        navigate("/dashboard");
         return;
       } else {
-        const { error } = await signUp(email, password, selectedRole, city, name, phone);
+        // Sign up using primary role (first selected) for backward compat with signup_requests + auth metadata.
+        const primary = selectedRoles[0];
+        const primaryAsUserRole: UserRole = primary; // 'buyer' | 'agent' | 'builder' all valid UserRole keys
+        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
             setIsLogin(true);
@@ -166,10 +206,19 @@ export default function Auth() {
           throw error;
         }
 
-        if (selectedRole === "buyer" || selectedRole === "seller") {
-          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
+        // Create profile rows for ALL selected roles. Use a brief retry — auth user must exist first.
+        const { data: { user: created } } = await supabase.auth.getUser();
+        if (created) {
+          const rows = selectedRoles.map((t) => ({ user_id: created.id, type: t }));
+          const { error: profErr } = await supabase.from("profiles" as any).insert(rows as any);
+          if (profErr) console.error("Profile creation error:", profErr);
+        }
+
+        const hasBuilder = selectedRoles.includes("builder");
+        if (hasBuilder) {
+          toast.success("Account created! Verify your email. Builder role requires admin approval.", { duration: 8000 });
         } else {
-          toast.success("Account created! Please check your email to verify. Your account will be activated after admin approval.", { duration: 8000 });
+          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
         }
         setIsLogin(true);
         setPassword("");
@@ -252,25 +301,41 @@ export default function Auth() {
                     </div>
 
                     <div className="space-y-3">
-                      <Label>I am a</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {allowedSignupRoles.map((r) => {
-                          const config = roleConfig[r];
-                          const Icon = config.icon;
+                      <div className="flex items-baseline justify-between">
+                        <Label>I want to use JAAGA X as</Label>
+                        <span className="text-[11px] text-muted-foreground">Pick one or more</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {profileRoles.map((r) => {
+                          const meta = (r.key === "buyer") ? roleConfig.buyer : (r.key === "agent" ? roleConfig.agent : roleConfig.builder);
+                          const Icon = meta.icon;
+                          const checked = selectedRoles.includes(r.key);
                           return (
-                            <button key={r} type="button" onClick={() => setSelectedRole(r)}
-                              className={`p-4 rounded-xl border-2 transition-all ${
-                                selectedRole === r
-                                  ? `${config.borderColor} bg-gradient-to-br ${config.color} glow-effect`
+                            <button
+                              key={r.key}
+                              type="button"
+                              onClick={() => toggleRole(r.key)}
+                              className={`relative p-3.5 rounded-xl border-2 transition-all text-center ${
+                                checked
+                                  ? `${meta.borderColor} bg-gradient-to-br ${meta.color}`
                                   : "border-border bg-muted/20 hover:border-primary/30"
                               }`}
                             >
-                              <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedRole === r ? 'text-primary' : 'text-muted-foreground'}`} />
-                              <p className="text-sm font-medium">{config.title}</p>
+                              {checked && (
+                                <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">✓</span>
+                              )}
+                              <Icon className={`w-5 h-5 mx-auto mb-1.5 ${checked ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <p className="text-xs font-medium leading-tight">{r.label}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{r.desc}</p>
                             </button>
                           );
                         })}
                       </div>
+                      {selectedRoles.includes("builder") && (
+                        <p className="text-[11px] text-amber-400 flex items-center gap-1">
+                          ⏱ Builder profile requires admin approval after signup.
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 )}

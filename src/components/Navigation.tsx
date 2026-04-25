@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { canSee } from "@/lib/roleAccess";
+import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 
 const Navigation = () => {
   // Navigation component
@@ -230,17 +231,20 @@ const Navigation = () => {
               <SidebarMenu />
 
               {session ? (
-                <Button 
-                  onClick={() => navigate(`/dashboard/${role || 'buyer'}`)} 
-                  variant="default"
-                  size="sm"
-                  className="text-sm"
-                >
-                  Dashboard
-                </Button>
+                <>
+                  <ProfileSwitcher />
+                  <Button
+                    onClick={() => navigate(`/dashboard/${role || 'buyer'}`)}
+                    variant="default"
+                    size="sm"
+                    className="text-sm"
+                  >
+                    Dashboard
+                  </Button>
+                </>
               ) : (
-                <Button 
-                  onClick={() => navigate("/auth")} 
+                <Button
+                  onClick={() => navigate("/auth")}
                   variant="outline"
                   size="sm"
                   className="text-sm"
@@ -271,17 +275,20 @@ const Navigation = () => {
               <SidebarMenu />
               
               {session ? (
-                <Button 
-                  onClick={() => navigate(`/dashboard/${role || 'buyer'}`)} 
-                  variant="ghost" 
-                  size="sm"
-                >
-                  Dashboard
-                </Button>
+                <>
+                  <ProfileSwitcher />
+                  <Button
+                    onClick={() => navigate(`/dashboard/${role || 'buyer'}`)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Dashboard
+                  </Button>
+                </>
               ) : (
-                <Button 
-                  onClick={() => navigate("/auth")} 
-                  variant="ghost" 
+                <Button
+                  onClick={() => navigate("/auth")}
+                  variant="ghost"
                   size="sm"
                 >
                   Sign In

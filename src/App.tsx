@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import { LocationProvider } from "./contexts/LocationContext";
+import ProfileBootProvider from "./contexts/ProfileBootProvider";
+const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
 // Lazy-load all non-landing routes for fast initial paint + smaller chunks per page
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -102,11 +104,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ProfileBootProvider>
         <LocationProvider>
         <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/select-profile" element={<SelectProfile />} />
           <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
           <Route path="/search" element={
             <BuyerOnboardingGuard>
@@ -238,6 +242,7 @@ const App = () => (
         </Routes>
         </Suspense>
         </LocationProvider>
+        </ProfileBootProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
