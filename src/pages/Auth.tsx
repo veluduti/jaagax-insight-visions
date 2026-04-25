@@ -127,6 +127,7 @@ export default function Auth() {
       if (!name.trim()) { toast.error("Name is required"); return false; }
       if (!city) { toast.error("Please select your city"); return false; }
       if (!phone.trim()) { toast.error("Phone number is required"); return false; }
+      if (selectedRoles.length === 0) { toast.error("Please select at least one role"); return false; }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
@@ -141,7 +142,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error, resolvedRole } = await signIn(email, password);
+        const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -152,19 +153,39 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
-        // Route directly based on freshly-resolved role to avoid state-propagation races
-        const dest =
-          resolvedRole === "seller" ? "/dashboard/seller"
-          : resolvedRole === "agent" ? "/dashboard/agent"
-          : resolvedRole === "builder" ? "/dashboard/builder"
-          : resolvedRole === "admin" ? "/dashboard/admin"
-          : resolvedRole === "hotel_manager" ? "/dashboard/hotel-manager"
-          : resolvedRole === "buyer" || resolvedRole === "customer" ? "/dashboard/buyer"
-          : "/dashboard";
-        navigate(dest);
+
+        // Multi-profile login flow: fetch profiles, decide where to send the user.
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const { data: profileRows } = await supabase
+            .from("profiles" as any)
+            .select("id, type, status")
+            .eq("user_id", currentUser.id);
+          const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
+          const active = profs.filter((p) => p.status === "active");
+          if (active.length > 1) {
+            navigate("/select-profile");
+            return;
+          }
+          if (active.length === 1) {
+            localStorage.setItem("jaagax.activeProfileId", active[0].id);
+            void supabase.from("user_settings" as any).upsert({
+              user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
+            });
+            navigate(`/dashboard/${active[0].type}`);
+            return;
+          }
+          // No profiles? Send to select page (shows add-role).
+          navigate("/select-profile");
+          return;
+        }
+        navigate("/dashboard");
         return;
       } else {
-        const { error } = await signUp(email, password, selectedRole, city, name, phone);
+        // Sign up using primary role (first selected) for backward compat with signup_requests + auth metadata.
+        const primary = selectedRoles[0];
+        const primaryAsUserRole: UserRole = primary; // 'buyer' | 'agent' | 'builder' all valid UserRole keys
+        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
             setIsLogin(true);
@@ -176,10 +197,19 @@ export default function Auth() {
           throw error;
         }
 
-        if (selectedRole === "buyer" || selectedRole === "seller") {
-          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
+        // Create profile rows for ALL selected roles. Use a brief retry — auth user must exist first.
+        const { data: { user: created } } = await supabase.auth.getUser();
+        if (created) {
+          const rows = selectedRoles.map((t) => ({ user_id: created.id, type: t }));
+          const { error: profErr } = await supabase.from("profiles" as any).insert(rows as any);
+          if (profErr) console.error("Profile creation error:", profErr);
+        }
+
+        const hasBuilder = selectedRoles.includes("builder");
+        if (hasBuilder) {
+          toast.success("Account created! Verify your email. Builder role requires admin approval.", { duration: 8000 });
         } else {
-          toast.success("Account created! Please check your email to verify. Your account will be activated after admin approval.", { duration: 8000 });
+          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
         }
         setIsLogin(true);
         setPassword("");
