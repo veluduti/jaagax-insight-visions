@@ -123,7 +123,7 @@ export default function ProfileSwitcher() {
             </div>
 
             {/* Add another role */}
-            {profiles.length < 3 && (
+            {profiles.length < 4 && (
               <button
                 onClick={() => { setOpen(false); setAddOpen(true); }}
                 className="mt-2 w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border border-dashed border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-colors"
