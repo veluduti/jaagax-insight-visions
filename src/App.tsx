@@ -242,6 +242,7 @@ const App = () => (
         </Routes>
         </Suspense>
         </LocationProvider>
+        </ProfileBootProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
