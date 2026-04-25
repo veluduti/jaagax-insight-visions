@@ -42,6 +42,7 @@ export default function AdminDashboard() {
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [viewingSignup, setViewingSignup] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
