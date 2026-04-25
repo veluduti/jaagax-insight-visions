@@ -144,7 +144,7 @@ export default function SelectProfile() {
             );
           })}
 
-          {profiles.length < 3 && (
+          {profiles.length < 4 && (
             <motion.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
