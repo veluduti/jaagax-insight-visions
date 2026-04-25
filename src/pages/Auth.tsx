@@ -58,8 +58,7 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
-  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "agent" | "builder">>(["buyer"]);
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -67,19 +66,20 @@ export default function Auth() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp, user, role, loading: authLoading, approvalStatus, redirectToDashboard } = useAuth();
-  
+  const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
+
   const isPasswordReset = searchParams.get("reset") === "true";
-  const allowedSignupRoles: UserRole[] = ["buyer", "seller", "agent", "builder"];
-  const profileRoles: Array<{ key: "buyer" | "agent" | "builder"; label: string; desc: string }> = [
+  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder"; label: string; desc: string }> = [
     { key: "buyer",   label: "Buyer",   desc: "Browse & book" },
+    { key: "seller",  label: "Seller",  desc: "Sell property" },
     { key: "agent",   label: "Agent",   desc: "List & earn" },
     { key: "builder", label: "Builder", desc: "Showcase projects" },
   ];
 
-  const toggleRole = (r: "buyer" | "agent" | "builder") => {
+  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder") => {
     setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   };
+
 
   useEffect(() => {
     if (!authLoading && user) {
