@@ -379,7 +379,12 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Visit Bookings */}
+          {/* Role Approvals (existing users requesting additional roles) */}
+          <TabsContent value="role-approvals" className="space-y-6">
+            <PendingProfilesPanel />
+          </TabsContent>
+
+
           <TabsContent value="visits" className="space-y-6">
             <Card>
               <CardHeader>
