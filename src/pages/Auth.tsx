@@ -292,25 +292,41 @@ export default function Auth() {
                     </div>
 
                     <div className="space-y-3">
-                      <Label>I am a</Label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {allowedSignupRoles.map((r) => {
-                          const config = roleConfig[r];
-                          const Icon = config.icon;
+                      <div className="flex items-baseline justify-between">
+                        <Label>I want to use JAAGA X as</Label>
+                        <span className="text-[11px] text-muted-foreground">Pick one or more</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {profileRoles.map((r) => {
+                          const meta = (r.key === "buyer") ? roleConfig.buyer : (r.key === "agent" ? roleConfig.agent : roleConfig.builder);
+                          const Icon = meta.icon;
+                          const checked = selectedRoles.includes(r.key);
                           return (
-                            <button key={r} type="button" onClick={() => setSelectedRole(r)}
-                              className={`p-4 rounded-xl border-2 transition-all ${
-                                selectedRole === r
-                                  ? `${config.borderColor} bg-gradient-to-br ${config.color} glow-effect`
+                            <button
+                              key={r.key}
+                              type="button"
+                              onClick={() => toggleRole(r.key)}
+                              className={`relative p-3.5 rounded-xl border-2 transition-all text-center ${
+                                checked
+                                  ? `${meta.borderColor} bg-gradient-to-br ${meta.color}`
                                   : "border-border bg-muted/20 hover:border-primary/30"
                               }`}
                             >
-                              <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedRole === r ? 'text-primary' : 'text-muted-foreground'}`} />
-                              <p className="text-sm font-medium">{config.title}</p>
+                              {checked && (
+                                <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">✓</span>
+                              )}
+                              <Icon className={`w-5 h-5 mx-auto mb-1.5 ${checked ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <p className="text-xs font-medium leading-tight">{r.label}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{r.desc}</p>
                             </button>
                           );
                         })}
                       </div>
+                      {selectedRoles.includes("builder") && (
+                        <p className="text-[11px] text-amber-400 flex items-center gap-1">
+                          ⏱ Builder profile requires admin approval after signup.
+                        </p>
+                      )}
                     </div>
                   </motion.div>
                 )}
