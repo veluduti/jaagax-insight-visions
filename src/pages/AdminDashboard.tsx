@@ -264,6 +264,7 @@ export default function AdminDashboard() {
                 <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5">{stats.pendingSignups}</span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="role-approvals">Role Approvals</TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
