@@ -15,6 +15,7 @@ const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 // Lazy-load all non-landing routes for fast initial paint + smaller chunks per page
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
+const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 const Search = lazy(() => import("./pages/Search"));
 const AgentLeaderboard = lazy(() => import("./pages/AgentLeaderboard"));
 const AgentVisitsDashboard = lazy(() => import("./pages/AgentVisitsDashboard"));
@@ -110,6 +111,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/select-profile" element={<SelectProfile />} />
           <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
           <Route path="/search" element={
