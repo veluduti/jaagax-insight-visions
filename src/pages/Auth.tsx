@@ -133,13 +133,14 @@ export default function Auth() {
   const validateForm = () => {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
-      if (!city) { toast.error("Please select your city"); return false; }
-      if (!phone.trim()) { toast.error("Phone number is required"); return false; }
-      if (selectedRoles.length === 0) { toast.error("Please select at least one role"); return false; }
+      if (!phone.trim() || phone.replace(/\D/g, "").length < 10) { toast.error("Enter a valid phone number"); return false; }
+      if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+      if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
+      if (!city.trim()) { toast.error("Please select your city"); return false; }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
-    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+    if (isLogin && password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
     return true;
   };
 
@@ -190,9 +191,9 @@ export default function Auth() {
         navigate("/dashboard");
         return;
       } else {
-        // Sign up using primary role (first selected) for backward compat with signup_requests + auth metadata.
+        // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
         const primary = selectedRoles[0];
-        const primaryAsUserRole: UserRole = primary; // 'buyer' | 'agent' | 'builder' all valid UserRole keys
+        const primaryAsUserRole: UserRole = primary;
         const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
@@ -205,7 +206,7 @@ export default function Auth() {
           throw error;
         }
 
-        // Create profile rows for ALL selected roles. Use a brief retry — auth user must exist first.
+        // Create profile rows for ALL selected roles (all start pending).
         const { data: { user: created } } = await supabase.auth.getUser();
         if (created) {
           const rows = selectedRoles.map((t) => ({ user_id: created.id, type: t }));
@@ -213,16 +214,13 @@ export default function Auth() {
           if (profErr) console.error("Profile creation error:", profErr);
         }
 
-        const hasBuilder = selectedRoles.includes("builder");
-        if (hasBuilder) {
-          toast.success("Account created! Verify your email. Builder role requires admin approval.", { duration: 8000 });
-        } else {
-          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
-        }
-        setIsLogin(true);
-        setPassword("");
+        // Persist email so /verify-otp can read it after navigation.
+        sessionStorage.setItem("jaagax.pendingEmail", email);
+        toast.success("We sent a 6-digit code to your email.", { duration: 5000 });
+        navigate("/verify-otp", { state: { email } });
         return;
       }
+
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
     } finally {
