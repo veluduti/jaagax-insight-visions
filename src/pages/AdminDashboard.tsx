@@ -22,6 +22,8 @@ import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
 import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
 import { WhatsAppLogsPanel } from "@/components/admin/WhatsAppLogsPanel";
+import PendingProfilesPanel from "@/components/admin/PendingProfilesPanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -40,6 +42,7 @@ export default function AdminDashboard() {
   const [trustAnalysis, setTrustAnalysis] = useState<any>(null);
   const [loadingTrust, setLoadingTrust] = useState(false);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [viewingSignup, setViewingSignup] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -261,6 +264,7 @@ export default function AdminDashboard() {
                 <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5">{stats.pendingSignups}</span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="role-approvals">Role Approvals</TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
@@ -341,6 +345,9 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-2">
                           {req.status === 'pending' ? (
                             <>
+                              <Button size="sm" variant="outline" onClick={() => setViewingSignup(req)}>
+                                <Eye className="h-4 w-4 mr-1" /> View
+                              </Button>
                               <Button
                                 size="sm"
                                 onClick={() => handleReviewSignup(req.id, 'approved')}
@@ -372,7 +379,12 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Visit Bookings */}
+          {/* Role Approvals (existing users requesting additional roles) */}
+          <TabsContent value="role-approvals" className="space-y-6">
+            <PendingProfilesPanel />
+          </TabsContent>
+
+
           <TabsContent value="visits" className="space-y-6">
             <Card>
               <CardHeader>
@@ -581,6 +593,66 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Signup Request — Detailed Review Dialog */}
+      <Dialog open={!!viewingSignup} onOpenChange={(v) => !v && setViewingSignup(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Review signup request
+            </DialogTitle>
+            <DialogDescription>Verify the user's details before approving.</DialogDescription>
+          </DialogHeader>
+          {viewingSignup && (
+            <div className="space-y-4">
+              <div className="rounded-xl border bg-muted/30 p-4">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Identity</div>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <SignupField label="Name" value={viewingSignup.full_name || "—"} />
+                  <SignupField label="Email" value={viewingSignup.email || "—"} />
+                  <SignupField label="Phone" value={viewingSignup.phone || "—"} />
+                  <SignupField label="City" value={viewingSignup.city || "—"} />
+                  <SignupField label="Requested role" value={viewingSignup.requested_role || "—"} />
+                  <SignupField label="Status" value={viewingSignup.status} />
+                </div>
+              </div>
+              <div className="rounded-xl border bg-muted/30 p-4 grid sm:grid-cols-2 gap-3 text-sm">
+                <SignupField label="Submitted" value={new Date(viewingSignup.created_at).toLocaleString()} />
+                <SignupField label="User ID" value={viewingSignup.user_id} />
+              </div>
+              {viewingSignup.rejection_reason && (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                  Reason: {viewingSignup.rejection_reason}
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setViewingSignup(null)}>Close</Button>
+            {viewingSignup?.status === "pending" && (
+              <>
+                <Button variant="destructive" onClick={() => { handleReviewSignup(viewingSignup.id, "rejected", "Not eligible at this time"); setViewingSignup(null); }} disabled={reviewingId === viewingSignup.id}>
+                  Reject
+                </Button>
+                <Button onClick={() => { handleReviewSignup(viewingSignup.id, "approved"); setViewingSignup(null); }} disabled={reviewingId === viewingSignup.id}>
+                  {reviewingId === viewingSignup.id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                  Approve
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function SignupField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-sm text-foreground font-medium break-words">{value}</div>
     </div>
   );
 }
