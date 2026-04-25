@@ -2138,6 +2138,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_profile: { Args: { _profile_id: string }; Returns: undefined }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
         Returns: undefined
@@ -2170,6 +2171,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      reject_profile: {
+        Args: { _profile_id: string; _reason?: string }
+        Returns: undefined
+      }
       review_signup_request: {
         Args: {
           _decision: string

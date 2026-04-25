@@ -5,52 +5,51 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Briefcase, Eye, EyeOff, Loader2, Mail, Lock, MapPin, UserCircle, Phone, Tag } from "lucide-react";
+import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { supabase } from "@/integrations/supabase/client";
 
 const roleConfig = {
   buyer: {
     icon: Home,
-    title: "Property Buyer",
-    description: "Find your dream home with AI-powered recommendations",
+    title: "Buyer",
+    description: "Browse & book properties",
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/50",
   },
+  seller: {
+    icon: Tag,
+    title: "Seller",
+    description: "List & sell your property",
+    color: "from-emerald-500/20 to-teal-500/20",
+    borderColor: "border-emerald-500/50",
+  },
   agent: {
     icon: User,
-    title: "Real Estate Agent",
-    description: "Manage listings and connect with buyers",
+    title: "Agent",
+    description: "List & earn commissions",
     color: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/50",
   },
   builder: {
     icon: Building2,
-    title: "Property Builder",
-    description: "Showcase projects and manage developments",
+    title: "Builder",
+    description: "Showcase your projects",
     color: "from-orange-500/20 to-red-500/20",
     borderColor: "border-orange-500/50",
   },
-  seller: {
-    icon: Tag,
-    title: "Property Seller",
-    description: "List your property and reach verified buyers",
-    color: "from-emerald-500/20 to-teal-500/20",
-    borderColor: "border-emerald-500/50",
-  },
   admin: {
     icon: Shield,
-    title: "Platform Admin",
-    description: "Manage platform operations and analytics",
+    title: "Admin",
+    description: "Platform operations",
     color: "from-primary/20 to-accent/20",
     borderColor: "border-primary/50",
   },
 };
 
-const cities = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Pune", "Delhi"];
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,8 +58,7 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
-  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "agent" | "builder">>(["buyer"]);
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -68,19 +66,20 @@ export default function Auth() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp, user, role, loading: authLoading, approvalStatus, redirectToDashboard } = useAuth();
-  
+  const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
+
   const isPasswordReset = searchParams.get("reset") === "true";
-  const allowedSignupRoles: UserRole[] = ["buyer", "seller", "agent", "builder"];
-  const profileRoles: Array<{ key: "buyer" | "agent" | "builder"; label: string; desc: string }> = [
+  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder"; label: string; desc: string }> = [
     { key: "buyer",   label: "Buyer",   desc: "Browse & book" },
+    { key: "seller",  label: "Seller",  desc: "Sell property" },
     { key: "agent",   label: "Agent",   desc: "List & earn" },
     { key: "builder", label: "Builder", desc: "Showcase projects" },
   ];
 
-  const toggleRole = (r: "buyer" | "agent" | "builder") => {
+  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder") => {
     setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   };
+
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -134,13 +133,14 @@ export default function Auth() {
   const validateForm = () => {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
-      if (!city) { toast.error("Please select your city"); return false; }
-      if (!phone.trim()) { toast.error("Phone number is required"); return false; }
-      if (selectedRoles.length === 0) { toast.error("Please select at least one role"); return false; }
+      if (!phone.trim() || phone.replace(/\D/g, "").length < 10) { toast.error("Enter a valid phone number"); return false; }
+      if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+      if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
+      if (!city.trim()) { toast.error("Please select your city"); return false; }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
-    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+    if (isLogin && password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
     return true;
   };
 
@@ -191,9 +191,9 @@ export default function Auth() {
         navigate("/dashboard");
         return;
       } else {
-        // Sign up using primary role (first selected) for backward compat with signup_requests + auth metadata.
+        // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
         const primary = selectedRoles[0];
-        const primaryAsUserRole: UserRole = primary; // 'buyer' | 'agent' | 'builder' all valid UserRole keys
+        const primaryAsUserRole: UserRole = primary;
         const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
@@ -206,7 +206,7 @@ export default function Auth() {
           throw error;
         }
 
-        // Create profile rows for ALL selected roles. Use a brief retry — auth user must exist first.
+        // Create profile rows for ALL selected roles (all start pending).
         const { data: { user: created } } = await supabase.auth.getUser();
         if (created) {
           const rows = selectedRoles.map((t) => ({ user_id: created.id, type: t }));
@@ -214,16 +214,13 @@ export default function Auth() {
           if (profErr) console.error("Profile creation error:", profErr);
         }
 
-        const hasBuilder = selectedRoles.includes("builder");
-        if (hasBuilder) {
-          toast.success("Account created! Verify your email. Builder role requires admin approval.", { duration: 8000 });
-        } else {
-          toast.success("Account created! Please check your email to verify, then sign in.", { duration: 6000 });
-        }
-        setIsLogin(true);
-        setPassword("");
+        // Persist email so /verify-otp can read it after navigation.
+        sessionStorage.setItem("jaagax.pendingEmail", email);
+        toast.success("We sent a 6-digit code to your email.", { duration: 5000 });
+        navigate("/verify-otp", { state: { email } });
         return;
       }
+
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
     } finally {
@@ -276,38 +273,42 @@ export default function Auth() {
               <p className="text-muted-foreground">{isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}</p>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-6">
+            <form onSubmit={handleAuth} className="space-y-5">
               <AnimatePresence mode="wait">
-                {!isLogin && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
+                {!isLogin ? (
+                  <motion.div key="signup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    {/* 1. Name */}
                     <div className="space-y-2">
                       <Label htmlFor="name" className="flex items-center gap-2"><UserCircle className="h-4 w-4" />Full Name</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" />
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="city" className="flex items-center gap-2"><MapPin className="h-4 w-4" />City</Label>
-                      <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger><SelectValue placeholder="Select your city" /></SelectTrigger>
-                        <SelectContent>
-                          {cities.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
+                    {/* 2. Phone */}
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
                       <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
                     </div>
 
+                    {/* 3. Password */}
+                    <div className="space-y-2">
+                      <Label htmlFor="password-signup" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                      <div className="relative">
+                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. Role Selection */}
                     <div className="space-y-3">
                       <div className="flex items-baseline justify-between">
-                        <Label>I want to use JAAGA X as</Label>
+                        <Label>I want to use JaagaX as</Label>
                         <span className="text-[11px] text-muted-foreground">Pick one or more</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                         {profileRoles.map((r) => {
-                          const meta = (r.key === "buyer") ? roleConfig.buyer : (r.key === "agent" ? roleConfig.agent : roleConfig.builder);
+                          const meta = roleConfig[r.key as keyof typeof roleConfig] ?? roleConfig.buyer;
                           const Icon = meta.icon;
                           const checked = selectedRoles.includes(r.key);
                           return (
@@ -315,7 +316,7 @@ export default function Auth() {
                               key={r.key}
                               type="button"
                               onClick={() => toggleRole(r.key)}
-                              className={`relative p-3.5 rounded-xl border-2 transition-all text-center ${
+                              className={`relative p-3 rounded-xl border-2 transition-all text-center ${
                                 checked
                                   ? `${meta.borderColor} bg-gradient-to-br ${meta.color}`
                                   : "border-border bg-muted/20 hover:border-primary/30"
@@ -326,46 +327,59 @@ export default function Auth() {
                               )}
                               <Icon className={`w-5 h-5 mx-auto mb-1.5 ${checked ? 'text-primary' : 'text-muted-foreground'}`} />
                               <p className="text-xs font-medium leading-tight">{r.label}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">{r.desc}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{r.desc}</p>
                             </button>
                           );
                         })}
                       </div>
-                      {selectedRoles.includes("builder") && (
-                        <p className="text-[11px] text-amber-400 flex items-center gap-1">
-                          ⏱ Builder profile requires admin approval after signup.
-                        </p>
-                      )}
+                      <p className="text-[11px] text-amber-500/90 flex items-start gap-1.5 leading-tight">
+                        <span>⏱</span>
+                        <span>All role requests require admin approval after email verification.</span>
+                      </p>
+                    </div>
+
+                    {/* 5. City (autocomplete) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <CityAutocomplete value={city} onChange={setCity} placeholder="Search your city..." />
+                    </div>
+
+                    {/* 6. Email (used for verification — required, not optional) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email-signup" className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />Email
+                        <span className="text-[10px] text-muted-foreground font-normal">(for OTP verification)</span>
+                      </Label>
+                      <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div key="login" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
+                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                      <div className="relative">
+                        <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
+                        Forgot password?
+                      </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
-                <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {!isLogin && <p className="text-xs text-muted-foreground">Minimum 6 characters</p>}
-                {isLogin && (
-                  <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
-                    Forgot password?
-                  </button>
-                )}
-              </div>
-
               <Button type="submit" className="w-full" disabled={loading} size="lg">
                 {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? "Signing in..." : "Creating account..."}</>) : (isLogin ? "Sign In" : "Create Account")}
               </Button>
             </form>
+
 
             <div className="mt-6 text-center">
               <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline text-sm font-medium">
