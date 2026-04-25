@@ -84,12 +84,21 @@ export default function Auth() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      if (role) {
-        redirectToDashboard();
-      }
-      // If user is logged in but has no role, they stay on auth page (pending approval)
+      // Decide redirect based on profiles count
+      (async () => {
+        const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
+        const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter((p) => p.status === "active");
+        if (list.length === 0) {
+          if (role) redirectToDashboard();
+        } else if (list.length === 1) {
+          localStorage.setItem("jaagax.activeProfileId", list[0].id);
+          navigate(`/dashboard/${list[0].type}`);
+        } else {
+          navigate("/select-profile");
+        }
+      })();
     }
-  }, [user, role, authLoading, redirectToDashboard]);
+  }, [user, role, authLoading, redirectToDashboard, navigate]);
 
   useEffect(() => {
     if (isPasswordReset) {
