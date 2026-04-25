@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Users, Building2, Plus, Check, Clock, ChevronDown, LogOut } from "lucide-react";
+import { Home, Users, Building2, Tag, Plus, Check, Clock, ChevronDown, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProfile, ProfileType, Profile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,9 +11,10 @@ import AddRoleModal from "./AddRoleModal";
 import { cn } from "@/lib/utils";
 
 const roleMeta: Record<ProfileType, { icon: any; label: string; gradient: string; iconColor: string }> = {
-  buyer:   { icon: Home,       label: "Buyer",   gradient: "from-blue-500/20 to-cyan-500/10",   iconColor: "text-blue-400" },
-  agent:   { icon: Users,      label: "Agent",   gradient: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
-  builder: { icon: Building2,  label: "Builder", gradient: "from-orange-500/20 to-red-500/10",  iconColor: "text-orange-400" },
+  buyer:   { icon: Home,       label: "Buyer",   gradient: "from-sky-500/20 to-cyan-400/10",     iconColor: "text-sky-300" },
+  seller:  { icon: Tag,        label: "Seller",  gradient: "from-emerald-500/20 to-teal-400/10", iconColor: "text-emerald-300" },
+  agent:   { icon: Users,      label: "Agent",   gradient: "from-violet-500/20 to-fuchsia-500/10", iconColor: "text-violet-300" },
+  builder: { icon: Building2,  label: "Builder", gradient: "from-amber-500/20 to-orange-500/10", iconColor: "text-amber-300" },
 };
 
 const dashboardRoute = (type: ProfileType) => `/dashboard/${type}`;
@@ -122,7 +123,7 @@ export default function ProfileSwitcher() {
             </div>
 
             {/* Add another role */}
-            {profiles.length < 3 && (
+            {profiles.length < 4 && (
               <button
                 onClick={() => { setOpen(false); setAddOpen(true); }}
                 className="mt-2 w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left border border-dashed border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-colors"

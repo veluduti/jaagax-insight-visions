@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Users, Building2, Plus, Loader2, Clock, ArrowRight } from "lucide-react";
+import { Home, Users, Building2, Tag, Plus, Loader2, Clock, ArrowRight } from "lucide-react";
 import { useProfile, ProfileType, Profile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
@@ -15,23 +15,30 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; subtitle: string
   buyer: {
     icon: Home, label: "Buyer",
     subtitle: "Browse properties, schedule visits, get AI recommendations",
-    gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
-    iconColor: "text-blue-400",
-    ring: "hover:ring-blue-500/50",
+    gradient: "from-sky-500/20 via-cyan-500/10 to-transparent",
+    iconColor: "text-sky-300",
+    ring: "hover:ring-sky-500/50",
+  },
+  seller: {
+    icon: Tag, label: "Seller",
+    subtitle: "List your property, attract verified buyers, close deals",
+    gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
+    iconColor: "text-emerald-300",
+    ring: "hover:ring-emerald-500/50",
   },
   agent: {
     icon: Users, label: "Agent",
     subtitle: "List properties, manage leads, run visits",
-    gradient: "from-purple-500/20 via-pink-500/10 to-transparent",
-    iconColor: "text-purple-400",
-    ring: "hover:ring-purple-500/50",
+    gradient: "from-violet-500/20 via-fuchsia-500/10 to-transparent",
+    iconColor: "text-violet-300",
+    ring: "hover:ring-violet-500/50",
   },
   builder: {
     icon: Building2, label: "Builder",
     subtitle: "Showcase projects, manage units, run promotions",
-    gradient: "from-orange-500/20 via-red-500/10 to-transparent",
-    iconColor: "text-orange-400",
-    ring: "hover:ring-orange-500/50",
+    gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
+    iconColor: "text-amber-300",
+    ring: "hover:ring-amber-500/50",
   },
 };
 
@@ -137,7 +144,7 @@ export default function SelectProfile() {
             );
           })}
 
-          {profiles.length < 3 && (
+          {profiles.length < 4 && (
             <motion.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
