@@ -60,6 +60,7 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>("buyer");
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -71,6 +72,15 @@ export default function Auth() {
   
   const isPasswordReset = searchParams.get("reset") === "true";
   const allowedSignupRoles: UserRole[] = ["buyer", "seller", "agent", "builder"];
+  const profileRoles: Array<{ key: "buyer" | "agent" | "builder"; label: string; desc: string }> = [
+    { key: "buyer",   label: "Buyer",   desc: "Browse & book" },
+    { key: "agent",   label: "Agent",   desc: "List & earn" },
+    { key: "builder", label: "Builder", desc: "Showcase projects" },
+  ];
+
+  const toggleRole = (r: "buyer" | "agent" | "builder") => {
+    setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
+  };
 
   useEffect(() => {
     if (!authLoading && user) {
