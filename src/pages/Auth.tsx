@@ -273,38 +273,42 @@ export default function Auth() {
               <p className="text-muted-foreground">{isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}</p>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-6">
+            <form onSubmit={handleAuth} className="space-y-5">
               <AnimatePresence mode="wait">
-                {!isLogin && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
+                {!isLogin ? (
+                  <motion.div key="signup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    {/* 1. Name */}
                     <div className="space-y-2">
                       <Label htmlFor="name" className="flex items-center gap-2"><UserCircle className="h-4 w-4" />Full Name</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" />
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="city" className="flex items-center gap-2"><MapPin className="h-4 w-4" />City</Label>
-                      <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger><SelectValue placeholder="Select your city" /></SelectTrigger>
-                        <SelectContent>
-                          {cities.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
+                    {/* 2. Phone */}
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
                       <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
                     </div>
 
+                    {/* 3. Password */}
+                    <div className="space-y-2">
+                      <Label htmlFor="password-signup" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                      <div className="relative">
+                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. Role Selection */}
                     <div className="space-y-3">
                       <div className="flex items-baseline justify-between">
-                        <Label>I want to use JAAGA X as</Label>
+                        <Label>I want to use JaagaX as</Label>
                         <span className="text-[11px] text-muted-foreground">Pick one or more</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2.5">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                         {profileRoles.map((r) => {
-                          const meta = (r.key === "buyer") ? roleConfig.buyer : (r.key === "agent" ? roleConfig.agent : roleConfig.builder);
+                          const meta = roleConfig[r.key as keyof typeof roleConfig] ?? roleConfig.buyer;
                           const Icon = meta.icon;
                           const checked = selectedRoles.includes(r.key);
                           return (
@@ -312,7 +316,7 @@ export default function Auth() {
                               key={r.key}
                               type="button"
                               onClick={() => toggleRole(r.key)}
-                              className={`relative p-3.5 rounded-xl border-2 transition-all text-center ${
+                              className={`relative p-3 rounded-xl border-2 transition-all text-center ${
                                 checked
                                   ? `${meta.borderColor} bg-gradient-to-br ${meta.color}`
                                   : "border-border bg-muted/20 hover:border-primary/30"
@@ -323,46 +327,59 @@ export default function Auth() {
                               )}
                               <Icon className={`w-5 h-5 mx-auto mb-1.5 ${checked ? 'text-primary' : 'text-muted-foreground'}`} />
                               <p className="text-xs font-medium leading-tight">{r.label}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">{r.desc}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{r.desc}</p>
                             </button>
                           );
                         })}
                       </div>
-                      {selectedRoles.includes("builder") && (
-                        <p className="text-[11px] text-amber-400 flex items-center gap-1">
-                          ⏱ Builder profile requires admin approval after signup.
-                        </p>
-                      )}
+                      <p className="text-[11px] text-amber-500/90 flex items-start gap-1.5 leading-tight">
+                        <span>⏱</span>
+                        <span>All role requests require admin approval after email verification.</span>
+                      </p>
+                    </div>
+
+                    {/* 5. City (autocomplete) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <CityAutocomplete value={city} onChange={setCity} placeholder="Search your city..." />
+                    </div>
+
+                    {/* 6. Email (used for verification — required, not optional) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email-signup" className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />Email
+                        <span className="text-[10px] text-muted-foreground font-normal">(for OTP verification)</span>
+                      </Label>
+                      <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div key="login" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
+                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                      <div className="relative">
+                        <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
+                        Forgot password?
+                      </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
-                <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {!isLogin && <p className="text-xs text-muted-foreground">Minimum 6 characters</p>}
-                {isLogin && (
-                  <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
-                    Forgot password?
-                  </button>
-                )}
-              </div>
-
               <Button type="submit" className="w-full" disabled={loading} size="lg">
                 {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? "Signing in..." : "Creating account..."}</>) : (isLogin ? "Sign In" : "Create Account")}
               </Button>
             </form>
+
 
             <div className="mt-6 text-center">
               <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline text-sm font-medium">
