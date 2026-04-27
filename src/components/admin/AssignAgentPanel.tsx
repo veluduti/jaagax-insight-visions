@@ -481,7 +481,7 @@ export default function AssignAgentPanel() {
                       <div>
                         <Separator className="mb-4" />
                         <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-                          Suggested Agents
+                          Top 3 Suggested Agents (locality match · least busy)
                         </h4>
                         {loadingAgents ? (
                           <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
