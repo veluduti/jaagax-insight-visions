@@ -58,6 +58,7 @@ interface AgentSuggestion {
   photo_url: string | null;
   agency_name: string | null;
   matchScore: number;
+  activeTasks: number;
 }
 
 const formatPrice = (n: number) => {
