@@ -475,11 +475,16 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     <Button
                       size="sm"
                       className="h-8 text-[11px] bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => markCompleted(p)}
-                      disabled={isCompleted}
+                      onClick={() => openVerify(p)}
+                      disabled={isCompleted || p.verification_status === "agent_verified_pending"}
+                      title="Edit details and submit for admin approval"
                     >
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      {isCompleted ? "Done" : "Mark Done"}
+                      <FileCheck2 className="h-3 w-3 mr-1" />
+                      {p.verification_status === "agent_verified_pending"
+                        ? "Submitted"
+                        : isCompleted
+                        ? "Done"
+                        : "Submit Verification"}
                     </Button>
                   </div>
 
