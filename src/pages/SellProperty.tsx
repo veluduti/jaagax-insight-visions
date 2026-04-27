@@ -25,7 +25,8 @@ type FieldDef = {
   question: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
-    | "single" | "multi" | "yesno" | "media";
+    | "single" | "multi" | "yesno" | "media"
+    | "city" | "locality" | "price_unit";
   options?: string[];
   optional?: boolean;
 };
@@ -42,11 +43,19 @@ type NextResp =
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
 
-function validate(field: FieldDef, value: any): string | null {
-  if (field.optional && (value === "" || value == null || (Array.isArray(value) && value.length === 0))) return null;
-  if (value === "" || value == null || (Array.isArray(value) && value.length === 0)) {
-    return "This field is required";
+function isEmpty(v: any) {
+  if (v == null || v === "") return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") {
+    // price_unit object
+    return !v.unit || !v.area || !v.pricePerUnit;
   }
+  return false;
+}
+
+function validate(field: FieldDef, value: any): string | null {
+  if (field.optional && isEmpty(value)) return null;
+  if (isEmpty(value)) return "This field is required";
   if (field.input === "phone" && !phoneRE.test(String(value))) return "Enter a valid 10-digit mobile number";
   if (field.input === "email") {
     const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -54,6 +63,10 @@ function validate(field: FieldDef, value: any): string | null {
   }
   if (field.input === "number" && isNaN(Number(value))) return "Enter a valid number";
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
+  if (field.input === "price_unit") {
+    if (isNaN(Number(value.area)) || Number(value.area) <= 0) return "Enter a valid area";
+    if (isNaN(Number(value.pricePerUnit)) || Number(value.pricePerUnit) <= 0) return "Enter a valid price per unit";
+  }
   return null;
 }
 
