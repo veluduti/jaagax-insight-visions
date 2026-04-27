@@ -122,7 +122,7 @@ export default function AgentVerifiedReviewPanel() {
     if (!rejectReason.trim()) return toast.error("Please provide a reason");
     const { error } = await supabase
       .from("properties")
-      .update({ verification_status: "rejected", verified: false, rejection_reason: rejectReason.trim() })
+      .update({ verification_status: "rejected", verified: false, is_live: false, rejection_reason: rejectReason.trim() } as any)
       .eq("id", rejectTarget.id);
     if (error) return toast.error(error.message);
 
