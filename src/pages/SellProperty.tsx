@@ -207,17 +207,32 @@ export default function SellProperty() {
         return;
       }
 
+      // Derive pricing from unit-based input
+      const pu = state.price_unit || {};
+      const area = Number(pu.area) || null;
+      const ppu = Number(pu.pricePerUnit) || null;
+      const totalPrice = area && ppu ? area * ppu : null;
+      // Normalize area to sq ft (rough conversions)
+      const UNIT_TO_SQFT: Record<string, number> = {
+        "sq ft": 1, "sq m": 10.7639, "gunta": 1089, "acre": 43560, "cent": 435.6, "sq yard": 9,
+      };
+      const areaSqft = area && pu.unit ? Math.round(area * (UNIT_TO_SQFT[pu.unit] || 1)) : null;
+      const pricePerSqft = totalPrice && areaSqft ? Math.round(totalPrice / areaSqft) : null;
+
+      const typesArr = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+      const primaryType = typesArr[0] || null;
+
       // Map the conversational state into the properties table schema.
       const payload: any = {
         user_id: user.id,
-        title: state.title || `${state.bhk || ""} ${state.type || "Property"} in ${state.locality || state.city || ""}`.trim(),
+        title: state.title || `${state.bhk || ""} ${primaryType || "Property"} in ${state.locality || state.city || ""}`.trim(),
         description: state.description || null,
-        type: state.type || null,
+        type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: (state.listed_by || "owner").toLowerCase(),
-        price: state.expected_price ? Number(state.expected_price) : null,
-        price_per_sqft: state.price_per_sqft ? Number(state.price_per_sqft) : null,
-        area_sqft: state.built_up || state.super_built_up || state.carpet_area || state.plot_area || null,
+        price: totalPrice,
+        price_per_sqft: pricePerSqft,
+        area_sqft: areaSqft,
         bhk: state.bhk || null,
         bedrooms: state.bhk ? parseInt(String(state.bhk)) || null : null,
         bathrooms: state.bathrooms ? Number(state.bathrooms) : null,
