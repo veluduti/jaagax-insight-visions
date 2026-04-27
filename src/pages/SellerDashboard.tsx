@@ -252,7 +252,7 @@ export default function SellerDashboard() {
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
-              <Plus className="h-4 w-4 mr-1" />Add Property
+              <Plus className="h-4 w-4 mr-1" />Sell Your Property
             </Button>
             <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
             <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
@@ -293,8 +293,8 @@ export default function SellerDashboard() {
               <CardContent className="p-5 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-emerald-500/20"><Plus className="h-6 w-6 text-emerald-500" /></div>
                 <div>
-                  <h3 className="font-semibold">Add Property</h3>
-                  <p className="text-xs text-muted-foreground">List a new home</p>
+                  <h3 className="font-semibold">Sell Your Property</h3>
+                  <p className="text-xs text-muted-foreground">List your home for sale</p>
                 </div>
               </CardContent>
             </Card>
@@ -356,11 +356,11 @@ export default function SellerDashboard() {
               {(["all", "pending", "approved", "rejected", "draft"] as const).map((s) => {
                 const list = filterProperties(s);
                 const emptyMeta: Record<string, { icon: any; iconColor: string; title: string; subtext: string; cta?: string }> = {
-                  all: { icon: Home, iconColor: "text-emerald-500", title: "No properties yet", subtext: "Start by listing your first property", cta: "Add Property" },
-                  pending: { icon: Clock, iconColor: "text-amber-500", title: "No properties pending approval", subtext: "Once you submit a property, it will appear here for verification", cta: "Add Property" },
+                  all: { icon: Home, iconColor: "text-emerald-500", title: "No properties yet", subtext: "Start by listing your first property", cta: "Sell Your Property" },
+                  pending: { icon: Clock, iconColor: "text-amber-500", title: "No properties pending approval", subtext: "Once you submit a property, it will appear here for verification", cta: "Sell Your Property" },
                   approved: { icon: CheckCircle2, iconColor: "text-emerald-500", title: "No live properties", subtext: "Your approved properties will appear here" },
                   rejected: { icon: XCircle, iconColor: "text-rose-500", title: "No rejected properties", subtext: "All your listings are approved or pending" },
-                  draft: { icon: Edit, iconColor: "text-slate-500", title: "No drafts available", subtext: "Start creating a property and save it as draft", cta: "Add Property" },
+                  draft: { icon: Edit, iconColor: "text-slate-500", title: "No drafts available", subtext: "Start creating a property and save it as draft", cta: "Sell Your Property" },
                 };
                 const meta = emptyMeta[s];
                 const EmptyIcon = meta.icon;
