@@ -617,6 +617,16 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AgentEditPropertyDialog
+        open={!!editFullTarget}
+        onOpenChange={(o) => !o && setEditFullTarget(null)}
+        property={editFullTarget}
+        agentName={agentName}
+        agentId={agentId}
+        agentUserId={agentUserId}
+        onSubmitted={load}
+      />
     </Card>
   );
 }
