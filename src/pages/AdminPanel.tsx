@@ -20,6 +20,7 @@ import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
+import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
