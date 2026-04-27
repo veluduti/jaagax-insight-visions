@@ -20,6 +20,7 @@ interface ProfileContextValue {
   refresh: () => Promise<void>;
   switchProfile: (profileId: string) => Promise<void>;
   addProfile: (type: ProfileType, extraData?: Record<string, any>) => Promise<{ profile: Profile | null; error: string | null }>;
+  removeProfile: (profileId: string) => Promise<{ error: string | null }>;
   hasProfile: (type: ProfileType) => boolean;
 }
 
