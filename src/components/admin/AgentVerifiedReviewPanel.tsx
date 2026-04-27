@@ -23,6 +23,8 @@ interface PendingProperty {
   images: any;
   agent_notes: string | null;
   original_snapshot: any;
+  agent_data: any;
+  field_verification: any;
   assigned_agent_id: string | null;
   submitted_by: string | null;
   agent_submitted_at: string | null;
