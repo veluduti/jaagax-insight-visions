@@ -128,6 +128,8 @@ export default function SellProperty() {
           setValue(existing);
         } else if (d.field.input === "multi") {
           setValue([]);
+        } else if (d.field.input === "price_unit") {
+          setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
         } else {
           setValue("");
         }
