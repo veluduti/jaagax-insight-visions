@@ -101,21 +101,19 @@ export default function SellProperty() {
       if (fnErr) throw fnErr;
       if (!data) throw new Error("No response");
 
-      if (data.done) {
+      if ((data as any).done) {
         setDone(true);
         setField(null);
       } else {
-        setField(data.field);
-        setSuggestions(data.suggestions || []);
-        setProgress(data.progress);
-        // reset value with sensible default for type
-        const existing = currentState[data.field.id];
+        const d = data as Extract<NextResp, { done: false }>;
+        setField(d.field);
+        setSuggestions(d.suggestions || []);
+        setProgress(d.progress);
+        const existing = currentState[d.field.id];
         if (existing !== undefined && existing !== null) {
           setValue(existing);
-        } else if (data.field.input === "multi") {
+        } else if (d.field.input === "multi") {
           setValue([]);
-        } else if (data.field.input === "yesno") {
-          setValue("");
         } else {
           setValue("");
         }
