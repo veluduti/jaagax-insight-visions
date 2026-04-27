@@ -230,6 +230,113 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     load();
   };
 
+  const openVerify = (t: AssignedTask) => {
+    setVerifyTarget(t);
+    setEditTitle(t.title || "");
+    setEditPrice(String(t.price ?? ""));
+    setEditArea(String(t.area_sqft ?? ""));
+    setEditDescription(t.description || "");
+    setEditImages(Array.isArray(t.images) ? t.images.join("\n") : "");
+    setEditAgentNotes(t.agent_notes || "");
+  };
+
+  const submitVerification = async () => {
+    if (!verifyTarget) return;
+    if (!editAgentNotes.trim()) { toast.error("Please add agent notes from the visit"); return; }
+    const priceNum = Number(editPrice);
+    const areaNum = editArea ? Number(editArea) : null;
+    if (!editTitle.trim() || !Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error("Title and a valid price are required");
+      return;
+    }
+    setSubmittingVerify(true);
+
+    const original_snapshot = {
+      title: verifyTarget.title,
+      price: verifyTarget.price,
+      area_sqft: verifyTarget.area_sqft,
+      description: verifyTarget.description,
+      images: Array.isArray(verifyTarget.images) ? verifyTarget.images : [],
+      snapshot_at: new Date().toISOString(),
+    };
+    const newImages = editImages.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        title: editTitle.trim(),
+        price: priceNum,
+        area_sqft: areaNum,
+        description: editDescription,
+        images: newImages,
+        agent_notes: editAgentNotes.trim(),
+        original_snapshot,
+        verification_status: "agent_verified_pending",
+        verified: false,
+        agent_submitted_at: new Date().toISOString(),
+      } as any)
+      .eq("id", verifyTarget.id);
+
+    if (error) {
+      setSubmittingVerify(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Mark task completed
+    if (verifyTarget.task_id) {
+      await supabase.from("agent_tasks" as any).update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", verifyTarget.task_id);
+    } else {
+      await supabase.from("agent_tasks" as any).insert({
+        agent_id: agentId,
+        agent_user_id: agentUserId,
+        property_id: verifyTarget.id,
+        task_type: "property_assigned",
+        title: `Verify ${verifyTarget.title}`,
+        status: "completed",
+        priority: "high",
+        completed_at: new Date().toISOString(),
+      });
+    }
+
+    // Notify admins
+    const { data: admins } = await supabase
+      .from("user_roles" as any)
+      .select("user_id")
+      .eq("role", "admin");
+    if (admins && admins.length) {
+      await supabase.from("notifications").insert(
+        admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "agent_verified",
+          title: "Agent submitted property for final approval",
+          message: `${agentName} verified "${editTitle.trim()}" and submitted it for admin approval.`,
+          link: `/admin`,
+        }))
+      );
+    }
+
+    // Notify seller
+    if (verifyTarget.submitted_by) {
+      await supabase.from("notifications").insert({
+        user_id: verifyTarget.submitted_by,
+        type: "agent_verified",
+        title: "Property submitted for final approval",
+        message: `${agentName} completed the visit and submitted "${editTitle.trim()}" for admin's final approval.`,
+        link: `/property/${verifyTarget.id}`,
+      });
+    }
+
+    setSubmittingVerify(false);
+    setVerifyTarget(null);
+    toast.success("Submitted for admin approval");
+    load();
+  };
+
   const filtered = tasks.filter((t) =>
     filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed"
   );
