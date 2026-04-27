@@ -98,34 +98,48 @@ export default function ProfileSwitcher() {
                 const Icon = meta.icon;
                 const isActive = p.id === activeProfile.id;
                 const isPending = p.status === "pending";
+                const canRemove = profiles.length > 1;
                 return (
-                  <motion.button
+                  <div
                     key={p.id}
-                    whileHover={!isPending ? { scale: 1.01 } : undefined}
-                    whileTap={!isPending ? { scale: 0.99 } : undefined}
-                    onClick={() => handleSwitch(p)}
-                    disabled={isPending}
                     className={cn(
-                      "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                      "w-full flex items-center gap-2 rounded-lg pl-3 pr-1.5 py-1.5 transition-colors group",
                       isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-accent",
-                      isPending && "opacity-60 cursor-not-allowed"
+                      isPending && "opacity-60"
                     )}
                   >
-                    <div className={cn("h-8 w-8 rounded-md bg-gradient-to-br flex items-center justify-center", meta.gradient)}>
-                      <Icon className={cn("h-4 w-4", meta.iconColor)} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground flex items-center gap-2">
-                        {meta.label}
-                        {isPending && (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-400">
-                            <Clock className="h-3 w-3" /> Pending approval
-                          </span>
-                        )}
+                    <motion.button
+                      whileHover={!isPending ? { scale: 1.005 } : undefined}
+                      whileTap={!isPending ? { scale: 0.995 } : undefined}
+                      onClick={() => handleSwitch(p)}
+                      disabled={isPending}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-left py-1 disabled:cursor-not-allowed"
+                    >
+                      <div className={cn("h-8 w-8 rounded-md bg-gradient-to-br flex items-center justify-center", meta.gradient)}>
+                        <Icon className={cn("h-4 w-4", meta.iconColor)} />
                       </div>
-                    </div>
-                    {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </motion.button>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-foreground flex items-center gap-2">
+                          {meta.label}
+                          {isPending && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-400">
+                              <Clock className="h-3 w-3" /> Pending approval
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </motion.button>
+                    {canRemove && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setRemovingProfile(p); }}
+                        title={`Remove ${meta.label} role`}
+                        className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
