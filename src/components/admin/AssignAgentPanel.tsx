@@ -499,7 +499,7 @@ export default function AssignAgentPanel() {
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <p className="font-semibold text-sm">{a.name}</p>
                                     {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
-                                    <Badge variant="outline" className="text-[10px]">{a.matchScore} pts</Badge>
+                                    <Badge variant="outline" className="text-[10px]">{a.activeTasks} active task{a.activeTasks === 1 ? "" : "s"}</Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground truncate">
                                     {a.agency_name || "Independent"} · {a.cities_served || "—"}
