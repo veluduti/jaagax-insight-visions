@@ -267,7 +267,9 @@ export default function SellProperty() {
 
       const { error: insErr } = await supabase.from("properties").insert(payload);
       if (insErr) throw insErr;
-      toast.success("Listing submitted! 🎉");
+      toast.success("Your property is under review", {
+        description: "Our admin team will verify your listing shortly. You'll be notified once approved.",
+      });
       navigate("/dashboard/seller");
     } catch (e: any) {
       console.error(e);
