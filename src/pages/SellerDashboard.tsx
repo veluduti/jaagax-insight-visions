@@ -52,6 +52,8 @@ interface Property {
   created_at: string;
   assigned_agent_id: string | null;
   agent_submitted_at: string | null;
+  is_live?: boolean | null;
+  published_at?: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
@@ -84,7 +86,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -272,6 +274,15 @@ export default function SellerDashboard() {
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
+            {p.is_live && (
+              <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                LIVE
+              </Badge>
+            )}
             {p.listing_type && (
               <Badge variant="secondary" className="absolute top-3 right-3 bg-background/90">
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}

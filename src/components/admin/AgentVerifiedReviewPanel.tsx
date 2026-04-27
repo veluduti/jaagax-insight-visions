@@ -23,6 +23,8 @@ interface PendingProperty {
   images: any;
   agent_notes: string | null;
   original_snapshot: any;
+  agent_data: any;
+  field_verification: any;
   assigned_agent_id: string | null;
   submitted_by: string | null;
   agent_submitted_at: string | null;
@@ -42,7 +44,7 @@ export default function AgentVerifiedReviewPanel() {
     setLoading(true);
     const { data, error } = await supabase
       .from("properties")
-      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, assigned_agent_id, submitted_by, agent_submitted_at")
+      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, agent_data, field_verification, assigned_agent_id, submitted_by, agent_submitted_at")
       .eq("verification_status", "agent_verified_pending")
       .order("agent_submitted_at", { ascending: false });
     if (error) toast.error(error.message);
@@ -59,9 +61,25 @@ export default function AgentVerifiedReviewPanel() {
   });
 
   const handleApprove = async (p: PendingProperty) => {
+    // Lock final_data from agent_data (fallback to current top-level fields if agent didn't fill JSONB).
+    const finalData = p.agent_data ?? {
+      basic_information: { title: p.title, property_type: p.type },
+      location_details: { city: p.city, locality: p.locality },
+      price: p.price,
+      area_sqft: p.area_sqft,
+      description: p.description,
+      images: p.images,
+    };
     const { error } = await supabase
       .from("properties")
-      .update({ verification_status: "approved", verified: true, rejection_reason: null })
+      .update({
+        verification_status: "approved",
+        verified: true,
+        rejection_reason: null,
+        final_data: finalData,
+        is_live: true,
+        published_at: new Date().toISOString(),
+      } as any)
       .eq("id", p.id);
     if (error) return toast.error(error.message);
 
@@ -104,7 +122,7 @@ export default function AgentVerifiedReviewPanel() {
     if (!rejectReason.trim()) return toast.error("Please provide a reason");
     const { error } = await supabase
       .from("properties")
-      .update({ verification_status: "rejected", verified: false, rejection_reason: rejectReason.trim() })
+      .update({ verification_status: "rejected", verified: false, is_live: false, rejection_reason: rejectReason.trim() } as any)
       .eq("id", rejectTarget.id);
     if (error) return toast.error(error.message);
 
@@ -130,12 +148,12 @@ export default function AgentVerifiedReviewPanel() {
     return (
       <div className="grid grid-cols-2 gap-3 py-2 border-b last:border-0">
         <div>
-          <p className="text-[10px] uppercase font-semibold text-muted-foreground">{label} — Original</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground">{label} — Seller</p>
           <p className="text-sm">{fmt(original)}</p>
         </div>
         <div className={changed ? "rounded p-2 -m-2 bg-emerald-500/10 border border-emerald-500/30" : ""}>
           <p className="text-[10px] uppercase font-semibold text-muted-foreground flex items-center gap-1">
-            {label} — Edited {changed && <ArrowRight className="h-3 w-3 text-emerald-600" />}
+            {label} — Agent {changed && <ArrowRight className="h-3 w-3 text-emerald-600" />}
           </p>
           <p className="text-sm font-medium">{fmt(edited)}</p>
         </div>
@@ -219,10 +237,28 @@ export default function AgentVerifiedReviewPanel() {
                 </div>
               )}
               <div>
-                <Diff label="Title" original={reviewTarget.original_snapshot?.title} edited={reviewTarget.title} />
-                <Diff label="Price" original={reviewTarget.original_snapshot?.price} edited={reviewTarget.price} format={fmtPrice} />
-                <Diff label="Area (sqft)" original={reviewTarget.original_snapshot?.area_sqft} edited={reviewTarget.area_sqft} />
-                <Diff label="Description" original={reviewTarget.original_snapshot?.description} edited={reviewTarget.description} />
+                {(() => {
+                  const seller = reviewTarget.original_snapshot || {};
+                  const ad = reviewTarget.agent_data || {};
+                  const aTitle = ad.basic_information?.title ?? reviewTarget.title;
+                  const aType = ad.basic_information?.property_type ?? reviewTarget.type;
+                  const aCity = ad.location_details?.city ?? reviewTarget.city;
+                  const aLocality = ad.location_details?.locality ?? reviewTarget.locality;
+                  const aPrice = ad.price ?? reviewTarget.price;
+                  const aArea = ad.area_sqft ?? reviewTarget.area_sqft;
+                  const aDesc = ad.description ?? reviewTarget.description;
+                  return (
+                    <>
+                      <Diff label="Title" original={seller.title} edited={aTitle} />
+                      <Diff label="Type" original={seller.type} edited={aType} />
+                      <Diff label="City" original={seller.city} edited={aCity} />
+                      <Diff label="Locality" original={seller.locality} edited={aLocality} />
+                      <Diff label="Price" original={seller.price} edited={aPrice} format={fmtPrice} />
+                      <Diff label="Area (sqft)" original={seller.area_sqft} edited={aArea} />
+                      <Diff label="Description" original={seller.description} edited={aDesc} />
+                    </>
+                  );
+                })()}
               </div>
               <div>
                 <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-2">Images comparison</p>
