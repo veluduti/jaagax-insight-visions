@@ -557,6 +557,66 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Submit Verification dialog */}
+      <Dialog open={!!verifyTarget} onOpenChange={(o) => !o && !submittingVerify && setVerifyTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Submit Verification</DialogTitle>
+            <DialogDescription>
+              Edit any fields you corrected on-site, add notes, then submit for admin's final approval.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Title</label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Price (₹)</label>
+                <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Area (sqft)</label>
+                <Input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Description</label>
+              <Textarea rows={3} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Image URLs (one per line)</label>
+              <Textarea
+                rows={3}
+                value={editImages}
+                onChange={(e) => setEditImages(e.target.value)}
+                placeholder="https://...jpg"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Agent Notes <span className="text-red-500">*</span></label>
+              <Textarea
+                rows={3}
+                value={editAgentNotes}
+                onChange={(e) => setEditAgentNotes(e.target.value)}
+                placeholder="On-site observations, condition, accuracy of seller's claims, etc."
+              />
+            </div>
+            <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2.5 text-[11px] text-blue-700 dark:text-blue-400">
+              On submit, the property status becomes <strong>Agent Verified — Pending Admin Approval</strong>. Admin will compare your edits with the original submission.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={submittingVerify} onClick={() => setVerifyTarget(null)}>Cancel</Button>
+            <Button onClick={submitVerification} disabled={submittingVerify} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <FileCheck2 className="h-4 w-4 mr-1" />
+              {submittingVerify ? "Submitting…" : "Submit Verification"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
