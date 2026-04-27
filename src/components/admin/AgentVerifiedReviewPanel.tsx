@@ -237,10 +237,28 @@ export default function AgentVerifiedReviewPanel() {
                 </div>
               )}
               <div>
-                <Diff label="Title" original={reviewTarget.original_snapshot?.title} edited={reviewTarget.title} />
-                <Diff label="Price" original={reviewTarget.original_snapshot?.price} edited={reviewTarget.price} format={fmtPrice} />
-                <Diff label="Area (sqft)" original={reviewTarget.original_snapshot?.area_sqft} edited={reviewTarget.area_sqft} />
-                <Diff label="Description" original={reviewTarget.original_snapshot?.description} edited={reviewTarget.description} />
+                {(() => {
+                  const seller = reviewTarget.original_snapshot || {};
+                  const ad = reviewTarget.agent_data || {};
+                  const aTitle = ad.basic_information?.title ?? reviewTarget.title;
+                  const aType = ad.basic_information?.property_type ?? reviewTarget.type;
+                  const aCity = ad.location_details?.city ?? reviewTarget.city;
+                  const aLocality = ad.location_details?.locality ?? reviewTarget.locality;
+                  const aPrice = ad.price ?? reviewTarget.price;
+                  const aArea = ad.area_sqft ?? reviewTarget.area_sqft;
+                  const aDesc = ad.description ?? reviewTarget.description;
+                  return (
+                    <>
+                      <Diff label="Title" original={seller.title} edited={aTitle} />
+                      <Diff label="Type" original={seller.type} edited={aType} />
+                      <Diff label="City" original={seller.city} edited={aCity} />
+                      <Diff label="Locality" original={seller.locality} edited={aLocality} />
+                      <Diff label="Price" original={seller.price} edited={aPrice} format={fmtPrice} />
+                      <Diff label="Area (sqft)" original={seller.area_sqft} edited={aArea} />
+                      <Diff label="Description" original={seller.description} edited={aDesc} />
+                    </>
+                  );
+                })()}
               </div>
               <div>
                 <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-2">Images comparison</p>
