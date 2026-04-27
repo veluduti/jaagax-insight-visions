@@ -38,6 +38,7 @@ interface Property {
   bathrooms: number | null;
   type: string | null;
   images: any;
+  description: string | null;
   verified: boolean | null;
   verification_status: string;
   rejection_reason: string | null;
