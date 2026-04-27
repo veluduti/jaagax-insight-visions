@@ -137,8 +137,58 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
     return { profile: newProfile, error: null };
   }, [user?.id, hasProfile]);
 
+  const removeProfile = useCallback(async (profileId: string) => {
+    if (!user?.id) return { error: "Not signed in" };
+    const target = profiles.find((p) => p.id === profileId);
+    if (!target) return { error: "Profile not found" };
+
+    // Map profile type to db role for cleanup
+    const dbRole = target.type === "buyer" || target.type === "seller" ? "customer" : target.type;
+
+    // Delete role-specific data row (best-effort)
+    const tableMap: Record<string, string> = {
+      buyer: "buyer_profiles",
+      seller: "buyer_profiles",
+      agent: "agent_profiles",
+      builder: "builder_profiles_data",
+    };
+    const table = tableMap[target.type];
+    if (table) {
+      await supabase.from(table as any).delete().eq("profile_id", profileId);
+    }
+
+    // Delete the profile row
+    const { error } = await supabase.from("profiles" as any).delete().eq("id", profileId);
+    if (error) return { error: error.message };
+
+    // If no other profile of same db-role remains, also drop the user_role
+    const remaining = profiles.filter((p) => p.id !== profileId);
+    const stillHasDbRole = remaining.some((p) => {
+      const r = p.type === "buyer" || p.type === "seller" ? "customer" : p.type;
+      return r === dbRole;
+    });
+    if (!stillHasDbRole && (dbRole === "customer" || dbRole === "agent" || dbRole === "builder")) {
+      await supabase.from("user_roles" as any).delete().eq("user_id", user.id).eq("role", dbRole);
+    }
+
+    setProfiles(remaining);
+
+    // If active profile was removed, switch to another
+    if (activeProfile?.id === profileId) {
+      const next = remaining[0] ?? null;
+      setActiveProfile(next);
+      if (next) {
+        localStorage.setItem(ACTIVE_KEY, next.id);
+      } else {
+        localStorage.removeItem(ACTIVE_KEY);
+      }
+    }
+
+    return { error: null };
+  }, [user?.id, profiles, activeProfile?.id]);
+
   return (
-    <ProfileContext.Provider value={{ profiles, activeProfile, loading, refresh, switchProfile, addProfile, hasProfile }}>
+    <ProfileContext.Provider value={{ profiles, activeProfile, loading, refresh, switchProfile, addProfile, removeProfile, hasProfile }}>
       {children}
     </ProfileContext.Provider>
   );
