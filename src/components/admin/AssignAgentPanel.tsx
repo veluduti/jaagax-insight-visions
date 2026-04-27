@@ -1,31 +1,47 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
-  Loader2, MapPin, CheckCircle, XCircle, Star, Phone, Briefcase, UserCheck, Clock, Home, IndianRupee, ChevronRight,
+  Loader2, MapPin, CheckCircle, XCircle, Star, Phone, Briefcase, UserCheck, Clock,
+  Home, IndianRupee, User, Eye, Mail, Calendar, Bed, Maximize2, Tag,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
 interface PendingProperty {
   id: string;
   title: string;
+  description: string | null;
   city: string | null;
   locality: string | null;
+  address: string | null;
   type: string | null;
+  listing_type: string | null;
   price: number;
   area_sqft: number | null;
   bedrooms: number | null;
+  bathrooms: number | null;
+  bhk: number | null;
+  furnishing: string | null;
   images: any;
   listed_by: string | null;
   assigned_agent_id: string | null;
   submitted_by: string | null;
   rejection_reason: string | null;
   created_at: string;
+  document_urls: any;
+}
+
+interface SellerInfo {
+  name: string;
+  email: string | null;
+  phone: string | null;
 }
 
 interface AgentSuggestion {
@@ -44,26 +60,49 @@ interface AgentSuggestion {
   matchScore: number;
 }
 
+const formatPrice = (n: number) => {
+  if (!n) return "—";
+  if (n >= 1e7) return `₹${(n / 1e7).toFixed(2)} Cr`;
+  if (n >= 1e5) return `₹${(n / 1e5).toFixed(2)} L`;
+  return `₹${n.toLocaleString("en-IN")}`;
+};
+
 export default function AssignAgentPanel() {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
+  const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<Record<string, AgentSuggestion[]>>({});
-  const [working, setWorking] = useState<string | null>(null);
+  const [selected, setSelected] = useState<PendingProperty | null>(null);
+  const [suggestions, setSuggestions] = useState<AgentSuggestion[]>([]);
+  const [loadingAgents, setLoadingAgents] = useState(false);
+  const [showAgents, setShowAgents] = useState(false);
+  const [working, setWorking] = useState(false);
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
-    // Only seller & agent listings need agent assignment.
-    // Builder-listed properties are handled in the Verification panel (no agent assignment).
     const { data } = await supabase
       .from("properties")
       .select(
-        "id, title, city, locality, type, price, area_sqft, bedrooms, images, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at"
+        "id, title, description, city, locality, address, type, listing_type, price, area_sqft, bedrooms, bathrooms, bhk, furnishing, images, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls"
       )
       .eq("verification_status", "pending")
-      .neq("listed_by", "builder")
       .order("created_at", { ascending: false });
-    setProperties((data as any) || []);
+
+    const list = (data as PendingProperty[]) || [];
+    setProperties(list);
+
+    // Fetch seller info
+    const sellerIds = Array.from(new Set(list.map((p) => p.submitted_by).filter(Boolean))) as string[];
+    if (sellerIds.length > 0) {
+      const { data: signups } = await supabase
+        .from("signup_requests")
+        .select("user_id, full_name, email, phone")
+        .in("user_id", sellerIds);
+      const map: Record<string, SellerInfo> = {};
+      (signups || []).forEach((s: any) => {
+        map[s.user_id] = { name: s.full_name || "Unknown Seller", email: s.email, phone: s.phone };
+      });
+      setSellers(map);
+    }
     setLoading(false);
   }, []);
 
@@ -72,30 +111,32 @@ export default function AssignAgentPanel() {
   }, [fetchPending]);
 
   useRealtimeTableSubscription({
-    channelName: "admin-assign-agent-panel",
+    channelName: "admin-pending-props",
     tables: ["properties"],
-    onChange: () => {
-      void fetchPending();
-    },
+    onChange: () => void fetchPending(),
   });
 
-  const loadSuggestions = async (property: PendingProperty) => {
-    setExpanded(property.id);
-    if (suggestions[property.id]) return;
+  const openDetails = (p: PendingProperty) => {
+    setSelected(p);
+    setShowAgents(false);
+    setSuggestions([]);
+  };
 
-    // Pull verified agents — try to filter by city, then fall back to all
+  const loadSuggestions = async () => {
+    if (!selected) return;
+    setLoadingAgents(true);
+    setShowAgents(true);
     let agents: any[] = [];
-    if (property.city) {
+    if (selected.city) {
       const { data } = await supabase
         .from("agents")
         .select("id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name")
         .eq("verified", true)
-        .ilike("cities_served", `%${property.city}%`)
+        .ilike("cities_served", `%${selected.city}%`)
         .order("trust_score", { ascending: false })
         .limit(15);
       agents = data || [];
     }
-
     if (agents.length < 5) {
       const { data } = await supabase
         .from("agents")
@@ -103,32 +144,60 @@ export default function AssignAgentPanel() {
         .eq("verified", true)
         .order("trust_score", { ascending: false })
         .limit(10);
-      const existingIds = new Set(agents.map((a) => a.id));
-      (data || []).forEach((a: any) => {
-        if (!existingIds.has(a.id)) agents.push(a);
-      });
+      const ids = new Set(agents.map((a) => a.id));
+      (data || []).forEach((a: any) => { if (!ids.has(a.id)) agents.push(a); });
     }
-
     const ranked: AgentSuggestion[] = agents
       .map((a) => {
         let score = 0;
-        if (property.city && a.cities_served?.toLowerCase().includes(property.city.toLowerCase())) score += 50;
-        if (property.locality && a.localities_served?.toLowerCase().includes(property.locality.toLowerCase())) score += 30;
+        if (selected.city && a.cities_served?.toLowerCase().includes(selected.city.toLowerCase())) score += 50;
+        if (selected.locality && a.localities_served?.toLowerCase().includes(selected.locality.toLowerCase())) score += 30;
         score += Math.min(a.trust_score || 0, 100) * 0.15;
         score += (a.experience_years || 0) * 1.5;
         return { ...a, matchScore: Math.round(score) };
       })
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 5);
-
-    setSuggestions((prev) => ({ ...prev, [property.id]: ranked }));
+    setSuggestions(ranked);
+    setLoadingAgents(false);
   };
 
-  const assignAndApprove = async (property: PendingProperty, agent: AgentSuggestion) => {
-    setWorking(property.id);
+  const approveOnly = async () => {
+    if (!selected) return;
+    setWorking(true);
     try {
-      // 1) Update property: assign agent + approve
-      const { data: updatedRow, error: updErr } = await supabase
+      const { data: row, error } = await supabase
+        .from("properties")
+        .update({ verification_status: "approved", verified: true, rejection_reason: null })
+        .eq("id", selected.id)
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      if (!row) throw new Error("Approval not saved. Use an admin account.");
+      if (selected.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: selected.submitted_by,
+          type: "property_approved",
+          title: "Your listing is live ✅",
+          message: `${selected.title} has been approved and is now visible to buyers.`,
+          link: `/property/${selected.id}`,
+        });
+      }
+      toast.success("Property approved");
+      setProperties((prev) => prev.filter((x) => x.id !== selected.id));
+      setSelected(null);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to approve");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const assignAndApprove = async (agent: AgentSuggestion) => {
+    if (!selected) return;
+    setWorking(true);
+    try {
+      const { data: row, error } = await supabase
         .from("properties")
         .update({
           assigned_agent_id: agent.id,
@@ -137,50 +206,47 @@ export default function AssignAgentPanel() {
           rejection_reason: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", property.id)
+        .eq("id", selected.id)
         .select("id")
         .maybeSingle();
-      if (updErr) throw updErr;
-      if (!updatedRow) throw new Error("Approval was not saved. Please use an admin account.");
+      if (error) throw error;
+      if (!row) throw new Error("Approval not saved. Use an admin account.");
 
-      // 2) Notify the seller
-      if (property.submitted_by) {
+      if (selected.submitted_by) {
         await supabase.from("notifications").insert({
-          user_id: property.submitted_by,
+          user_id: selected.submitted_by,
           type: "property_approved",
           title: "Property approved & agent assigned",
-          message: `${property.title} is now live. ${agent.name} has been assigned as your dedicated agent.`,
-          link: `/property/${property.id}`,
+          message: `${selected.title} is now live. ${agent.name} has been assigned as your dedicated agent.`,
+          link: `/property/${selected.id}`,
         });
       }
-
-      // 3) Notify the assigned agent
       if (agent.user_id) {
         await supabase.from("notifications").insert({
           user_id: agent.user_id,
           type: "property_assigned",
           title: "New property assigned to you",
-          message: `You've been assigned to handle ${property.title} (${property.locality || property.city || ""}). All buyer enquiries and visit requests will come to you.`,
-          link: `/property/${property.id}`,
+          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}).`,
+          link: `/property/${selected.id}`,
         });
       }
-
       toast.success(`Approved & assigned to ${agent.name}`);
-      setProperties((prev) => prev.filter((p) => p.id !== property.id));
-      setExpanded(null);
+      setProperties((prev) => prev.filter((x) => x.id !== selected.id));
+      setSelected(null);
     } catch (e: any) {
-      toast.error(e.message || "Failed to assign agent");
+      toast.error(e.message || "Failed to assign");
     } finally {
-      setWorking(null);
+      setWorking(false);
     }
   };
 
-  const reject = async (property: PendingProperty) => {
+  const rejectProperty = async () => {
+    if (!selected) return;
     const reason = window.prompt("Reason for rejection (visible to seller):", "Listing details need clarification");
     if (!reason) return;
-    setWorking(property.id);
+    setWorking(true);
     try {
-      const { data: updatedRow, error } = await supabase
+      const { data: row, error } = await supabase
         .from("properties")
         .update({
           verification_status: "rejected",
@@ -188,36 +254,28 @@ export default function AssignAgentPanel() {
           rejection_reason: reason,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", property.id)
+        .eq("id", selected.id)
         .select("id")
         .maybeSingle();
-
       if (error) throw error;
-      if (!updatedRow) throw new Error("Rejection was not saved. Please use an admin account.");
-
-      if (property.submitted_by) {
+      if (!row) throw new Error("Rejection not saved. Use an admin account.");
+      if (selected.submitted_by) {
         await supabase.from("notifications").insert({
-          user_id: property.submitted_by,
+          user_id: selected.submitted_by,
           type: "property_rejected",
           title: "Property rejected",
-          message: `${property.title} was rejected. Reason: ${reason}. You can edit and resubmit.`,
+          message: `${selected.title} was rejected. Reason: ${reason}. You can edit and resubmit.`,
           link: "/dashboard/seller",
         });
       }
-
       toast.success("Property rejected");
-      setProperties((prev) => prev.filter((p) => p.id !== property.id));
+      setProperties((prev) => prev.filter((x) => x.id !== selected.id));
+      setSelected(null);
     } catch (e: any) {
       toast.error(e.message || "Failed to reject");
     } finally {
-      setWorking(null);
+      setWorking(false);
     }
-  };
-
-  const formatPrice = (n: number) => {
-    if (n >= 1e7) return `₹${(n / 1e7).toFixed(2)} Cr`;
-    if (n >= 1e5) return `₹${(n / 1e5).toFixed(2)} L`;
-    return `₹${n.toLocaleString("en-IN")}`;
   };
 
   if (loading) {
@@ -233,7 +291,7 @@ export default function AssignAgentPanel() {
       <Card>
         <CardContent className="text-center py-12">
           <CheckCircle className="h-16 w-16 mx-auto mb-3 text-emerald-500" />
-          <p className="font-semibold">No properties awaiting verification</p>
+          <p className="font-semibold">No properties awaiting review</p>
           <p className="text-sm text-muted-foreground">All listings are reviewed</p>
         </CardContent>
       </Card>
@@ -241,161 +299,201 @@ export default function AssignAgentPanel() {
   }
 
   return (
-    <div className="space-y-4">
-      {properties.map((p) => {
-        const isAgentListing = p.listed_by === "agent" && p.assigned_agent_id;
-        const isExpanded = expanded === p.id;
-        const sList = suggestions[p.id] || [];
-        const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
-
-        return (
-          <Card key={p.id} className="border-2 overflow-hidden">
-            <div className="grid md:grid-cols-[200px_1fr] gap-0">
-              <div className="h-40 md:h-auto relative">
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {properties.map((p) => {
+          const seller = (p.submitted_by && sellers[p.submitted_by]) || null;
+          const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
+          return (
+            <Card key={p.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+              <div className="relative h-36">
                 <img src={img} alt={p.title} className="w-full h-full object-cover" />
-                <Badge className="absolute top-2 left-2 bg-amber-500">
-                  <Clock className="h-3 w-3 mr-1" />Pending
+                <Badge className="absolute top-2 left-2 bg-amber-500 text-white">
+                  <Clock className="h-3 w-3 mr-1" />Pending Review
+                </Badge>
+                <Badge variant="outline" className="absolute top-2 right-2 capitalize bg-background/80 backdrop-blur">
+                  {p.listed_by || "seller"}
                 </Badge>
               </div>
               <CardContent className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div>
-                    <h3 className="font-semibold text-lg leading-tight">{p.title}</h3>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-3 w-3" />{p.locality || "N/A"}, {p.city || "N/A"}
-                    </p>
-                  </div>
-                  <Badge variant={isAgentListing ? "default" : "outline"} className="capitalize">
-                    Listed by {p.listed_by || "seller"}
-                  </Badge>
+                <div>
+                  <h3 className="font-semibold text-base leading-tight line-clamp-1">{p.title}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{p.locality || "—"}, {p.city || "—"}</span>
+                  </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 text-sm">
-                  <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3" />{formatPrice(p.price)}</span>
-                  {p.area_sqft && <span className="flex items-center gap-1"><Home className="h-3 w-3" />{p.area_sqft} sqft</span>}
-                  {p.bedrooms != null && <span>{p.bedrooms} BHK</span>}
-                  {p.type && <Badge variant="secondary">{p.type}</Badge>}
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{seller?.name || "Seller info loading…"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                    <IndianRupee className="h-3.5 w-3.5 shrink-0" />
+                    <span>{formatPrice(p.price)}</span>
+                  </div>
                 </div>
 
-                {isAgentListing ? (
-                  <div className="rounded-lg border-2 border-emerald-500/30 bg-emerald-500/5 p-3 flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-2 text-sm">
-                      <UserCheck className="h-4 w-4 text-emerald-500" />
-                      <span>Agent already self-assigned. Just approve to go live.</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={async () => {
-                          setWorking(p.id);
-                          try {
-                            const { data: updatedRow, error } = await supabase
-                              .from("properties")
-                              .update({ verification_status: "approved", verified: true, rejection_reason: null })
-                              .eq("id", p.id)
-                              .select("id")
-                              .maybeSingle();
-                            if (error) throw error;
-                            if (!updatedRow) throw new Error("Approval was not saved. Please use an admin account.");
-                            // Notify agent (they are the submitter)
-                            if (p.submitted_by) {
-                              await supabase.from("notifications").insert({
-                                user_id: p.submitted_by,
-                                type: "property_approved",
-                                title: "Your listing is live",
-                                message: `${p.title} has been approved and is now visible to buyers.`,
-                                link: `/property/${p.id}`,
-                              });
-                            }
-                            toast.success("Approved");
-                            setProperties((prev) => prev.filter((x) => x.id !== p.id));
-                          } catch (e: any) {
-                            toast.error(e.message);
-                          } finally {
-                            setWorking(null);
-                          }
-                        }}
-                        disabled={working === p.id}
-                      >
-                        {working === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                        Approve & Go Live
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => reject(p)} disabled={working === p.id}>
-                        <XCircle className="h-3 w-3 mr-1" />Reject
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      onClick={() => loadSuggestions(p)}
-                      disabled={working === p.id}
-                    >
-                      {isExpanded ? "Hide" : "Find Nearby Agents"}
-                      <ChevronRight className={`h-3 w-3 ml-1 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => reject(p)} disabled={working === p.id}>
-                      <XCircle className="h-3 w-3 mr-1" />Reject
-                    </Button>
-                  </div>
-                )}
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => openDetails(p)}
+                >
+                  <Eye className="h-3.5 w-3.5 mr-1.5" />View Details
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-                <AnimatePresence>
-                  {isExpanded && !isAgentListing && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pt-3 space-y-2 border-t">
-                        <p className="text-xs font-semibold text-muted-foreground">
-                          Top {sList.length} agents nearby — pick one to assign and go live
-                        </p>
-                        {sList.length === 0 ? (
+      {/* Details modal */}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] p-0 overflow-hidden">
+          {selected && (() => {
+            const seller = (selected.submitted_by && sellers[selected.submitted_by]) || null;
+            const imgs = Array.isArray(selected.images) ? selected.images : [];
+            return (
+              <>
+                <DialogHeader className="px-6 pt-6 pb-3">
+                  <DialogTitle className="text-xl">{selected.title}</DialogTitle>
+                  <DialogDescription className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {selected.locality || "—"}, {selected.city || "—"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <ScrollArea className="max-h-[60vh] px-6">
+                  <div className="space-y-5 pb-4">
+                    {imgs.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {imgs.slice(0, 6).map((src: string, i: number) => (
+                          <img key={i} src={src} alt="" className="rounded-lg aspect-video object-cover" />
+                        ))}
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Property Details</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                        <Stat icon={IndianRupee} label="Price" value={formatPrice(selected.price)} highlight />
+                        <Stat icon={Tag} label="Type" value={selected.type || "—"} />
+                        <Stat icon={Tag} label="Listing" value={selected.listing_type || "—"} className="capitalize" />
+                        <Stat icon={Maximize2} label="Area" value={selected.area_sqft ? `${selected.area_sqft} sqft` : "—"} />
+                        <Stat icon={Bed} label="BHK" value={selected.bhk ? `${selected.bhk} BHK` : selected.bedrooms ? `${selected.bedrooms} BR` : "—"} />
+                        <Stat icon={Home} label="Furnishing" value={selected.furnishing || "—"} />
+                      </div>
+                    </div>
+
+                    {selected.description && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Description</h4>
+                        <p className="text-sm leading-relaxed">{selected.description}</p>
+                      </div>
+                    )}
+
+                    {selected.address && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Address</h4>
+                        <p className="text-sm">{selected.address}</p>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Seller Information</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        <Stat icon={User} label="Name" value={seller?.name || "—"} />
+                        <Stat icon={Phone} label="Phone" value={seller?.phone || "—"} />
+                        <Stat icon={Mail} label="Email" value={seller?.email || "—"} />
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Submitted {new Date(selected.created_at).toLocaleString()}
+                    </div>
+
+                    {showAgents && (
+                      <div>
+                        <Separator className="mb-4" />
+                        <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
+                          Suggested Agents
+                        </h4>
+                        {loadingAgents ? (
+                          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
+                        ) : suggestions.length === 0 ? (
                           <p className="text-sm text-muted-foreground py-3">No matching agents found.</p>
                         ) : (
-                          sList.map((a, idx) => (
-                            <div key={a.id} className="rounded-lg border p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors">
-                              <Avatar className="h-12 w-12">
-                                <AvatarImage src={a.photo_url || undefined} />
-                                <AvatarFallback>{a.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="font-semibold text-sm">{a.name}</p>
-                                  {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
-                                  <Badge variant="outline" className="text-[10px]">{a.matchScore} pts</Badge>
+                          <div className="space-y-2">
+                            {suggestions.map((a, idx) => (
+                              <div key={a.id} className="rounded-lg border p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={a.photo_url || undefined} />
+                                  <AvatarFallback>{a.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-semibold text-sm">{a.name}</p>
+                                    {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
+                                    <Badge variant="outline" className="text-[10px]">{a.matchScore} pts</Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {a.agency_name || "Independent"} · {a.cities_served || "—"}
+                                  </p>
+                                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
+                                    <span className="flex items-center gap-0.5"><Briefcase className="h-3 w-3" />{a.experience_years || 0}y</span>
+                                    <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-500" />{a.avg_rating || 0}</span>
+                                    <span className="flex items-center gap-0.5"><Phone className="h-3 w-3" />{a.phone}</span>
+                                  </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {a.agency_name || "Independent"} · {a.cities_served || "—"}
-                                </p>
-                                <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
-                                  <span className="flex items-center gap-0.5"><Briefcase className="h-3 w-3" />{a.experience_years || 0}y</span>
-                                  <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-500" />{a.avg_rating || 0}</span>
-                                  <span className="flex items-center gap-0.5"><Phone className="h-3 w-3" />{a.phone}</span>
-                                </div>
+                                <Button size="sm" onClick={() => assignAndApprove(a)} disabled={working}>
+                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign & Approve"}
+                                </Button>
                               </div>
-                              <Button
-                                size="sm"
-                                onClick={() => assignAndApprove(p, a)}
-                                disabled={working === p.id}
-                              >
-                                {working === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign & Approve"}
-                              </Button>
-                            </div>
-                          ))
+                            ))}
+                          </div>
                         )}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </CardContent>
-            </div>
-          </Card>
-        );
-      })}
+                    )}
+                  </div>
+                </ScrollArea>
+
+                <DialogFooter className="px-6 py-4 border-t bg-muted/30 flex-row flex-wrap gap-2 sm:justify-between">
+                  <Button variant="destructive" onClick={rejectProperty} disabled={working}>
+                    <XCircle className="h-4 w-4 mr-1.5" />Reject
+                  </Button>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                      <UserCheck className="h-4 w-4 mr-1.5" />
+                      {showAgents ? "Refresh Agents" : "Assign Agent"}
+                    </Button>
+                    <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
+                      {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                      Approve
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function Stat({
+  icon: Icon, label, value, highlight, className,
+}: { icon: any; label: string; value: string; highlight?: boolean; className?: string }) {
+  return (
+    <div className="rounded-lg border p-2.5 bg-card">
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
+        <Icon className="h-3 w-3" />{label}
+      </div>
+      <div className={`font-semibold text-sm ${highlight ? "text-emerald-600" : ""} ${className || ""}`}>{value}</div>
     </div>
   );
 }
