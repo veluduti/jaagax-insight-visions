@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {
   MapPin, Bed, Bath, Maximize2, Phone, Mail,
   MessageSquare, ExternalLink, UserCheck, Sparkles, BadgeCheck,
-  CalendarPlus, CheckCircle2, Clock, User as UserIcon,
+  CalendarPlus, CheckCircle2, Clock, User as UserIcon, FileCheck2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
