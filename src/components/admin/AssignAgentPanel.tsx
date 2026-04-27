@@ -241,7 +241,7 @@ export default function AssignAgentPanel() {
         .from("properties")
         .update({
           assigned_agent_id: agent.id,
-          verification_status: "approved",
+          verification_status: "agent_assigned",
           verified: true,
           rejection_reason: null,
           updated_at: new Date().toISOString(),
@@ -250,14 +250,33 @@ export default function AssignAgentPanel() {
         .select("id")
         .maybeSingle();
       if (error) throw error;
-      if (!row) throw new Error("Approval not saved. Use an admin account.");
+      if (!row) throw new Error("Assignment not saved. Use an admin account.");
+
+      // Create a task in the agent dashboard
+      await supabase.from("agent_tasks" as any).insert({
+        agent_id: agent.id,
+        agent_user_id: agent.user_id,
+        property_id: selected.id,
+        task_type: "property_assigned",
+        title: `Review newly assigned property: ${selected.title}`,
+        description: `You've been assigned to handle ${selected.title} in ${selected.locality || selected.city || "—"}. Review the listing, contact the seller, and prepare for buyer enquiries.`,
+        status: "pending",
+        priority: "high",
+        metadata: {
+          property_title: selected.title,
+          locality: selected.locality,
+          city: selected.city,
+          price: selected.price,
+          seller_id: selected.submitted_by,
+        },
+      });
 
       if (selected.submitted_by) {
         await supabase.from("notifications").insert({
           user_id: selected.submitted_by,
           type: "property_approved",
-          title: "Property approved & agent assigned",
-          message: `${selected.title} is now live. ${agent.name} has been assigned as your dedicated agent.`,
+          title: "Agent assigned to your property",
+          message: `${selected.title} has been assigned to ${agent.name}. They'll handle buyer enquiries and visits.`,
           link: `/property/${selected.id}`,
         });
       }
@@ -266,8 +285,8 @@ export default function AssignAgentPanel() {
           user_id: agent.user_id,
           type: "property_assigned",
           title: "New property assigned to you",
-          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}).`,
-          link: `/property/${selected.id}`,
+          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}). Check your dashboard for the new task.`,
+          link: `/dashboard/agent`,
         });
       }
       toast.success(`Approved & assigned to ${agent.name}`);
