@@ -289,7 +289,9 @@ export default function AssignAgentPanel() {
           link: `/dashboard/agent`,
         });
       }
-      toast.success(`Approved & assigned to ${agent.name}`);
+      toast.success(`Assigned to ${agent.name}`, {
+        description: "A new task has been created in their dashboard.",
+      });
       setProperties((prev) => prev.filter((x) => x.id !== selected.id));
       setSelected(null);
     } catch (e: any) {
