@@ -109,6 +109,71 @@ export default function SellerDashboard() {
 
   const formatPrice = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
+  const openEdit = (p: Property) => {
+    setEditTarget(p);
+    setEditForm({
+      title: p.title || "",
+      price: String(p.price ?? ""),
+      area_sqft: String(p.area_sqft ?? ""),
+      description: p.description || "",
+      images: Array.isArray(p.images) ? p.images.join("\n") : "",
+    });
+  };
+
+  const submitResubmit = async () => {
+    if (!editTarget || !user) return;
+    const priceNum = Number(editForm.price);
+    const areaNum = editForm.area_sqft ? Number(editForm.area_sqft) : null;
+    if (!editForm.title.trim() || !Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error("Title and a valid price are required");
+      return;
+    }
+    setResubmitting(true);
+    const newImages = editForm.images.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        title: editForm.title.trim(),
+        price: priceNum,
+        area_sqft: areaNum,
+        description: editForm.description,
+        images: newImages,
+        verification_status: "pending",
+        verified: false,
+        rejection_reason: null,
+      })
+      .eq("id", editTarget.id);
+
+    if (error) {
+      setResubmitting(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Notify admins for re-review
+    const { data: admins } = await supabase
+      .from("user_roles" as any)
+      .select("user_id")
+      .eq("role", "admin");
+    if (admins?.length) {
+      await supabase.from("notifications").insert(
+        admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "property_resubmitted",
+          title: "Property resubmitted for review",
+          message: `Seller resubmitted "${editForm.title.trim()}" after edits.`,
+          link: `/admin`,
+        }))
+      );
+    }
+
+    setResubmitting(false);
+    setEditTarget(null);
+    toast.success("Resubmitted! Your property is back under review.");
+    void fetchProperties(user.id);
+  };
+
   const counts = {
     all: properties.length,
     pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
