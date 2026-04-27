@@ -492,6 +492,55 @@ export default function SellerDashboard() {
           }}
         />
       )}
+
+      {/* Edit & Resubmit dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && !resubmitting && setEditTarget(null)}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit & Resubmit Property</DialogTitle>
+            <DialogDescription>
+              Address the admin's feedback and update your details. Once resubmitted, your property will return to "Pending Approval".
+            </DialogDescription>
+          </DialogHeader>
+          {editTarget?.rejection_reason && (
+            <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400">
+              <p className="font-semibold">Admin's reason:</p>
+              <p className="mt-0.5">{editTarget.rejection_reason}</p>
+            </div>
+          )}
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Title</label>
+              <Input value={editForm.title} onChange={(e) => setEditForm(f => ({ ...f, title: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Price (₹)</label>
+                <Input type="number" value={editForm.price} onChange={(e) => setEditForm(f => ({ ...f, price: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Area (sqft)</label>
+                <Input type="number" value={editForm.area_sqft} onChange={(e) => setEditForm(f => ({ ...f, area_sqft: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Description</label>
+              <Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Image URLs (one per line)</label>
+              <Textarea rows={3} value={editForm.images} onChange={(e) => setEditForm(f => ({ ...f, images: e.target.value }))} placeholder="https://...jpg" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={resubmitting} onClick={() => setEditTarget(null)}>Cancel</Button>
+            <Button onClick={submitResubmit} disabled={resubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <RefreshCw className="h-4 w-4 mr-1" />
+              {resubmitting ? "Resubmitting…" : "Resubmit for Review"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
