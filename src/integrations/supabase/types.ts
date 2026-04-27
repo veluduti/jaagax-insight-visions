@@ -212,6 +212,69 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_tasks: {
+        Row: {
+          agent_id: string
+          agent_user_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          priority: string
+          property_id: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          agent_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          property_id?: string | null
+          status?: string
+          task_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          agent_user_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          property_id?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           agency_name: string | null

@@ -58,6 +58,7 @@ interface AgentSuggestion {
   photo_url: string | null;
   agency_name: string | null;
   matchScore: number;
+  activeTasks: number;
 }
 
 const formatPrice = (n: number) => {
@@ -126,38 +127,77 @@ export default function AssignAgentPanel() {
     if (!selected) return;
     setLoadingAgents(true);
     setShowAgents(true);
+
+    const cols = "id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name";
+
+    // 1) Primary: agents serving this locality
     let agents: any[] = [];
-    if (selected.city) {
+    if (selected.locality) {
       const { data } = await supabase
         .from("agents")
-        .select("id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name")
+        .select(cols)
         .eq("verified", true)
-        .ilike("cities_served", `%${selected.city}%`)
-        .order("trust_score", { ascending: false })
-        .limit(15);
+        .ilike("localities_served", `%${selected.locality}%`)
+        .limit(20);
       agents = data || [];
     }
-    if (agents.length < 5) {
+
+    // 2) Fallback: agents serving the same city
+    if (agents.length < 3 && selected.city) {
       const { data } = await supabase
         .from("agents")
-        .select("id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name")
+        .select(cols)
         .eq("verified", true)
-        .order("trust_score", { ascending: false })
-        .limit(10);
+        .ilike("cities_served", `%${selected.city}%`)
+        .limit(20);
       const ids = new Set(agents.map((a) => a.id));
       (data || []).forEach((a: any) => { if (!ids.has(a.id)) agents.push(a); });
     }
+
+    if (agents.length === 0) {
+      setSuggestions([]);
+      setLoadingAgents(false);
+      return;
+    }
+
+    // 3) Workload: count active tasks (open agent_tasks + active visit bookings + assigned active properties)
+    const agentIds = agents.map((a) => a.id);
+    const [tasksRes, visitsRes, propsRes] = await Promise.all([
+      supabase.from("agent_tasks" as any).select("agent_id").in("agent_id", agentIds).in("status", ["pending", "in_progress"]),
+      supabase.from("visit_bookings").select("agent_id").in("agent_id", agentIds).in("status", ["pending", "confirmed", "pending_builder"]),
+      supabase.from("properties").select("assigned_agent_id").in("assigned_agent_id", agentIds).eq("verified", true),
+    ]);
+
+    const count = (rows: any[] | null, key: string) => {
+      const m: Record<string, number> = {};
+      (rows || []).forEach((r) => { const id = r[key]; if (id) m[id] = (m[id] || 0) + 1; });
+      return m;
+    };
+    const taskMap = count(tasksRes.data as any, "agent_id");
+    const visitMap = count(visitsRes.data as any, "agent_id");
+    const propMap = count(propsRes.data as any, "assigned_agent_id");
+
     const ranked: AgentSuggestion[] = agents
       .map((a) => {
+        const localityMatch = selected.locality && a.localities_served?.toLowerCase().includes(selected.locality.toLowerCase());
+        const cityMatch = selected.city && a.cities_served?.toLowerCase().includes(selected.city.toLowerCase());
+        const workload = (taskMap[a.id] || 0) + (visitMap[a.id] || 0) + (propMap[a.id] || 0);
+        // Higher score = better. Locality match dominates, then inverse workload, then trust/experience as tiebreakers.
         let score = 0;
-        if (selected.city && a.cities_served?.toLowerCase().includes(selected.city.toLowerCase())) score += 50;
-        if (selected.locality && a.localities_served?.toLowerCase().includes(selected.locality.toLowerCase())) score += 30;
-        score += Math.min(a.trust_score || 0, 100) * 0.15;
-        score += (a.experience_years || 0) * 1.5;
-        return { ...a, matchScore: Math.round(score) };
+        if (localityMatch) score += 100;
+        else if (cityMatch) score += 40;
+        score += Math.max(0, 50 - workload * 5); // less work = higher score
+        score += Math.min(a.trust_score || 0, 100) * 0.1;
+        score += (a.experience_years || 0) * 0.5;
+        return { ...a, matchScore: Math.round(score), activeTasks: workload };
       })
-      .sort((a, b) => b.matchScore - a.matchScore)
-      .slice(0, 5);
+      .sort((a, b) => {
+        // Primary sort: least active tasks; tiebreak by score
+        if (a.activeTasks !== b.activeTasks) return a.activeTasks - b.activeTasks;
+        return b.matchScore - a.matchScore;
+      })
+      .slice(0, 3);
+
     setSuggestions(ranked);
     setLoadingAgents(false);
   };
@@ -201,7 +241,7 @@ export default function AssignAgentPanel() {
         .from("properties")
         .update({
           assigned_agent_id: agent.id,
-          verification_status: "approved",
+          verification_status: "agent_assigned",
           verified: true,
           rejection_reason: null,
           updated_at: new Date().toISOString(),
@@ -210,14 +250,33 @@ export default function AssignAgentPanel() {
         .select("id")
         .maybeSingle();
       if (error) throw error;
-      if (!row) throw new Error("Approval not saved. Use an admin account.");
+      if (!row) throw new Error("Assignment not saved. Use an admin account.");
+
+      // Create a task in the agent dashboard
+      await supabase.from("agent_tasks" as any).insert({
+        agent_id: agent.id,
+        agent_user_id: agent.user_id,
+        property_id: selected.id,
+        task_type: "property_assigned",
+        title: `Review newly assigned property: ${selected.title}`,
+        description: `You've been assigned to handle ${selected.title} in ${selected.locality || selected.city || "—"}. Review the listing, contact the seller, and prepare for buyer enquiries.`,
+        status: "pending",
+        priority: "high",
+        metadata: {
+          property_title: selected.title,
+          locality: selected.locality,
+          city: selected.city,
+          price: selected.price,
+          seller_id: selected.submitted_by,
+        },
+      });
 
       if (selected.submitted_by) {
         await supabase.from("notifications").insert({
           user_id: selected.submitted_by,
           type: "property_approved",
-          title: "Property approved & agent assigned",
-          message: `${selected.title} is now live. ${agent.name} has been assigned as your dedicated agent.`,
+          title: "Agent assigned to your property",
+          message: `${selected.title} has been assigned to ${agent.name}. They'll handle buyer enquiries and visits.`,
           link: `/property/${selected.id}`,
         });
       }
@@ -226,11 +285,13 @@ export default function AssignAgentPanel() {
           user_id: agent.user_id,
           type: "property_assigned",
           title: "New property assigned to you",
-          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}).`,
-          link: `/property/${selected.id}`,
+          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}). Check your dashboard for the new task.`,
+          link: `/dashboard/agent`,
         });
       }
-      toast.success(`Approved & assigned to ${agent.name}`);
+      toast.success(`Assigned to ${agent.name}`, {
+        description: "A new task has been created in their dashboard.",
+      });
       setProperties((prev) => prev.filter((x) => x.id !== selected.id));
       setSelected(null);
     } catch (e: any) {
@@ -420,7 +481,7 @@ export default function AssignAgentPanel() {
                       <div>
                         <Separator className="mb-4" />
                         <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-                          Suggested Agents
+                          Top 3 Suggested Agents (locality match · least busy)
                         </h4>
                         {loadingAgents ? (
                           <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
@@ -438,7 +499,7 @@ export default function AssignAgentPanel() {
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <p className="font-semibold text-sm">{a.name}</p>
                                     {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
-                                    <Badge variant="outline" className="text-[10px]">{a.matchScore} pts</Badge>
+                                    <Badge variant="outline" className="text-[10px]">{a.activeTasks} active task{a.activeTasks === 1 ? "" : "s"}</Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground truncate">
                                     {a.agency_name || "Independent"} · {a.cities_served || "—"}
@@ -450,7 +511,7 @@ export default function AssignAgentPanel() {
                                   </div>
                                 </div>
                                 <Button size="sm" onClick={() => assignAndApprove(a)} disabled={working}>
-                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign & Approve"}
+                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign Agent"}
                                 </Button>
                               </div>
                             ))}
