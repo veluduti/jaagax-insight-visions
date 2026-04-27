@@ -368,9 +368,9 @@ export default function Auth() {
                           );
                         })}
                       </div>
-                      <p className="text-[11px] text-amber-500/90 flex items-start gap-1.5 leading-tight">
-                        <span>⏱</span>
-                        <span>All role requests require admin approval after email verification.</span>
+                      <p className="text-[11px] text-emerald-500/90 flex items-start gap-1.5 leading-tight">
+                        <span>✓</span>
+                        <span>Sign up once and start using all selected roles immediately after email verification.</span>
                       </p>
                     </div>
 
