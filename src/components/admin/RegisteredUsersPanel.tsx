@@ -7,8 +7,13 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, Eye, Users, Mail, Phone, MapPin, Shield, Calendar, Search, UserCircle } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Eye, Users, Mail, Phone, MapPin, Shield, Calendar, Search, UserCircle, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface SignupRow {
   id: string;
@@ -55,7 +60,10 @@ export default function RegisteredUsersPanel() {
   const [users, setUsers] = useState<UserCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewing, setViewing] = useState<UserCardData | null>(null);
+  const [deleting, setDeleting] = useState<UserCardData | null>(null);
+  const [deletingInProgress, setDeletingInProgress] = useState(false);
   const [query, setQuery] = useState("");
+  const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -209,9 +217,19 @@ export default function RegisteredUsersPanel() {
                       )}
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => setViewing(u)}>
-                    <Eye className="h-4 w-4 mr-1" /> View
-                  </Button>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setViewing(u)}>
+                      <Eye className="h-4 w-4 mr-1" /> View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => setDeleting(u)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -291,6 +309,55 @@ export default function RegisteredUsersPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleting} onOpenChange={(v) => !v && !deletingInProgress && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes <span className="font-semibold text-foreground">
+                {deleting?.full_name || deleting?.email || "this user"}
+              </span> and all their roles. They will receive an SMS notifying them their account was deleted by an admin. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingInProgress}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingInProgress}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!deleting) return;
+                setDeletingInProgress(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+                    body: { targetUserId: deleting.user_id },
+                  });
+                  if (error || (data as any)?.error) {
+                    toast({
+                      title: "Delete failed",
+                      description: (data as any)?.error || error?.message || "Unknown error",
+                      variant: "destructive",
+                    });
+                  } else {
+                    toast({
+                      title: "User deleted",
+                      description: (data as any)?.smsSent ? "User notified via SMS." : "User removed (SMS not sent — no phone on file).",
+                    });
+                    setDeleting(null);
+                    await load();
+                  }
+                } finally {
+                  setDeletingInProgress(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingInProgress ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete user"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

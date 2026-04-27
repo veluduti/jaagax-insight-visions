@@ -3,10 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Users, Building2, Tag, Plus, Check, Clock, ChevronDown, LogOut } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Home, Users, Building2, Tag, Plus, Check, Clock, ChevronDown, LogOut, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProfile, ProfileType, Profile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import AddRoleModal from "./AddRoleModal";
 import { cn } from "@/lib/utils";
 
@@ -21,10 +26,13 @@ const dashboardRoute = (type: ProfileType) => `/dashboard/${type}`;
 
 export default function ProfileSwitcher() {
   const navigate = useNavigate();
-  const { profiles, activeProfile, switchProfile, loading } = useProfile();
+  const { profiles, activeProfile, switchProfile, removeProfile, loading } = useProfile();
   const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [removingProfile, setRemovingProfile] = useState<Profile | null>(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
 
   if (loading || !user || !activeProfile) return null;
 
@@ -90,34 +98,48 @@ export default function ProfileSwitcher() {
                 const Icon = meta.icon;
                 const isActive = p.id === activeProfile.id;
                 const isPending = p.status === "pending";
+                const canRemove = profiles.length > 1;
                 return (
-                  <motion.button
+                  <div
                     key={p.id}
-                    whileHover={!isPending ? { scale: 1.01 } : undefined}
-                    whileTap={!isPending ? { scale: 0.99 } : undefined}
-                    onClick={() => handleSwitch(p)}
-                    disabled={isPending}
                     className={cn(
-                      "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                      "w-full flex items-center gap-2 rounded-lg pl-3 pr-1.5 py-1.5 transition-colors group",
                       isActive ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-accent",
-                      isPending && "opacity-60 cursor-not-allowed"
+                      isPending && "opacity-60"
                     )}
                   >
-                    <div className={cn("h-8 w-8 rounded-md bg-gradient-to-br flex items-center justify-center", meta.gradient)}>
-                      <Icon className={cn("h-4 w-4", meta.iconColor)} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground flex items-center gap-2">
-                        {meta.label}
-                        {isPending && (
-                          <span className="inline-flex items-center gap-1 text-[10px] text-amber-400">
-                            <Clock className="h-3 w-3" /> Pending approval
-                          </span>
-                        )}
+                    <motion.button
+                      whileHover={!isPending ? { scale: 1.005 } : undefined}
+                      whileTap={!isPending ? { scale: 0.995 } : undefined}
+                      onClick={() => handleSwitch(p)}
+                      disabled={isPending}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-left py-1 disabled:cursor-not-allowed"
+                    >
+                      <div className={cn("h-8 w-8 rounded-md bg-gradient-to-br flex items-center justify-center", meta.gradient)}>
+                        <Icon className={cn("h-4 w-4", meta.iconColor)} />
                       </div>
-                    </div>
-                    {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
-                  </motion.button>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-foreground flex items-center gap-2">
+                          {meta.label}
+                          {isPending && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-400">
+                              <Clock className="h-3 w-3" /> Pending approval
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </motion.button>
+                    {canRemove && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setRemovingProfile(p); }}
+                        title={`Remove ${meta.label} role`}
+                        className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -152,6 +174,53 @@ export default function ProfileSwitcher() {
       </Popover>
 
       <AddRoleModal open={addOpen} onOpenChange={setAddOpen} />
+
+      <AlertDialog
+        open={!!removingProfile}
+        onOpenChange={(v) => !v && !removeBusy && setRemovingProfile(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Remove {removingProfile ? roleMeta[removingProfile.type].label : ""} role?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will lose access to the {removingProfile?.type} dashboard and any data tied to this role. You can add it again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={removeBusy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!removingProfile) return;
+                setRemoveBusy(true);
+                const wasActive = removingProfile.id === activeProfile.id;
+                const removedType = removingProfile.type;
+                const { error } = await removeProfile(removingProfile.id);
+                setRemoveBusy(false);
+                if (error) {
+                  toast({ title: "Could not remove role", description: error, variant: "destructive" });
+                  return;
+                }
+                toast({ title: "Role removed", description: `Your ${removedType} role was removed.` });
+                setRemovingProfile(null);
+                setOpen(false);
+                if (wasActive) {
+                  // Navigate to whatever active profile is now or home
+                  const remaining = profiles.filter((p) => p.id !== removingProfile.id);
+                  const next = remaining[0];
+                  navigate(next ? dashboardRoute(next.type) : "/");
+                }
+              }}
+            >
+              {removeBusy ? "Removing…" : "Remove role"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
