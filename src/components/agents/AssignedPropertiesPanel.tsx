@@ -62,13 +62,23 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [scheduleTime, setScheduleTime] = useState("");
   const [filter, setFilter] = useState<"active" | "completed" | "all">("active");
 
+  // Submit-verification dialog state
+  const [verifyTarget, setVerifyTarget] = useState<AssignedTask | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editArea, setEditArea] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImages, setEditImages] = useState("");
+  const [editAgentNotes, setEditAgentNotes] = useState("");
+  const [submittingVerify, setSubmittingVerify] = useState(false);
+
   useEffect(() => { load(); }, [agentId]);
 
   const load = async () => {
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, submitted_by")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, submitted_by, agent_notes")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
