@@ -14,6 +14,11 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import PropertyChat from "@/components/chat/PropertyChat";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AssignedAgent {
   id: string;
@@ -38,6 +43,7 @@ interface Property {
   bathrooms: number | null;
   type: string | null;
   images: any;
+  description: string | null;
   verified: boolean | null;
   verification_status: string;
   rejection_reason: string | null;
@@ -60,6 +66,9 @@ export default function SellerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [chatProperty, setChatProperty] = useState<Property | null>(null);
+  const [editTarget, setEditTarget] = useState<Property | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", price: "", area_sqft: "", description: "", images: "" });
+  const [resubmitting, setResubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { init(); }, []);
@@ -74,7 +83,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -99,6 +108,71 @@ export default function SellerDashboard() {
   };
 
   const formatPrice = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+  const openEdit = (p: Property) => {
+    setEditTarget(p);
+    setEditForm({
+      title: p.title || "",
+      price: String(p.price ?? ""),
+      area_sqft: String(p.area_sqft ?? ""),
+      description: p.description || "",
+      images: Array.isArray(p.images) ? p.images.join("\n") : "",
+    });
+  };
+
+  const submitResubmit = async () => {
+    if (!editTarget || !user) return;
+    const priceNum = Number(editForm.price);
+    const areaNum = editForm.area_sqft ? Number(editForm.area_sqft) : null;
+    if (!editForm.title.trim() || !Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error("Title and a valid price are required");
+      return;
+    }
+    setResubmitting(true);
+    const newImages = editForm.images.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        title: editForm.title.trim(),
+        price: priceNum,
+        area_sqft: areaNum,
+        description: editForm.description,
+        images: newImages,
+        verification_status: "pending",
+        verified: false,
+        rejection_reason: null,
+      })
+      .eq("id", editTarget.id);
+
+    if (error) {
+      setResubmitting(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Notify admins for re-review
+    const { data: admins } = await supabase
+      .from("user_roles" as any)
+      .select("user_id")
+      .eq("role", "admin");
+    if (admins?.length) {
+      await supabase.from("notifications").insert(
+        admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "property_resubmitted",
+          title: "Property resubmitted for review",
+          message: `Seller resubmitted "${editForm.title.trim()}" after edits.`,
+          link: `/admin`,
+        }))
+      );
+    }
+
+    setResubmitting(false);
+    setEditTarget(null);
+    toast.success("Resubmitted! Your property is back under review.");
+    void fetchProperties(user.id);
+  };
 
   const counts = {
     all: properties.length,
@@ -149,10 +223,21 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
-            {status === "rejected" && p.rejection_reason && (
-              <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400">
-                <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
-                <p className="mt-0.5">{p.rejection_reason}</p>
+            {status === "rejected" && (
+              <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
+                {p.rejection_reason && (
+                  <div>
+                    <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
+                    <p className="mt-0.5">{p.rejection_reason}</p>
+                  </div>
+                )}
+                <Button
+                  size="sm"
+                  className="w-full h-7 text-[11px] bg-rose-500 hover:bg-rose-600 text-white"
+                  onClick={() => openEdit(p)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />Edit & Resubmit
+                </Button>
               </div>
             )}
             {status === "approved" && p.assigned_agent && (
@@ -407,6 +492,55 @@ export default function SellerDashboard() {
           }}
         />
       )}
+
+      {/* Edit & Resubmit dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && !resubmitting && setEditTarget(null)}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit & Resubmit Property</DialogTitle>
+            <DialogDescription>
+              Address the admin's feedback and update your details. Once resubmitted, your property will return to "Pending Approval".
+            </DialogDescription>
+          </DialogHeader>
+          {editTarget?.rejection_reason && (
+            <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400">
+              <p className="font-semibold">Admin's reason:</p>
+              <p className="mt-0.5">{editTarget.rejection_reason}</p>
+            </div>
+          )}
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Title</label>
+              <Input value={editForm.title} onChange={(e) => setEditForm(f => ({ ...f, title: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Price (₹)</label>
+                <Input type="number" value={editForm.price} onChange={(e) => setEditForm(f => ({ ...f, price: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Area (sqft)</label>
+                <Input type="number" value={editForm.area_sqft} onChange={(e) => setEditForm(f => ({ ...f, area_sqft: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Description</label>
+              <Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Image URLs (one per line)</label>
+              <Textarea rows={3} value={editForm.images} onChange={(e) => setEditForm(f => ({ ...f, images: e.target.value }))} placeholder="https://...jpg" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={resubmitting} onClick={() => setEditTarget(null)}>Cancel</Button>
+            <Button onClick={submitResubmit} disabled={resubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <RefreshCw className="h-4 w-4 mr-1" />
+              {resubmitting ? "Resubmitting…" : "Resubmit for Review"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -65,15 +65,35 @@ export default function AgentVerifiedReviewPanel() {
       .eq("id", p.id);
     if (error) return toast.error(error.message);
 
+    const notifs: any[] = [];
     if (p.submitted_by) {
-      await supabase.from("notifications").insert({
+      notifs.push({
         user_id: p.submitted_by,
         type: "property_approved",
         title: "Your property is now live ✅",
-        message: `"${p.title}" has been approved by admin and is visible to buyers.`,
+        message: `"${p.title}" has been approved by admin and is now visible to buyers.`,
         link: `/property/${p.id}`,
       });
     }
+    // Notify the assigned agent
+    if (p.assigned_agent_id) {
+      const { data: agent } = await supabase
+        .from("agents")
+        .select("user_id")
+        .eq("id", p.assigned_agent_id)
+        .maybeSingle();
+      if (agent?.user_id) {
+        notifs.push({
+          user_id: agent.user_id,
+          type: "property_approved",
+          title: "Property approved 🎉",
+          message: `"${p.title}" — the property you verified has been approved by admin and is now live.`,
+          link: `/property/${p.id}`,
+        });
+      }
+    }
+    if (notifs.length) await supabase.from("notifications").insert(notifs);
+
     setItems(prev => prev.filter(x => x.id !== p.id));
     setReviewTarget(null);
     toast.success("Property approved & published");
