@@ -207,10 +207,12 @@ const FIELDS: FieldDef[] = [
 function pickNextField(state: Record<string, any>): FieldDef | null {
   for (const f of FIELDS) {
     const present = state[f.id];
+    // A field is considered handled if it has any value OR was explicitly skipped (null marker)
+    const wasSkipped = present === null;
     const isFilled = Array.isArray(present)
       ? present.length > 0
-      : present !== undefined && present !== null && present !== "";
-    if (isFilled) continue;
+      : present !== undefined && present !== "";
+    if (isFilled || wasSkipped) continue;
     if (f.when && !f.when(state)) continue;
     return f;
   }

@@ -399,11 +399,24 @@ export default function SellProperty() {
                   </Button>
                   <div className="flex gap-2">
                     {field.optional && (
-                      <Button variant="outline" onClick={() => { setValue(""); fetchNext({ ...state, [field.id]: "" }).then(() => {}); setHistory((h) => [...h, { field, value: "" }]); setState((s) => ({ ...s, [field.id]: "" })); }}>
+                      <Button
+                        variant="outline"
+                        disabled={loadingNext}
+                        onClick={async () => {
+                          if (!field) return;
+                          // Mark as explicitly skipped using null sentinel
+                          const newState = { ...state, [field.id]: null };
+                          setHistory((h) => [...h, { field, value: null }]);
+                          setState(newState);
+                          setValue("");
+                          setError(null);
+                          await fetchNext(newState);
+                        }}
+                      >
                         Skip
                       </Button>
                     )}
-                    <Button onClick={onNext} className="bg-gradient-to-r from-primary to-emerald-500">
+                    <Button onClick={onNext} disabled={loadingNext} className="bg-gradient-to-r from-primary to-emerald-500">
                       Next <ArrowRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
