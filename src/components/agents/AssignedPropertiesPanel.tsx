@@ -29,6 +29,7 @@ interface AssignedTask {
   city: string | null;
   locality: string | null;
   address?: string | null;
+  description?: string | null;
   price: number;
   area_sqft: number | null;
   bedrooms: number | null;
@@ -38,6 +39,7 @@ interface AssignedTask {
   verified: boolean | null;
   verification_status: string;
   submitted_by: string | null;
+  agent_notes?: string | null;
   // owner
   owner_email?: string | null;
   owner_phone?: string | null;
