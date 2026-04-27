@@ -126,38 +126,77 @@ export default function AssignAgentPanel() {
     if (!selected) return;
     setLoadingAgents(true);
     setShowAgents(true);
+
+    const cols = "id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name";
+
+    // 1) Primary: agents serving this locality
     let agents: any[] = [];
-    if (selected.city) {
+    if (selected.locality) {
       const { data } = await supabase
         .from("agents")
-        .select("id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name")
+        .select(cols)
         .eq("verified", true)
-        .ilike("cities_served", `%${selected.city}%`)
-        .order("trust_score", { ascending: false })
-        .limit(15);
+        .ilike("localities_served", `%${selected.locality}%`)
+        .limit(20);
       agents = data || [];
     }
-    if (agents.length < 5) {
+
+    // 2) Fallback: agents serving the same city
+    if (agents.length < 3 && selected.city) {
       const { data } = await supabase
         .from("agents")
-        .select("id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name")
+        .select(cols)
         .eq("verified", true)
-        .order("trust_score", { ascending: false })
-        .limit(10);
+        .ilike("cities_served", `%${selected.city}%`)
+        .limit(20);
       const ids = new Set(agents.map((a) => a.id));
       (data || []).forEach((a: any) => { if (!ids.has(a.id)) agents.push(a); });
     }
+
+    if (agents.length === 0) {
+      setSuggestions([]);
+      setLoadingAgents(false);
+      return;
+    }
+
+    // 3) Workload: count active tasks (open agent_tasks + active visit bookings + assigned active properties)
+    const agentIds = agents.map((a) => a.id);
+    const [tasksRes, visitsRes, propsRes] = await Promise.all([
+      supabase.from("agent_tasks" as any).select("agent_id").in("agent_id", agentIds).in("status", ["pending", "in_progress"]),
+      supabase.from("visit_bookings").select("agent_id").in("agent_id", agentIds).in("status", ["pending", "confirmed", "pending_builder"]),
+      supabase.from("properties").select("assigned_agent_id").in("assigned_agent_id", agentIds).eq("verified", true),
+    ]);
+
+    const count = (rows: any[] | null, key: string) => {
+      const m: Record<string, number> = {};
+      (rows || []).forEach((r) => { const id = r[key]; if (id) m[id] = (m[id] || 0) + 1; });
+      return m;
+    };
+    const taskMap = count(tasksRes.data as any, "agent_id");
+    const visitMap = count(visitsRes.data as any, "agent_id");
+    const propMap = count(propsRes.data as any, "assigned_agent_id");
+
     const ranked: AgentSuggestion[] = agents
       .map((a) => {
+        const localityMatch = selected.locality && a.localities_served?.toLowerCase().includes(selected.locality.toLowerCase());
+        const cityMatch = selected.city && a.cities_served?.toLowerCase().includes(selected.city.toLowerCase());
+        const workload = (taskMap[a.id] || 0) + (visitMap[a.id] || 0) + (propMap[a.id] || 0);
+        // Higher score = better. Locality match dominates, then inverse workload, then trust/experience as tiebreakers.
         let score = 0;
-        if (selected.city && a.cities_served?.toLowerCase().includes(selected.city.toLowerCase())) score += 50;
-        if (selected.locality && a.localities_served?.toLowerCase().includes(selected.locality.toLowerCase())) score += 30;
-        score += Math.min(a.trust_score || 0, 100) * 0.15;
-        score += (a.experience_years || 0) * 1.5;
-        return { ...a, matchScore: Math.round(score) };
+        if (localityMatch) score += 100;
+        else if (cityMatch) score += 40;
+        score += Math.max(0, 50 - workload * 5); // less work = higher score
+        score += Math.min(a.trust_score || 0, 100) * 0.1;
+        score += (a.experience_years || 0) * 0.5;
+        return { ...a, matchScore: Math.round(score), activeTasks: workload };
       })
-      .sort((a, b) => b.matchScore - a.matchScore)
-      .slice(0, 5);
+      .sort((a, b) => {
+        // Primary sort: least active tasks; tiebreak by score
+        if (a.activeTasks !== b.activeTasks) return a.activeTasks - b.activeTasks;
+        return b.matchScore - a.matchScore;
+      })
+      .slice(0, 3);
+
     setSuggestions(ranked);
     setLoadingAgents(false);
   };
