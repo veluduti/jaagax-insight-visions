@@ -1402,11 +1402,13 @@ export type Database = {
           document_urls: Json | null
           elevators: number | null
           field_verification: Json | null
+          final_data: Json | null
           floor_number: number | null
           furnishing: string | null
           id: string
           images: string[] | null
           is_draft: boolean | null
+          is_live: boolean
           latitude: number | null
           listed_by: string | null
           listing_type: string | null
@@ -1418,6 +1420,7 @@ export type Database = {
           price: number
           price_negotiable: boolean | null
           property_age: string | null
+          published_at: string | null
           rejection_reason: string | null
           rera_document_url: string | null
           rera_id: string | null
@@ -1457,11 +1460,13 @@ export type Database = {
           document_urls?: Json | null
           elevators?: number | null
           field_verification?: Json | null
+          final_data?: Json | null
           floor_number?: number | null
           furnishing?: string | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
+          is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
           listing_type?: string | null
@@ -1473,6 +1478,7 @@ export type Database = {
           price?: number
           price_negotiable?: boolean | null
           property_age?: string | null
+          published_at?: string | null
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
@@ -1512,11 +1518,13 @@ export type Database = {
           document_urls?: Json | null
           elevators?: number | null
           field_verification?: Json | null
+          final_data?: Json | null
           floor_number?: number | null
           furnishing?: string | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
+          is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
           listing_type?: string | null
@@ -1528,6 +1536,7 @@ export type Database = {
           price?: number
           price_negotiable?: boolean | null
           property_age?: string | null
+          published_at?: string | null
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
