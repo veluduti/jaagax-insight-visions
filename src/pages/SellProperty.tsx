@@ -1,895 +1,1052 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { INDIAN_CITIES } from "@/data/indianCities";
 import {
-  Home, MapPin, Bed, IndianRupee, Sparkles, ImagePlus, FileCheck2,
-  ChevronLeft, ChevronRight, CheckCircle2, Save, X, Loader2, Upload, FileText
+  Building2, Home as HomeIcon, Trees, LandPlot, Crown, Layers, Warehouse,
+  MapPin, Ruler, IndianRupee, Sparkles, Phone, ChevronLeft, CheckCircle2,
+  Loader2, Tag, Wand2, ArrowRight, Edit3, Plus,
 } from "lucide-react";
 
-const MAPBOX_TOKEN =
-  import.meta.env.VITE_MAPBOX_TOKEN ||
-  import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
-  "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
+/* ============================================================
+   STATIC DATA
+   ============================================================ */
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
+type PropertyTypeKey =
+  | "Apartment"
+  | "Independent House"
+  | "Villa"
+  | "Plot"
+  | "Agricultural Land"
+  | "Penthouse"
+  | "Duplex"
+  | "Row House";
 
-const STEPS = [
-  { id: 1, label: "Basic Info", icon: Home },
-  { id: 2, label: "Location", icon: MapPin },
-  { id: 3, label: "Details", icon: Bed },
-  { id: 4, label: "Pricing", icon: IndianRupee },
-  { id: 5, label: "Amenities", icon: Sparkles },
-  { id: 6, label: "Media", icon: ImagePlus },
-  { id: 7, label: "Documents", icon: FileCheck2 },
+const PROPERTY_TYPES: { key: PropertyTypeKey; label: string; icon: any; tag: string }[] = [
+  { key: "Apartment", label: "Apartment / Flat", icon: Building2, tag: "Most popular" },
+  { key: "Independent House", label: "Independent House", icon: HomeIcon, tag: "Family favorite" },
+  { key: "Villa", label: "Villa", icon: Crown, tag: "Premium" },
+  { key: "Plot", label: "Plot / Land", icon: LandPlot, tag: "High ROI" },
+  { key: "Agricultural Land", label: "Agricultural Land", icon: Trees, tag: "Farmland" },
+  { key: "Penthouse", label: "Penthouse", icon: Sparkles, tag: "Luxury" },
+  { key: "Duplex", label: "Duplex / Triplex", icon: Layers, tag: "Multi-level" },
+  { key: "Row House", label: "Row House / Townhouse", icon: Warehouse, tag: "Community" },
 ];
 
-const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Delhi", "Chennai", "Pune", "Kolkata", "Ahmedabad"];
-const PROPERTY_TYPES = [
-  "Apartment",
-  "Villa",
-  "House",
-  "Builder Floor",
-  "Penthouse",
-  "Plot",
-  "Agricultural Land",
+const LISTING_PURPOSES = [
+  { key: "sale", label: "Sale", desc: "Sell outright" },
+  { key: "rent", label: "Rent", desc: "Monthly tenancy" },
+  { key: "lease", label: "Lease", desc: "Long-term contract" },
 ];
-// Property types that should NOT show the amenities section
-const NO_AMENITIES_TYPES = ["Plot", "Agricultural Land"];
-const hasAmenities = (t: string) => !!t && !NO_AMENITIES_TYPES.includes(t);
 
-// Convert a numeric price to a readable Indian text (Crore / Lakh / Thousand)
-const priceToWords = (value: string | number): string => {
-  const n = typeof value === "string" ? parseFloat(value) : value;
-  if (!isFinite(n) || n <= 0) return "";
-  const fmt = (x: number) => (Math.round(x * 100) / 100).toString().replace(/\.0+$/, "");
-  if (n >= 1_00_00_000) return `${fmt(n / 1_00_00_000)} Crore`;
-  if (n >= 1_00_000) return `${fmt(n / 1_00_000)} Lakh`;
-  if (n >= 1_000) return `${fmt(n / 1_000)} Thousand`;
-  return fmt(n);
+const SIZE_UNITS = ["Sq Ft", "Sq Yard", "Acre", "Cent", "Gunta"] as const;
+type SizeUnit = (typeof SIZE_UNITS)[number];
+
+// Conditional question matrices per type
+const AMENITIES_BY_TYPE: Record<PropertyTypeKey, string[]> = {
+  Apartment: ["Lift", "Parking", "Gym", "Swimming Pool", "Security", "CCTV", "Power Backup", "Clubhouse"],
+  Villa: ["Garden", "Swimming Pool", "Clubhouse", "Security", "Parking", "Gym", "CCTV"],
+  "Independent House": ["Parking", "Water Supply", "Borewell", "Open Terrace", "Garden", "CCTV"],
+  Plot: ["Road Access", "Electricity", "Water", "Drainage", "Compound Wall", "Corner Plot"],
+  "Agricultural Land": ["Water Source", "Road Access", "Electricity"],
+  Penthouse: ["Private Terrace", "Private Lift", "Pool", "Gym", "Security", "Concierge"],
+  Duplex: ["Parking", "Internal Staircase", "Lift", "Security", "Garden"],
+  "Row House": ["Parking", "Front Yard", "Back Yard", "Security", "Clubhouse"],
 };
+
 const FURNISHING = ["Furnished", "Semi-Furnished", "Unfurnished"];
-const PROPERTY_AGE = ["New", "1-5 years", "5-10 years", "10+ years"];
-const AMENITIES = ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool", "Garden", "Clubhouse", "Children's Play Area", "CCTV"];
-// Land-specific options
-const LAND_TYPES = ["Residential Plot", "Commercial Plot", "Agricultural", "Industrial", "Farm Land"];
-const FACING_DIRECTIONS = ["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"];
-const ROAD_ACCESS = ["No Road", "10 ft", "20 ft", "30 ft", "40 ft", "60 ft+"];
-const WATER_AVAILABILITY = ["Borewell", "Municipal", "Both", "None"];
-const ELECTRICITY_OPTIONS = ["Available", "Not Available", "On Request"];
-const LAND_TYPES_SET = ["Plot", "Agricultural Land"];
-const isLand = (t: string) => LAND_TYPES_SET.includes(t);
-const AREA_UNITS = ["Sq.ft", "Sq.Yards", "Acres", "Cents", "Gunta"];
-// Conversion factors → square feet
-const AREA_TO_SQFT: Record<string, number> = {
-  "Sq.ft": 1,
-  "Sq.Yards": 9,
-  "Acres": 43560,
-  "Cents": 435.6,
-  "Gunta": 1089,
-};
-const toSqft = (value: string, unit: string): number | null => {
-  const n = parseFloat(value);
-  if (!isFinite(n) || n <= 0) return null;
-  const factor = AREA_TO_SQFT[unit] ?? 1;
-  return n * factor;
-};
+const APPROVAL_TYPES = ["DTCP", "HMDA", "CRDA", "Panchayat", "Gram Panchayat", "RERA Approved", "Unapproved"];
+const WATER_SOURCES = ["Borewell", "Municipal", "Canal", "Open Well", "None"];
+const ROAD_ACCESS_OPTS = ["No Road", "10 ft", "20 ft", "30 ft", "40 ft", "60 ft+"];
 
-interface FormState {
-  title: string;
-  type: string;
-  listing_type: string;
-  description: string;
+/* ============================================================
+   FORM STATE
+   ============================================================ */
+
+interface Listing {
+  // required
+  type: PropertyTypeKey | "";
+  purpose: "sale" | "rent" | "lease" | "";
   city: string;
   locality: string;
-  address: string;
+  landmark: string;
   pincode: string;
-  latitude: number | null;
-  longitude: number | null;
-  bedrooms: string;
+  size_value: string;
+  size_unit: SizeUnit;
+  price_per_unit: string;
+  // contact
+  contact_name: string;
+  contact_mobile: string;
+  contact_whatsapp: string;
+  contact_email: string;
+  contact_time: string;
+  // optional / conditional
+  title: string;
+  description: string;
+  amenities: string[];
+  bhk: string;
   bathrooms: string;
   balconies: string;
-  area_value: string;
-  area_unit: string;
   floor_number: string;
   total_floors: string;
   furnishing: string;
-  property_age: string;
-  price: string;
-  price_negotiable: boolean;
-  maintenance_charges: string;
-  booking_amount: string;
-  amenities: string[];
-  images: string[];
-  video_urls: string[];
-  ownership_proof_url: string;
-  id_proof_url: string;
-  // Land-specific
-  plot_type: string;
-  facing_direction: string;
+  // type-specific extras
+  gated_community: boolean;
+  private_pool: boolean;
+  private_garden: boolean;
+  open_terrace: boolean;
+  water_source: string;
   road_access: string;
-  water_availability: string;
   electricity: string;
+  approval_type: string;
+  corner_plot: boolean;
+  plot_dimensions: string;
+  num_floors: string;
+  private_terrace: boolean;
+  top_floor: boolean;
+  private_lift: boolean;
+  levels_count: string;
+  internal_staircase: boolean;
+  common_walls: string;
+  front_back_yard: boolean;
+  nearby_landmarks: string[];
 }
 
-const initialForm: FormState = {
-  title: "", type: "", listing_type: "sale", description: "",
-  city: "", locality: "", address: "", pincode: "", latitude: null, longitude: null,
-  bedrooms: "", bathrooms: "", balconies: "", area_value: "", area_unit: "Sq.ft", floor_number: "", total_floors: "",
-  furnishing: "", property_age: "",
-  price: "", price_negotiable: false, maintenance_charges: "", booking_amount: "",
-  amenities: [], images: [], video_urls: [],
-  ownership_proof_url: "", id_proof_url: "",
-  plot_type: "", facing_direction: "", road_access: "", water_availability: "", electricity: "",
+const initial: Listing = {
+  type: "", purpose: "", city: "", locality: "", landmark: "", pincode: "",
+  size_value: "", size_unit: "Sq Ft", price_per_unit: "",
+  contact_name: "", contact_mobile: "", contact_whatsapp: "", contact_email: "", contact_time: "Anytime",
+  title: "", description: "", amenities: [],
+  bhk: "", bathrooms: "", balconies: "", floor_number: "", total_floors: "", furnishing: "",
+  gated_community: false, private_pool: false, private_garden: false, open_terrace: false,
+  water_source: "", road_access: "", electricity: "", approval_type: "",
+  corner_plot: false, plot_dimensions: "", num_floors: "",
+  private_terrace: false, top_floor: false, private_lift: false,
+  levels_count: "", internal_staircase: false, common_walls: "", front_back_yard: false,
+  nearby_landmarks: [],
 };
+
+interface AISuggestions {
+  titles: string[];
+  amenities: string[];
+  nearby_landmarks: string[];
+  description: string;
+  price_suggestion: { unit: string; price_per_unit: number; reasoning: string };
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+const formatINR = (n: number) => {
+  if (!isFinite(n) || n <= 0) return "—";
+  if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(2).replace(/\.00$/, "")} Cr`;
+  if (n >= 1_00_000) return `₹${(n / 1_00_000).toFixed(2).replace(/\.00$/, "")} Lakh`;
+  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return `₹${n.toLocaleString("en-IN")}`;
+};
+
+// Map our unit → sqft (for legacy area_sqft column; informational only)
+const unitToSqft: Record<SizeUnit, number> = {
+  "Sq Ft": 1,
+  "Sq Yard": 9,
+  "Acre": 43560,
+  "Cent": 435.6,
+  "Gunta": 1089,
+};
+
+const STEP_LABELS = [
+  "Type", "Purpose", "Location", "Size", "Price",
+  "AI Suggestions", "Details", "Amenities", "Extras", "Contact",
+];
+
+/* ============================================================
+   SHARED UI
+   ============================================================ */
+
+const QuestionShell = ({
+  step, total, title, subtitle, children,
+}: {
+  step: number; total: number; title: string; subtitle?: string; children: React.ReactNode;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.35, ease: "easeOut" }}
+    className="w-full"
+  >
+    <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl shadow-primary/10 ring-1 ring-primary/20">
+      {/* Decorative accents */}
+      <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+
+      <div className="relative p-6 sm:p-8">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-primary">
+            Step {step} of {total}
+          </div>
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+              style={{ width: `${(step / total) * 100}%` }}
+            />
+          </div>
+        </div>
+        <h2 className="bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-2xl font-bold leading-tight text-transparent sm:text-3xl">
+          {title}
+        </h2>
+        {subtitle && <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>}
+        <div className="mt-6">{children}</div>
+      </div>
+    </Card>
+  </motion.div>
+);
+
+const ChipButton = ({
+  active, onClick, children, icon: Icon, tag,
+}: {
+  active?: boolean; onClick: () => void; children: React.ReactNode; icon?: any; tag?: string;
+}) => (
+  <button
+    onClick={onClick}
+    className={`group relative flex flex-col items-start gap-2 overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
+      active
+        ? "border-primary bg-gradient-to-br from-primary/15 to-accent/10 shadow-lg shadow-primary/25"
+        : "border-border/50 bg-card/50 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+    }`}
+  >
+    {Icon && (
+      <div
+        className={`rounded-xl p-2 transition-colors ${
+          active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary group-hover:bg-primary/20"
+        }`}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+    )}
+    <span className={`text-sm font-semibold ${active ? "text-foreground" : "text-foreground/90"}`}>{children}</span>
+    {tag && (
+      <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-accent-foreground">
+        {tag}
+      </span>
+    )}
+    {active && (
+      <div className="absolute right-3 top-3 rounded-full bg-primary p-1 text-primary-foreground">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+      </div>
+    )}
+  </button>
+);
+
+/* ============================================================
+   MAIN COMPONENT
+   ============================================================ */
 
 export default function SellProperty() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const editId = params.get("edit");
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>(initialForm);
   const [user, setUser] = useState<any>(null);
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState<Listing>(initial);
   const [submitting, setSubmitting] = useState(false);
-  const [savingDraft, setSavingDraft] = useState(false);
-  const [uploading, setUploading] = useState<string | null>(null);
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+
+  const [ai, setAi] = useState<AISuggestions | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTriggered, setAiTriggered] = useState(false);
+  const aiCacheKey = useRef<string>("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { navigate("/auth?redirect=/sell-property"); return; }
-      setUser(data.user);
+    supabase.auth.getUser().then(({ data: u }) => {
+      if (!u.user) { navigate("/auth?redirect=/sell-property"); return; }
+      setUser(u.user);
+      setData((d) => ({ ...d, contact_email: u.user!.email || "" }));
     });
   }, [navigate]);
 
-  // Load existing property for edit
-  useEffect(() => {
-    if (!editId || !user) return;
-    (async () => {
-      const { data } = await supabase.from("properties").select("*").eq("id", editId).maybeSingle();
-      if (data && data.submitted_by === user.id) {
-        setForm({
-          title: data.title || "",
-          type: data.type || "",
-          listing_type: (data as any).listing_type || "sale",
-          description: data.description || "",
-          city: data.city || "",
-          locality: data.locality || "",
-          address: data.address || "",
-          pincode: (data as any).pincode || "",
-          latitude: data.latitude ? Number(data.latitude) : null,
-          longitude: data.longitude ? Number(data.longitude) : null,
-          bedrooms: data.bedrooms?.toString() || "",
-          bathrooms: data.bathrooms?.toString() || "",
-          balconies: (data as any).balconies?.toString() || "",
-          area_value: data.area_sqft?.toString() || "",
-          area_unit: "Sq.ft",
-          floor_number: (data as any).floor_number?.toString() || "",
-          total_floors: data.total_floors?.toString() || "",
-          furnishing: (data as any).furnishing || "",
-          property_age: (data as any).property_age || "",
-          price: data.price?.toString() || "",
-          price_negotiable: (data as any).price_negotiable || false,
-          maintenance_charges: (data as any).maintenance_charges?.toString() || "",
-          booking_amount: (data as any).booking_amount?.toString() || "",
-          amenities: (data as any).amenities || [],
-          images: data.images || [],
-          video_urls: data.video_urls || [],
-          ownership_proof_url: ((data as any).document_urls?.ownership_proof) || "",
-          id_proof_url: ((data as any).document_urls?.id_proof) || "",
-          plot_type: (data as any).document_urls?.plot_type || "",
-          facing_direction: (data as any).document_urls?.facing_direction || "",
-          road_access: (data as any).document_urls?.road_access || "",
-          water_availability: (data as any).document_urls?.water_availability || "",
-          electricity: (data as any).document_urls?.electricity || "",
-        });
-      }
-    })();
-  }, [editId, user]);
+  /* ----------------------- AI suggestions ----------------------- */
 
-  // Init map on step 2
-  useEffect(() => {
-    if (step !== 2) return;
-    if (mapRef.current) return;
+  const triggerAI = async () => {
+    const key = `${data.type}|${data.city}|${data.locality}`;
+    if (aiCacheKey.current === key && ai) return;
+    if (!data.type || !data.city) return;
 
-    let cancelled = false;
-    let ro: ResizeObserver | null = null;
-    let map: mapboxgl.Map | null = null;
-
-    const tryInit = (attempt = 0) => {
-      if (cancelled) return;
-      const el = mapContainer.current;
-      if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) {
-        if (attempt < 30) return setTimeout(() => tryInit(attempt + 1), 100);
-        return;
-      }
-    const center: [number, number] = form.longitude && form.latitude
-      ? [form.longitude, form.latitude]
-      : [78.4867, 17.3850];
-    map = new mapboxgl.Map({
-      container: el,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center,
-      zoom: 12,
-    });
-    mapRef.current = map;
-
-    map.on("load", () => map?.resize());
-    map.on("styleimagemissing", () => map?.resize());
-    map.on("error", (event) => {
-      const message = typeof event?.error?.message === "string" ? event.error.message.toLowerCase() : "";
-      if (message.includes("401") || message.includes("403") || message.includes("token") || message.includes("unauthorized")) {
-        toast.error("Map could not load with the current key. Reloading with the public map key.");
-      }
-    });
-    // Fix white/empty map when container size changes
-    [50, 200, 500, 1000].forEach((d) => setTimeout(() => map?.resize(), d));
-    ro = new ResizeObserver(() => map?.resize());
-    ro.observe(el);
-
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
-
-    const geocoder = new MapboxGeocoder({
-      accessToken: MAPBOX_TOKEN,
-      mapboxgl: mapboxgl as any,
-      marker: false,
-      placeholder: "Search location, area, or address",
-      countries: "in",
-    });
-    map.addControl(geocoder as any, "top-left");
-
-    geocoder.on("result", (e: any) => {
-      const [lng, lat] = e.result.center;
-      if (markerRef.current) markerRef.current.remove();
-      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
-        .setLngLat([lng, lat]).addTo(map);
-      markerRef.current.on("dragend", () => {
-        const ll = markerRef.current!.getLngLat();
-        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
-      });
-      setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
-      toast.success("Location selected");
-    });
-
-    if (form.latitude && form.longitude) {
-      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
-        .setLngLat(center).addTo(map);
-      markerRef.current.on("dragend", () => {
-        const ll = markerRef.current!.getLngLat();
-        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
-      });
-    }
-
-    map.on("click", (e) => {
-      const { lng, lat } = e.lngLat;
-      if (markerRef.current) markerRef.current.remove();
-      markerRef.current = new mapboxgl.Marker({ color: "#10b981", draggable: true })
-        .setLngLat([lng, lat]).addTo(map);
-      markerRef.current.on("dragend", () => {
-        const ll = markerRef.current!.getLngLat();
-        setForm((f) => ({ ...f, latitude: ll.lat, longitude: ll.lng }));
-      });
-      setForm((f) => ({ ...f, latitude: lat, longitude: lng }));
-      toast.success("Location pinned");
-    });
-    };
-
-    tryInit();
-    return () => {
-      cancelled = true;
-      ro?.disconnect();
-      map?.remove();
-      mapRef.current = null;
-      markerRef.current = null;
-    };
-  }, [step]);
-
-  const useMyLocation = () => {
-    if (!navigator.geolocation) return toast.error("Geolocation unavailable");
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const { latitude, longitude } = pos.coords;
-      setForm((f) => ({ ...f, latitude, longitude }));
-      if (mapRef.current) {
-        mapRef.current.flyTo({ center: [longitude, latitude], zoom: 15 });
-        if (markerRef.current) markerRef.current.remove();
-        markerRef.current = new mapboxgl.Marker({ color: "#10b981" }).setLngLat([longitude, latitude]).addTo(mapRef.current);
-      }
-      toast.success("Location captured");
-    }, () => toast.error("Failed to get location"));
-  };
-
-  const validateStep = (s: number): string | null => {
-    switch (s) {
-      case 1:
-        if (!form.title.trim()) return "Property title is required";
-        if (!form.type) return "Property type is required";
-        if (!form.description.trim() || form.description.length < 30) return "Description (min 30 chars)";
-        return null;
-      case 2:
-        if (!form.city) return "City is required";
-        if (!form.locality.trim()) return "Locality is required";
-        if (!form.address.trim()) return "Address is required";
-        return null;
-      case 3:
-        if (!isLand(form.type) && !form.bedrooms) return "Bedrooms required";
-        if (!form.area_value) return "Area is required";
-        if (!form.area_unit) return "Area unit is required";
-        if (toSqft(form.area_value, form.area_unit) === null) return "Enter a valid area";
-        return null;
-      case 4:
-        if (!form.price) return "Expected price is required";
-        return null;
-      case 6:
-        return null;
-      case 7:
-        return null;
-    }
-    return null;
-  };
-
-  const handleNext = () => {
-    const err = validateStep(step);
-    if (err) return toast.error(err);
-    // Skip amenities step (5) for property types that don't have amenities
-    if (step === 4 && !hasAmenities(form.type)) {
-      setStep(6);
-      return;
-    }
-    setStep((s) => Math.min(7, s + 1));
-  };
-
-  const handleBack = () => {
-    // Skip amenities step (5) when going back for types without amenities
-    if (step === 6 && !hasAmenities(form.type)) {
-      setStep(4);
-      return;
-    }
-    setStep((s) => Math.max(1, s - 1));
-  };
-
-  const uploadFile = async (file: File, bucket: string, kind: string): Promise<string | null> => {
-    if (!user) return null;
+    setAiLoading(true);
     try {
-      setUploading(kind);
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
+      const { data: resp, error } = await supabase.functions.invoke("ai-listing-suggestions", {
+        body: {
+          propertyType: data.type,
+          listingPurpose: data.purpose || "sale",
+          city: data.city,
+          locality: data.locality,
+          landmark: data.landmark,
+        },
+      });
       if (error) throw error;
-      if (bucket === "property-images") {
-        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-        return data.publicUrl;
-      }
-      // signed URL for private docs
-      const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 60 * 24 * 365);
-      return signed?.signedUrl || path;
+      if (resp?.error) throw new Error(resp.error);
+
+      setAi(resp);
+      aiCacheKey.current = key;
+
+      // Auto-fill conveniences
+      setData((d) => ({
+        ...d,
+        title: d.title || resp.titles?.[0] || "",
+        description: d.description || resp.description || "",
+        amenities: d.amenities.length
+          ? d.amenities
+          : (resp.amenities || []).filter((a: string) =>
+              (AMENITIES_BY_TYPE[d.type as PropertyTypeKey] || []).includes(a)
+            ),
+        nearby_landmarks: resp.nearby_landmarks || [],
+        price_per_unit: d.price_per_unit || (resp.price_suggestion?.price_per_unit?.toString() || ""),
+        size_unit: (resp.price_suggestion?.unit as SizeUnit) || d.size_unit,
+      }));
+      setAiTriggered(true);
     } catch (e: any) {
-      toast.error(e.message || "Upload failed");
-      return null;
+      toast.error(e.message || "Couldn't fetch suggestions");
     } finally {
-      setUploading(null);
+      setAiLoading(false);
     }
   };
 
-  const handleImageUpload = async (files: FileList | null) => {
-    if (!files) return;
-    const uploaded: string[] = [];
-    for (const f of Array.from(files).slice(0, 10 - form.images.length)) {
-      const url = await uploadFile(f, "property-images", "image");
-      if (url) uploaded.push(url);
-    }
-    setForm((f) => ({ ...f, images: [...f.images, ...uploaded] }));
-  };
+  /* ----------------------- Validation ----------------------- */
 
-  const handleDocUpload = async (file: File | null, key: "ownership_proof_url" | "id_proof_url") => {
-    if (!file) return;
-    const url = await uploadFile(file, "property-documents", key);
-    if (url) setForm((f) => ({ ...f, [key]: url }));
-  };
+  const totalPrice = useMemo(() => {
+    const s = parseFloat(data.size_value);
+    const p = parseFloat(data.price_per_unit);
+    if (!isFinite(s) || !isFinite(p)) return 0;
+    return s * p;
+  }, [data.size_value, data.price_per_unit]);
 
-  const buildPayload = (asDraft: boolean) => ({
-    submitted_by: user.id,
-    title: form.title,
-    type: form.type,
-    listing_type: form.listing_type,
-    description: form.description,
-    city: form.city,
-    locality: form.locality,
-    address: form.address,
-    pincode: form.pincode || null,
-    latitude: form.latitude,
-    longitude: form.longitude,
-    bedrooms: form.bedrooms ? parseInt(form.bedrooms) : null,
-    bhk: form.bedrooms ? parseInt(form.bedrooms) : null,
-    bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
-    balconies: form.balconies ? parseInt(form.balconies) : null,
-    area_sqft: toSqft(form.area_value, form.area_unit),
-    floor_number: form.floor_number ? parseInt(form.floor_number) : null,
-    total_floors: form.total_floors ? parseInt(form.total_floors) : null,
-    furnishing: form.furnishing || null,
-    property_age: form.property_age || null,
-    price: form.price ? parseFloat(form.price) : 0,
-    price_negotiable: form.price_negotiable,
-    maintenance_charges: form.maintenance_charges ? parseFloat(form.maintenance_charges) : null,
-    booking_amount: form.booking_amount ? parseFloat(form.booking_amount) : null,
-    amenities: form.amenities,
-    images: form.images,
-    video_urls: form.video_urls,
-    document_urls: {
-      ownership_proof: form.ownership_proof_url,
-      id_proof: form.id_proof_url,
-      plot_type: form.plot_type,
-      facing_direction: form.facing_direction,
-      road_access: form.road_access,
-      water_availability: form.water_availability,
-      electricity: form.electricity,
-    },
-    verification_status: asDraft ? "draft" : "pending",
-    verified: false,
-    is_draft: asDraft,
-    rejection_reason: null,
-    listed_by: "seller",
-    // Sellers do NOT get to pick the agent — admin assigns one during approval
-    assigned_agent_id: null,
-  });
+  const canSubmit =
+    !!data.type && !!data.purpose && !!data.city && !!data.locality &&
+    !!data.size_value && !!data.price_per_unit &&
+    !!data.contact_name && /^\d{10}$/.test(data.contact_mobile);
 
-  const handleSaveDraft = async () => {
-    if (!user) return;
-    setSavingDraft(true);
-    try {
-      const payload = buildPayload(true);
-      if (editId) {
-        await supabase.from("properties").update(payload).eq("id", editId);
-      } else {
-        await supabase.from("properties").insert(payload);
-      }
-      toast.success("Draft saved");
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally { setSavingDraft(false); }
-  };
+  /* ----------------------- Submit ----------------------- */
 
   const handleSubmit = async () => {
-    for (let s = 1; s <= 7; s++) {
-      const err = validateStep(s);
-      if (err) { setStep(s); return toast.error(err); }
+    if (!user) return;
+    if (!canSubmit) {
+      toast.error("Please complete required fields");
+      return;
     }
     setSubmitting(true);
     try {
-      const payload = buildPayload(false);
-      let propId = editId;
-      if (editId) {
-        const { error } = await supabase.from("properties").update(payload).eq("id", editId);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
-        if (error) throw error;
-        propId = data.id;
-      }
-      // Notify admins
-      const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
-      if (admins?.length) {
-        await supabase.from("notifications").insert(admins.map((a: any) => ({
-          user_id: a.user_id,
-          type: "property_submitted",
-          title: "New Property Awaiting Verification",
-          message: `${form.title} (${form.city}) submitted by seller for review.`,
-          link: "/admin",
-        })));
-      }
-      toast.success("Submitted for verification!", {
-        description: "Your property will go live after admin approval.",
+      const sqft = parseFloat(data.size_value) * (unitToSqft[data.size_unit] || 1);
+      const payload: any = {
+        submitted_by: user.id,
+        title: data.title || `${data.type} in ${data.locality || data.city}`,
+        type: data.type,
+        listing_type: data.purpose,
+        description: data.description || null,
+        city: data.city,
+        locality: data.locality,
+        address: data.landmark || data.locality,
+        pincode: data.pincode || null,
+        bedrooms: data.bhk ? parseInt(data.bhk) : null,
+        bhk: data.bhk ? parseInt(data.bhk) : null,
+        bathrooms: data.bathrooms ? parseInt(data.bathrooms) : null,
+        balconies: data.balconies ? parseInt(data.balconies) : null,
+        area_sqft: isFinite(sqft) ? Math.round(sqft) : null,
+        floor_number: data.floor_number ? parseInt(data.floor_number) : null,
+        total_floors: data.total_floors ? parseInt(data.total_floors) : null,
+        furnishing: data.furnishing || null,
+        price: totalPrice || 0,
+        amenities: data.amenities,
+        images: [],
+        video_urls: [],
+        document_urls: {
+          size_unit: data.size_unit,
+          size_value: data.size_value,
+          price_per_unit: data.price_per_unit,
+          landmark: data.landmark,
+          contact: {
+            name: data.contact_name,
+            mobile: data.contact_mobile,
+            whatsapp: data.contact_whatsapp,
+            email: data.contact_email,
+            preferred_time: data.contact_time,
+          },
+          extras: {
+            gated_community: data.gated_community,
+            private_pool: data.private_pool,
+            private_garden: data.private_garden,
+            open_terrace: data.open_terrace,
+            water_source: data.water_source,
+            road_access: data.road_access,
+            electricity: data.electricity,
+            approval_type: data.approval_type,
+            corner_plot: data.corner_plot,
+            plot_dimensions: data.plot_dimensions,
+            num_floors: data.num_floors,
+            private_terrace: data.private_terrace,
+            top_floor: data.top_floor,
+            private_lift: data.private_lift,
+            levels_count: data.levels_count,
+            internal_staircase: data.internal_staircase,
+            common_walls: data.common_walls,
+            front_back_yard: data.front_back_yard,
+          },
+        },
+        verification_status: "pending",
+        verified: false,
+        is_draft: false,
+        listed_by: "seller",
+        assigned_agent_id: null,
+      };
+      const { error } = await supabase.from("properties").insert(payload);
+      if (error) throw error;
+
+      toast.success("Listing submitted!", {
+        description: "Your property is awaiting admin verification.",
       });
       navigate("/dashboard/seller");
     } catch (e: any) {
-      toast.error(e.message || "Submission failed");
-    } finally { setSubmitting(false); }
+      toast.error(e.message || "Couldn't submit");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const progress = (step / 7) * 100;
-  const StepIcon = STEPS[step - 1].icon;
+  /* ----------------------- Step Skip Logic ----------------------- */
+
+  // Step indices:
+  // 1 Type · 2 Purpose · 3 Location · 4 Size · 5 Price ·
+  // 6 AI suggestions · 7 Details (conditional) · 8 Amenities ·
+  // 9 Extras (legal/media optional toggle) · 10 Contact
+
+  const isLand = data.type === "Plot" || data.type === "Agricultural Land";
+
+  const next = () => {
+    if (step === 5 && !aiTriggered) triggerAI();
+    setStep((s) => Math.min(s + 1, 10));
+  };
+  const back = () => setStep((s) => Math.max(s - 1, 1));
+
+  // Auto-trigger AI when user reaches step 6
+  useEffect(() => {
+    if (step === 6 && !aiTriggered && data.type && data.city) {
+      triggerAI();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  /* ----------------------- Locality suggestions ----------------------- */
+
+  const localitySuggestions = useMemo(() => {
+    // Lightweight suggestions from common Indian areas; AI fills more later
+    const base: Record<string, string[]> = {
+      Hyderabad: ["Gachibowli", "Madhapur", "Kukatpally", "Banjara Hills", "Jubilee Hills", "Kondapur", "Manikonda", "Miyapur"],
+      Bangalore: ["Whitefield", "Koramangala", "Indiranagar", "HSR Layout", "Sarjapur", "Hebbal", "JP Nagar", "Marathahalli"],
+      Mumbai: ["Andheri", "Bandra", "Powai", "Goregaon", "Thane", "Mulund", "Dadar", "Borivali"],
+      Pune: ["Hinjewadi", "Kothrud", "Baner", "Wakad", "Kharadi", "Viman Nagar", "Aundh"],
+      Chennai: ["OMR", "Velachery", "T Nagar", "Adyar", "Anna Nagar", "Porur"],
+      Delhi: ["Dwarka", "Rohini", "Saket", "Vasant Kunj", "Janakpuri"],
+    };
+    return base[data.city] || [];
+  }, [data.city]);
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navigation />
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+
+      <div className="container mx-auto max-w-3xl px-4 py-8 sm:py-12">
         {/* Header */}
-        <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-emerald-500/15 text-emerald-500"><Home className="h-6 w-6" /></span>
-              {editId ? "Edit Listing" : "List Your Property"}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">Step {step} of 7 — {STEPS[step - 1].label}</p>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Sparkles className="h-3.5 w-3.5" />
+            AI-Guided Listing
           </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard/seller")}><X className="h-4 w-4 mr-1" />Cancel</Button>
+          <h1 className="bg-gradient-to-br from-foreground via-primary to-accent bg-clip-text text-4xl font-bold text-transparent sm:text-5xl">
+            Sell Your Property
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A quick conversation. No long forms. Powered by AI.
+          </p>
+        </motion.div>
+
+        {/* Step labels strip */}
+        <div className="mb-6 hidden flex-wrap justify-center gap-1.5 sm:flex">
+          {STEP_LABELS.map((l, i) => (
+            <span
+              key={l}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
+                step === i + 1
+                  ? "bg-primary text-primary-foreground shadow"
+                  : step > i + 1
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {i + 1}. {l}
+            </span>
+          ))}
         </div>
 
-        {/* Progress */}
-        <div className="mb-6">
-          <Progress value={progress} className="h-2 bg-secondary [&>div]:bg-emerald-500" />
-          <div className="hidden md:flex justify-between mt-3">
-            {STEPS.map((s) => {
-              const Icon = s.icon;
-              const done = step > s.id;
-              const active = step === s.id;
-              return (
-                <button key={s.id} onClick={() => setStep(s.id)} className="flex flex-col items-center gap-1 group">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center border-2 transition-all ${
-                    done ? "bg-emerald-500 border-emerald-500 text-white"
-                    : active ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                    : "border-muted text-muted-foreground"
-                  }`}>
-                    {done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </div>
-                  <span className={`text-[11px] ${active ? "text-emerald-500 font-medium" : "text-muted-foreground"}`}>{s.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          {/* STEP 1 — TYPE */}
+          {step === 1 && (
+            <QuestionShell
+              key="s1"
+              step={1}
+              total={10}
+              title="What type of property are you selling?"
+              subtitle="Pick the closest match — we'll tailor everything else."
+            >
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {PROPERTY_TYPES.map((p) => (
+                  <ChipButton
+                    key={p.key}
+                    active={data.type === p.key}
+                    onClick={() => { setData({ ...data, type: p.key }); setTimeout(next, 200); }}
+                    icon={p.icon}
+                    tag={p.tag}
+                  >
+                    {p.label}
+                  </ChipButton>
+                ))}
+              </div>
+            </QuestionShell>
+          )}
 
-        {/* Step content */}
-        <Card className="border-emerald-500/20 shadow-lg">
-          <CardContent className="p-6 md:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex items-center gap-2 mb-6">
-                  <StepIcon className="h-5 w-5 text-emerald-500" />
-                  <h2 className="text-xl font-semibold">{STEPS[step - 1].label}</h2>
+          {/* STEP 2 — PURPOSE */}
+          {step === 2 && (
+            <QuestionShell key="s2" step={2} total={10} title="Are you listing for…" subtitle="Buyers see this filter first.">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {LISTING_PURPOSES.map((p) => (
+                  <ChipButton
+                    key={p.key}
+                    active={data.purpose === p.key}
+                    onClick={() => { setData({ ...data, purpose: p.key as any }); setTimeout(next, 200); }}
+                    icon={Tag}
+                  >
+                    <div>
+                      <div>{p.label}</div>
+                      <div className="mt-0.5 text-xs font-normal text-muted-foreground">{p.desc}</div>
+                    </div>
+                  </ChipButton>
+                ))}
+              </div>
+            </QuestionShell>
+          )}
+
+          {/* STEP 3 — LOCATION */}
+          {step === 3 && (
+            <QuestionShell key="s3" step={3} total={10} title="Where is the property located?" subtitle="City, area & landmark help buyers find it.">
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <MapPin className="h-4 w-4 text-primary" /> City
+                  </label>
+                  <Input
+                    list="city-options"
+                    placeholder="Start typing… e.g. Hyderabad"
+                    value={data.city}
+                    onChange={(e) => setData({ ...data, city: e.target.value })}
+                    className="h-12 rounded-xl border-2 bg-background/50 text-base focus-visible:border-primary"
+                  />
+                  <datalist id="city-options">
+                    {INDIAN_CITIES.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </div>
 
-                {step === 1 && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Property Title *</Label>
-                      <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                        placeholder="e.g. Spacious 3BHK Apartment in Gachibowli" />
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground/80">Area / Locality</label>
+                  <Input
+                    list="locality-options"
+                    placeholder="e.g. Gachibowli, Whitefield"
+                    value={data.locality}
+                    onChange={(e) => setData({ ...data, locality: e.target.value })}
+                    className="h-12 rounded-xl border-2 bg-background/50 text-base focus-visible:border-primary"
+                  />
+                  <datalist id="locality-options">
+                    {localitySuggestions.map((c) => <option key={c} value={c} />)}
+                  </datalist>
+                  {localitySuggestions.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {localitySuggestions.slice(0, 6).map((l) => (
+                        <button
+                          key={l}
+                          onClick={() => setData({ ...data, locality: l })}
+                          className="rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary hover:bg-primary/20"
+                        >
+                          {l}
+                        </button>
+                      ))}
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Property Type *</Label>
-                        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                          <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Listing Type *</Label>
-                        <Select value={form.listing_type} onValueChange={(v) => setForm({ ...form, listing_type: v })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="sale">For Sale</SelectItem>
-                            <SelectItem value="rent">For Rent</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Description *</Label>
-                      <Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                        placeholder="Describe the property, neighborhood, and unique features (min 30 chars)" />
-                      <p className="text-xs text-muted-foreground mt-1">{form.description.length} chars</p>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {step === 2 && (
-                  <div className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>City *</Label>
-                        <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
-                          <SelectContent>{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Locality *</Label>
-                        <Input value={form.locality} onChange={(e) => setForm({ ...form, locality: e.target.value })} placeholder="e.g. Gachibowli" />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Full Address *</Label>
-                      <Textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Building, street, landmark" />
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div>
-                        <Label>Pin Code</Label>
-                        <Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="500032" />
-                      </div>
-                      <div className="md:col-span-2 flex items-end gap-2">
-                        <Button type="button" variant="outline" onClick={useMyLocation} className="w-full">
-                          <MapPin className="h-4 w-4 mr-1" />Use my current location
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Pin location on map (click to drop pin)</Label>
-                      <div ref={mapContainer} className="h-72 w-full rounded-lg overflow-hidden border mt-2" />
-                      {form.latitude && form.longitude && (
-                        <p className="text-xs text-emerald-500 mt-2">📍 {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {step === 3 && (
-                  <div className="space-y-4">
-                    {!form.type && (
-                      <div className="p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 text-sm text-muted-foreground">
-                        Select a property type in Step 1 to see the relevant fields.
-                      </div>
-                    )}
-
-                    {/* Area is shown for all types */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Area Unit *</Label>
-                        <Select value={form.area_unit} onValueChange={(v) => setForm({ ...form, area_unit: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
-                          <SelectContent>{AREA_UNITS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Area Value *</Label>
-                        <Input type="number" min="0" value={form.area_value} onChange={(e) => setForm({ ...form, area_value: e.target.value })} placeholder={`Enter area in ${form.area_unit}`} />
-                        {form.area_value && form.area_unit && toSqft(form.area_value, form.area_unit) !== null && form.area_unit !== "Sq.ft" && (
-                          <p className="text-xs text-emerald-500 mt-1">≈ {new Intl.NumberFormat("en-IN").format(Math.round(toSqft(form.area_value, form.area_unit)!))} sq.ft</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Residential fields */}
-                    {form.type && !isLand(form.type) && (
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div><Label>Bedrooms (BHK) *</Label>
-                          <Input type="number" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
-                        </div>
-                        <div><Label>Bathrooms</Label>
-                          <Input type="number" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
-                        </div>
-                        <div><Label>Balconies</Label>
-                          <Input type="number" value={form.balconies} onChange={(e) => setForm({ ...form, balconies: e.target.value })} />
-                        </div>
-                        <div><Label>Floor Number</Label>
-                          <Input type="number" value={form.floor_number} onChange={(e) => setForm({ ...form, floor_number: e.target.value })} />
-                        </div>
-                        <div><Label>Total Floors</Label>
-                          <Input type="number" value={form.total_floors} onChange={(e) => setForm({ ...form, total_floors: e.target.value })} />
-                        </div>
-                        <div><Label>Furnishing</Label>
-                          <Select value={form.furnishing} onValueChange={(v) => setForm({ ...form, furnishing: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>{FURNISHING.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div className="md:col-span-2"><Label>Property Age</Label>
-                          <Select value={form.property_age} onValueChange={(v) => setForm({ ...form, property_age: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>{PROPERTY_AGE.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Land fields */}
-                    {form.type && isLand(form.type) && (
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div><Label>Plot Type</Label>
-                          <Select value={form.plot_type} onValueChange={(v) => setForm({ ...form, plot_type: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select plot type" /></SelectTrigger>
-                            <SelectContent>{LAND_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div><Label>Facing Direction</Label>
-                          <Select value={form.facing_direction} onValueChange={(v) => setForm({ ...form, facing_direction: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select facing" /></SelectTrigger>
-                            <SelectContent>{FACING_DIRECTIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div><Label>Road Access</Label>
-                          <Select value={form.road_access} onValueChange={(v) => setForm({ ...form, road_access: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select road width" /></SelectTrigger>
-                            <SelectContent>{ROAD_ACCESS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div><Label>Water Availability</Label>
-                          <Select value={form.water_availability} onValueChange={(v) => setForm({ ...form, water_availability: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select water source" /></SelectTrigger>
-                            <SelectContent>{WATER_AVAILABILITY.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div className="md:col-span-2"><Label>Electricity</Label>
-                          <Select value={form.electricity} onValueChange={(v) => setForm({ ...form, electricity: v })}>
-                            <SelectTrigger><SelectValue placeholder="Select electricity status" /></SelectTrigger>
-                            <SelectContent>{ELECTRICITY_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {step === 4 && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Expected Price (₹) *</Label>
-                      <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 7500000" />
-                      {form.price && parseFloat(form.price) > 0 && (
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
-                            ₹ {new Intl.NumberFormat("en-IN").format(parseFloat(form.price))}
-                          </span>
-                          <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-semibold">
-                            {priceToWords(form.price)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
-                      <div>
-                        <p className="font-medium">Price Negotiable</p>
-                        <p className="text-xs text-muted-foreground">Allow buyers to negotiate</p>
-                      </div>
-                      <Switch checked={form.price_negotiable} onCheckedChange={(v) => setForm({ ...form, price_negotiable: v })} />
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Maintenance Charges (₹/mo)</Label>
-                        <Input type="number" value={form.maintenance_charges} onChange={(e) => setForm({ ...form, maintenance_charges: e.target.value })} />
-                      </div>
-                      <div>
-                        <Label>Booking Amount (₹)</Label>
-                        <Input type="number" value={form.booking_amount} onChange={(e) => setForm({ ...form, booking_amount: e.target.value })} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {step === 5 && (
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    {hasAmenities(form.type) ? (
-                      <>
-                        <p className="text-sm text-muted-foreground mb-4">Select all amenities available at your property</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {AMENITIES.map((a) => {
-                            const active = form.amenities.includes(a);
-                            return (
-                              <button
-                                key={a}
-                                type="button"
-                                onClick={() => setForm((f) => ({
-                                  ...f,
-                                  amenities: active ? f.amenities.filter(x => x !== a) : [...f.amenities, a],
-                                }))}
-                                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                                  active ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : "border-border hover:border-emerald-500/50"
-                                }`}
-                              >
-                                {active && <CheckCircle2 className="h-4 w-4 inline mr-1" />}
-                                {a}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-10 border-2 border-dashed rounded-xl border-emerald-500/20">
-                        <Sparkles className="h-8 w-8 text-emerald-500/60 mx-auto mb-2" />
-                        <p className="text-sm font-medium">Amenities don't apply to {form.type || "this property type"}.</p>
-                        <p className="text-xs text-muted-foreground mt-1">You can continue to the next step.</p>
-                      </div>
-                    )}
+                    <label className="mb-2 block text-sm font-medium text-foreground/80">Landmark (optional)</label>
+                    <Input
+                      placeholder="Near…"
+                      value={data.landmark}
+                      onChange={(e) => setData({ ...data, landmark: e.target.value })}
+                      className="h-11 rounded-xl border-2 bg-background/50"
+                    />
                   </div>
-                )}
-
-                {step === 6 && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Property Images <span className="text-xs text-muted-foreground font-normal">(optional, up to 10)</span></Label>
-                      <label className="mt-2 block border-2 border-dashed border-emerald-500/40 rounded-xl p-8 text-center cursor-pointer hover:bg-emerald-500/5 transition">
-                        <Upload className="h-10 w-10 mx-auto text-emerald-500 mb-2" />
-                        <p className="text-sm font-medium">Click or drag to upload images</p>
-                        <p className="text-xs text-muted-foreground">JPG, PNG up to 5MB each</p>
-                        <input type="file" accept="image/*" multiple className="hidden"
-                          onChange={(e) => handleImageUpload(e.target.files)} />
-                      </label>
-                      {uploading === "image" && <p className="text-xs text-emerald-500 mt-2 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Uploading…</p>}
-                      {form.images.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                          {form.images.map((url, i) => (
-                            <div key={i} className="relative group rounded-lg overflow-hidden border">
-                              <img src={url} alt="" className="w-full h-28 object-cover" />
-                              <button onClick={() => setForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }))}
-                                className="absolute top-1 right-1 p-1 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition">
-                                <X className="h-3 w-3 text-white" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-2">{form.images.length}/10 uploaded</p>
-                    </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground/80">PIN code (optional)</label>
+                    <Input
+                      placeholder="500032"
+                      maxLength={6}
+                      value={data.pincode}
+                      onChange={(e) => setData({ ...data, pincode: e.target.value.replace(/\D/g, "") })}
+                      className="h-11 rounded-xl border-2 bg-background/50"
+                    />
                   </div>
-                )}
+                </div>
+              </div>
+            </QuestionShell>
+          )}
 
-                {step === 7 && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">Documents are optional but speed up verification. They are securely stored and only visible to admins.</p>
-                    {([
-                      { key: "ownership_proof_url" as const, label: "Ownership Proof", desc: "Sale deed, allotment letter, or property tax receipt (optional)" },
-                      { key: "id_proof_url" as const, label: "ID Proof", desc: "Aadhaar, PAN, or Passport (optional)" },
-                    ]).map((doc) => (
-                      <div key={doc.key} className="p-4 rounded-xl border-2 border-dashed border-emerald-500/30">
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div>
-                            <p className="font-medium flex items-center gap-2"><FileText className="h-4 w-4 text-emerald-500" />{doc.label}</p>
-                            <p className="text-xs text-muted-foreground">{doc.desc}</p>
-                          </div>
-                          {form[doc.key] && <Badge className="bg-emerald-500"><CheckCircle2 className="h-3 w-3 mr-1" />Uploaded</Badge>}
-                        </div>
-                        <Input type="file" accept="image/*,application/pdf"
-                          onChange={(e) => handleDocUpload(e.target.files?.[0] || null, doc.key)} />
-                        {uploading === doc.key && <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Uploading…</p>}
-                      </div>
+          {/* STEP 4 — SIZE */}
+          {step === 4 && (
+            <QuestionShell key="s4" step={4} total={10} title="What is the property size?" subtitle="Pick a unit, then enter the value. We'll respect your unit — no conversions.">
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <Ruler className="h-4 w-4 text-primary" /> Unit
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {SIZE_UNITS.map((u) => (
+                      <button
+                        key={u}
+                        onClick={() => setData({ ...data, size_unit: u })}
+                        className={`rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+                          data.size_unit === u
+                            ? "border-primary bg-primary text-primary-foreground shadow shadow-primary/30"
+                            : "border-border bg-card hover:border-primary/40"
+                        }`}
+                      >
+                        {u}
+                      </button>
                     ))}
                   </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-
-        {/* Sticky footer actions */}
-        <div className="sticky bottom-4 mt-6 z-30">
-          <Card className="border-emerald-500/30 shadow-xl bg-background/95 backdrop-blur">
-            <CardContent className="p-4 flex items-center justify-between gap-2 flex-wrap">
-              <Button variant="outline" disabled={step === 1} onClick={handleBack}>
-                <ChevronLeft className="h-4 w-4 mr-1" />Back
-              </Button>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="ghost" onClick={handleSaveDraft} disabled={savingDraft || !user}>
-                  {savingDraft ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
-                  Save Draft
-                </Button>
-                {step < 7 ? (
-                  <Button onClick={handleNext} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                    Next<ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                ) : (
-                  <Button onClick={handleSubmit} disabled={submitting} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-                    Submit for Verification
-                  </Button>
-                )}
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground/80">Value (in {data.size_unit})</label>
+                  <Input
+                    type="number"
+                    placeholder={`e.g. ${data.size_unit === "Acre" ? "1.5" : data.size_unit === "Gunta" ? "2" : "150"}`}
+                    value={data.size_value}
+                    onChange={(e) => setData({ ...data, size_value: e.target.value })}
+                    className="h-14 rounded-xl border-2 bg-background/50 text-2xl font-semibold focus-visible:border-primary"
+                  />
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </QuestionShell>
+          )}
+
+          {/* STEP 5 — PRICE */}
+          {step === 5 && (
+            <QuestionShell key="s5" step={5} total={10} title="What's your expected price?" subtitle={`Per ${data.size_unit}. We'll multiply by your size — no unit conversion.`}>
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                    <IndianRupee className="h-4 w-4 text-primary" /> Price per {data.size_unit}
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-semibold text-muted-foreground">₹</span>
+                    <Input
+                      type="number"
+                      placeholder={`e.g. ${data.size_unit === "Acre" ? "5000000" : data.size_unit === "Sq Yard" ? "18000" : "200"}`}
+                      value={data.price_per_unit}
+                      onChange={(e) => setData({ ...data, price_per_unit: e.target.value })}
+                      className="h-14 rounded-xl border-2 bg-background/50 pl-10 text-2xl font-semibold focus-visible:border-primary"
+                    />
+                  </div>
+                </div>
+
+                {/* Live calc card */}
+                <div className="overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 p-5">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{data.size_value || "—"} {data.size_unit} × ₹{data.price_per_unit || "—"}/{data.size_unit}</span>
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="mt-2 text-3xl font-bold text-primary sm:text-4xl">
+                    {formatINR(totalPrice)}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">Total expected price</div>
+                </div>
+              </div>
+            </QuestionShell>
+          )}
+
+          {/* STEP 6 — AI SUGGESTIONS */}
+          {step === 6 && (
+            <QuestionShell key="s6" step={6} total={10} title="Smart suggestions just for you" subtitle="Tap any title to use it. Edit anything you want.">
+              {aiLoading && (
+                <div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="text-sm">Crafting suggestions for {data.locality || data.city}…</p>
+                </div>
+              )}
+              {!aiLoading && ai && (
+                <div className="space-y-5">
+                  <div>
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground/80">
+                      <Wand2 className="h-4 w-4 text-primary" /> Title suggestions
+                    </div>
+                    <div className="space-y-2">
+                      {ai.titles.map((t, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setData({ ...data, title: t })}
+                          className={`group flex w-full items-center justify-between rounded-xl border-2 p-3 text-left text-sm transition-all ${
+                            data.title === t
+                              ? "border-primary bg-primary/10"
+                              : "border-border/50 bg-card/50 hover:border-primary/40"
+                          }`}
+                        >
+                          <span className="font-medium">{t}</span>
+                          {data.title === t ? (
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 text-sm font-medium text-foreground/80">Description (editable)</div>
+                    <Textarea
+                      value={data.description}
+                      onChange={(e) => setData({ ...data, description: e.target.value })}
+                      rows={4}
+                      className="rounded-xl border-2 bg-background/50 focus-visible:border-primary"
+                    />
+                  </div>
+
+                  {ai.price_suggestion && (
+                    <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-sm">
+                      <div className="font-semibold text-accent-foreground">
+                        💡 Market estimate: ₹{ai.price_suggestion.price_per_unit.toLocaleString("en-IN")} / {ai.price_suggestion.unit}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{ai.price_suggestion.reasoning}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {!aiLoading && !ai && (
+                <div className="flex flex-col items-center gap-3 py-8 text-center">
+                  <p className="text-sm text-muted-foreground">No suggestions yet.</p>
+                  <Button onClick={triggerAI} variant="outline" className="gap-2">
+                    <Wand2 className="h-4 w-4" /> Try AI Suggestions
+                  </Button>
+                </div>
+              )}
+            </QuestionShell>
+          )}
+
+          {/* STEP 7 — CONDITIONAL DETAILS */}
+          {step === 7 && (
+            <QuestionShell key="s7" step={7} total={10} title="A few more details" subtitle="Only what's relevant to your property type.">
+              <div className="space-y-4">
+                {/* Apartment / Penthouse / Duplex */}
+                {(data.type === "Apartment" || data.type === "Penthouse" || data.type === "Duplex") && (
+                  <>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Field label="BHK" value={data.bhk} onChange={(v) => setData({ ...data, bhk: v })} placeholder="3" />
+                      <Field label="Bathrooms" value={data.bathrooms} onChange={(v) => setData({ ...data, bathrooms: v })} placeholder="2" />
+                      <Field label="Balconies" value={data.balconies} onChange={(v) => setData({ ...data, balconies: v })} placeholder="2" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Floor" value={data.floor_number} onChange={(v) => setData({ ...data, floor_number: v })} placeholder="5" />
+                      <Field label="Total floors" value={data.total_floors} onChange={(v) => setData({ ...data, total_floors: v })} placeholder="12" />
+                    </div>
+                    <ChipRow label="Furnishing" options={FURNISHING} value={data.furnishing} onChange={(v) => setData({ ...data, furnishing: v })} />
+                    {data.type === "Penthouse" && (
+                      <BoolRow
+                        items={[
+                          { k: "private_terrace", label: "Private Terrace" },
+                          { k: "top_floor", label: "Top Floor" },
+                          { k: "private_lift", label: "Private Lift" },
+                        ]}
+                        data={data} setData={setData}
+                      />
+                    )}
+                    {data.type === "Duplex" && (
+                      <>
+                        <Field label="Levels" value={data.levels_count} onChange={(v) => setData({ ...data, levels_count: v })} placeholder="2" />
+                        <BoolRow items={[{ k: "internal_staircase", label: "Internal Staircase" }]} data={data} setData={setData} />
+                      </>
+                    )}
+                  </>
+                )}
+
+                {data.type === "Villa" && (
+                  <>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Field label="BHK" value={data.bhk} onChange={(v) => setData({ ...data, bhk: v })} placeholder="4" />
+                      <Field label="Bathrooms" value={data.bathrooms} onChange={(v) => setData({ ...data, bathrooms: v })} placeholder="4" />
+                      <Field label="Floors" value={data.num_floors} onChange={(v) => setData({ ...data, num_floors: v })} placeholder="2" />
+                    </div>
+                    <BoolRow
+                      items={[
+                        { k: "gated_community", label: "Gated Community" },
+                        { k: "private_garden", label: "Private Garden" },
+                        { k: "private_pool", label: "Private Pool" },
+                      ]}
+                      data={data} setData={setData}
+                    />
+                  </>
+                )}
+
+                {data.type === "Independent House" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Plot dimensions" value={data.plot_dimensions} onChange={(v) => setData({ ...data, plot_dimensions: v })} placeholder="30 x 40" />
+                      <Field label="Floors" value={data.num_floors} onChange={(v) => setData({ ...data, num_floors: v })} placeholder="2" />
+                    </div>
+                    <BoolRow items={[{ k: "open_terrace", label: "Open Terrace" }]} data={data} setData={setData} />
+                    <ChipRow label="Water Source" options={WATER_SOURCES} value={data.water_source} onChange={(v) => setData({ ...data, water_source: v })} />
+                  </>
+                )}
+
+                {data.type === "Plot" && (
+                  <>
+                    <Field label="Plot dimensions" value={data.plot_dimensions} onChange={(v) => setData({ ...data, plot_dimensions: v })} placeholder="40 x 60" />
+                    <BoolRow items={[{ k: "corner_plot", label: "Corner Plot" }]} data={data} setData={setData} />
+                    <ChipRow label="Approval" options={APPROVAL_TYPES} value={data.approval_type} onChange={(v) => setData({ ...data, approval_type: v })} />
+                  </>
+                )}
+
+                {data.type === "Agricultural Land" && (
+                  <>
+                    <ChipRow label="Water Source" options={WATER_SOURCES} value={data.water_source} onChange={(v) => setData({ ...data, water_source: v })} />
+                    <ChipRow label="Road Access" options={ROAD_ACCESS_OPTS} value={data.road_access} onChange={(v) => setData({ ...data, road_access: v })} />
+                    <ChipRow label="Electricity" options={["Available", "Not Available", "On Request"]} value={data.electricity} onChange={(v) => setData({ ...data, electricity: v })} />
+                  </>
+                )}
+
+                {data.type === "Row House" && (
+                  <>
+                    <Field label="Common walls" value={data.common_walls} onChange={(v) => setData({ ...data, common_walls: v })} placeholder="1 or 2" />
+                    <BoolRow items={[{ k: "front_back_yard", label: "Front & Back Yard" }]} data={data} setData={setData} />
+                  </>
+                )}
+
+                <p className="text-xs text-muted-foreground">All fields here are optional — skip what you don't know.</p>
+              </div>
+            </QuestionShell>
+          )}
+
+          {/* STEP 8 — AMENITIES */}
+          {step === 8 && (
+            <QuestionShell key="s8" step={8} total={10} title="What amenities does it have?" subtitle="Tap to toggle. Only relevant ones for your property type.">
+              <div className="flex flex-wrap gap-2">
+                {(AMENITIES_BY_TYPE[data.type as PropertyTypeKey] || []).map((a) => {
+                  const active = data.amenities.includes(a);
+                  return (
+                    <button
+                      key={a}
+                      onClick={() =>
+                        setData({
+                          ...data,
+                          amenities: active
+                            ? data.amenities.filter((x) => x !== a)
+                            : [...data.amenities, a],
+                        })
+                      }
+                      className={`rounded-full border-2 px-4 py-2 text-sm font-medium transition-all ${
+                        active
+                          ? "border-primary bg-primary text-primary-foreground shadow shadow-primary/30"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      {active && <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />}
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+              {data.amenities.length === 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">Optional — you can skip and submit without amenities.</p>
+              )}
+            </QuestionShell>
+          )}
+
+          {/* STEP 9 — EXTRAS (optional) */}
+          {step === 9 && (
+            <QuestionShell key="s9" step={9} total={10} title="Anything else to highlight?" subtitle="All optional. Skip to go straight to contact.">
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground/80">Approval type (if known)</label>
+                  <ChipRow label="" options={APPROVAL_TYPES} value={data.approval_type} onChange={(v) => setData({ ...data, approval_type: v })} />
+                </div>
+                <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-center text-sm text-muted-foreground">
+                  📷 Photo & document upload available after submission from your dashboard.
+                </div>
+              </div>
+            </QuestionShell>
+          )}
+
+          {/* STEP 10 — CONTACT */}
+          {step === 10 && (
+            <QuestionShell key="s10" step={10} total={10} title="How should buyers reach you?" subtitle="Required to publish your listing.">
+              <div className="space-y-4">
+                <Field label="Full name *" value={data.contact_name} onChange={(v) => setData({ ...data, contact_name: v })} placeholder="Your name" />
+                <Field
+                  label="Mobile number *" value={data.contact_mobile} placeholder="10 digit number"
+                  onChange={(v) => setData({ ...data, contact_mobile: v.replace(/\D/g, "").slice(0, 10) })}
+                />
+                <Field label="WhatsApp (optional)" value={data.contact_whatsapp} placeholder="If different from mobile"
+                  onChange={(v) => setData({ ...data, contact_whatsapp: v.replace(/\D/g, "").slice(0, 10) })} />
+                <Field label="Email" value={data.contact_email} placeholder="you@example.com"
+                  onChange={(v) => setData({ ...data, contact_email: v })} />
+                <ChipRow
+                  label="Preferred contact time"
+                  options={["Anytime", "Morning", "Afternoon", "Evening"]}
+                  value={data.contact_time}
+                  onChange={(v) => setData({ ...data, contact_time: v })}
+                />
+
+                {/* Summary */}
+                <div className="mt-4 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 p-4 text-sm">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">Listing Preview</div>
+                  <div className="font-bold">{data.title || `${data.type} in ${data.locality || data.city}`}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {data.purpose} · {data.size_value} {data.size_unit} · {formatINR(totalPrice)}
+                  </div>
+                </div>
+              </div>
+            </QuestionShell>
+          )}
+        </AnimatePresence>
+
+        {/* Footer nav */}
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <Button
+            variant="ghost"
+            onClick={back}
+            disabled={step === 1}
+            className="gap-1 text-muted-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {step < 10 && (
+              <Button
+                variant="outline"
+                onClick={next}
+                className="rounded-full"
+              >
+                {step === 7 || step === 8 || step === 9 ? "Skip" : "Next"} <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            )}
+            {step === 10 && (
+              <Button
+                onClick={handleSubmit}
+                disabled={!canSubmit || submitting}
+                className="rounded-full bg-gradient-to-r from-primary to-accent px-6 text-primary-foreground shadow-lg shadow-primary/30 hover:opacity-90"
+              >
+                {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting…</> : <><CheckCircle2 className="mr-2 h-4 w-4" /> Publish Listing</>}
+              </Button>
+            )}
+          </div>
         </div>
+
+        {!canSubmit && step === 10 && (
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Complete: Type, Purpose, Location, Size, Price, Name & 10-digit Mobile.
+          </p>
+        )}
       </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   SMALL FIELD HELPERS
+   ============================================================ */
+
+function Field({
+  label, value, onChange, placeholder,
+}: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-foreground/80">{label}</label>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-11 rounded-xl border-2 bg-background/50 focus-visible:border-primary"
+      />
+    </div>
+  );
+}
+
+function ChipRow({
+  label, options, value, onChange,
+}: { label: string; options: string[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      {label && <label className="mb-2 block text-sm font-medium text-foreground/80">{label}</label>}
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <button
+            key={o}
+            onClick={() => onChange(o)}
+            className={`rounded-full border-2 px-3.5 py-1.5 text-sm transition-all ${
+              value === o
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card hover:border-primary/40"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BoolRow({
+  items, data, setData,
+}: { items: { k: keyof Listing; label: string }[]; data: Listing; setData: (d: Listing) => void }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((it) => {
+        const active = !!data[it.k];
+        return (
+          <button
+            key={String(it.k)}
+            onClick={() => setData({ ...data, [it.k]: !active } as Listing)}
+            className={`rounded-full border-2 px-3.5 py-1.5 text-sm transition-all ${
+              active
+                ? "border-primary bg-primary/15 text-primary"
+                : "border-border bg-card hover:border-primary/40 text-foreground/80"
+            }`}
+          >
+            {active && <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />}
+            {it.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
