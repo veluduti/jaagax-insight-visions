@@ -94,17 +94,7 @@ export const useAuth = () => {
       }
 
       const requestedDbRole = normalizeDbRole(access.requestedRole);
-
-      if (access.approvalStatus && requestedDbRole !== "customer") {
-        if (access.approvalStatus === "pending") {
-          await supabase.auth.signOut();
-          return { error: { message: "Your account is pending admin approval. Please wait for approval before signing in." } as any, resolvedRole: null };
-        }
-        if (access.approvalStatus === "rejected") {
-          await supabase.auth.signOut();
-          return { error: { message: "Your account registration was rejected. Please contact support." } as any, resolvedRole: null };
-        }
-      }
+      void requestedDbRole; // approval gates removed — anyone verified can sign in.
 
       return { error: null, resolvedRole: access.resolvedRole };
     }

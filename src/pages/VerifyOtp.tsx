@@ -66,11 +66,10 @@ export default function VerifyOtp() {
         const { error: e2 } = await supabase.auth.verifyOtp({ email, token, type: "email" });
         if (e2) throw e2;
       }
-      // Verified — sign out so the admin-approval gate kicks in on next login.
-      await supabase.auth.signOut();
+      // Verified — user is auto-signed-in by Supabase. Send them straight to the dashboard.
       sessionStorage.removeItem("jaagax.pendingEmail");
-      toast.success("Email verified! Your roles are now awaiting admin approval.", { duration: 6000 });
-      navigate("/auth", { replace: true });
+      toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
+      navigate("/", { replace: true });
     } catch (err: any) {
       toast.error(err?.message || "Invalid or expired code");
     } finally {
@@ -141,8 +140,7 @@ export default function VerifyOtp() {
             </div>
 
             <p className="text-[11px] text-center text-muted-foreground border-t border-border/50 pt-4">
-              After verification, your role request goes to an admin for approval.
-              You'll be able to log in once approved.
+              After verification, you'll be signed in and taken to your dashboard.
             </p>
           </form>
         </Card>
