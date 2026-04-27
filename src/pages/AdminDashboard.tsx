@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import VerificationPanel from "@/components/admin/VerificationPanel";
+import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPanel";
 import { DataImportPanel } from "@/components/admin/DataImportPanel";
 import { FakeListingManager } from "@/components/admin/FakeListingManager";
 import { DatabaseCleanup } from "@/components/admin/DatabaseCleanup";
@@ -349,6 +350,7 @@ export default function AdminDashboard() {
             <DataImportPanel />
             <DatabaseCleanup />
             <FakeListingManager />
+            <AgentVerifiedReviewPanel />
             <VerificationPanel />
           </TabsContent>
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {
   MapPin, Bed, Bath, Maximize2, Phone, Mail,
   MessageSquare, ExternalLink, UserCheck, Sparkles, BadgeCheck,
-  CalendarPlus, CheckCircle2, Clock, User as UserIcon,
+  CalendarPlus, CheckCircle2, Clock, User as UserIcon, FileCheck2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ interface AssignedTask {
   city: string | null;
   locality: string | null;
   address?: string | null;
+  description?: string | null;
   price: number;
   area_sqft: number | null;
   bedrooms: number | null;
@@ -37,6 +39,7 @@ interface AssignedTask {
   verified: boolean | null;
   verification_status: string;
   submitted_by: string | null;
+  agent_notes?: string | null;
   // owner
   owner_email?: string | null;
   owner_phone?: string | null;
@@ -59,13 +62,23 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [scheduleTime, setScheduleTime] = useState("");
   const [filter, setFilter] = useState<"active" | "completed" | "all">("active");
 
+  // Submit-verification dialog state
+  const [verifyTarget, setVerifyTarget] = useState<AssignedTask | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editArea, setEditArea] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImages, setEditImages] = useState("");
+  const [editAgentNotes, setEditAgentNotes] = useState("");
+  const [submittingVerify, setSubmittingVerify] = useState(false);
+
   useEffect(() => { load(); }, [agentId]);
 
   const load = async () => {
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, submitted_by")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, submitted_by, agent_notes")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -217,6 +230,113 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     load();
   };
 
+  const openVerify = (t: AssignedTask) => {
+    setVerifyTarget(t);
+    setEditTitle(t.title || "");
+    setEditPrice(String(t.price ?? ""));
+    setEditArea(String(t.area_sqft ?? ""));
+    setEditDescription(t.description || "");
+    setEditImages(Array.isArray(t.images) ? t.images.join("\n") : "");
+    setEditAgentNotes(t.agent_notes || "");
+  };
+
+  const submitVerification = async () => {
+    if (!verifyTarget) return;
+    if (!editAgentNotes.trim()) { toast.error("Please add agent notes from the visit"); return; }
+    const priceNum = Number(editPrice);
+    const areaNum = editArea ? Number(editArea) : null;
+    if (!editTitle.trim() || !Number.isFinite(priceNum) || priceNum <= 0) {
+      toast.error("Title and a valid price are required");
+      return;
+    }
+    setSubmittingVerify(true);
+
+    const original_snapshot = {
+      title: verifyTarget.title,
+      price: verifyTarget.price,
+      area_sqft: verifyTarget.area_sqft,
+      description: verifyTarget.description,
+      images: Array.isArray(verifyTarget.images) ? verifyTarget.images : [],
+      snapshot_at: new Date().toISOString(),
+    };
+    const newImages = editImages.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        title: editTitle.trim(),
+        price: priceNum,
+        area_sqft: areaNum,
+        description: editDescription,
+        images: newImages,
+        agent_notes: editAgentNotes.trim(),
+        original_snapshot,
+        verification_status: "agent_verified_pending",
+        verified: false,
+        agent_submitted_at: new Date().toISOString(),
+      } as any)
+      .eq("id", verifyTarget.id);
+
+    if (error) {
+      setSubmittingVerify(false);
+      toast.error(error.message);
+      return;
+    }
+
+    // Mark task completed
+    if (verifyTarget.task_id) {
+      await supabase.from("agent_tasks" as any).update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", verifyTarget.task_id);
+    } else {
+      await supabase.from("agent_tasks" as any).insert({
+        agent_id: agentId,
+        agent_user_id: agentUserId,
+        property_id: verifyTarget.id,
+        task_type: "property_assigned",
+        title: `Verify ${verifyTarget.title}`,
+        status: "completed",
+        priority: "high",
+        completed_at: new Date().toISOString(),
+      });
+    }
+
+    // Notify admins
+    const { data: admins } = await supabase
+      .from("user_roles" as any)
+      .select("user_id")
+      .eq("role", "admin");
+    if (admins && admins.length) {
+      await supabase.from("notifications").insert(
+        admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "agent_verified",
+          title: "Agent submitted property for final approval",
+          message: `${agentName} verified "${editTitle.trim()}" and submitted it for admin approval.`,
+          link: `/admin`,
+        }))
+      );
+    }
+
+    // Notify seller
+    if (verifyTarget.submitted_by) {
+      await supabase.from("notifications").insert({
+        user_id: verifyTarget.submitted_by,
+        type: "agent_verified",
+        title: "Property submitted for final approval",
+        message: `${agentName} completed the visit and submitted "${editTitle.trim()}" for admin's final approval.`,
+        link: `/property/${verifyTarget.id}`,
+      });
+    }
+
+    setSubmittingVerify(false);
+    setVerifyTarget(null);
+    toast.success("Submitted for admin approval");
+    load();
+  };
+
   const filtered = tasks.filter((t) =>
     filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed"
   );
@@ -355,11 +475,16 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     <Button
                       size="sm"
                       className="h-8 text-[11px] bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => markCompleted(p)}
-                      disabled={isCompleted}
+                      onClick={() => openVerify(p)}
+                      disabled={isCompleted || p.verification_status === "agent_verified_pending"}
+                      title="Edit details and submit for admin approval"
                     >
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      {isCompleted ? "Done" : "Mark Done"}
+                      <FileCheck2 className="h-3 w-3 mr-1" />
+                      {p.verification_status === "agent_verified_pending"
+                        ? "Submitted"
+                        : isCompleted
+                        ? "Done"
+                        : "Submit Verification"}
                     </Button>
                   </div>
 
@@ -429,6 +554,66 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           <DialogFooter>
             <Button variant="outline" onClick={() => setScheduleTarget(null)}>Cancel</Button>
             <Button onClick={saveSchedule} className="bg-emerald-500 hover:bg-emerald-600 text-white">Save Schedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Submit Verification dialog */}
+      <Dialog open={!!verifyTarget} onOpenChange={(o) => !o && !submittingVerify && setVerifyTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Submit Verification</DialogTitle>
+            <DialogDescription>
+              Edit any fields you corrected on-site, add notes, then submit for admin's final approval.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Title</label>
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium">Price (₹)</label>
+                <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Area (sqft)</label>
+                <Input type="number" value={editArea} onChange={(e) => setEditArea(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Description</label>
+              <Textarea rows={3} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Image URLs (one per line)</label>
+              <Textarea
+                rows={3}
+                value={editImages}
+                onChange={(e) => setEditImages(e.target.value)}
+                placeholder="https://...jpg"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Agent Notes <span className="text-red-500">*</span></label>
+              <Textarea
+                rows={3}
+                value={editAgentNotes}
+                onChange={(e) => setEditAgentNotes(e.target.value)}
+                placeholder="On-site observations, condition, accuracy of seller's claims, etc."
+              />
+            </div>
+            <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2.5 text-[11px] text-blue-700 dark:text-blue-400">
+              On submit, the property status becomes <strong>Agent Verified — Pending Admin Approval</strong>. Admin will compare your edits with the original submission.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={submittingVerify} onClick={() => setVerifyTarget(null)}>Cancel</Button>
+            <Button onClick={submitVerification} disabled={submittingVerify} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <FileCheck2 className="h-4 w-4 mr-1" />
+              {submittingVerify ? "Submitting…" : "Submit Verification"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

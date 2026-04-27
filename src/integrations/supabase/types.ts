@@ -1381,6 +1381,8 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          agent_notes: string | null
+          agent_submitted_at: string | null
           amenities: string[] | null
           area_sqft: number | null
           assigned_agent_id: string | null
@@ -1409,6 +1411,7 @@ export type Database = {
           locality: string
           longitude: number | null
           maintenance_charges: number | null
+          original_snapshot: Json | null
           pincode: string | null
           price: number
           price_negotiable: boolean | null
@@ -1431,6 +1434,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agent_notes?: string | null
+          agent_submitted_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
           assigned_agent_id?: string | null
@@ -1459,6 +1464,7 @@ export type Database = {
           locality: string
           longitude?: number | null
           maintenance_charges?: number | null
+          original_snapshot?: Json | null
           pincode?: string | null
           price?: number
           price_negotiable?: boolean | null
@@ -1481,6 +1487,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agent_notes?: string | null
+          agent_submitted_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
           assigned_agent_id?: string | null
@@ -1509,6 +1517,7 @@ export type Database = {
           locality?: string
           longitude?: number | null
           maintenance_charges?: number | null
+          original_snapshot?: Json | null
           pincode?: string | null
           price?: number
           price_negotiable?: boolean | null
