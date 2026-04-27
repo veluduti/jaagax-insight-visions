@@ -60,7 +60,10 @@ export default function RegisteredUsersPanel() {
   const [users, setUsers] = useState<UserCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewing, setViewing] = useState<UserCardData | null>(null);
+  const [deleting, setDeleting] = useState<UserCardData | null>(null);
+  const [deletingInProgress, setDeletingInProgress] = useState(false);
   const [query, setQuery] = useState("");
+  const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
