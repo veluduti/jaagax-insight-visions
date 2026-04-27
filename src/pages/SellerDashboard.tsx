@@ -51,6 +51,7 @@ interface Property {
   listing_type: string | null;
   created_at: string;
   assigned_agent_id: string | null;
+  agent_submitted_at: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
