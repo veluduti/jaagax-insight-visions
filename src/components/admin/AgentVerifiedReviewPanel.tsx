@@ -44,7 +44,7 @@ export default function AgentVerifiedReviewPanel() {
     setLoading(true);
     const { data, error } = await supabase
       .from("properties")
-      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, assigned_agent_id, submitted_by, agent_submitted_at")
+      .select("id, title, city, locality, type, price, area_sqft, description, images, agent_notes, original_snapshot, agent_data, field_verification, assigned_agent_id, submitted_by, agent_submitted_at")
       .eq("verification_status", "agent_verified_pending")
       .order("agent_submitted_at", { ascending: false });
     if (error) toast.error(error.message);
