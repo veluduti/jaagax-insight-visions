@@ -72,6 +72,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [editImages, setEditImages] = useState("");
   const [editAgentNotes, setEditAgentNotes] = useState("");
   const [submittingVerify, setSubmittingVerify] = useState(false);
+  const [editFullTarget, setEditFullTarget] = useState<AssignedTask | null>(null);
 
   useEffect(() => { load(); }, [agentId]);
 
