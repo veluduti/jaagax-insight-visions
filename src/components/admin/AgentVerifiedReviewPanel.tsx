@@ -148,12 +148,12 @@ export default function AgentVerifiedReviewPanel() {
     return (
       <div className="grid grid-cols-2 gap-3 py-2 border-b last:border-0">
         <div>
-          <p className="text-[10px] uppercase font-semibold text-muted-foreground">{label} — Original</p>
+          <p className="text-[10px] uppercase font-semibold text-muted-foreground">{label} — Seller</p>
           <p className="text-sm">{fmt(original)}</p>
         </div>
         <div className={changed ? "rounded p-2 -m-2 bg-emerald-500/10 border border-emerald-500/30" : ""}>
           <p className="text-[10px] uppercase font-semibold text-muted-foreground flex items-center gap-1">
-            {label} — Edited {changed && <ArrowRight className="h-3 w-3 text-emerald-600" />}
+            {label} — Agent {changed && <ArrowRight className="h-3 w-3 text-emerald-600" />}
           </p>
           <p className="text-sm font-medium">{fmt(edited)}</p>
         </div>
