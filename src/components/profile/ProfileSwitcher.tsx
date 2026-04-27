@@ -3,10 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Users, Building2, Tag, Plus, Check, Clock, ChevronDown, LogOut } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Home, Users, Building2, Tag, Plus, Check, Clock, ChevronDown, LogOut, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProfile, ProfileType, Profile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import AddRoleModal from "./AddRoleModal";
 import { cn } from "@/lib/utils";
 
