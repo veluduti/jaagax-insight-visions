@@ -83,6 +83,11 @@ export default function Auth() {
 
   useEffect(() => {
     if (!authLoading && user) {
+      // Admin always goes straight to admin dashboard
+      if (role === "admin") {
+        navigate("/dashboard/admin");
+        return;
+      }
       // Decide redirect based on profiles count
       (async () => {
         const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
@@ -93,7 +98,14 @@ export default function Auth() {
           localStorage.setItem("jaagax.activeProfileId", list[0].id);
           navigate(`/dashboard/${list[0].type}`);
         } else {
-          navigate("/select-profile");
+          // Multiple profiles: prefer last-used (stored) to avoid showing the picker every login.
+          const storedId = localStorage.getItem("jaagax.activeProfileId");
+          const stored = storedId ? list.find((p) => p.id === storedId) : null;
+          if (stored) {
+            navigate(`/dashboard/${stored.type}`);
+          } else {
+            navigate("/select-profile");
+          }
         }
       })();
     }
@@ -166,6 +178,17 @@ export default function Auth() {
         // Multi-profile login flow: fetch profiles, decide where to send the user.
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         if (currentUser) {
+          // Admin shortcut — straight to admin dashboard, never the picker.
+          const { data: roleRows } = await supabase
+            .from("user_roles" as any)
+            .select("role")
+            .eq("user_id", currentUser.id);
+          const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
+          if (roles.includes("admin")) {
+            navigate("/dashboard/admin");
+            return;
+          }
+
           const { data: profileRows } = await supabase
             .from("profiles" as any)
             .select("id, type, status")
@@ -173,6 +196,13 @@ export default function Auth() {
           const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
           const active = profs.filter((p) => p.status === "active");
           if (active.length > 1) {
+            // Prefer last-used profile so returning users skip the picker.
+            const storedId = localStorage.getItem("jaagax.activeProfileId");
+            const stored = storedId ? active.find((p) => p.id === storedId) : null;
+            if (stored) {
+              navigate(`/dashboard/${stored.type}`);
+              return;
+            }
             navigate("/select-profile");
             return;
           }
@@ -184,7 +214,13 @@ export default function Auth() {
             navigate(`/dashboard/${active[0].type}`);
             return;
           }
-          // No profiles? Send to select page (shows add-role).
+          // No profiles yet — fall back to role-based dashboard if we have one, else picker.
+          if (roles.length > 0) {
+            const r = roles[0];
+            const target = r === "customer" ? "buyer" : r;
+            navigate(`/dashboard/${target}`);
+            return;
+          }
           navigate("/select-profile");
           return;
         }
