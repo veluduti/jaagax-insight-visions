@@ -217,9 +217,19 @@ export default function RegisteredUsersPanel() {
                       )}
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => setViewing(u)}>
-                    <Eye className="h-4 w-4 mr-1" /> View
-                  </Button>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <Button size="sm" variant="outline" onClick={() => setViewing(u)}>
+                      <Eye className="h-4 w-4 mr-1" /> View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => setDeleting(u)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             ))}
