@@ -26,10 +26,13 @@ const dashboardRoute = (type: ProfileType) => `/dashboard/${type}`;
 
 export default function ProfileSwitcher() {
   const navigate = useNavigate();
-  const { profiles, activeProfile, switchProfile, loading } = useProfile();
+  const { profiles, activeProfile, switchProfile, removeProfile, loading } = useProfile();
   const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [removingProfile, setRemovingProfile] = useState<Profile | null>(null);
+  const [removeBusy, setRemoveBusy] = useState(false);
 
   if (loading || !user || !activeProfile) return null;
 
