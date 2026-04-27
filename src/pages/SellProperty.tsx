@@ -14,6 +14,7 @@ import {
   Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
   ImagePlus, X, MessageCircle,
 } from "lucide-react";
+import CityAutocomplete from "@/components/auth/CityAutocomplete";
 
 /* ============================================================
    Types matching the orchestrator edge function
