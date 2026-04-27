@@ -52,6 +52,8 @@ interface Property {
   created_at: string;
   assigned_agent_id: string | null;
   agent_submitted_at: string | null;
+  is_live?: boolean | null;
+  published_at?: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
