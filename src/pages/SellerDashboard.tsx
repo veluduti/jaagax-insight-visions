@@ -51,6 +51,7 @@ interface Property {
   listing_type: string | null;
   created_at: string;
   assigned_agent_id: string | null;
+  agent_submitted_at: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
@@ -83,7 +84,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -186,6 +187,76 @@ export default function SellerDashboard() {
     return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500" /></div>;
   }
 
+  const PropertyTimeline = ({ p }: { p: Property }) => {
+    const status = p.verification_status || "pending";
+    const isApproved = status === "approved" || p.verified;
+    const isRejected = status === "rejected";
+    const isAgentVerified = status === "agent_verified_pending" || !!p.agent_submitted_at || isApproved || isRejected;
+    const hasAgent = !!p.assigned_agent_id || isAgentVerified;
+    const isUnderReview = !!p.created_at;
+    const isFinalRejected = isRejected;
+
+    const steps = [
+      { key: "submitted", label: "Submitted", done: true },
+      { key: "review", label: "Under Review", done: isUnderReview },
+      { key: "agent", label: "Agent Assigned", done: hasAgent },
+      { key: "verified", label: "Verification Done", done: isAgentVerified },
+      {
+        key: "final",
+        label: isFinalRejected ? "Rejected" : "Approved",
+        done: isApproved || isFinalRejected,
+        rejected: isFinalRejected,
+      },
+    ];
+    const completedCount = steps.filter((s) => s.done).length;
+    const progressPct = (completedCount / steps.length) * 100;
+
+    return (
+      <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Listing Progress</p>
+          <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+            {completedCount}/{steps.length}
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full transition-all ${isFinalRejected ? "bg-rose-500" : "bg-gradient-to-r from-emerald-500 to-emerald-400"}`}
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <div className="flex items-start justify-between gap-1 pt-1">
+          {steps.map((s, i) => (
+            <div key={s.key} className="flex-1 flex flex-col items-center text-center">
+              <div
+                className={`h-5 w-5 rounded-full flex items-center justify-center border-2 ${
+                  s.done
+                    ? (s as any).rejected
+                      ? "bg-rose-500 border-rose-500 text-white"
+                      : "bg-emerald-500 border-emerald-500 text-white"
+                    : "bg-background border-border text-muted-foreground"
+                }`}
+              >
+                {s.done ? (
+                  (s as any).rejected ? (
+                    <XCircle className="h-3 w-3" />
+                  ) : (
+                    <CheckCircle2 className="h-3 w-3" />
+                  )
+                ) : (
+                  <span className="text-[9px] font-bold">{i + 1}</span>
+                )}
+              </div>
+              <span className={`text-[9px] mt-1 leading-tight ${s.done ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const PropertyCard = ({ p }: { p: Property }) => {
     const status = p.is_draft ? "draft" : (p.verification_status || "pending");
     const meta = STATUS_META[status] || STATUS_META.pending;
@@ -223,6 +294,7 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
+            {!p.is_draft && <PropertyTimeline p={p} />}
             {status === "rejected" && (
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
                 {p.rejection_reason && (
