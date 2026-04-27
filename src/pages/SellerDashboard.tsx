@@ -224,6 +224,7 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
+            {!p.is_draft && <PropertyTimeline p={p} />}
             {status === "rejected" && (
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
                 {p.rejection_reason && (
