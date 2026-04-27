@@ -127,11 +127,25 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
   const saveSchedule = async () => {
     if (!scheduleTarget || !scheduleDate) { toast.error("Pick a date"); return; }
-    const iso = new Date(`${scheduleDate}T${scheduleTime || "10:00"}`).toISOString();
+    const visitAt = new Date(`${scheduleDate}T${scheduleTime || "10:00"}`);
+    const now = new Date();
+    const slaDeadline = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+    if (visitAt.getTime() < now.getTime()) {
+      toast.error("Visit time must be in the future"); return;
+    }
+    if (visitAt.getTime() > slaDeadline.getTime()) {
+      toast.error("SLA: visit must be scheduled within 48 hours");
+      return;
+    }
+    const iso = visitAt.toISOString();
     const payload: any = {
       status: "in_progress",
-      metadata: { scheduled_visit_at: iso },
-      updated_at: new Date().toISOString(),
+      metadata: {
+        scheduled_visit_at: iso,
+        sla_deadline: slaDeadline.toISOString(),
+        scheduled_at: now.toISOString(),
+      },
+      updated_at: now.toISOString(),
     };
 
     if (scheduleTarget.task_id) {
