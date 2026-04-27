@@ -85,7 +85,7 @@ function pickNextField(state: Record<string, any>): FieldDef | null {
 async function aiEnrich(field: FieldDef, state: Record<string, any>) {
   if (!LOVABLE_API_KEY) return null;
   // Only enrich for free-text creative fields
-  if (!["title", "description"].includes(field.id)) return null;
+  if (!["title"].includes(field.id)) return null;
 
   const userPrompt = `You are helping list a property in India.
 Collected facts:
