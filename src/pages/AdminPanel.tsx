@@ -20,6 +20,7 @@ import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
+import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
@@ -305,7 +306,7 @@ export default function AdminPanel() {
             { label: "Projects", value: stats.totalProjects, icon: Building2, color: "text-green-500" },
             { label: "Agents", value: stats.totalAgents, icon: Users, color: "text-primary" },
             { label: "Builders", value: stats.totalBuilders, icon: Building2, color: "text-purple-500" },
-            { label: "Pending Signups", value: stats.pendingSignups, icon: AlertCircle, color: "text-orange-500" },
+            { label: "Registered Users", value: signupRequests.length, icon: Users, color: "text-orange-500" },
             { label: "Pending Visits", value: stats.pendingVisits, icon: CalendarCheck, color: "text-amber-500" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
@@ -325,12 +326,7 @@ export default function AdminPanel() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap">
-            <TabsTrigger value="signups" className="relative">
-              Signup Requests
-              {stats.pendingSignups > 0 && (
-                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5">{stats.pendingSignups}</span>
-              )}
-            </TabsTrigger>
+            <TabsTrigger value="signups">Registered Users</TabsTrigger>
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
@@ -381,124 +377,9 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* === SIGNUP REQUESTS === */}
+          {/* === REGISTERED USERS === */}
           <TabsContent value="signups" className="space-y-4">
-            {/* Pending */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-500">
-                  <AlertCircle className="h-5 w-5" />
-                  Pending Requests ({pendingRequests.length})
-                </CardTitle>
-                <CardDescription>Approve or reject new user registrations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pendingRequests.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-6">No pending requests 🎉</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingRequests.map((req) => (
-                        <TableRow key={req.id}>
-                          <TableCell className="font-medium">{req.full_name || "N/A"}</TableCell>
-                          <TableCell>{req.email}</TableCell>
-                          <TableCell>{req.phone || "N/A"}</TableCell>
-                          <TableCell><Badge variant="outline">{req.requested_role}</Badge></TableCell>
-                          <TableCell>{req.city || "N/A"}</TableCell>
-                          <TableCell className="text-xs">{new Date(req.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                onClick={() => handleReviewSignup(req.id, "approved")}
-                                disabled={reviewingId === req.id}
-                              >
-                                {reviewingId === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleReviewSignup(req.id, "rejected", "Not eligible")}
-                                disabled={reviewingId === req.id}
-                              >
-                                <XCircle className="h-3 w-3 mr-1" />
-                                Reject
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Approved & Rejected */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-green-500 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Approved ({approvedRequests.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="max-h-60 overflow-auto">
-                  {approvedRequests.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">None yet</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {approvedRequests.map((req) => (
-                        <div key={req.id} className="flex items-center justify-between p-2 border rounded text-sm">
-                          <div>
-                            <p className="font-medium">{req.full_name || req.email}</p>
-                            <p className="text-xs text-muted-foreground">{req.requested_role} • {req.city || "N/A"}</p>
-                          </div>
-                          <Badge variant="default">Approved</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-destructive flex items-center gap-2">
-                    <XCircle className="h-5 w-5" />
-                    Rejected ({rejectedRequests.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="max-h-60 overflow-auto">
-                  {rejectedRequests.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">None yet</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {rejectedRequests.map((req) => (
-                        <div key={req.id} className="flex items-center justify-between p-2 border rounded text-sm">
-                          <div>
-                            <p className="font-medium">{req.full_name || req.email}</p>
-                            <p className="text-xs text-muted-foreground">{req.rejection_reason}</p>
-                          </div>
-                          <Badge variant="destructive">Rejected</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <RegisteredUsersPanel />
           </TabsContent>
 
           {/* === VISIT BOOKINGS === */}
