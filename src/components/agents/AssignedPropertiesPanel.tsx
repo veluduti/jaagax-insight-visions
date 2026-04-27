@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import PropertyChat from "@/components/chat/PropertyChat";
+import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 
 interface AssignedTask {
   // task
