@@ -14,6 +14,7 @@ import {
   Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
   ImagePlus, X, MessageCircle,
 } from "lucide-react";
+import CityAutocomplete from "@/components/auth/CityAutocomplete";
 
 /* ============================================================
    Types matching the orchestrator edge function
@@ -24,7 +25,8 @@ type FieldDef = {
   question: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
-    | "single" | "multi" | "yesno" | "media";
+    | "single" | "multi" | "yesno" | "media"
+    | "city" | "locality" | "price_unit";
   options?: string[];
   optional?: boolean;
 };
@@ -41,11 +43,19 @@ type NextResp =
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
 
-function validate(field: FieldDef, value: any): string | null {
-  if (field.optional && (value === "" || value == null || (Array.isArray(value) && value.length === 0))) return null;
-  if (value === "" || value == null || (Array.isArray(value) && value.length === 0)) {
-    return "This field is required";
+function isEmpty(v: any) {
+  if (v == null || v === "") return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") {
+    // price_unit object
+    return !v.unit || !v.area || !v.pricePerUnit;
   }
+  return false;
+}
+
+function validate(field: FieldDef, value: any): string | null {
+  if (field.optional && isEmpty(value)) return null;
+  if (isEmpty(value)) return "This field is required";
   if (field.input === "phone" && !phoneRE.test(String(value))) return "Enter a valid 10-digit mobile number";
   if (field.input === "email") {
     const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -53,6 +63,10 @@ function validate(field: FieldDef, value: any): string | null {
   }
   if (field.input === "number" && isNaN(Number(value))) return "Enter a valid number";
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
+  if (field.input === "price_unit") {
+    if (isNaN(Number(value.area)) || Number(value.area) <= 0) return "Enter a valid area";
+    if (isNaN(Number(value.pricePerUnit)) || Number(value.pricePerUnit) <= 0) return "Enter a valid price per unit";
+  }
   return null;
 }
 
@@ -114,6 +128,8 @@ export default function SellProperty() {
           setValue(existing);
         } else if (d.field.input === "multi") {
           setValue([]);
+        } else if (d.field.input === "price_unit") {
+          setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
         } else {
           setValue("");
         }
@@ -191,17 +207,32 @@ export default function SellProperty() {
         return;
       }
 
+      // Derive pricing from unit-based input
+      const pu = state.price_unit || {};
+      const area = Number(pu.area) || null;
+      const ppu = Number(pu.pricePerUnit) || null;
+      const totalPrice = area && ppu ? area * ppu : null;
+      // Normalize area to sq ft (rough conversions)
+      const UNIT_TO_SQFT: Record<string, number> = {
+        "sq ft": 1, "sq m": 10.7639, "gunta": 1089, "acre": 43560, "cent": 435.6, "sq yard": 9,
+      };
+      const areaSqft = area && pu.unit ? Math.round(area * (UNIT_TO_SQFT[pu.unit] || 1)) : null;
+      const pricePerSqft = totalPrice && areaSqft ? Math.round(totalPrice / areaSqft) : null;
+
+      const typesArr = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+      const primaryType = typesArr[0] || null;
+
       // Map the conversational state into the properties table schema.
       const payload: any = {
         user_id: user.id,
-        title: state.title || `${state.bhk || ""} ${state.type || "Property"} in ${state.locality || state.city || ""}`.trim(),
+        title: state.title || `${state.bhk || ""} ${primaryType || "Property"} in ${state.locality || state.city || ""}`.trim(),
         description: state.description || null,
-        type: state.type || null,
+        type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: (state.listed_by || "owner").toLowerCase(),
-        price: state.expected_price ? Number(state.expected_price) : null,
-        price_per_sqft: state.price_per_sqft ? Number(state.price_per_sqft) : null,
-        area_sqft: state.built_up || state.super_built_up || state.carpet_area || state.plot_area || null,
+        price: totalPrice,
+        price_per_sqft: pricePerSqft,
+        area_sqft: areaSqft,
         bhk: state.bhk || null,
         bedrooms: state.bhk ? parseInt(String(state.bhk)) || null : null,
         bathrooms: state.bathrooms ? Number(state.bathrooms) : null,
@@ -533,6 +564,106 @@ function renderInput(field: FieldDef, value: any, setValue: (v: any) => void) {
       );
     case "media":
       return null;
+    case "city":
+      return (
+        <CityAutocomplete
+          value={value || ""}
+          onChange={(c) => setValue(c)}
+          placeholder="Search your city..."
+        />
+      );
+    case "locality": {
+      const suggestions = ["Gachibowli", "Madhapur", "Kondapur", "Hitech City", "Banjara Hills",
+        "Jubilee Hills", "Kukatpally", "Whitefield", "Indiranagar", "Koramangala", "HSR Layout",
+        "Bandra", "Andheri", "Powai", "Hinjewadi", "Wakad", "Baner", "Kharadi"];
+      const q = String(value || "").toLowerCase();
+      const matches = q ? suggestions.filter((s) => s.toLowerCase().includes(q)).slice(0, 6) : [];
+      return (
+        <div className="space-y-2">
+          <Input
+            value={value || ""}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Type your area / locality..."
+          />
+          {matches.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {matches.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setValue(m)}
+                  className="text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-primary/5"
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+    case "price_unit": {
+      const v = value && typeof value === "object" ? value : { unit: "sq ft", area: "", pricePerUnit: "" };
+      const units = ["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"];
+      const total = Number(v.area) > 0 && Number(v.pricePerUnit) > 0
+        ? Number(v.area) * Number(v.pricePerUnit) : 0;
+      const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Pricing unit</label>
+            <div className="flex flex-wrap gap-2">
+              {units.map((u) => {
+                const active = v.unit === u;
+                return (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setValue({ ...v, unit: u })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition
+                      ${active
+                        ? "bg-primary text-primary-foreground border-primary shadow"
+                        : "bg-background hover:bg-primary/5 border-border"}`}
+                  >
+                    {u}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Total area ({v.unit})</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={v.area}
+                onChange={(e) => setValue({ ...v, area: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Price per {v.unit} (₹)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={v.pricePerUnit}
+                onChange={(e) => setValue({ ...v, pricePerUnit: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          {total > 0 && (
+            <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-emerald-500/5 px-4 py-3 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Estimated total</span>
+              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
+                ₹ {fmt(total)}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    }
     default:
       return null;
   }

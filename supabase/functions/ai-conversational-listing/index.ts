@@ -15,15 +15,15 @@ const corsHeaders = {
    ============================================================ */
 
 type FieldDef = {
-  id: string;              // unique key in collected state
-  section: string;         // human label
-  question: string;        // default question text
+  id: string;
+  section: string;
+  question: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
-    | "single" | "multi" | "yesno" | "media";
-  options?: string[];      // for single/multi
+    | "single" | "multi" | "yesno" | "media"
+    | "city" | "locality" | "price_unit";
+  options?: string[];
   optional?: boolean;
-  // gating: only ask when these conditions on collected state pass
   when?: (s: Record<string, any>) => boolean;
 };
 
@@ -32,29 +32,30 @@ const ALL_PROPERTY_TYPES = [
   "Agricultural Land", "Penthouse", "Duplex / Triplex", "Row House / Townhouse",
 ];
 
-const isLand = (t: string) =>
-  t === "Plot / Land" || t === "Agricultural Land";
-const isApartmentLike = (t: string) =>
-  ["Apartment / Flat", "Penthouse"].includes(t);
-const isHouseLike = (t: string) =>
-  ["Independent House", "Villa", "Duplex / Triplex", "Row House / Townhouse", "Penthouse"].includes(t);
+// `type` is now an array (multi-select). Helpers check ANY/ALL.
+const typesOf = (t: any): string[] => Array.isArray(t) ? t : (t ? [t] : []);
+const anyLand = (t: any) => typesOf(t).some((x) => x === "Plot / Land" || x === "Agricultural Land");
+const allLand = (t: any) => {
+  const a = typesOf(t);
+  return a.length > 0 && a.every((x) => x === "Plot / Land" || x === "Agricultural Land");
+};
 
-/* MINIMAL ESSENTIAL FIELDS — only ~13 questions to keep flow short.
-   Dynamic: BHK / Area-sqft / Furnishing skipped automatically for land. */
+/* MINIMAL ESSENTIAL FIELDS — short conversational flow.
+   Property type is multi-select. Pricing is unit-based (sq ft / gunta / acre / cent). */
 const FIELDS: FieldDef[] = [
   { id: "title", section: "Basic", question: "Give your listing a short catchy title", input: "text" },
-  { id: "type", section: "Basic", question: "What kind of property are you listing?", input: "single", options: ALL_PROPERTY_TYPES },
+  { id: "type", section: "Basic", question: "What kind of property are you listing? (pick one or more)", input: "multi", options: ALL_PROPERTY_TYPES },
   { id: "purpose", section: "Basic", question: "Are you listing it for…", input: "single", options: ["Sale", "Rent", "Lease"] },
-  { id: "city", section: "Location", question: "Which city?", input: "text" },
-  { id: "locality", section: "Location", question: "Area / Locality?", input: "text" },
-  { id: "expected_price", section: "Price", question: "Expected total price (₹)?", input: "number" },
+  { id: "city", section: "Location", question: "Which city?", input: "city" },
+  { id: "locality", section: "Location", question: "Area / Locality?", input: "locality" },
+  // Unit-based pricing replaces a single total-price field.
+  { id: "price_unit", section: "Price", question: "How would you like to price it?", input: "price_unit" },
   { id: "bhk", section: "Configuration", question: "How many BHK?", input: "single",
-    options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"], when: (s) => !isLand(s.type) },
-  { id: "area_sqft", section: "Size", question: "Total area (sq ft)?", input: "number" },
+    options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"], when: (s) => !allLand(s.type) },
   { id: "furnishing", section: "Furnishing", question: "Furnishing status?", input: "single",
-    options: ["Unfurnished", "Semi-Furnished", "Fully Furnished"], when: (s) => !isLand(s.type) },
+    options: ["Unfurnished", "Semi-Furnished", "Fully Furnished"], when: (s) => !allLand(s.type) },
   { id: "car_parking", section: "Parking", question: "How many car parking slots?", input: "number",
-    optional: true, when: (s) => !isLand(s.type) },
+    optional: true, when: (s) => !allLand(s.type) },
   { id: "media", section: "Media", question: "Upload a photo (optional)", input: "media", optional: true },
   { id: "contact_name", section: "Contact", question: "Your full name?", input: "text" },
   { id: "contact_mobile", section: "Contact", question: "Mobile number?", input: "phone" },
