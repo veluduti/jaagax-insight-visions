@@ -159,7 +159,11 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
         title: `Visit ${scheduleTarget.title}`,
         status: "in_progress",
         priority: "high",
-        metadata: { scheduled_visit_at: iso },
+        metadata: {
+          scheduled_visit_at: iso,
+          sla_deadline: slaDeadline.toISOString(),
+          scheduled_at: now.toISOString(),
+        },
       });
     }
 
@@ -167,12 +171,14 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
       await supabase.from("notifications").insert({
         user_id: scheduleTarget.submitted_by,
         type: "visit_scheduled",
-        title: "Agent scheduled a visit",
-        message: `${agentName} scheduled a visit to your property on ${new Date(iso).toLocaleString()}`,
+        title: "Agent will visit your property",
+        message: `${agentName} will visit your property "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.`,
         link: `/property/${scheduleTarget.id}`,
       });
     }
-    toast.success("Visit scheduled");
+    toast.success("Visit scheduled", {
+      description: `Visit set for ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} • Within 48h SLA`,
+    });
     setScheduleTarget(null);
     load();
   };
