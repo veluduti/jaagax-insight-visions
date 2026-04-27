@@ -519,65 +519,7 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
 
-      {/* Signup Request — Detailed Review Dialog */}
-      <Dialog open={!!viewingSignup} onOpenChange={(v) => !v && setViewingSignup(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              Review signup request
-            </DialogTitle>
-            <DialogDescription>Verify the user's details before approving.</DialogDescription>
-          </DialogHeader>
-          {viewingSignup && (
-            <div className="space-y-4">
-              <div className="rounded-xl border bg-muted/30 p-4">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Identity</div>
-                <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                  <SignupField label="Name" value={viewingSignup.full_name || "—"} />
-                  <SignupField label="Email" value={viewingSignup.email || "—"} />
-                  <SignupField label="Phone" value={viewingSignup.phone || "—"} />
-                  <SignupField label="City" value={viewingSignup.city || "—"} />
-                  <SignupField label="Requested role" value={viewingSignup.requested_role || "—"} />
-                  <SignupField label="Status" value={viewingSignup.status} />
-                </div>
-              </div>
-              <div className="rounded-xl border bg-muted/30 p-4 grid sm:grid-cols-2 gap-3 text-sm">
-                <SignupField label="Submitted" value={new Date(viewingSignup.created_at).toLocaleString()} />
-                <SignupField label="User ID" value={viewingSignup.user_id} />
-              </div>
-              {viewingSignup.rejection_reason && (
-                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  Reason: {viewingSignup.rejection_reason}
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setViewingSignup(null)}>Close</Button>
-            {viewingSignup?.status === "pending" && (
-              <>
-                <Button variant="destructive" onClick={() => { handleReviewSignup(viewingSignup.id, "rejected", "Not eligible at this time"); setViewingSignup(null); }} disabled={reviewingId === viewingSignup.id}>
-                  Reject
-                </Button>
-                <Button onClick={() => { handleReviewSignup(viewingSignup.id, "approved"); setViewingSignup(null); }} disabled={reviewingId === viewingSignup.id}>
-                  {reviewingId === viewingSignup.id ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                  Approve
-                </Button>
-              </>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-function SignupField({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="text-sm text-foreground font-medium break-words">{value}</div>
-    </div>
-  );
-}
