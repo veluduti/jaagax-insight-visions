@@ -174,6 +174,53 @@ export default function ProfileSwitcher() {
       </Popover>
 
       <AddRoleModal open={addOpen} onOpenChange={setAddOpen} />
+
+      <AlertDialog
+        open={!!removingProfile}
+        onOpenChange={(v) => !v && !removeBusy && setRemovingProfile(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Remove {removingProfile ? roleMeta[removingProfile.type].label : ""} role?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will lose access to the {removingProfile?.type} dashboard and any data tied to this role. You can add it again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={removeBusy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!removingProfile) return;
+                setRemoveBusy(true);
+                const wasActive = removingProfile.id === activeProfile.id;
+                const removedType = removingProfile.type;
+                const { error } = await removeProfile(removingProfile.id);
+                setRemoveBusy(false);
+                if (error) {
+                  toast({ title: "Could not remove role", description: error, variant: "destructive" });
+                  return;
+                }
+                toast({ title: "Role removed", description: `Your ${removedType} role was removed.` });
+                setRemovingProfile(null);
+                setOpen(false);
+                if (wasActive) {
+                  // Navigate to whatever active profile is now or home
+                  const remaining = profiles.filter((p) => p.id !== removingProfile.id);
+                  const next = remaining[0];
+                  navigate(next ? dashboardRoute(next.type) : "/");
+                }
+              }}
+            >
+              {removeBusy ? "Removing…" : "Remove role"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
