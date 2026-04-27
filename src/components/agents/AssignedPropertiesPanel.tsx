@@ -398,18 +398,33 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           <DialogHeader>
             <DialogTitle>Schedule Visit</DialogTitle>
             <DialogDescription>
-              Set a date & time to visit "{scheduleTarget?.title}". The seller will be notified.
+              Set a date & time to visit "{scheduleTarget?.title}". The seller will be notified instantly.
             </DialogDescription>
           </DialogHeader>
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-2">
+            <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span><strong>SLA:</strong> Visit must occur within <strong>48 hours</strong> from now (by {new Date(Date.now() + 48 * 3600 * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}).</span>
+          </div>
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium">Date</label>
-              <Input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
+              <Input
+                type="date"
+                value={scheduleDate}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+                max={new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 10)}
+              />
             </div>
             <div>
               <label className="text-xs font-medium">Time</label>
               <Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
             </div>
+            {scheduleDate && (
+              <p className="text-[11px] text-muted-foreground">
+                Visit scheduled for: <strong>{new Date(`${scheduleDate}T${scheduleTime || "10:00"}`).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</strong>
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setScheduleTarget(null)}>Cancel</Button>
