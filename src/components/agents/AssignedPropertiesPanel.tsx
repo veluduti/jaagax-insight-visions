@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import PropertyChat from "@/components/chat/PropertyChat";
+import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 
 interface AssignedTask {
   // task
@@ -71,6 +72,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [editImages, setEditImages] = useState("");
   const [editAgentNotes, setEditAgentNotes] = useState("");
   const [submittingVerify, setSubmittingVerify] = useState(false);
+  const [editFullTarget, setEditFullTarget] = useState<AssignedTask | null>(null);
 
   useEffect(() => { load(); }, [agentId]);
 
@@ -78,7 +80,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, type, images, verified, verification_status, submitted_by, agent_notes")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -444,7 +446,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     <Button
                       size="sm"
                       className="h-8 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white"
@@ -474,17 +476,15 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     </Button>
                     <Button
                       size="sm"
-                      className="h-8 text-[11px] bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => openVerify(p)}
-                      disabled={isCompleted || p.verification_status === "agent_verified_pending"}
-                      title="Edit details and submit for admin approval"
+                      className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => setEditFullTarget(p)}
+                      disabled={p.verification_status === "agent_verified_pending"}
+                      title="Open full sectioned form to verify, correct, and add fields"
                     >
                       <FileCheck2 className="h-3 w-3 mr-1" />
                       {p.verification_status === "agent_verified_pending"
-                        ? "Submitted"
-                        : isCompleted
-                        ? "Done"
-                        : "Submit Verification"}
+                        ? "Submitted for Approval"
+                        : "Edit Property & Submit Verification"}
                     </Button>
                   </div>
 
@@ -617,6 +617,16 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AgentEditPropertyDialog
+        open={!!editFullTarget}
+        onOpenChange={(o) => !o && setEditFullTarget(null)}
+        property={editFullTarget}
+        agentName={agentName}
+        agentId={agentId}
+        agentUserId={agentUserId}
+        onSubmitted={load}
+      />
     </Card>
   );
 }

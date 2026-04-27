@@ -1381,6 +1381,7 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          agent_data: Json | null
           agent_notes: string | null
           agent_submitted_at: string | null
           amenities: string[] | null
@@ -1400,6 +1401,7 @@ export type Database = {
           description: string | null
           document_urls: Json | null
           elevators: number | null
+          field_verification: Json | null
           floor_number: number | null
           furnishing: string | null
           id: string
@@ -1434,6 +1436,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agent_data?: Json | null
           agent_notes?: string | null
           agent_submitted_at?: string | null
           amenities?: string[] | null
@@ -1453,6 +1456,7 @@ export type Database = {
           description?: string | null
           document_urls?: Json | null
           elevators?: number | null
+          field_verification?: Json | null
           floor_number?: number | null
           furnishing?: string | null
           id?: string
@@ -1487,6 +1491,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agent_data?: Json | null
           agent_notes?: string | null
           agent_submitted_at?: string | null
           amenities?: string[] | null
@@ -1506,6 +1511,7 @@ export type Database = {
           description?: string | null
           document_urls?: Json | null
           elevators?: number | null
+          field_verification?: Json | null
           floor_number?: number | null
           furnishing?: string | null
           id?: string
