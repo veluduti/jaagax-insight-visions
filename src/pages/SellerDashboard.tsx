@@ -223,10 +223,21 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
-            {status === "rejected" && p.rejection_reason && (
-              <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400">
-                <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
-                <p className="mt-0.5">{p.rejection_reason}</p>
+            {status === "rejected" && (
+              <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
+                {p.rejection_reason && (
+                  <div>
+                    <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
+                    <p className="mt-0.5">{p.rejection_reason}</p>
+                  </div>
+                )}
+                <Button
+                  size="sm"
+                  className="w-full h-7 text-[11px] bg-rose-500 hover:bg-rose-600 text-white"
+                  onClick={() => openEdit(p)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />Edit & Resubmit
+                </Button>
               </div>
             )}
             {status === "approved" && p.assigned_agent && (
