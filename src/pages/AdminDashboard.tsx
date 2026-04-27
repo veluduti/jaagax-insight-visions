@@ -79,34 +79,6 @@ export default function AdminDashboard() {
     });
   };
 
-  const fetchSignupRequests = async () => {
-    const { data } = await supabase
-      .from("signup_requests")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    setSignupRequests(data || []);
-  };
-
-  const handleReviewSignup = async (requestId: string, decision: "approved" | "rejected", reason?: string) => {
-    setReviewingId(requestId);
-    try {
-      const { error } = await supabase.rpc("review_signup_request", {
-        _request_id: requestId,
-        _decision: decision,
-        _rejection_reason: reason || null,
-      });
-      if (error) throw error;
-      toast.success(`Signup request ${decision}`);
-      fetchSignupRequests();
-      fetchStats();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to review request");
-    } finally {
-      setReviewingId(null);
-    }
-  };
-
   const fetchVisitBookings = async () => {
     const { data } = await supabase
       .from("visit_bookings")
