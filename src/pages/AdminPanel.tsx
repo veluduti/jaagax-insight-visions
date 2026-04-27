@@ -326,12 +326,7 @@ export default function AdminPanel() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap">
-            <TabsTrigger value="signups" className="relative">
-              Signup Requests
-              {stats.pendingSignups > 0 && (
-                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5">{stats.pendingSignups}</span>
-              )}
-            </TabsTrigger>
+            <TabsTrigger value="signups">Registered Users</TabsTrigger>
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
