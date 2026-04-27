@@ -100,7 +100,7 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
         toast.error(error ?? "Could not request role");
         return;
       }
-      toast.success(`${roleMeta[chosen].title} role requested — admin will review your details and approve shortly.`);
+      toast.success(`${roleMeta[chosen].title} role added! You can switch to it from your profile menu.`);
       handleClose(false);
     } finally {
       setSubmitting(false);
@@ -124,12 +124,12 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
               {chosen ? "Confirm your request" : "Expand your account"}
             </div>
             <DialogTitle className="text-2xl sm:text-3xl font-bold">
-              {chosen ? `Request ${roleMeta[chosen].title} role?` : "Add another role"}
+              {chosen ? `Add ${roleMeta[chosen].title} role?` : "Add another role"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               {chosen
-                ? "We'll send your existing profile details to the admin for verification. You'll be notified the moment it's approved."
-                : "One account, multiple powers. Pick a role — we already have your details."}
+                ? "We'll add this role to your account instantly using your existing details. You can switch to it right away."
+                : "One account, multiple powers. Pick a role — we'll add it instantly."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -177,8 +177,8 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
                                   </li>
                                 ))}
                               </ul>
-                              <div className="mt-3 inline-flex items-center gap-1 text-[10px] text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-full px-2 py-0.5">
-                                <Clock className="h-3 w-3" /> Requires admin approval
+                              <div className="mt-3 inline-flex items-center gap-1 text-[10px] text-emerald-300/90 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5">
+                                <Check className="h-3 w-3" /> Added instantly
                               </div>
                             </div>
                           </div>
@@ -208,7 +208,7 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
                 <div className="rounded-xl border border-border/50 bg-card/60 backdrop-blur p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <ShieldCheck className="h-4 w-4 text-primary" />
-                    <div className="text-sm font-medium">These details will be sent to admin:</div>
+                    <div className="text-sm font-medium">We'll use your existing details:</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <Field label="Name" value={fullName} />
@@ -218,9 +218,9 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-300/90 flex items-start gap-2">
-                  <Clock className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>Your request will appear in the admin dashboard for verification. You'll receive a notification once it's approved.</span>
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-emerald-300/90 flex items-start gap-2">
+                  <Check className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>This role will be added to your account immediately. The admin can see your roles in their dashboard.</span>
                 </div>
               </motion.div>
             )}
@@ -235,7 +235,7 @@ export default function AddRoleModal({ open, onOpenChange }: Props) {
           {chosen && (
             <Button onClick={handleConfirm} disabled={submitting} className="bg-gradient-to-r from-primary to-primary/80 hover:opacity-95">
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Confirm & request approval
+              Confirm & add role
             </Button>
           )}
         </DialogFooter>
