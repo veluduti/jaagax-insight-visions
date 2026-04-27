@@ -306,7 +306,7 @@ export default function AdminPanel() {
             { label: "Projects", value: stats.totalProjects, icon: Building2, color: "text-green-500" },
             { label: "Agents", value: stats.totalAgents, icon: Users, color: "text-primary" },
             { label: "Builders", value: stats.totalBuilders, icon: Building2, color: "text-purple-500" },
-            { label: "Pending Signups", value: stats.pendingSignups, icon: AlertCircle, color: "text-orange-500" },
+            { label: "Registered Users", value: signupRequests.length, icon: Users, color: "text-orange-500" },
             { label: "Pending Visits", value: stats.pendingVisits, icon: CalendarCheck, color: "text-amber-500" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
