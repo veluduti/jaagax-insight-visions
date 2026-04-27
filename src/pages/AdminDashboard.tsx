@@ -22,7 +22,7 @@ import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
 import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
 import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
 import { WhatsAppLogsPanel } from "@/components/admin/WhatsAppLogsPanel";
-import PendingProfilesPanel from "@/components/admin/PendingProfilesPanel";
+import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function AdminDashboard() {
@@ -258,13 +258,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="flex flex-wrap w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="signups" className="relative">
-              Signup Requests
-              {stats.pendingSignups > 0 && (
-                <span className="ml-1 bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5">{stats.pendingSignups}</span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="role-approvals">Role Approvals</TabsTrigger>
+            <TabsTrigger value="users">Registered Users</TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
             <TabsTrigger value="verification">Verifications</TabsTrigger>
@@ -311,79 +305,10 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* Signup Requests */}
-          <TabsContent value="signups" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Signup Requests ({signupRequests.length})
-                </CardTitle>
-                <CardDescription>Approve or reject new user registrations</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {signupRequests.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No signup requests yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {signupRequests.map((req) => (
-                      <div key={req.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="space-y-1">
-                          <p className="font-medium">{req.full_name || req.email}</p>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span>{req.email}</span>
-                            <Badge variant="outline">{req.requested_role}</Badge>
-                            {req.city && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{req.city}</span>}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(req.created_at).toLocaleDateString()} • {new Date(req.created_at).toLocaleTimeString()}
-                          </p>
-                          {req.rejection_reason && (
-                            <p className="text-xs text-destructive">Reason: {req.rejection_reason}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {req.status === 'pending' ? (
-                            <>
-                              <Button size="sm" variant="outline" onClick={() => setViewingSignup(req)}>
-                                <Eye className="h-4 w-4 mr-1" /> View
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleReviewSignup(req.id, 'approved')}
-                                disabled={reviewingId === req.id}
-                              >
-                                {reviewingId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleReviewSignup(req.id, 'rejected', 'Not eligible at this time')}
-                                disabled={reviewingId === req.id}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          ) : (
-                            <Badge variant={req.status === 'approved' ? 'default' : 'destructive'}>
-                              {req.status}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {/* Registered Users (replaces Signup Requests + Role Approvals) */}
+          <TabsContent value="users" className="space-y-6">
+            <RegisteredUsersPanel />
           </TabsContent>
-
-          {/* Role Approvals (existing users requesting additional roles) */}
-          <TabsContent value="role-approvals" className="space-y-6">
-            <PendingProfilesPanel />
-          </TabsContent>
-
 
           <TabsContent value="visits" className="space-y-6">
             <Card>
