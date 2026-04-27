@@ -511,7 +511,7 @@ export default function AssignAgentPanel() {
                                   </div>
                                 </div>
                                 <Button size="sm" onClick={() => assignAndApprove(a)} disabled={working}>
-                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign & Approve"}
+                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign Agent"}
                                 </Button>
                               </div>
                             ))}
