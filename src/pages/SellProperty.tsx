@@ -564,6 +564,106 @@ function renderInput(field: FieldDef, value: any, setValue: (v: any) => void) {
       );
     case "media":
       return null;
+    case "city":
+      return (
+        <CityAutocomplete
+          value={value || ""}
+          onChange={(c) => setValue(c)}
+          placeholder="Search your city..."
+        />
+      );
+    case "locality": {
+      const suggestions = ["Gachibowli", "Madhapur", "Kondapur", "Hitech City", "Banjara Hills",
+        "Jubilee Hills", "Kukatpally", "Whitefield", "Indiranagar", "Koramangala", "HSR Layout",
+        "Bandra", "Andheri", "Powai", "Hinjewadi", "Wakad", "Baner", "Kharadi"];
+      const q = String(value || "").toLowerCase();
+      const matches = q ? suggestions.filter((s) => s.toLowerCase().includes(q)).slice(0, 6) : [];
+      return (
+        <div className="space-y-2">
+          <Input
+            value={value || ""}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Type your area / locality..."
+          />
+          {matches.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {matches.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setValue(m)}
+                  className="text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-primary/5"
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+    case "price_unit": {
+      const v = value && typeof value === "object" ? value : { unit: "sq ft", area: "", pricePerUnit: "" };
+      const units = ["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"];
+      const total = Number(v.area) > 0 && Number(v.pricePerUnit) > 0
+        ? Number(v.area) * Number(v.pricePerUnit) : 0;
+      const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Pricing unit</label>
+            <div className="flex flex-wrap gap-2">
+              {units.map((u) => {
+                const active = v.unit === u;
+                return (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setValue({ ...v, unit: u })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition
+                      ${active
+                        ? "bg-primary text-primary-foreground border-primary shadow"
+                        : "bg-background hover:bg-primary/5 border-border"}`}
+                  >
+                    {u}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Total area ({v.unit})</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={v.area}
+                onChange={(e) => setValue({ ...v, area: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Price per {v.unit} (₹)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={v.pricePerUnit}
+                onChange={(e) => setValue({ ...v, pricePerUnit: e.target.value })}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          {total > 0 && (
+            <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-emerald-500/5 px-4 py-3 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Estimated total</span>
+              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
+                ₹ {fmt(total)}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    }
     default:
       return null;
   }
