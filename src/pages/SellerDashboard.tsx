@@ -274,6 +274,15 @@ export default function SellerDashboard() {
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
+            {p.is_live && (
+              <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                LIVE
+              </Badge>
+            )}
             {p.listing_type && (
               <Badge variant="secondary" className="absolute top-3 right-3 bg-background/90">
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
