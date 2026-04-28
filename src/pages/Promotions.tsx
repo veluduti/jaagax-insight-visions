@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Film, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,12 +63,14 @@ const Promotions = () => {
       }
 
       const reels: Property[] = pool.slice(0, 15).map((p: any, i: number) => {
-        const existing = Array.isArray(p.video_urls) ? p.video_urls.filter(Boolean) : [];
+        const v = getPublicPropertyView(p);
+        const merged: any = v ? { ...p, title: v.title, city: v.city ?? p.city, locality: v.locality ?? p.locality, price: v.price ?? p.price, images: (v.images?.length ? v.images : p.images), video_urls: (v.video_urls?.length ? v.video_urls : p.video_urls) } : p;
+        const existing = Array.isArray(merged.video_urls) ? merged.video_urls.filter(Boolean) : [];
         const videos = existing.length > 0 ? existing : [PROPERTY_REELS[i % PROPERTY_REELS.length]];
         return {
-          ...p,
+          ...merged,
           video_urls: videos as string[],
-          images: p.images as string[] | null,
+          images: merged.images as string[] | null,
         };
       });
 
