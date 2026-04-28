@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, MapPin } from "lucide-react";
@@ -30,7 +31,11 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
       .eq("is_live", true)
       .limit(6);
 
-    if (data) setProperties(data);
+    if (data) setProperties(data.map((row: any) => {
+      const v = getPublicPropertyView(row);
+      if (!v) return row;
+      return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
+    }));
   };
 
   const formatPrice = (price: number) => {
