@@ -13,10 +13,17 @@ interface PropertyMapProps {
 }
 
 const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
-  // Default to Hyderabad center if coordinates are not available
-  const validLat = lat ?? 17.385;
-  const validLng = lng ?? 78.4867;
-  const hasCoordinates = lat !== null && lng !== null;
+  const hasCoordinates =
+    lat !== null && lat !== undefined && !Number.isNaN(Number(lat)) &&
+    lng !== null && lng !== undefined && !Number.isNaN(Number(lng));
+
+  // STRICT: hide the entire location section when we have no real coordinates
+  if (!hasCoordinates) {
+    return null;
+  }
+
+  const validLat = Number(lat);
+  const validLng = Number(lng);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
@@ -31,7 +38,7 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [validLng, validLat],
-      zoom: hasCoordinates ? 14 : 11,
+      zoom: 14,
     });
 
     // Create custom marker
