@@ -147,8 +147,12 @@ export default function AdminPanel() {
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
     let reason: string | null = null;
     if (decision === "rejected") {
-      reason = window.prompt("Reason for rejection (visible to seller):", "Listing details need clarification") || null;
-      if (!reason) return;
+      const raw = window.prompt("Reason for rejection (mandatory, visible to submitter):", "Listing details need clarification");
+      reason = (raw || "").trim() || null;
+      if (!reason) {
+        toast.error("Rejection reason is required");
+        return;
+      }
     }
     setReviewingId(propertyId);
     try {
