@@ -1,4 +1,10 @@
 import { motion } from "framer-motion";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
+const toPublicRow = (row: any) => {
+  const v = getPublicPropertyView(row);
+  if (!v) return row;
+  return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images), amenities: (v.amenities?.length ? v.amenities : row.amenities), description: v.description ?? row.description };
+};
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +79,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
       if (error) throw error;
 
       const featured = ((data as any[]) || [])
+        .map(toPublicRow)
         .filter((p) => classifyProperty(p) === "featured")
         .slice(0, 4);
 
@@ -85,6 +92,7 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
           .order("trust_score", { ascending: false })
           .limit(40);
         const featuredFb = ((fb as any[]) || [])
+          .map(toPublicRow)
           .filter((p) => classifyProperty(p) === "featured")
           .slice(0, 4);
         setProperties(featuredFb);
