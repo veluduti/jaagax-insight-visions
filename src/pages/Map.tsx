@@ -5,6 +5,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
@@ -293,7 +294,11 @@ const Map = () => {
         return;
       }
 
-      setProperties(data || []);
+      setProperties((data || []).map((row: any) => {
+        const v = getPublicPropertyView(row);
+        if (!v) return row;
+        return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
+      }));
     } catch (err) {
       console.error("Fetch error:", err);
       setError("An error occurred while fetching properties.");
