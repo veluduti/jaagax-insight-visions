@@ -216,7 +216,7 @@ const Navigation = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-2 shrink-0 min-w-0">
-              <LocationPill className="hidden 2xl:inline-flex" />
+              <LocationPill />
               {/* Get Guidance Button */}
               <Button
                 variant="ghost"
@@ -275,7 +275,7 @@ const Navigation = () => {
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
-              <LocationPill className="hidden sm:inline-flex" />
+              <LocationPill />
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />

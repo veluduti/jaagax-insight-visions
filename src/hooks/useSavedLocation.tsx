@@ -72,9 +72,22 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     };
 
     loadFromBackend();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       profileSyncedRef.current = false;
       loadFromBackend();
+
+      // Auto-prompt GPS exactly once per user after sign-in if they have no saved location.
+      if (event === "SIGNED_IN") {
+        setTimeout(() => {
+          if (cancelled) return;
+          if (readSavedLocationFromStorage()) return;
+          const promptedKey = "jaagax_gps_auto_prompted";
+          if (sessionStorage.getItem(promptedKey)) return;
+          sessionStorage.setItem(promptedKey, "1");
+          // Fire-and-forget; user can still pick manually if they deny.
+          void requestGpsRef.current?.();
+        }, 600);
+      }
     });
 
     return () => {
@@ -82,6 +95,9 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  // Ref so the auth listener can call the latest requestGpsLocation without re-subscribing.
+  const requestGpsRef = useRef<null | (() => Promise<void>)>(null);
 
   const persistToBackend = useCallback(async (loc: SavedLocation) => {
     try {
@@ -153,6 +169,11 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       );
     });
   }, [persistToBackend]);
+
+  // Keep a ref to the latest requestGpsLocation so the auth listener can call it.
+  useEffect(() => {
+    requestGpsRef.current = requestGpsLocation;
+  }, [requestGpsLocation]);
 
   const clearLocation = useCallback(async () => {
     clearSavedLocationFromStorage();
