@@ -294,12 +294,16 @@ const Search = () => {
         _limit: 100,
       });
       if (!error && Array.isArray(data)) {
-        const filtered = (data as any[]).map(toPublicRow).filter((p) => {
-          const tier = classifyProperty(p);
-          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-        });
+        const cityForFilter = location || savedLocation?.city;
+        const filtered = (data as any[]).map(toPublicRow)
+          .filter((p) => !cityForFilter || isSameCity(p.city, cityForFilter))
+          .filter((p) => {
+            const tier = classifyProperty(p);
+            return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+          });
+        console.log("[Search-geo] Selected city:", cityForFilter, "Filtered:", filtered.length);
         setProperties(filtered.slice(0, 50));
-        setTotal(data[0]?.total_count ?? filtered.length);
+        setTotal(filtered.length);
         return;
       }
       // Fall through to text-based search on RPC error.
