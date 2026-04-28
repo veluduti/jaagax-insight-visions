@@ -152,18 +152,23 @@ export default function AdminPanel() {
     }
     setReviewingId(propertyId);
     try {
+      const nowIso = new Date().toISOString();
       const update: any = {
         verification_status: decision,
         verified: decision === "approved",
         rejection_reason: decision === "rejected" ? reason : null,
         is_draft: false,
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
+        // On approval: flip listing live and stamp publish time so it appears in search/feeds
+        ...(decision === "approved"
+          ? { is_live: true, published_at: nowIso }
+          : { is_live: false }),
       };
       const { data, error } = await supabase
         .from("properties")
         .update(update)
         .eq("id", propertyId)
-        .select("id, verification_status, verified");
+        .select("id, verification_status, verified, is_live, published_at");
       if (error) throw error;
       if (!data || data.length === 0) {
         throw new Error("Update blocked — you may not have permission. Please log in as admin.");
