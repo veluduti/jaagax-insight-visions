@@ -96,7 +96,7 @@ const Navigation = () => {
             <Link to="/" className="flex items-center gap-3 group shrink-0">
               <div className="flex flex-col leading-tight">
                 <span className="text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
-                <span className="hidden 2xl:inline text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
               </div>
             </Link>
 
@@ -268,7 +268,10 @@ const Navigation = () => {
         <div className="container-padding py-3">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <Link to="/" className="flex items-center gap-2 shrink-0">
-              <span className="text-base sm:text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-base sm:text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
+                <span className="text-[10px] sm:text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
+              </div>
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
@@ -301,6 +304,9 @@ const Navigation = () => {
           </div>
         </div>
       </motion.nav>
+
+      {/* Spacer to offset fixed navbar so content isn't hidden underneath */}
+      <div aria-hidden className="h-16 xl:h-[68px]" />
 
       {/* Mobile Bottom Nav - hidden on xl+ */}
       <div className="xl:hidden">

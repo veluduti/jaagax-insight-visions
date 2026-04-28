@@ -29,7 +29,7 @@ const Hero = ({
     value: "AI",
     label: "Powered Insights"
   }];
-  return <div className="relative min-h-[85vh] flex items-center overflow-hidden pt-16 lg:pt-20">
+  return <div className="relative min-h-[85vh] flex items-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-cover bg-center" style={{
