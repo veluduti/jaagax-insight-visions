@@ -90,13 +90,13 @@ const Navigation = () => {
         animate={{ y: 0, opacity: 1 }}
         className="hidden xl:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
       >
-        <div className="container-padding py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
+        <div className="container-padding py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex flex-col">
-                <span className="text-xl font-bold text-gradient">JAAGA X</span>
-                <span className="text-xs text-muted-foreground">Choose Your Place</span>
+            <Link to="/" className="flex items-center gap-3 group shrink-0">
+              <div className="flex flex-col leading-tight">
+                <span className="text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
+                <span className="hidden 2xl:inline text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
               </div>
             </Link>
 
@@ -215,8 +215,8 @@ const Navigation = () => {
             </NavigationMenu>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <LocationPill className="hidden xl:inline-flex" />
+            <div className="flex items-center gap-2 shrink-0 min-w-0">
+              <LocationPill className="hidden 2xl:inline-flex" />
               {/* Get Guidance Button */}
               <Button
                 variant="ghost"
@@ -224,8 +224,8 @@ const Navigation = () => {
                 onClick={() => navigate('/ai-advisor')}
                 className="text-sm text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
               >
-                <Sparkles className="h-4 w-4 mr-1.5 text-primary" />
-                Get Guidance
+                <Sparkles className="h-4 w-4 sm:mr-1.5 text-primary" />
+                <span className="hidden 2xl:inline">Get Guidance</span>
               </Button>
               
               <ThemeToggle />
@@ -266,13 +266,13 @@ const Navigation = () => {
         className="xl:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
       >
         <div className="container-padding py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gradient">{"\n"}</span>
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <span className="text-base sm:text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
             </Link>
 
-            <div className="flex items-center gap-2">
-              <LocationPill />
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
+              <LocationPill className="hidden sm:inline-flex" />
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
