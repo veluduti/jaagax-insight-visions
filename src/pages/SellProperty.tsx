@@ -252,8 +252,6 @@ export default function SellProperty() {
         possession_date: state.possession_date || null,
         amenities: state.amenities || [],
         rera_id: state.rera_number || null,
-        approval_type: state.approval_type || null,
-        ownership_type: state.ownership_type || null,
         images: state.media_urls || [],
         is_draft: false,
         verified: false,
