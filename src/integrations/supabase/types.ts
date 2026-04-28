@@ -1404,6 +1404,7 @@ export type Database = {
           description: string | null
           document_urls: Json | null
           elevators: number | null
+          expiry_date: string | null
           field_verification: Json | null
           final_data: Json | null
           floor_number: number | null
@@ -1462,6 +1463,7 @@ export type Database = {
           description?: string | null
           document_urls?: Json | null
           elevators?: number | null
+          expiry_date?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
@@ -1520,6 +1522,7 @@ export type Database = {
           description?: string | null
           document_urls?: Json | null
           elevators?: number | null
+          expiry_date?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
@@ -2233,6 +2236,13 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      expire_due_property_listings: {
+        Args: never
+        Returns: {
+          expired_count: number
+          warned_count: number
+        }[]
+      }
       generate_unique_builder_slug: {
         Args: { _id: string; _name: string }
         Returns: string
@@ -2263,6 +2273,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       reject_profile: {
         Args: { _profile_id: string; _reason?: string }
+        Returns: undefined
+      }
+      renew_property_listing: {
+        Args: { _property_id: string }
         Returns: undefined
       }
       review_signup_request: {
