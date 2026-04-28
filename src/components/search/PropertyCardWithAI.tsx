@@ -54,6 +54,7 @@ interface Property {
   images: any;
   verified: boolean | null;
   trust_score: number | null;
+  is_featured?: boolean | null;
 }
 
 interface PropertyCardWithAIProps {
@@ -160,6 +161,11 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute top-3 right-3 flex gap-2">
+            {property.is_featured && (
+              <Badge className="bg-amber-500 text-white backdrop-blur gap-1">
+                <Sparkles className="w-3 h-3" /> Featured
+              </Badge>
+            )}
             {property.verified && (
               <Badge className="bg-primary/90 backdrop-blur">Verified</Badge>
             )}
