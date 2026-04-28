@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PropertyWhyLink from "@/components/home/PropertyWhyLink";
 import MatchBadge from "@/components/home/MatchBadge";
 import { classifyProperty } from "@/lib/propertyClassifier";
+import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 
 interface Property {
   id: string;
@@ -69,7 +70,8 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         .not("city", "is", null);
 
       if (detectedCity) {
-        query = query.ilike("city", `%${detectedCity}%`);
+        const aliases = getCityAliases(detectedCity);
+        query = query.in("city", aliases);
       }
 
       const { data, error } = await query
@@ -80,25 +82,16 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
 
       const featured = ((data as any[]) || [])
         .map(toPublicRow)
+        // STRICT post-fetch filter: final_data may override city → re-check.
+        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
         .filter((p) => classifyProperty(p) === "featured")
         .slice(0, 4);
 
-      // Fallback to other cities if none matched
-      if (featured.length === 0 && detectedCity) {
-        const { data: fb } = await (supabase.from("properties" as any).select("*") as any)
-          .neq("is_draft", true)
-          .not("title", "is", null)
-          .not("city", "is", null)
-          .order("trust_score", { ascending: false })
-          .limit(40);
-        const featuredFb = ((fb as any[]) || [])
-          .map(toPublicRow)
-          .filter((p) => classifyProperty(p) === "featured")
-          .slice(0, 4);
-        setProperties(featuredFb);
-      } else {
-        setProperties(featured);
-      }
+      console.log("[FeaturedProperties] Selected city:", detectedCity);
+      console.log("[FeaturedProperties] Filtered properties:", featured.length, featured.map((p) => p.city));
+
+      // NO cross-city fallback — strict location filtering.
+      setProperties(featured);
     } catch (error) {
       console.error("Error fetching properties:", error);
     } finally {
@@ -135,7 +128,20 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   }
 
   if (properties.length === 0) {
-    return null;
+    if (!detectedCity) return null;
+    return (
+      <section className="section-spacing relative" id="properties">
+        <div className="container mx-auto container-padding text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-md">
+            Featured <span className="text-gradient">Properties</span>
+            <span className="text-foreground/60 text-xl md:text-2xl"> in {detectedCity}</span>
+          </h2>
+          <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto mt-md">
+            No properties available in this location yet.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (

@@ -22,6 +22,7 @@ import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/compon
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
+import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 
 /**
  * Merge a raw property row with its final_data-driven public view so
@@ -232,7 +233,11 @@ const Search = () => {
   const applyPropertyFilters = (qb: any) => {
     const f = advancedFilters;
     if (f.verifiedOnly) qb = qb.eq("verified", true);
-    if (location) qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (location) {
+      const aliases = getCityAliases(location);
+      const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
+      qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
+    }
     // Buy/Rent → listing_type
     if (searchType === "rent") qb = qb.eq("listing_type", "rent");
     else if (searchType === "buy") qb = qb.eq("listing_type", "sale");
@@ -289,12 +294,16 @@ const Search = () => {
         _limit: 100,
       });
       if (!error && Array.isArray(data)) {
-        const filtered = (data as any[]).map(toPublicRow).filter((p) => {
-          const tier = classifyProperty(p);
-          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-        });
+        const cityForFilter = location || savedLocation?.city;
+        const filtered = (data as any[]).map(toPublicRow)
+          .filter((p) => !cityForFilter || isSameCity(p.city, cityForFilter))
+          .filter((p) => {
+            const tier = classifyProperty(p);
+            return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+          });
+        console.log("[Search-geo] Selected city:", cityForFilter, "Filtered:", filtered.length);
         setProperties(filtered.slice(0, 50));
-        setTotal(data[0]?.total_count ?? filtered.length);
+        setTotal(filtered.length);
         return;
       }
       // Fall through to text-based search on RPC error.
@@ -308,10 +317,13 @@ const Search = () => {
       .limit(100);
     if (!error) {
       const all = ((data as any[]) || []).map(toPublicRow);
-      const filtered = all.filter((p) => {
-        const tier = classifyProperty(p);
-        return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-      });
+      const filtered = all
+        .filter((p) => !location || isSameCity(p.city, location))
+        .filter((p) => {
+          const tier = classifyProperty(p);
+          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+        });
+      console.log("[Search] Selected city:", location, "Filtered properties:", filtered.length);
       setProperties(filtered.slice(0, 50));
       setTotal(filtered.length);
     }
@@ -321,7 +333,11 @@ const Search = () => {
     const f = advancedFilters;
     let qb = supabase.from("projects").select("*", { count: "exact" });
     if (f.verifiedOnly) qb = qb.eq("verified", true);
-    if (location) qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (location) {
+      const aliases = getCityAliases(location);
+      const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
+      qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
+    }
     if (f.projectName) qb = qb.ilike("name", `%${f.projectName}%`);
     if (f.propertyType !== "any") qb = qb.eq("project_type", f.propertyType);
     if (f.priceMin > 0) qb = qb.gte("avg_price", f.priceMin);
@@ -336,8 +352,11 @@ const Search = () => {
     }
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
-      setProjects(data || []);
-      setTotal(count || 0);
+      const all = (data as any[]) || [];
+      const strict = all.filter((p) => !location || isSameCity(p.city, location));
+      console.log("[Search] Selected city:", location, "Filtered projects:", strict.length);
+      setProjects(strict);
+      setTotal(strict.length);
     }
   };
 
