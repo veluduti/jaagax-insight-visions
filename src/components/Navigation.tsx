@@ -305,6 +305,9 @@ const Navigation = () => {
         </div>
       </motion.nav>
 
+      {/* Spacer to offset fixed navbar so content isn't hidden underneath */}
+      <div aria-hidden className="h-16 xl:h-[68px]" />
+
       {/* Mobile Bottom Nav - hidden on xl+ */}
       <div className="xl:hidden">
         <MobileNav />
