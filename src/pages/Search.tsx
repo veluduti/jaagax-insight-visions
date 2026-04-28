@@ -269,7 +269,10 @@ const Search = () => {
 
     let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true).eq("is_live", true);
     qb = applyPropertyFilters(qb);
-    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
+    const { data, error, count } = await qb
+      .order("is_featured", { ascending: false })
+      .order("trust_score", { ascending: false })
+      .limit(100);
     if (!error) {
       const all = (data as any[]) || [];
       const filtered = all.filter((p) => {
