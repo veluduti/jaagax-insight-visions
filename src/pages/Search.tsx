@@ -685,15 +685,25 @@ const Search = () => {
       
       <div className="pt-24 pb-16">
         <div className="container-padding max-w-7xl mx-auto">
+          {/* Location selection screen — shown when the user has no saved location */}
+          {!hasLocation && activeTab === "properties" && (
+            <div className="mb-10">
+              <LocationSelector />
+            </div>
+          )}
+
           {/* Search Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-4xl font-bold mb-4 text-gradient">
-              Search {getTabTitle()}
-            </h1>
+            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <h1 className="text-4xl font-bold text-gradient">
+                Search {getTabTitle()}
+              </h1>
+              <LocationPill />
+            </div>
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <p className="text-muted-foreground">
                 {getResultCount() > 0 ? `Found ${getResultCount()} ${getTabTitle().toLowerCase()}` : `Search for ${getTabTitle().toLowerCase()}`}
