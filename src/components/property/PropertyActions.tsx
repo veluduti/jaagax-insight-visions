@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import ReportListingDialog from "./ReportListingDialog";
+
 interface PropertyActionsProps {
   propertyId: string;
   propertyTitle: string;
