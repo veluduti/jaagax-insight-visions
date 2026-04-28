@@ -266,13 +266,13 @@ const Navigation = () => {
         className="xl:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
       >
         <div className="container-padding py-3">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gradient">{"\n"}</span>
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <span className="text-base sm:text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
             </Link>
 
-            <div className="flex items-center gap-2">
-              <LocationPill />
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
+              <LocationPill className="hidden sm:inline-flex" />
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
