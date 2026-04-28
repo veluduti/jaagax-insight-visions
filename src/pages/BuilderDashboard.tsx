@@ -18,8 +18,8 @@ import RERAUploadModal from "@/components/builder/RERAUploadModal";
 import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
 import DocumentationModal from "@/components/builder/DocumentationModal";
 import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
-import { seedBuilderSampleProperties } from "@/utils/seedBuilderProperties";
 import BuilderMyProfileCard from "@/components/builder/BuilderMyProfileCard";
+import SamplePropertiesPreviewDialog from "@/components/builder/SamplePropertiesPreviewDialog";
 import { Sparkles } from "lucide-react";
 
 interface Project {
