@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import BoostListingDialog from "@/components/property/BoostListingDialog";
 
 interface AssignedAgent {
   id: string;
@@ -55,6 +56,8 @@ interface Property {
   is_live?: boolean | null;
   published_at?: string | null;
   expiry_date?: string | null;
+  is_featured?: boolean | null;
+  featured_until?: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
@@ -88,7 +91,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -404,9 +407,26 @@ export default function SellerDashboard() {
                 </Button>
               )}
               {status === "approved" && (
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
-                  <ArrowUpRight className="h-3 w-3 mr-1" />View Live
-                </Button>
+                <>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
+                    <ArrowUpRight className="h-3 w-3 mr-1" />View Live
+                  </Button>
+                  {p.is_featured ? (
+                    <Badge className="bg-amber-500 text-white gap-1 px-2 py-1">
+                      <Sparkles className="h-3 w-3" /> Featured
+                    </Badge>
+                  ) : (
+                    <BoostListingDialog
+                      propertyId={p.id}
+                      onBoosted={fetchProperties}
+                      trigger={
+                        <Button size="sm" className="flex-1 gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                          <Sparkles className="h-3 w-3" /> Boost
+                        </Button>
+                      }
+                    />
+                  )}
+                </>
               )}
               {status === "pending" && (
                 <Button size="sm" variant="outline" className="flex-1" disabled>
