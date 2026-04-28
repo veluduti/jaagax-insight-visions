@@ -1046,8 +1046,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          banned_at: string | null
+          banned_reason: string | null
           created_at: string
           id: string
+          is_banned: boolean
           location_data: Json | null
           status: string
           type: string
@@ -1055,8 +1058,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          banned_at?: string | null
+          banned_reason?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean
           location_data?: Json | null
           status?: string
           type: string
@@ -1064,8 +1070,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          banned_at?: string | null
+          banned_reason?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean
           location_data?: Json | null
           status?: string
           type?: string
@@ -1395,6 +1404,7 @@ export type Database = {
           bedrooms: number | null
           bhk: number | null
           booking_amount: number | null
+          boost_payment_ref: string | null
           builder_id: string | null
           building_area_sqft: number | null
           building_name: string | null
@@ -1405,6 +1415,7 @@ export type Database = {
           document_urls: Json | null
           elevators: number | null
           expiry_date: string | null
+          featured_until: string | null
           field_verification: Json | null
           final_data: Json | null
           floor_number: number | null
@@ -1412,6 +1423,7 @@ export type Database = {
           id: string
           images: string[] | null
           is_draft: boolean | null
+          is_featured: boolean
           is_live: boolean
           latitude: number | null
           listed_by: string | null
@@ -1454,6 +1466,7 @@ export type Database = {
           bedrooms?: number | null
           bhk?: number | null
           booking_amount?: number | null
+          boost_payment_ref?: string | null
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
@@ -1464,6 +1477,7 @@ export type Database = {
           document_urls?: Json | null
           elevators?: number | null
           expiry_date?: string | null
+          featured_until?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
@@ -1471,6 +1485,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
+          is_featured?: boolean
           is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
@@ -1513,6 +1528,7 @@ export type Database = {
           bedrooms?: number | null
           bhk?: number | null
           booking_amount?: number | null
+          boost_payment_ref?: string | null
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
@@ -1523,6 +1539,7 @@ export type Database = {
           document_urls?: Json | null
           elevators?: number | null
           expiry_date?: string | null
+          featured_until?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
@@ -1530,6 +1547,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
+          is_featured?: boolean
           is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
@@ -1677,6 +1695,48 @@ export type Database = {
           property_id?: string
           source?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      property_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          details: string | null
+          id: string
+          property_id: string
+          reason: string
+          reported_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id: string
+          reason: string
+          reported_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id?: string
+          reason?: string
+          reported_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2231,6 +2291,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ban_user: {
+        Args: { _reason: string; _user_id: string }
+        Returns: undefined
+      }
+      admin_block_property: {
+        Args: { _property_id: string; _reason: string }
+        Returns: undefined
+      }
       approve_profile: { Args: { _profile_id: string }; Returns: undefined }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
@@ -2243,6 +2311,7 @@ export type Database = {
           warned_count: number
         }[]
       }
+      expire_featured_boosts: { Args: never; Returns: number }
       generate_unique_builder_slug: {
         Args: { _id: string; _name: string }
         Returns: string
@@ -2271,6 +2340,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      mark_property_featured: {
+        Args: { _days?: number; _payment_ref?: string; _property_id: string }
+        Returns: undefined
+      }
       reject_profile: {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined
