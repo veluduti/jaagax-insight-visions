@@ -215,8 +215,8 @@ const Navigation = () => {
             </NavigationMenu>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              <LocationPill className="hidden xl:inline-flex" />
+            <div className="flex items-center gap-2 shrink-0 min-w-0">
+              <LocationPill className="hidden 2xl:inline-flex" />
               {/* Get Guidance Button */}
               <Button
                 variant="ghost"
@@ -224,8 +224,8 @@ const Navigation = () => {
                 onClick={() => navigate('/ai-advisor')}
                 className="text-sm text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
               >
-                <Sparkles className="h-4 w-4 mr-1.5 text-primary" />
-                Get Guidance
+                <Sparkles className="h-4 w-4 sm:mr-1.5 text-primary" />
+                <span className="hidden 2xl:inline">Get Guidance</span>
               </Button>
               
               <ThemeToggle />
