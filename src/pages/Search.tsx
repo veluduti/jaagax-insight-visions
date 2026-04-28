@@ -154,7 +154,15 @@ const Search = () => {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, location, searchType, advancedFilters, tierFilter]);
+  }, [activeTab, location, searchType, advancedFilters, tierFilter, savedLocation?.latitude, savedLocation?.longitude]);
+
+  // When the user picks a new saved location, reflect it in the search input
+  useEffect(() => {
+    if (savedLocation?.city && !searchParams.get("city") && !searchParams.get("q")) {
+      setLocation(savedLocation.city);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedLocation?.city, savedLocation?.area]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
@@ -232,6 +240,33 @@ const Search = () => {
   };
 
   const fetchProperties = async () => {
+    // Prefer geo radius search when we have GPS coords from saved location.
+    const useGeo =
+      !!savedLocation?.latitude &&
+      !!savedLocation?.longitude &&
+      // If user is searching by a specific city different from saved, fall back to text search.
+      (!location || location.toLowerCase() === savedLocation.city.toLowerCase());
+
+    if (useGeo) {
+      const { data, error } = await (supabase as any).rpc("search_properties_nearby", {
+        _lat: savedLocation!.latitude,
+        _lng: savedLocation!.longitude,
+        _radius_km: 10,
+        _page: 1,
+        _limit: 100,
+      });
+      if (!error && Array.isArray(data)) {
+        const filtered = (data as any[]).filter((p) => {
+          const tier = classifyProperty(p);
+          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+        });
+        setProperties(filtered.slice(0, 50));
+        setTotal(data[0]?.total_count ?? filtered.length);
+        return;
+      }
+      // Fall through to text-based search on RPC error.
+    }
+
     let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
