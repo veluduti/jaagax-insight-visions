@@ -22,6 +22,7 @@ import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/compon
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
+import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 
 /**
  * Merge a raw property row with its final_data-driven public view so
@@ -232,7 +233,11 @@ const Search = () => {
   const applyPropertyFilters = (qb: any) => {
     const f = advancedFilters;
     if (f.verifiedOnly) qb = qb.eq("verified", true);
-    if (location) qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (location) {
+      const aliases = getCityAliases(location);
+      const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
+      qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
+    }
     // Buy/Rent → listing_type
     if (searchType === "rent") qb = qb.eq("listing_type", "rent");
     else if (searchType === "buy") qb = qb.eq("listing_type", "sale");
@@ -321,7 +326,11 @@ const Search = () => {
     const f = advancedFilters;
     let qb = supabase.from("projects").select("*", { count: "exact" });
     if (f.verifiedOnly) qb = qb.eq("verified", true);
-    if (location) qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,city.ilike.%${location}%`);
+    if (location) {
+      const aliases = getCityAliases(location);
+      const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
+      qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
+    }
     if (f.projectName) qb = qb.ilike("name", `%${f.projectName}%`);
     if (f.propertyType !== "any") qb = qb.eq("project_type", f.propertyType);
     if (f.priceMin > 0) qb = qb.gte("avg_price", f.priceMin);
