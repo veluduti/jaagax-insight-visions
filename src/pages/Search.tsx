@@ -348,8 +348,11 @@ const Search = () => {
     }
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
-      setProjects(data || []);
-      setTotal(count || 0);
+      const all = (data as any[]) || [];
+      const strict = all.filter((p) => !location || isSameCity(p.city, location));
+      console.log("[Search] Selected city:", location, "Filtered projects:", strict.length);
+      setProjects(strict);
+      setTotal(strict.length);
     }
   };
 
