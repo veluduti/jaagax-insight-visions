@@ -118,7 +118,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
               {detectedCity && <span className="text-foreground/60 text-2xl"> in {detectedCity}</span>}
             </h2>
             <p className="text-foreground/70 text-lg mb-8">
-              No new projects available at the moment. Check back soon!
+              {detectedCity ? "No properties available in this location yet." : "No new projects available at the moment. Check back soon!"}
             </p>
             <Button 
               size="lg" 
