@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
+import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 const toPublicRow = (row: any) => {
   const v = getPublicPropertyView(row);
   if (!v) return row;
@@ -57,7 +58,8 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
         .not("city", "is", null);
 
       if (detectedCity) {
-        query = query.ilike("city", `%${detectedCity}%`);
+        const aliases = getCityAliases(detectedCity);
+        query = query.in("city", aliases);
       }
 
       const { data, error } = await query
@@ -68,25 +70,15 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
 
       const partial = ((data as any[]) || [])
         .map(toPublicRow)
+        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
         .filter((p) => classifyProperty(p) === "basic")
         .slice(0, 8);
 
-      // Fallback to other cities if none matched the detected city
-      if (partial.length === 0 && detectedCity) {
-        const { data: fb } = await (supabase.from("properties" as any).select("*") as any)
-          .neq("is_draft", true)
-          .not("title", "is", null)
-          .not("city", "is", null)
-          .order("updated_at", { ascending: false })
-          .limit(40);
-        const partialFb = ((fb as any[]) || [])
-          .map(toPublicRow)
-          .filter((p) => classifyProperty(p) === "basic")
-          .slice(0, 8);
-        setProperties(partialFb);
-      } else {
-        setProperties(partial);
-      }
+      console.log("[PartialProperties] Selected city:", detectedCity);
+      console.log("[PartialProperties] Filtered properties:", partial.length, partial.map((p) => p.city));
+
+      // NO cross-city fallback — strict location filtering.
+      setProperties(partial);
     } catch (err) {
       console.error("Error fetching partial properties:", err);
     } finally {
