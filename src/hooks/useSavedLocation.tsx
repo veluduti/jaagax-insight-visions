@@ -170,6 +170,11 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     });
   }, [persistToBackend]);
 
+  // Keep a ref to the latest requestGpsLocation so the auth listener can call it.
+  useEffect(() => {
+    requestGpsRef.current = requestGpsLocation;
+  }, [requestGpsLocation]);
+
   const clearLocation = useCallback(async () => {
     clearSavedLocationFromStorage();
     setSavedLocation(null);
