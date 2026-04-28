@@ -65,6 +65,10 @@ interface Property {
   building_area_sqft: number | null;
   elevators: number | null;
   retail_centres: number | null;
+  amenities: string[];
+  is_live: boolean;
+  verification_status: string | null;
+  expiry_date: string | null;
 }
 
 interface Agent {
@@ -193,6 +197,12 @@ const PropertyDetail = () => {
         building_area_sqft: dbProperty.building_area_sqft ?? null,
         elevators: dbProperty.elevators ?? null,
         retail_centres: dbProperty.retail_centres ?? null,
+        amenities: Array.isArray(dbProperty.amenities)
+          ? dbProperty.amenities.filter((a: any) => typeof a === "string" && a.trim().length > 0)
+          : [],
+        is_live: dbProperty.is_live === true,
+        verification_status: dbProperty.verification_status ?? null,
+        expiry_date: dbProperty.expiry_date ?? null,
       };
 
       setProperty(mappedProperty);
@@ -479,10 +489,10 @@ const PropertyDetail = () => {
               retailCentres={property.retail_centres}
             />
 
-            {/* Amenities */}
-            <PropertyAmenities type={property.type} verified={property.verified} />
+            {/* Amenities — only renders when at least one real amenity exists */}
+            <PropertyAmenities amenities={property.amenities} />
 
-            {/* Map */}
+            {/* Map — only renders when real coordinates exist */}
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}
