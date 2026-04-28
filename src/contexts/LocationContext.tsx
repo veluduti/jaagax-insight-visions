@@ -55,7 +55,24 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 export const useLocation = () => {
   const context = useContext(LocationContext);
   if (!context) {
-    throw new Error('useLocation must be used within a LocationProvider');
+    // Defensive fallback: return inert defaults instead of throwing so a stray
+    // consumer (e.g. during HMR or rendered outside the provider) never blanks the app.
+    if (typeof console !== 'undefined') {
+      console.warn('useLocation called outside LocationProvider — returning inert defaults.');
+    }
+    const noop = async () => {};
+    return {
+      savedLocation: null,
+      isResolvingGps: false,
+      hasLocation: false,
+      selectLocation: noop as any,
+      requestGpsLocation: noop as any,
+      clearLocation: noop as any,
+      detectedLocation: null,
+      isDetecting: false,
+      hasDetected: false,
+      detectUserLocation: () => {},
+    };
   }
   return context;
 };
