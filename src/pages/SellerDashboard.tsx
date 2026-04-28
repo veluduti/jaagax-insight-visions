@@ -459,27 +459,25 @@ export default function SellerDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">
       <Navigation />
 
-      {/* Sticky Header */}
-      <div className="border-b bg-background/95 backdrop-blur sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-emerald-500" />
-              Seller Hub
-            </h1>
-            <p className="text-sm text-muted-foreground">Welcome back, {user?.email?.split("@")[0]}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
-              <Plus className="h-4 w-4 mr-1" />Sell Your Property
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
-          </div>
+      {/* Header */}
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-6 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-emerald-500" />
+            Seller Hub
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
+            <Plus className="h-4 w-4 mr-1" />Sell Your Property
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
         {/* Status overview cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[

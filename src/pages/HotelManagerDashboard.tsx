@@ -249,8 +249,8 @@ const HotelManagerDashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
-      <main className="flex-1 pt-20 pb-12">
-        <div className="container mx-auto max-w-7xl px-4">
+      <main className="flex-1 pt-8 pb-12">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
