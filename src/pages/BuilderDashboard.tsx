@@ -762,6 +762,11 @@ export default function BuilderDashboard() {
           open={docsModalOpen}
           onOpenChange={setDocsModalOpen}
         />
+
+        <SamplePropertiesPreviewDialog
+          open={samplePreviewOpen}
+          onOpenChange={setSamplePreviewOpen}
+        />
       </div>
     </div>
   );
