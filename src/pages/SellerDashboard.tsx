@@ -387,6 +387,16 @@ export default function SellerDashboard() {
                 Live but no agent assigned yet — we'll notify you once one is.
               </div>
             )}
+            {status === "approved" && p.expiry_date && (
+              <div className="text-[11px] text-muted-foreground">
+                Expires on {new Date(p.expiry_date).toLocaleDateString()}
+              </div>
+            )}
+            {status === "expired" && (
+              <div className="p-2 rounded-md bg-zinc-500/10 border border-zinc-500/30 text-xs text-zinc-700 dark:text-zinc-300">
+                This listing expired. Renew to send it back for admin re-approval.
+              </div>
+            )}
             <div className="flex gap-2 pt-1">
               {(status === "rejected" || status === "draft") && (
                 <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
@@ -403,6 +413,11 @@ export default function SellerDashboard() {
                   <Clock className="h-3 w-3 mr-1" />Awaiting Review
                 </Button>
               )}
+              {status === "expired" && (
+                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
+                  <RefreshCw className="h-3 w-3 mr-1" />Renew Listing
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -412,10 +427,11 @@ export default function SellerDashboard() {
 
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
-    if (s === "approved") return properties.filter(p => p.verification_status === "approved" || p.verified);
+    if (s === "approved") return properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired");
     if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
+    if (s === "expired") return properties.filter(p => p.verification_status === "expired");
     return properties;
   };
 
