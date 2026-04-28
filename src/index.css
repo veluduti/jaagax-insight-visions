@@ -200,13 +200,29 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   * {
     @apply border-border;
   }
 
+  html, body {
+    @apply overflow-x-hidden;
+    max-width: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground overflow-x-hidden;
+    @apply bg-background text-foreground;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
   }
 
   body:not(.dark) {
