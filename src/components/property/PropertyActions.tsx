@@ -54,11 +54,6 @@ const PropertyActions = ({ propertyId, propertyTitle, propertyType }: PropertyAc
     //   .download(`${propertyType}_${propertyId}.pdf`);
   };
 
-  const handleReport = () => {
-    toast.info("Thank you! Our team will review this property.");
-    // In production, this would open a report form
-  };
-
   const handleViewOnMap = () => {
     const url = `/map?${propertyType}=${propertyId}`;
     window.open(url, '_blank');
