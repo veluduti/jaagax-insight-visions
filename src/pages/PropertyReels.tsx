@@ -38,6 +38,8 @@ const PropertyReels = () => {
       const { data } = await supabase
         .from("properties")
         .select("*")
+        .eq("verified", true)
+        .eq("is_live", true)
         .not("video_urls", "eq", "{}");
 
       if (data) {

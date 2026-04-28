@@ -123,6 +123,8 @@ const BuyerDashboard = () => {
     let query = supabase
       .from("properties")
       .select("*")
+      .eq("verified", true)
+      .eq("is_live", true)
       .order("created_at", { ascending: false })
       .limit(24);
     if (city && city !== "all") {

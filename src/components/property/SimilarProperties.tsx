@@ -27,6 +27,7 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
       .eq("city", city)
       .neq("id", currentPropertyId)
       .eq("verified", true)
+      .eq("is_live", true)
       .limit(6);
 
     if (data) setProperties(data);

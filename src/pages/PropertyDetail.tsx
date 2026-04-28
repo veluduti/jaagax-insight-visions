@@ -65,6 +65,10 @@ interface Property {
   building_area_sqft: number | null;
   elevators: number | null;
   retail_centres: number | null;
+  amenities: string[];
+  is_live: boolean;
+  verification_status: string | null;
+  expiry_date: string | null;
 }
 
 interface Agent {
@@ -131,7 +135,6 @@ const PropertyDetail = () => {
         }
       }
 
-
       if (propertyError) throw propertyError;
       
       if (!propertyData) {
@@ -193,6 +196,12 @@ const PropertyDetail = () => {
         building_area_sqft: dbProperty.building_area_sqft ?? null,
         elevators: dbProperty.elevators ?? null,
         retail_centres: dbProperty.retail_centres ?? null,
+        amenities: Array.isArray(dbProperty.amenities)
+          ? dbProperty.amenities.filter((a: any) => typeof a === "string" && a.trim().length > 0)
+          : [],
+        is_live: dbProperty.is_live === true,
+        verification_status: dbProperty.verification_status ?? null,
+        expiry_date: dbProperty.expiry_date ?? null,
       };
 
       setProperty(mappedProperty);
@@ -329,6 +338,46 @@ const PropertyDetail = () => {
               <Button onClick={() => navigate("/map")} className="flex-1 gap-2">
                 <MapPin className="h-4 w-4" />
                 Browse Properties
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Hide expired / not-live listings from the public.
+  const isExpired = property.verification_status === "expired";
+  const isNotLive = !property.is_live;
+  if (isExpired || isNotLive) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="glass-panel rounded-2xl p-8 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+              <Building2 className="h-10 w-10 text-amber-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">
+                {isExpired ? "Listing Expired" : "Listing Unavailable"}
+              </h2>
+              <p className="text-muted-foreground">
+                {isExpired
+                  ? "This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard."
+                  : "This listing isn't currently live. Please check back later."}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button onClick={() => navigate("/search")} className="flex-1 gap-2">
+                <MapPin className="h-4 w-4" />
+                Browse Live Listings
               </Button>
               <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
                 Go Home
@@ -479,10 +528,10 @@ const PropertyDetail = () => {
               retailCentres={property.retail_centres}
             />
 
-            {/* Amenities */}
-            <PropertyAmenities type={property.type} verified={property.verified} />
+            {/* Amenities — only renders when at least one real amenity exists */}
+            <PropertyAmenities amenities={property.amenities} />
 
-            {/* Map */}
+            {/* Map — only renders when real coordinates exist */}
             <PropertyMap lat={property.lat} lng={property.lng} verified={property.verified} />
 
             {/* Nearby POI */}

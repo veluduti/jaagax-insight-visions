@@ -54,6 +54,7 @@ interface Property {
   agent_submitted_at: string | null;
   is_live?: boolean | null;
   published_at?: string | null;
+  expiry_date?: string | null;
   assigned_agent?: AssignedAgent | null;
 }
 
@@ -62,6 +63,7 @@ const STATUS_META: Record<string, { label: string; color: string; icon: any }> =
   approved: { label: "Live", color: "bg-emerald-500", icon: CheckCircle2 },
   rejected: { label: "Rejected", color: "bg-rose-500", icon: XCircle },
   draft: { label: "Draft", color: "bg-slate-500", icon: Edit },
+  expired: { label: "Expired", color: "bg-zinc-500", icon: Clock },
 };
 
 export default function SellerDashboard() {
@@ -86,7 +88,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -180,9 +182,22 @@ export default function SellerDashboard() {
   const counts = {
     all: properties.length,
     pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
-    approved: properties.filter(p => p.verification_status === "approved" || p.verified).length,
+    approved: properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired").length,
     rejected: properties.filter(p => p.verification_status === "rejected").length,
     draft: properties.filter(p => p.is_draft).length,
+    expired: properties.filter(p => p.verification_status === "expired").length,
+  };
+
+  const handleRenew = async (propertyId: string, title: string) => {
+    if (!user) return;
+    if (!window.confirm(`Renew "${title}"? It will be sent back to admin for re-approval.`)) return;
+    const { error } = await (supabase as any).rpc("renew_property_listing", { _property_id: propertyId });
+    if (error) {
+      toast.error(error.message || "Renewal failed");
+      return;
+    }
+    toast.success("Renewal submitted — awaiting admin re-approval");
+    void fetchProperties(user.id);
   };
 
   if (loading) {
@@ -372,6 +387,16 @@ export default function SellerDashboard() {
                 Live but no agent assigned yet — we'll notify you once one is.
               </div>
             )}
+            {status === "approved" && p.expiry_date && (
+              <div className="text-[11px] text-muted-foreground">
+                Expires on {new Date(p.expiry_date).toLocaleDateString()}
+              </div>
+            )}
+            {status === "expired" && (
+              <div className="p-2 rounded-md bg-zinc-500/10 border border-zinc-500/30 text-xs text-zinc-700 dark:text-zinc-300">
+                This listing expired. Renew to send it back for admin re-approval.
+              </div>
+            )}
             <div className="flex gap-2 pt-1">
               {(status === "rejected" || status === "draft") && (
                 <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
@@ -388,6 +413,11 @@ export default function SellerDashboard() {
                   <Clock className="h-3 w-3 mr-1" />Awaiting Review
                 </Button>
               )}
+              {status === "expired" && (
+                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
+                  <RefreshCw className="h-3 w-3 mr-1" />Renew Listing
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -397,10 +427,11 @@ export default function SellerDashboard() {
 
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
-    if (s === "approved") return properties.filter(p => p.verification_status === "approved" || p.verified);
+    if (s === "approved") return properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired");
     if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
+    if (s === "expired") return properties.filter(p => p.verification_status === "expired");
     return properties;
   };
 
