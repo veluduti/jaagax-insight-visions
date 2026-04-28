@@ -91,10 +91,17 @@ const PropertyActions = ({ propertyId, propertyTitle, propertyType }: PropertyAc
             <ExternalLink className="h-4 w-4 mr-2" />
             View on Map
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleReport} className="text-destructive">
-            <Flag className="h-4 w-4 mr-2" />
-            Report Issue
-          </DropdownMenuItem>
+          {propertyType === "property" && (
+            <ReportListingDialog
+              propertyId={propertyId}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive cursor-pointer">
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report Listing
+                </DropdownMenuItem>
+              }
+            />
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
