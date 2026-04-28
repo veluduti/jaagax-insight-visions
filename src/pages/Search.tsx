@@ -289,7 +289,7 @@ const Search = () => {
         _limit: 100,
       });
       if (!error && Array.isArray(data)) {
-        const filtered = (data as any[]).filter((p) => {
+        const filtered = (data as any[]).map(toPublicRow).filter((p) => {
           const tier = classifyProperty(p);
           return tierFilter === "featured" ? tier === "featured" : tier === "basic";
         });
@@ -307,7 +307,7 @@ const Search = () => {
       .order("trust_score", { ascending: false })
       .limit(100);
     if (!error) {
-      const all = (data as any[]) || [];
+      const all = ((data as any[]) || []).map(toPublicRow);
       const filtered = all.filter((p) => {
         const tier = classifyProperty(p);
         return tierFilter === "featured" ? tier === "featured" : tier === "basic";
@@ -356,7 +356,7 @@ const Search = () => {
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb.order("price", { ascending: false }).limit(50);
     if (!error) {
-      setProperties(data || []);
+      setProperties((data || []).map(toPublicRow));
       setTotal(count || 0);
     }
   };
