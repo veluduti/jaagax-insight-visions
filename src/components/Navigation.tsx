@@ -90,13 +90,13 @@ const Navigation = () => {
         animate={{ y: 0, opacity: 1 }}
         className="hidden xl:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
       >
-        <div className="container-padding py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
+        <div className="container-padding py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="flex flex-col">
-                <span className="text-xl font-bold text-gradient">JAAGA X</span>
-                <span className="text-xs text-muted-foreground">Choose Your Place</span>
+            <Link to="/" className="flex items-center gap-3 group shrink-0">
+              <div className="flex flex-col leading-tight">
+                <span className="text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
+                <span className="hidden 2xl:inline text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
               </div>
             </Link>
 
