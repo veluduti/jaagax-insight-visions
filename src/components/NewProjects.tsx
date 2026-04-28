@@ -14,6 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import BuilderTrustBadges from "@/components/home/BuilderTrustBadges";
+import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 
 interface Project {
   id: string;
@@ -49,8 +50,8 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      console.log("Fetching projects for city:", detectedCity);
-      
+      console.log("[NewProjects] Selected city:", detectedCity);
+
       let query = (supabase
         .from("projects" as any)
         .select("*") as any)
@@ -59,44 +60,29 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
         .not("city", "is", null)
         .not("locality", "is", null);
 
-      // Filter by detected city if available
       if (detectedCity) {
-        query = query.ilike("city", `%${detectedCity}%`);
+        const aliases = getCityAliases(detectedCity);
+        query = query.in("city", aliases);
       }
 
       const { data, error } = await query
         .order("trust_score", { ascending: false })
-        .limit(6);
+        .limit(20);
 
       if (error) {
         console.error("Error fetching projects:", error);
         throw error;
       }
 
-      console.log(`Found ${data?.length || 0} projects for ${detectedCity || 'all cities'}`);
+      // Strict client-side guard against city leakage.
+      const filtered = ((data as any[]) || [])
+        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
+        .slice(0, 6);
 
-      // If no projects found in detected city, fetch from anywhere
-      if ((!data || data.length === 0) && detectedCity) {
-        console.log("No projects found in detected city, fetching from all cities");
-        const { data: fallbackData, error: fallbackError } = await (supabase
-          .from("projects" as any)
-          .select("*") as any)
-          .eq("verified", true)
-          .not("name", "is", null)
-          .not("city", "is", null)
-          .not("locality", "is", null)
-          .order("trust_score", { ascending: false })
-          .limit(6);
+      console.log(`[NewProjects] Filtered projects: ${filtered.length}`, filtered.map((p) => p.city));
 
-        if (fallbackError) {
-          console.error("Error fetching fallback projects:", fallbackError);
-          throw fallbackError;
-        }
-        console.log(`Found ${fallbackData?.length || 0} fallback projects`);
-        setProjects(fallbackData || []);
-      } else {
-        setProjects(data || []);
-      }
+      // NO cross-city fallback — strict location filtering.
+      setProjects(filtered);
     } catch (error) {
       console.error("Error in fetchProjects:", error);
       setProjects([]);
