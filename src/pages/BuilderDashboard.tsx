@@ -61,6 +61,7 @@ export default function BuilderDashboard() {
   const [activeTab, setActiveTab] = useState("properties");
   const [reraModalOpen, setReraModalOpen] = useState(false);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
+  const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProjects: 0,
     verifiedProjects: 0,
