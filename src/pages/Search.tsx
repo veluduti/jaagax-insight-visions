@@ -313,10 +313,13 @@ const Search = () => {
       .limit(100);
     if (!error) {
       const all = ((data as any[]) || []).map(toPublicRow);
-      const filtered = all.filter((p) => {
-        const tier = classifyProperty(p);
-        return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-      });
+      const filtered = all
+        .filter((p) => !location || isSameCity(p.city, location))
+        .filter((p) => {
+          const tier = classifyProperty(p);
+          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+        });
+      console.log("[Search] Selected city:", location, "Filtered properties:", filtered.length);
       setProperties(filtered.slice(0, 50));
       setTotal(filtered.length);
     }
