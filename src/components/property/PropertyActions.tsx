@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import ReportListingDialog from "./ReportListingDialog";
+
 interface PropertyActionsProps {
   propertyId: string;
   propertyTitle: string;
@@ -52,11 +54,6 @@ const PropertyActions = ({ propertyId, propertyTitle, propertyType }: PropertyAc
     //   .download(`${propertyType}_${propertyId}.pdf`);
   };
 
-  const handleReport = () => {
-    toast.info("Thank you! Our team will review this property.");
-    // In production, this would open a report form
-  };
-
   const handleViewOnMap = () => {
     const url = `/map?${propertyType}=${propertyId}`;
     window.open(url, '_blank');
@@ -89,10 +86,17 @@ const PropertyActions = ({ propertyId, propertyTitle, propertyType }: PropertyAc
             <ExternalLink className="h-4 w-4 mr-2" />
             View on Map
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleReport} className="text-destructive">
-            <Flag className="h-4 w-4 mr-2" />
-            Report Issue
-          </DropdownMenuItem>
+          {propertyType === "property" && (
+            <ReportListingDialog
+              propertyId={propertyId}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive cursor-pointer">
+                  <Flag className="h-4 w-4 mr-2" />
+                  Report Listing
+                </DropdownMenuItem>
+              }
+            />
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

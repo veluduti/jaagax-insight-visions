@@ -21,6 +21,7 @@ import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
 import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
+import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
@@ -352,7 +353,12 @@ export default function AdminPanel() {
             <TabsTrigger value="quick-visits">Quick Visits</TabsTrigger>
             <TabsTrigger value="rera">RERA Verifications</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="reports" className="mt-4">
+            <ReportedListingsPanel />
+          </TabsContent>
 
           <TabsContent value="projects-review" className="mt-4">
             <VerificationPanel />
