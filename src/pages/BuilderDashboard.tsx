@@ -273,19 +273,10 @@ export default function BuilderDashboard() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={async () => {
-                  const res = await seedBuilderSampleProperties();
-                  if (res.success) {
-                    toast.success(`Added ${res.count} sample properties to your account`);
-                    fetchProperties();
-                    fetchPendingVisitsCount();
-                  } else {
-                    toast.error(res.error || "Failed to add samples");
-                  }
-                }}
+                onClick={() => setSamplePreviewOpen(true)}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Load Sample Properties
+                View Sample Listings
               </Button>
               <Button onClick={handleSignOut} variant="outline">
                 <LogOut className="h-4 w-4 mr-2" />
