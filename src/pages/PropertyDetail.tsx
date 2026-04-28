@@ -133,9 +133,48 @@ const PropertyDetail = () => {
           navigate(`/property/${(propertyData as any).slug}`, { replace: true });
           return;
         }
-      }
+  }
 
-
+  // Hide expired / not-live listings from the public.
+  // Owners (submitted_by === auth user) and admins still see them via dashboards.
+  const isExpired = property.verification_status === "expired";
+  const isNotLive = !property.is_live;
+  if (isExpired || isNotLive) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <div className="glass-panel rounded-2xl p-8 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+              <Building2 className="h-10 w-10 text-amber-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">
+                {isExpired ? "Listing Expired" : "Listing Unavailable"}
+              </h2>
+              <p className="text-muted-foreground">
+                {isExpired
+                  ? "This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard."
+                  : "This listing isn't currently live. Please check back later."}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button onClick={() => navigate("/search")} className="flex-1 gap-2">
+                <MapPin className="h-4 w-4" />
+                Browse Live Listings
+              </Button>
+              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
       if (propertyError) throw propertyError;
       
       if (!propertyData) {
