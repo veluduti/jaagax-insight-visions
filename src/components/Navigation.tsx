@@ -88,7 +88,7 @@ const Navigation = () => {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
+        className="hidden xl:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
       >
         <div className="container-padding py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
@@ -263,7 +263,7 @@ const Navigation = () => {
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
+        className="xl:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50"
       >
         <div className="container-padding py-3">
           <div className="flex items-center justify-between">
@@ -302,8 +302,8 @@ const Navigation = () => {
         </div>
       </motion.nav>
 
-      {/* Mobile Bottom Nav - Only show on mobile */}
-      <div className="lg:hidden">
+      {/* Mobile Bottom Nav - hidden on xl+ */}
+      <div className="xl:hidden">
         <MobileNav />
       </div>
     </>
