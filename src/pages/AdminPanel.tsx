@@ -356,17 +356,11 @@ export default function AdminPanel() {
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
-
           </TabsList>
 
           <TabsContent value="all-listings" className="mt-4">
             <AllListingsPanel />
           </TabsContent>
-
-          <div style={{ display: "none" }}>
-            <TabsList>
-              <TabsTrigger value="_placeholder">_</TabsTrigger>
-          </TabsList>
 
           <TabsContent value="reports" className="mt-4">
             <ReportedListingsPanel />
