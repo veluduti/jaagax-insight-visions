@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
+import LocationSelector from "@/components/location/LocationSelector";
+import LocationPill from "@/components/location/LocationPill";
 
 interface Property {
   id: string;
@@ -88,7 +90,7 @@ const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, role } = useAuth();
   const { buyerContext, hasBuyerContext } = useBuyerContext();
-  const { detectedLocation } = useLocationContext();
+  const { detectedLocation, savedLocation, hasLocation } = useLocationContext();
   
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
@@ -96,9 +98,9 @@ const Search = () => {
     (searchParams.get("tier") as "featured" | "partial") || "featured"
   );
   
-  // Search state - default to detected city if no search param
+  // Search state - default to saved/detected city if no search param
   const [location, setLocation] = useState(
-    searchParams.get("city") || searchParams.get("q") || detectedLocation?.city || ""
+    searchParams.get("city") || searchParams.get("q") || savedLocation?.city || detectedLocation?.city || ""
   );
   const [searchType, setSearchType] = useState(searchParams.get("type") || "buy");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -152,7 +154,15 @@ const Search = () => {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, location, searchType, advancedFilters, tierFilter]);
+  }, [activeTab, location, searchType, advancedFilters, tierFilter, savedLocation?.latitude, savedLocation?.longitude]);
+
+  // When the user picks a new saved location, reflect it in the search input
+  useEffect(() => {
+    if (savedLocation?.city && !searchParams.get("city") && !searchParams.get("q")) {
+      setLocation(savedLocation.city);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedLocation?.city, savedLocation?.area]);
 
   // Fetch AI decisions for properties
   useEffect(() => {
@@ -230,6 +240,33 @@ const Search = () => {
   };
 
   const fetchProperties = async () => {
+    // Prefer geo radius search when we have GPS coords from saved location.
+    const useGeo =
+      !!savedLocation?.latitude &&
+      !!savedLocation?.longitude &&
+      // If user is searching by a specific city different from saved, fall back to text search.
+      (!location || location.toLowerCase() === savedLocation.city.toLowerCase());
+
+    if (useGeo) {
+      const { data, error } = await (supabase as any).rpc("search_properties_nearby", {
+        _lat: savedLocation!.latitude,
+        _lng: savedLocation!.longitude,
+        _radius_km: 10,
+        _page: 1,
+        _limit: 100,
+      });
+      if (!error && Array.isArray(data)) {
+        const filtered = (data as any[]).filter((p) => {
+          const tier = classifyProperty(p);
+          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+        });
+        setProperties(filtered.slice(0, 50));
+        setTotal(data[0]?.total_count ?? filtered.length);
+        return;
+      }
+      // Fall through to text-based search on RPC error.
+    }
+
     let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
@@ -648,15 +685,25 @@ const Search = () => {
       
       <div className="pt-24 pb-16">
         <div className="container-padding max-w-7xl mx-auto">
+          {/* Location selection screen — shown when the user has no saved location */}
+          {!hasLocation && activeTab === "properties" && (
+            <div className="mb-10">
+              <LocationSelector />
+            </div>
+          )}
+
           {/* Search Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-4xl font-bold mb-4 text-gradient">
-              Search {getTabTitle()}
-            </h1>
+            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+              <h1 className="text-4xl font-bold text-gradient">
+                Search {getTabTitle()}
+              </h1>
+              <LocationPill />
+            </div>
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <p className="text-muted-foreground">
                 {getResultCount() > 0 ? `Found ${getResultCount()} ${getTabTitle().toLowerCase()}` : `Search for ${getTabTitle().toLowerCase()}`}

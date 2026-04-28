@@ -1048,6 +1048,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          location_data: Json | null
           status: string
           type: string
           updated_at: string
@@ -1056,6 +1057,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          location_data?: Json | null
           status?: string
           type: string
           updated_at?: string
@@ -1064,6 +1066,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          location_data?: Json | null
           status?: string
           type?: string
           updated_at?: string
@@ -2269,6 +2272,65 @@ export type Database = {
           _request_id: string
         }
         Returns: undefined
+      }
+      search_properties_in_bounds: {
+        Args: {
+          _limit?: number
+          _ne_lat: number
+          _ne_lng: number
+          _sw_lat: number
+          _sw_lng: number
+        }
+        Returns: {
+          area_sqft: number
+          bhk: number
+          city: string
+          id: string
+          images: string[]
+          is_live: boolean
+          latitude: number
+          listing_type: string
+          locality: string
+          longitude: number
+          price: number
+          title: string
+          type: string
+          verified: boolean
+        }[]
+      }
+      search_properties_nearby: {
+        Args: {
+          _lat: number
+          _limit?: number
+          _lng: number
+          _page?: number
+          _radius_km?: number
+        }
+        Returns: {
+          address: string
+          area_sqft: number
+          bathrooms: number
+          bedrooms: number
+          bhk: number
+          city: string
+          created_at: string
+          description: string
+          distance_km: number
+          furnishing: string
+          id: string
+          images: string[]
+          is_live: boolean
+          latitude: number
+          listing_type: string
+          locality: string
+          longitude: number
+          price: number
+          title: string
+          total_count: number
+          trust_score: number
+          type: string
+          verified: boolean
+        }[]
       }
       slugify: { Args: { _input: string }; Returns: string }
       submit_signup_request: {

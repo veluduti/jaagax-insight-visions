@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { canSee } from "@/lib/roleAccess";
 import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
+import LocationPill from "@/components/location/LocationPill";
 
 const Navigation = () => {
   // Navigation component
@@ -215,6 +216,7 @@ const Navigation = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <LocationPill className="hidden xl:inline-flex" />
               {/* Get Guidance Button */}
               <Button
                 variant="ghost"
@@ -270,6 +272,7 @@ const Navigation = () => {
             </Link>
 
             <div className="flex items-center gap-2">
+              <LocationPill />
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
