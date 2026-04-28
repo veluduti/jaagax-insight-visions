@@ -9,6 +9,7 @@ import {
   CheckCircle, Info, ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { useNavigate } from "react-router-dom";
 import {
   Tooltip,
@@ -55,7 +56,11 @@ export default function MicroComparables({ property, propertyId }: MicroComparab
 
       if (error) throw error;
 
-      setComparables(data || []);
+      setComparables((data || []).map((row: any) => {
+        const v = getPublicPropertyView(row);
+        if (!v) return row;
+        return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, images: (v.images?.length ? v.images : row.images) };
+      }));
     } catch (error) {
       console.error("Error fetching comparables:", error);
     } finally {
