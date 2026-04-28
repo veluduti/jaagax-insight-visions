@@ -267,7 +267,7 @@ const Search = () => {
       // Fall through to text-based search on RPC error.
     }
 
-    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true);
+    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true).eq("is_live", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(100);
     if (!error) {
@@ -316,7 +316,7 @@ const Search = () => {
   };
 
   const fetchTransactions = async () => {
-    let qb = supabase.from("properties").select("*", { count: "exact" }).eq("verified", true);
+    let qb = supabase.from("properties").select("*", { count: "exact" }).eq("verified", true).eq("is_live", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb.order("price", { ascending: false }).limit(50);
     if (!error) {
