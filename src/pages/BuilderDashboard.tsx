@@ -263,31 +263,26 @@ export default function BuilderDashboard() {
       <Navigation />
       
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-bold">Welcome, {user?.name || "Builder"}!</h1>
-              <p className="text-muted-foreground">Manage your projects and properties</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setSamplePreviewOpen(true)}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                View Sample Listings
-              </Button>
-              <Button onClick={handleSignOut} variant="outline">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Welcome, {user?.name || "Builder"}!</h1>
+            <p className="text-muted-foreground mt-1">Manage your projects and properties</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              View Sample Listings
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
