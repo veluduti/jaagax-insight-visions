@@ -96,7 +96,7 @@ const Navigation = () => {
             <Link to="/" className="flex items-center gap-3 group shrink-0">
               <div className="flex flex-col leading-tight">
                 <span className="text-lg font-bold text-gradient whitespace-nowrap">JAAGA X</span>
-                <span className="hidden 2xl:inline text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">Choose Your Place</span>
               </div>
             </Link>
 
