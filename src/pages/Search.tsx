@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
+import LocationSelector from "@/components/location/LocationSelector";
+import LocationPill from "@/components/location/LocationPill";
 
 interface Property {
   id: string;
@@ -88,7 +90,7 @@ const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, role } = useAuth();
   const { buyerContext, hasBuyerContext } = useBuyerContext();
-  const { detectedLocation } = useLocationContext();
+  const { detectedLocation, savedLocation, hasLocation } = useLocationContext();
   
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
@@ -96,9 +98,9 @@ const Search = () => {
     (searchParams.get("tier") as "featured" | "partial") || "featured"
   );
   
-  // Search state - default to detected city if no search param
+  // Search state - default to saved/detected city if no search param
   const [location, setLocation] = useState(
-    searchParams.get("city") || searchParams.get("q") || detectedLocation?.city || ""
+    searchParams.get("city") || searchParams.get("q") || savedLocation?.city || detectedLocation?.city || ""
   );
   const [searchType, setSearchType] = useState(searchParams.get("type") || "buy");
   const [showSuggestions, setShowSuggestions] = useState(false);
