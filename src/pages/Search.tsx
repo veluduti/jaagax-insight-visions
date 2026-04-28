@@ -21,6 +21,39 @@ import { motion, AnimatePresence } from "framer-motion";
 import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
+
+/**
+ * Merge a raw property row with its final_data-driven public view so
+ * downstream cards always render approved values (final_data first).
+ * Rule: never expose agent_data / seller_data on the frontend.
+ */
+const toPublicRow = (row: any) => {
+  const v = getPublicPropertyView(row);
+  if (!v) return row;
+  return {
+    ...row,
+    title: v.title,
+    description: v.description ?? row.description,
+    city: v.city ?? row.city,
+    locality: v.locality ?? row.locality,
+    address: v.address ?? row.address,
+    price: v.price ?? row.price,
+    area_sqft: v.area_sqft ?? row.area_sqft,
+    bhk: v.bhk ?? row.bhk,
+    bedrooms: v.bedrooms ?? row.bedrooms,
+    bathrooms: v.bathrooms ?? row.bathrooms,
+    type: v.type ?? row.type,
+    listing_type: v.listing_type ?? row.listing_type,
+    furnishing: v.furnishing ?? row.furnishing,
+    images: v.images?.length ? v.images : row.images,
+    video_urls: v.video_urls?.length ? v.video_urls : row.video_urls,
+    amenities: v.amenities?.length ? v.amenities : row.amenities,
+    latitude: v.latitude ?? row.latitude,
+    longitude: v.longitude ?? row.longitude,
+    rera_id: v.rera_id ?? row.rera_id,
+  };
+};
 import LocationSelector from "@/components/location/LocationSelector";
 import LocationPill from "@/components/location/LocationPill";
 
