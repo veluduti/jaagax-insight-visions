@@ -147,23 +147,32 @@ export default function AdminPanel() {
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
     let reason: string | null = null;
     if (decision === "rejected") {
-      reason = window.prompt("Reason for rejection (visible to seller):", "Listing details need clarification") || null;
-      if (!reason) return;
+      const raw = window.prompt("Reason for rejection (mandatory, visible to submitter):", "Listing details need clarification");
+      reason = (raw || "").trim() || null;
+      if (!reason) {
+        toast.error("Rejection reason is required");
+        return;
+      }
     }
     setReviewingId(propertyId);
     try {
+      const nowIso = new Date().toISOString();
       const update: any = {
         verification_status: decision,
         verified: decision === "approved",
         rejection_reason: decision === "rejected" ? reason : null,
         is_draft: false,
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
+        // On approval: flip listing live and stamp publish time so it appears in search/feeds
+        ...(decision === "approved"
+          ? { is_live: true, published_at: nowIso }
+          : { is_live: false }),
       };
       const { data, error } = await supabase
         .from("properties")
         .update(update)
         .eq("id", propertyId)
-        .select("id, verification_status, verified");
+        .select("id, verification_status, verified, is_live, published_at");
       if (error) throw error;
       if (!data || data.length === 0) {
         throw new Error("Update blocked — you may not have permission. Please log in as admin.");
