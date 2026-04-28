@@ -265,7 +265,7 @@ const BuyerDashboard = () => {
       <Navigation />
       
       {/* Header */}
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Buyer"}!</h1>

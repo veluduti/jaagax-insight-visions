@@ -460,7 +460,7 @@ export default function SellerDashboard() {
       <Navigation />
 
       {/* Header */}
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-6 flex items-center justify-between flex-wrap gap-3">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-emerald-500" />
