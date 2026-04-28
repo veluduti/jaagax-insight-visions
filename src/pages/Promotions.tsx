@@ -41,6 +41,8 @@ const PROPERTY_REELS = [
 
 const Promotions = () => {
   const navigate = useNavigate();
+  const { savedLocation } = useLocationContext();
+  const selectedCity = savedLocation?.city || "";
   const containerRef = useRef<HTMLDivElement>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -48,21 +50,13 @@ const Promotions = () => {
 
   useEffect(() => {
     const fetchProperties = async () => {
-      const { data: verified } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("verified", true)
-        .limit(15);
-
-      let pool: any[] = verified || [];
-      if (pool.length < 15) {
-        const { data: extra } = await supabase
-          .from("properties")
-          .select("*")
-          .limit(15 - pool.length);
-        const ids = new Set(pool.map((p) => p.id));
-        pool = [...pool, ...(extra || []).filter((p) => !ids.has(p.id))];
+      let q: any = supabase.from("properties").select("*").eq("verified", true);
+      if (selectedCity) {
+        q = q.in("city", getCityAliases(selectedCity));
       }
+      const { data: verified } = await q.limit(40);
+
+      const pool: any[] = verified || [];
 
       const reels: Property[] = pool.slice(0, 15).map((p: any, i: number) => {
         const v = getPublicPropertyView(p);
@@ -74,13 +68,14 @@ const Promotions = () => {
           video_urls: videos as string[],
           images: merged.images as string[] | null,
         };
-      });
+      }).filter((p: any) => !selectedCity || isSameCity(p.city, selectedCity));
 
+      console.log("[Promotions] Selected city:", selectedCity, "Filtered:", reels.length);
       setProperties(reels);
       setLoading(false);
     };
     fetchProperties();
-  }, []);
+  }, [selectedCity]);
 
   // Track active reel using IntersectionObserver for accuracy
   useEffect(() => {
