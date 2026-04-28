@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,51 +144,60 @@ const PropertyDetail = () => {
         return;
       }
       
-      // Validate critical fields
-      if (!propertyData.title || !propertyData.city || !propertyData.locality || !propertyData.price) {
+      // Build a public-facing view that reads from final_data first.
+      // Rule: Frontend uses ONLY final_data — never agent_data / seller_data.
+      const view = getPublicPropertyView(propertyData);
+      if (!view) {
         setProperty(null);
         setLoading(false);
         return;
       }
-      
-      // Use type assertion to handle the DB schema
+
+      // Validate critical fields (against the public view)
+      if (!view.title || !view.city || !view.locality || !view.price) {
+        setProperty(null);
+        setLoading(false);
+        return;
+      }
+
+      // Use type assertion to handle the DB schema (raw row kept for fields
+      // not yet surfaced through final_data, e.g. building metadata).
       const dbProperty = propertyData as any;
-      
-      // Parse images - handle both array format and newline-separated string format
+
+      // Parse images from the public view — handle both array and newline-string forms
+      const rawImages = view.images;
       let parsedImages: string[] = [];
-      if (dbProperty.images) {
-        if (Array.isArray(dbProperty.images)) {
-          // If it's already an array, flatten in case items contain newlines
-          parsedImages = dbProperty.images.flatMap((img: string) => 
-            typeof img === 'string' && img.includes('\n') 
+      if (rawImages) {
+        if (Array.isArray(rawImages)) {
+          parsedImages = rawImages.flatMap((img: string) =>
+            typeof img === 'string' && img.includes('\n')
               ? img.split('\n').map((url: string) => url.trim()).filter(Boolean)
               : img
           );
-        } else if (typeof dbProperty.images === 'string') {
-          // If it's a single string with newlines
-          parsedImages = dbProperty.images.split('\n').map((url: string) => url.trim()).filter(Boolean);
+        } else if (typeof rawImages === 'string') {
+          parsedImages = (rawImages as string).split('\n').map((url: string) => url.trim()).filter(Boolean);
         }
       }
-      
+
       const mappedProperty: Property = {
-        id: dbProperty.id,
-        title: dbProperty.title,
-        city: dbProperty.city,
-        locality: dbProperty.locality,
-        lat: dbProperty.latitude ?? null,
-        lng: dbProperty.longitude ?? null,
-        price: dbProperty.price,
-        area: dbProperty.area_sqft ?? null,
-        type: dbProperty.type ?? "Apartment",
-        beds: dbProperty.bedrooms || dbProperty.bhk || 0,
-        baths: dbProperty.bathrooms || 0,
-        bhk: dbProperty.bhk ?? null,
+        id: view.id,
+        title: view.title,
+        city: view.city!,
+        locality: view.locality!,
+        lat: view.latitude ?? null,
+        lng: view.longitude ?? null,
+        price: view.price!,
+        area: view.area_sqft ?? null,
+        type: view.type ?? "Apartment",
+        beds: view.bedrooms || view.bhk || 0,
+        baths: view.bathrooms || 0,
+        bhk: view.bhk ?? null,
         status: dbProperty.completion_stage || "Ready",
-        verified: dbProperty.verified,
-        trust_score: dbProperty.trust_score ?? null,
+        verified: view.verified,
+        trust_score: view.trust_score ?? null,
         images: parsedImages,
-        video_urls: Array.isArray(dbProperty.video_urls) ? dbProperty.video_urls : [],
-        description: dbProperty.description || "",
+        video_urls: Array.isArray(view.video_urls) ? view.video_urls : [],
+        description: view.description || "",
         agent_id: dbProperty.assigned_agent_id || null,
         project_id: null,
         building_name: dbProperty.building_name ?? null,
@@ -196,12 +206,12 @@ const PropertyDetail = () => {
         building_area_sqft: dbProperty.building_area_sqft ?? null,
         elevators: dbProperty.elevators ?? null,
         retail_centres: dbProperty.retail_centres ?? null,
-        amenities: Array.isArray(dbProperty.amenities)
-          ? dbProperty.amenities.filter((a: any) => typeof a === "string" && a.trim().length > 0)
+        amenities: Array.isArray(view.amenities)
+          ? view.amenities.filter((a: any) => typeof a === "string" && a.trim().length > 0)
           : [],
-        is_live: dbProperty.is_live === true,
+        is_live: view.is_live === true,
         verification_status: dbProperty.verification_status ?? null,
-        expiry_date: dbProperty.expiry_date ?? null,
+        expiry_date: view.expiry_date ?? null,
       };
 
       setProperty(mappedProperty);
