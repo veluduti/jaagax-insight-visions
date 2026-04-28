@@ -418,7 +418,7 @@ export default function SellerDashboard() {
                   ) : (
                     <BoostListingDialog
                       propertyId={p.id}
-                      onBoosted={fetchProperties}
+                      onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
                       trigger={
                         <Button size="sm" className="flex-1 gap-1 bg-amber-500 hover:bg-amber-600 text-white">
                           <Sparkles className="h-3 w-3" /> Boost
