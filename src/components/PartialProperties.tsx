@@ -7,6 +7,12 @@ import { Bed, Bath, Maximize, MapPin, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { classifyProperty } from "@/lib/propertyClassifier";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
+const toPublicRow = (row: any) => {
+  const v = getPublicPropertyView(row);
+  if (!v) return row;
+  return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
+};
 
 interface Property {
   id: string;
@@ -61,6 +67,7 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
       if (error) throw error;
 
       const partial = ((data as any[]) || [])
+        .map(toPublicRow)
         .filter((p) => classifyProperty(p) === "basic")
         .slice(0, 8);
 
@@ -73,6 +80,7 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
           .order("updated_at", { ascending: false })
           .limit(40);
         const partialFb = ((fb as any[]) || [])
+          .map(toPublicRow)
           .filter((p) => classifyProperty(p) === "basic")
           .slice(0, 8);
         setProperties(partialFb);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ChevronUp, ChevronDown, Film } from "lucide-react";
@@ -46,11 +47,15 @@ const PropertyReels = () => {
         setProperties(
           data
             .filter((p: any) => p.video_urls && p.video_urls.length > 0)
-            .map((p: any) => ({
-              ...p,
-              video_urls: p.video_urls as string[],
-              images: p.images as string[] | null,
-            }))
+            .map((p: any) => {
+              const v = getPublicPropertyView(p);
+              const merged = v ? { ...p, title: v.title, city: v.city ?? p.city, locality: v.locality ?? p.locality, price: v.price ?? p.price, images: (v.images?.length ? v.images : p.images), video_urls: (v.video_urls?.length ? v.video_urls : p.video_urls) } : p;
+              return {
+                ...merged,
+                video_urls: merged.video_urls as string[],
+                images: merged.images as string[] | null,
+              };
+            })
         );
       }
       setLoading(false);
