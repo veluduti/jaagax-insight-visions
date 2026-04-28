@@ -17,22 +17,20 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
     lat !== null && lat !== undefined && !Number.isNaN(Number(lat)) &&
     lng !== null && lng !== undefined && !Number.isNaN(Number(lng));
 
-  // STRICT: hide the entire location section when we have no real coordinates
-  if (!hasCoordinates) {
-    return null;
-  }
-
-  const validLat = Number(lat);
-  const validLng = Number(lng);
+  const validLat = hasCoordinates ? Number(lat) : 0;
+  const validLng = hasCoordinates ? Number(lng) : 0;
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!hasCoordinates) return;
     if (!mapContainer.current || map.current) return;
 
-    // Use environment variable or fallback to a default public token
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
+    mapboxgl.accessToken =
+      import.meta.env.VITE_MAPBOX_TOKEN ||
+      import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+      "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -41,7 +39,6 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       zoom: 14,
     });
 
-    // Create custom marker
     const el = document.createElement("div");
     el.className = "property-marker";
     el.style.width = "50px";
@@ -63,17 +60,17 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       el.textContent = "📍";
     }
 
-    if (hasCoordinates) {
-      new mapboxgl.Marker(el).setLngLat([validLng, validLat]).addTo(map.current);
-    }
-
-    // Add navigation controls
+    new mapboxgl.Marker(el).setLngLat([validLng, validLat]).addTo(map.current);
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     return () => {
       map.current?.remove();
+      map.current = null;
     };
   }, [validLat, validLng, verified, hasCoordinates]);
+
+  // STRICT: hide the entire location section when we have no real coordinates
+  if (!hasCoordinates) return null;
 
   return (
     <motion.div
@@ -93,30 +90,6 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       </div>
 
       <div ref={mapContainer} className="w-full h-[400px] rounded-lg overflow-hidden" />
-
-      {/* Nearby POIs placeholder */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-        <div className="p-3 rounded-lg bg-background/50 text-center">
-          <div className="text-2xl mb-1">🏫</div>
-          <div className="text-xs text-muted-foreground">Schools Nearby</div>
-          <div className="font-semibold">5</div>
-        </div>
-        <div className="p-3 rounded-lg bg-background/50 text-center">
-          <div className="text-2xl mb-1">🏥</div>
-          <div className="text-xs text-muted-foreground">Hospitals</div>
-          <div className="font-semibold">3</div>
-        </div>
-        <div className="p-3 rounded-lg bg-background/50 text-center">
-          <div className="text-2xl mb-1">🚇</div>
-          <div className="text-xs text-muted-foreground">Metro</div>
-          <div className="font-semibold">2 km</div>
-        </div>
-        <div className="p-3 rounded-lg bg-background/50 text-center">
-          <div className="text-2xl mb-1">🏬</div>
-          <div className="text-xs text-muted-foreground">Malls</div>
-          <div className="font-semibold">4</div>
-        </div>
-      </div>
     </motion.div>
   );
 };
