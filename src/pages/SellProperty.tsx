@@ -60,6 +60,13 @@ function isEmpty(v: any) {
   return false;
 }
 
+/** A field is optional if it's marked optional OR not marked required. */
+function isOptional(f: FieldDef | null | undefined): boolean {
+  if (!f) return false;
+  if (f.optional) return true;
+  return f.required !== true;
+}
+
 function validate(field: FieldDef, value: any): string | null {
   if (field.optional && isEmpty(value)) return null;
   if (isEmpty(value)) return "This field is required";
