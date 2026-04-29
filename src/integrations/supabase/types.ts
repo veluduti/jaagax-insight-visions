@@ -1620,6 +1620,41 @@ export type Database = {
         }
         Relationships: []
       }
+      property_details: {
+        Row: {
+          created_at: string
+          field_key: string
+          field_value: Json | null
+          id: string
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_key: string
+          field_value?: Json | null
+          id?: string
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_key?: string
+          field_value?: Json | null
+          id?: string
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_details_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_documents: {
         Row: {
           admin_notes: string | null
