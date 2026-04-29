@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,12 +11,13 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
-  ImagePlus, X, MessageCircle,
+  ImagePlus, X, Mic, MicOff, Send, Image as ImageIcon, Camera,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
+import { cn } from "@/lib/utils";
 
 /* ============================================================
-   Types matching the orchestrator edge function
+   Types
    ============================================================ */
 type FieldDef = {
   id: string;
@@ -40,16 +40,20 @@ type NextResp =
       progress: { filled: number; total: number };
     };
 
+type ChatMsg =
+  | { id: string; role: "ai"; kind: "text"; text: string }
+  | { id: string; role: "ai"; kind: "typing" }
+  | { id: string; role: "user"; kind: "text"; text: string }
+  | { id: string; role: "user"; kind: "image"; url: string; caption?: string };
+
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
+const uid = () => Math.random().toString(36).slice(2, 10);
 
 function isEmpty(v: any) {
   if (v == null || v === "") return true;
   if (Array.isArray(v)) return v.length === 0;
-  if (typeof v === "object") {
-    // price_unit object
-    return !v.unit || !v.area || !v.pricePerUnit;
-  }
+  if (typeof v === "object") return !v.unit || !v.area || !v.pricePerUnit;
   return false;
 }
 
@@ -70,8 +74,23 @@ function validate(field: FieldDef, value: any): string | null {
   return null;
 }
 
+/** Pretty-print a user's answer for the chat bubble */
+function formatAnswer(field: FieldDef, value: any): string {
+  if (value === null || value === undefined || value === "") return "Skipped";
+  if (Array.isArray(value)) return value.join(", ");
+  if (field.input === "price_unit") {
+    const v = value as { unit: string; area: string; pricePerUnit: string };
+    const total = Number(v.area) * Number(v.pricePerUnit);
+    const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
+    return `${v.area} ${v.unit} × ₹${fmt(Number(v.pricePerUnit))}/${v.unit}  ≈  ₹${fmt(total)}`;
+  }
+  return String(value);
+}
+
 export default function SellProperty() {
   const navigate = useNavigate();
+
+  /* Session / answers state */
   const [state, setState] = useState<Record<string, any>>({});
   const [field, setField] = useState<FieldDef | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -83,30 +102,92 @@ export default function SellProperty() {
   const [done, setDone] = useState(false);
   const [history, setHistory] = useState<{ field: FieldDef; value: any }[]>([]);
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  /* fetch user contact pre-fill */
+  /* Chat transcript */
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+
+  /* Voice */
+  const recognitionRef = useRef<any>(null);
+  const [isListening, setIsListening] = useState(false);
+
+  /* ----- Auto-scroll on new messages ----- */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages, loadingNext]);
+
+  /* ----- Setup speech recognition ----- */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SR = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = "en-IN";
+    rec.onresult = (e: any) => {
+      let txt = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+      if (txt) setValue((prev: any) => (typeof prev === "string" ? txt : prev));
+    };
+    rec.onerror = () => { setIsListening(false); toast.error("Voice failed. Try again."); };
+    rec.onend = () => setIsListening(false);
+    recognitionRef.current = rec;
+  }, []);
+
+  const toggleVoice = () => {
+    const rec = recognitionRef.current;
+    if (!rec) { toast.error("Voice not supported in this browser"); return; }
+    if (isListening) { rec.stop(); setIsListening(false); }
+    else {
+      try { rec.start(); setIsListening(true); }
+      catch { /* already started */ }
+    }
+  };
+
+  /* ----- Pre-fill seller from auth ----- */
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: profile } = await supabase
-        .from("profiles").select("name, phone, email").eq("user_id", user.id).maybeSingle();
+        .from("profiles" as any).select("name, phone, email").eq("user_id", user.id).maybeSingle();
       if (profile) {
         setState((s) => ({
           ...s,
-          contact_name: profile.name || s.contact_name,
-          contact_mobile: profile.phone || s.contact_mobile,
-          contact_email: profile.email || s.contact_email,
+          contact_name: (profile as any).name || s.contact_name,
+          contact_mobile: (profile as any).phone || s.contact_mobile,
+          contact_email: (profile as any).email || s.contact_email,
         }));
       }
     })();
   }, []);
 
-  /* ask orchestrator for the next question */
-  const fetchNext = async (currentState: Record<string, any>) => {
+  /* ----- Greeting + first question ----- */
+  useEffect(() => {
+    setMessages([
+      {
+        id: uid(), role: "ai", kind: "text",
+        text: "👋 Hi! I'll help you list your property. Tell me about it — type, speak, or upload a photo. I'll handle the rest.",
+      },
+    ]);
+    fetchNext({}, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ----- Ask orchestrator for next field ----- */
+  const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
     setLoadingNext(true);
     setError(null);
+
+    // typing bubble
+    const typingId = uid();
+    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+
     try {
       const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
         "ai-conversational-listing",
@@ -115,68 +196,104 @@ export default function SellProperty() {
       if (fnErr) throw fnErr;
       if (!data) throw new Error("No response");
 
+      // small delay so typing animation feels natural
+      await new Promise((r) => setTimeout(r, 350));
+
+      // remove typing bubble
+      setMessages((m) => m.filter((x) => x.id !== typingId));
+
       if ((data as any).done) {
         setDone(true);
         setField(null);
+        setMessages((m) => [
+          ...m,
+          { id: uid(), role: "ai", kind: "text", text: "🎉 That's everything I need! Review your details below and publish when ready." },
+        ]);
       } else {
         const d = data as Extract<NextResp, { done: false }>;
         setField(d.field);
         setSuggestions(d.suggestions || []);
         setProgress(d.progress);
         const existing = currentState[d.field.id];
-        if (existing !== undefined && existing !== null) {
-          setValue(existing);
-        } else if (d.field.input === "multi") {
-          setValue([]);
-        } else if (d.field.input === "price_unit") {
-          setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
-        } else {
-          setValue("");
-        }
+        if (existing !== undefined && existing !== null) setValue(existing);
+        else if (d.field.input === "multi") setValue([]);
+        else if (d.field.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
+        else setValue("");
+
+        setMessages((m) => [
+          ...m,
+          { id: uid(), role: "ai", kind: "text", text: d.field.question },
+        ]);
       }
     } catch (e: any) {
+      setMessages((m) => m.filter((x) => x.kind !== "typing"));
       setError(e.message || "Could not load next question");
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "ai", kind: "text", text: "Hmm, I had trouble continuing. Tap retry or type your answer." },
+      ]);
     } finally {
       setLoadingNext(false);
     }
   };
 
-  useEffect(() => {
-    fetchNext({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* handle next */
+  /* ----- Submit current answer ----- */
   const onNext = async () => {
     if (!field) return;
-    const v = field.input === "yesno" ? value : value;
-    const err = validate(field, v);
+    const err = validate(field, value);
     if (err) { setError(err); return; }
-    const newState = { ...state, [field.id]: v };
-    setHistory((h) => [...h, { field, value: v }]);
+
+    // Push the user's answer as a chat bubble
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: formatAnswer(field, value) },
+    ]);
+
+    const newState = { ...state, [field.id]: value };
+    setHistory((h) => [...h, { field, value }]);
     setState(newState);
+    setError(null);
+    await fetchNext(newState);
+  };
+
+  const onSkip = async () => {
+    if (!field || !field.optional) return;
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: "Skip" },
+    ]);
+    const newState = { ...state, [field.id]: null };
+    setHistory((h) => [...h, { field, value: null }]);
+    setState(newState);
+    setValue("");
+    setError(null);
     await fetchNext(newState);
   };
 
   const onBack = async () => {
     if (history.length === 0) return;
     const prev = history[history.length - 1];
-    const newHist = history.slice(0, -1);
-    setHistory(newHist);
+    setHistory(history.slice(0, -1));
     const cleared = { ...state };
     delete cleared[prev.field.id];
     setState(cleared);
     setDone(false);
+    // remove last user + last ai question pair
+    setMessages((m) => {
+      const copy = [...m];
+      // pop trailing AI question
+      while (copy.length && copy[copy.length - 1].role === "ai") copy.pop();
+      // pop user answer
+      if (copy.length && copy[copy.length - 1].role === "user") copy.pop();
+      return copy;
+    });
     await fetchNext(cleared);
   };
 
-  /* media upload */
+  /* ----- Property images upload ----- */
   const handleFiles = async (files: FileList) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Please sign in to upload");
-      return;
-    }
+    if (!user) { toast.error("Please sign in to upload"); return; }
     setUploading(true);
     try {
       const urls: string[] = [...(state.media_urls || [])];
@@ -186,9 +303,11 @@ export default function SellProperty() {
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
         urls.push(pub.publicUrl);
+        // show in chat
+        setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: pub.publicUrl }]);
       }
       setState((s) => ({ ...s, media_urls: urls }));
-      toast.success(`${urls.length} file(s) ready`);
+      toast.success(`${urls.length} photo(s) added`);
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
     } finally {
@@ -196,23 +315,38 @@ export default function SellProperty() {
     }
   };
 
-  /* final submit */
+  /* ----- Quick-image attach (AI 'extracts' from photo) ----- */
+  const handleQuickImage = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    const localUrl = URL.createObjectURL(file);
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: localUrl, caption: "Photo of my property" }]);
+
+    // simulate AI extraction
+    const typingId = uid();
+    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    await new Promise((r) => setTimeout(r, 900));
+    setMessages((m) => m.filter((x) => x.id !== typingId));
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "ai", kind: "text", text: "Nice photo! I'll add this to your gallery. Let's keep filling in the details." },
+    ]);
+
+    // also actually upload it
+    await handleFiles(files);
+  };
+
+  /* ----- Final submit ----- */
   const onSubmit = async () => {
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please sign in");
-        navigate("/auth");
-        return;
-      }
+      if (!user) { toast.error("Please sign in"); navigate("/auth"); return; }
 
-      // Derive pricing from unit-based input
       const pu = state.price_unit || {};
       const area = Number(pu.area) || null;
       const ppu = Number(pu.pricePerUnit) || null;
       const totalPrice = area && ppu ? area * ppu : null;
-      // Normalize area to sq ft (rough conversions)
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1, "sq m": 10.7639, "gunta": 1089, "acre": 43560, "cent": 435.6, "sq yard": 9,
       };
@@ -222,51 +356,39 @@ export default function SellProperty() {
       const typesArr = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
       const primaryType = typesArr[0] || null;
 
-      // Map the conversational state into the properties table schema.
       const payload: any = {
-        user_id: user.id,
+        submitted_by: user.id,
         title: state.title || `${state.bhk || ""} ${primaryType || "Property"} in ${state.locality || state.city || ""}`.trim(),
         description: state.description || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: (state.listed_by || "owner").toLowerCase(),
         price: totalPrice,
-        price_per_sqft: pricePerSqft,
         area_sqft: areaSqft,
-        bhk: state.bhk || null,
+        bhk: state.bhk ? parseInt(String(state.bhk)) || null : null,
         bedrooms: state.bhk ? parseInt(String(state.bhk)) || null : null,
         bathrooms: state.bathrooms ? Number(state.bathrooms) : null,
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? Number(state.floor_number) : null,
         total_floors: state.total_floors ? Number(state.total_floors) : null,
-        country: state.country || "India",
-        state: state.state || null,
         city: state.city || null,
         locality: state.locality || null,
-        landmark: state.landmark || null,
         address: state.address || null,
         pincode: state.pincode || null,
-        facing: state.facing || null,
         furnishing: state.furnishing || null,
-        property_status: state.property_status || null,
-        possession_date: state.possession_date || null,
         amenities: state.amenities || [],
         rera_id: state.rera_number || null,
         images: state.media_urls || [],
         is_draft: false,
         verified: false,
         verification_status: "pending",
-        // Everything else lives in document_urls JSON for full fidelity
         document_urls: state,
-        contact_name: state.contact_name || null,
-        contact_phone: state.contact_mobile || null,
-        contact_email: state.contact_email || null,
       };
 
-      const { error: insErr } = await supabase.from("properties").insert(payload);
+      const { error: insErr } = await (supabase.from as any)("properties").insert(payload);
       if (insErr) throw insErr;
       toast.success("Your property is under review", {
-        description: "Our admin team will verify your listing shortly. You'll be notified once approved.",
+        description: "Our team will verify your listing shortly.",
       });
       navigate("/dashboard/seller");
     } catch (e: any) {
@@ -279,392 +401,452 @@ export default function SellProperty() {
 
   const pct = Math.round((progress.filled / Math.max(progress.total, 1)) * 100);
 
+  const showInputBar = field && !done;
+  const isMultiline = field?.input === "textarea";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
       <Navigation />
-      <div className="container max-w-3xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-            <Sparkles className="h-3.5 w-3.5" />
-            AI-guided listing
+
+      {/* Chat header */}
+      <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
+        <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
+            <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-            Sell Your Property
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm">
-            One quick question at a time. Tap chips, skip optionals, done in minutes.
-          </p>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-            <span>{progress.filled} / {progress.total} answered</span>
-            <span>{pct}%</span>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm flex items-center gap-2">
+              JAAGA X Assistant
+              <span className="text-[10px] font-normal text-emerald-500 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                online
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
-          <Progress value={pct} className="h-2" />
+          <div className="hidden sm:flex flex-col items-end">
+            <div className="text-[10px] text-muted-foreground">{progress.filled}/{progress.total} • {pct}%</div>
+            <Progress value={pct} className="h-1 w-24 mt-1" />
+          </div>
         </div>
+      </div>
 
-        {/* Card */}
-        <AnimatePresence mode="wait">
-          {loadingNext && (
-            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <Card className="p-12 flex flex-col items-center gap-3 border-primary/10 bg-card/60 backdrop-blur">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">AI is picking the next question…</p>
-              </Card>
-            </motion.div>
-          )}
+      {/* Chat scroll area */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto"
+        style={{
+          backgroundImage:
+            "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
+      >
+        <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-6 space-y-2">
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.18 }}
+                className={cn(
+                  "flex w-full",
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                )}
+              >
+                <Bubble msg={msg} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
-          {!loadingNext && done && (
-            <motion.div key="done" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="p-8 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-primary/5">
-                <div className="flex flex-col items-center text-center gap-4">
-                  <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-                  <h2 className="text-2xl font-semibold">Everything captured</h2>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    Your listing is ready to publish. Our team will verify the details
-                    and your property will go live shortly.
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center text-xs">
-                    {Object.entries(state).slice(0, 8).map(([k, v]) =>
-                      v ? <Badge key={k} variant="secondary" className="font-normal">{k.replace(/_/g, " ")}</Badge> : null
-                    )}
-                  </div>
-                  <div className="flex gap-3 mt-2">
-                    <Button variant="outline" onClick={onBack}>
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Back
-                    </Button>
-                    <Button onClick={onSubmit} disabled={submitting} className="bg-gradient-to-r from-primary to-emerald-500">
-                      {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                      Publish listing
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {!loadingNext && !done && field && (
+          {/* Quick-reply chips for the current field (single / multi / yesno) */}
+          {field && !loadingNext && !done && (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
             <motion.div
-              key={field.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap gap-2 pt-1 pl-1"
+            >
+              {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
+                const isMulti = field.input === "multi";
+                const arr: string[] = Array.isArray(value) ? value : [];
+                const active = isMulti ? arr.includes(opt) : value === opt;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      if (isMulti) {
+                        setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
+                      } else {
+                        setValue(opt);
+                        // auto-send on single-pick for snappy UX
+                        setTimeout(() => {
+                          setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
+                          const newState = { ...state, [field.id]: opt };
+                          setHistory((h) => [...h, { field, value: opt }]);
+                          setState(newState);
+                          setError(null);
+                          fetchNext(newState);
+                        }, 80);
+                      }
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card hover:bg-primary/5 border-border"
+                    )}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {/* AI suggestions chips (titles, etc.) */}
+          {field && suggestions.length > 0 && !loadingNext && !done && (
+            <div className="pt-1 pl-1">
+              <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-1">
+                <Wand2 className="h-3 w-3" /> AI suggestions
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setValue(s)}
+                    className="text-left text-xs px-3 py-2 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/20 transition max-w-[260px]"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="pl-1 text-xs text-destructive">{error}</div>
+          )}
+
+          {/* Done summary */}
+          {done && (
+            <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2 }}
+              className="mt-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-primary/5 p-5"
             >
-              <Card className="p-6 md:p-8 border-primary/15 bg-card/70 backdrop-blur shadow-xl shadow-primary/5">
-                <div className="flex items-center gap-2 text-xs text-primary/80 font-medium mb-2">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  {field.section}
-                  {field.optional && <Badge variant="outline" className="ml-1 text-[10px]">optional</Badge>}
-                </div>
-                <h2 className="text-xl md:text-2xl font-semibold mb-5">{field.question}</h2>
-
-                {renderInput(field, value, setValue)}
-
-                {/* AI suggestions for title/description */}
-                {suggestions.length > 0 && (
-                  <div className="mt-4">
-                    <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                      <Wand2 className="h-3 w-3" /> AI suggestions
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {suggestions.map((s, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => setValue(s)}
-                          className="text-left text-xs px-3 py-2 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/15 transition"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <h2 className="font-semibold">Listing summary</h2>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {Object.entries(state).slice(0, 14).map(([k, v]) =>
+                  v ? (
+                    <Badge key={k} variant="secondary" className="font-normal text-[10px]">
+                      {k.replace(/_/g, " ")}
+                    </Badge>
+                  ) : null
                 )}
-
-                {/* Media */}
-                {field.input === "media" && (
-                  <div className="mt-2 space-y-3">
-                    <input
-                      ref={fileRef} type="file" multiple accept="image/*,video/*"
-                      className="hidden"
-                      onChange={(e) => e.target.files && handleFiles(e.target.files)}
-                    />
-                    <Button
-                      type="button" variant="outline" onClick={() => fileRef.current?.click()}
-                      disabled={uploading} className="w-full"
-                    >
-                      {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ImagePlus className="h-4 w-4 mr-2" />}
-                      Upload photos / video
-                    </Button>
-                    {state.media_urls?.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2">
-                        {state.media_urls.map((url: string, i: number) => (
-                          <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                            <img src={url} alt="" className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => setState((s) => ({
-                                ...s,
-                                media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
-                              }))}
-                              className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {error && <p className="text-xs text-destructive mt-3">{error}</p>}
-
-                <div className="flex justify-between gap-3 mt-7">
-                  <Button variant="ghost" onClick={onBack} disabled={history.length === 0}>
-                    <ChevronLeft className="h-4 w-4 mr-1" /> Back
-                  </Button>
-                  <div className="flex gap-2">
-                    {field.optional && (
-                      <Button
-                        variant="outline"
-                        disabled={loadingNext}
-                        onClick={async () => {
-                          if (!field) return;
-                          // Mark as explicitly skipped using null sentinel
-                          const newState = { ...state, [field.id]: null };
-                          setHistory((h) => [...h, { field, value: null }]);
-                          setState(newState);
-                          setValue("");
-                          setError(null);
-                          await fetchNext(newState);
-                        }}
-                      >
-                        Skip
-                      </Button>
-                    )}
-                    <Button onClick={onNext} disabled={loadingNext} className="bg-gradient-to-r from-primary to-emerald-500">
-                      Next <ArrowRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={onBack}>
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                </Button>
+                <Button
+                  onClick={onSubmit}
+                  disabled={submitting}
+                  size="sm"
+                  className="bg-gradient-to-r from-primary to-emerald-500 flex-1"
+                >
+                  {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Publish listing
+                </Button>
+              </div>
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Input dock */}
+      {showInputBar && (
+        <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
+          <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
+            {/* Special composers for non-text fields */}
+            {field?.input === "city" || field?.input === "locality" ? (
+              <div className="space-y-2">
+                {field.input === "city" ? (
+                  <CityAutocomplete value={value || ""} onChange={(c) => setValue(c)} placeholder="Search your city..." />
+                ) : (
+                  <Input
+                    value={value || ""}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Type your area / locality..."
+                  />
+                )}
+                <PrimaryActions
+                  onNext={onNext} onSkip={onSkip} onBack={onBack}
+                  optional={!!field.optional} canBack={history.length > 0}
+                  loading={loadingNext}
+                />
+              </div>
+            ) : field?.input === "price_unit" ? (
+              <PriceUnitComposer
+                value={value} onChange={setValue}
+                onNext={onNext} onBack={onBack} canBack={history.length > 0} loading={loadingNext}
+              />
+            ) : field?.input === "media" ? (
+              <div className="space-y-3">
+                <input
+                  ref={fileRef} type="file" multiple accept="image/*,video/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                />
+                <Button
+                  type="button" variant="outline" onClick={() => fileRef.current?.click()}
+                  disabled={uploading} className="w-full"
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ImagePlus className="h-4 w-4 mr-2" />}
+                  Upload photos / video
+                </Button>
+                {state.media_urls?.length > 0 && (
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {state.media_urls.map((url: string, i: number) => (
+                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setState((s) => ({
+                            ...s,
+                            media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
+                          }))}
+                          className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <PrimaryActions
+                  onNext={onNext} onSkip={onSkip} onBack={onBack}
+                  optional={!!field.optional} canBack={history.length > 0}
+                  loading={loadingNext}
+                  nextLabel="Continue"
+                />
+              </div>
+            ) : (
+              /* Standard text / number / textarea / chip-augmented composer */
+              <>
+                <input
+                  ref={imageRef} type="file" accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => imageRef.current?.click()}
+                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    title="Attach image"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </button>
+
+                  <div className="flex-1">
+                    {isMultiline ? (
+                      <Textarea
+                        value={value || ""}
+                        onChange={(e) => setValue(e.target.value)}
+                        rows={2}
+                        placeholder="Type your answer…"
+                        className="resize-none rounded-2xl"
+                      />
+                    ) : (
+                      <Input
+                        value={value || ""}
+                        onChange={(e) => setValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onNext(); } }}
+                        type={field?.input === "number" ? "number" : "text"}
+                        inputMode={
+                          field?.input === "phone" ? "tel" :
+                          field?.input === "email" ? "email" :
+                          field?.input === "number" ? "decimal" : "text"
+                        }
+                        placeholder={
+                          field?.input === "single" || field?.input === "yesno" || field?.input === "multi"
+                            ? "Or type your answer…"
+                            : "Type your answer…"
+                        }
+                        className="rounded-full h-11"
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={toggleVoice}
+                    className={cn(
+                      "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
+                      isListening
+                        ? "bg-destructive text-destructive-foreground animate-pulse"
+                        : "border border-border bg-background hover:bg-muted text-muted-foreground"
+                    )}
+                    title={isListening ? "Stop" : "Speak"}
+                  >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    disabled={loadingNext}
+                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    title="Send"
+                  >
+                    {loadingNext ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-2 px-1">
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    disabled={history.length === 0}
+                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+                  >
+                    <ChevronLeft className="h-3 w-3" /> Back
+                  </button>
+                  {field?.optional && (
+                    <button
+                      type="button"
+                      onClick={onSkip}
+                      className="text-[11px] text-muted-foreground hover:text-foreground"
+                    >
+                      Skip
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Bubble — WhatsApp style
+   ============================================================ */
+function Bubble({ msg }: { msg: ChatMsg }) {
+  if (msg.kind === "typing") {
+    return (
+      <div className="max-w-[75%] rounded-2xl rounded-bl-sm bg-card border border-border px-4 py-3 shadow-sm">
+        <div className="flex gap-1 items-center h-4">
+          <Dot delay={0} />
+          <Dot delay={0.15} />
+          <Dot delay={0.3} />
+        </div>
+      </div>
+    );
+  }
+
+  const isUser = msg.role === "user";
+  const base = cn(
+    "max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 shadow-sm text-sm break-words",
+    isUser
+      ? "bg-gradient-to-br from-primary to-emerald-500 text-white rounded-2xl rounded-br-sm"
+      : "bg-card border border-border rounded-2xl rounded-bl-sm"
+  );
+
+  if (msg.kind === "image") {
+    return (
+      <div className={cn(base, "p-1.5")}>
+        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover" />
+        {msg.caption && <div className="px-2 py-1 text-xs opacity-90">{msg.caption}</div>}
+      </div>
+    );
+  }
+
+  return <div className={base}>{msg.text}</div>;
+}
+
+function Dot({ delay }: { delay: number }) {
+  return (
+    <motion.span
+      className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60"
+      animate={{ y: [0, -3, 0], opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 0.9, repeat: Infinity, delay }}
+    />
+  );
+}
+
+/* ============================================================
+   Primary actions row (Back / Skip / Continue)
+   ============================================================ */
+function PrimaryActions({
+  onNext, onSkip, onBack, optional, canBack, loading, nextLabel = "Continue",
+}: {
+  onNext: () => void; onSkip: () => void; onBack: () => void;
+  optional: boolean; canBack: boolean; loading: boolean; nextLabel?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <Button variant="ghost" size="sm" onClick={onBack} disabled={!canBack}>
+        <ChevronLeft className="h-4 w-4 mr-1" /> Back
+      </Button>
+      <div className="flex gap-2">
+        {optional && <Button variant="outline" size="sm" onClick={onSkip}>Skip</Button>}
+        <Button size="sm" onClick={onNext} disabled={loading} className="bg-gradient-to-r from-primary to-emerald-500">
+          {loading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
+          {nextLabel} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+        </Button>
       </div>
     </div>
   );
 }
 
 /* ============================================================
-   Render the right input for the field type
+   Price unit composer
    ============================================================ */
-function renderInput(field: FieldDef, value: any, setValue: (v: any) => void) {
-  switch (field.input) {
-    case "text":
-    case "phone":
-    case "email":
-      return (
-        <Input
-          value={value || ""}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={field.question}
-          inputMode={field.input === "phone" ? "tel" : field.input === "email" ? "email" : "text"}
-        />
-      );
-    case "number":
-      return (
-        <Input
-          type="number"
-          value={value || ""}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="0"
-        />
-      );
-    case "textarea":
-      return (
-        <Textarea
-          value={value || ""}
-          onChange={(e) => setValue(e.target.value)}
-          rows={4}
-          placeholder="Type a few lines…"
-        />
-      );
-    case "single":
-      return (
-        <div className="flex flex-wrap gap-2">
-          {field.options?.map((opt) => {
-            const active = value === opt;
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setValue(opt)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition
-                  ${active
-                    ? "bg-primary text-primary-foreground border-primary shadow"
-                    : "bg-background hover:bg-primary/5 border-border"}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
+function PriceUnitComposer({
+  value, onChange, onNext, onBack, canBack, loading,
+}: {
+  value: any; onChange: (v: any) => void;
+  onNext: () => void; onBack: () => void; canBack: boolean; loading: boolean;
+}) {
+  const v = value && typeof value === "object" ? value : { unit: "sq ft", area: "", pricePerUnit: "" };
+  const units = ["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"];
+  const total = Number(v.area) > 0 && Number(v.pricePerUnit) > 0 ? Number(v.area) * Number(v.pricePerUnit) : 0;
+  const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {units.map((u) => {
+          const active = v.unit === u;
+          return (
+            <button
+              key={u} type="button"
+              onClick={() => onChange({ ...v, unit: u })}
+              className={cn(
+                "px-2.5 py-1 rounded-full text-xs font-medium border",
+                active ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-primary/5 border-border"
+              )}
+            >{u}</button>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Input type="number" placeholder={`Area (${v.unit})`} value={v.area} onChange={(e) => onChange({ ...v, area: e.target.value })} />
+        <Input type="number" placeholder={`₹ / ${v.unit}`} value={v.pricePerUnit} onChange={(e) => onChange({ ...v, pricePerUnit: e.target.value })} />
+      </div>
+      {total > 0 && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Total</span>
+          <span className="font-semibold text-primary">₹ {fmt(total)}</span>
         </div>
-      );
-    case "multi": {
-      const arr: string[] = Array.isArray(value) ? value : [];
-      return (
-        <div className="flex flex-wrap gap-2">
-          {field.options?.map((opt) => {
-            const active = arr.includes(opt);
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() =>
-                  setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt])
-                }
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition
-                  ${active
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background hover:bg-primary/5 border-border"}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-      );
-    }
-    case "yesno":
-      return (
-        <div className="flex gap-2">
-          {["Yes", "No"].map((opt) => {
-            const active = value === opt;
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setValue(opt)}
-                className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium border transition
-                  ${active
-                    ? "bg-primary text-primary-foreground border-primary shadow"
-                    : "bg-background hover:bg-primary/5 border-border"}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-      );
-    case "media":
-      return null;
-    case "city":
-      return (
-        <CityAutocomplete
-          value={value || ""}
-          onChange={(c) => setValue(c)}
-          placeholder="Search your city..."
-        />
-      );
-    case "locality": {
-      const suggestions = ["Gachibowli", "Madhapur", "Kondapur", "Hitech City", "Banjara Hills",
-        "Jubilee Hills", "Kukatpally", "Whitefield", "Indiranagar", "Koramangala", "HSR Layout",
-        "Bandra", "Andheri", "Powai", "Hinjewadi", "Wakad", "Baner", "Kharadi"];
-      const q = String(value || "").toLowerCase();
-      const matches = q ? suggestions.filter((s) => s.toLowerCase().includes(q)).slice(0, 6) : [];
-      return (
-        <div className="space-y-2">
-          <Input
-            value={value || ""}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Type your area / locality..."
-          />
-          {matches.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {matches.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setValue(m)}
-                  className="text-xs px-2.5 py-1 rounded-full border border-border bg-background hover:bg-primary/5"
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    }
-    case "price_unit": {
-      const v = value && typeof value === "object" ? value : { unit: "sq ft", area: "", pricePerUnit: "" };
-      const units = ["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"];
-      const total = Number(v.area) > 0 && Number(v.pricePerUnit) > 0
-        ? Number(v.area) * Number(v.pricePerUnit) : 0;
-      const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
-      return (
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs text-muted-foreground mb-1.5 block">Pricing unit</label>
-            <div className="flex flex-wrap gap-2">
-              {units.map((u) => {
-                const active = v.unit === u;
-                return (
-                  <button
-                    key={u}
-                    type="button"
-                    onClick={() => setValue({ ...v, unit: u })}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition
-                      ${active
-                        ? "bg-primary text-primary-foreground border-primary shadow"
-                        : "bg-background hover:bg-primary/5 border-border"}`}
-                  >
-                    {u}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">Total area ({v.unit})</label>
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={v.area}
-                onChange={(e) => setValue({ ...v, area: e.target.value })}
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1.5 block">Price per {v.unit} (₹)</label>
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={v.pricePerUnit}
-                onChange={(e) => setValue({ ...v, pricePerUnit: e.target.value })}
-                placeholder="0"
-              />
-            </div>
-          </div>
-          {total > 0 && (
-            <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-emerald-500/5 px-4 py-3 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Estimated total</span>
-              <span className="text-lg font-semibold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-                ₹ {fmt(total)}
-              </span>
-            </div>
-          )}
-        </div>
-      );
-    }
-    default:
-      return null;
-  }
+      )}
+      <PrimaryActions onNext={onNext} onSkip={() => {}} onBack={onBack} optional={false} canBack={canBack} loading={loading} />
+    </div>
+  );
 }
