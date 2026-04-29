@@ -172,17 +172,84 @@ export default function SellProperty() {
     })();
   }, []);
 
-  /* ----- Greeting + first question ----- */
+  /* ----- Greeting + first intake prompt (no orchestrator yet) ----- */
   useEffect(() => {
     setMessages([
       {
         id: uid(), role: "ai", kind: "text",
-        text: "👋 Hi! I'll help you list your property. Tell me about it — type, speak, or upload a photo. I'll handle the rest.",
+        text: "👋 Hi! I'll help you list your property.",
+      },
+      {
+        id: uid(), role: "ai", kind: "text",
+        text: "Tell me about your property — you can type, speak, or upload an image. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
       },
     ]);
-    fetchNext({}, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ----- Run AI extraction on the intake text and start the structured flow ----- */
+  const submitIntake = async () => {
+    const text = intakeText.trim();
+    if (!text) { toast.error("Please describe your property first"); return; }
+
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text }]);
+    setIntakeText("");
+    setExtracting(true);
+
+    const typingId = uid();
+    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+
+    let merged: Record<string, any> = { ...state };
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        extracted: Record<string, any>;
+        listing_state: Record<string, any>;
+      }>("ai-extract-property", { body: { text } });
+      if (error) throw error;
+
+      merged = { ...state, ...(data?.listing_state || {}) };
+      setState(merged);
+
+      const ext = data?.extracted || {};
+      const detected = [
+        ext.sub_type && `${ext.sub_type}`,
+        ext.bhk && `${ext.bhk} BHK`,
+        ext.built_up_area && `${ext.built_up_area} ${ext.area_unit || "sq ft"}`,
+        ext.location && `in ${ext.location}`,
+        ext.purpose && `(for ${ext.purpose})`,
+      ].filter(Boolean).join(" • ");
+
+      setMessages((m) => m.filter((x) => x.id !== typingId));
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(), role: "ai", kind: "text",
+          text: detected
+            ? `Got it! I detected: **${detected}**. Let's fill in the rest.`
+            : "Thanks! Let's fill in the details together.",
+        },
+      ]);
+    } catch (e: any) {
+      setMessages((m) => m.filter((x) => x.id !== typingId));
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "ai", kind: "text", text: "I'll guide you step by step." },
+      ]);
+    } finally {
+      setExtracting(false);
+      setIntakeDone(true);
+      await fetchNext(merged, true);
+    }
+  };
+
+  const skipIntake = async () => {
+    setIntakeDone(true);
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: "Let's go step by step" },
+    ]);
+    await fetchNext(state, true);
+  };
 
   /* ----- Ask orchestrator for next field ----- */
   const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
