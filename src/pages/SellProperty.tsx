@@ -566,8 +566,15 @@ export default function SellProperty() {
         }
       }
 
-      toast.success("Your property is under review", {
-        description: "Our team will verify your listing shortly.",
+      // Trigger auto-assignment of an agent (best-effort, non-blocking UX)
+      if (propertyId) {
+        try {
+          await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
+        } catch (e) { console.warn("auto-assign failed", e); }
+      }
+
+      toast.success("Your property is submitted ✅", {
+        description: "We're assigning a verification agent now. You'll be notified shortly.",
       });
       navigate("/dashboard/seller");
     } catch (e: any) {

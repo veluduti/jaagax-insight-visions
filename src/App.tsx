@@ -83,6 +83,8 @@ const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
 const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
 const PartialPropertiesPage = lazy(() => import("./pages/PartialPropertiesPage"));
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
+const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
+const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -206,6 +208,11 @@ const App = () => (
               <AgentVerificationDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/agent/assigned" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentAssignedProperties />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/builder" element={
             <ProtectedRoute allowedRole="builder">
               <BuilderDashboard />
@@ -245,6 +252,11 @@ const App = () => (
           <Route path="/dashboard/admin/frm" element={
             <ProtectedRoute allowedRole="admin">
               <AdminFRMDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/properties-pipeline" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminPropertiesPipeline />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/hotel-manager" element={
