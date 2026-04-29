@@ -135,7 +135,6 @@ const Navigation = () => {
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 JAAGA X
               </span>
-              <title>Choose your place</title>
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
