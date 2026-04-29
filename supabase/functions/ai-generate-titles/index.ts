@@ -91,11 +91,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = `You write Indian real-estate listing titles. Given this listing JSON, produce EXACTLY 3 short titles (max 75 chars each):
-1) feature: highlights key specs (BHK, area, location)
-2) benefit: highlights lifestyle/value (e.g. "move-in ready", "great rental yield")
-3) seo: keyword-rich for search engines (e.g. "3 BHK Flat for Sale in Kondapur")
-Return strict JSON: { "titles": [{ "type":"feature","label":"Feature-based","title":"..." }, ...] }
+    const prompt = `You write UNIQUE Indian real-estate listing titles. Given this listing JSON, produce EXACTLY 3 short titles (max 75 chars each).
+
+CRITICAL RULES:
+- Use ONLY actual values from the listing JSON. Never invent BHK, area, floor, locality, furnishing, or any spec that isn't in the data.
+- Make every title clearly distinct from generic listings — include real numbers (BHK, sqft, floor) and the exact locality/city.
+- Do NOT use placeholders like "Property" if a specific sub_type (Flat/Villa/Plot/Shop/Office) is provided.
+- Avoid repeating the same title across the three variants.
+
+Variants:
+1) feature: stats-led — BHK • sub_type • area+unit • floor/total_floors • locality, city
+2) benefit: lifestyle-led — leverage furnishing/amenities/balconies/facing if present, e.g. "Fully-furnished 3 BHK with 2 balconies for sale in Kondapur"
+3) seo: keyword-rich for search — "{BHK} {sub_type} for {purpose} in {locality}, {city} — {area} {unit}"
+
+Return strict JSON: { "titles": [{ "type":"feature","label":"Feature-based","title":"..." }, { "type":"benefit","label":"Benefit-based","title":"..." }, { "type":"seo","label":"SEO-based","title":"..." }] }
 Listing: ${JSON.stringify(state)}`;
 
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
