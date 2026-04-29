@@ -23,7 +23,7 @@ import { completionTier, missingRequired, answeredFields } from "@/config/proper
    ============================================================ */
 type FieldDef = {
   id: string;
-  section: string;
+  section?: string;
   question: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
@@ -31,6 +31,7 @@ type FieldDef = {
     | "city" | "locality" | "price_unit";
   options?: string[];
   optional?: boolean;
+  required?: boolean;
 };
 
 type NextResp =
