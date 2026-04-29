@@ -1427,6 +1427,7 @@ export type Database = {
           is_live: boolean
           latitude: number | null
           listed_by: string | null
+          listing_status: string
           listing_type: string | null
           locality: string
           longitude: number | null
@@ -1489,6 +1490,7 @@ export type Database = {
           is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
+          listing_status?: string
           listing_type?: string | null
           locality: string
           longitude?: number | null
@@ -1551,6 +1553,7 @@ export type Database = {
           is_live?: boolean
           latitude?: number | null
           listed_by?: string | null
+          listing_status?: string
           listing_type?: string | null
           locality?: string
           longitude?: number | null
