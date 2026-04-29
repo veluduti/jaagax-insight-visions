@@ -13,56 +13,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-/* AI title/description suggestions for free-text creative fields */
-async function aiEnrich(field: FieldConfig, state: Record<string, any>): Promise<string[] | null> {
-  if (!LOVABLE_API_KEY) return null;
-  if (field.id !== "title") return null;
-
-  const userPrompt = `You are helping list a property in India.
-Collected facts:
-${JSON.stringify(state, null, 2)}
-
-Task: Suggest 4 short catchy titles (max 70 chars) that fit the property.
-Return JSON via the tool: { suggestions: string[] }`;
-
-  try {
-    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: "Return only the requested tool call." },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "suggest",
-            description: "Return suggestions",
-            parameters: {
-              type: "object",
-              properties: { suggestions: { type: "array", items: { type: "string" } } },
-              required: ["suggestions"],
-              additionalProperties: false,
-            },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "suggest" } },
-      }),
-    });
-    if (!r.ok) return null;
-    const data = await r.json();
-    const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!tc) return null;
-    const parsed = JSON.parse(tc.function.arguments);
-    return parsed.suggestions as string[];
-  } catch {
-    return null;
-  }
+/* Title is auto-generated post-flow by `ai-generate-titles`, not asked here. */
+async function aiEnrich(_field: FieldConfig, _state: Record<string, any>): Promise<string[] | null> {
+  return null;
 }
 
 serve(async (req) => {
