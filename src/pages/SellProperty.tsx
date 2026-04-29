@@ -68,7 +68,7 @@ function isOptional(f: FieldDef | null | undefined): boolean {
 }
 
 function validate(field: FieldDef, value: any): string | null {
-  if (field.optional && isEmpty(value)) return null;
+  if (isOptional(field) && isEmpty(value)) return null;
   if (isEmpty(value)) return "This field is required";
   if (field.input === "phone" && !phoneRE.test(String(value))) return "Enter a valid 10-digit mobile number";
   if (field.input === "email") {
@@ -339,7 +339,7 @@ export default function SellProperty() {
   };
 
   const onSkip = async () => {
-    if (!field || !field.optional) return;
+    if (!field || !isOptional(field)) return;
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", kind: "text", text: "Skip" },
@@ -748,7 +748,7 @@ export default function SellProperty() {
                 )}
                 <PrimaryActions
                   onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={!!field.optional} canBack={history.length > 0}
+                  optional={isOptional(field)} canBack={history.length > 0}
                   loading={loadingNext}
                 />
               </div>
@@ -792,7 +792,7 @@ export default function SellProperty() {
                 )}
                 <PrimaryActions
                   onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={!!field.optional} canBack={history.length > 0}
+                  optional={isOptional(field)} canBack={history.length > 0}
                   loading={loadingNext}
                   nextLabel="Continue"
                 />
