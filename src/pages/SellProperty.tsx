@@ -176,6 +176,41 @@ export default function SellProperty() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field?.id]);
 
+  /* ----- When the chat is "done", seed review fields and fetch AI titles ----- */
+  useEffect(() => {
+    if (!done) return;
+    const pu = state.price_unit || {};
+    setReviewTitle(state.title || "");
+    setReviewLocality(state.locality || "");
+    setReviewCity(state.city || "");
+    setReviewAddress(state.address || "");
+    setReviewArea(pu.area || state.built_up_area || state.plot_area || "");
+    setReviewPricePerUnit(pu.pricePerUnit || "");
+    setReviewUnit(pu.unit || state.area_unit || "sq ft");
+    setReviewAmenities(Array.isArray(state.amenities) ? state.amenities : []);
+    if (aiTitles.length === 0) regenerateTitles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
+  const regenerateTitles = async () => {
+    setTitlesLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke<{
+        titles: { type: string; label: string; title: string }[];
+      }>("ai-generate-titles", { body: { state } });
+      const t = data?.titles || [];
+      setAiTitles(t);
+      if (t.length > 0 && selectedTitleIdx === null) {
+        setSelectedTitleIdx(0);
+        if (!reviewTitle) setReviewTitle(t[0].title);
+      }
+    } catch (e: any) {
+      toast.error("Could not generate titles");
+    } finally {
+      setTitlesLoading(false);
+    }
+  };
+
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
     if (typeof window === "undefined") return;
