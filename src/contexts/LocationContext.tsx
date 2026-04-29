@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useSavedLocation } from '@/hooks/useSavedLocation';
-import type { SavedLocation } from '@/lib/savedLocation';
+import type { SavedLocation, LocationMode } from '@/lib/savedLocation';
 
 interface LegacyDetectedLocation {
   city: string;
@@ -13,9 +13,11 @@ interface LocationContextType {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
   hasLocation: boolean;
+  locationMode: LocationMode | null;
   selectLocation: ReturnType<typeof useSavedLocation>['selectLocation'];
   requestGpsLocation: ReturnType<typeof useSavedLocation>['requestGpsLocation'];
   clearLocation: ReturnType<typeof useSavedLocation>['clearLocation'];
+  disableLocation: ReturnType<typeof useSavedLocation>['disableLocation'];
 
   // ==== Legacy shim — kept so older pages (Hotels, Index, Projects, ...) keep working ====
   /** Mirrors savedLocation as { city, state, country } for backwards compatibility. */
