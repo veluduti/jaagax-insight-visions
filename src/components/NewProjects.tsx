@@ -14,7 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import BuilderTrustBadges from "@/components/home/BuilderTrustBadges";
-import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
 
 interface Project {
   id: string;
@@ -60,14 +60,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
         .not("city", "is", null)
         .not("locality", "is", null);
 
-      if (detectedCity) {
-        const aliases = getCityAliases(detectedCity);
-        query = query.in("city", aliases);
-      }
-
       const { data, error } = await query
         .order("trust_score", { ascending: false })
-        .limit(20);
+        .limit(80);
 
       if (error) {
         console.error("Error fetching projects:", error);
@@ -75,8 +70,10 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
       }
 
       // Strict client-side guard against city leakage.
+      const normalizedCity = canonicalizeCity(detectedCity);
+
       const filtered = ((data as any[]) || [])
-        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
+        .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
         .slice(0, 6);
 
       console.log(`[NewProjects] Filtered projects: ${filtered.length}`, filtered.map((p) => p.city));
