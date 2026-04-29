@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PropertyWhyLink from "@/components/home/PropertyWhyLink";
 import MatchBadge from "@/components/home/MatchBadge";
 import { classifyProperty } from "@/lib/propertyClassifier";
-import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
 
 interface Property {
   id: string;
@@ -69,21 +69,17 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         .not("title", "is", null)
         .not("city", "is", null);
 
-      if (detectedCity) {
-        const aliases = getCityAliases(detectedCity);
-        query = query.in("city", aliases);
-      }
-
       const { data, error } = await query
         .order("trust_score", { ascending: false })
-        .limit(40);
+        .limit(120);
 
       if (error) throw error;
 
+      const normalizedCity = canonicalizeCity(detectedCity);
+
       const featured = ((data as any[]) || [])
         .map(toPublicRow)
-        // STRICT post-fetch filter: final_data may override city → re-check.
-        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
+        .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
         .filter((p) => classifyProperty(p) === "featured")
         .slice(0, 4);
 
