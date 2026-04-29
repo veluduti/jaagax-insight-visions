@@ -135,6 +135,7 @@ const Navigation = () => {
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 JAAGA X
               </span>
+              <title>Choose your place</title>
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
@@ -304,7 +305,7 @@ const Navigation = () => {
           <div className="flex items-center justify-between gap-2 min-w-0">
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="JAAGA X - Home">
               <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                JAGA X
+                JAAGA X
               </span>
             </Link>
 
