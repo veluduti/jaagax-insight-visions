@@ -133,7 +133,7 @@ const Navigation = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                JAAGA X xx
+                JAAGA X
               </span>
             </Link>
 
