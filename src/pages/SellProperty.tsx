@@ -141,6 +141,24 @@ export default function SellProperty() {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, loadingNext]);
 
+  /* ----- Smart locality-aware hint per current field ----- */
+  useEffect(() => {
+    if (!field) { setSmartHint(null); return; }
+    let cancelled = false;
+    setSmartHint(null);
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke<{ hint: string | null }>(
+          "ai-smart-hint",
+          { body: { field_id: field.id, state } },
+        );
+        if (!cancelled && data?.hint) setSmartHint(data.hint);
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field?.id]);
+
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
     if (typeof window === "undefined") return;
