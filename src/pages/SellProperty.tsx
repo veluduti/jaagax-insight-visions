@@ -103,6 +103,11 @@ export default function SellProperty() {
   const [history, setHistory] = useState<{ field: FieldDef; value: any }[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  /* Intake (first free-form description) */
+  const [intakeDone, setIntakeDone] = useState(false);
+  const [intakeText, setIntakeText] = useState("");
+  const [extracting, setExtracting] = useState(false);
+
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
