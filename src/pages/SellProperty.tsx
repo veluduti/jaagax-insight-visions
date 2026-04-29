@@ -878,7 +878,7 @@ export default function SellProperty() {
                   >
                     <ChevronLeft className="h-3 w-3" /> Back
                   </button>
-                  {field?.optional && (
+                  {isOptional(field) && (
                     <button
                       type="button"
                       onClick={onSkip}
