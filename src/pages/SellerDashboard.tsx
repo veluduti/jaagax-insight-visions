@@ -281,14 +281,23 @@ export default function SellerDashboard() {
     const status = p.is_draft ? "draft" : (p.verification_status || "pending");
     const meta = STATUS_META[status] || STATUS_META.pending;
     const StatusIcon = meta.icon;
-    const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600";
+    const hasImage = Array.isArray(p.images) && p.images.length > 0 && !!p.images[0];
+    const img = hasImage ? p.images[0] : null;
 
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }}>
         <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group">
           <div className="relative h-44 overflow-hidden">
-            <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            {img ? (
+              <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
+                <Home className="h-8 w-8 text-muted-foreground/60 mb-1" />
+                <p className="text-xs font-medium text-muted-foreground">No image uploaded</p>
+                <p className="text-[10px] text-muted-foreground/70">Add photos to attract more buyers</p>
+              </div>
+            )}
+            {img && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />}
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
@@ -306,12 +315,22 @@ export default function SellerDashboard() {
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
               </Badge>
             )}
-            <div className="absolute bottom-3 left-3 right-3">
-              <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
-              <p className="text-white/80 text-xs flex items-center gap-1 mt-0.5">
-                <MapPin className="h-3 w-3" />{p.locality}, {p.city}
-              </p>
-            </div>
+            {img && (
+              <div className="absolute bottom-3 left-3 right-3">
+                <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
+                <p className="text-white/80 text-xs flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                </p>
+              </div>
+            )}
+            {!img && (
+              <div className="absolute bottom-3 left-3 right-3 bg-background/95 backdrop-blur rounded-md p-2 border">
+                <h3 className="font-semibold line-clamp-1 text-sm">{p.title}</h3>
+                <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                </p>
+              </div>
+            )}
           </div>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
