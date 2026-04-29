@@ -3,10 +3,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   SavedLocation,
+  LocationMode,
   clearSavedLocationFromStorage,
   readSavedLocationFromStorage,
   reverseGeocode,
   writeSavedLocationToStorage,
+  readLocationModeFromStorage,
+  writeLocationModeToStorage,
+  clearLocationModeFromStorage,
 } from "@/lib/savedLocation";
 import { canonicalizeCity, getCityAliases } from "@/lib/cityNormalizer";
 
@@ -14,26 +18,39 @@ interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
   hasLocation: boolean;
-  /** Persist a manually selected location (city/area) and optional coordinates. */
+  /** Current user preference: gps (auto), manual (city picked), disabled (off), or null (unset). */
+  locationMode: LocationMode | null;
+  /** Persist a manually selected location (city/area) and optional coordinates. Sets mode='manual'. */
   selectLocation: (loc: Omit<SavedLocation, "last_updated"> & Partial<Pick<SavedLocation, "last_updated">>) => Promise<void>;
-  /** USER-INITIATED only. Requests browser GPS, reverse-geocodes, persists. */
+  /** USER-INITIATED only. Requests browser GPS, reverse-geocodes, persists. Sets mode='gps'. */
   requestGpsLocation: () => Promise<void>;
+  /** Clears the saved location (does not change mode). */
   clearLocation: () => Promise<void>;
+  /** Turn location off — clears saved location and prevents auto-prompt. */
+  disableLocation: () => Promise<void>;
 }
 
 /**
- * Manages the user's saved browsing location.
+ * Manages the user's saved browsing location and their location-mode preference.
  *
  * Priority on app load: localStorage > backend profile.
- * IMPORTANT: This hook NEVER auto-prompts GPS permission. GPS is only requested
- * when `requestGpsLocation()` is explicitly called from a user gesture.
+ * IMPORTANT: This hook NEVER auto-prompts GPS permission unless mode is unset.
+ * If the user has explicitly chosen 'disabled' or 'manual', no auto-prompt occurs.
  */
 export const useSavedLocation = (): UseSavedLocationReturn => {
   const [savedLocation, setSavedLocation] = useState<SavedLocation | null>(() =>
     readSavedLocationFromStorage()
   );
+  const [locationMode, setLocationModeState] = useState<LocationMode | null>(() =>
+    readLocationModeFromStorage()
+  );
   const [isResolvingGps, setIsResolvingGps] = useState(false);
   const profileSyncedRef = useRef(false);
+
+  const setMode = useCallback((mode: LocationMode) => {
+    writeLocationModeToStorage(mode);
+    setLocationModeState(mode);
+  }, []);
 
   const normalizeSavedLocation = useCallback((loc: SavedLocation): SavedLocation => {
     const canonicalCity = canonicalizeCity(loc.city);
@@ -90,10 +107,13 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       profileSyncedRef.current = false;
       loadFromBackend();
 
-      // Auto-prompt GPS exactly once per user after sign-in if they have no saved location.
+      // Auto-prompt GPS exactly once after sign-in IF the user has no preference set
+      // and no saved location. If mode is 'disabled' or 'manual', never auto-prompt.
       if (event === "SIGNED_IN") {
         setTimeout(() => {
           if (cancelled) return;
+          const currentMode = readLocationModeFromStorage();
+          if (currentMode === "disabled" || currentMode === "manual") return;
           if (readSavedLocationFromStorage()) return;
           const promptedKey = "jaagax_gps_auto_prompted";
           if (sessionStorage.getItem(promptedKey)) return;
@@ -113,7 +133,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
   // Ref so the auth listener can call the latest requestGpsLocation without re-subscribing.
   const requestGpsRef = useRef<null | (() => Promise<void>)>(null);
 
-  const persistToBackend = useCallback(async (loc: SavedLocation) => {
+  const persistToBackend = useCallback(async (loc: SavedLocation | null) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
@@ -138,9 +158,10 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       const normalizedNext = normalizeSavedLocation(next);
       writeSavedLocationToStorage(normalizedNext);
       setSavedLocation(normalizedNext);
+      setMode("manual");
       void persistToBackend(normalizedNext);
     },
-    [normalizeSavedLocation, persistToBackend]
+    [normalizeSavedLocation, persistToBackend, setMode]
   );
 
   const requestGpsLocation = useCallback(async () => {
@@ -165,6 +186,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
           const normalizedNext = normalizeSavedLocation(next);
           writeSavedLocationToStorage(normalizedNext);
           setSavedLocation(normalizedNext);
+          setMode("gps");
           void persistToBackend(normalizedNext);
           toast.success(`Location set to ${normalizedNext.city}${normalizedNext.area ? `, ${normalizedNext.area}` : ""}`);
           setIsResolvingGps(false);
@@ -173,7 +195,9 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         (err) => {
           setIsResolvingGps(false);
           if (err.code === err.PERMISSION_DENIED) {
-            toast.error("Location permission denied. Please search manually.");
+            // User denied — remember so we don't re-prompt.
+            setMode("disabled");
+            toast.error("Location permission denied. You can pick a city manually.");
           } else if (err.code === err.TIMEOUT) {
             toast.error("Could not get your location in time. Please search manually.");
           } else {
@@ -184,7 +208,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
       );
     });
-  }, [normalizeSavedLocation, persistToBackend]);
+  }, [normalizeSavedLocation, persistToBackend, setMode]);
 
   // Keep a ref to the latest requestGpsLocation so the auth listener can call it.
   useEffect(() => {
@@ -194,25 +218,25 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
   const clearLocation = useCallback(async () => {
     clearSavedLocationFromStorage();
     setSavedLocation(null);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await supabase
-          .from("profiles")
-          .update({ location_data: null as any })
-          .eq("user_id", session.user.id);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    void persistToBackend(null);
+  }, [persistToBackend]);
+
+  const disableLocation = useCallback(async () => {
+    clearSavedLocationFromStorage();
+    setSavedLocation(null);
+    setMode("disabled");
+    void persistToBackend(null);
+    toast.success("Location turned off");
+  }, [persistToBackend, setMode]);
 
   return {
     savedLocation,
     isResolvingGps,
     hasLocation: !!savedLocation,
+    locationMode,
     selectLocation,
     requestGpsLocation,
     clearLocation,
+    disableLocation,
   };
 };
