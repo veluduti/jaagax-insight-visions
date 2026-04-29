@@ -505,11 +505,40 @@ export default function SellProperty() {
     }
   };
 
-  const pct = Math.round((progress.filled / Math.max(progress.total, 1)) * 100);
+  const tier = completionTier(state);
+  const pct = tier.pct;
+  const missing = missingRequired(state);
+  const answered = answeredFields(state);
 
   const showIntakeBar = !intakeDone && !done;
   const showInputBar = (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
+
+  const tierBadgeClasses: Record<string, string> = {
+    Draft: "bg-muted text-muted-foreground border-border",
+    Partial: "bg-amber-500/10 text-amber-500 border-amber-500/30",
+    Good: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+    Premium: "bg-gradient-to-r from-primary/15 to-emerald-500/15 text-primary border-primary/30",
+  };
+
+  /** Jump back to a previously answered field (edit it). Removes everything after it. */
+  const jumpToField = (fieldId: string) => {
+    setEditorOpen(false);
+    const idx = history.findIndex((h) => h.field.id === fieldId);
+    if (idx === -1) return;
+    const keep = history.slice(0, idx);
+    const cleared = { ...state };
+    for (const h of history.slice(idx)) delete cleared[h.field.id];
+    setHistory(keep);
+    setState(cleared);
+    setDone(false);
+    // trim trailing AI/user pair messages until we'd re-ask this question
+    setMessages((m) => {
+      // best-effort: keep messages then re-fetch will append a fresh question bubble
+      return m;
+    });
+    fetchNext(cleared);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
