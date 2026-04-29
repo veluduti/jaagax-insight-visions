@@ -22,7 +22,7 @@ import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/compon
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
-import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+import { canonicalizeCity, getCityAliases, isSameCity } from "@/lib/cityNormalizer";
 
 /**
  * Merge a raw property row with its final_data-driven public view so
@@ -234,7 +234,8 @@ const Search = () => {
     const f = advancedFilters;
     if (f.verifiedOnly) qb = qb.eq("verified", true);
     if (location) {
-      const aliases = getCityAliases(location);
+      const normalizedLocation = canonicalizeCity(location);
+      const aliases = getCityAliases(normalizedLocation);
       const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
       qb = qb.or(`title.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
     }
@@ -294,7 +295,7 @@ const Search = () => {
         _limit: 100,
       });
       if (!error && Array.isArray(data)) {
-        const cityForFilter = location || savedLocation?.city;
+        const cityForFilter = canonicalizeCity(location || savedLocation?.city);
         const filtered = (data as any[]).map(toPublicRow)
           .filter((p) => !cityForFilter || isSameCity(p.city, cityForFilter))
           .filter((p) => {
@@ -309,7 +310,7 @@ const Search = () => {
       // Fall through to text-based search on RPC error.
     }
 
-    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true).eq("is_live", true);
+    let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb
       .order("is_featured", { ascending: false })
@@ -317,8 +318,9 @@ const Search = () => {
       .limit(100);
     if (!error) {
       const all = ((data as any[]) || []).map(toPublicRow);
+      const normalizedLocation = canonicalizeCity(location);
       const filtered = all
-        .filter((p) => !location || isSameCity(p.city, location))
+        .filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation))
         .filter((p) => {
           const tier = classifyProperty(p);
           return tierFilter === "featured" ? tier === "featured" : tier === "basic";
@@ -334,7 +336,8 @@ const Search = () => {
     let qb = supabase.from("projects").select("*", { count: "exact" });
     if (f.verifiedOnly) qb = qb.eq("verified", true);
     if (location) {
-      const aliases = getCityAliases(location);
+      const normalizedLocation = canonicalizeCity(location);
+      const aliases = getCityAliases(normalizedLocation);
       const cityClause = aliases.map((a) => `city.ilike.%${a}%`).join(",");
       qb = qb.or(`name.ilike.%${location}%,locality.ilike.%${location}%,${cityClause}`);
     }
@@ -353,7 +356,8 @@ const Search = () => {
     const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
     if (!error) {
       const all = (data as any[]) || [];
-      const strict = all.filter((p) => !location || isSameCity(p.city, location));
+      const normalizedLocation = canonicalizeCity(location);
+      const strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
       console.log("[Search] Selected city:", location, "Filtered projects:", strict.length);
       setProjects(strict);
       setTotal(strict.length);
