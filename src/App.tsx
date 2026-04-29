@@ -83,6 +83,8 @@ const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
 const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
 const PartialPropertiesPage = lazy(() => import("./pages/PartialPropertiesPage"));
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
+const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
+const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
