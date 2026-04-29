@@ -580,11 +580,18 @@ export default function BuilderDashboard() {
                       >
                         <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
                           <div className="relative">
-                            <img
-                              src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"}
-                              alt={project.name}
-                              className="w-full h-48 object-cover"
-                            />
+                            {project.image ? (
+                              <img
+                                src={project.image}
+                                alt={project.name}
+                                className="w-full h-48 object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
+                                <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
+                                <p className="text-xs font-medium text-muted-foreground">No image uploaded</p>
+                              </div>
+                            )}
                             {project.verified ? (
                               <Badge className="absolute top-2 right-2 bg-green-600">
                                 <CheckCircle className="h-3 w-3 mr-1" />
