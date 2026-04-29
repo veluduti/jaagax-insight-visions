@@ -473,7 +473,8 @@ export default function SellProperty() {
 
   const pct = Math.round((progress.filled / Math.max(progress.total, 1)) * 100);
 
-  const showInputBar = field && !done;
+  const showIntakeBar = !intakeDone && !done;
+  const showInputBar = (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
 
   return (
