@@ -560,11 +560,75 @@ export default function SellProperty() {
             </div>
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
-          <div className="hidden sm:flex flex-col items-end">
-            <div className="text-[10px] text-muted-foreground">{progress.filled}/{progress.total} • {pct}%</div>
-            <Progress value={pct} className="h-1 w-24 mt-1" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditorOpen((o) => !o)}
+              disabled={answered.length === 0}
+              className="hidden sm:inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted transition disabled:opacity-40"
+              title="Edit previous answers"
+            >
+              <Pencil className="h-3 w-3" /> Edit ({answered.length})
+            </button>
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-1.5">
+                <span className={cn(
+                  "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                  tierBadgeClasses[tier.label],
+                )}>
+                  {tier.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
+              </div>
+              <Progress value={pct} className="h-1 w-24 mt-1" />
+              {missing.length > 0 && intakeDone && (
+                <div className="text-[9px] text-muted-foreground mt-0.5">
+                  {missing.length} required left
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Edit-previous-answers drawer */}
+        <AnimatePresence>
+          {editorOpen && answered.length > 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t border-border/40 overflow-hidden"
+            >
+              <div className="container max-w-3xl mx-auto px-4 py-3">
+                <div className="text-[11px] text-muted-foreground mb-2 flex items-center justify-between">
+                  <span>Tap any answer to edit it (this will rewind to that question)</span>
+                  <button
+                    onClick={() => setEditorOpen(false)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {answered.map(({ field: f, value: v }) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => jumpToField(f.id)}
+                      className="group flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:border-primary hover:bg-primary/5 transition"
+                    >
+                      <span className="text-muted-foreground">{f.id.replace(/_/g, " ")}:</span>
+                      <span className="font-medium max-w-[140px] truncate">
+                        {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? `${(v as any).area} ${(v as any).unit}` : String(v)}
+                      </span>
+                      <Pencil className="h-2.5 w-2.5 text-muted-foreground group-hover:text-primary" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Chat scroll area */}
