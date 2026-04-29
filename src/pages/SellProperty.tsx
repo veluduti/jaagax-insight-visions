@@ -704,6 +704,34 @@ export default function SellProperty() {
             </motion.div>
           )}
 
+          {/* Smart locality-aware AI hint */}
+          {field && smartHint && !loadingNext && !done && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="pl-1 pt-1"
+            >
+              <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
+                <span className="text-foreground/90">{smartHint}</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Required/optional inline indicator */}
+          {field && !loadingNext && !done && (
+            <div className="pl-1 pt-1">
+              <span className={cn(
+                "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                isOptional(field)
+                  ? "text-muted-foreground"
+                  : "text-primary bg-primary/10",
+              )}>
+                {isOptional(field) ? "Optional · you can skip" : "Required"}
+              </span>
+            </div>
+          )}
+
           {/* AI suggestions chips (titles, etc.) */}
           {field && suggestions.length > 0 && !loadingNext && !done && (
             <div className="pt-1 pl-1">
