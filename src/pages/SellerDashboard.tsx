@@ -209,11 +209,13 @@ export default function SellerDashboard() {
 
   const PropertyTimeline = ({ p }: { p: Property }) => {
     const status = p.verification_status || "pending";
-    const isApproved = status === "approved" || p.verified;
+    const isApproved = status === "approved";
     const isRejected = status === "rejected";
-    const isAgentVerified = status === "agent_verified_pending" || !!p.agent_submitted_at || isApproved || isRejected;
+    const isAgentVerified = status === "agent_verified_pending" || status === "approved" || status === "rejected" || !!p.agent_submitted_at;
     const hasAgent = !!p.assigned_agent_id || isAgentVerified;
-    const isUnderReview = !!p.created_at;
+    // "Submitted" is always done once the row exists.
+    // "Under Review" = admin/system has the listing in pipeline (i.e. not draft) — true for any non-draft row.
+    const isUnderReview = !p.is_draft;
     const isFinalRejected = isRejected;
 
     const steps = [
