@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Linkedin, Instagram, Twitter } from "lucide-react";
-import logo from "@/assets/logo.png";
+import jaagaxLogo from "@/assets/jaagax-logo.jpeg";
 const Footer = () => {
   return <footer className="relative py-16 bg-secondary/20 border-t border-border/50">
       <div className="container mx-auto px-6">
@@ -9,11 +9,11 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              
-              <div>
-                <h3 className="text-xl font-bold text-gradient">JAAGA X</h3>
-                <p className="text-xs text-foreground/70">Choose Your Place</p>
-              </div>
+              <img
+                src={jaagaxLogo}
+                alt="JAAGA X - The Place"
+                className="h-12 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-foreground/70 mb-4">
               India's first AI-powered real estate platform. Find verified properties 
