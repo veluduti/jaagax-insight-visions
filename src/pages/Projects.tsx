@@ -14,6 +14,7 @@ import { useLocation } from "@/contexts/LocationContext";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { openInNewTab, projectPath } from "@/lib/openInNewTab";
+import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
 
 interface Project {
   id: string;
@@ -147,7 +148,8 @@ const Projects = () => {
     let filtered = [...projects];
 
     if (selectedCity !== "all") {
-      filtered = filtered.filter((p) => p.city?.toLowerCase() === selectedCity.toLowerCase());
+      const normalizedSelectedCity = canonicalizeCity(selectedCity);
+      filtered = filtered.filter((p) => isSameCity(p.city, normalizedSelectedCity));
     }
     if (selectedType !== "all") {
       filtered = filtered.filter((p: any) => p.project_type === selectedType);
