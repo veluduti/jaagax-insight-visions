@@ -359,10 +359,10 @@ const PropertyDetail = () => {
     );
   }
 
-  // Hide expired / not-live listings from the public.
+  // Hide expired listings from the public.
   const isExpired = property.verification_status === "expired";
   const isNotLive = !property.is_live;
-  if (isExpired || isNotLive) {
+  if (isExpired) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <motion.div
@@ -376,12 +376,10 @@ const PropertyDetail = () => {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">
-                {isExpired ? "Listing Expired" : "Listing Unavailable"}
+                Listing Expired
               </h2>
               <p className="text-muted-foreground">
-                {isExpired
-                  ? "This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard."
-                  : "This listing isn't currently live. Please check back later."}
+                This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
@@ -449,6 +447,11 @@ const PropertyDetail = () => {
           animate={{ opacity: 1, y: 0 }}
           className="glass-panel rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
+          {isNotLive && (
+            <div className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300 md:mb-0 md:mr-4">
+              This listing is visible as approved inventory, but live enquiries are currently limited.
+            </div>
+          )}
           <PropertyActions 
             propertyId={property.id}
             propertyTitle={property.title}
