@@ -254,6 +254,11 @@ const App = () => (
               <AdminFRMDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/admin/properties-pipeline" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminPropertiesPipeline />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/hotel-manager" element={
             <ProtectedRoute allowedRole="hotel_manager">
               <HotelManagerDashboard />
