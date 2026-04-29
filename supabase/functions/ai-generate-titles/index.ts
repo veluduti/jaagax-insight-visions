@@ -9,29 +9,67 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 function fallbackTitles(s: Record<string, any>) {
   const bhk = s.bhk ? `${s.bhk} BHK` : "";
-  const sub = s.sub_type || s.type || "Property";
-  const loc = s.locality || s.city || "";
+  const sub = (Array.isArray(s.sub_type) ? s.sub_type[0] : s.sub_type) ||
+              (Array.isArray(s.type) ? s.type[0] : s.type) || "Property";
+  const city = s.city || "";
+  const locality = s.locality || "";
+  const loc = locality && city ? `${locality}, ${city}` : (locality || city);
   const area =
-    s.built_up_area || s.plot_area || s.shop_area || s.total_area || s.carpet_area;
-  const unit = s.unit || s.area_unit || "sq ft";
+    s.built_up_area || s.plot_area || s.shop_area || s.total_area || s.carpet_area ||
+    s.price_unit?.area;
+  const unit = s.unit || s.area_unit || s.price_unit?.unit || "sq ft";
   const purpose = (s.purpose || "sale").toLowerCase();
+  const furnishing = s.furnishing || s.furnishing_status || "";
+  const floor = s.floor_number != null && s.floor_number !== "" ? `${s.floor_number}` : "";
+  const totalFloors = s.total_floors ? `${s.total_floors}` : "";
+  const facing = s.facing || "";
+  const balconies = s.balconies ? `${s.balconies} balcony` : "";
+  const bath = s.bathrooms ? `${s.bathrooms} bath` : "";
+
+  // Feature: stats-heavy & unique
+  const featureParts = [
+    bhk,
+    sub,
+    area ? `${area} ${unit}` : "",
+    floor && totalFloors ? `Floor ${floor}/${totalFloors}` : (floor ? `Floor ${floor}` : ""),
+    facing ? `${facing} facing` : "",
+    loc ? `in ${loc}` : "",
+  ].filter(Boolean);
+
+  // Benefit: lifestyle-led
+  const benefitTone = furnishing
+    ? `${furnishing.toString().toLowerCase().includes("fully") ? "Move-in ready" : furnishing}`
+    : "Spacious";
 
   return [
     {
       type: "feature",
       label: "Feature-based",
-      title: [bhk, sub, area ? `${area} ${unit}` : "", loc ? `in ${loc}` : ""]
-        .filter(Boolean).join(" ").trim(),
+      title: featureParts.join(" • ").trim() || `${sub}${loc ? ` in ${loc}` : ""}`,
     },
     {
       type: "benefit",
       label: "Benefit-based",
-      title: `Spacious ${bhk || sub} for ${purpose}${loc ? ` in prime ${loc}` : ""} — move-in ready`,
+      title: [
+        benefitTone,
+        bhk || sub,
+        bath,
+        balconies,
+        `for ${purpose}`,
+        loc ? `in prime ${loc}` : "",
+      ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim(),
     },
     {
       type: "seo",
       label: "SEO-based",
-      title: `${bhk ? bhk + " " : ""}${sub} for ${purpose}${loc ? ` in ${loc}` : ""}${area ? ` — ${area} ${unit}` : ""}`,
+      title: [
+        bhk,
+        sub,
+        `for ${purpose}`,
+        loc ? `in ${loc}` : "",
+        area ? `— ${area} ${unit}` : "",
+        furnishing ? `(${furnishing})` : "",
+      ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim(),
     },
   ];
 }
