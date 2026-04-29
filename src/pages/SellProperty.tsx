@@ -124,6 +124,23 @@ export default function SellProperty() {
   /* Edit-previous drawer */
   const [editorOpen, setEditorOpen] = useState(false);
 
+  /* AI titles + review */
+  const [aiTitles, setAiTitles] = useState<{ type: string; label: string; title: string }[]>([]);
+  const [titlesLoading, setTitlesLoading] = useState(false);
+  const [selectedTitleIdx, setSelectedTitleIdx] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+
+  /* Editable review fields (mirror state but allow live edits on review screen) */
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewLocality, setReviewLocality] = useState("");
+  const [reviewCity, setReviewCity] = useState("");
+  const [reviewAddress, setReviewAddress] = useState("");
+  const [reviewArea, setReviewArea] = useState("");
+  const [reviewPricePerUnit, setReviewPricePerUnit] = useState("");
+  const [reviewUnit, setReviewUnit] = useState("sq ft");
+  const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
+  const [newAmenity, setNewAmenity] = useState("");
+
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
