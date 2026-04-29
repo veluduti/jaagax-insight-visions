@@ -788,7 +788,51 @@ export default function SellProperty() {
             </motion.div>
           )}
 
-          {/* Smart locality-aware AI hint */}
+          {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
+          {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap gap-2 pt-1 pl-1"
+            >
+              {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
+                const active = String(value) === opt;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      // strip "+" or "Ground" → numeric where possible
+                      const numeric =
+                        opt === "Ground" ? 0 :
+                        opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
+                      const sendVal = isNaN(numeric) ? opt : numeric;
+                      setValue(sendVal);
+                      setTimeout(() => {
+                        setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
+                        const newState = { ...state, [field.id]: sendVal };
+                        setHistory((h) => [...h, { field, value: sendVal }]);
+                        setState(newState);
+                        setError(null);
+                        fetchNext(newState);
+                      }, 80);
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card hover:bg-primary/5 border-border"
+                    )}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+              <span className="text-[10px] text-muted-foreground self-center pl-1">
+                or enter manually below
+              </span>
+            </motion.div>
+          )}
           {field && smartHint && !loadingNext && !done && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
