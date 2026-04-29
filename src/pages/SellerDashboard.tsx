@@ -722,7 +722,7 @@ export default function SellerDashboard() {
               ["Description", viewTarget.description],
               ["Status", STATUS_META[viewTarget.is_draft ? "draft" : (viewTarget.verification_status || "pending")]?.label],
               ["Submitted", new Date(viewTarget.created_at).toLocaleString()],
-            ].filter(([, v]) => v !== null && v !== undefined && v !== "");
+            ].filter(([, v]) => v !== null && v !== undefined && v !== "") as Array<[string, any]>;
 
             return (
               <div className="space-y-4">
