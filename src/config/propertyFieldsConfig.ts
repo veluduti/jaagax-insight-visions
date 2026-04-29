@@ -194,3 +194,45 @@ export function flowProgress(state: Record<string, any>): { filled: number; tota
   }
   return { filled, total: flow.length };
 }
+
+// ============================================================
+// Smart Question Engine helpers
+// ============================================================
+export type CompletionTier = {
+  label: "Draft" | "Partial" | "Good" | "Premium";
+  pct: number;
+  color: string; // tailwind utility hint
+};
+
+export function completionTier(state: Record<string, any>): CompletionTier {
+  const { filled, total } = flowProgress(state);
+  const pct = Math.round((filled / Math.max(total, 1)) * 100);
+  if (pct < 30) return { label: "Draft", pct, color: "text-muted-foreground" };
+  if (pct < 60) return { label: "Partial", pct, color: "text-amber-500" };
+  if (pct < 80) return { label: "Good", pct, color: "text-emerald-500" };
+  return { label: "Premium", pct, color: "text-primary" };
+}
+
+/** missing required fields, in flow order */
+export function missingRequired(state: Record<string, any>): FieldConfig[] {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  return flow.filter((f) => {
+    if (!f.required) return false;
+    const v = state[f.id];
+    if (v === null) return false;
+    return !(Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "");
+  });
+}
+
+/** answered fields, with display-friendly value, for the edit drawer */
+export function answeredFields(state: Record<string, any>): Array<{ field: FieldConfig; value: any }> {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  return flow
+    .map((f) => ({ field: f, value: state[f.id] }))
+    .filter(({ value }) =>
+      value !== undefined && value !== null && value !== "" &&
+      (!Array.isArray(value) || value.length > 0),
+    );
+}

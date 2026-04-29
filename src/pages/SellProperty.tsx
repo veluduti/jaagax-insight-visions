@@ -12,16 +12,18 @@ import { toast } from "sonner";
 import {
   Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
   ImagePlus, X, Mic, MicOff, Send, Image as ImageIcon, Camera,
+  Pencil, Lightbulb,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
+import { completionTier, missingRequired, answeredFields } from "@/config/propertyFieldsConfig";
 
 /* ============================================================
    Types
    ============================================================ */
 type FieldDef = {
   id: string;
-  section: string;
+  section?: string;
   question: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
@@ -29,6 +31,7 @@ type FieldDef = {
     | "city" | "locality" | "price_unit";
   options?: string[];
   optional?: boolean;
+  required?: boolean;
 };
 
 type NextResp =
@@ -57,8 +60,15 @@ function isEmpty(v: any) {
   return false;
 }
 
+/** A field is optional if it's marked optional OR not marked required. */
+function isOptional(f: FieldDef | null | undefined): boolean {
+  if (!f) return false;
+  if (f.optional) return true;
+  return f.required !== true;
+}
+
 function validate(field: FieldDef, value: any): string | null {
-  if (field.optional && isEmpty(value)) return null;
+  if (isOptional(field) && isEmpty(value)) return null;
   if (isEmpty(value)) return "This field is required";
   if (field.input === "phone" && !phoneRE.test(String(value))) return "Enter a valid 10-digit mobile number";
   if (field.input === "email") {
@@ -108,6 +118,12 @@ export default function SellProperty() {
   const [intakeText, setIntakeText] = useState("");
   const [extracting, setExtracting] = useState(false);
 
+  /* Smart hint per question (locality-aware AI tip) */
+  const [smartHint, setSmartHint] = useState<string | null>(null);
+
+  /* Edit-previous drawer */
+  const [editorOpen, setEditorOpen] = useState(false);
+
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -124,6 +140,24 @@ export default function SellProperty() {
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, loadingNext]);
+
+  /* ----- Smart locality-aware hint per current field ----- */
+  useEffect(() => {
+    if (!field) { setSmartHint(null); return; }
+    let cancelled = false;
+    setSmartHint(null);
+    (async () => {
+      try {
+        const { data } = await supabase.functions.invoke<{ hint: string | null }>(
+          "ai-smart-hint",
+          { body: { field_id: field.id, state } },
+        );
+        if (!cancelled && data?.hint) setSmartHint(data.hint);
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field?.id]);
 
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
@@ -329,7 +363,7 @@ export default function SellProperty() {
   };
 
   const onSkip = async () => {
-    if (!field || !field.optional) return;
+    if (!field || !isOptional(field)) return;
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", kind: "text", text: "Skip" },
@@ -471,11 +505,40 @@ export default function SellProperty() {
     }
   };
 
-  const pct = Math.round((progress.filled / Math.max(progress.total, 1)) * 100);
+  const tier = completionTier(state);
+  const pct = tier.pct;
+  const missing = missingRequired(state);
+  const answered = answeredFields(state);
 
   const showIntakeBar = !intakeDone && !done;
   const showInputBar = (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
+
+  const tierBadgeClasses: Record<string, string> = {
+    Draft: "bg-muted text-muted-foreground border-border",
+    Partial: "bg-amber-500/10 text-amber-500 border-amber-500/30",
+    Good: "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+    Premium: "bg-gradient-to-r from-primary/15 to-emerald-500/15 text-primary border-primary/30",
+  };
+
+  /** Jump back to a previously answered field (edit it). Removes everything after it. */
+  const jumpToField = (fieldId: string) => {
+    setEditorOpen(false);
+    const idx = history.findIndex((h) => h.field.id === fieldId);
+    if (idx === -1) return;
+    const keep = history.slice(0, idx);
+    const cleared = { ...state };
+    for (const h of history.slice(idx)) delete cleared[h.field.id];
+    setHistory(keep);
+    setState(cleared);
+    setDone(false);
+    // trim trailing AI/user pair messages until we'd re-ask this question
+    setMessages((m) => {
+      // best-effort: keep messages then re-fetch will append a fresh question bubble
+      return m;
+    });
+    fetchNext(cleared);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
@@ -497,11 +560,75 @@ export default function SellProperty() {
             </div>
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
-          <div className="hidden sm:flex flex-col items-end">
-            <div className="text-[10px] text-muted-foreground">{progress.filled}/{progress.total} • {pct}%</div>
-            <Progress value={pct} className="h-1 w-24 mt-1" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEditorOpen((o) => !o)}
+              disabled={answered.length === 0}
+              className="hidden sm:inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted transition disabled:opacity-40"
+              title="Edit previous answers"
+            >
+              <Pencil className="h-3 w-3" /> Edit ({answered.length})
+            </button>
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-1.5">
+                <span className={cn(
+                  "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                  tierBadgeClasses[tier.label],
+                )}>
+                  {tier.label}
+                </span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
+              </div>
+              <Progress value={pct} className="h-1 w-24 mt-1" />
+              {missing.length > 0 && intakeDone && (
+                <div className="text-[9px] text-muted-foreground mt-0.5">
+                  {missing.length} required left
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Edit-previous-answers drawer */}
+        <AnimatePresence>
+          {editorOpen && answered.length > 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="border-t border-border/40 overflow-hidden"
+            >
+              <div className="container max-w-3xl mx-auto px-4 py-3">
+                <div className="text-[11px] text-muted-foreground mb-2 flex items-center justify-between">
+                  <span>Tap any answer to edit it (this will rewind to that question)</span>
+                  <button
+                    onClick={() => setEditorOpen(false)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {answered.map(({ field: f, value: v }) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => jumpToField(f.id)}
+                      className="group flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:border-primary hover:bg-primary/5 transition"
+                    >
+                      <span className="text-muted-foreground">{f.id.replace(/_/g, " ")}:</span>
+                      <span className="font-medium max-w-[140px] truncate">
+                        {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? `${(v as any).area} ${(v as any).unit}` : String(v)}
+                      </span>
+                      <Pencil className="h-2.5 w-2.5 text-muted-foreground group-hover:text-primary" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Chat scroll area */}
@@ -575,6 +702,34 @@ export default function SellProperty() {
                 );
               })}
             </motion.div>
+          )}
+
+          {/* Smart locality-aware AI hint */}
+          {field && smartHint && !loadingNext && !done && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="pl-1 pt-1"
+            >
+              <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
+                <span className="text-foreground/90">{smartHint}</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Required/optional inline indicator */}
+          {field && !loadingNext && !done && (
+            <div className="pl-1 pt-1">
+              <span className={cn(
+                "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                isOptional(field)
+                  ? "text-muted-foreground"
+                  : "text-primary bg-primary/10",
+              )}>
+                {isOptional(field) ? "Optional · you can skip" : "Required"}
+              </span>
+            </div>
           )}
 
           {/* AI suggestions chips (titles, etc.) */}
@@ -738,7 +893,7 @@ export default function SellProperty() {
                 )}
                 <PrimaryActions
                   onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={!!field.optional} canBack={history.length > 0}
+                  optional={isOptional(field)} canBack={history.length > 0}
                   loading={loadingNext}
                 />
               </div>
@@ -782,7 +937,7 @@ export default function SellProperty() {
                 )}
                 <PrimaryActions
                   onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={!!field.optional} canBack={history.length > 0}
+                  optional={isOptional(field)} canBack={history.length > 0}
                   loading={loadingNext}
                   nextLabel="Continue"
                 />
@@ -868,7 +1023,7 @@ export default function SellProperty() {
                   >
                     <ChevronLeft className="h-3 w-3" /> Back
                   </button>
-                  {field?.optional && (
+                  {isOptional(field) && (
                     <button
                       type="button"
                       onClick={onSkip}
