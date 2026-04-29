@@ -645,8 +645,87 @@ export default function SellProperty() {
       {showInputBar && (
         <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
           <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
-            {/* Special composers for non-text fields */}
-            {field?.input === "city" || field?.input === "locality" ? (
+            {/* Intake composer (free-form first message) */}
+            {showIntakeBar ? (
+              <>
+                <input
+                  ref={imageRef} type="file" accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => imageRef.current?.click()}
+                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    title="Attach image"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </button>
+                  <div className="flex-1">
+                    <Textarea
+                      value={intakeText}
+                      onChange={(e) => setIntakeText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault(); submitIntake();
+                        }
+                      }}
+                      rows={2}
+                      placeholder='e.g. "3 BHK flat in Kondapur 1200 sqft for sale"'
+                      className="resize-none rounded-2xl"
+                      disabled={extracting}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // reuse voice for intake
+                      const rec = recognitionRef.current;
+                      if (!rec) { toast.error("Voice not supported"); return; }
+                      if (isListening) { rec.stop(); setIsListening(false); }
+                      else {
+                        rec.onresult = (e: any) => {
+                          let txt = "";
+                          for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+                          if (txt) setIntakeText(txt);
+                        };
+                        try { rec.start(); setIsListening(true); } catch {}
+                      }
+                    }}
+                    className={cn(
+                      "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
+                      isListening
+                        ? "bg-destructive text-destructive-foreground animate-pulse"
+                        : "border border-border bg-background hover:bg-muted text-muted-foreground"
+                    )}
+                    title={isListening ? "Stop" : "Speak"}
+                  >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitIntake}
+                    disabled={extracting || !intakeText.trim()}
+                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    title="Send"
+                  >
+                    {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-2 px-1">
+                  <span className="text-[11px] text-muted-foreground">AI will auto-detect type, location, BHK, area & more</span>
+                  <button
+                    type="button"
+                    onClick={skipIntake}
+                    disabled={extracting}
+                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  >
+                    Skip — go step by step
+                  </button>
+                </div>
+              </>
+            ) : field?.input === "city" || field?.input === "locality" ? (
               <div className="space-y-2">
                 {field.input === "city" ? (
                   <CityAutocomplete value={value || ""} onChange={(c) => setValue(c)} placeholder="Search your city..." />
