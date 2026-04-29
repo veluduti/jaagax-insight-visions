@@ -297,13 +297,17 @@ export default function SellProperty() {
       setState(merged);
 
       const ext = data?.extracted || {};
-      const detected = [
-        ext.sub_type && `${ext.sub_type}`,
-        ext.bhk && `${ext.bhk} BHK`,
-        ext.built_up_area && `${ext.built_up_area} ${ext.area_unit || "sq ft"}`,
-        ext.location && `in ${ext.location}`,
-        ext.purpose && `(for ${ext.purpose})`,
-      ].filter(Boolean).join(" • ");
+      // Format: "3BHK Apartment in Kondapur, 1250 sqft, Semi-Furnished"
+      const parts: string[] = [];
+      if (ext.bhk) parts.push(`${ext.bhk}BHK`);
+      if (ext.sub_type) parts.push(ext.sub_type);
+      const head = parts.join(" ");
+      const tail: string[] = [];
+      if (ext.location) tail.push(`in ${ext.location}`);
+      if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sqft"}`);
+      if (ext.furnishing) tail.push(ext.furnishing);
+      if (ext.purpose) tail.push(`for ${ext.purpose}`);
+      const detected = [head, tail.join(", ")].filter(Boolean).join(" ");
 
       setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
@@ -311,7 +315,7 @@ export default function SellProperty() {
         {
           id: uid(), role: "ai", kind: "text",
           text: detected
-            ? `Got it! I detected: **${detected}**. Let's fill in the rest.`
+            ? `✨ **Detected:** ${detected}\n\nLet's fill in the missing details one by one.`
             : "Thanks! Let's fill in the details together.",
         },
       ]);
