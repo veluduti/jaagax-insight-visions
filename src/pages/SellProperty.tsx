@@ -103,6 +103,11 @@ export default function SellProperty() {
   const [history, setHistory] = useState<{ field: FieldDef; value: any }[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  /* Intake (first free-form description) */
+  const [intakeDone, setIntakeDone] = useState(false);
+  const [intakeText, setIntakeText] = useState("");
+  const [extracting, setExtracting] = useState(false);
+
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -167,17 +172,84 @@ export default function SellProperty() {
     })();
   }, []);
 
-  /* ----- Greeting + first question ----- */
+  /* ----- Greeting + first intake prompt (no orchestrator yet) ----- */
   useEffect(() => {
     setMessages([
       {
         id: uid(), role: "ai", kind: "text",
-        text: "👋 Hi! I'll help you list your property. Tell me about it — type, speak, or upload a photo. I'll handle the rest.",
+        text: "👋 Hi! I'll help you list your property.",
+      },
+      {
+        id: uid(), role: "ai", kind: "text",
+        text: "Tell me about your property — you can type, speak, or upload an image. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
       },
     ]);
-    fetchNext({}, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ----- Run AI extraction on the intake text and start the structured flow ----- */
+  const submitIntake = async () => {
+    const text = intakeText.trim();
+    if (!text) { toast.error("Please describe your property first"); return; }
+
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text }]);
+    setIntakeText("");
+    setExtracting(true);
+
+    const typingId = uid();
+    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+
+    let merged: Record<string, any> = { ...state };
+    try {
+      const { data, error } = await supabase.functions.invoke<{
+        extracted: Record<string, any>;
+        listing_state: Record<string, any>;
+      }>("ai-extract-property", { body: { text } });
+      if (error) throw error;
+
+      merged = { ...state, ...(data?.listing_state || {}) };
+      setState(merged);
+
+      const ext = data?.extracted || {};
+      const detected = [
+        ext.sub_type && `${ext.sub_type}`,
+        ext.bhk && `${ext.bhk} BHK`,
+        ext.built_up_area && `${ext.built_up_area} ${ext.area_unit || "sq ft"}`,
+        ext.location && `in ${ext.location}`,
+        ext.purpose && `(for ${ext.purpose})`,
+      ].filter(Boolean).join(" • ");
+
+      setMessages((m) => m.filter((x) => x.id !== typingId));
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(), role: "ai", kind: "text",
+          text: detected
+            ? `Got it! I detected: **${detected}**. Let's fill in the rest.`
+            : "Thanks! Let's fill in the details together.",
+        },
+      ]);
+    } catch (e: any) {
+      setMessages((m) => m.filter((x) => x.id !== typingId));
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "ai", kind: "text", text: "I'll guide you step by step." },
+      ]);
+    } finally {
+      setExtracting(false);
+      setIntakeDone(true);
+      await fetchNext(merged, true);
+    }
+  };
+
+  const skipIntake = async () => {
+    setIntakeDone(true);
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: "Let's go step by step" },
+    ]);
+    await fetchNext(state, true);
+  };
 
   /* ----- Ask orchestrator for next field ----- */
   const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
@@ -401,7 +473,8 @@ export default function SellProperty() {
 
   const pct = Math.round((progress.filled / Math.max(progress.total, 1)) * 100);
 
-  const showInputBar = field && !done;
+  const showIntakeBar = !intakeDone && !done;
+  const showInputBar = (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
 
   return (
@@ -572,8 +645,87 @@ export default function SellProperty() {
       {showInputBar && (
         <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
           <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
-            {/* Special composers for non-text fields */}
-            {field?.input === "city" || field?.input === "locality" ? (
+            {/* Intake composer (free-form first message) */}
+            {showIntakeBar ? (
+              <>
+                <input
+                  ref={imageRef} type="file" accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => imageRef.current?.click()}
+                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    title="Attach image"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </button>
+                  <div className="flex-1">
+                    <Textarea
+                      value={intakeText}
+                      onChange={(e) => setIntakeText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault(); submitIntake();
+                        }
+                      }}
+                      rows={2}
+                      placeholder='e.g. "3 BHK flat in Kondapur 1200 sqft for sale"'
+                      className="resize-none rounded-2xl"
+                      disabled={extracting}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // reuse voice for intake
+                      const rec = recognitionRef.current;
+                      if (!rec) { toast.error("Voice not supported"); return; }
+                      if (isListening) { rec.stop(); setIsListening(false); }
+                      else {
+                        rec.onresult = (e: any) => {
+                          let txt = "";
+                          for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+                          if (txt) setIntakeText(txt);
+                        };
+                        try { rec.start(); setIsListening(true); } catch {}
+                      }
+                    }}
+                    className={cn(
+                      "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
+                      isListening
+                        ? "bg-destructive text-destructive-foreground animate-pulse"
+                        : "border border-border bg-background hover:bg-muted text-muted-foreground"
+                    )}
+                    title={isListening ? "Stop" : "Speak"}
+                  >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitIntake}
+                    disabled={extracting || !intakeText.trim()}
+                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    title="Send"
+                  >
+                    {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-2 px-1">
+                  <span className="text-[11px] text-muted-foreground">AI will auto-detect type, location, BHK, area & more</span>
+                  <button
+                    type="button"
+                    onClick={skipIntake}
+                    disabled={extracting}
+                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  >
+                    Skip — go step by step
+                  </button>
+                </div>
+              </>
+            ) : field?.input === "city" || field?.input === "locality" ? (
               <div className="space-y-2">
                 {field.input === "city" ? (
                   <CityAutocomplete value={value || ""} onChange={(c) => setValue(c)} placeholder="Search your city..." />
