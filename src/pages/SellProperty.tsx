@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
-import { completionTier, missingRequired, answeredFields } from "@/config/propertyFieldsConfig";
+import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 
 /* ============================================================
    Types
