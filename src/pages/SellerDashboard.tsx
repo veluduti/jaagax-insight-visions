@@ -698,6 +698,63 @@ export default function SellerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Details dialog — only filled fields, image or "no image" */}
+      <Dialog open={!!viewTarget} onOpenChange={(o) => !o && setViewTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{viewTarget?.title || "Property Details"}</DialogTitle>
+            <DialogDescription>
+              Showing only the details you provided.
+            </DialogDescription>
+          </DialogHeader>
+          {viewTarget && (() => {
+            const imgs = Array.isArray(viewTarget.images) ? viewTarget.images.filter(Boolean) : [];
+            const fields: Array<[string, any]> = [
+              ["Type", viewTarget.type],
+              ["For", viewTarget.listing_type ? (viewTarget.listing_type === "rent" ? "Rent" : "Sale") : null],
+              ["City", viewTarget.city],
+              ["Locality", viewTarget.locality],
+              ["Price", viewTarget.price ? formatPrice(viewTarget.price) : null],
+              ["Area", viewTarget.area_sqft ? `${viewTarget.area_sqft} sqft` : null],
+              ["BHK", viewTarget.bedrooms],
+              ["Bathrooms", viewTarget.bathrooms],
+              ["Description", viewTarget.description],
+              ["Status", STATUS_META[viewTarget.is_draft ? "draft" : (viewTarget.verification_status || "pending")]?.label],
+              ["Submitted", new Date(viewTarget.created_at).toLocaleString()],
+            ].filter(([, v]) => v !== null && v !== undefined && v !== "");
+
+            return (
+              <div className="space-y-4">
+                {imgs.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {imgs.map((u: string, i: number) => (
+                      <img key={i} src={u} alt="" className="h-32 w-full object-cover rounded border" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-40 rounded border-2 border-dashed flex flex-col items-center justify-center bg-muted/30">
+                    <Home className="h-10 w-10 text-muted-foreground/60 mb-2" />
+                    <p className="text-sm font-medium text-muted-foreground">No image uploaded</p>
+                    <p className="text-xs text-muted-foreground/70">You haven't added any photos for this property.</p>
+                  </div>
+                )}
+                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  {fields.map(([k, v]) => (
+                    <div key={k} className="border-b pb-1.5">
+                      <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">{k}</p>
+                      <p className="font-medium break-words">{String(v)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewTarget(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
