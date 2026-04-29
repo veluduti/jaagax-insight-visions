@@ -23,7 +23,28 @@ const CITY_ALIASES: Record<string, string[]> = {
 };
 
 const normalize = (s: string | null | undefined) =>
-  (s || "").trim().toLowerCase();
+  (s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ");
+
+const toKey = (city: string | null | undefined) => {
+  const normalized = normalize(city);
+  if (!normalized) return "";
+
+  for (const [canonical, aliases] of Object.entries(CITY_ALIASES)) {
+    if (aliases.map(normalize).includes(normalized)) {
+      return canonical;
+    }
+  }
+
+  return normalized;
+};
+
+export function canonicalizeCity(city: string | null | undefined): string {
+  return toKey(city);
+}
 
 /**
  * Returns the list of accepted aliases for a given city name (always
@@ -31,14 +52,15 @@ const normalize = (s: string | null | undefined) =>
  * `.in("city", aliases)` filters.
  */
 export function getCityAliases(city: string | null | undefined): string[] {
-  const key = normalize(city);
+  const input = normalize(city);
+  const key = toKey(city);
   if (!key) return [];
-  for (const [, aliases] of Object.entries(CITY_ALIASES)) {
-    if (aliases.includes(key)) {
+  for (const [canonical, aliases] of Object.entries(CITY_ALIASES)) {
+    if (canonical === key) {
       // Return aliases in both lowercase and Title Case so .in() matches
       // databases that store either casing.
       const out = new Set<string>();
-      aliases.forEach((a) => {
+      [canonical, ...aliases].forEach((a) => {
         out.add(a);
         out.add(a.charAt(0).toUpperCase() + a.slice(1));
         out.add(a.toUpperCase());
@@ -53,6 +75,7 @@ export function getCityAliases(city: string | null | undefined): string[] {
       key.charAt(0).toUpperCase() + key.slice(1),
       key.toUpperCase(),
       city as string,
+      input,
     ])
   );
 }
@@ -67,10 +90,10 @@ export function isSameCity(
   candidate: string | null | undefined,
   selected: string | null | undefined
 ): boolean {
-  const a = normalize(candidate);
-  const b = normalize(selected);
+  const a = toKey(candidate);
+  const b = toKey(selected);
   if (!a || !b) return false;
   if (a === b) return true;
-  const aAliases = getCityAliases(a).map(normalize);
+  const aAliases = getCityAliases(a).map(toKey);
   return aAliases.includes(b);
 }

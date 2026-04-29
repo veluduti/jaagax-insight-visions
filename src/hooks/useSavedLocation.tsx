@@ -8,6 +8,7 @@ import {
   reverseGeocode,
   writeSavedLocationToStorage,
 } from "@/lib/savedLocation";
+import { canonicalizeCity, getCityAliases } from "@/lib/cityNormalizer";
 
 interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
@@ -33,6 +34,18 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
   );
   const [isResolvingGps, setIsResolvingGps] = useState(false);
   const profileSyncedRef = useRef(false);
+
+  const normalizeSavedLocation = useCallback((loc: SavedLocation): SavedLocation => {
+    const canonicalCity = canonicalizeCity(loc.city);
+    const aliases = getCityAliases(canonicalCity);
+    const displayCity = aliases.find((alias) => alias === alias.charAt(0).toUpperCase() + alias.slice(1)) || loc.city;
+
+    return {
+      ...loc,
+      city: displayCity || loc.city,
+      area: loc.area || "",
+    };
+  }, []);
 
   // On mount + auth changes: if no localStorage value, try backend profile.
   useEffect(() => {
@@ -66,8 +79,9 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         area: typeof ld.area === "string" ? ld.area : "",
         last_updated: ld.last_updated || new Date().toISOString(),
       };
-      writeSavedLocationToStorage(next);
-      setSavedLocation(next);
+      const normalizedNext = normalizeSavedLocation(next);
+      writeSavedLocationToStorage(normalizedNext);
+      setSavedLocation(normalizedNext);
       profileSyncedRef.current = true;
     };
 
@@ -121,11 +135,12 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         area: loc.area || "",
         last_updated: loc.last_updated || new Date().toISOString(),
       };
-      writeSavedLocationToStorage(next);
-      setSavedLocation(next);
-      void persistToBackend(next);
+      const normalizedNext = normalizeSavedLocation(next);
+      writeSavedLocationToStorage(normalizedNext);
+      setSavedLocation(normalizedNext);
+      void persistToBackend(normalizedNext);
     },
-    [persistToBackend]
+    [normalizeSavedLocation, persistToBackend]
   );
 
   const requestGpsLocation = useCallback(async () => {
@@ -147,10 +162,11 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
             area: geo?.area || "",
             last_updated: new Date().toISOString(),
           };
-          writeSavedLocationToStorage(next);
-          setSavedLocation(next);
-          void persistToBackend(next);
-          toast.success(`Location set to ${next.city}${next.area ? `, ${next.area}` : ""}`);
+          const normalizedNext = normalizeSavedLocation(next);
+          writeSavedLocationToStorage(normalizedNext);
+          setSavedLocation(normalizedNext);
+          void persistToBackend(normalizedNext);
+          toast.success(`Location set to ${normalizedNext.city}${normalizedNext.area ? `, ${normalizedNext.area}` : ""}`);
           setIsResolvingGps(false);
           resolve();
         },
@@ -168,7 +184,7 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
       );
     });
-  }, [persistToBackend]);
+  }, [normalizeSavedLocation, persistToBackend]);
 
   // Keep a ref to the latest requestGpsLocation so the auth listener can call it.
   useEffect(() => {

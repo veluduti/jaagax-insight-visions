@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
-import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
 const toPublicRow = (row: any) => {
   const v = getPublicPropertyView(row);
   if (!v) return row;
@@ -57,20 +57,17 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
         .not("title", "is", null)
         .not("city", "is", null);
 
-      if (detectedCity) {
-        const aliases = getCityAliases(detectedCity);
-        query = query.in("city", aliases);
-      }
-
       const { data, error } = await query
         .order("updated_at", { ascending: false })
-        .limit(40);
+        .limit(120);
 
       if (error) throw error;
 
+      const normalizedCity = canonicalizeCity(detectedCity);
+
       const partial = ((data as any[]) || [])
         .map(toPublicRow)
-        .filter((p) => !detectedCity || isSameCity(p.city, detectedCity))
+        .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
         .filter((p) => classifyProperty(p) === "basic")
         .slice(0, 8);
 
