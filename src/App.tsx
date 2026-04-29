@@ -208,6 +208,11 @@ const App = () => (
               <AgentVerificationDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/agent/assigned" element={
+            <ProtectedRoute allowedRole="agent">
+              <AgentAssignedProperties />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/builder" element={
             <ProtectedRoute allowedRole="builder">
               <BuilderDashboard />
