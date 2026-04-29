@@ -182,18 +182,24 @@ function merge(base: Record<string, any>, ai: Record<string, any> | null) {
 function toListingState(ext: Record<string, any>) {
   const s: Record<string, any> = {};
 
-  // Map sub_type to the multi-select "type" used by the orchestrator
+  // Map sub_type -> the multi-select label from propertyFieldsConfig
   const subToOption: Record<string, string> = {
     "Flat": "Apartment / Flat",
     "Apartment": "Apartment / Flat",
     "Villa": "Villa",
-    "Independent House": "Independent House",
-    "Row House": "Row House / Townhouse",
-    "Penthouse": "Penthouse",
+    "Independent House": "Villa",
+    "Row House": "Villa",
+    "Penthouse": "Apartment / Flat",
     "Plot": "Plot / Land",
-    "Farm Land": "Agricultural Land",
-    "Agricultural Land": "Agricultural Land",
+    "Farm Land": "Farm Land",
+    "Agricultural Land": "Farm Land",
     "Industrial Land": "Plot / Land",
+    "Office Space": "Commercial Office",
+    "Shop": "Commercial Shop / Showroom",
+    "Showroom": "Commercial Shop / Showroom",
+    "Warehouse": "Warehouse / Godown",
+    "Godown": "Warehouse / Godown",
+    "Commercial Land": "Plot / Land",
   };
   if (ext.sub_type && subToOption[ext.sub_type]) {
     s.type = [subToOption[ext.sub_type]];
@@ -203,13 +209,35 @@ function toListingState(ext: Record<string, any>) {
   if (ext.city) s.city = ext.city;
   if (ext.location) s.locality = ext.location;
   if (ext.bhk) s.bhk = `${ext.bhk} BHK`;
-  if (ext.furnishing) s.furnishing = ext.furnishing;
-  if (ext.car_parking) s.car_parking = ext.car_parking;
+  if (ext.furnishing) {
+    // Maps both furnishing_status (apartment) and furnishing (office)
+    s.furnishing_status = ext.furnishing;
+    s.furnishing = ext.furnishing;
+  }
+  if (ext.car_parking) s.parking = ext.car_parking;
   if (ext.title) s.title = ext.title;
 
+  // Type-specific area pre-fills
   if (ext.built_up_area) {
+    const subLabel = s.type?.[0];
+    const unit = ext.area_unit || "sq ft";
+    if (subLabel === "Plot / Land") {
+      s.plot_area = ext.built_up_area;
+      s.unit = unit === "sq yd" ? "sq yd" : "sq ft";
+    } else if (subLabel === "Farm Land") {
+      s.total_acres = unit === "acre" ? ext.built_up_area : undefined;
+    } else if (subLabel === "Villa") {
+      s.built_up_area = ext.built_up_area;
+    } else if (subLabel === "Commercial Shop / Showroom") {
+      s.shop_area = ext.built_up_area;
+    } else if (subLabel === "Commercial Office" || subLabel === "Warehouse / Godown") {
+      s.total_area = ext.built_up_area;
+    } else {
+      s.built_up_area = ext.built_up_area;
+    }
+
     s.price_unit = {
-      unit: ext.area_unit || "sq ft",
+      unit,
       area: String(ext.built_up_area),
       pricePerUnit: ext.price && ext.built_up_area
         ? String(Math.round(Number(ext.price) / Number(ext.built_up_area)))
