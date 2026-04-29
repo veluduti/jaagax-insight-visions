@@ -710,7 +710,7 @@ export default function SellerDashboard() {
           </DialogHeader>
           {viewTarget && (() => {
             const imgs = Array.isArray(viewTarget.images) ? viewTarget.images.filter(Boolean) : [];
-            const fields: Array<[string, any]> = [
+            const fields = ([
               ["Type", viewTarget.type],
               ["For", viewTarget.listing_type ? (viewTarget.listing_type === "rent" ? "Rent" : "Sale") : null],
               ["City", viewTarget.city],
