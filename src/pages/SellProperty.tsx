@@ -12,9 +12,11 @@ import { toast } from "sonner";
 import {
   Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
   ImagePlus, X, Mic, MicOff, Send, Image as ImageIcon, Camera,
+  Pencil, Lightbulb,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
+import { completionTier, missingRequired, answeredFields } from "@/config/propertyFieldsConfig";
 
 /* ============================================================
    Types
