@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
-import { completionTier, missingRequired, answeredFields } from "@/config/propertyFieldsConfig";
+import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 
 /* ============================================================
    Types
@@ -297,13 +297,17 @@ export default function SellProperty() {
       setState(merged);
 
       const ext = data?.extracted || {};
-      const detected = [
-        ext.sub_type && `${ext.sub_type}`,
-        ext.bhk && `${ext.bhk} BHK`,
-        ext.built_up_area && `${ext.built_up_area} ${ext.area_unit || "sq ft"}`,
-        ext.location && `in ${ext.location}`,
-        ext.purpose && `(for ${ext.purpose})`,
-      ].filter(Boolean).join(" • ");
+      // Format: "3BHK Apartment in Kondapur, 1250 sqft, Semi-Furnished"
+      const parts: string[] = [];
+      if (ext.bhk) parts.push(`${ext.bhk}BHK`);
+      if (ext.sub_type) parts.push(ext.sub_type);
+      const head = parts.join(" ");
+      const tail: string[] = [];
+      if (ext.location) tail.push(`in ${ext.location}`);
+      if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sqft"}`);
+      if (ext.furnishing) tail.push(ext.furnishing);
+      if (ext.purpose) tail.push(`for ${ext.purpose}`);
+      const detected = [head, tail.join(", ")].filter(Boolean).join(" ");
 
       setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
@@ -311,7 +315,7 @@ export default function SellProperty() {
         {
           id: uid(), role: "ai", kind: "text",
           text: detected
-            ? `Got it! I detected: **${detected}**. Let's fill in the rest.`
+            ? `✨ **Detected:** ${detected}\n\nLet's fill in the missing details one by one.`
             : "Thanks! Let's fill in the details together.",
         },
       ]);
@@ -784,7 +788,51 @@ export default function SellProperty() {
             </motion.div>
           )}
 
-          {/* Smart locality-aware AI hint */}
+          {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
+          {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap gap-2 pt-1 pl-1"
+            >
+              {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
+                const active = String(value) === opt;
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      // strip "+" or "Ground" → numeric where possible
+                      const numeric =
+                        opt === "Ground" ? 0 :
+                        opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
+                      const sendVal = isNaN(numeric) ? opt : numeric;
+                      setValue(sendVal);
+                      setTimeout(() => {
+                        setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
+                        const newState = { ...state, [field.id]: sendVal };
+                        setHistory((h) => [...h, { field, value: sendVal }]);
+                        setState(newState);
+                        setError(null);
+                        fetchNext(newState);
+                      }, 80);
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card hover:bg-primary/5 border-border"
+                    )}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+              <span className="text-[10px] text-muted-foreground self-center pl-1">
+                or enter manually below
+              </span>
+            </motion.div>
+          )}
           {field && smartHint && !loadingNext && !done && (
             <motion.div
               initial={{ opacity: 0, y: 4 }}
