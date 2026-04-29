@@ -501,22 +501,26 @@ export default function SellProperty() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Please sign in"); navigate("/auth"); return; }
 
-      const pu = state.price_unit || {};
-      const area = Number(pu.area) || null;
-      const ppu = Number(pu.pricePerUnit) || null;
+      // Use review-screen edits as the source of truth
+      const area = Number(reviewArea) || null;
+      const ppu = Number(reviewPricePerUnit) || null;
       const totalPrice = area && ppu ? area * ppu : null;
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1, "sq m": 10.7639, "gunta": 1089, "acre": 43560, "cent": 435.6, "sq yard": 9,
       };
-      const areaSqft = area && pu.unit ? Math.round(area * (UNIT_TO_SQFT[pu.unit] || 1)) : null;
-      const pricePerSqft = totalPrice && areaSqft ? Math.round(totalPrice / areaSqft) : null;
+      const areaSqft = area ? Math.round(area * (UNIT_TO_SQFT[reviewUnit] || 1)) : null;
 
       const typesArr = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
       const primaryType = typesArr[0] || null;
 
+      const finalTitle =
+        (reviewTitle && reviewTitle.trim()) ||
+        (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
+        `${state.bhk || ""} ${primaryType || "Property"} in ${reviewLocality || reviewCity || ""}`.trim();
+
       const payload: any = {
         submitted_by: user.id,
-        title: state.title || `${state.bhk || ""} ${primaryType || "Property"} in ${state.locality || state.city || ""}`.trim(),
+        title: finalTitle,
         description: state.description || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
@@ -529,12 +533,12 @@ export default function SellProperty() {
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? Number(state.floor_number) : null,
         total_floors: state.total_floors ? Number(state.total_floors) : null,
-        city: state.city || null,
-        locality: state.locality || null,
-        address: state.address || null,
+        city: reviewCity || null,
+        locality: reviewLocality || null,
+        address: reviewAddress || null,
         pincode: state.pincode || null,
         furnishing: state.furnishing || null,
-        amenities: state.amenities || [],
+        amenities: reviewAmenities,
         rera_id: state.rera_number || null,
         images: state.media_urls || [],
         is_draft: false,
@@ -543,8 +547,25 @@ export default function SellProperty() {
         document_urls: state,
       };
 
-      const { error: insErr } = await (supabase.from as any)("properties").insert(payload);
+      const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
+        .insert(payload).select("id").single();
       if (insErr) throw insErr;
+
+      // Save granular field key/values to property_details (one row per field)
+      const propertyId = inserted?.id;
+      if (propertyId) {
+        const detailRows = Object.entries(state)
+          .filter(([_, v]) => v !== null && v !== undefined && v !== "")
+          .map(([k, v]) => ({
+            property_id: propertyId,
+            field_key: k,
+            field_value: typeof v === "object" ? v : { value: v },
+          }));
+        if (detailRows.length > 0) {
+          await (supabase.from as any)("property_details").insert(detailRows);
+        }
+      }
+
       toast.success("Your property is under review", {
         description: "Our team will verify your listing shortly.",
       });
