@@ -1,0 +1,196 @@
+// ============================================================
+// Dynamic property field config — single source of truth.
+// NO hardcoded UI. Edge functions and frontend both read this.
+// ============================================================
+
+export type FieldInput =
+  | "text" | "textarea" | "number" | "phone" | "email"
+  | "single" | "multi" | "yesno" | "media"
+  | "city" | "locality" | "price_unit";
+
+export type FieldConfig = {
+  id: string;
+  question: string;
+  input: FieldInput;
+  required?: boolean;
+  options?: string[];
+  section?: string;
+};
+
+export type PropertySubType =
+  | "PLOT"
+  | "APARTMENT"
+  | "VILLA"
+  | "FARM_LAND"
+  | "COMMERCIAL_OFFICE"
+  | "COMMERCIAL_SHOP"
+  | "COMMERCIAL_WAREHOUSE";
+
+// Common fields asked for every property type (basics + contact)
+export const COMMON_FIELDS: FieldConfig[] = [
+  { id: "title", question: "Give your listing a short catchy title", input: "text", required: true, section: "Basic" },
+  { id: "purpose", question: "Are you listing it for…", input: "single", required: true, options: ["Sale", "Rent", "Lease"], section: "Basic" },
+  { id: "city", question: "Which city?", input: "city", required: true, section: "Location" },
+  { id: "locality", question: "Area / Locality?", input: "locality", required: true, section: "Location" },
+  { id: "price_unit", question: "How would you like to price it?", input: "price_unit", required: true, section: "Price" },
+];
+
+export const CONTACT_FIELDS: FieldConfig[] = [
+  { id: "media", question: "Upload photos of your property (optional)", input: "media", section: "Media" },
+  { id: "contact_name", question: "Your full name?", input: "text", required: true, section: "Contact" },
+  { id: "contact_mobile", question: "Mobile number?", input: "phone", required: true, section: "Contact" },
+];
+
+// ============================================================
+// Type-specific fields — EXACT mapping per spec
+// ============================================================
+export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
+  PLOT: [
+    { id: "plot_area", question: "Plot area?", input: "number", required: true, section: "Plot" },
+    { id: "unit", question: "Area unit?", input: "single", required: true, options: ["sq yd", "sq ft"], section: "Plot" },
+    { id: "facing", question: "Plot facing?", input: "single", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Plot" },
+    { id: "road_width", question: "Road width (in feet)?", input: "number", section: "Plot" },
+    { id: "corner_plot", question: "Is it a corner plot?", input: "yesno", section: "Plot" },
+    { id: "approval", question: "Approval type?", input: "single", required: true, options: ["DTCP", "HMDA"], section: "Plot" },
+    { id: "water_connection", question: "Water connection available?", input: "yesno", section: "Utilities" },
+    { id: "electricity", question: "Electricity available?", input: "yesno", section: "Utilities" },
+  ],
+  APARTMENT: [
+    { id: "bhk", question: "How many BHK?", input: "single", required: true, options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"], section: "Configuration" },
+    { id: "floor_number", question: "Which floor is the unit on?", input: "number", required: true, section: "Configuration" },
+    { id: "total_floors", question: "Total floors in the building?", input: "number", section: "Configuration" },
+    { id: "built_up_area", question: "Built-up area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "carpet_area", question: "Carpet area (sq ft)?", input: "number", section: "Area" },
+    { id: "furnishing_status", question: "Furnishing status?", input: "single", required: true, options: ["Unfurnished", "Semi-Furnished", "Fully Furnished"], section: "Furnishing" },
+    { id: "amenities", question: "Which amenities are available?", input: "multi", options: ["Gym", "Pool", "Clubhouse", "Park", "Security", "Power Backup", "Kids Play Area"], section: "Amenities" },
+    { id: "lift_available", question: "Lift available?", input: "yesno", section: "Building" },
+    { id: "parking", question: "How many parking slots?", input: "number", section: "Parking" },
+  ],
+  VILLA: [
+    { id: "bhk", question: "How many BHK?", input: "single", required: true, options: ["2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"], section: "Configuration" },
+    { id: "floors", question: "How many floors?", input: "single", required: true, options: ["Single", "Duplex", "Triplex"], section: "Configuration" },
+    { id: "plot_size", question: "Plot size (sq yd)?", input: "number", required: true, section: "Area" },
+    { id: "built_up_area", question: "Built-up area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "gated_community", question: "Inside a gated community?", input: "yesno", section: "Community" },
+    { id: "parking_spaces", question: "How many parking spaces?", input: "number", section: "Parking" },
+    { id: "swimming_pool", question: "Has a swimming pool?", input: "yesno", section: "Amenities" },
+    { id: "amenities", question: "Other amenities?", input: "multi", options: ["Garden", "Gym", "Clubhouse", "Security", "Power Backup", "Servant Quarter"], section: "Amenities" },
+  ],
+  FARM_LAND: [
+    { id: "total_acres", question: "Total area (in acres)?", input: "number", required: true, section: "Area" },
+    { id: "water_source", question: "Water source?", input: "single", required: true, options: ["Borewell", "Canal", "River", "Well", "Rain-fed"], section: "Utilities" },
+    { id: "soil_type", question: "Soil type?", input: "single", options: ["Black", "Red", "Loamy", "Sandy", "Alluvial"], section: "Land" },
+    { id: "road_access", question: "Road access?", input: "single", required: true, options: ["Tar Road", "Mud Road", "Highway", "No Direct Access"], section: "Access" },
+    { id: "electricity", question: "Electricity available?", input: "yesno", section: "Utilities" },
+    { id: "plantation_type", question: "Existing plantation?", input: "text", section: "Land" },
+    { id: "survey_number", question: "Survey number?", input: "text", section: "Legal" },
+  ],
+  COMMERCIAL_OFFICE: [
+    { id: "total_area", question: "Total area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "furnishing", question: "Furnishing status?", input: "single", required: true, options: ["Bare Shell", "Warm Shell", "Semi-Furnished", "Fully Furnished"], section: "Furnishing" },
+    { id: "number_of_cabins", question: "Number of cabins?", input: "number", section: "Layout" },
+    { id: "conference_room", question: "Conference room available?", input: "yesno", section: "Layout" },
+    { id: "parking", question: "Parking slots?", input: "number", section: "Parking" },
+    { id: "power_backup", question: "Power backup?", input: "yesno", section: "Utilities" },
+    { id: "floor_number", question: "Floor number?", input: "number", section: "Building" },
+  ],
+  COMMERCIAL_SHOP: [
+    { id: "shop_area", question: "Shop area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "facing", question: "Shop facing?", input: "single", required: true, options: ["East", "West", "North", "South", "Main Road"], section: "Layout" },
+    { id: "road_visibility", question: "Road visibility?", input: "single", required: true, options: ["Excellent", "Good", "Average", "Poor"], section: "Layout" },
+    { id: "floor", question: "Which floor?", input: "single", options: ["Ground", "1st", "2nd", "Basement", "Upper Floor"], section: "Building" },
+    { id: "power_load", question: "Power load (KW)?", input: "number", section: "Utilities" },
+    { id: "water_connection", question: "Water connection?", input: "yesno", section: "Utilities" },
+  ],
+  COMMERCIAL_WAREHOUSE: [
+    { id: "total_area", question: "Total area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "ceiling_height", question: "Ceiling height (ft)?", input: "number", required: true, section: "Building" },
+    { id: "loading_docks", question: "Number of loading docks?", input: "number", section: "Logistics" },
+    { id: "power_supply", question: "Power supply (KW)?", input: "number", section: "Utilities" },
+    { id: "fire_safety", question: "Fire safety installed?", input: "yesno", section: "Safety" },
+    { id: "floor_strength", question: "Floor load strength (tons/sqm)?", input: "number", section: "Building" },
+  ],
+};
+
+// User-facing labels (what the chat shows as a "type" choice)
+export const SUBTYPE_LABEL: Record<PropertySubType, string> = {
+  PLOT: "Plot / Land",
+  APARTMENT: "Apartment / Flat",
+  VILLA: "Villa",
+  FARM_LAND: "Farm Land",
+  COMMERCIAL_OFFICE: "Commercial Office",
+  COMMERCIAL_SHOP: "Commercial Shop / Showroom",
+  COMMERCIAL_WAREHOUSE: "Warehouse / Godown",
+};
+
+export const ALL_SUBTYPE_LABELS: string[] = Object.values(SUBTYPE_LABEL);
+
+// Map a label (from chat answer) -> subtype key
+export function labelToSubType(label: string): PropertySubType | null {
+  const entry = (Object.entries(SUBTYPE_LABEL) as [PropertySubType, string][])
+    .find(([, v]) => v.toLowerCase() === label.toLowerCase());
+  return entry ? entry[0] : null;
+}
+
+// Build the full ordered field list for a given subtype selection.
+// `subtypes`: array of selected labels (multi-select supported, dedupes type fields).
+export function buildFieldFlow(subtypes: string[]): FieldConfig[] {
+  const typeField: FieldConfig = {
+    id: "type",
+    question: "What kind of property are you listing? (pick one or more)",
+    input: "multi",
+    required: true,
+    options: ALL_SUBTYPE_LABELS,
+    section: "Basic",
+  };
+
+  const seen = new Set<string>();
+  const typeSpecific: FieldConfig[] = [];
+  for (const label of subtypes) {
+    const key = labelToSubType(label);
+    if (!key) continue;
+    for (const f of TYPE_FIELDS[key]) {
+      if (seen.has(f.id)) continue;
+      seen.add(f.id);
+      typeSpecific.push(f);
+    }
+  }
+
+  // Insert type-specific fields after Location & Price, before Contact
+  return [
+    COMMON_FIELDS[0],          // title
+    typeField,                 // type (multi)
+    COMMON_FIELDS[1],          // purpose
+    COMMON_FIELDS[2],          // city
+    COMMON_FIELDS[3],          // locality
+    COMMON_FIELDS[4],          // price_unit
+    ...typeSpecific,
+    ...CONTACT_FIELDS,
+  ];
+}
+
+// Pick next missing field (treat null = explicitly skipped)
+export function pickNextField(state: Record<string, any>): FieldConfig | null {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  for (const f of flow) {
+    const v = state[f.id];
+    const skipped = v === null;
+    const filled = Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "";
+    if (filled || skipped) continue;
+    return f;
+  }
+  return null;
+}
+
+export function flowProgress(state: Record<string, any>): { filled: number; total: number } {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  let filled = 0;
+  for (const f of flow) {
+    const v = state[f.id];
+    const isFilled = v === null || (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "");
+    if (isFilled) filled++;
+  }
+  return { filled, total: flow.length };
+}
