@@ -75,6 +75,7 @@ export default function SellerDashboard() {
   const [loading, setLoading] = useState(true);
   const [chatProperty, setChatProperty] = useState<Property | null>(null);
   const [editTarget, setEditTarget] = useState<Property | null>(null);
+  const [viewTarget, setViewTarget] = useState<Property | null>(null);
   const [editForm, setEditForm] = useState({ title: "", price: "", area_sqft: "", description: "", images: "" });
   const [resubmitting, setResubmitting] = useState(false);
   const navigate = useNavigate();
@@ -209,11 +210,13 @@ export default function SellerDashboard() {
 
   const PropertyTimeline = ({ p }: { p: Property }) => {
     const status = p.verification_status || "pending";
-    const isApproved = status === "approved" || p.verified;
+    const isApproved = status === "approved";
     const isRejected = status === "rejected";
-    const isAgentVerified = status === "agent_verified_pending" || !!p.agent_submitted_at || isApproved || isRejected;
+    const isAgentVerified = status === "agent_verified_pending" || status === "approved" || status === "rejected" || !!p.agent_submitted_at;
     const hasAgent = !!p.assigned_agent_id || isAgentVerified;
-    const isUnderReview = !!p.created_at;
+    // "Submitted" is always done once the row exists.
+    // "Under Review" = admin/system has the listing in pipeline (i.e. not draft) — true for any non-draft row.
+    const isUnderReview = !p.is_draft;
     const isFinalRejected = isRejected;
 
     const steps = [
@@ -281,14 +284,23 @@ export default function SellerDashboard() {
     const status = p.is_draft ? "draft" : (p.verification_status || "pending");
     const meta = STATUS_META[status] || STATUS_META.pending;
     const StatusIcon = meta.icon;
-    const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600";
+    const hasImage = Array.isArray(p.images) && p.images.length > 0 && !!p.images[0];
+    const img = hasImage ? p.images[0] : null;
 
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }}>
         <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group">
           <div className="relative h-44 overflow-hidden">
-            <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            {img ? (
+              <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
+                <Home className="h-8 w-8 text-muted-foreground/60 mb-1" />
+                <p className="text-xs font-medium text-muted-foreground">No image uploaded</p>
+                <p className="text-[10px] text-muted-foreground/70">Add photos to attract more buyers</p>
+              </div>
+            )}
+            {img && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />}
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
@@ -306,12 +318,22 @@ export default function SellerDashboard() {
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
               </Badge>
             )}
-            <div className="absolute bottom-3 left-3 right-3">
-              <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
-              <p className="text-white/80 text-xs flex items-center gap-1 mt-0.5">
-                <MapPin className="h-3 w-3" />{p.locality}, {p.city}
-              </p>
-            </div>
+            {img && (
+              <div className="absolute bottom-3 left-3 right-3">
+                <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
+                <p className="text-white/80 text-xs flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                </p>
+              </div>
+            )}
+            {!img && (
+              <div className="absolute bottom-3 left-3 right-3 bg-background/95 backdrop-blur rounded-md p-2 border">
+                <h3 className="font-semibold line-clamp-1 text-sm">{p.title}</h3>
+                <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
+                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                </p>
+              </div>
+            )}
           </div>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -400,15 +422,18 @@ export default function SellerDashboard() {
                 This listing expired. Renew to send it back for admin re-approval.
               </div>
             )}
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1 flex-wrap">
+              <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => setViewTarget(p)}>
+                <Eye className="h-3 w-3 mr-1" />View Details
+              </Button>
               {(status === "rejected" || status === "draft") && (
-                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
+                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
                   <Edit className="h-3 w-3 mr-1" />{status === "draft" ? "Continue" : "Edit & Resubmit"}
                 </Button>
               )}
               {status === "approved" && (
                 <>
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
+                  <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
                     <ArrowUpRight className="h-3 w-3 mr-1" />View Live
                   </Button>
                   {p.is_featured ? (
@@ -420,7 +445,7 @@ export default function SellerDashboard() {
                       propertyId={p.id}
                       onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
                       trigger={
-                        <Button size="sm" className="flex-1 gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                        <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
                           <Sparkles className="h-3 w-3" /> Boost
                         </Button>
                       }
@@ -429,12 +454,12 @@ export default function SellerDashboard() {
                 </>
               )}
               {status === "pending" && (
-                <Button size="sm" variant="outline" className="flex-1" disabled>
+                <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" disabled>
                   <Clock className="h-3 w-3 mr-1" />Awaiting Review
                 </Button>
               )}
               {status === "expired" && (
-                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
+                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
                   <RefreshCw className="h-3 w-3 mr-1" />Renew Listing
                 </Button>
               )}
@@ -670,6 +695,63 @@ export default function SellerDashboard() {
               <RefreshCw className="h-4 w-4 mr-1" />
               {resubmitting ? "Resubmitting…" : "Resubmit for Review"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Details dialog — only filled fields, image or "no image" */}
+      <Dialog open={!!viewTarget} onOpenChange={(o) => !o && setViewTarget(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{viewTarget?.title || "Property Details"}</DialogTitle>
+            <DialogDescription>
+              Showing only the details you provided.
+            </DialogDescription>
+          </DialogHeader>
+          {viewTarget && (() => {
+            const imgs = Array.isArray(viewTarget.images) ? viewTarget.images.filter(Boolean) : [];
+            const fields = ([
+              ["Type", viewTarget.type],
+              ["For", viewTarget.listing_type ? (viewTarget.listing_type === "rent" ? "Rent" : "Sale") : null],
+              ["City", viewTarget.city],
+              ["Locality", viewTarget.locality],
+              ["Price", viewTarget.price ? formatPrice(viewTarget.price) : null],
+              ["Area", viewTarget.area_sqft ? `${viewTarget.area_sqft} sqft` : null],
+              ["BHK", viewTarget.bedrooms],
+              ["Bathrooms", viewTarget.bathrooms],
+              ["Description", viewTarget.description],
+              ["Status", STATUS_META[viewTarget.is_draft ? "draft" : (viewTarget.verification_status || "pending")]?.label],
+              ["Submitted", new Date(viewTarget.created_at).toLocaleString()],
+            ] as Array<[string, any]>).filter(([, v]) => v !== null && v !== undefined && v !== "");
+
+            return (
+              <div className="space-y-4">
+                {imgs.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {imgs.map((u: string, i: number) => (
+                      <img key={i} src={u} alt="" className="h-32 w-full object-cover rounded border" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-40 rounded border-2 border-dashed flex flex-col items-center justify-center bg-muted/30">
+                    <Home className="h-10 w-10 text-muted-foreground/60 mb-2" />
+                    <p className="text-sm font-medium text-muted-foreground">No image uploaded</p>
+                    <p className="text-xs text-muted-foreground/70">You haven't added any photos for this property.</p>
+                  </div>
+                )}
+                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  {fields.map(([k, v]) => (
+                    <div key={k} className="border-b pb-1.5">
+                      <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">{k}</p>
+                      <p className="font-medium break-words">{String(v)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewTarget(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
