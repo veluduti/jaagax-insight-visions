@@ -422,15 +422,18 @@ export default function SellerDashboard() {
                 This listing expired. Renew to send it back for admin re-approval.
               </div>
             )}
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1 flex-wrap">
+              <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => setViewTarget(p)}>
+                <Eye className="h-3 w-3 mr-1" />View Details
+              </Button>
               {(status === "rejected" || status === "draft") && (
-                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
+                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
                   <Edit className="h-3 w-3 mr-1" />{status === "draft" ? "Continue" : "Edit & Resubmit"}
                 </Button>
               )}
               {status === "approved" && (
                 <>
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
+                  <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
                     <ArrowUpRight className="h-3 w-3 mr-1" />View Live
                   </Button>
                   {p.is_featured ? (
@@ -442,7 +445,7 @@ export default function SellerDashboard() {
                       propertyId={p.id}
                       onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
                       trigger={
-                        <Button size="sm" className="flex-1 gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                        <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
                           <Sparkles className="h-3 w-3" /> Boost
                         </Button>
                       }
@@ -451,12 +454,12 @@ export default function SellerDashboard() {
                 </>
               )}
               {status === "pending" && (
-                <Button size="sm" variant="outline" className="flex-1" disabled>
+                <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" disabled>
                   <Clock className="h-3 w-3 mr-1" />Awaiting Review
                 </Button>
               )}
               {status === "expired" && (
-                <Button size="sm" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
+                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
                   <RefreshCw className="h-3 w-3 mr-1" />Renew Listing
                 </Button>
               )}
