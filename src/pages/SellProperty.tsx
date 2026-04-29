@@ -118,6 +118,12 @@ export default function SellProperty() {
   const [intakeText, setIntakeText] = useState("");
   const [extracting, setExtracting] = useState(false);
 
+  /* Smart hint per question (locality-aware AI tip) */
+  const [smartHint, setSmartHint] = useState<string | null>(null);
+
+  /* Edit-previous drawer */
+  const [editorOpen, setEditorOpen] = useState(false);
+
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
