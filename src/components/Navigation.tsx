@@ -4,7 +4,21 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import MobileNav from "./MobileNav";
 import SidebarMenu from "./SidebarMenu";
 import { NotificationBell } from "./notifications/NotificationBell";
-import { Leaf, Sparkles, Home, Building2, Compass, ChevronDown, Users, MapPin, Calendar, Hotel, TrendingUp, DollarSign, Zap } from "lucide-react";
+import {
+  Leaf,
+  Sparkles,
+  Home,
+  Building2,
+  Compass,
+  ChevronDown,
+  Users,
+  MapPin,
+  Calendar,
+  Hotel,
+  TrendingUp,
+  DollarSign,
+  Zap,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -23,7 +37,6 @@ import { canSee } from "@/lib/roleAccess";
 import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 import LocationPill from "@/components/location/LocationPill";
 
-
 const Navigation = () => {
   // Navigation component
   const navigate = useNavigate();
@@ -34,54 +47,78 @@ const Navigation = () => {
   useEffect(() => {
     const fetchFeatureFlag = async () => {
       try {
-        const { data } = await (supabase
-          .from('feature_flags' as any)
-          .select('enabled') as any)
-          .eq('flag_name', 'natural_living_enabled')
+        const { data } = await (supabase.from("feature_flags" as any).select("enabled") as any)
+          .eq("flag_name", "natural_living_enabled")
           .maybeSingle();
-        
+
         if (data) {
           setNaturalLivingEnabled(data.enabled ?? false);
         }
       } catch (error) {
-        console.log('Feature flags not available');
+        console.log("Feature flags not available");
       }
     };
     fetchFeatureFlag();
   }, []);
 
   const allPropertiesItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
-    { key: "buyRent", label: "Buy / Rent Properties", path: "/search", icon: Home, description: "Browse available properties" },
-    { key: "newProjects", label: "New Projects", path: "/projects", icon: Building2, description: "Explore upcoming developments" },
-    { key: "sellProperty", label: "Sell Your Property", path: "/sell-property", icon: DollarSign, description: "List your property with us" },
+    {
+      key: "buyRent",
+      label: "Buy / Rent Properties",
+      path: "/search",
+      icon: Home,
+      description: "Browse available properties",
+    },
+    {
+      key: "newProjects",
+      label: "New Projects",
+      path: "/projects",
+      icon: Building2,
+      description: "Explore upcoming developments",
+    },
+    {
+      key: "sellProperty",
+      label: "Sell Your Property",
+      path: "/sell-property",
+      icon: DollarSign,
+      description: "List your property with us",
+    },
   ];
 
   const allExploreItems: Array<{ key: string; label: string; path: string; icon: any; description: string }> = [
-    { key: "communities", label: "Communities", path: "/communities", icon: MapPin, description: "Discover neighborhoods" },
+    {
+      key: "communities",
+      label: "Communities",
+      path: "/communities",
+      icon: MapPin,
+      description: "Discover neighborhoods",
+    },
     { key: "agents", label: "Find My Agent", path: "/agents", icon: Users, description: "Connect with trusted agents" },
     { key: "always", label: "Events", path: "/events", icon: Calendar, description: "Local community events" },
-    { key: "marketIndex", label: "Market Index", path: "/transactions", icon: TrendingUp, description: "Real estate market insights" },
+    {
+      key: "marketIndex",
+      label: "Market Index",
+      path: "/transactions",
+      icon: TrendingUp,
+      description: "Real estate market insights",
+    },
     { key: "always", label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
     { key: "always", label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
   ];
 
-  const propertiesItems = allPropertiesItems.filter(
-    (i) => i.key === "always" || canSee(role, i.key as any)
-  );
-  const exploreItems = allExploreItems.filter(
-    (i) => i.key === "always" || canSee(role, i.key as any)
-  );
+  const propertiesItems = allPropertiesItems.filter((i) => i.key === "always" || canSee(role, i.key as any));
+  const exploreItems = allExploreItems.filter((i) => i.key === "always" || canSee(role, i.key as any));
 
   const isActive = (path: string) => {
-    if (path.includes('?')) {
-      const [pathname, search] = path.split('?');
+    if (path.includes("?")) {
+      const [pathname, search] = path.split("?");
       return location.pathname === pathname && location.search.includes(search);
     }
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
-  const isPropertiesActive = propertiesItems.some(item => isActive(item.path));
-  const isExploreActive = exploreItems.some(item => isActive(item.path));
+  const isPropertiesActive = propertiesItems.some((item) => isActive(item.path));
+  const isExploreActive = exploreItems.some((item) => isActive(item.path));
 
   return (
     <>
@@ -96,7 +133,7 @@ const Navigation = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                JAAGA X
+                JAAGA X xx
               </span>
             </Link>
 
@@ -105,10 +142,10 @@ const Navigation = () => {
               <NavigationMenuList className="gap-1">
                 {/* Properties Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger 
+                  <NavigationMenuTrigger
                     className={cn(
                       "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                      isPropertiesActive ? "text-foreground" : "text-muted-foreground"
+                      isPropertiesActive ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
                     <Building2 className="h-4 w-4 mr-1.5" />
@@ -123,7 +160,7 @@ const Navigation = () => {
                               to={item.path}
                               className={cn(
                                 "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                isActive(item.path) && "bg-accent"
+                                isActive(item.path) && "bg-accent",
                               )}
                             >
                               <item.icon className="h-5 w-5 text-primary mt-0.5" />
@@ -141,10 +178,10 @@ const Navigation = () => {
 
                 {/* Explore Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger 
+                  <NavigationMenuTrigger
                     className={cn(
                       "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                      isExploreActive ? "text-foreground" : "text-muted-foreground"
+                      isExploreActive ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
                     <Compass className="h-4 w-4 mr-1.5" />
@@ -159,7 +196,7 @@ const Navigation = () => {
                               to={item.path}
                               className={cn(
                                 "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                isActive(item.path) && "bg-accent"
+                                isActive(item.path) && "bg-accent",
                               )}
                             >
                               <item.icon className="h-5 w-5 text-primary mt-0.5" />
@@ -182,7 +219,7 @@ const Navigation = () => {
                       variant="ghost"
                       className={cn(
                         "px-3 py-2 text-sm font-medium h-auto",
-                        isActive('/hotels') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                        isActive("/hotels") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       <Hotel className="h-4 w-4 mr-1.5" />
@@ -198,13 +235,16 @@ const Navigation = () => {
                       variant="ghost"
                       className={cn(
                         "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
-                        isActive('/natural-living') ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                        isActive("/natural-living") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                       )}
                     >
                       <Leaf className="h-4 w-4 text-emerald-500" />
                       Natural Living
                       {!naturalLivingEnabled && (
-                        <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                        <Badge
+                          variant="outline"
+                          className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                        >
                           Soon
                         </Badge>
                       )}
@@ -221,13 +261,13 @@ const Navigation = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/ai-advisor')}
+                onClick={() => navigate("/ai-advisor")}
                 className="text-sm text-muted-foreground hover:text-primary border border-transparent hover:border-primary/30 hover:bg-primary/5 transition-all"
               >
                 <Sparkles className="h-4 w-4 sm:mr-1.5 text-primary" />
                 <span className="hidden 2xl:inline">Get Guidance</span>
               </Button>
-              
+
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
@@ -236,7 +276,7 @@ const Navigation = () => {
                 <>
                   <ProfileSwitcher />
                   <Button
-                    onClick={() => navigate(`/dashboard/${role || 'buyer'}`)}
+                    onClick={() => navigate(`/dashboard/${role || "buyer"}`)}
                     variant="default"
                     size="sm"
                     className="text-sm"
@@ -245,12 +285,7 @@ const Navigation = () => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  onClick={() => navigate("/auth")}
-                  variant="outline"
-                  size="sm"
-                  className="text-sm"
-                >
+                <Button onClick={() => navigate("/auth")} variant="outline" size="sm" className="text-sm">
                   Sign up or Log in
                 </Button>
               )}
@@ -278,24 +313,16 @@ const Navigation = () => {
               <ThemeToggle />
               {session && <NotificationBell />}
               <SidebarMenu />
-              
+
               {session ? (
                 <>
                   <ProfileSwitcher />
-                  <Button
-                    onClick={() => navigate(`/dashboard/${role || 'buyer'}`)}
-                    variant="ghost"
-                    size="sm"
-                  >
+                  <Button onClick={() => navigate(`/dashboard/${role || "buyer"}`)} variant="ghost" size="sm">
                     Dashboard
                   </Button>
                 </>
               ) : (
-                <Button
-                  onClick={() => navigate("/auth")}
-                  variant="ghost"
-                  size="sm"
-                >
+                <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
                   Sign In
                 </Button>
               )}
