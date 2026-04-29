@@ -10,6 +10,35 @@ export interface SavedLocation {
 }
 
 const STORAGE_KEY = "jaagax_saved_location_v1";
+const MODE_STORAGE_KEY = "jaagax_location_mode_v1";
+
+export type LocationMode = "gps" | "manual" | "disabled";
+
+export const readLocationModeFromStorage = (): LocationMode | null => {
+  try {
+    const raw = localStorage.getItem(MODE_STORAGE_KEY);
+    if (raw === "gps" || raw === "manual" || raw === "disabled") return raw;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+export const writeLocationModeToStorage = (mode: LocationMode) => {
+  try {
+    localStorage.setItem(MODE_STORAGE_KEY, mode);
+  } catch {
+    /* ignore */
+  }
+};
+
+export const clearLocationModeFromStorage = () => {
+  try {
+    localStorage.removeItem(MODE_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+};
 
 export const readSavedLocationFromStorage = (): SavedLocation | null => {
   try {
