@@ -830,39 +830,235 @@ export default function SellProperty() {
             <div className="pl-1 text-xs text-destructive">{error}</div>
           )}
 
-          {/* Done summary */}
+          {/* Final review screen */}
           {done && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-primary/5 p-5"
+              className="mt-4 space-y-4"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                <h2 className="font-semibold">Listing summary</h2>
+              {/* AI title picker */}
+              <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-emerald-500/5 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <h3 className="font-semibold text-sm">AI-suggested titles</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={regenerateTitles}
+                    disabled={titlesLoading}
+                    className="text-[11px] text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
+                  >
+                    {titlesLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    Regenerate
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(titlesLoading && aiTitles.length === 0) && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
+                    </div>
+                  )}
+                  {aiTitles.map((t, i) => {
+                    const active = selectedTitleIdx === i;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setSelectedTitleIdx(i); setReviewTitle(t.title); setEditingTitle(false); }}
+                        className={cn(
+                          "w-full text-left p-3 rounded-xl border transition",
+                          active
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-card hover:border-primary/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                            {t.label}
+                          </span>
+                          {active && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                        </div>
+                        <div className="text-sm">{t.title}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {Object.entries(state).slice(0, 14).map(([k, v]) =>
-                  v ? (
-                    <Badge key={k} variant="secondary" className="font-normal text-[10px]">
-                      {k.replace(/_/g, " ")}
-                    </Badge>
-                  ) : null
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={onBack}>
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Back
-                </Button>
-                <Button
-                  onClick={onSubmit}
-                  disabled={submitting}
-                  size="sm"
-                  className="bg-gradient-to-r from-primary to-emerald-500 flex-1"
-                >
-                  {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  Publish listing
-                </Button>
+
+              {/* Editable review */}
+              <div className="rounded-2xl border border-emerald-500/30 bg-card p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  <h2 className="font-semibold">Review & publish</h2>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                    <span>Title</span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTitle((v) => !v)}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Pencil className="h-3 w-3" /> {editingTitle ? "Done" : "Edit"}
+                    </button>
+                  </label>
+                  {editingTitle ? (
+                    <Input
+                      value={reviewTitle}
+                      onChange={(e) => { setReviewTitle(e.target.value); setSelectedTitleIdx(null); }}
+                      placeholder="Listing title"
+                    />
+                  ) : (
+                    <div className="text-sm font-medium px-3 py-2 rounded-lg bg-muted/40 border border-border">
+                      {reviewTitle || <span className="text-muted-foreground italic">No title yet</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">City</label>
+                    <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
+                    <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-muted-foreground mb-1 block">Address</label>
+                    <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} placeholder="Street / landmark" />
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Price</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input type="number" placeholder="Area" value={reviewArea} onChange={(e) => setReviewArea(e.target.value)} />
+                    <Input type="number" placeholder={`₹/${reviewUnit}`} value={reviewPricePerUnit} onChange={(e) => setReviewPricePerUnit(e.target.value)} />
+                    <select
+                      value={reviewUnit}
+                      onChange={(e) => setReviewUnit(e.target.value)}
+                      className="rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      {["sq ft","sq yard","sq m","gunta","acre","cent"].map((u) => <option key={u}>{u}</option>)}
+                    </select>
+                  </div>
+                  {Number(reviewArea) > 0 && Number(reviewPricePerUnit) > 0 && (
+                    <div className="mt-2 text-sm flex items-center justify-between px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="font-semibold text-primary">
+                        ₹ {new Intl.NumberFormat("en-IN").format(Math.round(Number(reviewArea) * Number(reviewPricePerUnit)))}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amenities */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Amenities</label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {reviewAmenities.length === 0 && (
+                      <span className="text-[11px] text-muted-foreground italic">No amenities added</span>
+                    )}
+                    {reviewAmenities.map((a, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+                        {a}
+                        <button type="button" onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}>
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newAmenity}
+                      onChange={(e) => setNewAmenity(e.target.value)}
+                      placeholder="e.g. Lift, Gym, Power backup"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && newAmenity.trim()) {
+                          e.preventDefault();
+                          setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                          setNewAmenity("");
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button" variant="outline" size="sm"
+                      onClick={() => {
+                        if (newAmenity.trim()) { setReviewAmenities((arr) => [...arr, newAmenity.trim()]); setNewAmenity(""); }
+                      }}
+                    >Add</Button>
+                  </div>
+                </div>
+
+                {/* Images */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">
+                    Photos ({(state.media_urls || []).length})
+                  </label>
+                  <input
+                    ref={fileRef} type="file" multiple accept="image/*,video/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                  />
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+                    {(state.media_urls || []).map((url: string, i: number) => (
+                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setState((s) => ({ ...s, media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i) }))}
+                          className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      className="aspect-square rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition"
+                    >
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Other captured details */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">All captured details</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(state).map(([k, v]) =>
+                      v && !["media_urls","amenities","title","city","locality","address","price_unit"].includes(k) ? (
+                        <Badge key={k} variant="secondary" className="font-normal text-[10px]">
+                          {k.replace(/_/g, " ")}: {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? "✓" : String(v)}
+                        </Badge>
+                      ) : null
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" size="sm" onClick={onBack}>
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                  </Button>
+                  <Button
+                    onClick={onSubmit}
+                    disabled={submitting}
+                    size="sm"
+                    className="bg-gradient-to-r from-primary to-emerald-500 flex-1"
+                  >
+                    {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    Submit Property
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}
