@@ -513,10 +513,13 @@ export default function AgentDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/sell-property?as=agent")} className="hidden md:inline-flex border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
+              <Plus className="w-4 h-4 mr-1.5" />Sell Your Property
+            </Button>
             <Button size="sm" onClick={() => navigate("/dashboard/agent/add-property")} className="hidden sm:inline-flex">
               <Plus className="w-4 h-4 mr-1.5" />Add Property
             </Button>
-            <Button size="icon" onClick={() => navigate("/dashboard/agent/add-property")} className="sm:hidden">
+            <Button size="icon" onClick={() => navigate("/sell-property?as=agent")} className="sm:hidden bg-emerald-500 hover:bg-emerald-600 text-white">
               <Plus className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="icon" className="relative">
