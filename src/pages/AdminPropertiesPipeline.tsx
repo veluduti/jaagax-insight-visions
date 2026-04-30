@@ -96,14 +96,20 @@ export default function AdminPropertiesPipeline() {
   const publish = async (row: Row) => {
     setActing(row.id);
     try {
+      // For trusted-agent submissions: convert agent_data → final_data (cleaned)
+      const updates: any = {
+        listing_status: "published",
+        verification_status: "approved",
+        verified: true,
+        is_live: true,
+        published_at: new Date().toISOString(),
+      };
+      if (row.is_trusted_agent_submission && row.agent_data) {
+        const { default: cleanData } = await import("@/lib/cleanData");
+        updates.final_data = cleanData(row.agent_data) || row.agent_data;
+      }
       const { error } = await (supabase.from as any)("properties")
-        .update({
-          listing_status: "published",
-          verification_status: "approved",
-          verified: true,
-          is_live: true,
-          published_at: new Date().toISOString(),
-        }).eq("id", row.id);
+        .update(updates).eq("id", row.id);
       if (error) throw error;
 
       if (row.submitted_by) {
@@ -119,6 +125,36 @@ export default function AdminPropertiesPipeline() {
       load();
     } catch (e: any) {
       toast.error(e.message || "Publish failed");
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const reject = async (row: Row) => {
+    const reason = window.prompt("Reason for rejection?") || "Not approved";
+    setActing(row.id);
+    try {
+      const { error } = await (supabase.from as any)("properties")
+        .update({
+          listing_status: "rejected",
+          verification_status: "rejected",
+          is_live: false,
+          rejection_reason: reason,
+        }).eq("id", row.id);
+      if (error) throw error;
+      if (row.submitted_by) {
+        await (supabase.from as any)("notifications").insert({
+          user_id: row.submitted_by,
+          title: "Property rejected",
+          message: `"${row.title}" was rejected. Reason: ${reason}`,
+          type: "alert",
+          link: `/property/${row.id}`,
+        });
+      }
+      toast.success("Property rejected");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Reject failed");
     } finally {
       setActing(null);
     }
