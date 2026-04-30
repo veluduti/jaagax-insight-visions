@@ -99,7 +99,8 @@ function formatAnswer(field: FieldDef, value: any): string {
 
 export default function SellProperty() {
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+  const isAgentMode = searchParams.get("as") === "agent";
   /* Session / answers state */
   const [state, setState] = useState<Record<string, any>>({});
   const [field, setField] = useState<FieldDef | null>(null);
