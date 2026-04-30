@@ -23,8 +23,12 @@ type Row = {
   submitted_by: string | null;
   assigned_agent_id: string | null;
   created_at: string;
+  listed_by?: string | null;
+  document_urls?: any;
+  agent_data?: any;
   seller?: { name?: string; phone?: string; email?: string } | null;
   agent?: { name?: string; phone?: string } | null;
+  is_trusted_agent_submission?: boolean;
 };
 
 const STATUS_TABS = [
