@@ -245,14 +245,31 @@ export default function AdminPropertiesPipeline() {
                   </div>
 
                   <div className="lg:w-48 flex lg:flex-col gap-2 shrink-0">
-                    {!r.assigned_agent_id && (
+                    {/* Trusted-agent submission: skip auto-assign, show direct Approve + Reject */}
+                    {r.is_trusted_agent_submission && !r.is_live && (
+                      <>
+                        <Button size="sm" disabled={acting === r.id}
+                          onClick={() => publish(r)}
+                          className="w-full bg-gradient-to-r from-primary to-emerald-500">
+                          {acting === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                          Approve & publish
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={acting === r.id}
+                          onClick={() => reject(r)} className="w-full border-destructive/50 text-destructive hover:bg-destructive/10">
+                          Reject
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Normal flow: auto-assign agent if none assigned */}
+                    {!r.is_trusted_agent_submission && !r.assigned_agent_id && (
                       <Button size="sm" variant="outline" disabled={acting === r.id}
                         onClick={() => reassign(r)} className="w-full">
                         {acting === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Send className="h-3.5 w-3.5 mr-1" />}
                         Auto-assign
                       </Button>
                     )}
-                    {r.listing_status === "verified" && !r.is_live && (
+                    {!r.is_trusted_agent_submission && r.listing_status === "verified" && !r.is_live && (
                       <Button size="sm" disabled={acting === r.id}
                         onClick={() => publish(r)}
                         className="w-full bg-gradient-to-r from-primary to-emerald-500">
