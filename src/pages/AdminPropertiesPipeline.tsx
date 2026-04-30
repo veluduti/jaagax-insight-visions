@@ -23,8 +23,12 @@ type Row = {
   submitted_by: string | null;
   assigned_agent_id: string | null;
   created_at: string;
+  listed_by?: string | null;
+  document_urls?: any;
+  agent_data?: any;
   seller?: { name?: string; phone?: string; email?: string } | null;
   agent?: { name?: string; phone?: string } | null;
+  is_trusted_agent_submission?: boolean;
 };
 
 const STATUS_TABS = [
@@ -46,7 +50,7 @@ export default function AdminPropertiesPipeline() {
     setLoading(true);
     try {
       let q = (supabase.from as any)("properties")
-        .select("id, title, city, locality, price, type, bhk, listing_status, verification_status, is_live, submitted_by, assigned_agent_id, created_at")
+        .select("id, title, city, locality, price, type, bhk, listing_status, verification_status, is_live, submitted_by, assigned_agent_id, created_at, listed_by, document_urls, agent_data")
         .order("created_at", { ascending: false })
         .limit(200);
       if (tab !== "all") q = q.eq("listing_status", tab);
@@ -69,11 +73,17 @@ export default function AdminPropertiesPipeline() {
           .select("id, name, phone").in("id", agentIds);
         for (const a of data || []) agentsMap[a.id] = a;
       }
-      setRows(list.map((r) => ({
-        ...r,
-        seller: r.submitted_by ? sellersMap[r.submitted_by] : null,
-        agent: r.assigned_agent_id ? agentsMap[r.assigned_agent_id] : null,
-      })));
+      setRows(list.map((r) => {
+        const role = r.document_urls?.created_by_role || (r.listed_by === "agent" ? "agent" : "seller");
+        const isTrustedAgentSubmission =
+          role === "agent" && (r.verification_status === "agent_verified_pending" || r.listing_status === "verified") && !!r.assigned_agent_id;
+        return {
+          ...r,
+          seller: r.submitted_by ? sellersMap[r.submitted_by] : null,
+          agent: r.assigned_agent_id ? agentsMap[r.assigned_agent_id] : null,
+          is_trusted_agent_submission: isTrustedAgentSubmission,
+        };
+      }));
     } catch (e: any) {
       toast.error(e.message || "Failed to load");
     } finally {
@@ -86,14 +96,20 @@ export default function AdminPropertiesPipeline() {
   const publish = async (row: Row) => {
     setActing(row.id);
     try {
+      // For trusted-agent submissions: convert agent_data → final_data (cleaned)
+      const updates: any = {
+        listing_status: "published",
+        verification_status: "approved",
+        verified: true,
+        is_live: true,
+        published_at: new Date().toISOString(),
+      };
+      if (row.is_trusted_agent_submission && row.agent_data) {
+        const { default: cleanData } = await import("@/lib/cleanData");
+        updates.final_data = cleanData(row.agent_data) || row.agent_data;
+      }
       const { error } = await (supabase.from as any)("properties")
-        .update({
-          listing_status: "published",
-          verification_status: "approved",
-          verified: true,
-          is_live: true,
-          published_at: new Date().toISOString(),
-        }).eq("id", row.id);
+        .update(updates).eq("id", row.id);
       if (error) throw error;
 
       if (row.submitted_by) {
@@ -109,6 +125,36 @@ export default function AdminPropertiesPipeline() {
       load();
     } catch (e: any) {
       toast.error(e.message || "Publish failed");
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const reject = async (row: Row) => {
+    const reason = window.prompt("Reason for rejection?") || "Not approved";
+    setActing(row.id);
+    try {
+      const { error } = await (supabase.from as any)("properties")
+        .update({
+          listing_status: "rejected",
+          verification_status: "rejected",
+          is_live: false,
+          rejection_reason: reason,
+        }).eq("id", row.id);
+      if (error) throw error;
+      if (row.submitted_by) {
+        await (supabase.from as any)("notifications").insert({
+          user_id: row.submitted_by,
+          title: "Property rejected",
+          message: `"${row.title}" was rejected. Reason: ${reason}`,
+          type: "alert",
+          link: `/property/${row.id}`,
+        });
+      }
+      toast.success("Property rejected");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Reject failed");
     } finally {
       setActing(null);
     }
@@ -169,6 +215,12 @@ export default function AdminPropertiesPipeline() {
                       {r.is_live && <Badge className="text-[10px] bg-emerald-500">Live</Badge>}
                       {r.type && <Badge variant="outline" className="text-[10px]">{r.type}</Badge>}
                       {r.bhk && <Badge variant="outline" className="text-[10px]">{r.bhk} BHK</Badge>}
+                      {r.is_trusted_agent_submission && (
+                        <Badge className="text-[10px] bg-amber-500 text-white">Trusted Agent</Badge>
+                      )}
+                      {!r.is_trusted_agent_submission && r.document_urls?.created_by_role === "agent" && (
+                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600">Agent submission</Badge>
+                      )}
                     </div>
                     <Link to={`/property/${r.id}`} target="_blank" className="font-semibold hover:text-primary block truncate">
                       {r.title}
@@ -193,14 +245,31 @@ export default function AdminPropertiesPipeline() {
                   </div>
 
                   <div className="lg:w-48 flex lg:flex-col gap-2 shrink-0">
-                    {!r.assigned_agent_id && (
+                    {/* Trusted-agent submission: skip auto-assign, show direct Approve + Reject */}
+                    {r.is_trusted_agent_submission && !r.is_live && (
+                      <>
+                        <Button size="sm" disabled={acting === r.id}
+                          onClick={() => publish(r)}
+                          className="w-full bg-gradient-to-r from-primary to-emerald-500">
+                          {acting === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                          Approve & publish
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={acting === r.id}
+                          onClick={() => reject(r)} className="w-full border-destructive/50 text-destructive hover:bg-destructive/10">
+                          Reject
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Normal flow: auto-assign agent if none assigned */}
+                    {!r.is_trusted_agent_submission && !r.assigned_agent_id && (
                       <Button size="sm" variant="outline" disabled={acting === r.id}
                         onClick={() => reassign(r)} className="w-full">
                         {acting === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Send className="h-3.5 w-3.5 mr-1" />}
                         Auto-assign
                       </Button>
                     )}
-                    {r.listing_status === "verified" && !r.is_live && (
+                    {!r.is_trusted_agent_submission && r.listing_status === "verified" && !r.is_live && (
                       <Button size="sm" disabled={acting === r.id}
                         onClick={() => publish(r)}
                         className="w-full bg-gradient-to-r from-primary to-emerald-500">
