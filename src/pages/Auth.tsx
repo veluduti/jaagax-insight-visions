@@ -11,6 +11,7 @@ import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { supabase } from "@/integrations/supabase/client";
+import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const roleConfig = {
   buyer: {
@@ -272,8 +273,16 @@ export default function Auth() {
       </div>
 
       <div className="absolute top-8 left-8 z-20">
-        <button onClick={() => navigate("/")} className="text-3xl font-bold text-gradient hover:opacity-80 transition-opacity">
-          JaagaX
+        <button
+          onClick={() => navigate("/")}
+          className="hover:opacity-80 transition-opacity"
+          aria-label="JAAGA X - Home"
+        >
+          <img
+            src={jaagaxLogo}
+            alt="JAAGA X"
+            className="h-10 w-auto object-contain dark:brightness-0 dark:invert-[0.95]"
+          />
         </button>
       </div>
 
