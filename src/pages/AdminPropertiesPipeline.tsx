@@ -215,6 +215,12 @@ export default function AdminPropertiesPipeline() {
                       {r.is_live && <Badge className="text-[10px] bg-emerald-500">Live</Badge>}
                       {r.type && <Badge variant="outline" className="text-[10px]">{r.type}</Badge>}
                       {r.bhk && <Badge variant="outline" className="text-[10px]">{r.bhk} BHK</Badge>}
+                      {r.is_trusted_agent_submission && (
+                        <Badge className="text-[10px] bg-amber-500 text-white">Trusted Agent</Badge>
+                      )}
+                      {!r.is_trusted_agent_submission && r.document_urls?.created_by_role === "agent" && (
+                        <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600">Agent submission</Badge>
+                      )}
                     </div>
                     <Link to={`/property/${r.id}`} target="_blank" className="font-semibold hover:text-primary block truncate">
                       {r.title}
