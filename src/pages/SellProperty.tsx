@@ -274,13 +274,69 @@ export default function SellProperty() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ----- Run AI extraction on the intake text and start the structured flow ----- */
-  const submitIntake = async () => {
-    const text = intakeText.trim();
-    if (!text) { toast.error("Please describe your property first"); return; }
+  /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
+  const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Could not read the selected image"));
+    reader.readAsDataURL(file);
+  });
 
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text }]);
-    setIntakeText("");
+  const buildDetectedSummary = (ext: Record<string, any>) => {
+    const parts: string[] = [];
+    if (ext.bhk) parts.push(`${ext.bhk}BHK`);
+    if (ext.sub_type) parts.push(ext.sub_type);
+    if (ext.project_name && !parts.includes(ext.project_name)) parts.push(ext.project_name);
+
+    const tail: string[] = [];
+    if (ext.location) tail.push(`in ${ext.location}`);
+    if (ext.city) tail.push(ext.city);
+    if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sq ft"}`);
+    if (ext.price_per_unit) tail.push(`₹${new Intl.NumberFormat("en-IN").format(Number(ext.price_per_unit))}/${ext.area_unit || "unit"}`);
+    if (ext.furnishing) tail.push(ext.furnishing);
+    if (ext.purpose) tail.push(`for ${ext.purpose}`);
+
+    return [parts.join(" "), tail.join(", ")].filter(Boolean).join(" ").trim();
+  };
+
+  const normalizeListingState = (incoming: Record<string, any>) => {
+    const next = { ...incoming };
+    const existingPriceUnit = typeof next.price_unit === "object" && next.price_unit ? next.price_unit : {};
+    const inferredArea = next.plot_area || next.built_up_area || next.shop_area || next.total_area || next.carpet_area || "";
+    const inferredUnit = next.unit || next.area_unit || existingPriceUnit.unit || "sq ft";
+    const inferredPricePerUnit = next.price_per_unit || existingPriceUnit.pricePerUnit || "";
+
+    if (inferredArea || inferredPricePerUnit || existingPriceUnit.area || existingPriceUnit.pricePerUnit) {
+      next.price_unit = {
+        unit: inferredUnit,
+        area: String(existingPriceUnit.area || inferredArea || ""),
+        pricePerUnit: String(existingPriceUnit.pricePerUnit || inferredPricePerUnit || ""),
+      };
+    }
+
+    return next;
+  };
+
+  const runAiExtraction = async ({
+    text,
+    imageUrl,
+    appendUserText = true,
+  }: {
+    text?: string;
+    imageUrl?: string;
+    appendUserText?: boolean;
+  }) => {
+    const trimmedText = text?.trim() || "";
+    if (!trimmedText && !imageUrl) {
+      toast.error("Please describe your property or upload a poster first");
+      return;
+    }
+
+    if (trimmedText && appendUserText) {
+      setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: trimmedText }]);
+    }
+
+    if (trimmedText) setIntakeText("");
     setExtracting(true);
 
     const typingId = uid();
@@ -291,24 +347,20 @@ export default function SellProperty() {
       const { data, error } = await supabase.functions.invoke<{
         extracted: Record<string, any>;
         listing_state: Record<string, any>;
-      }>("ai-extract-property", { body: { text } });
+      }>("ai-extract-property", {
+        body: {
+          text: trimmedText,
+          image_url: imageUrl,
+        },
+      });
       if (error) throw error;
 
-      merged = { ...state, ...(data?.listing_state || {}) };
+      merged = { ...state, ...normalizeListingState(data?.listing_state || {}) };
       setState(merged);
 
       const ext = data?.extracted || {};
-      // Format: "3BHK Apartment in Kondapur, 1250 sqft, Semi-Furnished"
-      const parts: string[] = [];
-      if (ext.bhk) parts.push(`${ext.bhk}BHK`);
-      if (ext.sub_type) parts.push(ext.sub_type);
-      const head = parts.join(" ");
-      const tail: string[] = [];
-      if (ext.location) tail.push(`in ${ext.location}`);
-      if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sqft"}`);
-      if (ext.furnishing) tail.push(ext.furnishing);
-      if (ext.purpose) tail.push(`for ${ext.purpose}`);
-      const detected = [head, tail.join(", ")].filter(Boolean).join(" ");
+      const detected = buildDetectedSummary(ext);
+      const autoFilled = Object.keys(data?.listing_state || {}).length;
 
       setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
@@ -316,21 +368,25 @@ export default function SellProperty() {
         {
           id: uid(), role: "ai", kind: "text",
           text: detected
-            ? `✨ **Detected:** ${detected}\n\nLet's fill in the missing details one by one.`
-            : "Thanks! Let's fill in the details together.",
+            ? `✨ **Detected:** ${detected}\n\nI've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll ask only the missing fields now.`
+            : "I couldn't confidently read enough details, so I'll ask only the missing fields step by step.",
         },
       ]);
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
         ...m,
-        { id: uid(), role: "ai", kind: "text", text: "I'll guide you step by step." },
+        { id: uid(), role: "ai", kind: "text", text: "I couldn't fully read that, so I'll continue step by step from the missing details." },
       ]);
     } finally {
       setExtracting(false);
       setIntakeDone(true);
       await fetchNext(merged, true);
     }
+  };
+
+  const submitIntake = async () => {
+    await runAiExtraction({ text: intakeText });
   };
 
   const skipIntake = async () => {
@@ -454,7 +510,7 @@ export default function SellProperty() {
   };
 
   /* ----- Property images upload ----- */
-  const handleFiles = async (files: FileList) => {
+  const handleFiles = async (files: FileList, options?: { showChatBubble?: boolean }) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { toast.error("Please sign in to upload"); return; }
     setUploading(true);
@@ -466,8 +522,9 @@ export default function SellProperty() {
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
         urls.push(pub.publicUrl);
-        // show in chat
-        setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: pub.publicUrl }]);
+        if (options?.showChatBubble !== false) {
+          setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: pub.publicUrl }]);
+        }
       }
       setState((s) => ({ ...s, media_urls: urls }));
       toast.success(`${urls.length} photo(s) added`);
@@ -485,18 +542,14 @@ export default function SellProperty() {
     const localUrl = URL.createObjectURL(file);
     setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: localUrl, caption: "Photo of my property" }]);
 
-    // simulate AI extraction
-    const typingId = uid();
-    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
-    await new Promise((r) => setTimeout(r, 900));
-    setMessages((m) => m.filter((x) => x.id !== typingId));
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "ai", kind: "text", text: "Nice photo! I'll add this to your gallery. Let's keep filling in the details." },
-    ]);
+    try {
+      const imageUrl = await fileToDataUrl(file);
+      await runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() });
+    } catch (e: any) {
+      toast.error(e.message || "Could not analyze the image");
+    }
 
-    // also actually upload it
-    await handleFiles(files);
+    await handleFiles(files, { showChatBubble: false });
   };
 
   /* ----- Final submit ----- */
