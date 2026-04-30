@@ -34,12 +34,28 @@ function heuristicExtract(text: string) {
     out.built_up_area = Number(area[1]);
     out.area_unit = "sq ft";
   } else {
+    const sqyd = t.match(/(\d{2,6}(?:,\d{2,3})*(?:\.\d+)?)\s*(sq\s*yd|sqyd|square\s*yard|square\s*yards)/);
+    if (sqyd) {
+      out.built_up_area = Number(String(sqyd[1]).replace(/,/g, ""));
+      out.area_unit = "sq yd";
+    }
     const acre = t.match(/(\d+(?:\.\d+)?)\s*(acre|acres)/);
     if (acre) { out.built_up_area = Number(acre[1]); out.area_unit = "acre"; }
     const gunta = t.match(/(\d+(?:\.\d+)?)\s*(gunta|guntas)/);
     if (gunta) { out.built_up_area = Number(gunta[1]); out.area_unit = "gunta"; }
     const cent = t.match(/(\d+(?:\.\d+)?)\s*(cent|cents)/);
     if (cent) { out.built_up_area = Number(cent[1]); out.area_unit = "cent"; }
+  }
+
+  const pricePerUnit = t.match(/(?:₹|rs\.?|inr)?\s*([\d,]+(?:\.\d+)?)\s*(?:\/|per)\s*(sq\s*yd|sq\s*ft|sqft|sft|square\s*yard|square\s*feet)/);
+  if (pricePerUnit) out.price_per_unit = Number(String(pricePerUnit[1]).replace(/,/g, ""));
+
+  const totalPrice = t.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(cr|crore|crores|lakh|lakhs)/);
+  if (totalPrice) {
+    const value = Number(totalPrice[1]);
+    const unit = totalPrice[2];
+    if (unit.startsWith("cr")) out.price = Math.round(value * 10000000);
+    else out.price = Math.round(value * 100000);
   }
 
   // Sub-type detection
@@ -76,17 +92,20 @@ function heuristicExtract(text: string) {
   const loc = text.match(/\bin\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/);
   if (loc) out.location = loc[1].trim();
 
+  const approval = text.match(/\b(DTCP|HMDA|RERA|TS\s*RERA)\b/i);
+  if (approval) out.approval = approval[1].toUpperCase().replace(/\s+/g, " ");
+
   return out;
 }
 
 /* ============================================================
    AI extraction via tool calling
    ============================================================ */
-async function aiExtract(text: string) {
+async function aiExtract(text: string, imageUrl?: string) {
   if (!LOVABLE_API_KEY) return null;
 
   const systemPrompt = `You are an extraction engine for an Indian real-estate listing app.
-Extract structured fields from a free-form description (text or transcribed voice).
+Extract structured fields from a free-form description, poster, brochure image, or transcribed voice.
 
 PROPERTY DECISION TREE:
 - LAND: Plot, Farm Land, Agricultural Land, Industrial Land
@@ -97,12 +116,16 @@ Rules:
 - Always return ONLY fields you are confident about. Skip unknown fields.
 - "type" must be one of: LAND, RESIDENTIAL, COMMERCIAL.
 - "sub_type" must be from the matching branch above.
+- For posters, read visible text carefully and prefer exact values from the creative.
 - "location" = locality/area/city as written by the user (Title Case, no extra words).
 - "bhk" = integer (1, 2, 3 ...). Only for residential.
-- "built_up_area" = number; include "area_unit" (sq ft, acre, gunta, cent, sq m).
+- "built_up_area" = number; include "area_unit" (sq ft, sq yd, acre, gunta, cent, sq m).
 - "purpose" = Sale | Rent | Lease.
 - "furnishing" = Unfurnished | Semi-Furnished | Fully Furnished.
 - "price" = number in INR if mentioned (e.g. "85 lakhs" -> 8500000, "1.2 cr" -> 12000000).
+- "price_per_unit" = numeric price per sq unit if shown on a poster.
+- "project_name" = project/layout/community name if visible.
+- "approval" = DTCP | HMDA | RERA | TS RERA when present.
 - Handle partial input: "plot in patancheru" -> { type: "LAND", sub_type: "Plot", location: "Patancheru" }.`;
 
   try {
@@ -116,7 +139,15 @@ Rules:
         model: "openai/gpt-5-mini",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: text },
+          {
+            role: "user",
+            content: imageUrl
+              ? [
+                  ...(text ? [{ type: "text", text }] : []),
+                  { type: "image_url", image_url: { url: imageUrl } },
+                ]
+              : text,
+          },
         ],
         tools: [
           {
@@ -131,12 +162,15 @@ Rules:
                   sub_type: { type: "string" },
                   location: { type: "string" },
                   city: { type: "string" },
+                  project_name: { type: "string" },
                   bhk: { type: "number" },
                   built_up_area: { type: "number" },
-                  area_unit: { type: "string", enum: ["sq ft", "sq m", "acre", "gunta", "cent"] },
+                  area_unit: { type: "string", enum: ["sq ft", "sq yd", "sq m", "acre", "gunta", "cent"] },
                   purpose: { type: "string", enum: ["Sale", "Rent", "Lease"] },
                   furnishing: { type: "string", enum: ["Unfurnished", "Semi-Furnished", "Fully Furnished"] },
                   price: { type: "number" },
+                  price_per_unit: { type: "number" },
+                  approval: { type: "string", enum: ["DTCP", "HMDA", "RERA", "TS RERA"] },
                   bathrooms: { type: "number" },
                   car_parking: { type: "number" },
                   title: { type: "string" },
@@ -203,19 +237,26 @@ function toListingState(ext: Record<string, any>) {
   };
   if (ext.sub_type && subToOption[ext.sub_type]) {
     s.type = [subToOption[ext.sub_type]];
+  } else if (ext.type === "LAND") {
+    s.type = ["Plot / Land"];
+  } else if (ext.type === "RESIDENTIAL") {
+    s.type = ["Apartment / Flat"];
+  } else if (ext.type === "COMMERCIAL") {
+    s.type = ["Commercial Shop / Showroom"];
   }
 
   if (ext.purpose) s.purpose = ext.purpose;
   if (ext.city) s.city = ext.city;
   if (ext.location) s.locality = ext.location;
   if (ext.bhk) s.bhk = `${ext.bhk} BHK`;
+  if (ext.approval === "DTCP" || ext.approval === "HMDA") s.approval = ext.approval;
   if (ext.furnishing) {
     // Maps both furnishing_status (apartment) and furnishing (office)
     s.furnishing_status = ext.furnishing;
     s.furnishing = ext.furnishing;
   }
   if (ext.car_parking) s.parking = ext.car_parking;
-  if (ext.title) s.title = ext.title;
+  if (ext.title || ext.project_name) s.title = ext.title || ext.project_name;
 
   // Type-specific area pre-fills
   if (ext.built_up_area) {
@@ -239,9 +280,11 @@ function toListingState(ext: Record<string, any>) {
     s.price_unit = {
       unit,
       area: String(ext.built_up_area),
-      pricePerUnit: ext.price && ext.built_up_area
-        ? String(Math.round(Number(ext.price) / Number(ext.built_up_area)))
-        : "",
+      pricePerUnit: ext.price_per_unit
+        ? String(ext.price_per_unit)
+        : ext.price && ext.built_up_area
+          ? String(Math.round(Number(ext.price) / Number(ext.built_up_area)))
+          : "",
     };
   }
   return s;
@@ -253,16 +296,17 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const text = String(body?.text || "").trim();
+    const imageUrl = typeof body?.image_url === "string" ? body.image_url : undefined;
 
-    if (!text) {
-      return new Response(JSON.stringify({ error: "text is required" }), {
+    if (!text && !imageUrl) {
+      return new Response(JSON.stringify({ error: "text or image_url is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const heuristic = heuristicExtract(text);
-    const ai = await aiExtract(text);
+    const ai = await aiExtract(text, imageUrl);
     const extracted = merge(heuristic, ai);
 
     return new Response(
