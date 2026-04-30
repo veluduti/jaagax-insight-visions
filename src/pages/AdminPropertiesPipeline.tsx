@@ -50,7 +50,7 @@ export default function AdminPropertiesPipeline() {
     setLoading(true);
     try {
       let q = (supabase.from as any)("properties")
-        .select("id, title, city, locality, price, type, bhk, listing_status, verification_status, is_live, submitted_by, assigned_agent_id, created_at")
+        .select("id, title, city, locality, price, type, bhk, listing_status, verification_status, is_live, submitted_by, assigned_agent_id, created_at, listed_by, document_urls, agent_data")
         .order("created_at", { ascending: false })
         .limit(200);
       if (tab !== "all") q = q.eq("listing_status", tab);
