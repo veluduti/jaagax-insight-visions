@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { canSee } from "@/lib/roleAccess";
 import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 import LocationPill from "@/components/location/LocationPill";
+import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const Navigation = () => {
   // Navigation component
@@ -132,9 +133,7 @@ const Navigation = () => {
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
-              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                JAAGA X
-              </span>
+              <img src={jaagaxLogo} alt="JAAGA X" className="h-9 w-auto object-contain dark:brightness-0 dark:invert-[0.95]" />
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
@@ -303,9 +302,7 @@ const Navigation = () => {
         <div className="container-padding py-3">
           <div className="flex items-center justify-between gap-2 min-w-0">
             <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="JAAGA X - Home">
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                JAAGA X
-              </span>
+              <img src={jaagaxLogo} alt="JAAGA X" className="h-8 w-auto object-contain dark:brightness-0 dark:invert-[0.95]" />
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
