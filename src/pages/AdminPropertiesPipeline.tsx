@@ -73,11 +73,17 @@ export default function AdminPropertiesPipeline() {
           .select("id, name, phone").in("id", agentIds);
         for (const a of data || []) agentsMap[a.id] = a;
       }
-      setRows(list.map((r) => ({
-        ...r,
-        seller: r.submitted_by ? sellersMap[r.submitted_by] : null,
-        agent: r.assigned_agent_id ? agentsMap[r.assigned_agent_id] : null,
-      })));
+      setRows(list.map((r) => {
+        const role = r.document_urls?.created_by_role || (r.listed_by === "agent" ? "agent" : "seller");
+        const isTrustedAgentSubmission =
+          role === "agent" && (r.verification_status === "agent_verified_pending" || r.listing_status === "verified") && !!r.assigned_agent_id;
+        return {
+          ...r,
+          seller: r.submitted_by ? sellersMap[r.submitted_by] : null,
+          agent: r.assigned_agent_id ? agentsMap[r.assigned_agent_id] : null,
+          is_trusted_agent_submission: isTrustedAgentSubmission,
+        };
+      }));
     } catch (e: any) {
       toast.error(e.message || "Failed to load");
     } finally {
