@@ -136,7 +136,7 @@ const Navigation = () => {
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-4 w-auto max-h-8 object-contain shrink-0 dark:brightness-0 dark:invert-[0.95]"
+                className="h-4 w-auto max-h-4 object-contain shrink-0 dark:brightness-0 dark:invert-[0.95]"
               />
             </Link>
 
