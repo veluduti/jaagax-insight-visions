@@ -523,13 +523,40 @@ export default function SellProperty() {
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
         `${state.bhk || ""} ${primaryType || "Property"} in ${reviewLocality || reviewCity || ""}`.trim();
 
+      // Detect agent mode and trust level
+      let agentRecord: any = null;
+      let isTrustedAgent = false;
+      if (isAgentMode) {
+        const { data: agentRow } = await (supabase.from as any)("agents")
+          .select("id, user_id, verified, trust_score")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        agentRecord = agentRow;
+        isTrustedAgent = !!(agentRow && agentRow.verified && (Number(agentRow.trust_score) || 0) >= 80);
+      }
+
+      // Status decisions
+      let verification_status = "pending";
+      let listing_status = "complete";
+      let assigned_agent_id: string | null = null;
+      if (isAgentMode && agentRecord) {
+        if (isTrustedAgent) {
+          verification_status = "agent_verified_pending"; // pending admin approval
+          listing_status = "verified"; // ready for admin review/publish
+          assigned_agent_id = agentRecord.id;
+        } else {
+          verification_status = "pending";
+          listing_status = "complete";
+        }
+      }
+
       const payload: any = {
         submitted_by: user.id,
         title: finalTitle,
         description: state.description || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
-        listed_by: (state.listed_by || "owner").toLowerCase(),
+        listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
         price: totalPrice,
         area_sqft: areaSqft,
         bhk: state.bhk ? parseInt(String(state.bhk)) || null : null,
@@ -548,8 +575,16 @@ export default function SellProperty() {
         images: state.media_urls || [],
         is_draft: false,
         verified: false,
-        verification_status: "pending",
-        document_urls: state,
+        verification_status,
+        listing_status,
+        assigned_agent_id,
+        agent_submitted_at: isAgentMode && isTrustedAgent ? new Date().toISOString() : null,
+        agent_data: isAgentMode ? { ...state, agent_id: agentRecord?.id, submitted_by_agent: true } : null,
+        document_urls: {
+          ...state,
+          created_by_role: isAgentMode ? "agent" : "seller",
+          created_by_id: isAgentMode && agentRecord ? agentRecord.id : user.id,
+        },
       };
 
       const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
@@ -571,17 +606,29 @@ export default function SellProperty() {
         }
       }
 
-      // Trigger auto-assignment of an agent (best-effort, non-blocking UX)
-      if (propertyId) {
+      // Auto-assign agent only for seller flow OR non-trusted agent submissions
+      if (propertyId && !(isAgentMode && isTrustedAgent)) {
         try {
           await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
         } catch (e) { console.warn("auto-assign failed", e); }
       }
 
-      toast.success("Your property is submitted ✅", {
-        description: "We're assigning a verification agent now. You'll be notified shortly.",
-      });
-      navigate("/dashboard/seller");
+      if (isAgentMode && isTrustedAgent) {
+        toast.success("Property submitted ✅", {
+          description: "As a trusted agent, your listing goes directly to admin for approval.",
+        });
+        navigate("/dashboard/agent");
+      } else if (isAgentMode) {
+        toast.success("Property submitted ✅", {
+          description: "Your listing is in admin review queue.",
+        });
+        navigate("/dashboard/agent");
+      } else {
+        toast.success("Your property is submitted ✅", {
+          description: "We're assigning a verification agent now. You'll be notified shortly.",
+        });
+        navigate("/dashboard/seller");
+      }
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Could not submit listing");
