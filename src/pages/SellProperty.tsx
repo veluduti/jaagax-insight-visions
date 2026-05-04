@@ -539,6 +539,48 @@ export default function SellProperty() {
     }
   };
 
+  /* ----- Redact PII (phone/name/email/agent logo) on a poster before upload ----- */
+  const redactPosterFile = async (file: File): Promise<File> => {
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const { data } = await supabase.functions.invoke<{ regions: { x: number; y: number; w: number; h: number }[] }>(
+        "redact-poster-pii",
+        { body: { image_url: dataUrl } },
+      );
+      const regions = data?.regions || [];
+      if (regions.length === 0) return file;
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((res, rej) => {
+        img.onload = () => res();
+        img.onerror = () => rej(new Error("img load"));
+        img.src = dataUrl;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.drawImage(img, 0, 0);
+      ctx.fillStyle = "#0d0d0d";
+      for (const r of regions) {
+        const x = r.x * canvas.width;
+        const y = r.y * canvas.height;
+        const w = r.w * canvas.width;
+        const h = r.h * canvas.height;
+        ctx.fillRect(x, y, w, h);
+      }
+      const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/jpeg", 0.92));
+      if (!blob) return file;
+      const cleanName = file.name.replace(/\.[^.]+$/, "") + "-redacted.jpg";
+      return new File([blob], cleanName, { type: "image/jpeg" });
+    } catch (e) {
+      console.warn("PII redaction failed, uploading original", e);
+      return file;
+    }
+  };
+
   /* ----- Quick-image attach (AI 'extracts' from photo) ----- */
   const handleQuickImage = async (files: FileList) => {
     if (!files || files.length === 0) return;
@@ -548,12 +590,22 @@ export default function SellProperty() {
 
     try {
       const imageUrl = await fileToDataUrl(file);
-      await runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() });
+      // Run extraction in parallel with PII redaction
+      const [, redacted] = await Promise.all([
+        runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
+        redactPosterFile(file),
+      ]);
+
+      // Upload the redacted (PII-removed) version, never the original
+      const dt = new DataTransfer();
+      dt.items.add(redacted);
+      await handleFiles(dt.files, { showChatBubble: false });
+      if (redacted !== file) {
+        toast.success("Personal info removed from poster", { description: "Phone numbers, names & agent logos were hidden." });
+      }
     } catch (e: any) {
       toast.error(e.message || "Could not analyze the image");
     }
-
-    await handleFiles(files, { showChatBubble: false });
   };
 
   /* ----- Final submit ----- */
