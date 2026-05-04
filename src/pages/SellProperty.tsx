@@ -269,7 +269,7 @@ export default function SellProperty() {
       },
       {
         id: uid(), role: "ai", kind: "text",
-        text: "Tell me about your property — you can type, speak, or upload an image. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
+        text: "Tell me about your property — you can type, speak, or upload an image, PDF or brochure. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -580,47 +580,112 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Quick-image attach (AI 'extracts' silently from photo) ----- */
+  /* ----- Extract text from PDF using pdfjs-dist ----- */
+  const extractPdfText = async (file: File): Promise<string> => {
+    const pdfjs: any = await import("pdfjs-dist");
+    // Use bundled worker via Vite ?url import
+    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
+    const pages: string[] = [];
+    const maxPages = Math.min(pdf.numPages, 15);
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      pages.push(content.items.map((it: any) => it.str).join(" "));
+    }
+    return pages.join("\n\n").trim();
+  };
+
+  /* ----- Extract text from DOC/DOCX using mammoth ----- */
+  const extractDocxText = async (file: File): Promise<string> => {
+    const mammoth: any = await import("mammoth");
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: buf });
+    return (result?.value || "").trim();
+  };
+
+  /* ----- Quick-attach: image, PDF, DOC, DOCX (AI extracts silently) ----- */
   const handleQuickImage = async (files: FileList) => {
     if (!files || files.length === 0) return;
     const file = files[0];
+    const name = file.name.toLowerCase();
+    const isPdf = file.type === "application/pdf" || name.endsWith(".pdf");
+    const isDoc =
+      file.type === "application/msword" ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      name.endsWith(".doc") || name.endsWith(".docx");
+    const isImage = file.type.startsWith("image/");
 
-    // Show a temporary processing bubble — never display the raw image with PII/text
+    if (!isPdf && !isDoc && !isImage) {
+      toast.error("Unsupported file. Please upload an image, PDF, or DOC/DOCX.");
+      return;
+    }
+
     const bubbleId = uid();
     setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
-      const imageUrl = await fileToDataUrl(file);
-      // Run extraction in parallel with PII redaction (extraction stays fully internal)
-      const [, redacted] = await Promise.all([
-        runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
-        redactPosterFile(file),
-      ]);
+      if (isImage) {
+        const imageUrl = await fileToDataUrl(file);
+        const [, redacted] = await Promise.all([
+          runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
+          redactPosterFile(file),
+        ]);
 
-      // Upload only the redacted (clean) version directly so we can grab its URL
-      const { data: { user } } = await supabase.auth.getUser();
-      let cleanUrl = "";
-      if (user) {
-        const path = `${user.id}/${Date.now()}-${redacted.name}`;
-        const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
-        if (!upErr) {
-          const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
-          cleanUrl = pub.publicUrl;
-          setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
+        const { data: { user } } = await supabase.auth.getUser();
+        let cleanUrl = "";
+        if (user) {
+          const path = `${user.id}/${Date.now()}-${redacted.name}`;
+          const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
+          if (!upErr) {
+            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+            cleanUrl = pub.publicUrl;
+            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
+          }
         }
+
+        setMessages((m) => {
+          const filtered = m.filter((x) => x.id !== bubbleId);
+          if (cleanUrl) {
+            return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
+          }
+          return filtered;
+        });
+        return;
       }
 
-      // Replace processing bubble with the CLEAN uploaded image
+      // PDF / DOC / DOCX path — extract text, feed to AI silently
+      let extracted = "";
+      try {
+        extracted = isPdf ? await extractPdfText(file) : await extractDocxText(file);
+      } catch (err) {
+        console.warn("Doc text extraction failed", err);
+      }
+
+      if (!extracted || extracted.length < 20) {
+        setMessages((m) => m.filter((x) => x.id !== bubbleId));
+        toast.error("Couldn't read text from that file. Try a clearer PDF or paste the details.");
+        return;
+      }
+
+      // Combine with any user-typed intake text
+      const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
+
+      // Show the file as a user "attachment" bubble (no extracted text exposed)
       setMessages((m) => {
         const filtered = m.filter((x) => x.id !== bubbleId);
-        if (cleanUrl) {
-          return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
-        }
-        return filtered;
+        return [
+          ...filtered,
+          { id: uid(), role: "user", kind: "text", text: `📎 ${file.name}` } as ChatMsg,
+        ];
       });
+
+      await runAiExtraction({ text: combined, appendUserText: false });
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
-      toast.error(e.message || "Could not analyze the image");
+      toast.error(e.message || "Could not analyze the file");
     }
   };
 
@@ -1301,7 +1366,7 @@ export default function SellProperty() {
             {showIntakeBar ? (
               <>
                 <input
-                  ref={imageRef} type="file" accept="image/*"
+                  ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
                 />
@@ -1310,7 +1375,7 @@ export default function SellProperty() {
                     type="button"
                     onClick={() => imageRef.current?.click()}
                     className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image"
+                    title="Attach image, PDF or document"
                   >
                     <ImageIcon className="h-4 w-4" />
                   </button>
@@ -1443,7 +1508,7 @@ export default function SellProperty() {
               /* Standard text / number / textarea / chip-augmented composer */
               <>
                 <input
-                  ref={imageRef} type="file" accept="image/*"
+                  ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
                 />
@@ -1452,7 +1517,7 @@ export default function SellProperty() {
                     type="button"
                     onClick={() => imageRef.current?.click()}
                     className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image"
+                    title="Attach image, PDF or document"
                   >
                     <ImageIcon className="h-4 w-4" />
                   </button>
