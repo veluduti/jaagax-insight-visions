@@ -362,6 +362,9 @@ export default function SellProperty() {
       const ext = data?.extracted || {};
       const detected = buildDetectedSummary(ext);
       const autoFilled = Object.keys(data?.listing_state || {}).length;
+      // Capture poster-detected title for the suggestion chips at review
+      const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
+      if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
       setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
