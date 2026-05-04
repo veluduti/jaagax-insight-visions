@@ -876,6 +876,15 @@ export default function SellProperty() {
       {/* Chat header */}
       <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(isAgentMode ? "/dashboard/agent" : "/dashboard/seller")}
+            className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
+            title="Back to Dashboard"
+            aria-label="Back to Dashboard"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
