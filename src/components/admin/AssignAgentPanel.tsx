@@ -68,15 +68,27 @@ const formatPrice = (n: number) => {
   return `₹${n.toLocaleString("en-IN")}`;
 };
 
+interface SubmitterAgent {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  verified: boolean;
+}
+
 export default function AssignAgentPanel() {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
+  const [submitterAgents, setSubmitterAgents] = useState<Record<string, SubmitterAgent>>({});
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<PendingProperty | null>(null);
   const [suggestions, setSuggestions] = useState<AgentSuggestion[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [showAgents, setShowAgents] = useState(false);
   const [working, setWorking] = useState(false);
+
+  const submitterAgent = selected?.submitted_by ? submitterAgents[selected.submitted_by] : undefined;
+  const selfListedByVerifiedAgent = !!submitterAgent?.verified;
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
