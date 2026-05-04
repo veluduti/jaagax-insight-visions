@@ -257,14 +257,13 @@ function toListingState(ext: Record<string, any>) {
   if (ext.location) s.locality = ext.location;
   if (ext.bhk) s.bhk = `${ext.bhk} BHK`;
 
-  // Approval — first valid value wins (config field is single-select)
+  // Approval — config field is multi-select; pass through ALL detected approvals
   const approvalArr: string[] = Array.isArray(ext.approval) ? ext.approval : (ext.approval ? [ext.approval] : []);
-  const approvalPick = approvalArr.find((a) => a === "DTCP" || a === "HMDA");
-  if (approvalPick) s.approval = approvalPick;
+  if (approvalArr.length) s.approval = approvalArr;
 
-  // Facing — config is single-select; pick first
+  // Facing — config field is multi-select; pass through ALL detected facings
   const facingArr: string[] = Array.isArray(ext.facing) ? ext.facing : (ext.facing ? [ext.facing] : []);
-  if (facingArr.length) s.facing = facingArr[0];
+  if (facingArr.length) s.facing = facingArr;
 
   if (typeof ext.road_width === "number") s.road_width = ext.road_width;
   if (typeof ext.corner_plot === "boolean") s.corner_plot = ext.corner_plot ? "Yes" : "No";
