@@ -72,10 +72,10 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
   PLOT: [
     { id: "plot_area", question: "Plot area?", input: "number", required: true, section: "Plot" },
     { id: "unit", question: "Area unit?", input: "single", required: true, options: ["sq yd", "sq ft"], section: "Plot" },
-    { id: "facing", question: "Plot facing?", input: "single", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Plot" },
+    { id: "facing", question: "Plot facing? (select all that apply)", input: "multi", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Plot" },
     { id: "road_width", question: "Road width (in feet)?", input: "number", section: "Plot" },
     { id: "corner_plot", question: "Is it a corner plot?", input: "yesno", section: "Plot" },
-    { id: "approval", question: "Approval type?", input: "single", required: true, options: ["DTCP", "HMDA"], section: "Plot" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", required: true, options: ["DTCP", "HMDA", "RERA", "TS RERA", "Panchayat", "Gram Panchayat"], section: "Plot" },
     { id: "water_connection", question: "Water connection available?", input: "yesno", section: "Utilities" },
     { id: "electricity", question: "Electricity available?", input: "yesno", section: "Utilities" },
   ],
