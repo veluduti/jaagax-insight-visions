@@ -577,13 +577,15 @@ export default function AssignAgentPanel() {
                     <XCircle className="h-4 w-4 mr-1.5" />Reject
                   </Button>
                   <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
-                      <UserCheck className="h-4 w-4 mr-1.5" />
-                      {showAgents ? "Refresh Agents" : "Assign Agent"}
-                    </Button>
+                    {!selfListedByVerifiedAgent && (
+                      <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                        <UserCheck className="h-4 w-4 mr-1.5" />
+                        {showAgents ? "Refresh Agents" : "Assign Agent"}
+                      </Button>
+                    )}
                     <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
                       {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                      Approve
+                      {selfListedByVerifiedAgent ? "Approve" : "Approve"}
                     </Button>
                   </div>
                 </DialogFooter>
