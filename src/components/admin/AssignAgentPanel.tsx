@@ -511,6 +511,22 @@ export default function AssignAgentPanel() {
                       Submitted {new Date(selected.created_at).toLocaleString()}
                     </div>
 
+                    {submitterAgent && (
+                      <div className={`rounded-lg border p-3 text-sm ${selfListedByVerifiedAgent ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
+                        {selfListedByVerifiedAgent ? (
+                          <>
+                            <p className="font-semibold text-emerald-700 dark:text-emerald-400">Listed by verified agent — {submitterAgent.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">No agent assignment needed. Just approve or reject.</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-amber-700 dark:text-amber-400">Listed by unverified agent — {submitterAgent.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Treat like a seller submission — assign a nearby verified agent.</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     {showAgents && (
                       <div>
                         <Separator className="mb-4" />
