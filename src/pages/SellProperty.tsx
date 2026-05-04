@@ -360,9 +360,8 @@ export default function SellProperty() {
       setState(merged);
 
       const ext = data?.extracted || {};
-      const detected = buildDetectedSummary(ext);
       const autoFilled = Object.keys(data?.listing_state || {}).length;
-      // Capture poster-detected title for the suggestion chips at review
+      // Capture poster-detected title silently for title suggestions later
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
@@ -371,9 +370,9 @@ export default function SellProperty() {
         ...m,
         {
           id: uid(), role: "ai", kind: "text",
-          text: detected
-            ? `✨ **Detected:** ${detected}\n\nI've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll ask only the missing fields now.`
-            : "I couldn't confidently read enough details, so I'll ask only the missing fields step by step.",
+          text: autoFilled > 0
+            ? `✨ Got it! I've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll just ask about the missing ones now.`
+            : "Thanks! I'll ask a few quick questions to complete your listing.",
         },
       ]);
     } catch (e: any) {
@@ -581,29 +580,46 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Quick-image attach (AI 'extracts' from photo) ----- */
+  /* ----- Quick-image attach (AI 'extracts' silently from photo) ----- */
   const handleQuickImage = async (files: FileList) => {
     if (!files || files.length === 0) return;
     const file = files[0];
-    const localUrl = URL.createObjectURL(file);
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: localUrl, caption: "Photo of my property" }]);
+
+    // Show a temporary processing bubble — never display the raw image with PII/text
+    const bubbleId = uid();
+    setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
       const imageUrl = await fileToDataUrl(file);
-      // Run extraction in parallel with PII redaction
+      // Run extraction in parallel with PII redaction (extraction stays fully internal)
       const [, redacted] = await Promise.all([
         runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
         redactPosterFile(file),
       ]);
 
-      // Upload the redacted (PII-removed) version, never the original
-      const dt = new DataTransfer();
-      dt.items.add(redacted);
-      await handleFiles(dt.files, { showChatBubble: false });
-      if (redacted !== file) {
-        toast.success("Personal info removed from poster", { description: "Phone numbers, names & agent logos were hidden." });
+      // Upload only the redacted (clean) version directly so we can grab its URL
+      const { data: { user } } = await supabase.auth.getUser();
+      let cleanUrl = "";
+      if (user) {
+        const path = `${user.id}/${Date.now()}-${redacted.name}`;
+        const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
+        if (!upErr) {
+          const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+          cleanUrl = pub.publicUrl;
+          setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
+        }
       }
+
+      // Replace processing bubble with the CLEAN uploaded image
+      setMessages((m) => {
+        const filtered = m.filter((x) => x.id !== bubbleId);
+        if (cleanUrl) {
+          return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
+        }
+        return filtered;
+      });
     } catch (e: any) {
+      setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the image");
     }
   };
