@@ -229,9 +229,20 @@ export default function AssignAgentPanel() {
     if (!selected) return;
     setWorking(true);
     try {
+      // If a verified agent submitted this listing themselves, they ARE the agent.
+      const selfAgent = selected.submitted_by ? submitterAgents[selected.submitted_by] : undefined;
+      const isSelfVerifiedAgent = !!selfAgent?.verified;
+
+      const update: any = {
+        verification_status: isSelfVerifiedAgent ? "agent_assigned" : "approved",
+        verified: true,
+        rejection_reason: null,
+      };
+      if (isSelfVerifiedAgent && selfAgent) update.assigned_agent_id = selfAgent.id;
+
       const { data: row, error } = await supabase
         .from("properties")
-        .update({ verification_status: "approved", verified: true, rejection_reason: null })
+        .update(update)
         .eq("id", selected.id)
         .select("id")
         .maybeSingle();
@@ -246,7 +257,7 @@ export default function AssignAgentPanel() {
           link: `/property/${selected.id}`,
         });
       }
-      toast.success("Property approved");
+      toast.success(isSelfVerifiedAgent ? "Approved — listing agent kept as handler" : "Property approved");
       setProperties((prev) => prev.filter((x) => x.id !== selected.id));
       setSelected(null);
     } catch (e: any) {
