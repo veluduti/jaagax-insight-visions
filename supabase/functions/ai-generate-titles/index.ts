@@ -77,7 +77,7 @@ function fallbackTitles(s: Record<string, any>) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const { state } = await req.json();
+    const { state, extracted_title } = await req.json();
     if (!state || typeof state !== "object") {
       return new Response(JSON.stringify({ error: "state required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -85,8 +85,16 @@ Deno.serve(async (req) => {
     }
 
     const fb = fallbackTitles(state);
+    // If a title was detected directly on the poster/brochure, surface it as a 1st chip.
+    const posterTitle = (typeof extracted_title === "string" && extracted_title.trim()) ? extracted_title.trim() : "";
+    const withPoster = (arr: typeof fb) => (
+      posterTitle
+        ? [{ type: "poster", label: "From poster", title: posterTitle }, ...arr]
+        : arr
+    );
+
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ titles: fb }), {
+      return new Response(JSON.stringify({ titles: withPoster(fb) }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -127,11 +135,11 @@ Listing: ${JSON.stringify(state)}`;
     try { parsed = JSON.parse(content); } catch { parsed = {}; }
     const titles = Array.isArray(parsed?.titles) && parsed.titles.length === 3 ? parsed.titles : fb;
 
-    return new Response(JSON.stringify({ titles }), {
+    return new Response(JSON.stringify({ titles: withPoster(titles) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ titles: fallbackTitles({}) , error: String(e) }), {
+    return new Response(JSON.stringify({ titles: fallbackTitles({}), error: String(e) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
