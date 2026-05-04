@@ -580,29 +580,44 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Quick-image attach (AI 'extracts' from photo) ----- */
+  /* ----- Quick-image attach (AI 'extracts' silently from photo) ----- */
   const handleQuickImage = async (files: FileList) => {
     if (!files || files.length === 0) return;
     const file = files[0];
-    const localUrl = URL.createObjectURL(file);
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "image", url: localUrl, caption: "Photo of my property" }]);
+
+    // Show a temporary "processing" bubble (no raw image with PII visible)
+    const bubbleId = uid();
+    setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
       const imageUrl = await fileToDataUrl(file);
-      // Run extraction in parallel with PII redaction
+      // Run extraction in parallel with PII redaction (extraction stays internal)
       const [, redacted] = await Promise.all([
         runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
         redactPosterFile(file),
       ]);
 
-      // Upload the redacted (PII-removed) version, never the original
+      // Upload only the redacted (clean) version
       const dt = new DataTransfer();
       dt.items.add(redacted);
+      const uploadedUrls: string[] = [];
+      const before = (state.media_urls || []).length;
       await handleFiles(dt.files, { showChatBubble: false });
-      if (redacted !== file) {
-        toast.success("Personal info removed from poster", { description: "Phone numbers, names & agent logos were hidden." });
-      }
+      // Replace the typing bubble with the CLEAN uploaded image
+      setMessages((m) => m.filter((x) => x.id !== bubbleId));
+      // Pull the just-uploaded URL from latest state (best-effort via setState callback)
+      setState((s) => {
+        const url = (s.media_urls || [])[before] || (s.media_urls || [])[(s.media_urls || []).length - 1];
+        if (url) {
+          setMessages((mm) => [
+            { id: uid(), role: "user", kind: "image", url } as ChatMsg,
+            ...mm,
+          ].sort(() => 0)); // append-style
+        }
+        return s;
+      });
     } catch (e: any) {
+      setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the image");
     }
   };
