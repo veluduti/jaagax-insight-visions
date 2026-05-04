@@ -269,7 +269,7 @@ export default function SellProperty() {
       },
       {
         id: uid(), role: "ai", kind: "text",
-        text: "Tell me about your property — you can type, speak, or upload an image. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
+        text: "Tell me about your property — you can type, speak, or upload an image, PDF or brochure. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
