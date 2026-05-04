@@ -68,15 +68,27 @@ const formatPrice = (n: number) => {
   return `₹${n.toLocaleString("en-IN")}`;
 };
 
+interface SubmitterAgent {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  verified: boolean;
+}
+
 export default function AssignAgentPanel() {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
+  const [submitterAgents, setSubmitterAgents] = useState<Record<string, SubmitterAgent>>({});
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<PendingProperty | null>(null);
   const [suggestions, setSuggestions] = useState<AgentSuggestion[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [showAgents, setShowAgents] = useState(false);
   const [working, setWorking] = useState(false);
+
+  const submitterAgent = selected?.submitted_by ? submitterAgents[selected.submitted_by] : undefined;
+  const selfListedByVerifiedAgent = !!submitterAgent?.verified;
 
   const fetchPending = useCallback(async () => {
     setLoading(true);
@@ -103,6 +115,17 @@ export default function AssignAgentPanel() {
         map[s.user_id] = { name: s.full_name || "Unknown Seller", email: s.email, phone: s.phone };
       });
       setSellers(map);
+
+      // Detect which submitters are themselves agents (verified or not)
+      const { data: subAgents } = await supabase
+        .from("agents")
+        .select("id, user_id, name, phone, verified")
+        .in("user_id", sellerIds);
+      const aMap: Record<string, SubmitterAgent> = {};
+      (subAgents || []).forEach((a: any) => {
+        if (a.user_id) aMap[a.user_id] = a as SubmitterAgent;
+      });
+      setSubmitterAgents(aMap);
     }
     setLoading(false);
   }, []);
@@ -130,7 +153,8 @@ export default function AssignAgentPanel() {
 
     const cols = "id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name";
 
-    // 1) Primary: agents serving this locality
+    // STRICT: only show agents serving the seller's locality OR city.
+    // No agents outside the property's city should appear.
     let agents: any[] = [];
     if (selected.locality) {
       const { data } = await supabase
@@ -142,16 +166,15 @@ export default function AssignAgentPanel() {
       agents = data || [];
     }
 
-    // 2) Fallback: agents serving the same city
-    if (agents.length < 3 && selected.city) {
+    // Fallback to same-city agents only (still local).
+    if (agents.length === 0 && selected.city) {
       const { data } = await supabase
         .from("agents")
         .select(cols)
         .eq("verified", true)
         .ilike("cities_served", `%${selected.city}%`)
         .limit(20);
-      const ids = new Set(agents.map((a) => a.id));
-      (data || []).forEach((a: any) => { if (!ids.has(a.id)) agents.push(a); });
+      agents = data || [];
     }
 
     if (agents.length === 0) {
@@ -206,9 +229,20 @@ export default function AssignAgentPanel() {
     if (!selected) return;
     setWorking(true);
     try {
+      // If a verified agent submitted this listing themselves, they ARE the agent.
+      const selfAgent = selected.submitted_by ? submitterAgents[selected.submitted_by] : undefined;
+      const isSelfVerifiedAgent = !!selfAgent?.verified;
+
+      const update: any = {
+        verification_status: isSelfVerifiedAgent ? "agent_assigned" : "approved",
+        verified: true,
+        rejection_reason: null,
+      };
+      if (isSelfVerifiedAgent && selfAgent) update.assigned_agent_id = selfAgent.id;
+
       const { data: row, error } = await supabase
         .from("properties")
-        .update({ verification_status: "approved", verified: true, rejection_reason: null })
+        .update(update)
         .eq("id", selected.id)
         .select("id")
         .maybeSingle();
@@ -223,7 +257,7 @@ export default function AssignAgentPanel() {
           link: `/property/${selected.id}`,
         });
       }
-      toast.success("Property approved");
+      toast.success(isSelfVerifiedAgent ? "Approved — listing agent kept as handler" : "Property approved");
       setProperties((prev) => prev.filter((x) => x.id !== selected.id));
       setSelected(null);
     } catch (e: any) {
@@ -477,6 +511,22 @@ export default function AssignAgentPanel() {
                       Submitted {new Date(selected.created_at).toLocaleString()}
                     </div>
 
+                    {submitterAgent && (
+                      <div className={`rounded-lg border p-3 text-sm ${selfListedByVerifiedAgent ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
+                        {selfListedByVerifiedAgent ? (
+                          <>
+                            <p className="font-semibold text-emerald-700 dark:text-emerald-400">Listed by verified agent — {submitterAgent.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">No agent assignment needed. Just approve or reject.</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-amber-700 dark:text-amber-400">Listed by unverified agent — {submitterAgent.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Treat like a seller submission — assign a nearby verified agent.</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     {showAgents && (
                       <div>
                         <Separator className="mb-4" />
@@ -527,13 +577,15 @@ export default function AssignAgentPanel() {
                     <XCircle className="h-4 w-4 mr-1.5" />Reject
                   </Button>
                   <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
-                      <UserCheck className="h-4 w-4 mr-1.5" />
-                      {showAgents ? "Refresh Agents" : "Assign Agent"}
-                    </Button>
+                    {!selfListedByVerifiedAgent && (
+                      <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                        <UserCheck className="h-4 w-4 mr-1.5" />
+                        {showAgents ? "Refresh Agents" : "Assign Agent"}
+                      </Button>
+                    )}
                     <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
                       {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                      Approve
+                      {selfListedByVerifiedAgent ? "Approve" : "Approve"}
                     </Button>
                   </div>
                 </DialogFooter>
