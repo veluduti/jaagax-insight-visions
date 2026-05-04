@@ -360,9 +360,8 @@ export default function SellProperty() {
       setState(merged);
 
       const ext = data?.extracted || {};
-      const detected = buildDetectedSummary(ext);
       const autoFilled = Object.keys(data?.listing_state || {}).length;
-      // Capture poster-detected title for the suggestion chips at review
+      // Capture poster-detected title silently for title suggestions later
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
@@ -371,9 +370,9 @@ export default function SellProperty() {
         ...m,
         {
           id: uid(), role: "ai", kind: "text",
-          text: detected
-            ? `✨ **Detected:** ${detected}\n\nI've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll ask only the missing fields now.`
-            : "I couldn't confidently read enough details, so I'll ask only the missing fields step by step.",
+          text: autoFilled > 0
+            ? `✨ Got it! I've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll just ask about the missing ones now.`
+            : "Thanks! I'll ask a few quick questions to complete your listing.",
         },
       ]);
     } catch (e: any) {
