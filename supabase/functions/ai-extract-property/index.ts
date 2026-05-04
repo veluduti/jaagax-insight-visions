@@ -104,8 +104,7 @@ function heuristicExtract(text: string) {
 async function aiExtract(text: string, imageUrl?: string) {
   if (!LOVABLE_API_KEY) return null;
 
-  const systemPrompt = `You are an extraction engine for an Indian real-estate listing app.
-Extract structured fields from a free-form description, poster, brochure image, or transcribed voice.
+  const systemPrompt = `You are an AI Property Listing Assistant that behaves like ChatGPT for Indian real-estate. Your job: read a poster image, brochure, or free-form text and EXTRACT MAXIMUM structured data. Ignore marketing fluff ("offer", "book now", "limited", "discount"). Focus only on factual property data.
 
 PROPERTY DECISION TREE:
 - LAND: Plot, Farm Land, Agricultural Land, Industrial Land
@@ -113,20 +112,20 @@ PROPERTY DECISION TREE:
 - COMMERCIAL: Shop, Showroom, Office Space, Warehouse, Godown, Commercial Land
 
 Rules:
-- Always return ONLY fields you are confident about. Skip unknown fields.
-- "type" must be one of: LAND, RESIDENTIAL, COMMERCIAL.
-- "sub_type" must be from the matching branch above.
-- For posters, read visible text carefully and prefer exact values from the creative.
-- "location" = locality/area/city as written by the user (Title Case, no extra words).
-- "bhk" = integer (1, 2, 3 ...). Only for residential.
-- "built_up_area" = number; include "area_unit" (sq ft, sq yd, acre, gunta, cent, sq m).
-- "purpose" = Sale | Rent | Lease.
-- "furnishing" = Unfurnished | Semi-Furnished | Fully Furnished.
-- "price" = number in INR if mentioned (e.g. "85 lakhs" -> 8500000, "1.2 cr" -> 12000000).
-- "price_per_unit" = numeric price per sq unit if shown on a poster.
-- "project_name" = project/layout/community name if visible.
-- "approval" = DTCP | HMDA | RERA | TS RERA when present.
-- Handle partial input: "plot in patancheru" -> { type: "LAND", sub_type: "Plot", location: "Patancheru" }.`;
+- Read EVERY visible piece of text on a poster carefully. Prefer exact numbers/words from the creative.
+- Extract as many fields as you can confidently determine. Leave unknown fields out — never guess.
+- "type" ∈ LAND | RESIDENTIAL | COMMERCIAL. "sub_type" must be from the matching branch.
+- "location" = locality/area as written. "city" = parent city (e.g. Shadnagar → Hyderabad, Kondapur → Hyderabad, Whitefield → Bangalore).
+- "bhk" = integer. "built_up_area" = number with "area_unit" (sq ft | sq yd | sq m | acre | gunta | cent).
+- "purpose" ∈ Sale | Rent | Lease. "furnishing" ∈ Unfurnished | Semi-Furnished | Fully Furnished.
+- "price" in INR ("85 lakhs"→8500000, "1.2 cr"→12000000). "price_per_unit" if shown.
+- "approval" = array, any of DTCP, HMDA, RERA, TS RERA.
+- "facing" = array of East/West/North/South/North-East/North-West/South-East/South-West.
+- "road_width" in feet (number). "corner_plot" yes/no boolean.
+- "water_connection" / "electricity" booleans if mentioned.
+- "amenities" = array (Clubhouse, Swimming Pool, Park, Gym, Security, Power Backup, Kids Play Area, etc.)
+- "contact_name" / "contact_phone" if visible on the poster.
+- "project_name" = project/layout/community name if shown.`;
 
   try {
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -136,14 +135,14 @@ Rules:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
+        model: "openai/gpt-5",
         messages: [
           { role: "system", content: systemPrompt },
           {
             role: "user",
             content: imageUrl
               ? [
-                  ...(text ? [{ type: "text", text }] : []),
+                  { type: "text", text: text || "Extract every property detail visible in this poster/brochure." },
                   { type: "image_url", image_url: { url: imageUrl } },
                 ]
               : text,
@@ -154,7 +153,7 @@ Rules:
             type: "function",
             function: {
               name: "extract_property",
-              description: "Return structured property fields extracted from the user's description.",
+              description: "Return structured property fields extracted from text or a poster image.",
               parameters: {
                 type: "object",
                 properties: {
@@ -170,9 +169,17 @@ Rules:
                   furnishing: { type: "string", enum: ["Unfurnished", "Semi-Furnished", "Fully Furnished"] },
                   price: { type: "number" },
                   price_per_unit: { type: "number" },
-                  approval: { type: "string", enum: ["DTCP", "HMDA", "RERA", "TS RERA"] },
+                  approval: { type: "array", items: { type: "string", enum: ["DTCP", "HMDA", "RERA", "TS RERA"] } },
+                  facing: { type: "array", items: { type: "string", enum: ["East","West","North","South","North-East","North-West","South-East","South-West"] } },
+                  road_width: { type: "number" },
+                  corner_plot: { type: "boolean" },
+                  water_connection: { type: "boolean" },
+                  electricity: { type: "boolean" },
+                  amenities: { type: "array", items: { type: "string" } },
                   bathrooms: { type: "number" },
                   car_parking: { type: "number" },
+                  contact_name: { type: "string" },
+                  contact_phone: { type: "string" },
                   title: { type: "string" },
                 },
                 additionalProperties: false,
@@ -249,9 +256,27 @@ function toListingState(ext: Record<string, any>) {
   if (ext.city) s.city = ext.city;
   if (ext.location) s.locality = ext.location;
   if (ext.bhk) s.bhk = `${ext.bhk} BHK`;
-  if (ext.approval === "DTCP" || ext.approval === "HMDA") s.approval = ext.approval;
+
+  // Approval — first valid value wins (config field is single-select)
+  const approvalArr: string[] = Array.isArray(ext.approval) ? ext.approval : (ext.approval ? [ext.approval] : []);
+  const approvalPick = approvalArr.find((a) => a === "DTCP" || a === "HMDA");
+  if (approvalPick) s.approval = approvalPick;
+
+  // Facing — config is single-select; pick first
+  const facingArr: string[] = Array.isArray(ext.facing) ? ext.facing : (ext.facing ? [ext.facing] : []);
+  if (facingArr.length) s.facing = facingArr[0];
+
+  if (typeof ext.road_width === "number") s.road_width = ext.road_width;
+  if (typeof ext.corner_plot === "boolean") s.corner_plot = ext.corner_plot ? "Yes" : "No";
+  if (typeof ext.water_connection === "boolean") s.water_connection = ext.water_connection ? "Yes" : "No";
+  if (typeof ext.electricity === "boolean") s.electricity = ext.electricity ? "Yes" : "No";
+
+  if (Array.isArray(ext.amenities) && ext.amenities.length) s.amenities = ext.amenities;
+
+  if (ext.contact_name) s.contact_name = ext.contact_name;
+  if (ext.contact_phone) s.contact_mobile = String(ext.contact_phone).replace(/\D/g, "").slice(-10);
+
   if (ext.furnishing) {
-    // Maps both furnishing_status (apartment) and furnishing (office)
     s.furnishing_status = ext.furnishing;
     s.furnishing = ext.furnishing;
   }
