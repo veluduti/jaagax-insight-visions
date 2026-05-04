@@ -585,36 +585,38 @@ export default function SellProperty() {
     if (!files || files.length === 0) return;
     const file = files[0];
 
-    // Show a temporary "processing" bubble (no raw image with PII visible)
+    // Show a temporary processing bubble — never display the raw image with PII/text
     const bubbleId = uid();
     setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
       const imageUrl = await fileToDataUrl(file);
-      // Run extraction in parallel with PII redaction (extraction stays internal)
+      // Run extraction in parallel with PII redaction (extraction stays fully internal)
       const [, redacted] = await Promise.all([
         runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
         redactPosterFile(file),
       ]);
 
-      // Upload only the redacted (clean) version
-      const dt = new DataTransfer();
-      dt.items.add(redacted);
-      const uploadedUrls: string[] = [];
-      const before = (state.media_urls || []).length;
-      await handleFiles(dt.files, { showChatBubble: false });
-      // Replace the typing bubble with the CLEAN uploaded image
-      setMessages((m) => m.filter((x) => x.id !== bubbleId));
-      // Pull the just-uploaded URL from latest state (best-effort via setState callback)
-      setState((s) => {
-        const url = (s.media_urls || [])[before] || (s.media_urls || [])[(s.media_urls || []).length - 1];
-        if (url) {
-          setMessages((mm) => [
-            { id: uid(), role: "user", kind: "image", url } as ChatMsg,
-            ...mm,
-          ].sort(() => 0)); // append-style
+      // Upload only the redacted (clean) version directly so we can grab its URL
+      const { data: { user } } = await supabase.auth.getUser();
+      let cleanUrl = "";
+      if (user) {
+        const path = `${user.id}/${Date.now()}-${redacted.name}`;
+        const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
+        if (!upErr) {
+          const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+          cleanUrl = pub.publicUrl;
+          setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
         }
-        return s;
+      }
+
+      // Replace processing bubble with the CLEAN uploaded image
+      setMessages((m) => {
+        const filtered = m.filter((x) => x.id !== bubbleId);
+        if (cleanUrl) {
+          return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
+        }
+        return filtered;
       });
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
