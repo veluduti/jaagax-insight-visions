@@ -130,6 +130,7 @@ export default function SellProperty() {
   const [titlesLoading, setTitlesLoading] = useState(false);
   const [selectedTitleIdx, setSelectedTitleIdx] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [posterTitle, setPosterTitle] = useState<string>("");
 
   /* Editable review fields (mirror state but allow live edits on review screen) */
   const [reviewTitle, setReviewTitle] = useState("");
