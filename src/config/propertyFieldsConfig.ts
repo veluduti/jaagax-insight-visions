@@ -124,7 +124,8 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
   ],
   COMMERCIAL_SHOP: [
     { id: "shop_area", question: "Shop area (sq ft)?", input: "number", required: true, section: "Area" },
-    { id: "facing", question: "Shop facing?", input: "single", required: true, options: ["East", "West", "North", "South", "Main Road"], section: "Layout" },
+    { id: "facing", question: "Shop facing? (select all that apply)", input: "multi", required: true, options: ["East", "West", "North", "South", "Main Road", "North-East", "North-West", "South-East", "South-West"], section: "Layout" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", options: ["DTCP", "HMDA", "RERA", "Municipal", "GHMC"], section: "Legal" },
     { id: "road_visibility", question: "Road visibility?", input: "single", required: true, options: ["Excellent", "Good", "Average", "Poor"], section: "Layout" },
     { id: "floor", question: "Which floor?", input: "single", options: ["Ground", "1st", "2nd", "Basement", "Upper Floor"], section: "Building" },
     { id: "power_load", question: "Power load (KW)?", input: "number", section: "Utilities" },
