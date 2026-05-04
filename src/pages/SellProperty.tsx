@@ -1375,7 +1375,7 @@ export default function SellProperty() {
                     type="button"
                     onClick={() => imageRef.current?.click()}
                     className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image"
+                    title="Attach image, PDF or document"
                   >
                     <ImageIcon className="h-4 w-4" />
                   </button>
@@ -1517,7 +1517,7 @@ export default function SellProperty() {
                     type="button"
                     onClick={() => imageRef.current?.click()}
                     className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image"
+                    title="Attach image, PDF or document"
                   >
                     <ImageIcon className="h-4 w-4" />
                   </button>
