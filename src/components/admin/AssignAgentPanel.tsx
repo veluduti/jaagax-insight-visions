@@ -153,7 +153,8 @@ export default function AssignAgentPanel() {
 
     const cols = "id, user_id, name, phone, email, cities_served, localities_served, experience_years, trust_score, avg_rating, photo_url, agency_name";
 
-    // 1) Primary: agents serving this locality
+    // STRICT: only show agents serving the seller's locality OR city.
+    // No agents outside the property's city should appear.
     let agents: any[] = [];
     if (selected.locality) {
       const { data } = await supabase
@@ -165,16 +166,15 @@ export default function AssignAgentPanel() {
       agents = data || [];
     }
 
-    // 2) Fallback: agents serving the same city
-    if (agents.length < 3 && selected.city) {
+    // Fallback to same-city agents only (still local).
+    if (agents.length === 0 && selected.city) {
       const { data } = await supabase
         .from("agents")
         .select(cols)
         .eq("verified", true)
         .ilike("cities_served", `%${selected.city}%`)
         .limit(20);
-      const ids = new Set(agents.map((a) => a.id));
-      (data || []).forEach((a: any) => { if (!ids.has(a.id)) agents.push(a); });
+      agents = data || [];
     }
 
     if (agents.length === 0) {
