@@ -199,7 +199,7 @@ export default function SellProperty() {
     try {
       const { data } = await supabase.functions.invoke<{
         titles: { type: string; label: string; title: string }[];
-      }>("ai-generate-titles", { body: { state } });
+      }>("ai-generate-titles", { body: { state, extracted_title: posterTitle || state.title || "" } });
       const t = data?.titles || [];
       setAiTitles(t);
       if (t.length > 0 && selectedTitleIdx === null) {
