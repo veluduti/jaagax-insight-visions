@@ -1508,7 +1508,7 @@ export default function SellProperty() {
               /* Standard text / number / textarea / chip-augmented composer */
               <>
                 <input
-                  ref={imageRef} type="file" accept="image/*"
+                  ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
                 />
