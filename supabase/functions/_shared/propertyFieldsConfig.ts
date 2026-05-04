@@ -36,6 +36,29 @@ export const COMMON_FIELDS: FieldConfig[] = [
   { id: "price_unit", question: "How would you like to price it?", input: "price_unit", required: true, section: "Price" },
 ];
 
+// Quick-reply suggestions for free-form numeric fields so users always see chips
+export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
+  floor_number: ["Ground", "1", "2", "3", "5", "10", "15"],
+  total_floors: ["3", "5", "10", "15", "20+"],
+  total_acres: ["1", "2", "5", "10", "20+"],
+  road_width: ["20", "30", "40", "60"],
+  parking: ["1", "2", "3", "4+"],
+  parking_spaces: ["1", "2", "3", "4+"],
+  bathrooms: ["1", "2", "3", "4+"],
+  number_of_cabins: ["1", "2", "5", "10+"],
+  ceiling_height: ["10", "15", "20", "25+"],
+  loading_docks: ["1", "2", "3", "4+"],
+  power_load: ["5", "10", "20", "50+"],
+  power_supply: ["10", "25", "50", "100+"],
+  floor_strength: ["1", "2", "5", "10+"],
+  built_up_area: ["600", "1000", "1250", "1500", "2000"],
+  carpet_area: ["500", "800", "1000", "1200", "1600"],
+  plot_area: ["100", "150", "200", "300", "500"],
+  plot_size: ["150", "200", "300", "500"],
+  shop_area: ["200", "400", "600", "1000"],
+  total_area: ["500", "1000", "2000", "5000"],
+};
+
 export const CONTACT_FIELDS: FieldConfig[] = [
   { id: "media", question: "Upload photos of your property (optional)", input: "media", section: "Media" },
   { id: "contact_name", question: "Your full name?", input: "text", required: true, section: "Contact" },
@@ -49,10 +72,10 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
   PLOT: [
     { id: "plot_area", question: "Plot area?", input: "number", required: true, section: "Plot" },
     { id: "unit", question: "Area unit?", input: "single", required: true, options: ["sq yd", "sq ft"], section: "Plot" },
-    { id: "facing", question: "Plot facing?", input: "single", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Plot" },
+    { id: "facing", question: "Plot facing? (select all that apply)", input: "multi", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Plot" },
     { id: "road_width", question: "Road width (in feet)?", input: "number", section: "Plot" },
     { id: "corner_plot", question: "Is it a corner plot?", input: "yesno", section: "Plot" },
-    { id: "approval", question: "Approval type?", input: "single", required: true, options: ["DTCP", "HMDA"], section: "Plot" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", required: true, options: ["DTCP", "HMDA", "RERA", "TS RERA", "Panchayat", "Gram Panchayat"], section: "Plot" },
     { id: "water_connection", question: "Water connection available?", input: "yesno", section: "Utilities" },
     { id: "electricity", question: "Electricity available?", input: "yesno", section: "Utilities" },
   ],
@@ -62,6 +85,8 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
     { id: "total_floors", question: "Total floors in the building?", input: "number", section: "Configuration" },
     { id: "built_up_area", question: "Built-up area (sq ft)?", input: "number", required: true, section: "Area" },
     { id: "carpet_area", question: "Carpet area (sq ft)?", input: "number", section: "Area" },
+    { id: "facing", question: "Flat facing? (select all that apply)", input: "multi", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Configuration" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", options: ["RERA", "TS RERA", "HMDA", "DTCP"], section: "Legal" },
     { id: "furnishing_status", question: "Furnishing status?", input: "single", required: true, options: ["Unfurnished", "Semi-Furnished", "Fully Furnished"], section: "Furnishing" },
     { id: "amenities", question: "Which amenities are available?", input: "multi", options: ["Gym", "Pool", "Clubhouse", "Park", "Security", "Power Backup", "Kids Play Area"], section: "Amenities" },
     { id: "lift_available", question: "Lift available?", input: "yesno", section: "Building" },
@@ -72,6 +97,8 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
     { id: "floors", question: "How many floors?", input: "single", required: true, options: ["Single", "Duplex", "Triplex"], section: "Configuration" },
     { id: "plot_size", question: "Plot size (sq yd)?", input: "number", required: true, section: "Area" },
     { id: "built_up_area", question: "Built-up area (sq ft)?", input: "number", required: true, section: "Area" },
+    { id: "facing", question: "Villa facing? (select all that apply)", input: "multi", options: ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"], section: "Configuration" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", options: ["RERA", "TS RERA", "HMDA", "DTCP"], section: "Legal" },
     { id: "gated_community", question: "Inside a gated community?", input: "yesno", section: "Community" },
     { id: "parking_spaces", question: "How many parking spaces?", input: "number", section: "Parking" },
     { id: "swimming_pool", question: "Has a swimming pool?", input: "yesno", section: "Amenities" },
@@ -97,7 +124,8 @@ export const TYPE_FIELDS: Record<PropertySubType, FieldConfig[]> = {
   ],
   COMMERCIAL_SHOP: [
     { id: "shop_area", question: "Shop area (sq ft)?", input: "number", required: true, section: "Area" },
-    { id: "facing", question: "Shop facing?", input: "single", required: true, options: ["East", "West", "North", "South", "Main Road"], section: "Layout" },
+    { id: "facing", question: "Shop facing? (select all that apply)", input: "multi", required: true, options: ["East", "West", "North", "South", "Main Road", "North-East", "North-West", "South-East", "South-West"], section: "Layout" },
+    { id: "approval", question: "Approval type? (select all that apply)", input: "multi", options: ["DTCP", "HMDA", "RERA", "Municipal", "GHMC"], section: "Legal" },
     { id: "road_visibility", question: "Road visibility?", input: "single", required: true, options: ["Excellent", "Good", "Average", "Poor"], section: "Layout" },
     { id: "floor", question: "Which floor?", input: "single", options: ["Ground", "1st", "2nd", "Basement", "Upper Floor"], section: "Building" },
     { id: "power_load", question: "Power load (KW)?", input: "number", section: "Utilities" },
@@ -159,8 +187,15 @@ export function buildFieldFlow(subtypes: string[]): FieldConfig[] {
     }
   }
 
-  // Order: type → purpose → city → locality → REQUIRED type fields →
-  //        price_unit → OPTIONAL type fields → contact
+  // Order:
+  //   1. type (multi)
+  //   2. purpose
+  //   3. city
+  //   4. locality
+  //   5. REQUIRED type-specific fields  ← asked FIRST
+  //   6. price_unit
+  //   7. OPTIONAL type-specific fields  ← asked AFTER required
+  //   8. contact
   // (title is auto-generated by AI after this flow completes)
   return [
     typeField,
@@ -198,4 +233,46 @@ export function flowProgress(state: Record<string, any>): { filled: number; tota
     if (isFilled) filled++;
   }
   return { filled, total: flow.length };
+}
+
+// ============================================================
+// Smart Question Engine helpers
+// ============================================================
+export type CompletionTier = {
+  label: "Draft" | "Partial" | "Good" | "Premium";
+  pct: number;
+  color: string; // tailwind utility hint
+};
+
+export function completionTier(state: Record<string, any>): CompletionTier {
+  const { filled, total } = flowProgress(state);
+  const pct = Math.round((filled / Math.max(total, 1)) * 100);
+  if (pct < 30) return { label: "Draft", pct, color: "text-muted-foreground" };
+  if (pct < 60) return { label: "Partial", pct, color: "text-amber-500" };
+  if (pct < 80) return { label: "Good", pct, color: "text-emerald-500" };
+  return { label: "Premium", pct, color: "text-primary" };
+}
+
+/** missing required fields, in flow order */
+export function missingRequired(state: Record<string, any>): FieldConfig[] {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  return flow.filter((f) => {
+    if (!f.required) return false;
+    const v = state[f.id];
+    if (v === null) return false;
+    return !(Array.isArray(v) ? v.length > 0 : v !== undefined && v !== "");
+  });
+}
+
+/** answered fields, with display-friendly value, for the edit drawer */
+export function answeredFields(state: Record<string, any>): Array<{ field: FieldConfig; value: any }> {
+  const subtypes: string[] = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+  const flow = buildFieldFlow(subtypes);
+  return flow
+    .map((f) => ({ field: f, value: state[f.id] }))
+    .filter(({ value }) =>
+      value !== undefined && value !== null && value !== "" &&
+      (!Array.isArray(value) || value.length > 0),
+    );
 }
