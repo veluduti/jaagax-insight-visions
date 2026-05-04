@@ -115,6 +115,17 @@ export default function AssignAgentPanel() {
         map[s.user_id] = { name: s.full_name || "Unknown Seller", email: s.email, phone: s.phone };
       });
       setSellers(map);
+
+      // Detect which submitters are themselves agents (verified or not)
+      const { data: subAgents } = await supabase
+        .from("agents")
+        .select("id, user_id, name, phone, verified")
+        .in("user_id", sellerIds);
+      const aMap: Record<string, SubmitterAgent> = {};
+      (subAgents || []).forEach((a: any) => {
+        if (a.user_id) aMap[a.user_id] = a as SubmitterAgent;
+      });
+      setSubmitterAgents(aMap);
     }
     setLoading(false);
   }, []);
