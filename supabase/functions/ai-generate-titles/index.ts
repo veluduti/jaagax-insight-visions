@@ -114,7 +114,7 @@ Listing: ${JSON.stringify(state)}`;
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
+        model: "openai/gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       }),
