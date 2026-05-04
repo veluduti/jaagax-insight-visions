@@ -538,64 +538,71 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Redact PII (phone/name/email/agent logo) on a poster before upload ----- */
+  /* ----- AI clean: remove ALL text/PII from poster via Nano Banana inpainting ----- */
   const redactPosterFile = async (file: File): Promise<File> => {
     try {
       const dataUrl = await fileToDataUrl(file);
-      const { data } = await supabase.functions.invoke<{ regions: { x: number; y: number; w: number; h: number }[] }>(
-        "redact-poster-pii",
+      const { data } = await supabase.functions.invoke<{ cleaned_url: string | null }>(
+        "clean-poster-image",
         { body: { image_url: dataUrl } },
       );
-      const regions = data?.regions || [];
-      if (regions.length === 0) return file;
-
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise<void>((res, rej) => {
-        img.onload = () => res();
-        img.onerror = () => rej(new Error("img load"));
-        img.src = dataUrl;
-      });
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return file;
-      ctx.drawImage(img, 0, 0);
-      ctx.fillStyle = "#0d0d0d";
-      for (const r of regions) {
-        const x = r.x * canvas.width;
-        const y = r.y * canvas.height;
-        const w = r.w * canvas.width;
-        const h = r.h * canvas.height;
-        ctx.fillRect(x, y, w, h);
+      const cleanedUrl = data?.cleaned_url;
+      if (!cleanedUrl || !cleanedUrl.startsWith("data:image")) {
+        // AI couldn't clean — upload original (better than a black-box poster)
+        console.warn("AI clean returned no image, using original");
+        return file;
       }
-      const blob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/jpeg", 0.92));
-      if (!blob) return file;
-      const cleanName = file.name.replace(/\.[^.]+$/, "") + "-redacted.jpg";
-      return new File([blob], cleanName, { type: "image/jpeg" });
+      // Convert data URL → File
+      const res = await fetch(cleanedUrl);
+      const blob = await res.blob();
+      const cleanName = file.name.replace(/\.[^.]+$/, "") + "-clean.jpg";
+      return new File([blob], cleanName, { type: blob.type || "image/jpeg" });
     } catch (e) {
-      console.warn("PII redaction failed, uploading original", e);
+      console.warn("AI poster clean failed, uploading original", e);
       return file;
     }
   };
 
-  /* ----- Extract text from PDF using pdfjs-dist ----- */
+  /* ----- Extract text from PDF: try server (unpdf + Gemini OCR) first, fallback to pdfjs ----- */
   const extractPdfText = async (file: File): Promise<string> => {
-    const pdfjs: any = await import("pdfjs-dist");
-    // Use bundled worker via Vite ?url import
-    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-    const buf = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data: buf }).promise;
-    const pages: string[] = [];
-    const maxPages = Math.min(pdf.numPages, 15);
-    for (let i = 1; i <= maxPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      pages.push(content.items.map((it: any) => it.str).join(" "));
+    // 1) Server-side extraction handles both text-layer PDFs and scanned/image PDFs
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const { data, error } = await supabase.functions.invoke<{ text: string }>(
+        "extract-pdf-text",
+        { body: { pdf_data_url: dataUrl } },
+      );
+      if (!error && data?.text && data.text.trim().length >= 20) {
+        return data.text.trim();
+      }
+    } catch (e) {
+      console.warn("server pdf extract failed, falling back to pdfjs", e);
     }
-    return pages.join("\n\n").trim();
+    // 2) Browser fallback via pdfjs-dist
+    try {
+      const pdfjs: any = await import("pdfjs-dist");
+      try {
+        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+      } catch {
+        // Fallback to CDN worker
+        pdfjs.GlobalWorkerOptions.workerSrc =
+          `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
+      }
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: buf }).promise;
+      const pages: string[] = [];
+      const maxPages = Math.min(pdf.numPages, 15);
+      for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        pages.push(content.items.map((it: any) => it.str).join(" "));
+      }
+      return pages.join("\n\n").trim();
+    } catch (e) {
+      console.warn("pdfjs extract failed", e);
+      return "";
+    }
   };
 
   /* ----- Extract text from DOC/DOCX using mammoth ----- */
@@ -869,6 +876,15 @@ export default function SellProperty() {
       {/* Chat header */}
       <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(isAgentMode ? "/dashboard/agent" : "/dashboard/seller")}
+            className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
+            title="Back to Dashboard"
+            aria-label="Back to Dashboard"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
