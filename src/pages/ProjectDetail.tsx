@@ -113,12 +113,10 @@ const ProjectDetail = () => {
 
   const allImages: string[] =
     project?.images && project.images.length > 0
-      ? project.images
-      : [
-          project?.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600",
-          "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600",
-          "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600",
-        ];
+      ? project.images.filter(Boolean)
+      : project?.image
+        ? [project.image]
+        : [];
 
   // Auto-detect floor plan images by URL keyword and split them out of the photo gallery
   const isFloorPlan = (u: string) => /floor[-_ ]?plan|floorplan|layout|master[-_ ]?plan/i.test(u);

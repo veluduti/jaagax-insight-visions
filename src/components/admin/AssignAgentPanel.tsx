@@ -398,7 +398,7 @@ export default function AssignAgentPanel() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {properties.map((p) => {
           const seller = (p.submitted_by && sellers[p.submitted_by]) || null;
-          const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
+          const img = (Array.isArray(p.images) && p.images[0]) || "";
           return (
             <Card key={p.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all hover:shadow-lg">
               <div className="relative h-36">

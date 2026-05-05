@@ -379,7 +379,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           <div className="grid lg:grid-cols-2 gap-3">
             {filtered.map((p, i) => {
               const img = (Array.isArray(p.images) && p.images[0]) ||
-                "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
+                "";
               const isCompleted = p.task_status === "completed";
               return (
                 <motion.div

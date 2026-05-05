@@ -242,7 +242,7 @@ export default function AIAdvisorResults() {
                     {/* Image */}
                     <div className="relative w-full md:w-1/3 h-48">
                       <img
-                        src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                        src={property.images?.[0] || ""}
                         alt={property.title}
                         className="w-full h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"
                       />

@@ -127,14 +127,14 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
                     src={
                       Array.isArray(property.images) && property.images[0]
                         ? property.images[0]
-                        : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800"
+                        : ""
                     }
                     alt={property.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 saturate-75"
                     loading="lazy"
                     onError={(e) => {
                       e.currentTarget.src =
-                        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800";
+                        "";
                     }}
                   />
                   <Badge

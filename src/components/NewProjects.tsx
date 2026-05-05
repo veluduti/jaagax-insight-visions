@@ -172,11 +172,11 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                     {/* Image */}
                     <div className="relative h-56 overflow-hidden">
                       <img
-                        src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
+                        src={project.image || ""}
                         alt={project.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
-                          e.currentTarget.src = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800";
+                          e.currentTarget.src = "";
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />

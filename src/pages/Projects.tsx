@@ -410,7 +410,7 @@ const Projects = () => {
                       {/* Image */}
                       <div className="relative w-48 h-36 flex-shrink-0 overflow-hidden rounded-lg">
                         <img
-                          src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
+                          src={project.image || ""}
                           alt={project.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
@@ -502,7 +502,7 @@ const Projects = () => {
                   {/* Image */}
                   <div className="relative h-56 overflow-hidden">
                     <img
-                      src={project.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"}
+                      src={project.image || ""}
                       alt={project.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />

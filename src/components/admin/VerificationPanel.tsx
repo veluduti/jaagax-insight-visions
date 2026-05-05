@@ -225,7 +225,7 @@ export default function VerificationPanel() {
               <Card key={property.id} className="overflow-hidden">
                 <div className="relative h-48">
                   <img
-                    src={Array.isArray(property.images) && property.images[0] ? property.images[0] : "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                    src={Array.isArray(property.images) && property.images[0] ? property.images[0] : ""}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />

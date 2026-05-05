@@ -371,3 +371,34 @@ All colors MUST be HSL.
 .property-marker {
   transform-origin: center bottom;
 }
+
+/* ---------------------------------------------------------------
+   Missing-image placeholder
+   No default/stock photos are ever substituted for missing media.
+   Empty <img src=""> renders a clean "No image uploaded" tile.
+--------------------------------------------------------------- */
+img[src=""],
+img:not([src]) {
+  position: relative;
+  background:
+    linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted) / 0.7) 100%);
+  color: hsl(var(--muted-foreground));
+  min-height: 80px;
+  font-size: 0; /* hide alt text fallback flash */
+}
+img[src=""]::after,
+img:not([src])::after {
+  content: "No image uploaded";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
+  text-align: center;
+  padding: 8px;
+}

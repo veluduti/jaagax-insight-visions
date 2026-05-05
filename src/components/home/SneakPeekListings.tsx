@@ -129,7 +129,7 @@ const SneakPeekListings = () => {
                   {/* Image with frosted overlay */}
                   <div className="relative h-44 overflow-hidden">
                     <img
-                      src={Array.isArray(property.images) && property.images[0] ? property.images[0] : "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+                      src={Array.isArray(property.images) && property.images[0] ? property.images[0] : ""}
                       alt={property.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 saturate-[0.7] group-hover:saturate-100"
                       loading="lazy"
