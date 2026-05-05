@@ -563,9 +563,47 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Extract text from PDF: try server (unpdf + Gemini OCR) first, fallback to pdfjs ----- */
+  /* ----- Load pdfjs once with a working worker ----- */
+  const loadPdfjs = async (): Promise<any> => {
+    const pdfjs: any = await import("pdfjs-dist");
+    try {
+      const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    } catch {
+      pdfjs.GlobalWorkerOptions.workerSrc =
+        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
+    }
+    return pdfjs;
+  };
+
+  /* ----- Render the first N pages of a PDF to JPEG data URLs (for OCR fallback) ----- */
+  const renderPdfPagesToImages = async (file: File, maxPages = 3): Promise<string[]> => {
+    try {
+      const pdfjs = await loadPdfjs();
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: buf }).promise;
+      const out: string[] = [];
+      const n = Math.min(pdf.numPages, maxPages);
+      for (let i = 1; i <= n; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) continue;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        out.push(canvas.toDataURL("image/jpeg", 0.85));
+      }
+      return out;
+    } catch (e) {
+      console.warn("pdf->image render failed", e);
+      return [];
+    }
+  };
+
+  /* ----- Extract text from PDF: try server first, then pdfjs text layer ----- */
   const extractPdfText = async (file: File): Promise<string> => {
-    // 1) Server-side extraction handles both text-layer PDFs and scanned/image PDFs
     try {
       const dataUrl = await fileToDataUrl(file);
       const { data, error } = await supabase.functions.invoke<{ text: string }>(
@@ -578,17 +616,8 @@ export default function SellProperty() {
     } catch (e) {
       console.warn("server pdf extract failed, falling back to pdfjs", e);
     }
-    // 2) Browser fallback via pdfjs-dist
     try {
-      const pdfjs: any = await import("pdfjs-dist");
-      try {
-        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-      } catch {
-        // Fallback to CDN worker
-        pdfjs.GlobalWorkerOptions.workerSrc =
-          `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
-      }
+      const pdfjs = await loadPdfjs();
       const buf = await file.arrayBuffer();
       const pdf = await pdfjs.getDocument({ data: buf }).promise;
       const pages: string[] = [];
