@@ -563,9 +563,47 @@ export default function SellProperty() {
     }
   };
 
-  /* ----- Extract text from PDF: try server (unpdf + Gemini OCR) first, fallback to pdfjs ----- */
+  /* ----- Load pdfjs once with a working worker ----- */
+  const loadPdfjs = async (): Promise<any> => {
+    const pdfjs: any = await import("pdfjs-dist");
+    try {
+      const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+      pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    } catch {
+      pdfjs.GlobalWorkerOptions.workerSrc =
+        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
+    }
+    return pdfjs;
+  };
+
+  /* ----- Render the first N pages of a PDF to JPEG data URLs (for OCR fallback) ----- */
+  const renderPdfPagesToImages = async (file: File, maxPages = 3): Promise<string[]> => {
+    try {
+      const pdfjs = await loadPdfjs();
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: buf }).promise;
+      const out: string[] = [];
+      const n = Math.min(pdf.numPages, maxPages);
+      for (let i = 1; i <= n; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) continue;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        out.push(canvas.toDataURL("image/jpeg", 0.85));
+      }
+      return out;
+    } catch (e) {
+      console.warn("pdf->image render failed", e);
+      return [];
+    }
+  };
+
+  /* ----- Extract text from PDF: try server first, then pdfjs text layer ----- */
   const extractPdfText = async (file: File): Promise<string> => {
-    // 1) Server-side extraction handles both text-layer PDFs and scanned/image PDFs
     try {
       const dataUrl = await fileToDataUrl(file);
       const { data, error } = await supabase.functions.invoke<{ text: string }>(
@@ -578,17 +616,8 @@ export default function SellProperty() {
     } catch (e) {
       console.warn("server pdf extract failed, falling back to pdfjs", e);
     }
-    // 2) Browser fallback via pdfjs-dist
     try {
-      const pdfjs: any = await import("pdfjs-dist");
-      try {
-        const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-      } catch {
-        // Fallback to CDN worker
-        pdfjs.GlobalWorkerOptions.workerSrc =
-          `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
-      }
+      const pdfjs = await loadPdfjs();
       const buf = await file.arrayBuffer();
       const pdf = await pdfjs.getDocument({ data: buf }).promise;
       const pages: string[] = [];
@@ -671,16 +700,7 @@ export default function SellProperty() {
         console.warn("Doc text extraction failed", err);
       }
 
-      if (!extracted || extracted.length < 20) {
-        setMessages((m) => m.filter((x) => x.id !== bubbleId));
-        toast.error("Couldn't read text from that file. Try a clearer PDF or paste the details.");
-        return;
-      }
-
-      // Combine with any user-typed intake text
-      const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
-
-      // Show the file as a user "attachment" bubble (no extracted text exposed)
+      // Show file as user attachment bubble (no extracted text exposed)
       setMessages((m) => {
         const filtered = m.filter((x) => x.id !== bubbleId);
         return [
@@ -689,7 +709,28 @@ export default function SellProperty() {
         ];
       });
 
-      await runAiExtraction({ text: combined, appendUserText: false });
+      if (extracted && extracted.length >= 20) {
+        const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
+        await runAiExtraction({ text: combined, appendUserText: false });
+        return;
+      }
+
+      // Fallback: render PDF pages as images and let the vision model read them
+      if (isPdf) {
+        const pageImages = await renderPdfPagesToImages(file, 3);
+        if (pageImages.length > 0) {
+          for (const img of pageImages) {
+            await runAiExtraction({
+              text: intakeText || "Extract every property detail visible in this brochure page.",
+              imageUrl: img,
+              appendUserText: false,
+            });
+          }
+          return;
+        }
+      }
+
+      toast.error("Couldn't read that file. Try a clearer PDF/document or paste the details.");
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the file");
