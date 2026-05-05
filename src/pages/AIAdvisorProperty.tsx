@@ -153,7 +153,7 @@ export default function AIAdvisorProperty() {
               <Card className="overflow-hidden glass-panel">
                 <div className="relative h-[400px]">
                   <img
-                    src={property.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                    src={property.images?.[0] || ""}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -277,7 +277,7 @@ export default function AIAdvisorProperty() {
                           onClick={() => navigate(`/ai-advisor/${prop.id}`)}
                         >
                           <img
-                            src={prop.images?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+                            src={prop.images?.[0] || ""}
                             alt={prop.title}
                             className="w-full h-32 object-cover rounded-t-lg"
                           />

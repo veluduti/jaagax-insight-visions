@@ -129,12 +129,12 @@ const MyFavorites = () => {
         <Card key={property.favorite_id} className="overflow-hidden hover:shadow-xl transition-all">
           <div className="relative h-48">
             <img
-              src={(Array.isArray(property.images) && property.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}
+              src={(Array.isArray(property.images) && property.images[0]) || ""}
               alt={property.title}
               className="w-full h-full object-cover cursor-pointer"
               onClick={() => openInNewTab(propertyPath(property))}
               onError={(e) => {
-                e.currentTarget.src = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800";
+                e.currentTarget.src = "";
               }}
             />
             {property.verified && (

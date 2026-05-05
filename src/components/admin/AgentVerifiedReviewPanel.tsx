@@ -187,7 +187,7 @@ export default function AgentVerifiedReviewPanel() {
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((p) => {
-              const img = (Array.isArray(p.images) && p.images[0]) || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400";
+              const img = (Array.isArray(p.images) && p.images[0]) || "";
               return (
                 <Card key={p.id} className="overflow-hidden">
                   <div className="relative h-40">

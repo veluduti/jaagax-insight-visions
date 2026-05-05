@@ -398,7 +398,7 @@ const BuyerDashboard = () => {
                         <Card className="overflow-hidden hover:shadow-xl transition-all">
                           <div className="relative h-32">
                             <img
-                              src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                              src={property.images[0] || ""}
                               alt={property.title}
                               className="w-full h-full object-cover"
                             />
@@ -468,7 +468,7 @@ const BuyerDashboard = () => {
             <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
               <div className="relative">
                 <img
-                  src={property.images[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
+                  src={property.images[0] || ""}
                   alt={property.title}
                   className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                 />

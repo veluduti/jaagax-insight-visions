@@ -45,7 +45,7 @@ const ReelCard = ({ ad, isActive, isSaved, onSave, onNavigate, index }: ReelCard
   const [imageIndex, setImageIndex] = useState(0);
 
   const images = ad.images?.length ? ad.images : [
-    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'
+    ""
   ];
 
   const price = ad.properties?.price || ad.projects?.avg_price || 0;

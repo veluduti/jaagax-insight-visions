@@ -111,7 +111,7 @@ export default function MediaHub({
           <AnimatePresence mode="wait">
             <motion.img
               key={currentImageIndex}
-              src={images[currentImageIndex] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00"}
+              src={images[currentImageIndex] || ""}
               alt={`${propertyTitle} - Image ${currentImageIndex + 1}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

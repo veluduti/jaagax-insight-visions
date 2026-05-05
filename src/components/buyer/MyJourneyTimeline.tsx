@@ -54,7 +54,7 @@ const STAGES: { key: Stage; label: string; icon: any; color: string }[] = [
 ];
 
 const STAGE_ORDER: Stage[] = STAGES.map((s) => s.key);
-const FALLBACK_IMG = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400";
+const FALLBACK_IMG = "";
 
 const formatPrice = (price: number) => {
   if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;

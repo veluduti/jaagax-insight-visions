@@ -44,7 +44,7 @@ export default function ReelPropertyDrawer({ open, onClose, property, activeTab 
   if (!property) return null;
 
   const images = property.images?.length ? property.images : [
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600"
+    ""
   ];
 
   return (

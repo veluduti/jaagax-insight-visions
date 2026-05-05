@@ -36,7 +36,7 @@ interface Visit {
   my_rating?: { rating: number; review: string | null } | null;
 }
 
-const FALLBACK_IMG = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80";
+const FALLBACK_IMG = "";
 
 type TabKey = "all" | "scheduled" | "completed" | "cancelled";
 
