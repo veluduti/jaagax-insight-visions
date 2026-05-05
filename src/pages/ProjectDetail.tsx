@@ -113,12 +113,10 @@ const ProjectDetail = () => {
 
   const allImages: string[] =
     project?.images && project.images.length > 0
-      ? project.images
-      : [
-          project?.image || "",
-          "",
-          "",
-        ];
+      ? project.images.filter(Boolean)
+      : project?.image
+        ? [project.image]
+        : [];
 
   // Auto-detect floor plan images by URL keyword and split them out of the photo gallery
   const isFloorPlan = (u: string) => /floor[-_ ]?plan|floorplan|layout|master[-_ ]?plan/i.test(u);
