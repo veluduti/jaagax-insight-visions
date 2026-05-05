@@ -700,16 +700,7 @@ export default function SellProperty() {
         console.warn("Doc text extraction failed", err);
       }
 
-      if (!extracted || extracted.length < 20) {
-        setMessages((m) => m.filter((x) => x.id !== bubbleId));
-        toast.error("Couldn't read text from that file. Try a clearer PDF or paste the details.");
-        return;
-      }
-
-      // Combine with any user-typed intake text
-      const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
-
-      // Show the file as a user "attachment" bubble (no extracted text exposed)
+      // Show file as user attachment bubble (no extracted text exposed)
       setMessages((m) => {
         const filtered = m.filter((x) => x.id !== bubbleId);
         return [
@@ -718,7 +709,28 @@ export default function SellProperty() {
         ];
       });
 
-      await runAiExtraction({ text: combined, appendUserText: false });
+      if (extracted && extracted.length >= 20) {
+        const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
+        await runAiExtraction({ text: combined, appendUserText: false });
+        return;
+      }
+
+      // Fallback: render PDF pages as images and let the vision model read them
+      if (isPdf) {
+        const pageImages = await renderPdfPagesToImages(file, 3);
+        if (pageImages.length > 0) {
+          for (const img of pageImages) {
+            await runAiExtraction({
+              text: intakeText || "Extract every property detail visible in this brochure page.",
+              imageUrl: img,
+              appendUserText: false,
+            });
+          }
+          return;
+        }
+      }
+
+      toast.error("Couldn't read that file. Try a clearer PDF/document or paste the details.");
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the file");
