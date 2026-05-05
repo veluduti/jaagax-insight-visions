@@ -35,12 +35,14 @@ type FieldDef = {
 };
 
 type NextResp =
-  | { done: true }
+  | { done: true; state_patch?: Record<string, any> }
   | {
       done: false;
       field: FieldDef;
       suggestions: string[];
       progress: { filled: number; total: number };
+      state_patch?: Record<string, any>;
+      clarification?: boolean;
     };
 
 type ChatMsg =
