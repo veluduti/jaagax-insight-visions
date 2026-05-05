@@ -35,12 +35,14 @@ type FieldDef = {
 };
 
 type NextResp =
-  | { done: true }
+  | { done: true; state_patch?: Record<string, any> }
   | {
       done: false;
       field: FieldDef;
       suggestions: string[];
       progress: { filled: number; total: number };
+      state_patch?: Record<string, any>;
+      clarification?: boolean;
     };
 
 type ChatMsg =
@@ -401,27 +403,43 @@ export default function SellProperty() {
     await fetchNext(state, true);
   };
 
-  /* ----- Ask orchestrator for next field ----- */
+  /* ----- Ask orchestrator for next field (ChatGPT-style re-evaluation) ----- */
   const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
     setLoadingNext(true);
     setError(null);
 
-    // typing bubble
     const typingId = uid();
     setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+
+    // Build a compact transcript so the AI can re-evaluate the whole conversation
+    const transcript = messages
+      .filter((x) => x.kind === "text")
+      .map((x: any) => ({ role: x.role, text: x.text }))
+      .slice(-20);
 
     try {
       const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
         "ai-conversational-listing",
-        { body: { state: currentState } }
+        { body: { state: currentState, transcript } }
       );
       if (fnErr) throw fnErr;
       if (!data) throw new Error("No response");
 
-      // small delay so typing animation feels natural
-      await new Promise((r) => setTimeout(r, 350));
+      // Apply any AI corrections / dependency resets to local state
+      let mergedState = { ...currentState };
+      const patch = (data as any).state_patch as Record<string, any> | undefined;
+      if (patch && typeof patch === "object") {
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === "" || v === null) {
+            delete mergedState[k];
+          } else {
+            mergedState[k] = v;
+          }
+        }
+        setState(mergedState);
+      }
 
-      // remove typing bubble
+      await new Promise((r) => setTimeout(r, 250));
       setMessages((m) => m.filter((x) => x.id !== typingId));
 
       if ((data as any).done) {
@@ -436,7 +454,7 @@ export default function SellProperty() {
         setField(d.field);
         setSuggestions(d.suggestions || []);
         setProgress(d.progress);
-        const existing = currentState[d.field.id];
+        const existing = mergedState[d.field.id];
         if (existing !== undefined && existing !== null) setValue(existing);
         else if (d.field.input === "multi") setValue([]);
         else if (d.field.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
