@@ -215,9 +215,17 @@ export default function SellerDashboard() {
     void fetchProperties(user.id);
   };
 
+  // Anything that is not approved+live, rejected, expired, or a draft is treated as "pending review"
+  // (covers verification_status: pending, agent_assigned, agent_verified_pending, under_review, etc.)
+  const isPending = (p: Property) =>
+    !p.is_draft &&
+    p.verification_status !== "rejected" &&
+    p.verification_status !== "expired" &&
+    !(p.verification_status === "approved" && p.is_live === true);
+
   const counts = {
     all: properties.length,
-    pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
+    pending: properties.filter(isPending).length,
     approved: properties.filter(p => p.verification_status === "approved" && p.is_live === true).length,
     rejected: properties.filter(p => p.verification_status === "rejected").length,
     draft: properties.filter(p => p.is_draft).length,
@@ -395,7 +403,7 @@ export default function SellerDashboard() {
                 </Button>
               </div>
             )}
-            {status === "approved" && p.assigned_agent && (
+            {p.assigned_agent && (
               <div className="p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 space-y-1">
                 <p className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Your Dedicated Agent
@@ -511,7 +519,7 @@ export default function SellerDashboard() {
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
     if (s === "approved") return properties.filter(p => p.verification_status === "approved" && p.is_live === true);
-    if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
+    if (s === "pending") return properties.filter(isPending);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
     if (s === "expired") return properties.filter(p => p.verification_status === "expired");
