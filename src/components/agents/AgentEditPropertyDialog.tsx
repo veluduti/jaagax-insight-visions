@@ -555,7 +555,17 @@ export default function AgentEditPropertyDialog({
             {SECTIONS.map((sec) => (
               <TabsContent key={sec.id} value={sec.id} className="mt-0">
                 <div className="grid sm:grid-cols-2 gap-2.5">
-                  {sec.fields.map((f) => renderField(f))}
+                  {sec.fields.map((f) => {
+                    try { return renderField(f); }
+                    catch (e) {
+                      console.error("Field render failed", f.key, e);
+                      return (
+                        <div key={f.key} className="rounded-lg border border-destructive/40 bg-destructive/5 p-2.5 text-[11px] text-destructive">
+                          {f.label}: unable to render
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
               </TabsContent>
             ))}
