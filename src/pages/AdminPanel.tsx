@@ -342,6 +342,9 @@ export default function AdminPanel() {
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
+            <TabsTrigger value="agent-verified" className="relative">
+              Agent-Verified
+            </TabsTrigger>
             <TabsTrigger value="properties" className="relative">
               Properties
               {stats.pendingProperties > 0 && (
