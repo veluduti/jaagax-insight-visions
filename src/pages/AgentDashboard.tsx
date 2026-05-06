@@ -211,6 +211,9 @@ export default function AgentDashboard() {
       .on("postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         () => fetchNotifications(user.id))
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "agent_tasks", filter: `agent_id=eq.${agentProfile.id}` },
+        () => fetchAssignedTasks(agentProfile.id))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [agentProfile?.id, user?.id]);
