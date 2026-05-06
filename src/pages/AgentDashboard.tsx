@@ -301,7 +301,19 @@ export default function AgentDashboard() {
     }
   };
 
-  const fetchAgentProperties = async (userId: string, agentId: string) => {
+  const fetchAssignedTasks = async (agentId: string) => {
+    try {
+      const { data } = await (supabase.from as any)("agent_tasks")
+        .select("id, status, property_id, completed_at, metadata, created_at")
+        .eq("agent_id", agentId);
+      setAssignedTasks((data as any[]) || []);
+    } catch (err) {
+      console.error("Error loading agent tasks:", err);
+      setAssignedTasks([]);
+    }
+  };
+
+
     try {
       const { data, error } = await supabase
         .from("properties").select("*")
