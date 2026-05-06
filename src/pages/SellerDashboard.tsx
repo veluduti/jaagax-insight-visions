@@ -215,9 +215,17 @@ export default function SellerDashboard() {
     void fetchProperties(user.id);
   };
 
+  // Anything that is not approved+live, rejected, expired, or a draft is treated as "pending review"
+  // (covers verification_status: pending, agent_assigned, agent_verified_pending, under_review, etc.)
+  const isPending = (p: Property) =>
+    !p.is_draft &&
+    p.verification_status !== "rejected" &&
+    p.verification_status !== "expired" &&
+    !(p.verification_status === "approved" && p.is_live === true);
+
   const counts = {
     all: properties.length,
-    pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
+    pending: properties.filter(isPending).length,
     approved: properties.filter(p => p.verification_status === "approved" && p.is_live === true).length,
     rejected: properties.filter(p => p.verification_status === "rejected").length,
     draft: properties.filter(p => p.is_draft).length,
