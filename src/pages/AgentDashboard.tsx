@@ -400,13 +400,21 @@ export default function AgentDashboard() {
   const todaysTasks = tasks.filter((t) => !t.done && t.due_date <= today);
   const todaysVisits = visits.filter((v) => v.visit_date === today);
 
+  // Include admin-assigned property tasks as leads/deals so the dashboard reflects real workload
+  const activeAssignedTasks = assignedTasks.filter((t) => t.status !== "completed" && t.status !== "cancelled");
+  const completedAssignedTasks = assignedTasks.filter((t) => t.status === "completed");
+  const scheduledAssignedVisits = assignedTasks.filter(
+    (t) => t.status !== "completed" && t.status !== "cancelled" && t?.metadata?.scheduled_visit_at
+  );
+
   const metrics = {
-    totalLeads: leads.length,
-    upcomingVisits: visits.filter((v) =>
-      ["confirmed", "pending_builder", "pending_agent", "pending", "in_progress"].includes(v.status)
-    ).length,
-    activeDeals: deals.filter((d) => d.status === "negotiation").length,
-    closedDeals: deals.filter((d) => d.status === "closed").length,
+    totalLeads: leads.length + assignedTasks.length,
+    upcomingVisits:
+      visits.filter((v) =>
+        ["confirmed", "pending_builder", "pending_agent", "pending", "in_progress"].includes(v.status)
+      ).length + scheduledAssignedVisits.length,
+    activeDeals: deals.filter((d) => d.status === "negotiation").length + activeAssignedTasks.length,
+    closedDeals: deals.filter((d) => d.status === "closed").length + completedAssignedTasks.length,
   };
 
   const conversionRate = leads.length
