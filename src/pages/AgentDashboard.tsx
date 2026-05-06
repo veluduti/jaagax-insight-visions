@@ -269,6 +269,7 @@ export default function AgentDashboard() {
       await Promise.allSettled([
         fetchAgentProperties(authenticatedUser.id, agentData.id),
         fetchVisits(agentData.id),
+        fetchAssignedTasks(agentData.id),
         fetchNotifications(authenticatedUser.id),
       ]);
     } catch (error: any) {
