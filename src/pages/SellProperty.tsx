@@ -324,10 +324,13 @@ export default function SellProperty() {
     text,
     imageUrl,
     appendUserText = true,
+    sharedTypingId,
   }: {
     text?: string;
     imageUrl?: string;
     appendUserText?: boolean;
+    /** When provided, reuse this single typing bubble — don't create or remove our own. */
+    sharedTypingId?: string;
   }) => {
     const trimmedText = text?.trim() || "";
     if (!trimmedText && !imageUrl) {
@@ -342,51 +345,62 @@ export default function SellProperty() {
     if (trimmedText) setIntakeText("");
     setExtracting(true);
 
-    const typingId = uid();
-    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    // Single loading bubble for the whole upload+OCR+extract+next-question flow
+    const typingId = sharedTypingId || uid();
+    if (!sharedTypingId) {
+      setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    }
 
+    // Track which fields were newly detected (current_state is single source of truth — only count NEW ones)
+    const before = state;
     let merged: Record<string, any> = { ...state };
     try {
       const { data, error } = await supabase.functions.invoke<{
         extracted: Record<string, any>;
         listing_state: Record<string, any>;
       }>("ai-extract-property", {
-        body: {
-          text: trimmedText,
-          image_url: imageUrl,
-        },
+        body: { text: trimmedText, image_url: imageUrl },
       });
       if (error) throw error;
 
-      merged = { ...state, ...normalizeListingState(data?.listing_state || {}) };
+      const incomingState = normalizeListingState(data?.listing_state || {});
+      merged = { ...before, ...incomingState };
       setState(merged);
 
       const ext = data?.extracted || {};
-      const autoFilled = Object.keys(data?.listing_state || {}).length;
-      // Capture poster-detected title silently for title suggestions later
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
-      setMessages((m) => m.filter((x) => x.id !== typingId));
+      // Count ONLY newly saved fields (not already in state, non-empty, non-duplicate)
+      const newlyFilled = Object.entries(incomingState).filter(([k, v]) => {
+        if (v === "" || v === null || v === undefined) return false;
+        if (Array.isArray(v) && v.length === 0) return false;
+        const prev = (before as any)[k];
+        const wasEmpty = prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
+        return wasEmpty;
+      }).length;
+
       setMessages((m) => [
-        ...m,
+        ...m.filter((x) => x.id !== typingId),
         {
           id: uid(), role: "ai", kind: "text",
-          text: autoFilled > 0
-            ? `✨ Got it! I've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll just ask about the missing ones now.`
-            : "Thanks! I'll ask a few quick questions to complete your listing.",
+          text: newlyFilled > 0
+            ? `✨ Auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}. Just a few quick questions left.`
+            : "Got it — let me ask a couple of quick questions.",
         },
       ]);
     } catch (e: any) {
-      setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
-        ...m,
-        { id: uid(), role: "ai", kind: "text", text: "I couldn't fully read that, so I'll continue step by step from the missing details." },
+        ...m.filter((x) => x.id !== typingId),
+        { id: uid(), role: "ai", kind: "text", text: "Couldn't fully read that — let's continue step by step." },
       ]);
     } finally {
       setExtracting(false);
       setIntakeDone(true);
-      await fetchNext(merged, true);
+      // Re-use the same typing bubble for the next question fetch — no flicker
+      const nextTypingId = uid();
+      setMessages((m) => [...m, { id: nextTypingId, role: "ai", kind: "typing" }]);
+      await fetchNext(merged, true, nextTypingId);
     }
   };
 
@@ -404,18 +418,20 @@ export default function SellProperty() {
   };
 
   /* ----- Ask orchestrator for next field (ChatGPT-style re-evaluation) ----- */
-  const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
+  const fetchNext = async (currentState: Record<string, any>, isFirst = false, sharedTypingId?: string) => {
     setLoadingNext(true);
     setError(null);
 
-    const typingId = uid();
-    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    const typingId = sharedTypingId || uid();
+    if (!sharedTypingId) {
+      setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    }
 
-    // Build a compact transcript so the AI can re-evaluate the whole conversation
+    // Compact transcript — last 4 turns is enough; AI trusts current_state.
     const transcript = messages
       .filter((x) => x.kind === "text")
       .map((x: any) => ({ role: x.role, text: x.text }))
-      .slice(-20);
+      .slice(-4);
 
     try {
       const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
@@ -439,7 +455,6 @@ export default function SellProperty() {
         setState(mergedState);
       }
 
-      await new Promise((r) => setTimeout(r, 250));
       setMessages((m) => m.filter((x) => x.id !== typingId));
 
       if ((data as any).done) {
@@ -677,40 +692,58 @@ export default function SellProperty() {
       return;
     }
 
+    // ONE shared loading bubble for the entire upload + OCR + extraction + next-question flow
     const bubbleId = uid();
     setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
       if (isImage) {
-        const imageUrl = await fileToDataUrl(file);
-        const [, redacted] = await Promise.all([
-          runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
-          redactPosterFile(file),
-        ]);
-
-        const { data: { user } } = await supabase.auth.getUser();
-        let cleanUrl = "";
-        if (user) {
-          const path = `${user.id}/${Date.now()}-${redacted.name}`;
-          const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
-          if (!upErr) {
-            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
-            cleanUrl = pub.publicUrl;
-            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
-          }
-        }
-
+        // Show user's image bubble immediately so chat is not "blocked"
+        const previewUrl = URL.createObjectURL(file);
         setMessages((m) => {
-          const filtered = m.filter((x) => x.id !== bubbleId);
-          if (cleanUrl) {
-            return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
-          }
-          return filtered;
+          // insert image bubble BEFORE the typing bubble
+          const idx = m.findIndex((x) => x.id === bubbleId);
+          const imgMsg: ChatMsg = { id: uid(), role: "user", kind: "image", url: previewUrl };
+          if (idx === -1) return [...m, imgMsg];
+          return [...m.slice(0, idx), imgMsg, ...m.slice(idx)];
+        });
+
+        const imageUrl = await fileToDataUrl(file);
+
+        // Fire-and-forget: redact + upload happens in background and silently
+        // appends to media_urls when ready. It does NOT block the chat.
+        (async () => {
+          try {
+            const redacted = await redactPosterFile(file);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const path = `${user.id}/${Date.now()}-${redacted.name}`;
+            const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
+            if (upErr) return;
+            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), pub.publicUrl] }));
+          } catch {/* silent */}
+        })();
+
+        // Run extraction reusing the SAME typing bubble (no flicker, no duplicate loaders)
+        await runAiExtraction({
+          text: intakeText,
+          imageUrl,
+          appendUserText: !!intakeText.trim(),
+          sharedTypingId: bubbleId,
         });
         return;
       }
 
       // PDF / DOC / DOCX path — extract text, feed to AI silently
+      // Show file attachment bubble immediately (don't block chat)
+      setMessages((m) => {
+        const idx = m.findIndex((x) => x.id === bubbleId);
+        const fileMsg: ChatMsg = { id: uid(), role: "user", kind: "text", text: `📎 ${file.name}` };
+        if (idx === -1) return [...m, fileMsg];
+        return [...m.slice(0, idx), fileMsg, ...m.slice(idx)];
+      });
+
       let extracted = "";
       try {
         extracted = isPdf ? await extractPdfText(file) : await extractDocxText(file);
@@ -718,41 +751,34 @@ export default function SellProperty() {
         console.warn("Doc text extraction failed", err);
       }
 
-      // Show file as user attachment bubble (no extracted text exposed)
-      setMessages((m) => {
-        const filtered = m.filter((x) => x.id !== bubbleId);
-        return [
-          ...filtered,
-          { id: uid(), role: "user", kind: "text", text: `📎 ${file.name}` } as ChatMsg,
-        ];
-      });
-
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
-        await runAiExtraction({ text: combined, appendUserText: false });
+        await runAiExtraction({ text: combined, appendUserText: false, sharedTypingId: bubbleId });
         return;
       }
 
-      // Fallback: render PDF pages as images and let the vision model read them
+      // Fallback: render the FIRST PDF page as an image (single AI call, not per-page)
       if (isPdf) {
-        const pageImages = await renderPdfPagesToImages(file, 3);
+        const pageImages = await renderPdfPagesToImages(file, 1);
         if (pageImages.length > 0) {
-          for (const img of pageImages) {
-            await runAiExtraction({
-              text: intakeText || "Extract every property detail visible in this brochure page.",
-              imageUrl: img,
-              appendUserText: false,
-            });
-          }
+          await runAiExtraction({
+            text: intakeText || "Extract every property detail visible in this brochure.",
+            imageUrl: pageImages[0],
+            appendUserText: false,
+            sharedTypingId: bubbleId,
+          });
           return;
         }
       }
 
+      // Nothing extracted — clear the loader and tell the user
+      setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error("Couldn't read that file. Try a clearer PDF/document or paste the details.");
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the file");
     }
+
   };
 
   /* ----- Final submit ----- */
