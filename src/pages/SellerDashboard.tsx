@@ -83,6 +83,17 @@ export default function SellerDashboard() {
 
   useEffect(() => { init(); }, []);
 
+  // Realtime: refresh when agent_tasks or own properties change
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel(`seller-dash-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "agent_tasks" }, () => fetchProperties(user.id))
+      .on("postgres_changes", { event: "*", schema: "public", table: "properties", filter: `submitted_by=eq.${user.id}` }, () => fetchProperties(user.id))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id]);
+
   const init = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
