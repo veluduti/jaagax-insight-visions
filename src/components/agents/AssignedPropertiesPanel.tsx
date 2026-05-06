@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import PropertyChat from "@/components/chat/PropertyChat";
 import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
+import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 
 interface AssignedTask {
   // task
