@@ -418,18 +418,20 @@ export default function SellProperty() {
   };
 
   /* ----- Ask orchestrator for next field (ChatGPT-style re-evaluation) ----- */
-  const fetchNext = async (currentState: Record<string, any>, isFirst = false) => {
+  const fetchNext = async (currentState: Record<string, any>, isFirst = false, sharedTypingId?: string) => {
     setLoadingNext(true);
     setError(null);
 
-    const typingId = uid();
-    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    const typingId = sharedTypingId || uid();
+    if (!sharedTypingId) {
+      setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    }
 
-    // Build a compact transcript so the AI can re-evaluate the whole conversation
+    // Compact transcript — last 4 turns is enough; AI trusts current_state.
     const transcript = messages
       .filter((x) => x.kind === "text")
       .map((x: any) => ({ role: x.role, text: x.text }))
-      .slice(-20);
+      .slice(-4);
 
     try {
       const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
@@ -453,7 +455,6 @@ export default function SellProperty() {
         setState(mergedState);
       }
 
-      await new Promise((r) => setTimeout(r, 250));
       setMessages((m) => m.filter((x) => x.id !== typingId));
 
       if ((data as any).done) {
