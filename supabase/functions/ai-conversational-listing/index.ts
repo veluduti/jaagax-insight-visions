@@ -106,7 +106,7 @@ async function aiTurn(args: {
     missing_required_field_ids_in_order: args.missingFieldIds,
     deterministic_next_field_id: args.candidateField?.id || null,
     field_catalog: fieldCatalog,
-    transcript: args.transcript.slice(-20),
+    transcript: args.transcript.slice(-4),
   };
 
   try {
