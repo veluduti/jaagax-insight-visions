@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,26 +121,36 @@ export default function SellerDashboard() {
     }
     // Fetch any agent_tasks scheduled for these properties
     const propIds = props.map((p) => p.id);
-    const taskMap: Record<string, string> = {};
+    const taskMap: Record<string, { scheduled_visit_at: string | null }> = {};
     if (propIds.length) {
       const { data: tasks } = await supabase
         .from("agent_tasks" as any)
-        .select("property_id, metadata, updated_at")
+        .select("property_id, status, metadata, updated_at")
         .in("property_id", propIds)
         .order("updated_at", { ascending: false });
       (tasks || []).forEach((t: any) => {
+        if (!t?.property_id || taskMap[t.property_id]) return;
+        taskMap[t.property_id] = {
+          scheduled_visit_at: typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
+        };
+      });
+      (tasks || []).forEach((t: any) => {
         const sched = t?.metadata?.scheduled_visit_at;
-        if (sched && t.property_id && !taskMap[t.property_id]) {
-          taskMap[t.property_id] = sched;
-        }
+        if (!t?.property_id || !sched || taskMap[t.property_id]?.scheduled_visit_at) return;
+        taskMap[t.property_id] = { scheduled_visit_at: sched };
       });
     }
     setProperties(props.map((p) => ({
       ...p,
       assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
-      scheduled_visit_at: taskMap[p.id] || null,
+      scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
     })));
   };
+
+  const propertiesWithScheduledVisits = useMemo(
+    () => properties.filter((p) => Boolean(p.scheduled_visit_at)),
+    [properties],
+  );
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -621,6 +631,31 @@ export default function SellerDashboard() {
             </Card>
           </motion.div>
         </div>
+
+        {propertiesWithScheduledVisits.length > 0 && (
+          <Card className="border-2 border-blue-500/20 bg-blue-500/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="h-5 w-5 text-blue-500" />
+                Scheduled Visits
+              </CardTitle>
+              <CardDescription>Your assigned agent visit times are shown here as soon as they are scheduled.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {propertiesWithScheduledVisits.slice(0, 3).map((p) => (
+                <div key={p.id} className="flex flex-col gap-1 rounded-lg border border-blue-500/20 bg-background/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium">{p.title}</p>
+                    <p className="text-xs text-muted-foreground">{p.locality}, {p.city}</p>
+                  </div>
+                  <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {new Date(p.scheduled_visit_at as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Listings tabs */}
         <Card className="border-2">

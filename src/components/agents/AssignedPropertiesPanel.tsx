@@ -46,6 +46,28 @@ interface AssignedTask {
   owner_email?: string | null;
   owner_phone?: string | null;
   owner_name?: string | null;
+  bhk?: number | null;
+  listing_type?: string | null;
+  listed_by?: string | null;
+  rera_id?: string | null;
+  rera_document_url?: string | null;
+  pincode?: string | null;
+  furnishing?: string | null;
+  property_age?: string | null;
+  completion_stage?: string | null;
+  balconies?: number | null;
+  floor_number?: number | null;
+  total_floors?: number | null;
+  building_area_sqft?: number | null;
+  total_parking?: number | null;
+  maintenance_charges?: number | null;
+  booking_amount?: number | null;
+  price_negotiable?: boolean | null;
+  amenities?: any;
+  video_urls?: any;
+  agent_data?: any;
+  field_verification?: any;
+  original_snapshot?: any;
 }
 
 interface Props {
@@ -74,6 +96,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [editAgentNotes, setEditAgentNotes] = useState("");
   const [submittingVerify, setSubmittingVerify] = useState(false);
   const [editFullTarget, setEditFullTarget] = useState<AssignedTask | null>(null);
+  const [fullTargetLoadingId, setFullTargetLoadingId] = useState<string | null>(null);
 
   useEffect(() => { load(); }, [agentId]);
 
@@ -238,6 +261,36 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setEditDescription(t.description || "");
     setEditImages(Array.isArray(t.images) ? t.images.join("\n") : "");
     setEditAgentNotes(t.agent_notes || "");
+  };
+
+  const openFullVerificationForm = async (task: AssignedTask) => {
+    setFullTargetLoadingId(task.id);
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
+        .eq("id", task.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error("Property details were not found.");
+
+      setEditFullTarget({
+        ...task,
+        ...data,
+        owner_name: task.owner_name,
+        owner_email: task.owner_email,
+        owner_phone: task.owner_phone,
+        task_id: task.task_id,
+        task_status: task.task_status,
+        scheduled_visit_at: task.scheduled_visit_at,
+      });
+    } catch (error: any) {
+      console.error("Error loading full property form:", error);
+      toast.error(error?.message || "Could not open the verification form.");
+    } finally {
+      setFullTargetLoadingId(null);
+    }
   };
 
   const submitVerification = async () => {
@@ -475,12 +528,14 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     <Button
                       size="sm"
                       className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => setEditFullTarget(p)}
-                      disabled={p.verification_status === "agent_verified_pending"}
+                      onClick={() => void openFullVerificationForm(p)}
+                      disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
                       title="Open full sectioned form to verify, correct, and add fields"
                     >
                       <FileCheck2 className="h-3 w-3 mr-1" />
-                      {p.verification_status === "agent_verified_pending"
+                      {fullTargetLoadingId === p.id
+                        ? "Opening form..."
+                        : p.verification_status === "agent_verified_pending"
                         ? "Submitted for Approval"
                         : "Edit Property & Submit Verification"}
                     </Button>
