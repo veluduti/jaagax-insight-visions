@@ -362,8 +362,8 @@ export default function SellerDashboard() {
       : null;
 
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }}>
-        <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} className="h-full">
+        <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group h-full flex flex-col">
           <div className="relative h-44 overflow-hidden">
             {img ? (
               <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -409,7 +409,7 @@ export default function SellerDashboard() {
               </div>
             )}
           </div>
-          <CardContent className="p-4 space-y-3">
+          <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
             <div className="flex items-center justify-between">
               <p className="text-xl font-bold text-emerald-500">{formatPrice(p.price)}</p>
               <span className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
@@ -510,7 +510,7 @@ export default function SellerDashboard() {
                 This listing expired. Renew to send it back for admin re-approval.
               </div>
             )}
-            <div className="flex gap-2 pt-1 flex-wrap">
+            <div className="flex gap-2 pt-1 flex-wrap mt-auto">
               <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => setViewTarget(p)}>
                 <Eye className="h-3 w-3 mr-1" />View Details
               </Button>
