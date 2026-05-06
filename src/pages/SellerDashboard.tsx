@@ -426,6 +426,12 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
+                {p.scheduled_visit_at && (
+                  <div className="mt-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/30 text-[11px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Visit scheduled: {new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </div>
+                )}
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
