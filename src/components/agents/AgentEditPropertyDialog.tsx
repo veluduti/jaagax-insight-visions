@@ -213,9 +213,28 @@ const normalize = (v: any): string => {
   return String(v).toLowerCase().trim();
 };
 
+const safeObject = (value: any) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value;
+};
+
+const previewValue = (value: any) => {
+  if (value == null || value === "") return "—";
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "—";
+    }
+  }
+  return String(value);
+};
+
 export default function AgentEditPropertyDialog({
   open, onOpenChange, property, agentName, agentId, agentUserId, onSubmitted,
 }: Props) {
+  const safeProperty = safeObject(property);
   const [agentData, setAgentData] = useState<any>({});
   const [verification, setVerification] = useState<Record<string, FieldEntry>>({});
   const [agentNotes, setAgentNotes] = useState("");
@@ -225,20 +244,20 @@ export default function AgentEditPropertyDialog({
   // Build seller value lookup once per property
   const sellerValueFor = useMemo(() => {
     return (path?: string) => {
-      if (!path || !property) return undefined;
+      if (!path || !safeProperty) return undefined;
       // Special: images is array → join with newlines for textarea
-      const v = get(property, path);
+      const v = get(safeProperty, path);
       if (path === "images" && Array.isArray(v)) return v.join("\n");
       if (path === "amenities" && Array.isArray(v)) return v.join(", ");
       return v;
     };
-  }, [property]);
+  }, [safeProperty]);
 
   // Pre-fill on open
   useEffect(() => {
     if (!open || !property) return;
     // Use existing agent_data if present, otherwise pre-fill from seller
-    const existing = property.agent_data || {};
+    const existing = safeObject(safeProperty.agent_data);
     let next: any = { ...existing };
 
     SECTIONS.forEach((sec) => {
@@ -254,9 +273,9 @@ export default function AgentEditPropertyDialog({
     });
 
     setAgentData(next);
-    setVerification(property.field_verification || {});
-    setAgentNotes(property.agent_notes || "");
-  }, [open, property, sellerValueFor]);
+    setVerification(safeObject(safeProperty.field_verification));
+    setAgentNotes(typeof safeProperty.agent_notes === "string" ? safeProperty.agent_notes : "");
+  }, [open, property, safeProperty, sellerValueFor]);
 
   if (!property) return null;
 
@@ -328,7 +347,7 @@ export default function AgentEditPropertyDialog({
 
         {hasSellerData && (
           <div className="text-[10px] text-muted-foreground mb-1.5">
-            Seller said: <span className="font-mono">{String(sellerVal).slice(0, 80)}{String(sellerVal).length > 80 ? "…" : ""}</span>
+            Seller said: <span className="font-mono">{previewValue(sellerVal).slice(0, 80)}{previewValue(sellerVal).length > 80 ? "…" : ""}</span>
           </div>
         )}
 
