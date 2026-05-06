@@ -181,12 +181,20 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card>
+            <Card
+              className="cursor-pointer hover:shadow-lg hover:border-orange-500/60 transition-all"
+              onClick={() => {
+                const t = document.querySelector('[data-state][value="verification"]') as HTMLElement | null;
+                t?.click();
+                document.getElementById("admin-verifications")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Pending</p>
+                    <p className="text-sm text-muted-foreground">Agent → Admin Pending</p>
                     <p className="text-2xl font-bold">{stats.verificationsPending}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Click to review</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-orange-500" />
                 </div>
