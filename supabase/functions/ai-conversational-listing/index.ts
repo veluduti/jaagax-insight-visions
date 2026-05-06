@@ -124,7 +124,7 @@ async function aiTurn(args: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4.1-mini",
+        model: "openai/gpt-5-mini",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: JSON.stringify(userPayload) },
