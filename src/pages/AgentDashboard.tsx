@@ -313,11 +313,8 @@ export default function AgentDashboard() {
     }
   };
 
-
+  const fetchAgentProperties = async (userId: string, agentId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("properties").select("*")
-        .or(`submitted_by.eq.${userId},builder_id.eq.${agentId}`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
