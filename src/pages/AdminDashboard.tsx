@@ -365,8 +365,6 @@ export default function AdminDashboard() {
             <DataImportPanel />
             <DatabaseCleanup />
             <FakeListingManager />
-            <AgentVerifiedReviewPanel />
-            <VerificationPanel />
           </TabsContent>
 
           {/* Events Moderation */}
