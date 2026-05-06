@@ -142,6 +142,7 @@ export default function AgentDashboard() {
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [visits, setVisits] = useState<VisitBooking[]>([]);
+  const [assignedTasks, setAssignedTasks] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [initializing, setInitializing] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
