@@ -132,7 +132,19 @@ async function aiTurn(args: {
                   clarification: {
                     type: "boolean",
                     description:
-                      "True if you're asking a clarifying question due to conflict/ambiguity instead of advancing.",
+                      "True if you're asking a clarifying question (correction, ambiguity, locality/village/name re-ask) instead of advancing the deterministic flow.",
+                  },
+                  clarification_input: {
+                    type: "string",
+                    enum: ["text", "textarea", "number", "single", "multi", "yesno"],
+                    description:
+                      "Input mode that matches your next_question semantics. Use 'text' for locality/village/names/free answers, 'number' for price/area/road-width/counts, 'single'/'multi'/'yesno' only when offering predefined choices. REQUIRED when clarification=true.",
+                  },
+                  clarification_options: {
+                    type: "array",
+                    items: { type: "string" },
+                    description:
+                      "Choices to render as chips, only when clarification_input is 'single' or 'multi'. Omit otherwise.",
                   },
                   done: {
                     type: "boolean",
