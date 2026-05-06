@@ -632,6 +632,31 @@ export default function SellerDashboard() {
           </motion.div>
         </div>
 
+        {propertiesWithScheduledVisits.length > 0 && (
+          <Card className="border-2 border-blue-500/20 bg-blue-500/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="h-5 w-5 text-blue-500" />
+                Scheduled Visits
+              </CardTitle>
+              <CardDescription>Your assigned agent visit times are shown here as soon as they are scheduled.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {propertiesWithScheduledVisits.slice(0, 3).map((p) => (
+                <div key={p.id} className="flex flex-col gap-1 rounded-lg border border-blue-500/20 bg-background/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium">{p.title}</p>
+                    <p className="text-xs text-muted-foreground">{p.locality}, {p.city}</p>
+                  </div>
+                  <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {new Date(p.scheduled_visit_at as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Listings tabs */}
         <Card className="border-2">
           <CardHeader>
