@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Home, BarChart, LogOut, Eye, MessageSquare, TrendingUp, IndianRupee,
   Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw,
-  Phone, Mail,
+  Phone, Mail, CalendarDays, UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -60,14 +60,34 @@ interface Property {
   featured_until?: string | null;
   assigned_agent?: AssignedAgent | null;
   scheduled_visit_at?: string | null;
+  task_status?: string | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "Pending Approval", color: "bg-amber-500", icon: Clock },
+  under_review: { label: "Under Review", color: "bg-amber-500", icon: Clock },
+  agent_assigned: { label: "Agent Assigned", color: "bg-sky-500", icon: UserCheck },
+  agent_verified_pending: { label: "Awaiting Final Approval", color: "bg-blue-500", icon: CheckCircle2 },
   approved: { label: "Live", color: "bg-emerald-500", icon: CheckCircle2 },
   rejected: { label: "Rejected", color: "bg-rose-500", icon: XCircle },
   draft: { label: "Draft", color: "bg-slate-500", icon: Edit },
   expired: { label: "Expired", color: "bg-zinc-500", icon: Clock },
+};
+
+const getDisplayStatus = (p: Property) => {
+  if (p.is_draft) return "draft";
+  if (p.verification_status === "approved" && p.is_live) return "approved";
+  if (p.verification_status === "rejected") return "rejected";
+  if (p.verification_status === "expired") return "expired";
+  if (p.verification_status && STATUS_META[p.verification_status]) return p.verification_status;
+  return "pending";
+};
+
+const getTaskPriority = (task: any) => {
+  const hasSchedule = typeof task?.metadata?.scheduled_visit_at === "string" ? 100 : 0;
+  const statusWeight = task?.status === "in_progress" ? 30 : task?.status === "completed" ? 20 : task?.status === "assigned" ? 10 : 0;
+  const updatedWeight = task?.updated_at ? new Date(task.updated_at).getTime() / 1e13 : 0;
+  return hasSchedule + statusWeight + updatedWeight;
 };
 
 export default function SellerDashboard() {
@@ -121,7 +141,7 @@ export default function SellerDashboard() {
     }
     // Fetch any agent_tasks scheduled for these properties
     const propIds = props.map((p) => p.id);
-    const taskMap: Record<string, { scheduled_visit_at: string | null }> = {};
+    const taskMap: Record<string, { scheduled_visit_at: string | null; task_status: string | null }> = {};
     if (propIds.length) {
       const { data: tasks } = await supabase
         .from("agent_tasks" as any)
@@ -129,21 +149,22 @@ export default function SellerDashboard() {
         .in("property_id", propIds)
         .order("updated_at", { ascending: false });
       (tasks || []).forEach((t: any) => {
-        if (!t?.property_id || taskMap[t.property_id]) return;
-        taskMap[t.property_id] = {
+        if (!t?.property_id) return;
+        const next = {
           scheduled_visit_at: typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
+          task_status: t?.status || null,
         };
-      });
-      (tasks || []).forEach((t: any) => {
-        const sched = t?.metadata?.scheduled_visit_at;
-        if (!t?.property_id || !sched || taskMap[t.property_id]?.scheduled_visit_at) return;
-        taskMap[t.property_id] = { scheduled_visit_at: sched };
+        const existing = taskMap[t.property_id];
+        if (!existing || getTaskPriority(t) > getTaskPriority({ status: existing.task_status, metadata: { scheduled_visit_at: existing.scheduled_visit_at } })) {
+          taskMap[t.property_id] = next;
+        }
       });
     }
     setProperties(props.map((p) => ({
       ...p,
       assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
       scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
+      task_status: taskMap[p.id]?.task_status || null,
     })));
   };
 
@@ -331,15 +352,18 @@ export default function SellerDashboard() {
   };
 
   const PropertyCard = ({ p }: { p: Property }) => {
-    const status = p.is_draft ? "draft" : (p.verification_status || "pending");
+    const status = getDisplayStatus(p);
     const meta = STATUS_META[status] || STATUS_META.pending;
     const StatusIcon = meta.icon;
     const hasImage = Array.isArray(p.images) && p.images.length > 0 && !!p.images[0];
     const img = hasImage ? p.images[0] : null;
+    const scheduledVisitLabel = p.scheduled_visit_at
+      ? new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+      : null;
 
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }}>
-        <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} className="h-full">
+        <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group h-full flex flex-col">
           <div className="relative h-44 overflow-hidden">
             {img ? (
               <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -385,7 +409,7 @@ export default function SellerDashboard() {
               </div>
             )}
           </div>
-          <CardContent className="p-4 space-y-3">
+          <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
             <div className="flex items-center justify-between">
               <p className="text-xl font-bold text-emerald-500">{formatPrice(p.price)}</p>
               <span className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
@@ -395,6 +419,20 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
+            {scheduledVisitLabel && (
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
+                <div className="flex items-start gap-2">
+                  <CalendarDays className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400">Agent Visit Scheduled</p>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">{scheduledVisitLabel}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {p.task_status === "completed" ? "Visit completed by agent." : "Your assigned agent has scheduled the property visit."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             {!p.is_draft && <PropertyTimeline p={p} />}
             {status === "rejected" && (
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
@@ -455,12 +493,6 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
-                {p.scheduled_visit_at && (
-                  <div className="mt-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/30 text-[11px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    Visit scheduled: {new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                  </div>
-                )}
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
@@ -478,7 +510,7 @@ export default function SellerDashboard() {
                 This listing expired. Renew to send it back for admin re-approval.
               </div>
             )}
-            <div className="flex gap-2 pt-1 flex-wrap">
+            <div className="flex gap-2 pt-1 flex-wrap mt-auto">
               <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => setViewTarget(p)}>
                 <Eye className="h-3 w-3 mr-1" />View Details
               </Button>

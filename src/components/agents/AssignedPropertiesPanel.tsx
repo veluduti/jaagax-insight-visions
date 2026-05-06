@@ -671,21 +671,24 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
         </DialogContent>
       </Dialog>
 
-      <SectionErrorBoundary
-        title="Edit Property"
-        description="The form encountered an issue. Try again or refresh."
-        resetKey={editFullTarget?.id || "none"}
-      >
-        <AgentEditPropertyDialog
-          open={!!editFullTarget}
-          onOpenChange={(o) => !o && setEditFullTarget(null)}
-          property={editFullTarget}
-          agentName={agentName}
-          agentId={agentId}
-          agentUserId={agentUserId}
-          onSubmitted={load}
-        />
-      </SectionErrorBoundary>
+      {editFullTarget && (
+        <SectionErrorBoundary
+          title="Edit Property"
+          description="The form encountered an issue. Try again or refresh."
+          resetKey={editFullTarget.id}
+        >
+          <AgentEditPropertyDialog
+            key={editFullTarget.id}
+            open={!!editFullTarget}
+            onOpenChange={(o) => !o && setEditFullTarget(null)}
+            property={editFullTarget}
+            agentName={agentName}
+            agentId={agentId}
+            agentUserId={agentUserId}
+            onSubmitted={load}
+          />
+        </SectionErrorBoundary>
+      )}
     </Card>
   );
 }
