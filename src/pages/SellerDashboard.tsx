@@ -59,6 +59,7 @@ interface Property {
   is_featured?: boolean | null;
   featured_until?: string | null;
   assigned_agent?: AssignedAgent | null;
+  scheduled_visit_at?: string | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
@@ -107,7 +108,27 @@ export default function SellerDashboard() {
         .in("id", agentIds);
       (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
     }
-    setProperties(props.map((p) => ({ ...p, assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null })));
+    // Fetch any agent_tasks scheduled for these properties
+    const propIds = props.map((p) => p.id);
+    const taskMap: Record<string, string> = {};
+    if (propIds.length) {
+      const { data: tasks } = await supabase
+        .from("agent_tasks" as any)
+        .select("property_id, metadata, updated_at")
+        .in("property_id", propIds)
+        .order("updated_at", { ascending: false });
+      (tasks || []).forEach((t: any) => {
+        const sched = t?.metadata?.scheduled_visit_at;
+        if (sched && t.property_id && !taskMap[t.property_id]) {
+          taskMap[t.property_id] = sched;
+        }
+      });
+    }
+    setProperties(props.map((p) => ({
+      ...p,
+      assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
+      scheduled_visit_at: taskMap[p.id] || null,
+    })));
   };
 
   const handleSignOut = async () => {
