@@ -60,20 +60,22 @@ export default function AdminDashboard() {
       { count: projectsCount },
       { count: agentsCount },
       { count: pendingVisitsCount },
-      { count: pendingSignupsCount }
+      { count: pendingSignupsCount },
+      { count: agentVerifiedPendingCount },
     ] = await Promise.all([
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
       supabase.from("agents").select("*", { count: 'exact', head: true }),
       supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending"),
-      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending")
+      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending"),
+      supabase.from("properties").select("*", { count: 'exact', head: true }).eq("verification_status", "agent_verified_pending"),
     ]);
 
     setStats({
       totalUsers: 0,
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
-      verificationsPending: 0,
+      verificationsPending: agentVerifiedPendingCount || 0,
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
       pendingSignups: pendingSignupsCount || 0,
@@ -179,12 +181,20 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card>
+            <Card
+              className="cursor-pointer hover:shadow-lg hover:border-orange-500/60 transition-all"
+              onClick={() => {
+                const t = document.querySelector('[data-state][value="verification"]') as HTMLElement | null;
+                t?.click();
+                document.getElementById("admin-verifications")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Pending</p>
+                    <p className="text-sm text-muted-foreground">Agent → Admin Pending</p>
                     <p className="text-2xl font-bold">{stats.verificationsPending}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Click to review</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-orange-500" />
                 </div>
@@ -228,7 +238,12 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">Registered Users</TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
-            <TabsTrigger value="verification">Verifications</TabsTrigger>
+            <TabsTrigger value="verification" className="relative">
+              Verifications
+              {stats.verificationsPending > 0 && (
+                <Badge className="ml-1.5 h-4 px-1.5 text-[10px] bg-orange-500">{stats.verificationsPending}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             <TabsTrigger value="trust">Trust Engine</TabsTrigger>
@@ -341,15 +356,15 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Verifications */}
-          <TabsContent value="verification" className="space-y-6">
+          <TabsContent value="verification" id="admin-verifications" className="space-y-6 scroll-mt-24">
+            <AgentVerifiedReviewPanel />
+            <VerificationPanel />
             <FetchCommunityEvents />
             <LeadsCRMPanel />
             <EnrichProjectsPanel />
             <DataImportPanel />
             <DatabaseCleanup />
             <FakeListingManager />
-            <AgentVerifiedReviewPanel />
-            <VerificationPanel />
           </TabsContent>
 
           {/* Events Moderation */}
