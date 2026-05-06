@@ -99,14 +99,11 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
       (at || []).forEach((t: any) => { taskMap[t.property_id] = t; });
     }
 
-    // Owners
+    // Owners — use RPC that falls back to auth.users when signup_requests row is missing
     const ownerIds = Array.from(new Set(list.map((p) => p.submitted_by).filter(Boolean))) as string[];
     const ownersMap: Record<string, { name?: string; email?: string; phone?: string }> = {};
     if (ownerIds.length) {
-      const { data: owners } = await supabase
-        .from("signup_requests" as any)
-        .select("user_id, full_name, email, phone")
-        .in("user_id", ownerIds);
+      const { data: owners } = await (supabase as any).rpc("get_seller_contacts", { _user_ids: ownerIds });
       (owners || []).forEach((o: any) => {
         ownersMap[o.user_id] = { name: o.full_name, email: o.email, phone: o.phone };
       });

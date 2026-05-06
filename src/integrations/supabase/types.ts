@@ -2377,6 +2377,15 @@ export type Database = {
           status: string
         }[]
       }
+      get_seller_contacts: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          email: string
+          full_name: string
+          phone: string
+          user_id: string
+        }[]
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       mark_property_featured: {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
