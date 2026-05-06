@@ -324,10 +324,13 @@ export default function SellProperty() {
     text,
     imageUrl,
     appendUserText = true,
+    sharedTypingId,
   }: {
     text?: string;
     imageUrl?: string;
     appendUserText?: boolean;
+    /** When provided, reuse this single typing bubble — don't create or remove our own. */
+    sharedTypingId?: string;
   }) => {
     const trimmedText = text?.trim() || "";
     if (!trimmedText && !imageUrl) {
@@ -342,51 +345,62 @@ export default function SellProperty() {
     if (trimmedText) setIntakeText("");
     setExtracting(true);
 
-    const typingId = uid();
-    setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    // Single loading bubble for the whole upload+OCR+extract+next-question flow
+    const typingId = sharedTypingId || uid();
+    if (!sharedTypingId) {
+      setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+    }
 
+    // Track which fields were newly detected (current_state is single source of truth — only count NEW ones)
+    const before = state;
     let merged: Record<string, any> = { ...state };
     try {
       const { data, error } = await supabase.functions.invoke<{
         extracted: Record<string, any>;
         listing_state: Record<string, any>;
       }>("ai-extract-property", {
-        body: {
-          text: trimmedText,
-          image_url: imageUrl,
-        },
+        body: { text: trimmedText, image_url: imageUrl },
       });
       if (error) throw error;
 
-      merged = { ...state, ...normalizeListingState(data?.listing_state || {}) };
+      const incomingState = normalizeListingState(data?.listing_state || {});
+      merged = { ...before, ...incomingState };
       setState(merged);
 
       const ext = data?.extracted || {};
-      const autoFilled = Object.keys(data?.listing_state || {}).length;
-      // Capture poster-detected title silently for title suggestions later
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
-      setMessages((m) => m.filter((x) => x.id !== typingId));
+      // Count ONLY newly saved fields (not already in state, non-empty, non-duplicate)
+      const newlyFilled = Object.entries(incomingState).filter(([k, v]) => {
+        if (v === "" || v === null || v === undefined) return false;
+        if (Array.isArray(v) && v.length === 0) return false;
+        const prev = (before as any)[k];
+        const wasEmpty = prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
+        return wasEmpty;
+      }).length;
+
       setMessages((m) => [
-        ...m,
+        ...m.filter((x) => x.id !== typingId),
         {
           id: uid(), role: "ai", kind: "text",
-          text: autoFilled > 0
-            ? `✨ Got it! I've auto-filled ${autoFilled} detail${autoFilled === 1 ? "" : "s"}. I'll just ask about the missing ones now.`
-            : "Thanks! I'll ask a few quick questions to complete your listing.",
+          text: newlyFilled > 0
+            ? `✨ Auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}. Just a few quick questions left.`
+            : "Got it — let me ask a couple of quick questions.",
         },
       ]);
     } catch (e: any) {
-      setMessages((m) => m.filter((x) => x.id !== typingId));
       setMessages((m) => [
-        ...m,
-        { id: uid(), role: "ai", kind: "text", text: "I couldn't fully read that, so I'll continue step by step from the missing details." },
+        ...m.filter((x) => x.id !== typingId),
+        { id: uid(), role: "ai", kind: "text", text: "Couldn't fully read that — let's continue step by step." },
       ]);
     } finally {
       setExtracting(false);
       setIntakeDone(true);
-      await fetchNext(merged, true);
+      // Re-use the same typing bubble for the next question fetch — no flicker
+      const nextTypingId = uid();
+      setMessages((m) => [...m, { id: nextTypingId, role: "ai", kind: "typing" }]);
+      await fetchNext(merged, true, nextTypingId);
     }
   };
 
