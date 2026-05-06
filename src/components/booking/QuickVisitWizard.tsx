@@ -164,14 +164,14 @@ export const QuickVisitWizard = ({
       toast.error("Please choose a property to visit");
       return;
     }
-    // Buyer-only guard
+    // Allow buyers and agents (agents can book quick visits on behalf of buyers / for self-tours)
     const { data: roleRows } = await supabase
       .from("user_roles").select("role").eq("user_id", user.id);
     const roles = (roleRows || []).map((r: any) => r.role);
-    const nonBuyerRole = roles.find((r: string) => r && r !== "customer" && r !== "buyer");
-    if (nonBuyerRole) {
-      toast.error("Only buyers can book a Quick Visit", {
-        description: `Your account role is "${nonBuyerRole}". Please use a buyer account.`,
+    const blockedRole = roles.find((r: string) => r === "builder" || r === "hotel_manager");
+    if (blockedRole) {
+      toast.error("This account type can't book a Quick Visit", {
+        description: `Your account role is "${blockedRole}".`,
       });
       return;
     }

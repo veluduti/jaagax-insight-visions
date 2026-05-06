@@ -59,6 +59,7 @@ interface Property {
   is_featured?: boolean | null;
   featured_until?: string | null;
   assigned_agent?: AssignedAgent | null;
+  scheduled_visit_at?: string | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
@@ -81,6 +82,17 @@ export default function SellerDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => { init(); }, []);
+
+  // Realtime: refresh when agent_tasks or own properties change
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel(`seller-dash-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "agent_tasks" }, () => fetchProperties(user.id))
+      .on("postgres_changes", { event: "*", schema: "public", table: "properties", filter: `submitted_by=eq.${user.id}` }, () => fetchProperties(user.id))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id]);
 
   const init = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -107,7 +119,27 @@ export default function SellerDashboard() {
         .in("id", agentIds);
       (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
     }
-    setProperties(props.map((p) => ({ ...p, assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null })));
+    // Fetch any agent_tasks scheduled for these properties
+    const propIds = props.map((p) => p.id);
+    const taskMap: Record<string, string> = {};
+    if (propIds.length) {
+      const { data: tasks } = await supabase
+        .from("agent_tasks" as any)
+        .select("property_id, metadata, updated_at")
+        .in("property_id", propIds)
+        .order("updated_at", { ascending: false });
+      (tasks || []).forEach((t: any) => {
+        const sched = t?.metadata?.scheduled_visit_at;
+        if (sched && t.property_id && !taskMap[t.property_id]) {
+          taskMap[t.property_id] = sched;
+        }
+      });
+    }
+    setProperties(props.map((p) => ({
+      ...p,
+      assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
+      scheduled_visit_at: taskMap[p.id] || null,
+    })));
   };
 
   const handleSignOut = async () => {
@@ -186,7 +218,7 @@ export default function SellerDashboard() {
   const counts = {
     all: properties.length,
     pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
-    approved: properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired").length,
+    approved: properties.filter(p => p.verification_status === "approved" && p.is_live === true).length,
     rejected: properties.filter(p => p.verification_status === "rejected").length,
     draft: properties.filter(p => p.is_draft).length,
     expired: properties.filter(p => p.verification_status === "expired").length,
@@ -304,7 +336,7 @@ export default function SellerDashboard() {
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
-            {p.is_live && (
+            {p.is_live && p.verification_status === "approved" && (
               <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -405,6 +437,12 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
+                {p.scheduled_visit_at && (
+                  <div className="mt-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/30 text-[11px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Visit scheduled: {new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                  </div>
+                )}
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
@@ -472,7 +510,7 @@ export default function SellerDashboard() {
 
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
-    if (s === "approved") return properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired");
+    if (s === "approved") return properties.filter(p => p.verification_status === "approved" && p.is_live === true);
     if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
