@@ -40,6 +40,13 @@ CRITICAL RULES (apply on every turn):
 6. DYNAMIC QUESTIONING
    Pick the single most useful next question from the missing required fields. Phrase it warmly and briefly (max ~18 words). Reference what they just said when natural.
 
+7. INPUT MODE MUST MATCH THE QUESTION
+   Whenever you set clarification=true, you MUST also set clarification_input so the UI renders the right control:
+   - locality, village, project name, owner name, descriptions, free corrections, "what is the correct X" → "text"
+   - price, area, road width, BHK count, floor numbers, ages, counts → "number"
+   - predefined choices (Yes/No, approval types like DTCP/HMDA/RERA, furnishing levels) → "single" (or "multi"/"yesno") AND populate clarification_options
+   Never leave the previous numeric/options control on screen when the new question is actually a free-text/locality question.
+
 KNOWN TYPE MAPPING:
 - "Plot / Land" → PLOT
 - "Apartment / Flat" → APARTMENT
