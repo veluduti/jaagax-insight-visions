@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Home, BarChart, LogOut, Eye, MessageSquare, TrendingUp, IndianRupee,
   Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw,
-  Phone, Mail,
+  Phone, Mail, CalendarDays, UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -60,14 +60,34 @@ interface Property {
   featured_until?: string | null;
   assigned_agent?: AssignedAgent | null;
   scheduled_visit_at?: string | null;
+  task_status?: string | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "Pending Approval", color: "bg-amber-500", icon: Clock },
+  under_review: { label: "Under Review", color: "bg-amber-500", icon: Clock },
+  agent_assigned: { label: "Agent Assigned", color: "bg-sky-500", icon: UserCheck },
+  agent_verified_pending: { label: "Awaiting Final Approval", color: "bg-blue-500", icon: CheckCircle2 },
   approved: { label: "Live", color: "bg-emerald-500", icon: CheckCircle2 },
   rejected: { label: "Rejected", color: "bg-rose-500", icon: XCircle },
   draft: { label: "Draft", color: "bg-slate-500", icon: Edit },
   expired: { label: "Expired", color: "bg-zinc-500", icon: Clock },
+};
+
+const getDisplayStatus = (p: Property) => {
+  if (p.is_draft) return "draft";
+  if (p.verification_status === "approved" && p.is_live) return "approved";
+  if (p.verification_status === "rejected") return "rejected";
+  if (p.verification_status === "expired") return "expired";
+  if (p.verification_status && STATUS_META[p.verification_status]) return p.verification_status;
+  return "pending";
+};
+
+const getTaskPriority = (task: any) => {
+  const hasSchedule = typeof task?.metadata?.scheduled_visit_at === "string" ? 100 : 0;
+  const statusWeight = task?.status === "in_progress" ? 30 : task?.status === "completed" ? 20 : task?.status === "assigned" ? 10 : 0;
+  const updatedWeight = task?.updated_at ? new Date(task.updated_at).getTime() / 1e13 : 0;
+  return hasSchedule + statusWeight + updatedWeight;
 };
 
 export default function SellerDashboard() {
@@ -121,7 +141,7 @@ export default function SellerDashboard() {
     }
     // Fetch any agent_tasks scheduled for these properties
     const propIds = props.map((p) => p.id);
-    const taskMap: Record<string, { scheduled_visit_at: string | null }> = {};
+    const taskMap: Record<string, { scheduled_visit_at: string | null; task_status: string | null }> = {};
     if (propIds.length) {
       const { data: tasks } = await supabase
         .from("agent_tasks" as any)
@@ -129,21 +149,22 @@ export default function SellerDashboard() {
         .in("property_id", propIds)
         .order("updated_at", { ascending: false });
       (tasks || []).forEach((t: any) => {
-        if (!t?.property_id || taskMap[t.property_id]) return;
-        taskMap[t.property_id] = {
+        if (!t?.property_id) return;
+        const next = {
           scheduled_visit_at: typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
+          task_status: t?.status || null,
         };
-      });
-      (tasks || []).forEach((t: any) => {
-        const sched = t?.metadata?.scheduled_visit_at;
-        if (!t?.property_id || !sched || taskMap[t.property_id]?.scheduled_visit_at) return;
-        taskMap[t.property_id] = { scheduled_visit_at: sched };
+        const existing = taskMap[t.property_id];
+        if (!existing || getTaskPriority(t) > getTaskPriority({ status: existing.task_status, metadata: { scheduled_visit_at: existing.scheduled_visit_at } })) {
+          taskMap[t.property_id] = next;
+        }
       });
     }
     setProperties(props.map((p) => ({
       ...p,
       assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
       scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
+      task_status: taskMap[p.id]?.task_status || null,
     })));
   };
 
