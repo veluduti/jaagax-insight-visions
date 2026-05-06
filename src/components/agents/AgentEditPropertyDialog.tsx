@@ -286,7 +286,14 @@ export default function AgentEditPropertyDialog({
   };
 
   const renderField = (f: FieldDef) => {
-    const value = get(agentData, f.key) ?? "";
+    const rawValue = get(agentData, f.key);
+    // Coerce to a safe scalar/string for inputs to prevent crashes on arrays/objects
+    let value: any = rawValue ?? "";
+    if (f.type === "textarea" && Array.isArray(value)) value = value.join("\n");
+    else if (f.type === "tags" && Array.isArray(value)) value = value.join(", ");
+    else if (typeof value === "object" && value !== null) {
+      try { value = JSON.stringify(value); } catch { value = ""; }
+    }
     const sellerVal = sellerValueFor(f.sellerPath);
     const hasSellerData = sellerVal !== undefined && sellerVal !== null && sellerVal !== "";
     const status = computeAutoStatus(f.key, f.sellerPath);

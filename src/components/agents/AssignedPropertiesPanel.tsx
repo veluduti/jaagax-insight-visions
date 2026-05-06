@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import PropertyChat from "@/components/chat/PropertyChat";
 import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
+import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 
 interface AssignedTask {
   // task
@@ -618,15 +619,17 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
         </DialogContent>
       </Dialog>
 
-      <AgentEditPropertyDialog
-        open={!!editFullTarget}
-        onOpenChange={(o) => !o && setEditFullTarget(null)}
-        property={editFullTarget}
-        agentName={agentName}
-        agentId={agentId}
-        agentUserId={agentUserId}
-        onSubmitted={load}
-      />
+      <SectionErrorBoundary title="Edit Property" description="The form encountered an issue. Try again or refresh.">
+        <AgentEditPropertyDialog
+          open={!!editFullTarget}
+          onOpenChange={(o) => !o && setEditFullTarget(null)}
+          property={editFullTarget}
+          agentName={agentName}
+          agentId={agentId}
+          agentUserId={agentUserId}
+          onSubmitted={load}
+        />
+      </SectionErrorBoundary>
     </Card>
   );
 }

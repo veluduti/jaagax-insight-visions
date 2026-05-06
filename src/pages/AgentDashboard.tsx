@@ -142,6 +142,7 @@ export default function AgentDashboard() {
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [visits, setVisits] = useState<VisitBooking[]>([]);
+  const [assignedTasks, setAssignedTasks] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [initializing, setInitializing] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -210,6 +211,9 @@ export default function AgentDashboard() {
       .on("postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         () => fetchNotifications(user.id))
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "agent_tasks", filter: `agent_id=eq.${agentProfile.id}` },
+        () => fetchAssignedTasks(agentProfile.id))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [agentProfile?.id, user?.id]);
@@ -268,6 +272,7 @@ export default function AgentDashboard() {
       await Promise.allSettled([
         fetchAgentProperties(authenticatedUser.id, agentData.id),
         fetchVisits(agentData.id),
+        fetchAssignedTasks(agentData.id),
         fetchNotifications(authenticatedUser.id),
       ]);
     } catch (error: any) {
@@ -296,6 +301,18 @@ export default function AgentDashboard() {
       console.error("Error loading agent visits:", error);
       setVisits([]);
       setSectionErrors((prev) => ({ ...prev, visits: error?.message || "Unable to load visit data." }));
+    }
+  };
+
+  const fetchAssignedTasks = async (agentId: string) => {
+    try {
+      const { data } = await (supabase.from as any)("agent_tasks")
+        .select("id, status, property_id, completed_at, metadata, created_at")
+        .eq("agent_id", agentId);
+      setAssignedTasks((data as any[]) || []);
+    } catch (err) {
+      console.error("Error loading agent tasks:", err);
+      setAssignedTasks([]);
     }
   };
 
@@ -386,13 +403,21 @@ export default function AgentDashboard() {
   const todaysTasks = tasks.filter((t) => !t.done && t.due_date <= today);
   const todaysVisits = visits.filter((v) => v.visit_date === today);
 
+  // Include admin-assigned property tasks as leads/deals so the dashboard reflects real workload
+  const activeAssignedTasks = assignedTasks.filter((t) => t.status !== "completed" && t.status !== "cancelled");
+  const completedAssignedTasks = assignedTasks.filter((t) => t.status === "completed");
+  const scheduledAssignedVisits = assignedTasks.filter(
+    (t) => t.status !== "completed" && t.status !== "cancelled" && t?.metadata?.scheduled_visit_at
+  );
+
   const metrics = {
-    totalLeads: leads.length,
-    upcomingVisits: visits.filter((v) =>
-      ["confirmed", "pending_builder", "pending_agent", "pending", "in_progress"].includes(v.status)
-    ).length,
-    activeDeals: deals.filter((d) => d.status === "negotiation").length,
-    closedDeals: deals.filter((d) => d.status === "closed").length,
+    totalLeads: leads.length + assignedTasks.length,
+    upcomingVisits:
+      visits.filter((v) =>
+        ["confirmed", "pending_builder", "pending_agent", "pending", "in_progress"].includes(v.status)
+      ).length + scheduledAssignedVisits.length,
+    activeDeals: deals.filter((d) => d.status === "negotiation").length + activeAssignedTasks.length,
+    closedDeals: deals.filter((d) => d.status === "closed").length + completedAssignedTasks.length,
   };
 
   const conversionRate = leads.length
