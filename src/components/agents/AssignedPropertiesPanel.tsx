@@ -528,12 +528,14 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     <Button
                       size="sm"
                       className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => setEditFullTarget(p)}
-                      disabled={p.verification_status === "agent_verified_pending"}
+                      onClick={() => void openFullVerificationForm(p)}
+                      disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
                       title="Open full sectioned form to verify, correct, and add fields"
                     >
                       <FileCheck2 className="h-3 w-3 mr-1" />
-                      {p.verification_status === "agent_verified_pending"
+                      {fullTargetLoadingId === p.id
+                        ? "Opening form..."
+                        : p.verification_status === "agent_verified_pending"
                         ? "Submitted for Approval"
                         : "Edit Property & Submit Verification"}
                     </Button>
