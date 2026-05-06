@@ -692,40 +692,58 @@ export default function SellProperty() {
       return;
     }
 
+    // ONE shared loading bubble for the entire upload + OCR + extraction + next-question flow
     const bubbleId = uid();
     setMessages((m) => [...m, { id: bubbleId, role: "ai", kind: "typing" }]);
 
     try {
       if (isImage) {
-        const imageUrl = await fileToDataUrl(file);
-        const [, redacted] = await Promise.all([
-          runAiExtraction({ text: intakeText, imageUrl, appendUserText: !!intakeText.trim() }),
-          redactPosterFile(file),
-        ]);
-
-        const { data: { user } } = await supabase.auth.getUser();
-        let cleanUrl = "";
-        if (user) {
-          const path = `${user.id}/${Date.now()}-${redacted.name}`;
-          const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
-          if (!upErr) {
-            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
-            cleanUrl = pub.publicUrl;
-            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), cleanUrl] }));
-          }
-        }
-
+        // Show user's image bubble immediately so chat is not "blocked"
+        const previewUrl = URL.createObjectURL(file);
         setMessages((m) => {
-          const filtered = m.filter((x) => x.id !== bubbleId);
-          if (cleanUrl) {
-            return [...filtered, { id: uid(), role: "user", kind: "image", url: cleanUrl } as ChatMsg];
-          }
-          return filtered;
+          // insert image bubble BEFORE the typing bubble
+          const idx = m.findIndex((x) => x.id === bubbleId);
+          const imgMsg: ChatMsg = { id: uid(), role: "user", kind: "image", url: previewUrl };
+          if (idx === -1) return [...m, imgMsg];
+          return [...m.slice(0, idx), imgMsg, ...m.slice(idx)];
+        });
+
+        const imageUrl = await fileToDataUrl(file);
+
+        // Fire-and-forget: redact + upload happens in background and silently
+        // appends to media_urls when ready. It does NOT block the chat.
+        (async () => {
+          try {
+            const redacted = await redactPosterFile(file);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const path = `${user.id}/${Date.now()}-${redacted.name}`;
+            const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
+            if (upErr) return;
+            const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+            setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), pub.publicUrl] }));
+          } catch {/* silent */}
+        })();
+
+        // Run extraction reusing the SAME typing bubble (no flicker, no duplicate loaders)
+        await runAiExtraction({
+          text: intakeText,
+          imageUrl,
+          appendUserText: !!intakeText.trim(),
+          sharedTypingId: bubbleId,
         });
         return;
       }
 
       // PDF / DOC / DOCX path — extract text, feed to AI silently
+      // Show file attachment bubble immediately (don't block chat)
+      setMessages((m) => {
+        const idx = m.findIndex((x) => x.id === bubbleId);
+        const fileMsg: ChatMsg = { id: uid(), role: "user", kind: "text", text: `📎 ${file.name}` };
+        if (idx === -1) return [...m, fileMsg];
+        return [...m.slice(0, idx), fileMsg, ...m.slice(idx)];
+      });
+
       let extracted = "";
       try {
         extracted = isPdf ? await extractPdfText(file) : await extractDocxText(file);
@@ -733,41 +751,34 @@ export default function SellProperty() {
         console.warn("Doc text extraction failed", err);
       }
 
-      // Show file as user attachment bubble (no extracted text exposed)
-      setMessages((m) => {
-        const filtered = m.filter((x) => x.id !== bubbleId);
-        return [
-          ...filtered,
-          { id: uid(), role: "user", kind: "text", text: `📎 ${file.name}` } as ChatMsg,
-        ];
-      });
-
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
-        await runAiExtraction({ text: combined, appendUserText: false });
+        await runAiExtraction({ text: combined, appendUserText: false, sharedTypingId: bubbleId });
         return;
       }
 
-      // Fallback: render PDF pages as images and let the vision model read them
+      // Fallback: render the FIRST PDF page as an image (single AI call, not per-page)
       if (isPdf) {
-        const pageImages = await renderPdfPagesToImages(file, 3);
+        const pageImages = await renderPdfPagesToImages(file, 1);
         if (pageImages.length > 0) {
-          for (const img of pageImages) {
-            await runAiExtraction({
-              text: intakeText || "Extract every property detail visible in this brochure page.",
-              imageUrl: img,
-              appendUserText: false,
-            });
-          }
+          await runAiExtraction({
+            text: intakeText || "Extract every property detail visible in this brochure.",
+            imageUrl: pageImages[0],
+            appendUserText: false,
+            sharedTypingId: bubbleId,
+          });
           return;
         }
       }
 
+      // Nothing extracted — clear the loader and tell the user
+      setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error("Couldn't read that file. Try a clearer PDF/document or paste the details.");
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the file");
     }
+
   };
 
   /* ----- Final submit ----- */
