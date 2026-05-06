@@ -93,17 +93,24 @@ async function aiTurn(args: {
 } | null> {
   if (!LOVABLE_API_KEY) return null;
 
-  const fieldCatalog = args.flow.map((f) => ({
-    id: f.id,
-    label: f.question,
-    input: f.input,
-    required: !!f.required,
-    options: f.options || [],
-  }));
+  // Only send the few fields the AI actually needs (candidate + next 3 missing).
+  // Sending the full catalog every turn was the main payload bloat.
+  const relevantIds = new Set<string>();
+  if (args.candidateField?.id) relevantIds.add(args.candidateField.id);
+  for (const id of args.missingFieldIds.slice(0, 4)) relevantIds.add(id);
+  const fieldCatalog = args.flow
+    .filter((f) => relevantIds.has(f.id))
+    .map((f) => ({
+      id: f.id,
+      label: f.question,
+      input: f.input,
+      required: !!f.required,
+      options: f.options || [],
+    }));
 
   const userPayload = {
     current_state: args.state,
-    missing_required_field_ids_in_order: args.missingFieldIds,
+    missing_required_field_ids_in_order: args.missingFieldIds.slice(0, 6),
     deterministic_next_field_id: args.candidateField?.id || null,
     field_catalog: fieldCatalog,
     transcript: args.transcript.slice(-4),
