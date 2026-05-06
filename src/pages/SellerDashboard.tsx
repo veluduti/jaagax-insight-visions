@@ -186,7 +186,7 @@ export default function SellerDashboard() {
   const counts = {
     all: properties.length,
     pending: properties.filter(p => p.verification_status === "pending" && !p.is_draft).length,
-    approved: properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired").length,
+    approved: properties.filter(p => p.verification_status === "approved" && p.is_live === true).length,
     rejected: properties.filter(p => p.verification_status === "rejected").length,
     draft: properties.filter(p => p.is_draft).length,
     expired: properties.filter(p => p.verification_status === "expired").length,
@@ -304,7 +304,7 @@ export default function SellerDashboard() {
             <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
               <StatusIcon className="h-3 w-3" />{meta.label}
             </Badge>
-            {p.is_live && (
+            {p.is_live && p.verification_status === "approved" && (
               <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -472,7 +472,7 @@ export default function SellerDashboard() {
 
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
-    if (s === "approved") return properties.filter(p => (p.verification_status === "approved" || p.verified) && p.verification_status !== "expired");
+    if (s === "approved") return properties.filter(p => p.verification_status === "approved" && p.is_live === true);
     if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
