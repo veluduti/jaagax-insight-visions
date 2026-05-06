@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,26 +121,36 @@ export default function SellerDashboard() {
     }
     // Fetch any agent_tasks scheduled for these properties
     const propIds = props.map((p) => p.id);
-    const taskMap: Record<string, string> = {};
+    const taskMap: Record<string, { scheduled_visit_at: string | null }> = {};
     if (propIds.length) {
       const { data: tasks } = await supabase
         .from("agent_tasks" as any)
-        .select("property_id, metadata, updated_at")
+        .select("property_id, status, metadata, updated_at")
         .in("property_id", propIds)
         .order("updated_at", { ascending: false });
       (tasks || []).forEach((t: any) => {
+        if (!t?.property_id || taskMap[t.property_id]) return;
+        taskMap[t.property_id] = {
+          scheduled_visit_at: typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
+        };
+      });
+      (tasks || []).forEach((t: any) => {
         const sched = t?.metadata?.scheduled_visit_at;
-        if (sched && t.property_id && !taskMap[t.property_id]) {
-          taskMap[t.property_id] = sched;
-        }
+        if (!t?.property_id || !sched || taskMap[t.property_id]?.scheduled_visit_at) return;
+        taskMap[t.property_id] = { scheduled_visit_at: sched };
       });
     }
     setProperties(props.map((p) => ({
       ...p,
       assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
-      scheduled_visit_at: taskMap[p.id] || null,
+      scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
     })));
   };
+
+  const propertiesWithScheduledVisits = useMemo(
+    () => properties.filter((p) => Boolean(p.scheduled_visit_at)),
+    [properties],
+  );
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
