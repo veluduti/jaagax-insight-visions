@@ -243,6 +243,35 @@ serve(async (req) => {
       );
     }
 
+    // Clarification mode: AI is asking something off-flow (correction, ambiguity).
+    // Return a synthetic field whose input mode matches the question — DO NOT reuse
+    // the deterministic field (that's how stale numeric chips leaked into a
+    // "what is the correct locality?" question).
+    if (ai?.clarification) {
+      const mode = (ai as any).clarification_input || "text";
+      const opts = Array.isArray((ai as any).clarification_options)
+        ? (ai as any).clarification_options
+        : [];
+      const synthetic: NextField = {
+        id: `__clarify__${Date.now()}`,
+        question: (ai?.next_question && ai.next_question.trim()) || "Could you clarify?",
+        input: mode,
+        required: false,
+        options: opts,
+      };
+      return new Response(
+        JSON.stringify({
+          done: false,
+          field: synthetic,
+          suggestions: [],
+          progress,
+          state_patch: ai?.state_patch || {},
+          clarification: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Resolve which field to ask. Prefer AI's choice when valid; fall back to deterministic.
     let chosenField: FieldConfig = recomputedNext;
     if (ai?.next_field_id) {
@@ -268,7 +297,7 @@ serve(async (req) => {
         suggestions: [],
         progress,
         state_patch: ai?.state_patch || {},
-        clarification: !!ai?.clarification,
+        clarification: false,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
