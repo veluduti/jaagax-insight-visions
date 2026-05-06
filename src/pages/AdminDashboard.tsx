@@ -238,7 +238,12 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">Registered Users</TabsTrigger>
             <TabsTrigger value="visits">Visit Bookings</TabsTrigger>
             <TabsTrigger value="frm">FRM</TabsTrigger>
-            <TabsTrigger value="verification">Verifications</TabsTrigger>
+            <TabsTrigger value="verification" className="relative">
+              Verifications
+              {stats.verificationsPending > 0 && (
+                <Badge className="ml-1.5 h-4 px-1.5 text-[10px] bg-orange-500">{stats.verificationsPending}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             <TabsTrigger value="trust">Trust Engine</TabsTrigger>
