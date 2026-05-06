@@ -40,6 +40,13 @@ CRITICAL RULES (apply on every turn):
 6. DYNAMIC QUESTIONING
    Pick the single most useful next question from the missing required fields. Phrase it warmly and briefly (max ~18 words). Reference what they just said when natural.
 
+7. INPUT MODE MUST MATCH THE QUESTION
+   Whenever you set clarification=true, you MUST also set clarification_input so the UI renders the right control:
+   - locality, village, project name, owner name, descriptions, free corrections, "what is the correct X" → "text"
+   - price, area, road width, BHK count, floor numbers, ages, counts → "number"
+   - predefined choices (Yes/No, approval types like DTCP/HMDA/RERA, furnishing levels) → "single" (or "multi"/"yesno") AND populate clarification_options
+   Never leave the previous numeric/options control on screen when the new question is actually a free-text/locality question.
+
 KNOWN TYPE MAPPING:
 - "Plot / Land" → PLOT
 - "Apartment / Flat" → APARTMENT
@@ -132,7 +139,19 @@ async function aiTurn(args: {
                   clarification: {
                     type: "boolean",
                     description:
-                      "True if you're asking a clarifying question due to conflict/ambiguity instead of advancing.",
+                      "True if you're asking a clarifying question (correction, ambiguity, locality/village/name re-ask) instead of advancing the deterministic flow.",
+                  },
+                  clarification_input: {
+                    type: "string",
+                    enum: ["text", "textarea", "number", "single", "multi", "yesno"],
+                    description:
+                      "Input mode that matches your next_question semantics. Use 'text' for locality/village/names/free answers, 'number' for price/area/road-width/counts, 'single'/'multi'/'yesno' only when offering predefined choices. REQUIRED when clarification=true.",
+                  },
+                  clarification_options: {
+                    type: "array",
+                    items: { type: "string" },
+                    description:
+                      "Choices to render as chips, only when clarification_input is 'single' or 'multi'. Omit otherwise.",
                   },
                   done: {
                     type: "boolean",
@@ -231,6 +250,35 @@ serve(async (req) => {
       );
     }
 
+    // Clarification mode: AI is asking something off-flow (correction, ambiguity).
+    // Return a synthetic field whose input mode matches the question — DO NOT reuse
+    // the deterministic field (that's how stale numeric chips leaked into a
+    // "what is the correct locality?" question).
+    if (ai?.clarification) {
+      const mode = (ai as any).clarification_input || "text";
+      const opts = Array.isArray((ai as any).clarification_options)
+        ? (ai as any).clarification_options
+        : [];
+      const synthetic: NextField = {
+        id: `__clarify__${Date.now()}`,
+        question: (ai?.next_question && ai.next_question.trim()) || "Could you clarify?",
+        input: mode,
+        required: false,
+        options: opts,
+      };
+      return new Response(
+        JSON.stringify({
+          done: false,
+          field: synthetic,
+          suggestions: [],
+          progress,
+          state_patch: ai?.state_patch || {},
+          clarification: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Resolve which field to ask. Prefer AI's choice when valid; fall back to deterministic.
     let chosenField: FieldConfig = recomputedNext;
     if (ai?.next_field_id) {
@@ -256,7 +304,7 @@ serve(async (req) => {
         suggestions: [],
         progress,
         state_patch: ai?.state_patch || {},
-        clarification: !!ai?.clarification,
+        clarification: false,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
