@@ -60,20 +60,22 @@ export default function AdminDashboard() {
       { count: projectsCount },
       { count: agentsCount },
       { count: pendingVisitsCount },
-      { count: pendingSignupsCount }
+      { count: pendingSignupsCount },
+      { count: agentVerifiedPendingCount },
     ] = await Promise.all([
       supabase.from("properties").select("*", { count: 'exact', head: true }),
       supabase.from("projects").select("*", { count: 'exact', head: true }),
       supabase.from("agents").select("*", { count: 'exact', head: true }),
       supabase.from("visit_bookings").select("*", { count: 'exact', head: true }).eq("status", "pending"),
-      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending")
+      supabase.from("signup_requests").select("*", { count: 'exact', head: true }).eq("status", "pending"),
+      supabase.from("properties").select("*", { count: 'exact', head: true }).eq("verification_status", "agent_verified_pending"),
     ]);
 
     setStats({
       totalUsers: 0,
       totalProperties: propertiesCount || 0,
       totalProjects: projectsCount || 0,
-      verificationsPending: 0,
+      verificationsPending: agentVerifiedPendingCount || 0,
       totalAgents: agentsCount || 0,
       pendingVisits: pendingVisitsCount || 0,
       pendingSignups: pendingSignupsCount || 0,
