@@ -20,6 +20,7 @@ import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import RERAVerificationPanel from "@/components/admin/RERAVerificationPanel";
 import PropertyDocumentsPanel from "@/components/admin/PropertyDocumentsPanel";
 import VerificationPanel from "@/components/admin/VerificationPanel";
+import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPanel";
 import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
@@ -341,6 +342,9 @@ export default function AdminPanel() {
             <TabsTrigger value="visits">Visits</TabsTrigger>
             <TabsTrigger value="bookings">Hotel Bookings</TabsTrigger>
             <TabsTrigger value="agents">Agents</TabsTrigger>
+            <TabsTrigger value="agent-verified" className="relative">
+              Agent-Verified
+            </TabsTrigger>
             <TabsTrigger value="properties" className="relative">
               Properties
               {stats.pendingProperties > 0 && (
@@ -357,6 +361,10 @@ export default function AdminPanel() {
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="agent-verified" className="mt-4">
+            <AgentVerifiedReviewPanel />
+          </TabsContent>
 
           <TabsContent value="all-listings" className="mt-4">
             <AllListingsPanel />
