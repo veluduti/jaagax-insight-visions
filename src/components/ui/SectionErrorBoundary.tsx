@@ -7,19 +7,29 @@ interface SectionErrorBoundaryProps {
   children: ReactNode;
   title?: string;
   description?: string;
+  resetKey?: any;
 }
 
 interface SectionErrorBoundaryState {
   hasError: boolean;
+  resetKey?: any;
 }
 
 export default class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, SectionErrorBoundaryState> {
   state: SectionErrorBoundaryState = {
     hasError: false,
+    resetKey: undefined,
   };
 
   static getDerivedStateFromError() {
     return { hasError: true };
+  }
+
+  static getDerivedStateFromProps(props: SectionErrorBoundaryProps, state: SectionErrorBoundaryState) {
+    if (props.resetKey !== state.resetKey) {
+      return { hasError: false, resetKey: props.resetKey };
+    }
+    return null;
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
