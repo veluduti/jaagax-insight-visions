@@ -352,11 +352,14 @@ export default function SellerDashboard() {
   };
 
   const PropertyCard = ({ p }: { p: Property }) => {
-    const status = p.is_draft ? "draft" : (p.verification_status || "pending");
+    const status = getDisplayStatus(p);
     const meta = STATUS_META[status] || STATUS_META.pending;
     const StatusIcon = meta.icon;
     const hasImage = Array.isArray(p.images) && p.images.length > 0 && !!p.images[0];
     const img = hasImage ? p.images[0] : null;
+    const scheduledVisitLabel = p.scheduled_visit_at
+      ? new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+      : null;
 
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }}>
@@ -416,6 +419,20 @@ export default function SellerDashboard() {
               {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
               {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
             </div>
+            {scheduledVisitLabel && (
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
+                <div className="flex items-start gap-2">
+                  <CalendarDays className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400">Agent Visit Scheduled</p>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">{scheduledVisitLabel}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {p.task_status === "completed" ? "Visit completed by agent." : "Your assigned agent has scheduled the property visit."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             {!p.is_draft && <PropertyTimeline p={p} />}
             {status === "rejected" && (
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
@@ -476,12 +493,6 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
-                {p.scheduled_visit_at && (
-                  <div className="mt-2 p-2 rounded-md bg-blue-500/10 border border-blue-500/30 text-[11px] text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    Visit scheduled: {new Date(p.scheduled_visit_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                  </div>
-                )}
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
