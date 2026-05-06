@@ -1,6 +1,14 @@
+;(globalThis as any).localStorage = {
+  getItem() { return null; },
+  setItem() {},
+  removeItem() {},
+  clear() {},
+  key() { return null; },
+  length: 0,
+};
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import AgentEditPropertyDialog from '@/components/agents/AgentEditPropertyDialog';
+const { default: AgentEditPropertyDialog } = await import('@/components/agents/AgentEditPropertyDialog');
 
 const property = {
   id: '7736bd45-bf95-47f3-bc52-b996ce718517',
