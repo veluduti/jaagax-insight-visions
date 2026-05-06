@@ -356,7 +356,9 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Verifications */}
-          <TabsContent value="verification" className="space-y-6">
+          <TabsContent value="verification" id="admin-verifications" className="space-y-6 scroll-mt-24">
+            <AgentVerifiedReviewPanel />
+            <VerificationPanel />
             <FetchCommunityEvents />
             <LeadsCRMPanel />
             <EnrichProjectsPanel />
