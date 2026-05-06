@@ -362,6 +362,10 @@ export default function AdminPanel() {
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="agent-verified" className="mt-4">
+            <AgentVerifiedReviewPanel />
+          </TabsContent>
+
           <TabsContent value="all-listings" className="mt-4">
             <AllListingsPanel />
           </TabsContent>
