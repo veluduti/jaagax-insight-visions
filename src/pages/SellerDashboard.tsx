@@ -519,7 +519,7 @@ export default function SellerDashboard() {
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
     if (s === "approved") return properties.filter(p => p.verification_status === "approved" && p.is_live === true);
-    if (s === "pending") return properties.filter(p => p.verification_status === "pending" && !p.is_draft);
+    if (s === "pending") return properties.filter(isPending);
     if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
     if (s === "draft") return properties.filter(p => p.is_draft);
     if (s === "expired") return properties.filter(p => p.verification_status === "expired");
