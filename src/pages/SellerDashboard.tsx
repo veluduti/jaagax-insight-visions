@@ -403,7 +403,7 @@ export default function SellerDashboard() {
                 </Button>
               </div>
             )}
-            {status === "approved" && p.assigned_agent && (
+            {p.assigned_agent && (
               <div className="p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 space-y-1">
                 <p className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Your Dedicated Agent
