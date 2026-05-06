@@ -737,16 +737,7 @@ export default function AgentDashboard() {
           </SectionErrorBoundary>
         )}
 
-        {/* ===== Quick Visit Package Bookings ===== */}
-        {agentProfile.id && user?.id && (
-          <SectionErrorBoundary title="Quick visit bookings unavailable" description={sectionErrors.visits || "Quick visit data could not be loaded right now."}>
-            <Card className="border-amber-500/20">
-              <CardContent className="p-4 md:p-5">
-                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="quick_visit" />
-              </CardContent>
-            </Card>
-          </SectionErrorBoundary>
-        )}
+        {/* Quick Visit section removed from agent dashboard (buyer-facing flow) */}
 
         {/* ===== Today's Tasks + Notifications strip ===== */}
         <div className="grid lg:grid-cols-3 gap-4">
