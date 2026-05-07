@@ -102,7 +102,15 @@ export const useAuth = () => {
     return { error: null, resolvedRole: null };
   };
 
-  const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    selectedRole: UserRole,
+    city?: string,
+    name?: string,
+    phone?: string,
+    selectedRoles?: UserRole[],
+  ) => {
     try {
       const { error } = await supabase.functions.invoke("signup-otp", {
         body: {
@@ -110,7 +118,7 @@ export const useAuth = () => {
           email,
           password,
           selectedRole,
-          selectedRoles: [selectedRole],
+          selectedRoles: (selectedRoles?.length ? selectedRoles : [selectedRole]).filter(Boolean),
           city: city || null,
           name: name || null,
           phone: phone || null,
