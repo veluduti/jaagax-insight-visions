@@ -118,9 +118,9 @@ export default function VerifyOtp() {
             <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
               <Mail className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold mb-1">Verify your email</h1>
+            <h1 className="text-2xl font-bold mb-1">Verify your phone</h1>
             <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
+              We sent a 6-digit SMS code to <span className="text-foreground font-medium">{phone || email}</span>
             </p>
           </div>
 
