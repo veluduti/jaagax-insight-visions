@@ -1,5 +1,9 @@
 project_id = "ukcgntxgjltszsgvemxi"
 
+[auth.email]
+otp_length = 6
+otp_expiry = 3600
+
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
