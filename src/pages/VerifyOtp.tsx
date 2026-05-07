@@ -10,9 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 export default function VerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const stateEmail = (location.state as { email?: string } | null)?.email
+  const stateEmail = (location.state as { email?: string; phone?: string } | null)?.email
     ?? (typeof window !== "undefined" ? sessionStorage.getItem("jaagax.pendingEmail") ?? "" : "");
+  const statePhone = (location.state as { email?: string; phone?: string } | null)?.phone
+    ?? (typeof window !== "undefined" ? sessionStorage.getItem("jaagax.pendingPhone") ?? "" : "");
   const [email] = useState(stateEmail);
+  const [phone] = useState(statePhone);
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
