@@ -1943,6 +1943,48 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_email_otps: {
+        Row: {
+          attempt_count: number
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          last_sent_at: string
+          otp_code: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          last_sent_at?: string
+          otp_code: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          last_sent_at?: string
+          otp_code?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       signup_requests: {
         Row: {
           city: string | null
