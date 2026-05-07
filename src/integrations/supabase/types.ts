@@ -1952,9 +1952,11 @@ export type Database = {
           expires_at: string
           id: string
           last_sent_at: string
+          metadata: Json | null
           otp_code: string
+          password: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           verified_at: string | null
         }
         Insert: {
@@ -1965,9 +1967,11 @@ export type Database = {
           expires_at: string
           id?: string
           last_sent_at?: string
+          metadata?: Json | null
           otp_code: string
+          password?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -1978,9 +1982,11 @@ export type Database = {
           expires_at?: string
           id?: string
           last_sent_at?: string
+          metadata?: Json | null
           otp_code?: string
+          password?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Relationships: []
