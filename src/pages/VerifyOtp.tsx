@@ -101,7 +101,7 @@ export default function VerifyOtp() {
       });
       if (error) throw new Error(error.message || "Failed to resend code");
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("New code sent — check your inbox");
+      toast.success("New code sent via SMS — check your phone");
       setCooldown(45);
     } catch (err: any) {
       toast.error(err?.message || "Failed to resend code");
