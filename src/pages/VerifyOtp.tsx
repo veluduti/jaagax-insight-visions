@@ -76,6 +76,7 @@ export default function VerifyOtp() {
         if (signInErr) {
           toast.success("Email verified! Please sign in.");
           sessionStorage.removeItem("jaagax.pendingSignupPassword");
+          sessionStorage.removeItem("jaagax.pendingPhone");
           sessionStorage.removeItem("jaagax.pendingEmail");
           navigate("/auth", { replace: true });
           return;
@@ -83,6 +84,7 @@ export default function VerifyOtp() {
       }
       sessionStorage.removeItem("jaagax.pendingEmail");
       sessionStorage.removeItem("jaagax.pendingSignupPassword");
+          sessionStorage.removeItem("jaagax.pendingPhone");
       toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
       navigate("/", { replace: true });
     } catch (err: any) {
