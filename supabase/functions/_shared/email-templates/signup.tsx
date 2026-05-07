@@ -48,7 +48,7 @@ export const SignupEmail = ({
 
         <Section style={codeBox}>
           <Text style={codeStyle}>{token}</Text>
-          <Text style={codeLabel}>This code expires in 60 minutes</Text>
+          <Text style={codeLabel}>This code expires in 5 minutes</Text>
         </Section>
 
         <Text style={footer}>

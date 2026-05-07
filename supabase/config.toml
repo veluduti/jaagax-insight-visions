@@ -13,3 +13,5 @@ otp_expiry = 3600
     verify_jwt = false
   [functions.send-booking-confirmation]
     verify_jwt = false
+  [functions.signup-otp]
+    verify_jwt = false
