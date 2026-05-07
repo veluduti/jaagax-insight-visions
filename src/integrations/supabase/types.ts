@@ -1955,6 +1955,7 @@ export type Database = {
           metadata: Json | null
           otp_code: string
           password: string | null
+          phone: string | null
           updated_at: string
           user_id: string | null
           verified_at: string | null
@@ -1970,6 +1971,7 @@ export type Database = {
           metadata?: Json | null
           otp_code: string
           password?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string | null
           verified_at?: string | null
@@ -1985,6 +1987,7 @@ export type Database = {
           metadata?: Json | null
           otp_code?: string
           password?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string | null
           verified_at?: string | null

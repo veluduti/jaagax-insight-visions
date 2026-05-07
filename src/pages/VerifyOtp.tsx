@@ -10,9 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 export default function VerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const stateEmail = (location.state as { email?: string } | null)?.email
+  const stateEmail = (location.state as { email?: string; phone?: string } | null)?.email
     ?? (typeof window !== "undefined" ? sessionStorage.getItem("jaagax.pendingEmail") ?? "" : "");
+  const statePhone = (location.state as { email?: string; phone?: string } | null)?.phone
+    ?? (typeof window !== "undefined" ? sessionStorage.getItem("jaagax.pendingPhone") ?? "" : "");
   const [email] = useState(stateEmail);
+  const [phone] = useState(statePhone);
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -73,6 +76,7 @@ export default function VerifyOtp() {
         if (signInErr) {
           toast.success("Email verified! Please sign in.");
           sessionStorage.removeItem("jaagax.pendingSignupPassword");
+          sessionStorage.removeItem("jaagax.pendingPhone");
           sessionStorage.removeItem("jaagax.pendingEmail");
           navigate("/auth", { replace: true });
           return;
@@ -80,6 +84,7 @@ export default function VerifyOtp() {
       }
       sessionStorage.removeItem("jaagax.pendingEmail");
       sessionStorage.removeItem("jaagax.pendingSignupPassword");
+          sessionStorage.removeItem("jaagax.pendingPhone");
       toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
       navigate("/", { replace: true });
     } catch (err: any) {
@@ -98,7 +103,7 @@ export default function VerifyOtp() {
       });
       if (error) throw new Error(error.message || "Failed to resend code");
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("New code sent — check your inbox");
+      toast.success("New code sent via SMS — check your phone");
       setCooldown(45);
     } catch (err: any) {
       toast.error(err?.message || "Failed to resend code");
@@ -115,9 +120,9 @@ export default function VerifyOtp() {
             <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
               <Mail className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold mb-1">Verify your email</h1>
+            <h1 className="text-2xl font-bold mb-1">Verify your phone</h1>
             <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
+              We sent a 6-digit SMS code to <span className="text-foreground font-medium">{phone || email}</span>
             </p>
           </div>
 

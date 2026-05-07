@@ -245,9 +245,10 @@ export default function Auth() {
 
         // Persist email so /verify-otp can read it after navigation.
         sessionStorage.setItem("jaagax.pendingEmail", email);
+        sessionStorage.setItem("jaagax.pendingPhone", phone);
         sessionStorage.setItem("jaagax.pendingSignupPassword", password);
-        toast.success("We sent a 6-digit code to your email. It expires in 5 minutes.", { duration: 5000 });
-        navigate("/verify-otp", { state: { email } });
+        toast.success(`We sent a 6-digit code to ${phone} via SMS. It expires in 5 minutes.`, { duration: 5000 });
+        navigate("/verify-otp", { state: { email, phone } });
         return;
       }
 
