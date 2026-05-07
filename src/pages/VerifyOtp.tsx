@@ -60,14 +60,26 @@ export default function VerifyOtp() {
     if (token.length !== 6) { toast.error("Enter the 6-digit code"); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
-      if (error) {
-        // Some setups use 'email' type for re-issued OTPs
-        const { error: e2 } = await supabase.auth.verifyOtp({ email, token, type: "email" });
-        if (e2) throw e2;
+      const { data, error } = await supabase.functions.invoke("signup-otp", {
+        body: { action: "verify", email, otp: token },
+      });
+      if (error) throw new Error(error.message || "Verification failed");
+      if ((data as any)?.error) throw new Error((data as any).error);
+
+      // Auto sign-in using the password we stashed during signup
+      const password = sessionStorage.getItem("jaagax.pendingSignupPassword") || "";
+      if (password) {
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) {
+          toast.success("Email verified! Please sign in.");
+          sessionStorage.removeItem("jaagax.pendingSignupPassword");
+          sessionStorage.removeItem("jaagax.pendingEmail");
+          navigate("/auth", { replace: true });
+          return;
+        }
       }
-      // Verified — user is auto-signed-in by Supabase. Send them straight to the dashboard.
       sessionStorage.removeItem("jaagax.pendingEmail");
+      sessionStorage.removeItem("jaagax.pendingSignupPassword");
       toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
       navigate("/", { replace: true });
     } catch (err: any) {
@@ -81,8 +93,11 @@ export default function VerifyOtp() {
     if (cooldown > 0) return;
     setResending(true);
     try {
-      const { error } = await supabase.auth.resend({ type: "signup", email });
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke("signup-otp", {
+        body: { action: "resend", email },
+      });
+      if (error) throw new Error(error.message || "Failed to resend code");
+      if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("New code sent — check your inbox");
       setCooldown(45);
     } catch (err: any) {
