@@ -231,7 +231,7 @@ export default function Auth() {
         // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
         const primary = selectedRoles[0];
         const primaryAsUserRole: UserRole = primary;
-        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone);
+        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone, selectedRoles as UserRole[]);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
             setIsLogin(true);
@@ -243,17 +243,10 @@ export default function Auth() {
           throw error;
         }
 
-        // Create profile rows for ALL selected roles (all start pending).
-        const { data: { user: created } } = await supabase.auth.getUser();
-        if (created) {
-          const rows = selectedRoles.map((t) => ({ user_id: created.id, type: t }));
-          const { error: profErr } = await supabase.from("profiles" as any).insert(rows as any);
-          if (profErr) console.error("Profile creation error:", profErr);
-        }
-
         // Persist email so /verify-otp can read it after navigation.
         sessionStorage.setItem("jaagax.pendingEmail", email);
-        toast.success("We sent a 6-digit code to your email.", { duration: 5000 });
+        sessionStorage.setItem("jaagax.pendingSignupPassword", password);
+        toast.success("We sent a 6-digit code to your email. It expires in 5 minutes.", { duration: 5000 });
         navigate("/verify-otp", { state: { email } });
         return;
       }
