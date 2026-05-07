@@ -104,55 +104,20 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string, selectedRole: UserRole, city?: string, name?: string, phone?: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      const dbRole = (selectedRole === "buyer" || selectedRole === "seller") ? "customer" : selectedRole;
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: { role: dbRole, requested_role: selectedRole, city: city || null, name: name || null, phone: phone || null },
+      const { error } = await supabase.functions.invoke("signup-otp", {
+        body: {
+          action: "init",
+          email,
+          password,
+          selectedRole,
+          selectedRoles: [selectedRole],
+          city: city || null,
+          name: name || null,
+          phone: phone || null,
         },
       });
 
-      if (error) return { error };
-
-      if (data.user) {
-        // Buyers get role immediately
-        if (dbRole === 'customer') {
-          const { error: roleError } = await supabase.rpc("assign_user_role", {
-            _user_id: data.user.id,
-            _role: dbRole,
-          });
-          if (roleError) console.error("Error inserting role:", roleError);
-        }
-
-        // Submit signup request (RPC only accepts customer/agent/builder)
-        const { error: reqError } = await supabase.rpc("submit_signup_request", {
-          _user_id: data.user.id,
-          _email: email,
-          _full_name: name || null,
-          _city: city || null,
-          _requested_role: dbRole,
-        });
-        if (reqError) console.error("Error submitting signup request:", reqError);
-
-        // Overwrite requested_role to 'seller' for routing if applicable + store phone in same update
-        const updates: Record<string, any> = {};
-        if (selectedRole === "seller") updates.requested_role = "seller";
-        if (phone) updates.phone = phone;
-
-        if (Object.keys(updates).length > 0) {
-          const { error: updErr } = await supabase
-            .from('signup_requests')
-            .update(updates)
-            .eq('user_id', data.user.id);
-          if (updErr) console.error("Error updating signup_requests:", updErr);
-        }
-      }
-
-      return { error: null };
+      return { error: error ?? null };
     } catch (error: any) {
       return { error };
     }
