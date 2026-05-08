@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,14 +13,17 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
-import RERAUploadModal from "@/components/builder/RERAUploadModal";
-import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
-import DocumentationModal from "@/components/builder/DocumentationModal";
-import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
-import BuilderMyProfileCard from "@/components/builder/BuilderMyProfileCard";
-import SamplePropertiesPreviewDialog from "@/components/builder/SamplePropertiesPreviewDialog";
+import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
+
+// Lazy-loaded heavy widgets (Phase 4)
+const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
+const RERAUploadModal = lazy(() => import("@/components/builder/RERAUploadModal"));
+const BuilderRERAStatus = lazy(() => import("@/components/builder/BuilderRERAStatus"));
+const DocumentationModal = lazy(() => import("@/components/builder/DocumentationModal"));
+const BuilderAnalyticsPanel = lazy(() => import("@/components/builder/BuilderAnalyticsPanel"));
+const BuilderMyProfileCard = lazy(() => import("@/components/builder/BuilderMyProfileCard"));
+const SamplePropertiesPreviewDialog = lazy(() => import("@/components/builder/SamplePropertiesPreviewDialog"));
 
 interface Project {
   id: string;
