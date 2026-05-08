@@ -95,9 +95,17 @@ const BuyerDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      fetchAISuggestions();
-    }
+    if (!user) return;
+    // Defer AI suggestions to idle so dashboard renders instantly.
+    const ric = (globalThis as any).requestIdleCallback;
+    const handle = typeof ric === "function"
+      ? ric(() => fetchAISuggestions(), { timeout: 1500 })
+      : (setTimeout(() => fetchAISuggestions(), 1) as unknown as number);
+    return () => {
+      const cic = (globalThis as any).cancelIdleCallback;
+      if (typeof cic === "function") cic(handle);
+      else clearTimeout(handle as any);
+    };
   }, [user]);
 
   useEffect(() => {
