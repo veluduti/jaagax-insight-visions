@@ -645,7 +645,9 @@ export default function BuilderDashboard() {
 
           {/* RERA Verification */}
           <TabsContent value="verification">
-            <BuilderRERAStatus onUpload={() => setReraModalOpen(true)} />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <BuilderRERAStatus onUpload={() => setReraModalOpen(true)} />
+            </Suspense>
           </TabsContent>
 
           {/* Inventory */}
@@ -667,9 +669,11 @@ export default function BuilderDashboard() {
 
           {/* Performance */}
           <TabsContent value="performance">
-            <BuilderAnalyticsPanel />
-
-            {/* AI Project Forecast (existing) */}
+            <LazyMount fallback={<ChartSkeleton />} minHeight={400}>
+              <Suspense fallback={<ChartSkeleton />}>
+                <BuilderAnalyticsPanel />
+              </Suspense>
+            </LazyMount>
             <Card className="mt-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
