@@ -529,15 +529,17 @@ export default function SellerDashboard() {
                       <Sparkles className="h-3 w-3" /> Featured
                     </Badge>
                   ) : (
-                    <BoostListingDialog
-                      propertyId={p.id}
-                      onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
-                      trigger={
-                        <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
-                          <Sparkles className="h-3 w-3" /> Boost
-                        </Button>
-                      }
-                    />
+                    <Suspense fallback={<Button size="sm" className="flex-1 min-w-[120px]" disabled>Boost</Button>}>
+                      <BoostListingDialog
+                        propertyId={p.id}
+                        onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
+                        trigger={
+                          <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                            <Sparkles className="h-3 w-3" /> Boost
+                          </Button>
+                        }
+                      />
+                    </Suspense>
                   )}
                 </>
               )}
