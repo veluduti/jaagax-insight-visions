@@ -89,9 +89,17 @@ const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeli
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
+      // Keep data "fresh" for 2 min so tab/page switches don't refetch.
+      staleTime: 2 * 60_000,
+      // Hold cached data in memory for 10 min after last observer unmounts.
+      gcTime: 10 * 60_000,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      refetchOnMount: false,
       retry: 1,
+    },
+    mutations: {
+      retry: 0,
     },
   },
 });

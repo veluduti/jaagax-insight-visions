@@ -4,32 +4,49 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "@/services/notificationService";
+import { queryKeys, STALE } from "./queryKeys";
 
 export const notificationKeys = {
-  list: (userId: string | null | undefined) => ["notifications", userId ?? "anon"] as const,
+  list: queryKeys.notifications.list,
 };
 
 export function useNotifications(userId: string | null | undefined) {
   return useQuery({
-    queryKey: notificationKeys.list(userId),
+    queryKey: queryKeys.notifications.list(userId),
     queryFn: () => listNotifications(userId as string),
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: STALE.INSTANT,
   });
 }
 
 export function useMarkNotificationRead(userId: string | null | undefined) {
   const qc = useQueryClient();
+  const key = queryKeys.notifications.list(userId);
   return useMutation({
     mutationFn: (id: string) => markNotificationRead(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: notificationKeys.list(userId) }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<any[]>(key) ?? [];
+      qc.setQueryData(key, prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(key, ctx.prev),
+    onSettled: () => qc.invalidateQueries({ queryKey: key }),
   });
 }
 
 export function useMarkAllNotificationsRead(userId: string | null | undefined) {
   const qc = useQueryClient();
+  const key = queryKeys.notifications.list(userId);
   return useMutation({
     mutationFn: () => markAllNotificationsRead(userId as string),
-    onSuccess: () => qc.invalidateQueries({ queryKey: notificationKeys.list(userId) }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<any[]>(key) ?? [];
+      qc.setQueryData(key, prev.map((n) => ({ ...n, read: true })));
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(key, ctx.prev),
+    onSettled: () => qc.invalidateQueries({ queryKey: key }),
   });
 }
