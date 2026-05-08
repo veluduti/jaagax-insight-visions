@@ -233,20 +233,8 @@ const NearbyPOI = ({ city, lat, lng, locality }: NearbyPOIProps) => {
     }
   };
 
-  if (!lat && !lng && !locality) {
-    return (
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            Nearby Places
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">Location coordinates not available for this property.</p>
-        </CardContent>
-      </Card>
-    );
+  if (!lat && !lng && !locality && !city) {
+    return null;
   }
 
   return (
