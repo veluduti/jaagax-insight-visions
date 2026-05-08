@@ -364,24 +364,38 @@ export default function AdminDashboard() {
 
           {/* Verifications */}
           <TabsContent value="verification" id="admin-verifications" className="space-y-6 scroll-mt-24">
-            <AgentVerifiedReviewPanel />
-            <VerificationPanel />
-            <FetchCommunityEvents />
-            <LeadsCRMPanel />
-            <EnrichProjectsPanel />
-            <DataImportPanel />
-            <DatabaseCleanup />
-            <FakeListingManager />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <AgentVerifiedReviewPanel />
+              <VerificationPanel />
+            </Suspense>
+            <LazyMount fallback={<ListSkeleton rows={3} />} minHeight={300}>
+              <Suspense fallback={<ListSkeleton rows={3} />}>
+                <FetchCommunityEvents />
+                <LeadsCRMPanel />
+                <EnrichProjectsPanel />
+                <DataImportPanel />
+                <DatabaseCleanup />
+                <FakeListingManager />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* Events Moderation */}
           <TabsContent value="events" className="space-y-6">
-            <EventModerationPanel />
+            <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={5} />}>
+                <EventModerationPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* WhatsApp Logs */}
           <TabsContent value="whatsapp" className="space-y-6">
-            <WhatsAppLogsPanel />
+            <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={5} />}>
+                <WhatsAppLogsPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* AI Trust Engine */}
