@@ -5,6 +5,20 @@ import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
 import type { PropertyRow } from "./types";
 
 /**
+ * Explicit column projection for property card / listing views.
+ * Avoid `select *` to reduce payload + DB I/O.
+ */
+export const PROPERTY_CARD_COLUMNS = [
+  "id", "slug", "title", "description", "city", "locality", "address",
+  "latitude", "longitude", "price", "area_sqft", "type", "listing_type",
+  "bhk", "bedrooms", "bathrooms", "images", "amenities", "verified",
+  "is_live", "is_draft", "is_featured", "trust_score", "verification_status",
+  "furnishing", "property_age", "listing_status", "completion_stage",
+  "submitted_by", "builder_id", "assigned_agent_id",
+  "created_at", "updated_at",
+].join(",");
+
+/**
  * Normalize a raw DB row through the public-view sanitizer used across the app.
  */
 export const toPublicRow = (row: any): PropertyRow => {
