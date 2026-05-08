@@ -738,7 +738,11 @@ export default function AgentDashboard() {
           <SectionErrorBoundary title="Weekend bookings unavailable" description={sectionErrors.visits || "Weekend booking data could not be loaded right now."}>
             <Card className="border-primary/20">
               <CardContent className="p-4 md:p-5">
-                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+                <LazyMount fallback={<ListSkeleton rows={4} />} minHeight={200}>
+                  <Suspense fallback={<ListSkeleton rows={4} />}>
+                    <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+                  </Suspense>
+                </LazyMount>
               </CardContent>
             </Card>
           </SectionErrorBoundary>
