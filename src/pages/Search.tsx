@@ -994,20 +994,42 @@ const Search = () => {
 
           {/* Results */}
           {renderResults()}
+
+          {/* Infinite-scroll sentinel + load-more (Phase 5) */}
+          {!loading && hasMore && (
+            <InfiniteSentinel
+              onReach={() => {
+                if (loadingMore) return;
+                const next = page + 1;
+                setPage(next);
+                fetchData(next, true);
+              }}
+            />
+          )}
+          {loadingMore && (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              Loading more…
+            </div>
+          )}
         </div>
       </div>
 
       <Footer />
 
-      {/* Advanced Filters Sheet */}
-      <AdvancedFiltersSheet
-        open={showMoreFilters}
-        onOpenChange={setShowMoreFilters}
-        activeTab={activeTab}
-        searchType={searchType}
-        filters={advancedFilters}
-        onFiltersChange={setAdvancedFilters}
-      />
+      {/* Advanced Filters Sheet (lazy) */}
+      {showMoreFilters && (
+        <Suspense fallback={null}>
+          <AdvancedFiltersSheet
+            open={showMoreFilters}
+            onOpenChange={setShowMoreFilters}
+            activeTab={activeTab}
+            searchType={searchType}
+            filters={advancedFilters}
+            onFiltersChange={setAdvancedFilters}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
