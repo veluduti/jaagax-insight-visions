@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +13,13 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import PropertyChat from "@/components/chat/PropertyChat";
+const PropertyChat = lazy(() => import("@/components/chat/PropertyChat"));
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import BoostListingDialog from "@/components/property/BoostListingDialog";
+const BoostListingDialog = lazy(() => import("@/components/property/BoostListingDialog"));
 
 interface AssignedAgent {
   id: string;
@@ -529,15 +529,17 @@ export default function SellerDashboard() {
                       <Sparkles className="h-3 w-3" /> Featured
                     </Badge>
                   ) : (
-                    <BoostListingDialog
-                      propertyId={p.id}
-                      onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
-                      trigger={
-                        <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
-                          <Sparkles className="h-3 w-3" /> Boost
-                        </Button>
-                      }
-                    />
+                    <Suspense fallback={<Button size="sm" className="flex-1 min-w-[120px]" disabled>Boost</Button>}>
+                      <BoostListingDialog
+                        propertyId={p.id}
+                        onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
+                        trigger={
+                          <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                            <Sparkles className="h-3 w-3" /> Boost
+                          </Button>
+                        }
+                      />
+                    </Suspense>
                   )}
                 </>
               )}
@@ -746,21 +748,23 @@ export default function SellerDashboard() {
       </div>
 
       {chatProperty && chatProperty.assigned_agent?.user_id && user?.id && (
-        <PropertyChat
-          open={!!chatProperty}
-          onOpenChange={(o) => !o && setChatProperty(null)}
-          propertyId={chatProperty.id}
-          propertyTitle={chatProperty.title}
-          agentUserId={chatProperty.assigned_agent.user_id}
-          sellerUserId={user.id}
-          currentUserId={user.id}
-          counterpart={{
-            name: chatProperty.assigned_agent.name,
-            photo_url: chatProperty.assigned_agent.photo_url,
-            phone: chatProperty.assigned_agent.phone,
-            role: "agent",
-          }}
-        />
+        <Suspense fallback={null}>
+          <PropertyChat
+            open={!!chatProperty}
+            onOpenChange={(o) => !o && setChatProperty(null)}
+            propertyId={chatProperty.id}
+            propertyTitle={chatProperty.title}
+            agentUserId={chatProperty.assigned_agent.user_id}
+            sellerUserId={user.id}
+            currentUserId={user.id}
+            counterpart={{
+              name: chatProperty.assigned_agent.name,
+              photo_url: chatProperty.assigned_agent.photo_url,
+              phone: chatProperty.assigned_agent.phone,
+              role: "agent",
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Edit & Resubmit dialog */}

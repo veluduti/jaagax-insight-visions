@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,14 +13,17 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import PropertyUploadForm from "@/components/builder/PropertyUploadForm";
-import RERAUploadModal from "@/components/builder/RERAUploadModal";
-import BuilderRERAStatus from "@/components/builder/BuilderRERAStatus";
-import DocumentationModal from "@/components/builder/DocumentationModal";
-import BuilderAnalyticsPanel from "@/components/builder/BuilderAnalyticsPanel";
-import BuilderMyProfileCard from "@/components/builder/BuilderMyProfileCard";
-import SamplePropertiesPreviewDialog from "@/components/builder/SamplePropertiesPreviewDialog";
+import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
+
+// Lazy-loaded heavy widgets (Phase 4)
+const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
+const RERAUploadModal = lazy(() => import("@/components/builder/RERAUploadModal"));
+const BuilderRERAStatus = lazy(() => import("@/components/builder/BuilderRERAStatus"));
+const DocumentationModal = lazy(() => import("@/components/builder/DocumentationModal"));
+const BuilderAnalyticsPanel = lazy(() => import("@/components/builder/BuilderAnalyticsPanel"));
+const BuilderMyProfileCard = lazy(() => import("@/components/builder/BuilderMyProfileCard"));
+const SamplePropertiesPreviewDialog = lazy(() => import("@/components/builder/SamplePropertiesPreviewDialog"));
 
 interface Project {
   id: string;
@@ -431,7 +434,9 @@ export default function BuilderDashboard() {
 
           {/* My Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <BuilderMyProfileCard />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <BuilderMyProfileCard />
+            </Suspense>
           </TabsContent>
 
           {/* My Properties Tab */}
@@ -537,10 +542,14 @@ export default function BuilderDashboard() {
 
           {/* Add Property Tab */}
           <TabsContent value="add-property" className="space-y-6">
-            <PropertyUploadForm onSuccess={() => {
-              fetchProjects();
-              fetchProperties();
-            }} />
+            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={500}>
+              <Suspense fallback={<ListSkeleton rows={6} />}>
+                <PropertyUploadForm onSuccess={() => {
+                  fetchProjects();
+                  fetchProperties();
+                }} />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* Projects */}
@@ -636,7 +645,9 @@ export default function BuilderDashboard() {
 
           {/* RERA Verification */}
           <TabsContent value="verification">
-            <BuilderRERAStatus onUpload={() => setReraModalOpen(true)} />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <BuilderRERAStatus onUpload={() => setReraModalOpen(true)} />
+            </Suspense>
           </TabsContent>
 
           {/* Inventory */}
@@ -658,9 +669,11 @@ export default function BuilderDashboard() {
 
           {/* Performance */}
           <TabsContent value="performance">
-            <BuilderAnalyticsPanel />
-
-            {/* AI Project Forecast (existing) */}
+            <LazyMount fallback={<ChartSkeleton />} minHeight={400}>
+              <Suspense fallback={<ChartSkeleton />}>
+                <BuilderAnalyticsPanel />
+              </Suspense>
+            </LazyMount>
             <Card className="mt-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -756,26 +769,38 @@ export default function BuilderDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Modals */}
-        <RERAUploadModal
-          open={reraModalOpen}
-          onOpenChange={setReraModalOpen}
-          projects={projects}
-          onSuccess={() => {
-            fetchProjects();
-            toast.success("RERA document submitted for verification");
-          }}
-        />
+        {/* Modals (lazy — only loaded when first opened) */}
+        {reraModalOpen && (
+          <Suspense fallback={null}>
+            <RERAUploadModal
+              open={reraModalOpen}
+              onOpenChange={setReraModalOpen}
+              projects={projects}
+              onSuccess={() => {
+                fetchProjects();
+                toast.success("RERA document submitted for verification");
+              }}
+            />
+          </Suspense>
+        )}
 
-        <DocumentationModal
-          open={docsModalOpen}
-          onOpenChange={setDocsModalOpen}
-        />
+        {docsModalOpen && (
+          <Suspense fallback={null}>
+            <DocumentationModal
+              open={docsModalOpen}
+              onOpenChange={setDocsModalOpen}
+            />
+          </Suspense>
+        )}
 
-        <SamplePropertiesPreviewDialog
-          open={samplePreviewOpen}
-          onOpenChange={setSamplePreviewOpen}
-        />
+        {samplePreviewOpen && (
+          <Suspense fallback={null}>
+            <SamplePropertiesPreviewDialog
+              open={samplePreviewOpen}
+              onOpenChange={setSamplePreviewOpen}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );

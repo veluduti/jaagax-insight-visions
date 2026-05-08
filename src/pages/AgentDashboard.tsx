@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,9 +32,12 @@ import {
   PhoneCall, MessageSquare, Briefcase, Target, ListChecks,
   XCircle, Share2, FileText, Sparkles, ArrowRight, IndianRupee,
 } from "lucide-react";
-import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
-import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
+import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
+
+// Lazy-load heavy panels (Phase 4)
+const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
+const WeekendBookingsList = lazy(() => import("@/components/weekend/WeekendBookingsList"));
 
 /* ============================================================
    Types
@@ -652,11 +655,15 @@ export default function AgentDashboard() {
         {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
         {agentProfile.id && user?.id && (
           <SectionErrorBoundary title="Assigned properties unavailable" description={sectionErrors.properties || "Assigned properties could not be displayed right now."}>
-            <AssignedPropertiesPanel
-              agentId={agentProfile.id}
-              agentUserId={user.id}
-              agentName={agentProfile.name || "Agent"}
-            />
+            <LazyMount fallback={<CardGridSkeleton count={3} />} minHeight={300}>
+              <Suspense fallback={<CardGridSkeleton count={3} />}>
+                <AssignedPropertiesPanel
+                  agentId={agentProfile.id}
+                  agentUserId={user.id}
+                  agentName={agentProfile.name || "Agent"}
+                />
+              </Suspense>
+            </LazyMount>
           </SectionErrorBoundary>
         )}
 
@@ -731,7 +738,11 @@ export default function AgentDashboard() {
           <SectionErrorBoundary title="Weekend bookings unavailable" description={sectionErrors.visits || "Weekend booking data could not be loaded right now."}>
             <Card className="border-primary/20">
               <CardContent className="p-4 md:p-5">
-                <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+                <LazyMount fallback={<ListSkeleton rows={4} />} minHeight={200}>
+                  <Suspense fallback={<ListSkeleton rows={4} />}>
+                    <WeekendBookingsList scope="agent" agentId={agentProfile.id} userId={user.id} kind="weekend" />
+                  </Suspense>
+                </LazyMount>
               </CardContent>
             </Card>
           </SectionErrorBoundary>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,18 +13,21 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import VerificationPanel from "@/components/admin/VerificationPanel";
-import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPanel";
-import { DataImportPanel } from "@/components/admin/DataImportPanel";
-import { FakeListingManager } from "@/components/admin/FakeListingManager";
-import { DatabaseCleanup } from "@/components/admin/DatabaseCleanup";
-import { EnrichProjectsPanel } from "@/components/admin/EnrichProjectsPanel";
-import { LeadsCRMPanel } from "@/components/admin/LeadsCRMPanel";
-import { EventModerationPanel } from "@/components/admin/EventModerationPanel";
-import { FetchCommunityEvents } from "@/components/admin/FetchCommunityEvents";
-import { WhatsAppLogsPanel } from "@/components/admin/WhatsAppLogsPanel";
-import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
+import { LazyMount, ListSkeleton, ChartSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
+// Lazy-loaded heavy panels (Phase 4: critical-vs-non-critical separation)
+const VerificationPanel = lazy(() => import("@/components/admin/VerificationPanel"));
+const AgentVerifiedReviewPanel = lazy(() => import("@/components/admin/AgentVerifiedReviewPanel"));
+const DataImportPanel = lazy(() => import("@/components/admin/DataImportPanel").then(m => ({ default: m.DataImportPanel })));
+const FakeListingManager = lazy(() => import("@/components/admin/FakeListingManager").then(m => ({ default: m.FakeListingManager })));
+const DatabaseCleanup = lazy(() => import("@/components/admin/DatabaseCleanup").then(m => ({ default: m.DatabaseCleanup })));
+const EnrichProjectsPanel = lazy(() => import("@/components/admin/EnrichProjectsPanel").then(m => ({ default: m.EnrichProjectsPanel })));
+const LeadsCRMPanel = lazy(() => import("@/components/admin/LeadsCRMPanel").then(m => ({ default: m.LeadsCRMPanel })));
+const EventModerationPanel = lazy(() => import("@/components/admin/EventModerationPanel").then(m => ({ default: m.EventModerationPanel })));
+const FetchCommunityEvents = lazy(() => import("@/components/admin/FetchCommunityEvents").then(m => ({ default: m.FetchCommunityEvents })));
+const WhatsAppLogsPanel = lazy(() => import("@/components/admin/WhatsAppLogsPanel").then(m => ({ default: m.WhatsAppLogsPanel })));
+const RegisteredUsersPanel = lazy(() => import("@/components/admin/RegisteredUsersPanel"));
 
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -289,7 +292,11 @@ export default function AdminDashboard() {
 
           {/* Registered Users (replaces Signup Requests + Role Approvals) */}
           <TabsContent value="users" className="space-y-6">
-            <RegisteredUsersPanel />
+            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={6} />}>
+                <RegisteredUsersPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           <TabsContent value="visits" className="space-y-6">
@@ -357,24 +364,38 @@ export default function AdminDashboard() {
 
           {/* Verifications */}
           <TabsContent value="verification" id="admin-verifications" className="space-y-6 scroll-mt-24">
-            <AgentVerifiedReviewPanel />
-            <VerificationPanel />
-            <FetchCommunityEvents />
-            <LeadsCRMPanel />
-            <EnrichProjectsPanel />
-            <DataImportPanel />
-            <DatabaseCleanup />
-            <FakeListingManager />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <AgentVerifiedReviewPanel />
+              <VerificationPanel />
+            </Suspense>
+            <LazyMount fallback={<ListSkeleton rows={3} />} minHeight={300}>
+              <Suspense fallback={<ListSkeleton rows={3} />}>
+                <FetchCommunityEvents />
+                <LeadsCRMPanel />
+                <EnrichProjectsPanel />
+                <DataImportPanel />
+                <DatabaseCleanup />
+                <FakeListingManager />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* Events Moderation */}
           <TabsContent value="events" className="space-y-6">
-            <EventModerationPanel />
+            <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={5} />}>
+                <EventModerationPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* WhatsApp Logs */}
           <TabsContent value="whatsapp" className="space-y-6">
-            <WhatsAppLogsPanel />
+            <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={5} />}>
+                <WhatsAppLogsPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* AI Trust Engine */}
