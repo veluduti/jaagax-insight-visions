@@ -592,8 +592,7 @@ const ProjectDetail = () => {
                               src={plan}
                               alt={`Floor Plan ${idx + 1}`}
                               className="w-full h-full object-contain hover:scale-105 transition-transform cursor-zoom-in"
-                              onClick={() => window.open(plan, '_blank')}
-                            />
+                              onClick={() => window.open(plan, '_blank')} loading="lazy" decoding="async" />
                           </div>
                           <div className="p-4">
                             <h3 className="font-semibold text-base capitalize">

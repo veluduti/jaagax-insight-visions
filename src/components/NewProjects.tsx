@@ -178,8 +178,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
                           e.currentTarget.parentElement?.classList.add("hidden");
-                        }}
-                      />
+                        }} loading="lazy" decoding="async" />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                       
                       {/* RERA Badge */}

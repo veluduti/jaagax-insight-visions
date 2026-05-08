@@ -135,8 +135,7 @@ const MyFavorites = () => {
               onClick={() => openInNewTab(propertyPath(property))}
               onError={(e) => {
                 e.currentTarget.src = "";
-              }}
-            />
+              }} loading="lazy" decoding="async" />
             {property.verified && (
               <Badge className="absolute top-2 left-2 bg-primary">Verified</Badge>
             )}
