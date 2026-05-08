@@ -157,6 +157,9 @@ const Search = () => {
   
   // Loading states
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
   const [loadingAI, setLoadingAI] = useState(false);
   const [total, setTotal] = useState(0);
   
@@ -187,17 +190,30 @@ const Search = () => {
   }));
   
   const lastSearchKey = useRef<string>("");
-  const popularLocations = ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"];
+  const popularLocations = useMemo(
+    () => ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"],
+    []
+  );
 
-  const navItems = [
-    { label: "Properties", value: "properties", icon: Home },
-  ];
+  const navItems = useMemo(
+    () => [{ label: "Properties", value: "properties", icon: Home }],
+    []
+  );
 
-  // Fetch data when tab or filters change
+  // Debounced filter inputs to avoid refetching on every keystroke / slider tick (Phase 5)
+  const debouncedLocation = useDebouncedValue(location, 350);
+  const debouncedFilters = useDebouncedValue(advancedFilters, 300);
+
+  // Reset page whenever the effective query changes
   useEffect(() => {
-    fetchData();
+    setPage(1);
+  }, [activeTab, debouncedLocation, searchType, debouncedFilters, tierFilter, savedLocation?.latitude, savedLocation?.longitude]);
+
+  // Fetch data when tab or (debounced) filters change
+  useEffect(() => {
+    fetchData(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, location, searchType, advancedFilters, tierFilter, savedLocation?.latitude, savedLocation?.longitude]);
+  }, [activeTab, debouncedLocation, searchType, debouncedFilters, tierFilter, savedLocation?.latitude, savedLocation?.longitude]);
 
   // When the user picks a new saved location, reflect it in the search input
   useEffect(() => {
