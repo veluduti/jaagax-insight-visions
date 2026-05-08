@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBuyerContext } from "@/hooks/useBuyerContext";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { aiService } from "@/services/aiService";
+import { runWhenIdle } from "@/lib/aiCache";
 import { Sparkles, ThumbsUp, AlertCircle, XCircle, ChevronRight, MapPin } from "lucide-react";
 
 interface PropertyInsight {
@@ -30,53 +32,60 @@ const AIInsightStrip = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && role === "buyer" && hasBuyerContext) {
-      fetchInsights();
-    } else {
+    let cancelled = false;
+    if (!user || role !== "buyer" || !hasBuyerContext) {
       setLoading(false);
+      return;
     }
-  }, [user, role, hasBuyerContext, buyerContext]);
-
-  const fetchInsights = async () => {
     setLoading(true);
-    try {
-      // Fetch properties
-      const { data: properties } = await (supabase
-        .from("properties" as any)
-        .select("*")
-        .limit(20) as any);
+    // Defer AI work to idle so it never blocks initial paint.
+    const handle = runWhenIdle(async () => {
+      try {
+        const { data: properties } = await (supabase
+          .from("properties" as any)
+          .select("id,slug,title,price,locality,city,bhk,bedrooms,type,verified,trust_score,status,images")
+          .limit(20) as any);
 
-      if (!properties || properties.length === 0) {
-        setLoading(false);
-        return;
-      }
+        if (!properties || properties.length === 0) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
 
-      // Call AI to get suggestions based on buyer context
-      const { data: aiResult } = await supabase.functions.invoke("ai-suggest-properties", {
-        body: {
+        const aiResult = await aiService.suggestProperties({
           userId: user?.id,
-          buyerContext: buyerContext,
+          buyerContext,
           properties: properties.map((p: any) => ({
             id: p.id,
             title: p.title,
             price: p.price,
-            locality: p.locality || '',
-            city: p.city || '',
+            locality: p.locality || "",
+            city: p.city || "",
             bhk: p.bhk || p.bedrooms || 0,
-            type: p.type || p.property_type || '',
+            type: p.type || "",
           })),
-        },
-      });
+        }).catch(() => ({ suggestions: [] as number[] }));
 
-      // Generate insights based on buyer context and AI suggestions
-      const categorizedInsights = categorizeProperties(properties, aiResult?.suggestions || []);
-      setInsights(categorizedInsights);
-    } catch (error) {
-      console.error("Error fetching AI insights:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (cancelled) return;
+        const categorized = categorizeProperties(properties, aiResult?.suggestions || []);
+        setInsights(categorized);
+      } catch (error) {
+        console.error("Error fetching AI insights:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      try {
+        const cic = (globalThis as any).cancelIdleCallback;
+        if (typeof cic === "function") cic(handle);
+        else clearTimeout(handle as any);
+      } catch { /* ignore */ }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, role, hasBuyerContext, buyerContext]);
+
 
   const categorizeProperties = (
     properties: any[],

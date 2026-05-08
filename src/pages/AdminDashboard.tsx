@@ -97,11 +97,8 @@ export default function AdminDashboard() {
   const runTrustAnalysis = async (entityType: string, entityId: number) => {
     setLoadingTrust(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-trust-engine', {
-        body: { entityType, entityId }
-      });
-
-      if (error) throw error;
+      const { aiService } = await import("@/services/aiService");
+      const data: any = await aiService.trustEngine({ entityType, entityId });
 
       if (data?.analysis) {
         setTrustAnalysis(data.analysis);

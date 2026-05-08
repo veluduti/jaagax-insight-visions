@@ -66,3 +66,17 @@ export const ChartSkeleton = ({ height = 280 }: { height?: number }) => (
     </CardContent>
   </Card>
 );
+
+/** AI section placeholder — used while AI/recommendation calls resolve. */
+export const AISectionSkeleton = ({ height = 180 }: { height?: number }) => (
+  <section className="py-8 px-4">
+    <div className="container mx-auto space-y-4">
+      <Skeleton className="h-6 w-48" />
+      <div className="grid md:grid-cols-3 gap-4">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} style={{ height }} className="w-full rounded-lg" />
+        ))}
+      </div>
+    </div>
+  </section>
+);

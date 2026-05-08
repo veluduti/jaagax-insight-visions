@@ -95,9 +95,17 @@ const BuyerDashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      fetchAISuggestions();
-    }
+    if (!user) return;
+    // Defer AI suggestions to idle so dashboard renders instantly.
+    const ric = (globalThis as any).requestIdleCallback;
+    const handle = typeof ric === "function"
+      ? ric(() => fetchAISuggestions(), { timeout: 1500 })
+      : (setTimeout(() => fetchAISuggestions(), 1) as unknown as number);
+    return () => {
+      const cic = (globalThis as any).cancelIdleCallback;
+      if (typeof cic === "function") cic(handle);
+      else clearTimeout(handle as any);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -202,28 +210,25 @@ const BuyerDashboard = () => {
   const fetchAISuggestions = async () => {
     setLoadingAI(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-suggest-properties', {
-        body: { 
-          userId: user.id, 
-          city: user.city || 'Hyderabad',
-          minPrice: 3000000,
-          maxPrice: 10000000,
-          bhk: 3
-        }
-      });
+      const { aiService } = await import("@/services/aiService");
+      const data: any = await aiService.suggestProperties({
+        userId: user.id,
+        city: user.city || "Hyderabad",
+        minPrice: 3000000,
+        maxPrice: 10000000,
+        bhk: 3,
+      }).catch(() => null);
 
-      if (error) throw error;
-
-      if (data?.suggestions) {
+      if (data?.suggestions?.length) {
         const { data: suggestedProps } = await supabase
-          .from('properties')
-          .select('*')
-          .in('id', data.suggestions);
-        
-        if (suggestedProps) setAiSuggestions(suggestedProps);
+          .from("properties")
+          .select("id,slug,title,city,locality,price,area_sqft,bedrooms,bathrooms,bhk,images,verified,trust_score")
+          .in("id", data.suggestions);
+
+        if (suggestedProps) setAiSuggestions(suggestedProps as any);
       }
     } catch (error) {
-      console.error('AI Suggestions error:', error);
+      console.error("AI Suggestions error:", error);
     } finally {
       setLoadingAI(false);
     }

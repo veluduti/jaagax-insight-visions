@@ -218,22 +218,19 @@ export default function BuilderDashboard() {
     setSelectedProject(project);
     setLoadingForecast(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-project-forecast', {
-        body: {
-          projectId: project.id,
-          city: project.city,
-          locality: project.locality,
-          avgPrice: project.avg_price,
-          verified: project.verified,
-          reraId: project.rera_id
-        }
+      const { aiService } = await import("@/services/aiService");
+      const data: any = await aiService.projectForecast({
+        projectId: project.id,
+        city: project.city,
+        locality: project.locality,
+        avgPrice: project.avg_price,
+        verified: project.verified,
+        reraId: project.rera_id,
       });
 
-      if (!error && data?.forecast) {
-        setForecast(data.forecast);
-      }
+      if (data?.forecast) setForecast(data.forecast);
     } catch (error) {
-      console.error('Forecast error:', error);
+      console.error("Forecast error:", error);
     } finally {
       setLoadingForecast(false);
     }
