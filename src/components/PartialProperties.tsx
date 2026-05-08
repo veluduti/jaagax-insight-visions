@@ -1,12 +1,13 @@
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Bath, Maximize, MapPin, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { usePartialProperties } from "@/hooks/queries/useProperties";
+import { PropertyGridCard, SectionHeader } from "@/components/shared";
+import type { PropertyRow } from "@/services/types";
 
-const openProperty = (p: { slug?: string | null; id: string }) => {
+const openProperty = (p: PropertyRow) => {
   window.open(`/property/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
 };
 
@@ -17,32 +18,28 @@ interface PartialPropertiesProps {
 const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
   const navigate = useNavigate();
   const { data: properties = [], isLoading } = usePartialProperties(detectedCity);
+  const handleOpen = useCallback((p: PropertyRow) => openProperty(p), []);
 
   if (isLoading || properties.length === 0) return null;
 
   return (
     <section className="section-spacing relative" id="partial-properties">
       <div className="container mx-auto container-padding">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-xl"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/60 text-xs font-medium text-foreground/70 mb-3">
-            <Info className="h-3 w-3" /> Partial listings — details still coming in
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-md">
-            Partial <span className="text-gradient">Properties</span>
-            {detectedCity && (
+        <SectionHeader
+          eyebrow={
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/60 text-xs font-medium text-foreground/70 mb-3">
+              <Info className="h-3 w-3" /> Partial listings — details still coming in
+            </div>
+          }
+          title="Partial"
+          highlight="Properties"
+          trailing={
+            detectedCity ? (
               <span className="text-foreground/60 text-xl md:text-2xl"> in {detectedCity}</span>
-            )}
-          </h2>
-          <p className="text-foreground/70 text-base md:text-lg max-w-2xl mx-auto">
-            Newly listed by agents and builders. Some details may be missing.
-          </p>
-        </motion.div>
+            ) : null
+          }
+          description="Newly listed by agents and builders. Some details may be missing."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md lg:gap-lg">
           {properties.map((property, index) => (
@@ -53,80 +50,13 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card
-                className="card-hover overflow-hidden group cursor-pointer relative"
-                onClick={() => openProperty(property)}
-              >
-                {Array.isArray(property.images) && property.images[0] ? (
-                <div className="relative h-48 overflow-hidden bg-muted">
-                  <img
-                    src={property.images[0]}
-                    alt={property.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 saturate-75"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.parentElement?.classList.add("hidden");
-                    }}
-                  />
-                  <Badge
-                    variant="secondary"
-                    className="absolute top-3 left-3 bg-background/85 backdrop-blur-sm border-0 text-foreground/80"
-                  >
-                    Partial info
-                  </Badge>
-                </div>
-                ) : null}
-
-                <div className="p-md">
-                  <div className="flex items-start justify-between mb-sm gap-sm">
-                    <h3 className="font-semibold text-lg line-clamp-1 flex-1">
-                      {property.title}
-                    </h3>
-                    {property.price ? (
-                      <span className="text-primary font-bold text-lg whitespace-nowrap">
-                        ₹{(property.price / 10000000).toFixed(2)} Cr
-                      </span>
-                    ) : (
-                      <span className="text-foreground/50 text-sm whitespace-nowrap">
-                        Price on request
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 text-foreground/70 text-sm mb-md">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="line-clamp-1">
-                      {property.locality || "Locality TBD"}, {property.city || "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-md text-sm text-foreground/70 mb-md">
-                    <div className="flex items-center gap-1">
-                      <Bed className="h-4 w-4" />
-                      <span>{property.bhk || property.bedrooms || "—"}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Bath className="h-4 w-4" />
-                      <span>{property.bathrooms || "—"}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Maximize className="h-4 w-4" />
-                      <span>{property.area_sqft ? `${property.area_sqft} sqft` : "—"}</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full border-primary/40 hover:bg-primary/10 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openProperty(property);
-                    }}
-                  >
-                    View Available Details
-                  </Button>
-                </div>
-              </Card>
+              <PropertyGridCard
+                property={property}
+                showFavorite={false}
+                badge={{ label: "Partial info", tone: "muted" }}
+                ctaLabel="View Available Details"
+                onOpen={handleOpen}
+              />
             </motion.div>
           ))}
         </div>
