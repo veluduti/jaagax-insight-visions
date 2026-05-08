@@ -542,10 +542,14 @@ export default function BuilderDashboard() {
 
           {/* Add Property Tab */}
           <TabsContent value="add-property" className="space-y-6">
-            <PropertyUploadForm onSuccess={() => {
-              fetchProjects();
-              fetchProperties();
-            }} />
+            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={500}>
+              <Suspense fallback={<ListSkeleton rows={6} />}>
+                <PropertyUploadForm onSuccess={() => {
+                  fetchProjects();
+                  fetchProperties();
+                }} />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           {/* Projects */}
