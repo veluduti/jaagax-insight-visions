@@ -15,7 +15,7 @@ export interface SearchFilters {
 }
 
 export async function searchProperties(filters: SearchFilters = {}): Promise<PropertyRow[]> {
-  let q: any = (supabase.from("properties" as any).select("*") as any)
+  let q: any = (supabase.from("properties" as any).select(PROPERTY_CARD_COLUMNS) as any)
     .neq("is_draft", true)
     .not("title", "is", null);
 
