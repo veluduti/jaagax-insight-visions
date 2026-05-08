@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
@@ -155,6 +155,8 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
           <img
             src={imageUrls[0] || ""}
             alt={property.title}
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = "";
             }}
@@ -352,4 +354,4 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
   );
 };
 
-export default PropertyCardWithAI;
+export default memo(PropertyCardWithAI);
