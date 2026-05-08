@@ -32,9 +32,12 @@ import {
   PhoneCall, MessageSquare, Briefcase, Target, ListChecks,
   XCircle, Share2, FileText, Sparkles, ArrowRight, IndianRupee,
 } from "lucide-react";
-import AssignedPropertiesPanel from "@/components/agents/AssignedPropertiesPanel";
-import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
+import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
+
+// Lazy-load heavy panels (Phase 4)
+const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
+const WeekendBookingsList = lazy(() => import("@/components/weekend/WeekendBookingsList"));
 
 /* ============================================================
    Types
