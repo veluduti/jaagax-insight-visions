@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useInView } from "@/hooks/useInView";
 
 interface BuilderLocationMapProps {
   lat: number;
@@ -12,6 +13,7 @@ interface BuilderLocationMapProps {
 const BuilderLocationMap = ({ lat, lng, builderName, height = "400px" }: BuilderLocationMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [inViewRef, inView] = useInView<HTMLDivElement>({ rootMargin: "300px" });
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
