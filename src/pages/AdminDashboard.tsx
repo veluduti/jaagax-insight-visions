@@ -292,7 +292,11 @@ export default function AdminDashboard() {
 
           {/* Registered Users (replaces Signup Requests + Role Approvals) */}
           <TabsContent value="users" className="space-y-6">
-            <RegisteredUsersPanel />
+            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={400}>
+              <Suspense fallback={<ListSkeleton rows={6} />}>
+                <RegisteredUsersPanel />
+              </Suspense>
+            </LazyMount>
           </TabsContent>
 
           <TabsContent value="visits" className="space-y-6">
