@@ -20,6 +20,7 @@ import SneakPeekListings from "@/components/home/SneakPeekListings";
 import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
 import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
+import { LazyMount, AISectionSkeleton } from "@/components/shared";
 
 const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
