@@ -52,7 +52,7 @@ interface ListOptions {
  */
 async function fetchPublicProperties(opts: ListOptions = {}): Promise<PropertyRow[]> {
   const { limit = 120, orderBy } = opts;
-  let query: any = (supabase.from("properties" as any).select("*") as any)
+  let query: any = (supabase.from("properties" as any).select(PROPERTY_CARD_COLUMNS) as any)
     .neq("is_draft", true)
     .not("title", "is", null)
     .not("city", "is", null);
