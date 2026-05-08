@@ -6,50 +6,67 @@ import {
   addFavorite,
   removeFavorite,
 } from "@/services/propertyService";
+import { queryKeys, STALE } from "./queryKeys";
 
+// Re-export for backwards compatibility with existing imports.
 export const propertyKeys = {
-  all: ["properties"] as const,
-  featured: (city?: string) => [...propertyKeys.all, "featured", city ?? "all"] as const,
-  partial: (city?: string) => [...propertyKeys.all, "partial", city ?? "all"] as const,
-  favorites: (userId: string | null | undefined) => ["favorites", userId ?? "anon"] as const,
+  all: queryKeys.properties.all,
+  featured: queryKeys.properties.featured,
+  partial: queryKeys.properties.partial,
+  favorites: queryKeys.properties.favorites,
 };
 
 export function useFeaturedProperties(detectedCity?: string) {
   return useQuery({
-    queryKey: propertyKeys.featured(detectedCity),
+    queryKey: queryKeys.properties.featured(detectedCity),
     queryFn: () => getFeaturedProperties(detectedCity),
-    staleTime: 60_000,
+    staleTime: STALE.MEDIUM,
   });
 }
 
 export function usePartialProperties(detectedCity?: string) {
   return useQuery({
-    queryKey: propertyKeys.partial(detectedCity),
+    queryKey: queryKeys.properties.partial(detectedCity),
     queryFn: () => getPartialProperties(detectedCity),
-    staleTime: 60_000,
+    staleTime: STALE.MEDIUM,
   });
 }
 
 export function useFavoriteIds(userId: string | null | undefined) {
   return useQuery({
-    queryKey: propertyKeys.favorites(userId),
+    queryKey: queryKeys.properties.favorites(userId),
     queryFn: () => getFavoritePropertyIds(userId as string),
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: STALE.SHORT,
   });
 }
 
+/**
+ * Optimistic toggle: updates the cached favorites list immediately,
+ * rolls back on error, and reconciles in the background.
+ */
 export function useToggleFavorite(userId: string | null | undefined) {
   const qc = useQueryClient();
+  const key = queryKeys.properties.favorites(userId);
+
   return useMutation({
     mutationFn: async ({ propertyId, isFav }: { propertyId: string; isFav: boolean }) => {
       if (!userId) throw new Error("Not authenticated");
       if (isFav) await removeFavorite(userId, propertyId);
       else await addFavorite(userId, propertyId);
-      return { propertyId, isFav: !isFav };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: propertyKeys.favorites(userId) });
+    onMutate: async ({ propertyId, isFav }) => {
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<string[]>(key) ?? [];
+      const next = isFav ? prev.filter((id) => id !== propertyId) : [...prev, propertyId];
+      qc.setQueryData(key, next);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(key, ctx.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: key });
     },
   });
 }
