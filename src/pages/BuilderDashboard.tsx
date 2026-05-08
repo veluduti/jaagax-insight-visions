@@ -769,26 +769,38 @@ export default function BuilderDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Modals */}
-        <RERAUploadModal
-          open={reraModalOpen}
-          onOpenChange={setReraModalOpen}
-          projects={projects}
-          onSuccess={() => {
-            fetchProjects();
-            toast.success("RERA document submitted for verification");
-          }}
-        />
+        {/* Modals (lazy — only loaded when first opened) */}
+        {reraModalOpen && (
+          <Suspense fallback={null}>
+            <RERAUploadModal
+              open={reraModalOpen}
+              onOpenChange={setReraModalOpen}
+              projects={projects}
+              onSuccess={() => {
+                fetchProjects();
+                toast.success("RERA document submitted for verification");
+              }}
+            />
+          </Suspense>
+        )}
 
-        <DocumentationModal
-          open={docsModalOpen}
-          onOpenChange={setDocsModalOpen}
-        />
+        {docsModalOpen && (
+          <Suspense fallback={null}>
+            <DocumentationModal
+              open={docsModalOpen}
+              onOpenChange={setDocsModalOpen}
+            />
+          </Suspense>
+        )}
 
-        <SamplePropertiesPreviewDialog
-          open={samplePreviewOpen}
-          onOpenChange={setSamplePreviewOpen}
-        />
+        {samplePreviewOpen && (
+          <Suspense fallback={null}>
+            <SamplePropertiesPreviewDialog
+              open={samplePreviewOpen}
+              onOpenChange={setSamplePreviewOpen}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );
