@@ -726,6 +726,8 @@ const Search = () => {
                     <img
                       src={property.images?.[0] || "/placeholder.svg"}
                       alt={property.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <Badge className="absolute top-3 left-3 bg-green-500 text-white">
