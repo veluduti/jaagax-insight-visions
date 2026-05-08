@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,20 +10,22 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
-import { 
-  Heart, MapPin, Search, Bell, Calculator, 
+import {
+  Heart, MapPin, Search, Bell, Calculator,
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
   GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
-import MyJourneyTimeline from "@/components/buyer/MyJourneyTimeline";
-import MyBookings from "@/components/buyer/MyBookings";
-import WeekendBookingsList from "@/components/weekend/WeekendBookingsList";
-import MyVisits from "@/components/buyer/MyVisits";
-import MyFavorites from "@/components/buyer/MyFavorites";
-import AlertsPanel from "@/components/buyer/AlertsPanel";
-import SavedSearchesPanel from "@/components/buyer/SavedSearchesPanel";
+// Heavy tab modules — code-split so they only download when their tab is opened.
+const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
+const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
+const WeekendBookingsList = lazy(() => import("@/components/weekend/WeekendBookingsList"));
+const MyVisits = lazy(() => import("@/components/buyer/MyVisits"));
+const MyFavorites = lazy(() => import("@/components/buyer/MyFavorites"));
+const AlertsPanel = lazy(() => import("@/components/buyer/AlertsPanel"));
+const SavedSearchesPanel = lazy(() => import("@/components/buyer/SavedSearchesPanel"));
+import { ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 
@@ -526,22 +528,30 @@ const BuyerDashboard = () => {
 
           {/* My Journey */}
           <TabsContent value="journey">
-            <MyJourneyTimeline />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <MyJourneyTimeline />
+            </Suspense>
           </TabsContent>
 
           {/* My Bookings */}
           <TabsContent value="bookings">
-            <MyBookings />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <MyBookings />
+            </Suspense>
           </TabsContent>
 
           {/* Weekend Property Explorer */}
           <TabsContent value="weekend">
-            <WeekendBookingsList scope="buyer" userId={user?.id} kind="weekend" />
+            <Suspense fallback={<ListSkeleton rows={3} />}>
+              <WeekendBookingsList scope="buyer" userId={user?.id} kind="weekend" />
+            </Suspense>
           </TabsContent>
 
           {/* Quick Visit Package */}
           <TabsContent value="quick-visits">
-            <WeekendBookingsList scope="buyer" userId={user?.id} kind="quick_visit" />
+            <Suspense fallback={<ListSkeleton rows={3} />}>
+              <WeekendBookingsList scope="buyer" userId={user?.id} kind="quick_visit" />
+            </Suspense>
           </TabsContent>
 
           {/* Favorites */}
@@ -552,7 +562,9 @@ const BuyerDashboard = () => {
                 <CardDescription>Properties you've saved by tapping the heart icon</CardDescription>
               </CardHeader>
               <CardContent>
-                <MyFavorites />
+                <Suspense fallback={<CardGridSkeleton count={4} />}>
+                  <MyFavorites />
+                </Suspense>
               </CardContent>
             </Card>
           </TabsContent>
@@ -632,17 +644,23 @@ const BuyerDashboard = () => {
 
           {/* My Visits */}
           <TabsContent value="visits">
-            <MyVisits />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <MyVisits />
+            </Suspense>
           </TabsContent>
 
           {/* Saved Searches */}
           <TabsContent value="searches">
-            <SavedSearchesPanel />
+            <Suspense fallback={<ListSkeleton rows={3} />}>
+              <SavedSearchesPanel />
+            </Suspense>
           </TabsContent>
 
           {/* Alerts */}
           <TabsContent value="alerts">
-            <AlertsPanel />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <AlertsPanel />
+            </Suspense>
           </TabsContent>
         </Tabs>
 
