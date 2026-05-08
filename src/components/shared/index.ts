@@ -9,4 +9,5 @@ export {
   CardGridSkeleton,
   ListSkeleton,
   ChartSkeleton,
+  AISectionSkeleton,
 } from "./skeletons";
