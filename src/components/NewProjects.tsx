@@ -169,14 +169,15 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                     className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
                     onClick={() => openProject(project)}
                   >
-                    {/* Image */}
+                    {/* Image — hidden when no image */}
+                    {project.image ? (
                     <div className="relative h-56 overflow-hidden">
                       <img
-                        src={project.image || ""}
+                        src={project.image}
                         alt={project.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
-                          e.currentTarget.src = "";
+                          e.currentTarget.parentElement?.classList.add("hidden");
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
@@ -196,6 +197,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         </Badge>
                       )}
                     </div>
+                    ) : null}
 
                     {/* Content */}
                     <div className="p-5">
