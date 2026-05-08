@@ -228,7 +228,7 @@ export default function VerificationPanel() {
                     src={Array.isArray(property.images) && property.images[0] ? property.images[0] : ""}
                     alt={property.title}
                     className="w-full h-full object-cover"
-                  />
+                   loading="lazy" decoding="async" />
                   <Badge className="absolute top-2 right-2 bg-orange-500">
                     <Clock className="h-3 w-3 mr-1" />
                     Pending

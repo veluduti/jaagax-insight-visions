@@ -50,7 +50,7 @@ const SneakPeekPreviewModal = ({ property, open, onClose }: SneakPeekPreviewModa
             src={imageUrl}
             alt={property.title}
             className="w-full h-full object-cover saturate-[0.6]"
-          />
+           loading="lazy" decoding="async" />
           {/* Diagonal watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15">
             <span className="text-5xl font-black tracking-[0.3em] text-foreground rotate-[-30deg] select-none">

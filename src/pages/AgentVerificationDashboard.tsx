@@ -273,7 +273,7 @@ const AgentVerificationDashboard = () => {
                   {form.photos.length > 0 && (
                     <div className="flex gap-2 flex-wrap mt-2">
                       {form.photos.map((p, i) => (
-                        <img key={i} src={p} alt={`shot ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border" />
+                        <img key={i} src={p} alt={`shot ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border"  loading="lazy" decoding="async" />
                       ))}
                     </div>
                   )}

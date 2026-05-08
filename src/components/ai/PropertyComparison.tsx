@@ -102,7 +102,7 @@ export default function PropertyComparison({ properties, onClose }: PropertyComp
                     src={property.images[0]} 
                     alt={property.title}
                     className="w-full h-32 object-cover rounded-lg mb-3"
-                  />
+                   loading="lazy" decoding="async" />
                 )}
                 <h3 className="font-semibold text-lg mb-2 line-clamp-2">{property.title}</h3>
                 <div className="space-y-2 text-sm">

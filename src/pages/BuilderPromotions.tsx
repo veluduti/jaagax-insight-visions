@@ -308,7 +308,7 @@ const BuilderPromotions = () => {
                       >
                         <div className="w-14 h-14 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                           {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               {item.type === "project" ? <Building2 className="h-6 w-6 text-muted-foreground" /> : <HomeIcon className="h-6 w-6 text-muted-foreground" />}

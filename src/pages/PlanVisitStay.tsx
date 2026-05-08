@@ -428,7 +428,7 @@ const PlanVisitStay = () => {
                     <div className="flex items-center justify-between border rounded-lg p-3 bg-muted/30">
                       <div className="flex items-center gap-3 min-w-0">
                         {property.images?.[0] && (
-                          <img src={property.images[0]} alt={property.title} className="h-12 w-12 rounded object-cover" />
+                          <img src={property.images[0]} alt={property.title} className="h-12 w-12 rounded object-cover"  loading="lazy" decoding="async" />
                         )}
                         <div className="min-w-0">
                           <p className="font-medium truncate">{property.title}</p>
@@ -471,7 +471,7 @@ const PlanVisitStay = () => {
                               className="w-full text-left p-3 hover:bg-muted/50 flex items-center gap-3"
                             >
                               {p.images?.[0] && (
-                                <img src={p.images[0]} alt={p.title} className="h-10 w-10 rounded object-cover" />
+                                <img src={p.images[0]} alt={p.title} className="h-10 w-10 rounded object-cover"  loading="lazy" decoding="async" />
                               )}
                               <div className="min-w-0">
                                 <p className="font-medium truncate">{p.title}</p>
@@ -621,7 +621,7 @@ const PlanVisitStay = () => {
                                 }`}
                               >
                                 {h.images?.[0] && (
-                                  <img src={h.images[0]} alt={h.name} className="h-32 w-full object-cover" />
+                                  <img src={h.images[0]} alt={h.name} className="h-32 w-full object-cover"  loading="lazy" decoding="async" />
                                 )}
                                 <div className="p-3">
                                   <div className="flex items-center justify-between gap-2">
@@ -705,7 +705,7 @@ const PlanVisitStay = () => {
                   <p className="text-sm font-semibold text-muted-foreground">Property</p>
                   <div className="flex items-center gap-3 border rounded-lg p-3">
                     {property?.images?.[0] && (
-                      <img src={property.images[0]} className="h-14 w-14 rounded object-cover" alt="" />
+                      <img src={property.images[0]} className="h-14 w-14 rounded object-cover" alt=""  loading="lazy" decoding="async" />
                     )}
                     <div>
                       <p className="font-medium">{property?.title}</p>

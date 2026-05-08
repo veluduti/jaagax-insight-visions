@@ -312,7 +312,7 @@ export const VisitSchedulingWizard = ({
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <img src={agent.photo_url || '/placeholder.svg'} alt={agent.name || 'Agent'} className="w-12 h-12 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100'; }} />
+                          <img src={agent.photo_url || '/placeholder.svg'} alt={agent.name || 'Agent'} className="w-12 h-12 rounded-full object-cover" onError={(e) = loading="lazy" decoding="async" /> { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100'; }} />
                           <div className="flex-1 min-w-0">
                             <div className="font-semibold text-sm">{agent.name || 'Agent'}</div>
                             <div className="text-xs text-muted-foreground">{agent.agency_name || 'Independent'} • {agent.cities_served || city}</div>

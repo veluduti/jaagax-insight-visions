@@ -211,7 +211,7 @@ export default function EventDetail() {
               src={event.image_url} 
               alt={event.title}
               className="w-full h-full object-cover"
-            />
+             loading="lazy" decoding="async" />
           ) : (
             <div className="flex items-center justify-center h-full">
               <Calendar className="h-20 w-20 text-primary/30" />

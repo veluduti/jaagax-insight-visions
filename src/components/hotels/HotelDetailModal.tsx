@@ -86,19 +86,19 @@ const HotelDetailModal = ({ hotel, open, onClose, onBookWithVisit, onBookHotelOn
                 src={images[0]} 
                 alt={hotel.name}
                 className="w-full h-full object-cover rounded-tl-lg"
-              />
+               loading="lazy" decoding="async" />
             </div>
             <div className="flex flex-col gap-1">
               <img 
                 src={images[1] || images[0]} 
                 alt={hotel.name}
                 className="w-full h-1/2 object-cover rounded-tr-lg"
-              />
+               loading="lazy" decoding="async" />
               <img 
                 src={images[2] || images[0]} 
                 alt={hotel.name}
                 className="w-full h-1/2 object-cover"
-              />
+               loading="lazy" decoding="async" />
             </div>
           </div>
 

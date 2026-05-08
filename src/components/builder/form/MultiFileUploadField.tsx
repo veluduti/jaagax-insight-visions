@@ -114,7 +114,7 @@ const MultiFileUploadField = ({
                 src={url}
                 alt=""
                 className="w-20 h-20 object-cover rounded-lg border border-border"
-                onError={(e) => (e.currentTarget.style.display = "none")}
+                onError={(e) = loading="lazy" decoding="async" /> (e.currentTarget.style.display = "none")}
               />
               <button
                 type="button"

@@ -132,7 +132,7 @@ const MyFavorites = () => {
               src={(Array.isArray(property.images) && property.images[0]) || ""}
               alt={property.title}
               className="w-full h-full object-cover cursor-pointer"
-              onClick={() => openInNewTab(propertyPath(property))}
+              onClick={() = loading="lazy" decoding="async" /> openInNewTab(propertyPath(property))}
               onError={(e) => {
                 e.currentTarget.src = "";
               }}

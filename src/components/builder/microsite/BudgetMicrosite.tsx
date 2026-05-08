@@ -200,7 +200,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#e5e7eb] shadow-sm">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            {builder?.logo && <img src={builder.logo} alt="" className="h-7 w-7 rounded-lg object-contain" />}
+            {builder?.logo && <img src={builder.logo} alt="" className="h-7 w-7 rounded-lg object-contain"  loading="lazy" decoding="async" />}
             <span className="font-bold text-sm text-[#065f46] tracking-tight">{d.name}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
       <section className="relative overflow-hidden">
         <div className="h-[40vh] min-h-[280px] relative">
           {d.heroImage ? (
-            <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover" />
+            <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover"  loading="lazy" decoding="async" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-[#16a34a] to-[#059669]" />
           )}
@@ -499,7 +499,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
               <p className="text-[#9ca3af] text-xs text-center mt-3">Tap to enlarge</p>
             </section>
             <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
-              <DialogContent className="max-w-5xl"><img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" /></DialogContent>
+              <DialogContent className="max-w-5xl"><img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg"  loading="lazy" decoding="async" /></DialogContent>
             </Dialog>
           </>
         )}
@@ -520,7 +520,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
               {projects.map(p => (
                 <div key={p.id} className="flex items-center gap-4 p-4 rounded-2xl bg-[#f9fafb] border border-[#e5e7eb] hover:shadow-md hover:border-[#16a34a]/20 transition-all cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
                   <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#e5e7eb]">
-                    {p.image || p.images?.[0] ? <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover" /> : <Building2 className="h-6 w-6 text-[#d1d5db] m-auto mt-6" />}
+                    {p.image || p.images?.[0] ? <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" /> : <Building2 className="h-6 w-6 text-[#d1d5db] m-auto mt-6" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm text-[#111827] truncate">{p.name}</h4>
@@ -578,7 +578,7 @@ const BudgetMicrosite = ({ builder }: { builder?: any }) => {
               </div>
             </section>
             <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
-              <DialogContent className="max-w-4xl">{galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}</DialogContent>
+              <DialogContent className="max-w-4xl">{galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg"  loading="lazy" decoding="async" />}</DialogContent>
             </Dialog>
           </>
         )}

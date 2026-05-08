@@ -137,7 +137,7 @@ const Navigation = () => {
                 src={jaagaxLogo}
                 alt="JAAGA X"
                 className="h-5 w-auto max-h-5 object-contain shrink-0 dark:brightness-0 dark:invert-[0.95]"
-              />
+               loading="lazy" decoding="async" />
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
@@ -310,7 +310,7 @@ const Navigation = () => {
                 src={jaagaxLogo}
                 alt="JAAGA X"
                 className="h-5 w-auto max-h-5 object-contain shrink-0 dark:brightness-0 dark:invert-[0.95]"
-              />
+               loading="lazy" decoding="async" />
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">

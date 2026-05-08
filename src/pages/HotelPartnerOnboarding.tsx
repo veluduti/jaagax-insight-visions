@@ -391,7 +391,7 @@ function Step5({ data, update, uploadFile, uploading }: any) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {data.photos.map((url: string, i: number) => (
             <div key={i} className="relative group aspect-video rounded-lg overflow-hidden border border-border">
-              <img src={url} alt="Hotel" className="w-full h-full object-cover" />
+              <img src={url} alt="Hotel" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               <button onClick={() => update("photos", data.photos.filter((_: any, x: number) => x !== i))}
                 className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <X className="h-3 w-3" />

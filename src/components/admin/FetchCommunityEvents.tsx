@@ -108,7 +108,7 @@ export const FetchCommunityEvents = () => {
                         src={event.image_url}
                         alt={event.title}
                         className="w-20 h-20 rounded object-cover"
-                      />
+                       loading="lazy" decoding="async" />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-sm mb-1 truncate">{event.title}</h4>
                         <p className="text-xs text-muted-foreground line-clamp-2 mb-2">

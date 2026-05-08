@@ -53,7 +53,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
               src={event.image_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600'}
               alt={event.title}
               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+             loading="lazy" decoding="async" />
             {event.featured && (
               <Badge className="absolute top-3 right-3 bg-gradient-to-r from-primary to-accent">
                 Featured

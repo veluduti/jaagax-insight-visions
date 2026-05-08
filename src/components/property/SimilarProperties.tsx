@@ -69,7 +69,7 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
             <Card className="overflow-hidden border-0 bg-background/50 hover:bg-background/70 transition-all">
               <div className="relative h-40 overflow-hidden">
                 <img
-                  src={Array.isArray(property.images) && property.images.length > 0 
+                  src={Array.isArray(property.images) && property.images.length  loading="lazy" decoding="async" /> 0 
                     ? property.images[0] 
                     : '/placeholder.svg'}
                   alt={property.title}

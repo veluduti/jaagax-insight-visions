@@ -113,7 +113,7 @@ const AgentVideoSection = ({ agentName }: AgentVideoSectionProps) => {
                       src={video.thumbnail}
                       alt={video.title}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                     loading="lazy" decoding="async" />
                     {/* Play Button Overlay */}
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
                       <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">

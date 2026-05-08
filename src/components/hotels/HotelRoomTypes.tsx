@@ -88,7 +88,7 @@ const HotelRoomTypes = ({ hotelId, hotelName, basePrice, discount }: HotelRoomTy
               <div className="flex flex-col sm:flex-row">
                 {/* Room Image */}
                 <div className="sm:w-56 h-40 sm:h-auto relative overflow-hidden shrink-0">
-                  <img src={room.image} alt={room.name} className="w-full h-full object-cover" />
+                  <img src={room.image} alt={room.name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                   {room.popular && (
                     <Badge className="absolute top-2 left-2 bg-primary border-0 text-xs">Most Popular</Badge>
                   )}

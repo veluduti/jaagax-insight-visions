@@ -73,7 +73,7 @@ export default function PropertyVideoReels({ videoUrls, propertyTitle }: Propert
                       src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
                       alt={`Video thumbnail ${idx + 1}`}
                       className="w-full h-full object-cover"
-                    />
+                     loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                       <Play className="h-12 w-12 text-primary" />

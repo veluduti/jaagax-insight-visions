@@ -191,7 +191,7 @@ export default function AgentVerifiedReviewPanel() {
               return (
                 <Card key={p.id} className="overflow-hidden">
                   <div className="relative h-40">
-                    <img src={img} alt={p.title} className="w-full h-full object-cover" />
+                    <img src={img} alt={p.title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     <Badge className="absolute top-2 right-2 bg-blue-600">
                       <Clock className="h-3 w-3 mr-1" />Agent Verified
                     </Badge>
@@ -267,7 +267,7 @@ export default function AgentVerifiedReviewPanel() {
                     <p className="text-[11px] mb-1">Original ({(reviewTarget.original_snapshot?.images || []).length})</p>
                     <div className="flex gap-1 flex-wrap">
                       {(reviewTarget.original_snapshot?.images || []).slice(0, 4).map((u: string, i: number) => (
-                        <img key={i} src={u} className="h-16 w-16 object-cover rounded border" alt="" />
+                        <img key={i} src={u} className="h-16 w-16 object-cover rounded border" alt=""  loading="lazy" decoding="async" />
                       ))}
                     </div>
                   </div>
@@ -275,7 +275,7 @@ export default function AgentVerifiedReviewPanel() {
                     <p className="text-[11px] mb-1">Edited ({(reviewTarget.images || []).length})</p>
                     <div className="flex gap-1 flex-wrap">
                       {(reviewTarget.images || []).slice(0, 4).map((u: string, i: number) => (
-                        <img key={i} src={u} className="h-16 w-16 object-cover rounded border" alt="" />
+                        <img key={i} src={u} className="h-16 w-16 object-cover rounded border" alt=""  loading="lazy" decoding="async" />
                       ))}
                     </div>
                   </div>

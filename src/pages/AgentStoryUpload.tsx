@@ -230,7 +230,7 @@ const AgentStoryUpload = () => {
                   src={preview}
                   alt="Preview"
                   className="w-full max-h-64 object-cover rounded-lg"
-                />
+                 loading="lazy" decoding="async" />
                 <Button
                   variant="outline"
                   onClick={() => {

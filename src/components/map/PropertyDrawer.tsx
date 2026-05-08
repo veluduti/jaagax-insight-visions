@@ -56,7 +56,7 @@ const PropertyDrawer = ({ property, onClose }: PropertyDrawerProps) => {
                       src={image}
                       alt={`${property.title} - ${index + 1}`}
                       className="w-full h-full object-cover"
-                    />
+                     loading="lazy" decoding="async" />
                   </div>
                 </CarouselItem>
               ))}

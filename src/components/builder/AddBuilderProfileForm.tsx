@@ -700,7 +700,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
               <div className="flex flex-wrap gap-2 mt-2">
                 {form.amenityImages.map((img, i) => (
                   <div key={i} className="relative group">
-                    <img src={img.url} alt={img.description} className="w-16 h-16 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = "none")} />
+                    <img src={img.url} alt={img.description} className="w-16 h-16 object-cover rounded-lg border" onError={(e) = loading="lazy" decoding="async" /> (e.currentTarget.style.display = "none")} />
                     <p className="text-[10px] text-muted-foreground truncate max-w-[64px]">{img.description || "No desc"}</p>
                     <button type="button" onClick={() => setForm((prev) => ({ ...prev, amenityImages: prev.amenityImages.filter((_, j) => j !== i) }))}
                       className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>

@@ -482,7 +482,7 @@ export default function BuilderDashboard() {
                                 src={property.images[0]}
                                 alt={property.title}
                                 className="w-full h-48 object-cover"
-                              />
+                               loading="lazy" decoding="async" />
                             ) : (
                               <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                                 <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
@@ -594,7 +594,7 @@ export default function BuilderDashboard() {
                                 src={project.image}
                                 alt={project.name}
                                 className="w-full h-48 object-cover"
-                              />
+                               loading="lazy" decoding="async" />
                             ) : (
                               <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                                 <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />

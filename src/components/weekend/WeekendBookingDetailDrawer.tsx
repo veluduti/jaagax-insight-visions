@@ -509,7 +509,7 @@ export const WeekendBookingDetailDrawer = ({ open, onClose, bookingId, viewerRol
                     <Card key={p.id}>
                       <CardContent className="p-2.5 flex gap-3 items-center">
                         <div className="h-12 w-12 rounded bg-muted overflow-hidden shrink-0">
-                          {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" alt="" /> : <Building2 className="h-4 w-4 m-auto mt-4 text-muted-foreground" />}
+                          {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" alt=""  loading="lazy" decoding="async" /> : <Building2 className="h-4 w-4 m-auto mt-4 text-muted-foreground" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{p.title}</p>

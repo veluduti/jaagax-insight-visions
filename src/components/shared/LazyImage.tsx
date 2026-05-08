@@ -17,7 +17,7 @@ const DEFAULT_FALLBACK =
   "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=70";
 
 /**
- * Drop-in <img> replacement that:
+ * Drop-in <img loading="lazy" decoding="async" /> replacement that:
  *  - lazy-loads via native loading="lazy"
  *  - decodes asynchronously off the main thread
  *  - fades in once loaded

@@ -30,7 +30,7 @@ interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 /**
- * Drop-in <img> replacement: if `src` is empty/null OR fails to load,
+ * Drop-in <img loading="lazy" decoding="async" /> replacement: if `src` is empty/null OR fails to load,
  * shows the NoImage placeholder instead of any default photo.
  */
 export const SafeImage = ({ src, alt, className, wrapperClassName, placeholderLabel, ...rest }: SafeImageProps) => {
@@ -48,7 +48,7 @@ export const SafeImage = ({ src, alt, className, wrapperClassName, placeholderLa
       src={src as string}
       alt={alt}
       className={className}
-      onError={(e) => {
+      onError={(e) = loading="lazy" decoding="async" /> {
         const target = e.currentTarget;
         const parent = target.parentElement;
         if (parent) {

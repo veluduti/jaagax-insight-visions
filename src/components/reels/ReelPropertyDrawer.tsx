@@ -72,7 +72,7 @@ export default function ReelPropertyDrawer({ open, onClose, property, activeTab 
               {/* Images */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {images.slice(0, 5).map((img, i) => (
-                  <img key={i} src={img} alt="" className="h-32 w-48 rounded-lg object-cover flex-shrink-0" />
+                  <img key={i} src={img} alt="" className="h-32 w-48 rounded-lg object-cover flex-shrink-0"  loading="lazy" decoding="async" />
                 ))}
               </div>
 

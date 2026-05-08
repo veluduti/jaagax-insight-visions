@@ -82,7 +82,7 @@ const AgentSuccessStories = ({ agentName }: AgentSuccessStoriesProps) => {
                       src={story.beforeImage}
                       alt="Before"
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                     loading="lazy" decoding="async" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -92,7 +92,7 @@ const AgentSuccessStories = ({ agentName }: AgentSuccessStoriesProps) => {
                       src={story.afterImage}
                       alt="After"
                       className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                     loading="lazy" decoding="async" />
                   </div>
                 </div>
               </div>

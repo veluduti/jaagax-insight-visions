@@ -100,7 +100,7 @@ const FeaturedBuilderProfiles = () => {
                         src={b.images[0]}
                         alt={b.builder_name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
+                       loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                         <Building2 className="h-12 w-12 text-muted-foreground/40" />

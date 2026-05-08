@@ -513,7 +513,7 @@ const AgentDetail = () => {
                           }
                           alt={property.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
+                         loading="lazy" decoding="async" />
                         {property.verified && (
                           <Badge className="absolute top-3 left-3 bg-green-600">
                             <CheckCircle2 className="h-3 w-3 mr-1" />

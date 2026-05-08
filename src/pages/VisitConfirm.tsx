@@ -178,7 +178,7 @@ const VisitConfirm = () => {
                       src={agent.photo_url}
                       alt={agent.name}
                       className="w-10 h-10 rounded-full object-cover"
-                    />
+                     loading="lazy" decoding="async" />
                     <div>
                       <p className="text-sm text-muted-foreground">Your Agent</p>
                       <p className="font-medium">{agent.name}</p>
@@ -227,7 +227,7 @@ const VisitConfirm = () => {
                   <p className="text-sm text-muted-foreground mb-3 font-medium">Scannable QR Code</p>
                   <div className="inline-block p-3 bg-white rounded-lg shadow-sm mb-3">
                     {booking.qr_code_url ? (
-                      <img src={booking.qr_code_url} alt="Visit QR Code" className="w-[120px] h-[120px]" />
+                      <img src={booking.qr_code_url} alt="Visit QR Code" className="w-[120px] h-[120px]"  loading="lazy" decoding="async" />
                     ) : (
                       <QRCodeSVG 
                         value={JSON.stringify({ bookingId: booking.id, otp: booking.otp_code })} 

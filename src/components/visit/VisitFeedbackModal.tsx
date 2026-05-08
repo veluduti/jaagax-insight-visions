@@ -163,7 +163,7 @@ export const VisitFeedbackModal = ({ open, onOpenChange, bookingId, onSuccess }:
                       src={URL.createObjectURL(photo)}
                       alt={`Photo ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
-                    />
+                     loading="lazy" decoding="async" />
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}

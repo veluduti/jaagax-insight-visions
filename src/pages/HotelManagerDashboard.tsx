@@ -398,7 +398,7 @@ const HotelManagerDashboard = () => {
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted">
                                 {hotel.images?.[0] && (
-                                  <img src={hotel.images[0]} alt={hotel.name} className="w-full h-full object-cover" />
+                                  <img src={hotel.images[0]} alt={hotel.name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                                 )}
                               </div>
                               <div>
@@ -439,7 +439,7 @@ const HotelManagerDashboard = () => {
                             src={hotel.images?.[0] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600"}
                             alt={hotel.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                           loading="lazy" decoding="async" />
                           <Badge
                             className="absolute top-3 left-3"
                             variant={hotel.is_active ? "default" : "secondary"}

@@ -402,7 +402,7 @@ export default function AssignAgentPanel() {
           return (
             <Card key={p.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all hover:shadow-lg">
               <div className="relative h-36">
-                <img src={img} alt={p.title} className="w-full h-full object-cover" />
+                <img src={img} alt={p.title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                 <Badge className="absolute top-2 left-2 bg-amber-500 text-white">
                   <Clock className="h-3 w-3 mr-1" />Pending Review
                 </Badge>
@@ -464,7 +464,7 @@ export default function AssignAgentPanel() {
                     {imgs.length > 0 && (
                       <div className="grid grid-cols-3 gap-2">
                         {imgs.slice(0, 6).map((src: string, i: number) => (
-                          <img key={i} src={src} alt="" className="rounded-lg aspect-video object-cover" />
+                          <img key={i} src={src} alt="" className="rounded-lg aspect-video object-cover"  loading="lazy" decoding="async" />
                         ))}
                       </div>
                     )}

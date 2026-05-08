@@ -854,7 +854,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-2">
                     {imageFiles.map((f) => (
                       <div key={f.path} className="relative group aspect-square rounded-md overflow-hidden border">
-                        <img src={f.url} alt="" className="w-full h-full object-cover" />
+                        <img src={f.url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                         <button
                           type="button"
                           onClick={() => removeFile(f.path, setImageFiles)}

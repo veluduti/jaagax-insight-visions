@@ -32,7 +32,7 @@ const AdCard = ({ ad, isSaved = false, onSave, onContact, showStats = false }: A
           src={ad.images?.[0] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"}
           alt={ad.title}
           className="w-full h-full object-cover"
-        />
+         loading="lazy" decoding="async" />
         <Badge className="absolute top-2 left-2 bg-primary">
           {ad.ad_type || "Featured"}
         </Badge>

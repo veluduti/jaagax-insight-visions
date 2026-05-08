@@ -176,7 +176,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         src={project.image}
                         alt={project.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
+                        onError={(e) = loading="lazy" decoding="async" /> {
                           e.currentTarget.parentElement?.classList.add("hidden");
                         }}
                       />

@@ -85,7 +85,7 @@ export default function PropertyReelCard({ property, isActive, onVisit }: Proper
           title={property.title}
         />
       ) : posterImage ? (
-        <img src={posterImage} alt={property.title} className="absolute inset-0 w-full h-full object-cover opacity-70" />
+        <img src={posterImage} alt={property.title} className="absolute inset-0 w-full h-full object-cover opacity-70"  loading="lazy" decoding="async" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
           <Building2 className="h-16 w-16 text-muted-foreground/30" />

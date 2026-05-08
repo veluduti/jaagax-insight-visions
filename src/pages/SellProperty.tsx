@@ -1404,7 +1404,7 @@ export default function SellProperty() {
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
                     {(state.media_urls || []).map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <img src={url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                         <button
                           type="button"
                           onClick={() => setState((s) => ({ ...s, media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i) }))}
@@ -1583,7 +1583,7 @@ export default function SellProperty() {
                   <div className="grid grid-cols-5 gap-1.5">
                     {state.media_urls.map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        <img src={url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                         <button
                           type="button"
                           onClick={() => setState((s) => ({
@@ -1732,7 +1732,7 @@ function Bubble({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "image") {
     return (
       <div className={cn(base, "p-1.5")}>
-        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover" />
+        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover"  loading="lazy" decoding="async" />
         {msg.caption && <div className="px-2 py-1 text-xs opacity-90">{msg.caption}</div>}
       </div>
     );

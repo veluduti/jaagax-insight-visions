@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={jaagaxLogo} alt="JAAGA X" className="h-10 w-auto object-contain dark:brightness-0 dark:invert-[0.95]" />
+              <img src={jaagaxLogo} alt="JAAGA X" className="h-10 w-auto object-contain dark:brightness-0 dark:invert-[0.95]"  loading="lazy" decoding="async" />
             </div>
             <p className="text-sm text-foreground/70 mb-4">
               India's first AI-powered real estate platform. Find verified properties 

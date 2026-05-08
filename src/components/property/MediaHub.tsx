@@ -297,7 +297,7 @@ export default function MediaHub({
                         src={plan}
                         alt={`Floor Plan ${idx + 1}`}
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                      />
+                       loading="lazy" decoding="async" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <Badge variant="secondary" className="backdrop-blur-sm gap-1">
                           <ZoomIn className="h-3 w-3" />
@@ -446,7 +446,7 @@ export default function MediaHub({
                     alt={propertyTitle}
                     style={{ transform: `scale(${zoom})`, transition: "transform 0.2s ease" }}
                     className="max-w-full max-h-full object-contain origin-center"
-                  />
+                   loading="lazy" decoding="async" />
                 </div>
 
                 {/* Zoom controls */}
@@ -513,7 +513,7 @@ export default function MediaHub({
                   style={{ transform: `scale(${fpZoom})`, transition: "transform 0.2s ease", transformOrigin: "center" }}
                   className="max-w-full max-h-full object-contain"
                   draggable={false}
-                />
+                 loading="lazy" decoding="async" />
               )}
             </div>
 

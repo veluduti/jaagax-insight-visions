@@ -452,7 +452,7 @@ export const WeekendExplorerWizard = ({
                           <Card key={p.id} className={cn("cursor-pointer transition-all", sel ? "ring-2 ring-primary border-primary/50" : "hover:border-primary/30")} onClick={() => toggleProperty(p)}>
                             <CardContent className="p-3 flex gap-3">
                               <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden shrink-0 relative">
-                                {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" alt="" /> : <Building2 className="h-6 w-6 m-auto mt-7 text-muted-foreground" />}
+                                {p.images?.[0] ? <img src={p.images[0]} className="w-full h-full object-cover" alt=""  loading="lazy" decoding="async" /> : <Building2 className="h-6 w-6 m-auto mt-7 text-muted-foreground" />}
                                 {sel && <div className="absolute inset-0 bg-primary/30 flex items-center justify-center"><Check className="h-6 w-6 text-primary-foreground" /></div>}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -546,7 +546,7 @@ export const WeekendExplorerWizard = ({
                           <Card key={h.id} className={cn("cursor-pointer transition-all", sel ? "ring-2 ring-primary" : "hover:border-primary/30")} onClick={() => setSelectedHotelId(h.id)}>
                             <CardContent className="p-3 flex gap-3">
                               <div className="h-16 w-16 rounded-lg bg-muted overflow-hidden shrink-0">
-                                {h.images?.[0] ? <img src={h.images[0]} className="w-full h-full object-cover" alt="" /> : <Hotel className="h-6 w-6 m-auto mt-5 text-muted-foreground" />}
+                                {h.images?.[0] ? <img src={h.images[0]} className="w-full h-full object-cover" alt=""  loading="lazy" decoding="async" /> : <Hotel className="h-6 w-6 m-auto mt-5 text-muted-foreground" />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{h.name}</p>
