@@ -99,10 +99,30 @@ export default function MediaHub({
     setShowFullscreen(true);
   };
 
+  // Build list of available media tabs (only ones with content)
+  const hasImages = images && images.length > 0;
+  const hasVideos = videos && videos.length > 0;
+  const hasFloorplans = floorplans && floorplans.length > 0;
+  const hasTour = !!virtualTourUrl;
+  const hasDocs = !!brochureUrl;
+
+  const availableTabs: { value: string; label: string; icon: any; count?: number }[] = [];
+  if (hasImages) availableTabs.push({ value: "photos", label: "Photos", icon: Image, count: images.length });
+  if (hasVideos) availableTabs.push({ value: "videos", label: "Videos", icon: Video, count: videos.length });
+  if (hasFloorplans) availableTabs.push({ value: "floorplans", label: "Floor Plans", icon: LayoutGrid, count: floorplans.length });
+  if (hasTour) availableTabs.push({ value: "tour", label: "360° Tour", icon: Maximize });
+  if (hasDocs) availableTabs.push({ value: "documents", label: "Documents", icon: FileText });
+
+  // If no media at all, render nothing
+  if (availableTabs.length === 0) return null;
+
+  const defaultTab = availableTabs[0].value;
+
   return (
     <>
       <div className="space-y-6">
-        {/* Hero Image/Video */}
+        {/* Hero Image/Video — only when images exist */}
+        {hasImages && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
