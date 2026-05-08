@@ -1050,4 +1050,17 @@ const EmptyState = ({ message }: { message: string }) => (
   </motion.div>
 );
 
+// Infinite-scroll sentinel — fires onReach exactly once when it enters the viewport
+const InfiniteSentinel = ({ onReach }: { onReach: () => void }) => {
+  const [ref, inView] = useInView<HTMLDivElement>({ rootMargin: "400px", once: true });
+  const fired = useRef(false);
+  useEffect(() => {
+    if (inView && !fired.current) {
+      fired.current = true;
+      onReach();
+    }
+  }, [inView, onReach]);
+  return <div ref={ref} className="h-8 w-full" aria-hidden="true" />;
+};
+
 export default Search;
