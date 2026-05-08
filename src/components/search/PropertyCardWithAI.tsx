@@ -155,6 +155,8 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
           <img
             src={imageUrls[0] || ""}
             alt={property.title}
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               e.currentTarget.src = "";
             }}
