@@ -23,9 +23,10 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
+  const [inViewRef, inView] = useInView<HTMLDivElement>({ rootMargin: "300px" });
 
   useEffect(() => {
-    if (!hasCoordinates) return;
+    if (!hasCoordinates || !inView) return;
     if (!mapContainer.current || map.current) return;
 
     mapboxgl.accessToken =
@@ -68,13 +69,14 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       map.current?.remove();
       map.current = null;
     };
-  }, [validLat, validLng, verified, hasCoordinates]);
+  }, [validLat, validLng, verified, hasCoordinates, inView]);
 
   // STRICT: hide the entire location section when we have no real coordinates
   if (!hasCoordinates) return null;
 
   return (
     <motion.div
+      ref={inViewRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
@@ -95,4 +97,5 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
   );
 };
 
-export default PropertyMap;
+export default memo(PropertyMap);
+
