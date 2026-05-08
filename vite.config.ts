@@ -15,7 +15,13 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Phase 10: strip console.* and debugger statements from production bundles
+  // to reduce JS payload and avoid leaking debug logs to end-users.
+  esbuild: mode === "production" ? { drop: ["console", "debugger"] } : undefined,
   build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    sourcemap: false,
     // Raise warning ceiling slightly; per-chunk strategy below keeps real chunks small.
     chunkSizeWarningLimit: 800,
     rollupOptions: {

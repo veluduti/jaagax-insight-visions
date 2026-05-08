@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import { LocationProvider } from "./contexts/LocationContext";
 import ProfileBootProvider from "./contexts/ProfileBootProvider";
+import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
 // Lazy-load all non-landing routes for fast initial paint + smaller chunks per page
@@ -111,6 +112,7 @@ const RouteFallback = () => (
 );
 
 const App = () => (
+  <AppErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -282,6 +284,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+  </AppErrorBoundary>
 );
 
 export default App;
