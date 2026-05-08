@@ -3,6 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { ensureApprovedRoleForUser, normalizeDbRole, resolveUserAccess, type AppUserRole } from "@/lib/authRoleResolver";
+import * as authService from "@/services/authService";
 
 export type UserRole = AppUserRole;
 
@@ -83,7 +84,7 @@ export const useAuth = () => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await authService.signInWithPassword(email, password);
     if (error) return { error, resolvedRole: null as UserRole | null };
 
     if (data.user) {
@@ -112,19 +113,15 @@ export const useAuth = () => {
     selectedRoles?: UserRole[],
   ) => {
     try {
-      const { error } = await supabase.functions.invoke("signup-otp", {
-        body: {
-          action: "init",
-          email,
-          password,
-          selectedRole,
-          selectedRoles: (selectedRoles?.length ? selectedRoles : [selectedRole]).filter(Boolean),
-          city: city || null,
-          name: name || null,
-          phone: phone || null,
-        },
+      const { error } = await authService.initSignupOtp({
+        email,
+        password,
+        selectedRole,
+        selectedRoles,
+        city,
+        name,
+        phone,
       });
-
       return { error: error ?? null };
     } catch (error: any) {
       return { error };
@@ -132,7 +129,7 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await authService.signOut();
     if (!error) {
       setUser(null);
       setSession(null);
