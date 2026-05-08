@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toPublicRow } from "./propertyService";
+import { toPublicRow, PROPERTY_CARD_COLUMNS } from "./propertyService";
 import type { PropertyRow } from "./types";
 
 export interface SearchFilters {
