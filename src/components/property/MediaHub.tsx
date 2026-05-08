@@ -184,30 +184,23 @@ export default function MediaHub({
             </>
           )}
         </motion.div>
+        )}
 
         {/* Thumbnail Strip & Media Tabs */}
-        <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="w-full grid grid-cols-5">
-            <TabsTrigger value="photos" className="gap-2">
-              <Image className="h-4 w-4" />
-              Photos ({images.length})
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="gap-2" disabled={videos.length === 0}>
-              <Video className="h-4 w-4" />
-              Videos ({videos.length})
-            </TabsTrigger>
-            <TabsTrigger value="floorplans" className="gap-2" disabled={floorplans.length === 0}>
-              <LayoutGrid className="h-4 w-4" />
-              Floor Plans ({floorplans.length})
-            </TabsTrigger>
-            <TabsTrigger value="tour" className="gap-2" disabled={!virtualTourUrl}>
-              <Maximize className="h-4 w-4" />
-              360° Tour
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2" disabled={!brochureUrl}>
-              <FileText className="h-4 w-4" />
-              Documents
-            </TabsTrigger>
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList
+            className="w-full grid"
+            style={{ gridTemplateColumns: `repeat(${availableTabs.length}, minmax(0, 1fr))` }}
+          >
+            {availableTabs.map((t) => {
+              const Icon = t.icon;
+              return (
+                <TabsTrigger key={t.value} value={t.value} className="gap-2">
+                  <Icon className="h-4 w-4" />
+                  {t.label}{typeof t.count === "number" ? ` (${t.count})` : ""}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
           <TabsContent value="photos" className="mt-4">
