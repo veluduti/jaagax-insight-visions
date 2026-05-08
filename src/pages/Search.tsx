@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -13,16 +13,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useBuyerContext } from "@/hooks/useBuyerContext";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useInView } from "@/hooks/useInView";
 import { 
   Sparkles, MapPin, SlidersHorizontal, Building2, Shield, 
-  TrendingUp, ChevronRight, Users, Home, BarChart3, Star, Info
+  TrendingUp, ChevronRight, Users, Home, BarChart3, Star, Info, Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
+import type { AdvancedFilters } from "@/components/search/AdvancedFiltersSheet";
+import { DEFAULT_FILTERS } from "@/components/search/AdvancedFiltersSheet";
 import { openInNewTab, propertyPath, projectPath } from "@/lib/openInNewTab";
 import { classifyProperty } from "@/lib/propertyClassifier";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
 import { canonicalizeCity, getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+
+// Lazy-load heavy filter sheet (Phase 5)
+const AdvancedFiltersSheet = lazy(() => import("@/components/search/AdvancedFiltersSheet"));
+
+// Page size for incremental loading (Phase 5)
+const PAGE_SIZE = 24;
 
 /**
  * Merge a raw property row with its final_data-driven public view so
