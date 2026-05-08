@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import BoostListingDialog from "@/components/property/BoostListingDialog";
+const BoostListingDialog = lazy(() => import("@/components/property/BoostListingDialog"));
 
 interface AssignedAgent {
   id: string;
