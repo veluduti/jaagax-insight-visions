@@ -655,11 +655,15 @@ export default function AgentDashboard() {
         {/* ===== Assigned Properties (admin-assigned, owner chat) ===== */}
         {agentProfile.id && user?.id && (
           <SectionErrorBoundary title="Assigned properties unavailable" description={sectionErrors.properties || "Assigned properties could not be displayed right now."}>
-            <AssignedPropertiesPanel
-              agentId={agentProfile.id}
-              agentUserId={user.id}
-              agentName={agentProfile.name || "Agent"}
-            />
+            <LazyMount fallback={<CardGridSkeleton count={3} />} minHeight={300}>
+              <Suspense fallback={<CardGridSkeleton count={3} />}>
+                <AssignedPropertiesPanel
+                  agentId={agentProfile.id}
+                  agentUserId={user.id}
+                  agentName={agentProfile.name || "Agent"}
+                />
+              </Suspense>
+            </LazyMount>
           </SectionErrorBoundary>
         )}
 
