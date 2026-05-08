@@ -103,7 +103,7 @@ const PropertyImageCarousel = ({ images, verified, trustScore }: PropertyImageCa
               idx === currentIndex ? "border-primary scale-110" : "border-transparent opacity-60"
             }`}
           >
-            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = ""; }} />
+            <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = ""; }} loading="lazy" decoding="async" />
           </button>
         ))}
       </div>

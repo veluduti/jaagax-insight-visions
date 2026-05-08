@@ -708,8 +708,7 @@ export default function AgentDashboard() {
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600";
-                          }}
-                        />
+                          }} loading="lazy" decoding="async" />
                         <Badge
                           variant={p.verified ? "default" : "secondary"}
                           className="absolute top-2 right-2"

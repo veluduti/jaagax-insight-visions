@@ -353,7 +353,7 @@ const Hotels = () => {
                         src={hotel.images[0]} 
                         alt={hotel.name}
                         className="w-full h-full object-cover"
-                      />
+                       loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Hotel className="h-12 w-12 text-primary/50" />

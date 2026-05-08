@@ -498,7 +498,7 @@ export default function AgentAddProperty() {
               <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {imageFiles.map((f, i) => (
                   <div key={i} className="relative group rounded-lg overflow-hidden aspect-square border">
-                    <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                    <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     <button type="button" onClick={() => removeImage(i)}
                       className="absolute top-1 right-1 bg-background/80 backdrop-blur rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <X className="h-3.5 w-3.5" />

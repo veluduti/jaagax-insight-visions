@@ -217,7 +217,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
       )}>
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            {builder?.logo && <img src={builder.logo} alt="" className="h-7 w-7 rounded-lg object-contain" />}
+            {builder?.logo && <img src={builder.logo} alt="" className="h-7 w-7 rounded-lg object-contain"  loading="lazy" decoding="async" />}
             <span className="font-bold text-base text-white tracking-tight">{d.name}</span>
           </div>
           <div className="hidden lg:flex items-center gap-1">
@@ -256,7 +256,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
       {/* ─── HERO (Split layout) ─── */}
       <section id="std-home" className="relative min-h-[70vh] flex items-center overflow-hidden bg-[#0f172a]">
         <div className="absolute inset-0">
-          {d.heroImage && <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover opacity-30" />}
+          {d.heroImage && <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover opacity-30"  loading="lazy" decoding="async" />}
           <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/90 to-transparent" />
         </div>
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-10 items-center w-full">
@@ -518,7 +518,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
             </div>
           </section>
           <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
-            <DialogContent className="max-w-5xl"><img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" /></DialogContent>
+            <DialogContent className="max-w-5xl"><img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg"  loading="lazy" decoding="async" /></DialogContent>
           </Dialog>
         </>
       )}
@@ -536,7 +536,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
                 <div key={p.id} className="rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group" onClick={() => navigate(`/projects/${p.id}`)}>
                   <div className="h-40 bg-[#e2e8f0] overflow-hidden">
                     {p.image || p.images?.[0] ? (
-                      <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
                     ) : <div className="w-full h-full flex items-center justify-center"><Building2 className="h-8 w-8 text-[#cbd5e1]" /></div>}
                   </div>
                   <div className="p-5 space-y-2">
@@ -601,7 +601,7 @@ const StandardMicrosite = ({ builder }: { builder?: any }) => {
             </div>
           </section>
           <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
-            <DialogContent className="max-w-4xl">{galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}</DialogContent>
+            <DialogContent className="max-w-4xl">{galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg"  loading="lazy" decoding="async" />}</DialogContent>
           </Dialog>
         </>
       )}

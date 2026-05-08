@@ -314,6 +314,7 @@ const VisitCard = ({ v, formatDate, statusBadge, onView, onCancel, onReschedule,
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
           <img src={img} alt={v.properties?.title || "Property"} className="w-full md:w-48 h-40 md:h-auto object-cover"
+            loading="lazy" decoding="async"
             onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
           <div className="flex-1 p-4">
             <div className="flex items-start justify-between gap-3 mb-2">

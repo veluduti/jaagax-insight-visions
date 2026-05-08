@@ -403,7 +403,7 @@ const BuyerDashboard = () => {
                               src={property.images[0] || ""}
                               alt={property.title}
                               className="w-full h-full object-cover"
-                            />
+                             loading="lazy" decoding="async" />
                             <Badge className="absolute top-2 left-2 bg-primary">AI Match</Badge>
                           </div>
                           <CardContent className="p-3">
@@ -473,7 +473,7 @@ const BuyerDashboard = () => {
                   src={property.images[0] || ""}
                   alt={property.title}
                   className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                />
+                 loading="lazy" decoding="async" />
                 <Button
                   size="icon"
                   variant="secondary"

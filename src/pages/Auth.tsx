@@ -276,7 +276,7 @@ export default function Auth() {
             src={jaagaxLogo}
             alt="JAAGA X"
             className="h-10 w-auto object-contain dark:brightness-0 dark:invert-[0.95]"
-          />
+           loading="lazy" decoding="async" />
         </button>
       </div>
 

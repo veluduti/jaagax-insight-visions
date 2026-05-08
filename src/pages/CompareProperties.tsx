@@ -145,7 +145,7 @@ const CompareProperties = () => {
                     <X className="h-4 w-4" />
                   </Button>
                   {prop.images?.[0] && (
-                    <img src={prop.images[0]} alt={prop.title} className="w-full h-32 object-cover" />
+                    <img src={prop.images[0]} alt={prop.title} className="w-full h-32 object-cover"  loading="lazy" decoding="async" />
                   )}
                   <CardContent className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1">{prop.title}</h3>

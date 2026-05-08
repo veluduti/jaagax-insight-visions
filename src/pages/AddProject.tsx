@@ -408,7 +408,7 @@ export default function AddProject() {
               <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {form.images.map((url) => (
                   <div key={url} className="relative aspect-square rounded-lg overflow-hidden border">
-                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <img src={url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     <button onClick={() => removeFromArray("images", url)} className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1">
                       <X className="h-3 w-3" />
                     </button>
@@ -466,7 +466,7 @@ export default function AddProject() {
               onUpload={(f) => uploadFile(f, "master_plan_url")}
             />
             {form.master_plan_url && (
-              <img src={form.master_plan_url} alt="Master Plan" className="max-h-48 rounded border" />
+              <img src={form.master_plan_url} alt="Master Plan" className="max-h-48 rounded border"  loading="lazy" decoding="async" />
             )}
           </Section>
 

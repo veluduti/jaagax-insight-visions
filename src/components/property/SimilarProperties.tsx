@@ -74,6 +74,8 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
                     : '/placeholder.svg'}
                   alt={property.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {property.verified && (
                   <Badge className="absolute top-2 left-2 gap-1">

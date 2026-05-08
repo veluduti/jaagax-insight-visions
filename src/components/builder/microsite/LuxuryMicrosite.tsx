@@ -251,7 +251,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
 
       {/* HERO */}
       <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden">
-        {d.heroImage && <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover" />}
+        {d.heroImage && <img src={d.heroImage} alt={d.name} className="absolute inset-0 w-full h-full object-cover"  loading="lazy" decoding="async" />}
         <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,60%,8%)]/70 via-[hsl(220,60%,8%)]/50 to-[hsl(220,60%,8%)]/90" />
         <div className="relative z-10 text-center max-w-3xl px-4">
           <p className="text-[hsl(43,74%,52%)] text-sm tracking-[0.3em] uppercase mb-4">Premium Residences</p>
@@ -503,7 +503,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
           </section>
           <Dialog open={masterPlanOpen} onOpenChange={setMasterPlanOpen}>
             <DialogContent className="max-w-5xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
-              <img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg" />
+              <img src={d.masterPlanImage} alt="Master Plan" className="w-full rounded-lg"  loading="lazy" decoding="async" />
             </DialogContent>
           </Dialog>
         </>
@@ -551,7 +551,7 @@ const LuxuryMicrosite = ({ builder }: { builder?: any }) => {
           </section>
           <Dialog open={!!galleryOpen} onOpenChange={() => setGalleryOpen(null)}>
             <DialogContent className="max-w-4xl bg-[hsl(220,60%,8%)] border-[hsl(215,28%,22%)]">
-              {galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg" />}
+              {galleryOpen && <img src={galleryOpen} alt="Gallery" className="w-full rounded-lg"  loading="lazy" decoding="async" />}
             </DialogContent>
           </Dialog>
         </>

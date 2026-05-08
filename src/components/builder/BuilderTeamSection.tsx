@@ -18,7 +18,7 @@ const BuilderTeamSection = ({ keyPeople }: Props) => {
           <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.1] transition-all group">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden border border-white/[0.06]">
               {person.photo ? (
-                <img src={person.photo} alt="" className="w-full h-full object-cover" />
+                <img src={person.photo} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               ) : (
                 <User className="h-5 w-5 text-violet-400" />
               )}

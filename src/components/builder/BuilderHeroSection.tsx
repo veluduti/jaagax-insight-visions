@@ -20,7 +20,7 @@ const BuilderHeroSection = ({ builder }: Props) => {
   return (
     <div className={`relative ${isLuxury ? "h-[55vh] min-h-[420px]" : "h-[45vh] min-h-[320px]"} overflow-hidden`}>
       {builder.images?.[0] ? (
-        <img src={builder.images[0]} alt={builder.builder_name} className="w-full h-full object-cover" />
+        <img src={builder.images[0]} alt={builder.builder_name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
       ) : (
         <div className="w-full h-full bg-gradient-to-br from-primary/20 to-muted" />
       )}
@@ -37,7 +37,7 @@ const BuilderHeroSection = ({ builder }: Props) => {
           {/* Logo */}
           <div className="hidden md:flex w-20 h-20 rounded-2xl bg-background shadow-xl items-center justify-center border overflow-hidden flex-shrink-0">
             {builder.logo ? (
-              <img src={builder.logo} alt="" className="w-full h-full object-contain p-2" />
+              <img src={builder.logo} alt="" className="w-full h-full object-contain p-2"  loading="lazy" decoding="async" />
             ) : (
               <span className="text-2xl font-bold text-primary">{builder.builder_name?.[0]}</span>
             )}

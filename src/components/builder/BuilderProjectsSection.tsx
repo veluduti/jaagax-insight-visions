@@ -47,7 +47,7 @@ const BuilderProjectsSection = ({ builderName }: Props) => {
           >
             <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04] border border-white/[0.04]">
               {p.image || p.images?.[0] ? (
-                <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover" />
+                <img src={p.image || p.images[0]} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Building2 className="h-5 w-5 text-zinc-700" />

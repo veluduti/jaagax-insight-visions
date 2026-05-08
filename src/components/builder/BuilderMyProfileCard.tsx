@@ -101,13 +101,13 @@ const BuilderMyProfileCard = () => {
     <Card className="overflow-hidden">
       {profile.hero_image && (
         <div className="h-40 w-full bg-muted overflow-hidden">
-          <img src={profile.hero_image} alt={profile.builder_name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+          <img src={profile.hero_image} alt={profile.builder_name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} loading="lazy" decoding="async" />
         </div>
       )}
       <CardHeader>
         <div className="flex items-start gap-4">
           {profile.logo ? (
-            <img src={profile.logo} alt="" className="h-16 w-16 rounded-lg border border-border object-contain bg-background" />
+            <img src={profile.logo} alt="" className="h-16 w-16 rounded-lg border border-border object-contain bg-background"  loading="lazy" decoding="async" />
           ) : (
             <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center">
               <Building2 className="h-8 w-8 text-primary" />

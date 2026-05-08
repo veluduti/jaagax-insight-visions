@@ -101,7 +101,7 @@ const FindMyAgent = () => {
                     src={agent.photo}
                     alt={agent.name}
                     className="w-full h-full object-cover"
-                  />
+                   loading="lazy" decoding="async" />
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                   
                   {/* Trust Score Badge */}

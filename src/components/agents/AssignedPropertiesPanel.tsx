@@ -456,7 +456,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
                   <div className="flex gap-3">
                     <div className="relative h-24 w-24 shrink-0 rounded-lg overflow-hidden">
-                      <img src={img} alt={p.title} className="w-full h-full object-cover" />
+                      <img src={img} alt={p.title} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">

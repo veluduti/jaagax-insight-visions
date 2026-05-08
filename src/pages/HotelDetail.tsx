@@ -169,14 +169,14 @@ const HotelDetail = () => {
               <div className="hidden md:flex flex-col gap-2 col-span-1">
                 {images.slice(1, 3).map((img, i) => (
                   <div key={i} className="flex-1 overflow-hidden cursor-pointer" onClick={() => setCurrentImageIndex(i + 1)}>
-                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
                   </div>
                 ))}
               </div>
               <div className="hidden md:flex flex-col gap-2 col-span-1">
                 {images.slice(3, 5).map((img, i) => (
                   <div key={i} className="flex-1 overflow-hidden cursor-pointer" onClick={() => setCurrentImageIndex(i + 3)}>
-                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
                   </div>
                 ))}
                 {images.length <= 3 && (

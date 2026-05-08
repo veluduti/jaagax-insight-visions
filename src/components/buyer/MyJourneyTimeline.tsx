@@ -314,8 +314,7 @@ const MyJourneyTimeline = () => {
                               src={p.images?.[0] || FALLBACK_IMG}
                               alt={p.title}
                               className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
-                            />
+                              onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} loading="lazy" decoding="async" />
                             <div className="absolute top-2 right-2">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

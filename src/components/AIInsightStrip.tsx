@@ -296,7 +296,7 @@ const AIInsightStrip = () => {
                           src={insight.images?.[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=200"}
                           alt={insight.title}
                           className="w-full h-full object-cover"
-                        />
+                         loading="lazy" decoding="async" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm line-clamp-1 text-foreground">

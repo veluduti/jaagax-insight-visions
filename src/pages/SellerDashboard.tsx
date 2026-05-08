@@ -366,7 +366,7 @@ export default function SellerDashboard() {
         <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group h-full flex flex-col">
           <div className="relative h-44 overflow-hidden">
             {img ? (
-              <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                 <Home className="h-8 w-8 text-muted-foreground/60 mb-1" />
@@ -458,7 +458,7 @@ export default function SellerDashboard() {
                 </p>
                 <div className="flex items-center gap-2">
                   {p.assigned_agent.photo_url ? (
-                    <img src={p.assigned_agent.photo_url} alt={p.assigned_agent.name} className="h-8 w-8 rounded-full object-cover" />
+                    <img src={p.assigned_agent.photo_url} alt={p.assigned_agent.name} className="h-8 w-8 rounded-full object-cover"  loading="lazy" decoding="async" />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-600">
                       {p.assigned_agent.name.charAt(0)}
@@ -846,7 +846,7 @@ export default function SellerDashboard() {
                 {imgs.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {imgs.map((u: string, i: number) => (
-                      <img key={i} src={u} alt="" className="h-32 w-full object-cover rounded border" />
+                      <img key={i} src={u} alt="" className="h-32 w-full object-cover rounded border"  loading="lazy" decoding="async" />
                     ))}
                   </div>
                 ) : (

@@ -27,7 +27,7 @@ const BuilderGallerySection = ({ images, videos, tier = "standard" }: Props) => 
                 className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group border border-white/[0.04]"
                 onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
               >
-                <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -64,7 +64,7 @@ const BuilderGallerySection = ({ images, videos, tier = "standard" }: Props) => 
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl p-0 bg-[#0c0c0f]/95 backdrop-blur-2xl border border-white/[0.06] rounded-2xl overflow-hidden">
           <div className="relative">
-            <img src={allImages[lightboxIndex]} alt="" className="w-full max-h-[80vh] object-contain" />
+            <img src={allImages[lightboxIndex]} alt="" className="w-full max-h-[80vh] object-contain"  loading="lazy" decoding="async" />
             <Button variant="ghost" size="icon" className="absolute top-3 right-3 rounded-xl bg-black/50 hover:bg-black/70 text-white" onClick={() => setLightboxOpen(false)}>
               <X className="h-5 w-5" />
             </Button>

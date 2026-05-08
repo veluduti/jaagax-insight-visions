@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useInView } from "@/hooks/useInView";
 
 interface PropertyMapProps {
   lat: number | null;
@@ -22,9 +23,10 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
+  const [inViewRef, inView] = useInView<HTMLDivElement>({ rootMargin: "300px" });
 
   useEffect(() => {
-    if (!hasCoordinates) return;
+    if (!hasCoordinates || !inView) return;
     if (!mapContainer.current || map.current) return;
 
     mapboxgl.accessToken =
@@ -67,13 +69,14 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
       map.current?.remove();
       map.current = null;
     };
-  }, [validLat, validLng, verified, hasCoordinates]);
+  }, [validLat, validLng, verified, hasCoordinates, inView]);
 
   // STRICT: hide the entire location section when we have no real coordinates
   if (!hasCoordinates) return null;
 
   return (
     <motion.div
+      ref={inViewRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
@@ -94,4 +97,5 @@ const PropertyMap = ({ lat, lng, verified }: PropertyMapProps) => {
   );
 };
 
-export default PropertyMap;
+export default memo(PropertyMap);
+

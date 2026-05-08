@@ -156,7 +156,7 @@ export default function AIAdvisorProperty() {
                     src={property.images?.[0] || ""}
                     alt={property.title}
                     className="w-full h-full object-cover"
-                  />
+                   loading="lazy" decoding="async" />
                   {property.verified && (
                     <Badge className="absolute top-4 right-4 bg-green-600">
                       <CheckCircle className="h-4 w-4 mr-1" />
@@ -280,7 +280,7 @@ export default function AIAdvisorProperty() {
                             src={prop.images?.[0] || ""}
                             alt={prop.title}
                             className="w-full h-32 object-cover rounded-t-lg"
-                          />
+                           loading="lazy" decoding="async" />
                           <CardContent className="p-3">
                             <h4 className="font-semibold text-sm truncate">{prop.title}</h4>
                             <p className="text-primary font-bold text-sm">

@@ -443,8 +443,7 @@ const PropertyValuation = () => {
                                 src={p.images?.[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"}
                                 alt={p.title}
                                 onError={(e: any) => { e.target.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"; }}
-                                className="w-20 h-20 object-cover rounded-md flex-shrink-0"
-                              />
+                                className="w-20 h-20 object-cover rounded-md flex-shrink-0" loading="lazy" decoding="async" />
                               <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm truncate">{p.title}</p>
                                 <p className="text-xs text-muted-foreground truncate">{p.locality}, {p.city}</p>

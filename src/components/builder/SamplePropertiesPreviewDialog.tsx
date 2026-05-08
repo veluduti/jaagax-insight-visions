@@ -78,8 +78,7 @@ const SamplePropertiesPreviewDialog = ({ open, onOpenChange }: Props) => {
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800";
-                  }}
-                />
+                  }} loading="lazy" decoding="async" />
               </div>
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">

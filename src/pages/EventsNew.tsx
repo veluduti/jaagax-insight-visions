@@ -216,7 +216,7 @@ function EventCard({ event, getCategoryColor }: EventCardProps) {
               src={event.image_url} 
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
+             loading="lazy" decoding="async" />
           ) : (
             <div className="flex items-center justify-center h-full">
               <Calendar className="h-12 w-12 text-primary/50" />

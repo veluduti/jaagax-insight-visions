@@ -245,7 +245,7 @@ export default function AIAdvisorResults() {
                         src={property.images?.[0] || ""}
                         alt={property.title}
                         className="w-full h-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-t-none"
-                      />
+                       loading="lazy" decoding="async" />
                       {property.verified && (
                         <Badge className="absolute top-2 right-2 bg-green-600">
                           <Shield className="h-3 w-3 mr-1" />

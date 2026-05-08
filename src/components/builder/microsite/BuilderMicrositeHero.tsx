@@ -15,7 +15,7 @@ const BuilderMicrositeHero = ({ builder, tier, onContact }: Props) => {
     <div className="relative min-h-[520px] md:min-h-[580px] overflow-hidden">
       {/* Background image or gradient */}
       {hasImage ? (
-        <img src={builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover scale-105" />
+        <img src={builder.images[0]} alt={builder.builder_name} className="absolute inset-0 w-full h-full object-cover scale-105"  loading="lazy" decoding="async" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#0c0c1a] via-[#12121f] to-[#08080a]" />
       )}
@@ -57,7 +57,7 @@ const BuilderMicrositeHero = ({ builder, tier, onContact }: Props) => {
                   src={builder.logo}
                   alt=""
                   className="relative h-14 w-14 rounded-2xl border border-white/[0.1] object-contain bg-[#0c0c0f]/80 p-2 backdrop-blur-sm"
-                />
+                 loading="lazy" decoding="async" />
               </div>
             )}
 

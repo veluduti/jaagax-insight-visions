@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ interface TransactionsMapProps {
   onTimeRangeChange?: (monthIndex: number) => void;
 }
 
-export const TransactionsMap = ({ transactions, onTimeRangeChange }: TransactionsMapProps) => {
+const TransactionsMapBase = ({ transactions, onTimeRangeChange }: TransactionsMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -320,3 +320,6 @@ export const TransactionsMap = ({ transactions, onTimeRangeChange }: Transaction
     </div>
   );
 };
+
+export const TransactionsMap = memo(TransactionsMapBase);
+export default TransactionsMap;

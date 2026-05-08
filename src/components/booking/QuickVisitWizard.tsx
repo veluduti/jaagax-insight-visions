@@ -359,7 +359,7 @@ export const QuickVisitWizard = ({
                         >
                           <div className="h-12 w-12 rounded-md bg-muted overflow-hidden shrink-0">
                             {p.images?.[0] ? (
-                              <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
+                              <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover"  loading="lazy" decoding="async" />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center"><Building2 className="h-5 w-5 text-muted-foreground" /></div>
                             )}

@@ -140,7 +140,7 @@ export default function HotelPartnersPanel() {
                 <div>
                   <p className="text-muted-foreground text-xs mb-2">Photos ({viewing.photos.length})</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {viewing.photos.map((p: string, i: number) => <img key={i} src={p} alt="" className="aspect-video object-cover rounded-md" />)}
+                    {viewing.photos.map((p: string, i: number) => <img key={i} src={p} alt="" className="aspect-video object-cover rounded-md"  loading="lazy" decoding="async" />)}
                   </div>
                 </div>
               )}
