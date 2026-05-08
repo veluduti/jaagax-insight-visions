@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import PropertyChat from "@/components/chat/PropertyChat";
+const PropertyChat = lazy(() => import("@/components/chat/PropertyChat"));
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
