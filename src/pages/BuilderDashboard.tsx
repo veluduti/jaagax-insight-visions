@@ -434,7 +434,9 @@ export default function BuilderDashboard() {
 
           {/* My Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <BuilderMyProfileCard />
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <BuilderMyProfileCard />
+            </Suspense>
           </TabsContent>
 
           {/* My Properties Tab */}
