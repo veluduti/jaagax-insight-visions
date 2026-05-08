@@ -46,8 +46,10 @@ const Index = () => {
       {/* Promoted Listings Carousel */}
       <PromotedListings />
       
-      {/* AI Insight Strip - Only shown to buyers with context */}
-      <AIInsightStrip />
+      {/* AI Insight Strip - Only shown to buyers with context. Lazy mount keeps initial paint fast. */}
+      <LazyMount fallback={<AISectionSkeleton />} rootMargin="300px" minHeight={240}>
+        <AIInsightStrip />
+      </LazyMount>
       
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && showBuyRent && (
@@ -57,8 +59,14 @@ const Index = () => {
           <FeaturedBuilderProfiles />
           <SneakPeekListings />
           <VisitStayTeaser />
-          <AISpotlight />
-          {showMarketIndex && <MarketIntelligence />}
+          <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
+            <AISpotlight />
+          </LazyMount>
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
         </>
       )}
       
@@ -67,7 +75,11 @@ const Index = () => {
           <NewProjects detectedCity={detectedLocation?.city} />
           <VisitStayTeaser />
           {showBuyRent && <FeaturedProperties detectedCity={detectedLocation?.city} />}
-          {showMarketIndex && <MarketIntelligence />}
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
           <TruValue />
         </>
       )}
@@ -75,7 +87,11 @@ const Index = () => {
       {activeTab === "transactions" && showTransactions && (
         <>
           {showCommunities && <FeaturedCommunities />}
-          {showMarketIndex && <MarketIntelligence />}
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
           <TruValue />
         </>
       )}
@@ -83,7 +99,9 @@ const Index = () => {
       {activeTab === "agents" && showAgents && (
         <>
           <FindMyAgent />
-          <AISpotlight />
+          <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
+            <AISpotlight />
+          </LazyMount>
           <TruValue />
         </>
       )}
