@@ -4,34 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Bath, Maximize, MapPin, Info } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { classifyProperty } from "@/lib/propertyClassifier";
-import { getPublicPropertyView } from "@/lib/publicPropertyView";
-import { canonicalizeCity, isSameCity } from "@/lib/cityNormalizer";
-const toPublicRow = (row: any) => {
-  const v = getPublicPropertyView(row);
-  if (!v) return row;
-  return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
-};
-
-interface Property {
-  id: string;
-  slug?: string | null;
-  title: string;
-  city: string | null;
-  locality: string | null;
-  price: number | null;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  area_sqft: number | null;
-  images: any;
-  verified: boolean | null;
-  trust_score: number | null;
-  bhk: number | null;
-  type?: string | null;
-  listing_type?: string | null;
-}
+import { usePartialProperties } from "@/hooks/queries/useProperties";
 
 const openProperty = (p: { slug?: string | null; id: string }) => {
   window.open(`/property/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
@@ -43,47 +16,9 @@ interface PartialPropertiesProps {
 
 const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: properties = [], isLoading } = usePartialProperties(detectedCity);
 
-  useEffect(() => {
-    fetchPartial();
-  }, [detectedCity]);
-
-  const fetchPartial = async () => {
-    try {
-      let query: any = (supabase.from("properties" as any).select("*") as any)
-        .neq("is_draft", true)
-        .not("title", "is", null)
-        .not("city", "is", null);
-
-      const { data, error } = await query
-        .order("updated_at", { ascending: false })
-        .limit(120);
-
-      if (error) throw error;
-
-      const normalizedCity = canonicalizeCity(detectedCity);
-
-      const partial = ((data as any[]) || [])
-        .map(toPublicRow)
-        .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
-        .filter((p) => classifyProperty(p) === "basic")
-        .slice(0, 8);
-
-      console.log("[PartialProperties] Selected city:", detectedCity);
-      console.log("[PartialProperties] Filtered properties:", partial.length, partial.map((p) => p.city));
-
-      // NO cross-city fallback — strict location filtering.
-      setProperties(partial);
-    } catch (err) {
-      console.error("Error fetching partial properties:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading || properties.length === 0) return null;
+  if (isLoading || properties.length === 0) return null;
 
   return (
     <section className="section-spacing relative" id="partial-properties">
