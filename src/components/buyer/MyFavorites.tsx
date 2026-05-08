@@ -54,7 +54,7 @@ const MyFavorites = () => {
     }
     const { data: props, error: propErr } = await supabase
       .from("properties")
-      .select("*")
+      .select("id,slug,title,city,locality,price,area_sqft,bedrooms,bathrooms,bhk,images,verified")
       .in("id", propertyIds);
     if (propErr) {
       console.error("properties fetch error", propErr);
