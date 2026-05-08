@@ -182,11 +182,34 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng } = await req.json();
+    const body = await req.json();
+    let { lat, lng } = body as { lat?: number; lng?: number };
+    const { query, locality, city } = body as { query?: string; locality?: string; city?: string };
 
-    if (typeof lat !== 'number' || typeof lng !== 'number') {
+    // Geocode locality/city via OSM Nominatim if coords missing
+    if ((typeof lat !== 'number' || typeof lng !== 'number') && (query || locality || city)) {
+      const q = query || [locality, city].filter(Boolean).join(', ');
+      try {
+        const geoResp = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+          { headers: { 'User-Agent': 'JaagaX-NearbyPlaces/1.0', 'Accept': 'application/json' } }
+        );
+        if (geoResp.ok) {
+          const arr = await geoResp.json();
+          if (Array.isArray(arr) && arr[0]) {
+            lat = parseFloat(arr[0].lat);
+            lng = parseFloat(arr[0].lon);
+            console.log(`Geocoded "${q}" -> (${lat}, ${lng})`);
+          }
+        }
+      } catch (e) {
+        console.error('Nominatim geocode error:', e);
+      }
+    }
+
+    if (typeof lat !== 'number' || typeof lng !== 'number' || Number.isNaN(lat) || Number.isNaN(lng)) {
       return new Response(
-        JSON.stringify({ success: false, error: 'lat and lng are required (numbers)' }),
+        JSON.stringify({ success: false, error: 'lat/lng or locality required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

@@ -186,69 +186,45 @@ const NearbyPOI = ({ city, lat, lng, locality }: NearbyPOIProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (lat && lng) {
+    if ((lat && lng) || locality || city) {
       fetchNearbyPlaces();
-    } else if (locality) {
-      // Use fallback data for known localities
-      const fallback = getLocalityFallback(locality);
-      if (fallback) {
-        setPoiData(fallback);
-      }
     }
-  }, [lat, lng, locality]);
+  }, [lat, lng, locality, city]);
 
   const fetchNearbyPlaces = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('nearby-places', {
-        body: { lat, lng },
-      });
+      const body: any = {};
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        body.lat = lat; body.lng = lng;
+      }
+      if (locality) body.locality = locality;
+      if (city) body.city = city;
+
+      const { data, error: fnError } = await supabase.functions.invoke('nearby-places', { body });
 
       if (fnError) throw fnError;
 
-      if (data?.success && data.data) {
-        // Check if API returned any actual results
-        const hasResults = Object.values(data.data as Record<string, POIItem[]>).some(
-          (items) => items && items.length > 0
-        );
+      const hasResults = data?.success && data.data && Object.values(data.data as Record<string, POIItem[]>).some(
+        (items) => items && items.length > 0
+      );
 
-        if (hasResults) {
-          setPoiData(data.data);
-        } else if (locality) {
-          // API returned empty, use real fallback data
-          const fallback = getLocalityFallback(locality);
-          if (fallback) {
-            setPoiData(fallback);
-          } else {
-            setError('No nearby places data available for this location');
-          }
-        } else {
-          setError('No nearby places found');
-        }
+      if (hasResults) {
+        setPoiData(data.data);
+      } else if (locality) {
+        const fallback = getLocalityFallback(locality);
+        if (fallback) setPoiData(fallback);
+        else setError('No nearby places data available for this location');
       } else {
-        // Try fallback
-        if (locality) {
-          const fallback = getLocalityFallback(locality);
-          if (fallback) {
-            setPoiData(fallback);
-          } else {
-            setError(data?.error || 'Failed to fetch nearby places');
-          }
-        } else {
-          setError(data?.error || 'Failed to fetch nearby places');
-        }
+        setError(data?.error || 'No nearby places found');
       }
     } catch (e) {
       console.error('Error fetching nearby places:', e);
-      // Try fallback on error
       if (locality) {
         const fallback = getLocalityFallback(locality);
-        if (fallback) {
-          setPoiData(fallback);
-        } else {
-          setError('Unable to load nearby places');
-        }
+        if (fallback) setPoiData(fallback);
+        else setError('Unable to load nearby places');
       } else {
         setError('Unable to load nearby places');
       }
@@ -257,20 +233,8 @@ const NearbyPOI = ({ city, lat, lng, locality }: NearbyPOIProps) => {
     }
   };
 
-  if (!lat && !lng && !locality) {
-    return (
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            Nearby Places
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">Location coordinates not available for this property.</p>
-        </CardContent>
-      </Card>
-    );
+  if (!lat && !lng && !locality && !city) {
+    return null;
   }
 
   return (

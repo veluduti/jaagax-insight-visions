@@ -122,19 +122,15 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
                 className="card-hover overflow-hidden group cursor-pointer relative"
                 onClick={() => openProperty(property)}
               >
+                {Array.isArray(property.images) && property.images[0] ? (
                 <div className="relative h-48 overflow-hidden bg-muted">
                   <img
-                    src={
-                      Array.isArray(property.images) && property.images[0]
-                        ? property.images[0]
-                        : ""
-                    }
+                    src={property.images[0]}
                     alt={property.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 saturate-75"
                     loading="lazy"
                     onError={(e) => {
-                      e.currentTarget.src =
-                        "";
+                      e.currentTarget.parentElement?.classList.add("hidden");
                     }}
                   />
                   <Badge
@@ -144,6 +140,7 @@ const PartialProperties = ({ detectedCity }: PartialPropertiesProps) => {
                     Partial info
                   </Badge>
                 </div>
+                ) : null}
 
                 <div className="p-md">
                   <div className="flex items-start justify-between mb-sm gap-sm">

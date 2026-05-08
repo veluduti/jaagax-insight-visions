@@ -99,10 +99,30 @@ export default function MediaHub({
     setShowFullscreen(true);
   };
 
+  // Build list of available media tabs (only ones with content)
+  const hasImages = images && images.length > 0;
+  const hasVideos = videos && videos.length > 0;
+  const hasFloorplans = floorplans && floorplans.length > 0;
+  const hasTour = !!virtualTourUrl;
+  const hasDocs = !!brochureUrl;
+
+  const availableTabs: { value: string; label: string; icon: any; count?: number }[] = [];
+  if (hasImages) availableTabs.push({ value: "photos", label: "Photos", icon: Image, count: images.length });
+  if (hasVideos) availableTabs.push({ value: "videos", label: "Videos", icon: Video, count: videos.length });
+  if (hasFloorplans) availableTabs.push({ value: "floorplans", label: "Floor Plans", icon: LayoutGrid, count: floorplans.length });
+  if (hasTour) availableTabs.push({ value: "tour", label: "360° Tour", icon: Maximize });
+  if (hasDocs) availableTabs.push({ value: "documents", label: "Documents", icon: FileText });
+
+  // If no media at all, render nothing
+  if (availableTabs.length === 0) return null;
+
+  const defaultTab = availableTabs[0].value;
+
   return (
     <>
       <div className="space-y-6">
-        {/* Hero Image/Video */}
+        {/* Hero Image/Video — only when images exist */}
+        {hasImages && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,30 +184,23 @@ export default function MediaHub({
             </>
           )}
         </motion.div>
+        )}
 
         {/* Thumbnail Strip & Media Tabs */}
-        <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="w-full grid grid-cols-5">
-            <TabsTrigger value="photos" className="gap-2">
-              <Image className="h-4 w-4" />
-              Photos ({images.length})
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="gap-2" disabled={videos.length === 0}>
-              <Video className="h-4 w-4" />
-              Videos ({videos.length})
-            </TabsTrigger>
-            <TabsTrigger value="floorplans" className="gap-2" disabled={floorplans.length === 0}>
-              <LayoutGrid className="h-4 w-4" />
-              Floor Plans ({floorplans.length})
-            </TabsTrigger>
-            <TabsTrigger value="tour" className="gap-2" disabled={!virtualTourUrl}>
-              <Maximize className="h-4 w-4" />
-              360° Tour
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2" disabled={!brochureUrl}>
-              <FileText className="h-4 w-4" />
-              Documents
-            </TabsTrigger>
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList
+            className="w-full grid"
+            style={{ gridTemplateColumns: `repeat(${availableTabs.length}, minmax(0, 1fr))` }}
+          >
+            {availableTabs.map((t) => {
+              const Icon = t.icon;
+              return (
+                <TabsTrigger key={t.value} value={t.value} className="gap-2">
+                  <Icon className="h-4 w-4" />
+                  {t.label}{typeof t.count === "number" ? ` (${t.count})` : ""}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
           <TabsContent value="photos" className="mt-4">
