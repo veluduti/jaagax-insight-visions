@@ -48,7 +48,7 @@ export const SafeImage = ({ src, alt, className, wrapperClassName, placeholderLa
       src={src as string}
       alt={alt}
       className={className}
-      onError={(e) = loading="lazy" decoding="async" /> {
+      onError={(e) => {
         const target = e.currentTarget;
         const parent = target.parentElement;
         if (parent) {

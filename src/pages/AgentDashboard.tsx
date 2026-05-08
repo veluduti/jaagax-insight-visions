@@ -706,7 +706,7 @@ export default function AgentDashboard() {
                           }
                           alt={p.title}
                           className="w-full h-full object-cover"
-                          onError={(e) = loading="lazy" decoding="async" /> {
+                          onError={(e) => {
                             e.currentTarget.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600";
                           }}
                         />

@@ -101,7 +101,7 @@ const BuilderMyProfileCard = () => {
     <Card className="overflow-hidden">
       {profile.hero_image && (
         <div className="h-40 w-full bg-muted overflow-hidden">
-          <img src={profile.hero_image} alt={profile.builder_name} className="w-full h-full object-cover" onError={(e) = loading="lazy" decoding="async" /> (e.currentTarget.style.display = "none")} />
+          <img src={profile.hero_image} alt={profile.builder_name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
         </div>
       )}
       <CardHeader>

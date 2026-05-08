@@ -128,7 +128,7 @@ const FeaturedCommunities = () => {
                     src={community.image} 
                     alt={community.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) = loading="lazy" decoding="async" /> {
+                    onError={(e) => {
                       e.currentTarget.src = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800";
                     }}
                   />

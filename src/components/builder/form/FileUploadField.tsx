@@ -98,7 +98,7 @@ const FileUploadField = ({
             src={value}
             alt={label}
             className="w-24 h-24 object-cover rounded-lg border border-border"
-            onError={(e) = loading="lazy" decoding="async" /> (e.currentTarget.style.display = "none")}
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
           <button
             type="button"

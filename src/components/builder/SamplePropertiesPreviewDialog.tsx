@@ -75,7 +75,7 @@ const SamplePropertiesPreviewDialog = ({ open, onOpenChange }: Props) => {
                   src={s.image}
                   alt={s.title}
                   className="w-full h-full object-cover"
-                  onError={(e) = loading="lazy" decoding="async" /> {
+                  onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800";
                   }}
