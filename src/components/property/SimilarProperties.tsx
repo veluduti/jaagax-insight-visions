@@ -69,11 +69,13 @@ const SimilarProperties = ({ city, type, currentPropertyId }: SimilarPropertiesP
             <Card className="overflow-hidden border-0 bg-background/50 hover:bg-background/70 transition-all">
               <div className="relative h-40 overflow-hidden">
                 <img
-                  src={Array.isArray(property.images) && property.images.length  loading="lazy" decoding="async" /> 0 
+                  src={Array.isArray(property.images) && property.images.length > 0 
                     ? property.images[0] 
                     : '/placeholder.svg'}
                   alt={property.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {property.verified && (
                   <Badge className="absolute top-2 left-2 gap-1">
