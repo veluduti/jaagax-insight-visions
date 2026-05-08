@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toPublicRow } from "./propertyService";
+import { toPublicRow, PROPERTY_CARD_COLUMNS } from "./propertyService";
 import type { PropertyRow } from "./types";
 
 export interface SearchFilters {
@@ -15,7 +15,7 @@ export interface SearchFilters {
 }
 
 export async function searchProperties(filters: SearchFilters = {}): Promise<PropertyRow[]> {
-  let q: any = (supabase.from("properties" as any).select("*") as any)
+  let q: any = (supabase.from("properties" as any).select(PROPERTY_CARD_COLUMNS) as any)
     .neq("is_draft", true)
     .not("title", "is", null);
 
