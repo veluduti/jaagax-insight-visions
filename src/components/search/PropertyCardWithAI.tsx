@@ -352,4 +352,4 @@ const PropertyCardWithAI = ({ property, decision, index }: PropertyCardWithAIPro
   );
 };
 
-export default PropertyCardWithAI;
+export default memo(PropertyCardWithAI);
