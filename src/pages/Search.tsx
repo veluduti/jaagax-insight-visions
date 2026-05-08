@@ -230,27 +230,29 @@ const Search = () => {
     }
   }, [properties, user, role, hasBuyerContext, buyerContext, activeTab]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (pageNum: number = 1, append: boolean = false) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
     try {
       switch (activeTab) {
         case "properties":
-          await fetchProperties();
+          await fetchProperties(pageNum, append);
           break;
         case "new-projects":
-          await fetchProjects();
+          await fetchProjects(pageNum, append);
           break;
         case "transactions":
-          await fetchTransactions();
+          await fetchTransactions(pageNum, append);
           break;
         case "agents":
-          await fetchAgents();
+          await fetchAgents(pageNum, append);
           break;
       }
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -303,12 +305,14 @@ const Search = () => {
     return qb;
   };
 
-  const fetchProperties = async () => {
+  const fetchProperties = async (pageNum: number = 1, append: boolean = false) => {
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
     // Prefer geo radius search when we have GPS coords from saved location.
     const useGeo =
       !!savedLocation?.latitude &&
       !!savedLocation?.longitude &&
-      // If user is searching by a specific city different from saved, fall back to text search.
       (!location || location.toLowerCase() === savedLocation.city.toLowerCase());
 
     if (useGeo) {
@@ -316,8 +320,8 @@ const Search = () => {
         _lat: savedLocation!.latitude,
         _lng: savedLocation!.longitude,
         _radius_km: 10,
-        _page: 1,
-        _limit: 100,
+        _page: pageNum,
+        _limit: PAGE_SIZE,
       });
       if (!error && Array.isArray(data)) {
         const cityForFilter = canonicalizeCity(location || savedLocation?.city);
@@ -327,9 +331,9 @@ const Search = () => {
             const tier = classifyProperty(p);
             return tierFilter === "featured" ? tier === "featured" : tier === "basic";
           });
-        console.log("[Search-geo] Selected city:", cityForFilter, "Filtered:", filtered.length);
-        setProperties(filtered.slice(0, 50));
-        setTotal(filtered.length);
+        setProperties((prev) => append ? [...prev, ...filtered] : filtered);
+        setTotal((prev) => append ? prev + filtered.length : filtered.length);
+        setHasMore(data.length >= PAGE_SIZE);
         return;
       }
       // Fall through to text-based search on RPC error.
@@ -340,7 +344,7 @@ const Search = () => {
     const { data, error, count } = await qb
       .order("is_featured", { ascending: false })
       .order("trust_score", { ascending: false })
-      .limit(100);
+      .range(from, to);
     if (!error) {
       const all = ((data as any[]) || []).map(toPublicRow);
       const normalizedLocation = canonicalizeCity(location);
@@ -350,13 +354,15 @@ const Search = () => {
           const tier = classifyProperty(p);
           return tierFilter === "featured" ? tier === "featured" : tier === "basic";
         });
-      console.log("[Search] Selected city:", location, "Filtered properties:", filtered.length);
-      setProperties(filtered.slice(0, 50));
-      setTotal(filtered.length);
+      setProperties((prev) => append ? [...prev, ...filtered] : filtered);
+      setTotal(count || filtered.length);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (pageNum: number = 1, append: boolean = false) => {
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     const f = advancedFilters;
     let qb = supabase.from("projects").select("*", { count: "exact" });
     if (f.verifiedOnly) qb = qb.eq("verified", true);
@@ -378,34 +384,41 @@ const Search = () => {
       if (f.handoverBy.endsWith("+")) qb = qb.gte("possession_date", startDate);
       else qb = qb.gte("possession_date", startDate).lt("possession_date", `${Number(year) + 1}-01-01`);
     }
-    const { data, error, count } = await qb.order("trust_score", { ascending: false }).limit(50);
+    const { data, error, count } = await qb.order("trust_score", { ascending: false }).range(from, to);
     if (!error) {
       const all = (data as any[]) || [];
       const normalizedLocation = canonicalizeCity(location);
       const strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
-      console.log("[Search] Selected city:", location, "Filtered projects:", strict.length);
-      setProjects(strict);
-      setTotal(strict.length);
+      setProjects((prev) => append ? [...prev, ...strict] : strict);
+      setTotal(count || strict.length);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
   };
 
-  const fetchAgents = async () => {
+  const fetchAgents = async (pageNum: number = 1, append: boolean = false) => {
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     let queryBuilder = supabase.from("agents").select("*", { count: "exact" });
     if (location) queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
-    const { data, error, count } = await queryBuilder.order("sales_count", { ascending: false }).limit(50);
+    const { data, error, count } = await queryBuilder.order("sales_count", { ascending: false }).range(from, to);
     if (!error) {
-      setAgents(data || []);
+      setAgents((prev) => append ? [...prev, ...((data as Agent[]) || [])] : (data as Agent[]) || []);
       setTotal(count || 0);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (pageNum: number = 1, append: boolean = false) => {
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     let qb = supabase.from("properties").select("*", { count: "exact" }).eq("verified", true).eq("is_live", true);
     qb = applyPropertyFilters(qb);
-    const { data, error, count } = await qb.order("price", { ascending: false }).limit(50);
+    const { data, error, count } = await qb.order("price", { ascending: false }).range(from, to);
     if (!error) {
-      setProperties((data || []).map(toPublicRow));
+      const rows = ((data as any[]) || []).map(toPublicRow);
+      setProperties((prev) => append ? [...prev, ...rows] : rows);
       setTotal(count || 0);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
   };
 
