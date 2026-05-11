@@ -174,17 +174,6 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
   const featuredIds = new Set(getFeaturedAgents(filteredAgents).map((a) => a.id));
   const gridAgents = filteredAgents.filter((a) => !featuredIds.has(a.id));
 
-    setFilteredAgents(filtered);
-  };
-
-  const cities = Array.from(
-    new Set(
-      agents
-        .flatMap((agent) => toArray(agent.cities_served))
-        .filter(Boolean)
-    )
-  );
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
