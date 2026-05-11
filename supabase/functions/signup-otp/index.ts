@@ -55,7 +55,14 @@ async function sendSms(toPhone: string, code: string) {
   const data = await res.json()
   if (!res.ok) {
     console.error('Twilio error', data)
-    throw new Error(data?.message || `Twilio failed (${res.status})`)
+    // Friendly messages for common Twilio errors
+    if (data?.code === 21635 || data?.code === 21614) {
+      throw new Error('This phone number cannot receive SMS. Please enter a valid mobile number.')
+    }
+    if (data?.code === 21211) {
+      throw new Error('Invalid phone number format.')
+    }
+    throw new Error(data?.message || `SMS service failed (${res.status})`)
   }
   return data
 }
@@ -98,6 +105,10 @@ Deno.serve(async (req) => {
         if (!rawPhone) return json({ error: 'Phone number required' }, 400)
         phone = normalizePhone(rawPhone)
         if (!/^\+\d{10,15}$/.test(phone)) return json({ error: 'Invalid phone number' }, 400)
+        // Indian mobile numbers must start with 6, 7, 8, or 9
+        if (phone.startsWith('+91') && !/^\+91[6-9]\d{9}$/.test(phone)) {
+          return json({ error: 'Please enter a valid Indian mobile number (must start with 6, 7, 8, or 9).' }, 400)
+        }
 
         password = body.password ? String(body.password) : null
         if (!password) return json({ error: 'Password required' }, 400)
