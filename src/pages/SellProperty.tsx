@@ -326,6 +326,25 @@ export default function SellProperty() {
     }
   }, [form.listing_type]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* ----- Auto-calculate Total Price = Size × Price Per Unit ----- */
+  const priceUnitLabel = isLandType ? form.size_unit : "Sq Ft";
+  useEffect(() => {
+    if (!isBuy) return;
+    const size = parseFloat(isLandType ? form.land_size : form.flat_size);
+    const ppu = parseFloat(form.price_per_unit);
+    if (!isNaN(size) && !isNaN(ppu) && size > 0 && ppu > 0) {
+      const total = Math.round(size * ppu);
+      setForm((f) => (f.total_price === String(total) ? f : { ...f, total_price: String(total) }));
+    }
+  }, [form.land_size, form.flat_size, form.price_per_unit, form.size_unit, isBuy, isLandType]);
+
+  /* ----- Indian currency formatter ----- */
+  const formatINR = (val: string | number) => {
+    const n = typeof val === "number" ? val : parseFloat(val);
+    if (isNaN(n) || n <= 0) return "";
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  };
+
   /* ----- Reset property_age when condition is New ----- */
   useEffect(() => {
     if (form.property_condition === "New") update("property_age", "");
@@ -727,13 +746,30 @@ export default function SellProperty() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden space-y-4"
                         >
-                          <Field label="Total Price (₹)" required>
-                            <Input type="number" placeholder="e.g. 5000000" value={form.total_price}
-                              onChange={(e) => update("total_price", e.target.value)} />
+                          <Field
+                            label={`Price Per ${priceUnitLabel} (₹)`}
+                            required
+                            hint="Enter price per selected land unit"
+                          >
+                            <Input
+                              type="number"
+                              placeholder="e.g. 5000"
+                              value={form.price_per_unit}
+                              onChange={(e) => update("price_per_unit", e.target.value)}
+                            />
                           </Field>
-                          <Field label="Price Per Sq Ft / Unit (₹)">
-                            <Input type="number" placeholder="e.g. 5000" value={form.price_per_unit}
-                              onChange={(e) => update("price_per_unit", e.target.value)} />
+                          <Field label="Total Price (₹)" required hint="Auto-calculated from size × price per unit (editable)">
+                            <Input
+                              type="number"
+                              placeholder="e.g. 5000000"
+                              value={form.total_price}
+                              onChange={(e) => update("total_price", e.target.value)}
+                            />
+                            {form.total_price && (
+                              <div className="mt-1 text-sm text-primary font-medium">
+                                {formatINR(form.total_price)}
+                              </div>
+                            )}
                           </Field>
                         </motion.div>
                       )}
@@ -749,6 +785,11 @@ export default function SellProperty() {
                           <Field label="Monthly Rent (₹)" required>
                             <Input type="number" placeholder="e.g. 25000" value={form.monthly_rent}
                               onChange={(e) => update("monthly_rent", e.target.value)} />
+                            {form.monthly_rent && (
+                              <div className="mt-1 text-sm text-primary font-medium">
+                                {formatINR(form.monthly_rent)} / month
+                              </div>
+                            )}
                           </Field>
                         </motion.div>
                       )}
