@@ -1077,7 +1077,7 @@ export default function SellProperty() {
                         ["Project", form.project_name || "—"],
                         ["Gated Community", form.gated_community || "—"],
                         ["Furnishing", form.furnishing + (form.furnished_details.length ? ` (${form.furnished_details.join(", ")})` : "")],
-                        ["Facing", form.facing || "—"],
+                        ["Facing", (Array.isArray(form.facing) ? form.facing.join(", ") : form.facing) || "—"],
                         ["Amenities", form.amenities.join(", ") || "—"],
                         ["Payment Options", form.payment_options.join(", ") || "—"],
                         ["Approvals", form.approval_types.join(", ") || "—"],
