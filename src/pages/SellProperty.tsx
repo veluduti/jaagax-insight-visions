@@ -129,7 +129,7 @@ type FormState = {
 
   furnishing: string;
   furnished_details: string[];
-  facing: string;
+  facing: string | string[];
   amenities: string[];
   payment_options: string[];
   approval_types: string[];
