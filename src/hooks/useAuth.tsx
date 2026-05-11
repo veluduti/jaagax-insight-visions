@@ -113,7 +113,7 @@ export const useAuth = () => {
     selectedRoles?: UserRole[],
   ) => {
     try {
-      const { error } = await authService.initSignupOtp({
+      const { data, error } = await authService.initSignupOtp({
         email,
         password,
         selectedRole,
@@ -122,7 +122,22 @@ export const useAuth = () => {
         name,
         phone,
       });
-      return { error: error ?? null };
+      if (error) {
+        let msg = error.message || "Signup failed";
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx?.json) {
+            const body = await ctx.json();
+            if (body?.error) msg = body.error;
+          } else if (ctx?.body) {
+            const body = typeof ctx.body === "string" ? JSON.parse(ctx.body) : ctx.body;
+            if (body?.error) msg = body.error;
+          }
+        } catch {}
+        return { error: { ...error, message: msg } as any };
+      }
+      if ((data as any)?.error) return { error: { message: (data as any).error } as any };
+      return { error: null };
     } catch (error: any) {
       return { error };
     }
