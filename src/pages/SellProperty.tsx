@@ -932,10 +932,27 @@ export default function SellProperty() {
                       </Field>
                     )}
 
-                    <Field label="Facing">
-                      <ChipGroup options={FACINGS} value={form.facing as any}
-                        onChange={(v) => update("facing", v)} />
-                    </Field>
+                    {(() => {
+                      const multiFacing = form.size_variants.length > 0;
+                      const facingValue = multiFacing
+                        ? (Array.isArray(form.facing) ? form.facing : form.facing ? [form.facing as string] : [])
+                        : (Array.isArray(form.facing) ? (form.facing[0] || "") : form.facing);
+                      return (
+                        <Field
+                          label="Facing"
+                          hint={multiFacing
+                            ? "Multiple variants detected — you can select more than one facing"
+                            : "Select one facing direction"}
+                        >
+                          <ChipGroup
+                            options={FACINGS}
+                            value={facingValue as any}
+                            onChange={(v) => update("facing", v)}
+                            multi={multiFacing}
+                          />
+                        </Field>
+                      );
+                    })()}
                   </>
                 )}
 
