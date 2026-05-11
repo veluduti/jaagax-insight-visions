@@ -17,7 +17,7 @@ import { Search } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AgentCard from "@/components/agents/AgentCard";
-import FeaturedAgents from "@/components/agents/FeaturedAgents";
+import FeaturedAgents, { getFeaturedAgents } from "@/components/agents/FeaturedAgents";
 import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
@@ -147,6 +147,14 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
       return 0;
     });
 
+    // Deduplicate by id to prevent any duplicate cards
+    const seen = new Set<string>();
+    filtered = filtered.filter((a) => {
+      if (!a?.id || seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+
     setFilteredAgents(filtered);
   };
 
@@ -157,6 +165,14 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
         .filter(Boolean)
     )
   );
+
+  // City -> stable slug for unique selectors/xpaths per city
+  const citySlug = (city: string) =>
+    city.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  // Exclude featured agents from the grid to avoid duplicate cards
+  const featuredIds = new Set(getFeaturedAgents(filteredAgents).map((a) => a.id));
+  const gridAgents = filteredAgents.filter((a) => !featuredIds.has(a.id));
 
   return (
     <div className="min-h-screen bg-background">
@@ -212,13 +228,20 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
               </Select>
 
               <Select value={cityFilter} onValueChange={setCityFilter}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="city-filter-trigger">
                   <SelectValue placeholder="All Cities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cities</SelectItem>
+                  <SelectItem value="all" data-testid="city-option-all">
+                    All Cities
+                  </SelectItem>
                   {cities.map((city) => (
-                    <SelectItem key={city} value={city}>
+                    <SelectItem
+                      key={city}
+                      value={city}
+                      data-testid={`city-option-${citySlug(city)}`}
+                      data-city={city}
+                    >
                       {city}
                     </SelectItem>
                   ))}
@@ -286,15 +309,18 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
                 </div>
               ))}
             </div>
-          ) : filteredAgents.length === 0 ? (
+          ) : gridAgents.length === 0 && featuredIds.size === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
                 No agents found matching your criteria
               </p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent, idx) => (
+            <div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+              data-testid={`agents-grid-${cityFilter === "all" ? "all" : citySlug(cityFilter)}`}
+            >
+              {gridAgents.map((agent, idx) => (
                 <AgentCard key={agent.id} agent={agent} index={idx} />
               ))}
             </div>

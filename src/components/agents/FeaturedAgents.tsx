@@ -6,12 +6,18 @@ interface FeaturedAgentsProps {
   agents: any[];
 }
 
-const FeaturedAgents = ({ agents }: FeaturedAgentsProps) => {
-  // Get top 3 verified agents
-  const featuredAgents = agents
+export const getFeaturedAgents = (agents: any[]) =>
+  agents
     .filter((agent) => agent?.verified)
-    .sort((a, b) => (b.sales_count + b.rent_count) - (a.sales_count + a.rent_count))
+    .sort(
+      (a, b) =>
+        ((b.sales_count || 0) + (b.rent_count || 0)) -
+        ((a.sales_count || 0) + (a.rent_count || 0))
+    )
     .slice(0, 3);
+
+const FeaturedAgents = ({ agents }: FeaturedAgentsProps) => {
+  const featuredAgents = getFeaturedAgents(agents);
 
   if (featuredAgents.length === 0) return null;
 
