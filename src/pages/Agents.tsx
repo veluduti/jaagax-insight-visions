@@ -147,6 +147,33 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
       return 0;
     });
 
+    // Deduplicate by id to prevent any duplicate cards
+    const seen = new Set<string>();
+    filtered = filtered.filter((a) => {
+      if (!a?.id || seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
+
+    setFilteredAgents(filtered);
+  };
+
+  const cities = Array.from(
+    new Set(
+      agents
+        .flatMap((agent) => toArray(agent.cities_served))
+        .filter(Boolean)
+    )
+  );
+
+  // City -> stable slug for unique selectors/xpaths per city
+  const citySlug = (city: string) =>
+    city.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  // Exclude featured agents from the grid to avoid duplicate cards
+  const featuredIds = new Set(getFeaturedAgents(filteredAgents).map((a) => a.id));
+  const gridAgents = filteredAgents.filter((a) => !featuredIds.has(a.id));
+
     setFilteredAgents(filtered);
   };
 
