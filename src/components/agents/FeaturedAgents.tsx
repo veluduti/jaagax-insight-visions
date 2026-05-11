@@ -4,14 +4,21 @@ import AgentCard from "./AgentCard";
 
 interface FeaturedAgentsProps {
   agents: any[];
+  onFeaturedIds?: (ids: string[]) => void;
 }
 
-const FeaturedAgents = ({ agents }: FeaturedAgentsProps) => {
+const FeaturedAgents = ({ agents, onFeaturedIds }: FeaturedAgentsProps) => {
   // Get top 3 verified agents
   const featuredAgents = agents
     .filter((agent) => agent?.verified)
-    .sort((a, b) => (b.sales_count + b.rent_count) - (a.sales_count + a.rent_count))
+    .sort((a, b) => ((b.sales_count || 0) + (b.rent_count || 0)) - ((a.sales_count || 0) + (a.rent_count || 0)))
     .slice(0, 3);
+
+  // Notify parent of featured IDs to avoid duplicate rendering in the grid below
+  if (onFeaturedIds) {
+    const ids = featuredAgents.map((a) => a.id);
+    queueMicrotask(() => onFeaturedIds(ids));
+  }
 
   if (featuredAgents.length === 0) return null;
 
