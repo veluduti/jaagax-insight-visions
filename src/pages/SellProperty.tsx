@@ -326,6 +326,25 @@ export default function SellProperty() {
     }
   }, [form.listing_type]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* ----- Auto-calculate Total Price = Size × Price Per Unit ----- */
+  const priceUnitLabel = isLandType ? form.size_unit : "Sq Ft";
+  useEffect(() => {
+    if (!isBuy) return;
+    const size = parseFloat(isLandType ? form.land_size : form.flat_size);
+    const ppu = parseFloat(form.price_per_unit);
+    if (!isNaN(size) && !isNaN(ppu) && size > 0 && ppu > 0) {
+      const total = Math.round(size * ppu);
+      setForm((f) => (f.total_price === String(total) ? f : { ...f, total_price: String(total) }));
+    }
+  }, [form.land_size, form.flat_size, form.price_per_unit, form.size_unit, isBuy, isLandType]);
+
+  /* ----- Indian currency formatter ----- */
+  const formatINR = (val: string | number) => {
+    const n = typeof val === "number" ? val : parseFloat(val);
+    if (isNaN(n) || n <= 0) return "";
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  };
+
   /* ----- Reset property_age when condition is New ----- */
   useEffect(() => {
     if (form.property_condition === "New") update("property_age", "");
