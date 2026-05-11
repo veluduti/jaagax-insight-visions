@@ -55,7 +55,14 @@ async function sendSms(toPhone: string, code: string) {
   const data = await res.json()
   if (!res.ok) {
     console.error('Twilio error', data)
-    throw new Error(data?.message || `Twilio failed (${res.status})`)
+    // Friendly messages for common Twilio errors
+    if (data?.code === 21635 || data?.code === 21614) {
+      throw new Error('This phone number cannot receive SMS. Please enter a valid mobile number.')
+    }
+    if (data?.code === 21211) {
+      throw new Error('Invalid phone number format.')
+    }
+    throw new Error(data?.message || `SMS service failed (${res.status})`)
   }
   return data
 }
