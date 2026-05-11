@@ -621,20 +621,54 @@ export default function SellProperty() {
                       <ChipGroup options={LISTED_BY} value={form.listed_by as any}
                         onChange={(v) => update("listed_by", v)} />
                     </Field>
-                    <Field label="Listing Type" required>
+                    <Field label="Listing Type" required hint="Choose Buy to sell the property, or Rent to lease it out">
                       <ChipGroup options={LISTING_TYPES} value={form.listing_type as any}
                         onChange={(v) => update("listing_type", v)} />
                     </Field>
+
+                    {/* Dynamic note for Listing Type */}
+                    <AnimatePresence mode="wait">
+                      {isRent && (
+                        <motion.div
+                          key="rent-availfrom"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <Field label="Available From Date" required hint="Date the property becomes available for tenants">
+                            <Input type="date" value={form.available_from}
+                              onChange={(e) => update("available_from", e.target.value)} />
+                          </Field>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <Field label="Property Condition" required>
                       <ChipGroup options={PROPERTY_CONDITIONS} value={form.property_condition as any}
                         onChange={(v) => update("property_condition", v)} />
                     </Field>
-                    {isResale && (
-                      <Field label="Property Age" required>
-                        <ChipGroup options={PROPERTY_AGES} value={form.property_age as any}
-                          onChange={(v) => update("property_age", v)} />
-                      </Field>
-                    )}
+
+                    {/* Dynamic Property Age — only when Resale */}
+                    <AnimatePresence mode="wait">
+                      {isResale && (
+                        <motion.div
+                          key="resale-age"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <Field label="Property Age" required>
+                            <ChipGroup options={PROPERTY_AGES} value={form.property_age as any}
+                              onChange={(v) => update("property_age", v)} />
+                          </Field>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <Field label="Availability Status" required>
                       <ChipGroup options={AVAILABILITY_STATUSES} value={form.availability_status as any}
                         onChange={(v) => update("availability_status", v)} />
@@ -643,12 +677,6 @@ export default function SellProperty() {
                       <Input type="date" value={form.possession_date}
                         onChange={(e) => update("possession_date", e.target.value)} />
                     </Field>
-                    {isRent && (
-                      <Field label="Available From Date" required>
-                        <Input type="date" value={form.available_from}
-                          onChange={(e) => update("available_from", e.target.value)} />
-                      </Field>
-                    )}
                   </>
                 )}
 
