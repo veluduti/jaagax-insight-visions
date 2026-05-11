@@ -228,13 +228,20 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
               </Select>
 
               <Select value={cityFilter} onValueChange={setCityFilter}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="city-filter-trigger">
                   <SelectValue placeholder="All Cities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cities</SelectItem>
+                  <SelectItem value="all" data-testid="city-option-all">
+                    All Cities
+                  </SelectItem>
                   {cities.map((city) => (
-                    <SelectItem key={city} value={city}>
+                    <SelectItem
+                      key={city}
+                      value={city}
+                      data-testid={`city-option-${citySlug(city)}`}
+                      data-city={city}
+                    >
                       {city}
                     </SelectItem>
                   ))}
