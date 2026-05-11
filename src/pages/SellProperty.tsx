@@ -93,7 +93,7 @@ const LAND_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"] as con
    Types
    ============================================================ */
 
-type SizeVariant = { size: string; unit: string; price: string };
+type SizeVariant = { size: string; unit: string; price_per_unit: string; price: string };
 
 type FormState = {
   category: string;
@@ -129,7 +129,7 @@ type FormState = {
 
   furnishing: string;
   furnished_details: string[];
-  facing: string;
+  facing: string | string[];
   amenities: string[];
   payment_options: string[];
   approval_types: string[];
@@ -807,47 +807,74 @@ export default function SellProperty() {
                           </p>
                         </div>
                       </div>
-                      {form.size_variants.map((v, i) => (
-                        <div key={i} className="flex gap-2 items-center">
-                          <Input type="number" placeholder="Size" value={v.size}
-                            onChange={(e) => {
-                              const arr = [...form.size_variants];
-                              arr[i] = { ...arr[i], size: e.target.value };
-                              update("size_variants", arr);
-                            }} />
-                          <select
-                            value={v.unit}
-                            onChange={(e) => {
-                              const arr = [...form.size_variants];
-                              arr[i] = { ...arr[i], unit: e.target.value };
-                              update("size_variants", arr);
-                            }}
-                            className="px-3 py-2 rounded-md border bg-background text-sm"
-                          >
-                            {sizeUnits.map((u) => <option key={u} value={u}>{u}</option>)}
-                          </select>
-                          <Input type="number" placeholder="Price ₹" value={v.price}
-                            onChange={(e) => {
-                              const arr = [...form.size_variants];
-                              arr[i] = { ...arr[i], price: e.target.value };
-                              update("size_variants", arr);
-                            }} />
-                          <Button variant="ghost" size="icon" onClick={() => {
-                            const arr = [...form.size_variants];
-                            arr.splice(i, 1);
-                            update("size_variants", arr);
-                          }}>
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+                      {form.size_variants.map((v, i) => {
+                        const vSize = parseFloat(v.size) || 0;
+                        const vPpu = parseFloat(v.price_per_unit) || 0;
+                        const vTotal = vSize > 0 && vPpu > 0 ? vSize * vPpu : 0;
+                        return (
+                          <div key={i} className="rounded-md border bg-background p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-semibold text-muted-foreground">
+                                Variant {i + 1}
+                              </p>
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                const arr = [...form.size_variants];
+                                arr.splice(i, 1);
+                                update("size_variants", arr);
+                              }}>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" placeholder="Size" value={v.size}
+                                onChange={(e) => {
+                                  const arr = [...form.size_variants];
+                                  const size = e.target.value;
+                                  const ppu = arr[i].price_per_unit;
+                                  const total = (parseFloat(size) || 0) * (parseFloat(ppu) || 0);
+                                  arr[i] = { ...arr[i], size, price: total ? String(total) : "" };
+                                  update("size_variants", arr);
+                                }} />
+                              <select
+                                value={v.unit}
+                                onChange={(e) => {
+                                  const arr = [...form.size_variants];
+                                  arr[i] = { ...arr[i], unit: e.target.value };
+                                  update("size_variants", arr);
+                                }}
+                                className="px-3 py-2 rounded-md border bg-background text-sm"
+                              >
+                                {sizeUnits.map((u) => <option key={u} value={u}>{u}</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Price Per {v.unit} (₹)</Label>
+                              <Input type="number" placeholder={`Price per ${v.unit}`}
+                                value={v.price_per_unit}
+                                onChange={(e) => {
+                                  const arr = [...form.size_variants];
+                                  const ppu = e.target.value;
+                                  const total = (parseFloat(arr[i].size) || 0) * (parseFloat(ppu) || 0);
+                                  arr[i] = { ...arr[i], price_per_unit: ppu, price: total ? String(total) : "" };
+                                  update("size_variants", arr);
+                                }} />
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Total Price: <span className="font-semibold text-foreground">
+                                {vTotal > 0 ? formatINR(vTotal) : "—"}
+                              </span>
+                              <span className="ml-1">(auto-calculated)</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => update("size_variants", [
                           ...form.size_variants,
-                          { size: "", unit: form.size_unit, price: "" },
+                          { size: "", unit: form.size_unit, price_per_unit: "", price: "" },
                         ])}
                       >
                         <Plus className="w-4 h-4 mr-1" /> Add Size Variant
@@ -905,10 +932,27 @@ export default function SellProperty() {
                       </Field>
                     )}
 
-                    <Field label="Facing">
-                      <ChipGroup options={FACINGS} value={form.facing as any}
-                        onChange={(v) => update("facing", v)} />
-                    </Field>
+                    {(() => {
+                      const multiFacing = form.size_variants.length > 0;
+                      const facingValue = multiFacing
+                        ? (Array.isArray(form.facing) ? form.facing : form.facing ? [form.facing as string] : [])
+                        : (Array.isArray(form.facing) ? (form.facing[0] || "") : form.facing);
+                      return (
+                        <Field
+                          label="Facing"
+                          hint={multiFacing
+                            ? "Multiple variants detected — you can select more than one facing"
+                            : "Select one facing direction"}
+                        >
+                          <ChipGroup
+                            options={FACINGS}
+                            value={facingValue as any}
+                            onChange={(v) => update("facing", v)}
+                            multi={multiFacing}
+                          />
+                        </Field>
+                      );
+                    })()}
                   </>
                 )}
 
@@ -1033,7 +1077,7 @@ export default function SellProperty() {
                         ["Project", form.project_name || "—"],
                         ["Gated Community", form.gated_community || "—"],
                         ["Furnishing", form.furnishing + (form.furnished_details.length ? ` (${form.furnished_details.join(", ")})` : "")],
-                        ["Facing", form.facing || "—"],
+                        ["Facing", (Array.isArray(form.facing) ? form.facing.join(", ") : form.facing) || "—"],
                         ["Amenities", form.amenities.join(", ") || "—"],
                         ["Payment Options", form.payment_options.join(", ") || "—"],
                         ["Approvals", form.approval_types.join(", ") || "—"],
