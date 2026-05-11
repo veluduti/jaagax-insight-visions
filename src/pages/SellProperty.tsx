@@ -716,26 +716,43 @@ export default function SellProperty() {
                       </Field>
                     )}
 
-                    {/* Buy fields */}
-                    {isBuy && (
-                      <>
-                        <Field label="Total Price (₹)" required>
-                          <Input type="number" placeholder="e.g. 5000000" value={form.total_price}
-                            onChange={(e) => update("total_price", e.target.value)} />
-                        </Field>
-                        <Field label="Price Per Sq Ft / Unit (₹)">
-                          <Input type="number" placeholder="e.g. 5000" value={form.price_per_unit}
-                            onChange={(e) => update("price_per_unit", e.target.value)} />
-                        </Field>
-                      </>
-                    )}
-                    {/* Rent fields */}
-                    {isRent && (
-                      <Field label="Monthly Rent (₹)" required>
-                        <Input type="number" placeholder="e.g. 25000" value={form.monthly_rent}
-                          onChange={(e) => update("monthly_rent", e.target.value)} />
-                      </Field>
-                    )}
+                    {/* Dynamic Buy fields */}
+                    <AnimatePresence mode="wait">
+                      {isBuy && (
+                        <motion.div
+                          key="buy-pricing"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden space-y-4"
+                        >
+                          <Field label="Total Price (₹)" required>
+                            <Input type="number" placeholder="e.g. 5000000" value={form.total_price}
+                              onChange={(e) => update("total_price", e.target.value)} />
+                          </Field>
+                          <Field label="Price Per Sq Ft / Unit (₹)">
+                            <Input type="number" placeholder="e.g. 5000" value={form.price_per_unit}
+                              onChange={(e) => update("price_per_unit", e.target.value)} />
+                          </Field>
+                        </motion.div>
+                      )}
+                      {isRent && (
+                        <motion.div
+                          key="rent-pricing"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <Field label="Monthly Rent (₹)" required>
+                            <Input type="number" placeholder="e.g. 25000" value={form.monthly_rent}
+                              onChange={(e) => update("monthly_rent", e.target.value)} />
+                          </Field>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Multiple Size Variants */}
                     <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
