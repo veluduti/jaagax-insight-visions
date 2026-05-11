@@ -17,7 +17,7 @@ import { Search } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AgentCard from "@/components/agents/AgentCard";
-import FeaturedAgents from "@/components/agents/FeaturedAgents";
+import FeaturedAgents, { getFeaturedAgents } from "@/components/agents/FeaturedAgents";
 import AIAgentRecommendations from "@/components/agents/AIAgentRecommendations";
 
 interface Agent {
