@@ -93,7 +93,7 @@ const LAND_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"] as con
    Types
    ============================================================ */
 
-type SizeVariant = { size: string; unit: string; price: string };
+type SizeVariant = { size: string; unit: string; price_per_unit: string; price: string };
 
 type FormState = {
   category: string;
