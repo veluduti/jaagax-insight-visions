@@ -309,15 +309,18 @@ const toArray = (val: string | string[] | null | undefined): string[] => {
                 </div>
               ))}
             </div>
-          ) : filteredAgents.length === 0 ? (
+          ) : gridAgents.length === 0 && featuredIds.size === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
                 No agents found matching your criteria
               </p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent, idx) => (
+            <div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+              data-testid={`agents-grid-${cityFilter === "all" ? "all" : citySlug(cityFilter)}`}
+            >
+              {gridAgents.map((agent, idx) => (
                 <AgentCard key={agent.id} agent={agent} index={idx} />
               ))}
             </div>
