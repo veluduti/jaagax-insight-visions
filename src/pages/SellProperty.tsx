@@ -17,6 +17,48 @@ import {
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
+import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
+import type { FieldDefinition, NextQuestionResult } from "@/engines/types";
+import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
+
+/* ============================================================
+   Engine field -> UI FieldDef adapter
+   ============================================================ */
+function adaptEngineField(fieldId: string, raw: any): FieldDef {
+  const t = (raw?.type || raw?.input || "text") as string;
+  const map: Record<string, FieldDef["input"]> = {
+    single_select: "single",
+    single: "single",
+    multi_select: "multi",
+    multi: "multi",
+    yesno: "yesno",
+    price: "number",
+    price_per_unit: "number",
+    rental_price: "number",
+    measurement: "number",
+    number: "number",
+    future_date: "text",
+    date: "text",
+    group: "textarea",
+    textarea: "textarea",
+    location: "city",
+    city: "city",
+    locality: "locality",
+    media_upload: "media",
+    media: "media",
+    phone: "phone",
+    email: "email",
+    text: "text",
+  };
+  return {
+    id: fieldId,
+    question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
+    input: map[t] || "text",
+    options: Array.isArray(raw?.options) ? raw.options : undefined,
+    required: raw?.required === true,
+    optional: raw?.required !== true,
+  };
+}
 
 /* ============================================================
    Types
@@ -154,6 +196,12 @@ export default function SellProperty() {
   /* Voice */
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
+
+  /* Deterministic conversation engine (single persistent instance) */
+  const engineRef = useRef<ConversationEngine | null>(null);
+  if (engineRef.current === null) {
+    engineRef.current = createConversationEngine("residential");
+  }
 
   /* ----- Auto-scroll on new messages ----- */
   useEffect(() => {
@@ -417,8 +465,8 @@ export default function SellProperty() {
     await fetchNext(state, true);
   };
 
-  /* ----- Ask orchestrator for next field (ChatGPT-style re-evaluation) ----- */
-  const fetchNext = async (currentState: Record<string, any>, isFirst = false, sharedTypingId?: string) => {
+  /* ----- Resolve next field via the deterministic local engine ----- */
+  const fetchNext = async (currentState: Record<string, any>, _isFirst = false, sharedTypingId?: string) => {
     setLoadingNext(true);
     setError(null);
 
@@ -427,59 +475,41 @@ export default function SellProperty() {
       setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
     }
 
-    // Compact transcript — last 4 turns is enough; AI trusts current_state.
-    const transcript = messages
-      .filter((x) => x.kind === "text")
-      .map((x: any) => ({ role: x.role, text: x.text }))
-      .slice(-4);
-
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
-        "ai-conversational-listing",
-        { body: { state: currentState, transcript } }
-      );
-      if (fnErr) throw fnErr;
-      if (!data) throw new Error("No response");
+      const engine = engineRef.current!;
+      engine.applyExtractedFields(currentState);
+      const result: NextQuestionResult = engine.next();
 
-      // Apply any AI corrections / dependency resets to local state
-      let mergedState = { ...currentState };
-      const patch = (data as any).state_patch as Record<string, any> | undefined;
-      if (patch && typeof patch === "object") {
-        for (const [k, v] of Object.entries(patch)) {
-          if (v === "" || v === null) {
-            delete mergedState[k];
-          } else {
-            mergedState[k] = v;
-          }
-        }
-        setState(mergedState);
-      }
-
+      await new Promise((r) => setTimeout(r, 120));
       setMessages((m) => m.filter((x) => x.id !== typingId));
 
-      if ((data as any).done) {
+      if (result.done || !result.field) {
         setDone(true);
         setField(null);
+        setProgress(result.progress);
         setMessages((m) => [
           ...m,
           { id: uid(), role: "ai", kind: "text", text: "🎉 That's everything I need! Review your details below and publish when ready." },
         ]);
-      } else {
-        const d = data as Extract<NextResp, { done: false }>;
-        setField(d.field);
-        setSuggestions(d.suggestions || []);
-        setProgress(d.progress);
-        const existing = mergedState[d.field.id];
-        if (existing !== undefined && existing !== null) setValue(existing);
-        else if (d.field.input === "multi") setValue([]);
-        else if (d.field.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
-        else setValue("");
-
-        setMessages((m) => [
-          ...m,
-          { id: uid(), role: "ai", kind: "text", text: d.field.question },
-        ]);
+        return;
       }
+
+      const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
+      const ui = adaptEngineField(fieldId, result.field);
+      setField(ui);
+      setSuggestions([]);
+      setProgress(result.progress);
+
+      const existing = currentState[fieldId];
+      if (existing !== undefined && existing !== null && existing !== "") setValue(existing);
+      else if (ui.input === "multi") setValue([]);
+      else if (ui.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
+      else setValue("");
+
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "ai", kind: "text", text: result.question?.prompt || ui.question },
+      ]);
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.kind !== "typing"));
       setError(e.message || "Could not load next question");
@@ -1218,6 +1248,38 @@ export default function SellProperty() {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Smart price / rent suggestion chips (Indian numbering) */}
+          {field && !loadingNext && !done && field.input === "number" && value && (
+            (() => {
+              const isRent = /rent/i.test(field.id);
+              const chips = isRent
+                ? getRentSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
+                : (/price|amount|cost|budget/i.test(field.id)
+                  ? getPriceSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
+                  : []);
+              if (chips.length === 0) return null;
+              return (
+                <div className="pt-1 pl-1">
+                  <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Did you mean
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {chips.map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setValue(c.val)}
+                        className="text-xs px-3 py-1.5 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 transition"
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()
           )}
 
           {error && (
