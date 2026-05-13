@@ -38,6 +38,7 @@ import AuthGate from "@/components/property/AuthGate";
 import PropertyVideoReels from "@/components/property/PropertyVideoReels";
 import { useAuth } from "@/hooks/useAuth";
 import { trackPropertyEvent } from "@/lib/propertyEvents";
+import SEO from "@/components/SEO";
 
 interface Property {
   id: string;
