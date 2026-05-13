@@ -1,0 +1,31 @@
+# JAAGA X
+
+> India's first AI-powered real estate platform. Discover verified properties, new projects, agents, and market insights across Hyderabad and Vijayawada.
+
+JAAGA X helps buyers, renters, agents, and builders make confident real-estate decisions with AI-driven property search, verified listings, live visit tracking, and locality intelligence.
+
+## Pages
+
+- [Home](/): Verified properties, new projects, and AI insights for Hyderabad & Vijayawada.
+- [Search](/search): AI-powered property search across cities and localities.
+- [New Projects](/projects): Upcoming and ongoing residential and commercial projects.
+- [Featured Properties](/featured-properties): Hand-picked verified properties.
+- [Agents](/agents): Find and compare verified real-estate agents.
+- [Agent Leaderboard](/agents/leaderboard): Top-performing agents ranked by trust and activity.
+- [Communities](/communities): Locality stats, market trends, and neighbourhood insights.
+- [Transactions](/transactions): Recent property transactions across cities.
+- [Hotels](/hotels): Partner-hotel stays bundled with property visits.
+- [Guides](/guides): Buyer, seller, and investor guides.
+- [Events](/events): Community events in your locality.
+- [Map](/map): Map-based property discovery.
+- [Sell Your Property](/sell-property): AI-assisted conversational listing flow.
+- [Property Valuation](/valuation): Estimate the market value of any property.
+- [Trust Score](/trust-score): How JAAGA X verifies properties and agents.
+- [Property Reels](/reels): Short-video property discovery.
+- [Innovation Hub](/innovation): Voice search, smart clusters, predictive alerts.
+- [Natural Living](/natural-living): Farmland and natural-living properties.
+
+## Optional
+
+- [Compare Properties](/compare): Side-by-side property comparison.
+- [Plan Visit & Stay](/plan-visit-stay): Bundle property visits with hotel stays.

@@ -47,6 +47,7 @@ import PaymentPlans from "@/components/property/PaymentPlans";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import AuthGate from "@/components/property/AuthGate";
 import { useAuth } from "@/hooks/useAuth";
+import SEO from "@/components/SEO";
 
 interface Project {
   id: string;
@@ -329,6 +330,26 @@ const ProjectDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${project.name} by ${project.builder_name} in ${project.locality}, ${project.city}`}
+        description={(project.description || `${project.name} — ${project.bhk_types || ''} ${project.area_range ? '· ' + project.area_range : ''} in ${project.locality}, ${project.city}. Starting ${startingPrice}. By ${project.builder_name}.`).slice(0, 160)}
+        canonicalPath={`/project/${slug}`}
+        image={project.image || project.images?.[0] || undefined}
+        type="product"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: project.name,
+          description: project.description,
+          image: project.image || project.images?.[0],
+          brand: { "@type": "Organization", name: project.builder_name },
+          offers: project.avg_price ? {
+            "@type": "Offer",
+            price: project.avg_price,
+            priceCurrency: "INR",
+          } : undefined,
+        }}
+      />
       <Navigation />
 
       {/* Back Button & Breadcrumb */}

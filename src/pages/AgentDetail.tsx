@@ -38,6 +38,7 @@ import AgentVideoSection from "@/components/agents/AgentVideoSection";
 import AgentSuccessStories from "@/components/agents/AgentSuccessStories";
 import AgentTeamMembers from "@/components/agents/AgentTeamMembers";
 import AgentAvailabilityCalendar from "@/components/agents/AgentAvailabilityCalendar";
+import SEO from "@/components/SEO";
 
 interface Agent {
   id: string;
@@ -272,6 +273,27 @@ const AgentDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${agent.name}${agent.agency_name ? ' · ' + agent.agency_name : ''} — Real Estate Agent`}
+        description={`Connect with ${agent.name}, a${agent.verified ? ' verified' : ''} real estate agent${agent.agency_name ? ' at ' + agent.agency_name : ''}. ${agent.sales_count || 0} sales, ${agent.rent_count || 0} rentals. Trust score ${agent.trust_score || 0}/100.`}
+        canonicalPath={`/agent/${id}`}
+        image={agent.photo_url || undefined}
+        type="website"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "RealEstateAgent",
+          name: agent.name,
+          image: agent.photo_url,
+          worksFor: agent.agency_name ? { "@type": "Organization", name: agent.agency_name } : undefined,
+          knowsLanguage: Array.isArray(agent.languages) ? agent.languages : undefined,
+          areaServed: Array.isArray(agent.cities_served) ? agent.cities_served : undefined,
+          aggregateRating: reviews.length ? {
+            "@type": "AggregateRating",
+            ratingValue: avgRating,
+            reviewCount: reviews.length,
+          } : undefined,
+        }}
+      />
       <Navigation />
 
       <div className="container mx-auto px-6 py-8">
