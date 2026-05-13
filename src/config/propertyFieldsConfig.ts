@@ -261,17 +261,19 @@ function fieldRelevant(id: string, state: Record<string, any>): boolean {
 // ============================================================
 // Ordered, conditional flow
 // ============================================================
+// Strict knowledge-spec order: SIZE before PRICE; CONDITION before SIZE.
 const ORDER: string[] = [
   "category",
   "residential_type",
   "owner_type",
   "listing_type",
-  "total_price", "price_unit_type", "price_per_unit",
-  "monthly_rent", "available_from",
   "property_condition", "property_age",
   "availability_status",
+  "available_from",
   "flat_size",
   "land_size", "land_unit", "built_up_area",
+  "total_price", "price_unit_type", "price_per_unit",
+  "monthly_rent",
   "bhk",
   "project_name", "gated_community", "total_towers", "total_floors", "total_units", "project_land_area",
   "furnishing_status", "furnishing_items",
