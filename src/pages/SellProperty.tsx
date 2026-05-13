@@ -465,8 +465,8 @@ export default function SellProperty() {
     await fetchNext(state, true);
   };
 
-  /* ----- Ask orchestrator for next field (ChatGPT-style re-evaluation) ----- */
-  const fetchNext = async (currentState: Record<string, any>, isFirst = false, sharedTypingId?: string) => {
+  /* ----- Resolve next field via the deterministic local engine ----- */
+  const fetchNext = async (currentState: Record<string, any>, _isFirst = false, sharedTypingId?: string) => {
     setLoadingNext(true);
     setError(null);
 
@@ -475,59 +475,41 @@ export default function SellProperty() {
       setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
     }
 
-    // Compact transcript — last 4 turns is enough; AI trusts current_state.
-    const transcript = messages
-      .filter((x) => x.kind === "text")
-      .map((x: any) => ({ role: x.role, text: x.text }))
-      .slice(-4);
-
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke<NextResp>(
-        "ai-conversational-listing",
-        { body: { state: currentState, transcript } }
-      );
-      if (fnErr) throw fnErr;
-      if (!data) throw new Error("No response");
+      const engine = engineRef.current!;
+      engine.applyExtractedFields(currentState);
+      const result: NextQuestionResult = engine.next();
 
-      // Apply any AI corrections / dependency resets to local state
-      let mergedState = { ...currentState };
-      const patch = (data as any).state_patch as Record<string, any> | undefined;
-      if (patch && typeof patch === "object") {
-        for (const [k, v] of Object.entries(patch)) {
-          if (v === "" || v === null) {
-            delete mergedState[k];
-          } else {
-            mergedState[k] = v;
-          }
-        }
-        setState(mergedState);
-      }
-
+      await new Promise((r) => setTimeout(r, 120));
       setMessages((m) => m.filter((x) => x.id !== typingId));
 
-      if ((data as any).done) {
+      if (result.done || !result.field) {
         setDone(true);
         setField(null);
+        setProgress(result.progress);
         setMessages((m) => [
           ...m,
           { id: uid(), role: "ai", kind: "text", text: "🎉 That's everything I need! Review your details below and publish when ready." },
         ]);
-      } else {
-        const d = data as Extract<NextResp, { done: false }>;
-        setField(d.field);
-        setSuggestions(d.suggestions || []);
-        setProgress(d.progress);
-        const existing = mergedState[d.field.id];
-        if (existing !== undefined && existing !== null) setValue(existing);
-        else if (d.field.input === "multi") setValue([]);
-        else if (d.field.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
-        else setValue("");
-
-        setMessages((m) => [
-          ...m,
-          { id: uid(), role: "ai", kind: "text", text: d.field.question },
-        ]);
+        return;
       }
+
+      const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
+      const ui = adaptEngineField(fieldId, result.field);
+      setField(ui);
+      setSuggestions([]);
+      setProgress(result.progress);
+
+      const existing = currentState[fieldId];
+      if (existing !== undefined && existing !== null && existing !== "") setValue(existing);
+      else if (ui.input === "multi") setValue([]);
+      else if (ui.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
+      else setValue("");
+
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "ai", kind: "text", text: result.question?.prompt || ui.question },
+      ]);
     } catch (e: any) {
       setMessages((m) => m.filter((x) => x.kind !== "typing"));
       setError(e.message || "Could not load next question");
