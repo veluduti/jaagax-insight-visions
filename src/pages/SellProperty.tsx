@@ -17,6 +17,48 @@ import {
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
+import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
+import type { FieldDefinition, NextQuestionResult } from "@/engines/types";
+import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
+
+/* ============================================================
+   Engine field -> UI FieldDef adapter
+   ============================================================ */
+function adaptEngineField(fieldId: string, raw: any): FieldDef {
+  const t = (raw?.type || raw?.input || "text") as string;
+  const map: Record<string, FieldDef["input"]> = {
+    single_select: "single",
+    single: "single",
+    multi_select: "multi",
+    multi: "multi",
+    yesno: "yesno",
+    price: "number",
+    price_per_unit: "number",
+    rental_price: "number",
+    measurement: "number",
+    number: "number",
+    future_date: "text",
+    date: "text",
+    group: "textarea",
+    textarea: "textarea",
+    location: "city",
+    city: "city",
+    locality: "locality",
+    media_upload: "media",
+    media: "media",
+    phone: "phone",
+    email: "email",
+    text: "text",
+  };
+  return {
+    id: fieldId,
+    question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
+    input: map[t] || "text",
+    options: Array.isArray(raw?.options) ? raw.options : undefined,
+    required: raw?.required === true,
+    optional: raw?.required !== true,
+  };
+}
 
 /* ============================================================
    Types
