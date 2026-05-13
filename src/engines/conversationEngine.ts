@@ -1,20 +1,18 @@
 // ============================================================
-// Conversation Engine — SCAFFOLD ONLY.
+// Conversation Engine
 //
 // Responsibility:
-//   - Own the ConversationState lifecycle
-//   - Apply user answers, AI-extracted fields, and skips
-//   - Delegate field relevance to RuleEngine
-//   - Delegate next-question selection to NextQuestionResolver
-//   - Provide AI-facing hooks for:
-//       * conversational wording (rephrase prompt)
-//       * structured extraction from uploads/messages
-//       * smart suggestion generation
-//       * title / description generation
+//   - Own ConversationState lifecycle
+//   - Apply user answers
+//   - Apply extracted AI values
+//   - Handle field skipping
+//   - Handle rule-based resets
+//   - Delegate next question resolution
 //
-// Deterministic: workflow order, required fields, conditional
-// logic and skip behavior are NOT decided by the AI.
+// Deterministic:
+//   AI NEVER controls workflow order.
 // ============================================================
+
 import type {
   ConversationMessage,
   ConversationState,
@@ -22,68 +20,196 @@ import type {
   PropertyCategory,
   PropertyFlowConfig,
 } from "./types";
+
 import { getPropertyFlow } from "@/config/propertyFlows";
+
 import { createNextQuestionResolver } from "./nextQuestionResolver";
+
 import { createRuleEngine } from "./ruleEngine";
+
+// ============================================================
+// ENGINE INTERFACE
+// ============================================================
 
 export interface ConversationEngine {
   readonly flow: PropertyFlowConfig;
+
   getState(): ConversationState;
+
   setCategory(category: PropertyCategory): void;
+
   applyAnswer(fieldId: string, value: unknown): void;
+
   applyExtractedFields(values: Record<string, unknown>): void;
+
   skipField(fieldId: string): void;
+
   appendMessage(message: ConversationMessage): void;
+
   next(): NextQuestionResult;
+
   reset(): void;
 }
 
-export function createInitialState(
-  category: PropertyCategory | null = null,
-): ConversationState {
+// ============================================================
+// INITIAL STATE
+// ============================================================
+
+export function createInitialState(category: PropertyCategory | null = null): ConversationState {
   return {
     category,
+
     answers: {},
+
     skipped: [],
+
     extracted: [],
+
     currentFieldId: null,
+
     messages: [],
+
     done: false,
   };
 }
+
+// ============================================================
+// CREATE ENGINE
+// ============================================================
 
 export function createConversationEngine(
   category: PropertyCategory,
   initial?: Partial<ConversationState>,
 ): ConversationEngine {
-  const flow = getPropertyFlow(category);
-  let state: ConversationState = { ...createInitialState(category), ...initial };
-  const _rules = createRuleEngine(flow);
+  let flow = getPropertyFlow(category);
+
+  let state: ConversationState = {
+    ...createInitialState(category),
+
+    ...initial,
+  };
+
   const resolver = createNextQuestionResolver(flow);
 
+  const rules = createRuleEngine(flow);
+
   return {
-    flow,
+    // ======================================================
+    // FLOW
+    // ======================================================
+
+    get flow() {
+      return flow;
+    },
+
+    // ======================================================
+    // GET STATE
+    // ======================================================
+
     getState() {
       return state;
     },
-    setCategory(_next) {
-      // TODO: swap flow + reset answers that don't carry over
+
+    // ======================================================
+    // CHANGE CATEGORY
+    // ======================================================
+
+    setCategory(nextCategory) {
+      flow = getPropertyFlow(nextCategory);
+
+      state = {
+        ...createInitialState(nextCategory),
+      };
     },
-    applyAnswer(_fieldId, _value) {
-      // TODO: persist answer + clear dependent fields via rule engine
+
+    // ======================================================
+    // APPLY USER ANSWER
+    // ======================================================
+
+    applyAnswer(fieldId, value) {
+      state.answers[fieldId] = value;
+
+      // ====================================================
+      // REMOVE FROM SKIPPED
+      // ====================================================
+
+      state.skipped = state.skipped.filter((id) => id !== fieldId);
+
+      // ====================================================
+      // RESET DEPENDENT FIELDS
+      // ====================================================
+
+      const resetFields = rules.fieldsToResetOnChange(fieldId, flow);
+
+      for (const resetField of resetFields) {
+        delete state.answers[resetField];
+      }
+
+      // ====================================================
+      // UPDATE CURRENT FIELD
+      // ====================================================
+
+      state.currentFieldId = fieldId;
     },
-    applyExtractedFields(_values) {
-      // TODO: bulk-apply AI-extracted values, mark them in `extracted`
+
+    // ======================================================
+    // APPLY AI-EXTRACTED VALUES
+    // ======================================================
+
+    applyExtractedFields(values) {
+      for (const [fieldId, value] of Object.entries(values)) {
+        state.answers[fieldId] = value;
+
+        // ================================================
+        // TRACK EXTRACTED
+        // ================================================
+
+        if (!state.extracted.includes(fieldId)) {
+          state.extracted.push(fieldId);
+        }
+      }
     },
-    skipField(_fieldId) {
-      // TODO: mark field as skipped
+
+    // ======================================================
+    // SKIP FIELD
+    // ======================================================
+
+    skipField(fieldId) {
+      if (!state.skipped.includes(fieldId)) {
+        state.skipped.push(fieldId);
+      }
     },
-    appendMessage(_message) {
-      // TODO: push to transcript
+
+    // ======================================================
+    // APPEND CHAT MESSAGE
+    // ======================================================
+
+    appendMessage(message) {
+      state.messages.push({
+        ...message,
+
+        createdAt: new Date().toISOString(),
+      });
     },
+
+    // ======================================================
+    // NEXT QUESTION
+    // ======================================================
+
     next() {
-      return resolver.resolve(state);
+      const result = resolver.resolve(state);
+
+      state.done = result.done;
+
+      state.currentFieldId = result.field?.id || null;
+
+      return result;
     },
+
+    // ======================================================
+    // RESET ENGINE
+    // ======================================================
+
     reset() {
       state = createInitialState(category);
     },
