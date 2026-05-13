@@ -38,6 +38,7 @@ import AgentVideoSection from "@/components/agents/AgentVideoSection";
 import AgentSuccessStories from "@/components/agents/AgentSuccessStories";
 import AgentTeamMembers from "@/components/agents/AgentTeamMembers";
 import AgentAvailabilityCalendar from "@/components/agents/AgentAvailabilityCalendar";
+import SEO from "@/components/SEO";
 
 interface Agent {
   id: string;
