@@ -1281,6 +1281,8 @@ export default function SellProperty() {
               );
             })()
           )}
+
+          {error && (
             <div className="pl-1 text-xs text-destructive">{error}</div>
           )}
 
