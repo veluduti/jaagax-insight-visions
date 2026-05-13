@@ -197,6 +197,12 @@ export default function SellProperty() {
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
 
+  /* Deterministic conversation engine (single persistent instance) */
+  const engineRef = useRef<ConversationEngine | null>(null);
+  if (engineRef.current === null) {
+    engineRef.current = createConversationEngine("residential");
+  }
+
   /* ----- Auto-scroll on new messages ----- */
   useEffect(() => {
     const el = scrollRef.current;
