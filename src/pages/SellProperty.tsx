@@ -1250,7 +1250,37 @@ export default function SellProperty() {
             </div>
           )}
 
-          {error && (
+          {/* Smart price / rent suggestion chips (Indian numbering) */}
+          {field && !loadingNext && !done && field.input === "number" && value && (
+            (() => {
+              const isRent = /rent/i.test(field.id);
+              const chips = isRent
+                ? getRentSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
+                : (/price|amount|cost|budget/i.test(field.id)
+                  ? getPriceSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
+                  : []);
+              if (chips.length === 0) return null;
+              return (
+                <div className="pt-1 pl-1">
+                  <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Did you mean
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {chips.map((c, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setValue(c.val)}
+                        className="text-xs px-3 py-1.5 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 transition"
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()
+          )}
             <div className="pl-1 text-xs text-destructive">{error}</div>
           )}
 
