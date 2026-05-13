@@ -10,7 +10,7 @@ import { agricultureFlow } from "./agriculture";
 import { coworkingFlow } from "./coworking";
 
 export const propertyFlows: Record<PropertyCategory, PropertyFlowConfig> = {
-  residential: residentialFlow,
+  residential: residentialFlow as unknown as PropertyFlowConfig,
   commercial: commercialFlow,
   plots: plotsFlow,
   agriculture: agricultureFlow,
