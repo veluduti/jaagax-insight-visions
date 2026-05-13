@@ -4,7 +4,7 @@
 // ============================================================
 import type { PropertyFlowConfig } from "@/engines/types";
 
-export const residentialFlow: PropertyFlowConfig = {
+export const residentialFlow = {
   category: "residential",
 
   label: "Residential",
