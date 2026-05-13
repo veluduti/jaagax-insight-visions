@@ -3,12 +3,15 @@
 // Used by /src/config/propertyFlows/* and /src/engines/*.
 // ============================================================
 
-export type PropertyCategory =
-  | "residential"
-  | "commercial"
-  | "plots"
-  | "agriculture"
-  | "coworking";
+// ------------------------------------------------------------
+// Property Categories
+// ------------------------------------------------------------
+
+export type PropertyCategory = "residential" | "commercial" | "plots" | "agriculture" | "coworking";
+
+// ------------------------------------------------------------
+// Field Input Types
+// ------------------------------------------------------------
 
 export type FieldInputType =
   | "text"
@@ -23,130 +26,343 @@ export type FieldInputType =
   | "date"
   | "city"
   | "locality"
-  | "price_unit";
+  | "price_unit"
+
+  // ADVANCED TYPES
+  | "price"
+  | "rental_price"
+  | "price_per_unit"
+  | "measurement"
+  | "location"
+  | "future_date"
+  | "group"
+  | "media_upload"
+  | "single_select"
+  | "multi_select";
 
 // ------------------------------------------------------------
-// Field & Question definitions
+// Smart Suggestions
 // ------------------------------------------------------------
-export interface FieldDefinition {
-  /** Stable id used as the key in ConversationState.answers */
-  id: string;
-  /** Human-readable label (used in review screens) */
-  label: string;
-  /** Section grouping (Basic, Price, Location, etc.) */
-  section?: string;
-  /** Input widget type */
-  input: FieldInputType;
-  /** Whether the field is required for the flow to be considered complete */
-  required?: boolean;
-  /** Static option list for single/multi inputs */
-  options?: string[];
-  /** Max selections (multi) or character limit (text) */
-  max?: number;
-  /** Optional unit (Sq Ft, INR, etc.) used when rendering review/answers */
-  unit?: string;
+
+export interface SmartSuggestionsConfig {
+  enabled?: boolean;
+
+  type?: string;
+
+  units?: string[];
+
+  durations?: string[];
+
+  examples?: string[];
 }
 
+// ------------------------------------------------------------
+// Extraction Config
+// ------------------------------------------------------------
+
+export interface ExtractionConfig {
+  enabled?: boolean;
+
+  autoExtractPropertyData?: boolean;
+
+  autoDetectMissingFields?: boolean;
+}
+
+// ------------------------------------------------------------
+// Field Visibility Rules
+// ------------------------------------------------------------
+
+export type VisibilityRule = Record<string, string[]>;
+
+// ------------------------------------------------------------
+// Field Definition
+// ------------------------------------------------------------
+
+export interface FieldDefinition {
+  // STABLE FIELD ID
+
+  id: string;
+
+  // HUMAN LABEL
+
+  label: string;
+
+  // OPTIONAL GROUPING
+
+  section?: string;
+
+  // INPUT TYPE
+
+  input: FieldInputType;
+
+  // REQUIRED OR OPTIONAL
+
+  required?: boolean;
+
+  // STATIC OPTIONS
+
+  options?: string[];
+
+  // MAX LIMIT
+
+  max?: number;
+
+  // DISPLAY UNIT
+
+  unit?: string;
+
+  // =========================================================
+  // ADVANCED AI CONFIG
+  // =========================================================
+
+  // DYNAMIC QUESTION
+
+  question?: string;
+
+  // UNIT OPTIONS
+
+  units?: string[];
+
+  // GROUP FIELDS
+
+  fields?: string[];
+
+  // LOCATION HIERARCHY
+
+  hierarchy?: string[];
+
+  // MULTI SELECT LIMIT
+
+  maxSelections?: number;
+
+  // CONDITIONAL VISIBILITY
+
+  visibleIf?: VisibilityRule;
+
+  // SMART SUGGESTIONS
+
+  smartSuggestions?: SmartSuggestionsConfig;
+
+  // FILE / PDF EXTRACTION
+
+  extraction?: ExtractionConfig;
+}
+
+// ------------------------------------------------------------
+// Question Definition
+// ------------------------------------------------------------
+
 export interface QuestionDefinition {
-  /** The field this question fills */
+  // TARGET FIELD
+
   fieldId: string;
-  /** Default conversational wording — AI may rephrase, never reorder */
+
+  // AI QUESTION
+
   prompt: string;
-  /** Optional helper / context shown under the prompt */
+
+  // OPTIONAL HELPER
+
   helper?: string;
-  /** Pre-built quick replies / chips (deterministic, not AI-generated) */
+
+  // QUICK REPLIES
+
   quickReplies?: string[];
-  /** Allow multi-selection for chip questions */
+
+  // MULTI SELECT
+
   multiSelect?: boolean;
-  /** Hint string for the AI suggestion layer (titles, descriptions) */
+
+  // AI SUGGESTION CONTEXT
+
   aiSuggestionHint?: string;
 }
 
 // ------------------------------------------------------------
-// Conditional rules
+// Conditional Rules
 // ------------------------------------------------------------
-export type ConditionOperator =
-  | "eq"
-  | "neq"
-  | "in"
-  | "notIn"
-  | "exists"
-  | "missing"
-  | "gt"
-  | "lt"
-  | "truthy"
-  | "falsy";
+
+export type ConditionOperator = "eq" | "neq" | "in" | "notIn" | "exists" | "missing" | "gt" | "lt" | "truthy" | "falsy";
+
+// ------------------------------------------------------------
+// Field Conditions
+// ------------------------------------------------------------
 
 export interface FieldCondition {
   fieldId: string;
+
   operator: ConditionOperator;
+
   value?: unknown;
 }
 
-export type ConditionGroup =
-  | { all: FieldCondition[] }
-  | { any: FieldCondition[] }
-  | FieldCondition;
+// ------------------------------------------------------------
+// Condition Groups
+// ------------------------------------------------------------
+
+export type ConditionGroup = { all: FieldCondition[] } | { any: FieldCondition[] } | FieldCondition;
+
+// ------------------------------------------------------------
+// Conditional Rule
+// ------------------------------------------------------------
 
 export interface ConditionalRule {
-  /** The field this rule controls */
-  fieldId: string;
-  /** When this evaluates true, the field is relevant; otherwise it's skipped */
-  when: ConditionGroup;
-  /** Optional: fields to clear when the controlling answer changes */
+  // TARGET FIELD
+
+  fieldId?: string;
+
+  // WHEN THIS MATCHES
+
+  when?: ConditionGroup;
+
+  // RESET DEPENDENT FIELDS
+
   resets?: string[];
+
+  // =========================================================
+  // ADVANCED ENGINE RULES
+  // =========================================================
+
+  type?: string;
+
+  formula?: string;
 }
 
 // ------------------------------------------------------------
-// Property flow config (one per category)
+// AI CONFIG
 // ------------------------------------------------------------
+
+export interface AIFlowConfig {
+  conversational?: boolean;
+
+  dynamicQuestioning?: boolean;
+
+  askOneQuestionAtATime?: boolean;
+
+  askOnlyMissingFields?: boolean;
+
+  allowNaturalConversation?: boolean;
+
+  supportGreetings?: boolean;
+
+  supportCorrections?: boolean;
+
+  supportTypos?: boolean;
+
+  supportIntentDetection?: boolean;
+
+  supportExtractionFromUploads?: boolean;
+
+  supportAutoFill?: boolean;
+
+  supportSmartSuggestions?: boolean;
+
+  supportHumanLikeReplies?: boolean;
+
+  supportContextAwareness?: boolean;
+
+  supportDynamicFollowups?: boolean;
+}
+
+// ------------------------------------------------------------
+// Property Flow Config
+// ------------------------------------------------------------
+
 export interface PropertyFlowConfig {
+  // CATEGORY
+
   category: PropertyCategory;
+
+  // DISPLAY LABEL
+
   label: string;
-  /** Strict ordered list of field ids the engine will walk through */
+
+  // STRICT FLOW ORDER
+
   order: string[];
-  /** Field catalog keyed by id */
+
+  // FIELD DEFINITIONS
+
   fields: Record<string, FieldDefinition>;
-  /** Question catalog keyed by field id */
-  questions: Record<string, QuestionDefinition>;
-  /** Conditional / branching rules */
+
+  // QUESTION DEFINITIONS
+
+  questions?: Record<string, QuestionDefinition>;
+
+  // RULES
+
   rules: ConditionalRule[];
-  /** Optional category-level metadata for UI */
+
+  // OPTIONAL UI / ENGINE META
+
   meta?: Record<string, unknown>;
+
+  // AI CONFIG
+
+  ai?: AIFlowConfig;
 }
 
 // ------------------------------------------------------------
-// Conversation state (held in memory + persisted)
+// Conversation Messages
 // ------------------------------------------------------------
+
 export interface ConversationMessage {
   role: "system" | "assistant" | "user";
+
   content: string;
+
   fieldId?: string;
+
   createdAt?: string;
 }
 
+// ------------------------------------------------------------
+// Conversation State
+// ------------------------------------------------------------
+
 export interface ConversationState {
+  // ACTIVE CATEGORY
+
   category: PropertyCategory | null;
-  /** Answered field values keyed by field id */
+
+  // ANSWERS
+
   answers: Record<string, unknown>;
-  /** Fields the user explicitly skipped */
+
+  // USER SKIPPED FIELDS
+
   skipped: string[];
-  /** Fields auto-extracted from uploads (PDF, image, brochure) */
+
+  // AUTO-EXTRACTED FIELDS
+
   extracted: string[];
-  /** Field id currently being asked */
+
+  // CURRENT FIELD
+
   currentFieldId: string | null;
-  /** Conversational transcript */
+
+  // CHAT HISTORY
+
   messages: ConversationMessage[];
-  /** True when no further required fields remain */
+
+  // COMPLETED
+
   done: boolean;
 }
 
 // ------------------------------------------------------------
-// Engine result types
+// Next Question Result
 // ------------------------------------------------------------
+
 export interface NextQuestionResult {
   field: FieldDefinition | null;
+
   question: QuestionDefinition | null;
+
   done: boolean;
-  progress: { filled: number; total: number };
+
+  progress: {
+    filled: number;
+    total: number;
+  };
 }
