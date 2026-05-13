@@ -47,6 +47,7 @@ import PaymentPlans from "@/components/property/PaymentPlans";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import AuthGate from "@/components/property/AuthGate";
 import { useAuth } from "@/hooks/useAuth";
+import SEO from "@/components/SEO";
 
 interface Project {
   id: string;
