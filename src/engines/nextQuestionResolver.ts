@@ -1,44 +1,161 @@
 // ============================================================
-// Next Question Resolver — SCAFFOLD ONLY.
+// Next Question Resolver
 //
 // Responsibility:
-//   - Walk PropertyFlowConfig.order in strict sequence
-//   - Skip fields marked irrelevant by RuleEngine
-//   - Skip already answered / extracted / explicitly skipped fields
-//   - Return the next QuestionDefinition + FieldDefinition to ask
+//   - Walk flow.order in strict sequence
+//   - Apply visibility rules
+//   - Skip answered fields
+//   - Skip extracted fields
+//   - Skip explicitly skipped fields
+//   - Return next deterministic question
 //
-// Deterministic: AI never picks the next question.
+// AI NEVER decides workflow.
 // ============================================================
-import type {
-  ConversationState,
-  NextQuestionResult,
-  PropertyFlowConfig,
-} from "./types";
+
+import type { ConversationState, NextQuestionResult, PropertyFlowConfig } from "./types";
+
 import { createRuleEngine } from "./ruleEngine";
 
 export interface NextQuestionResolver {
   resolve(state: ConversationState): NextQuestionResult;
-  progress(state: ConversationState): { filled: number; total: number };
+
+  progress(state: ConversationState): {
+    filled: number;
+    total: number;
+  };
 }
 
-export function createNextQuestionResolver(
-  flow: PropertyFlowConfig,
-): NextQuestionResolver {
-  const _rules = createRuleEngine(flow);
+export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuestionResolver {
+  const rules = createRuleEngine(flow);
 
   return {
-    resolve(_state) {
-      // TODO: iterate flow.order, apply rules, return next field+question
+    // ======================================================
+    // RESOLVE NEXT QUESTION
+    // ======================================================
+
+    resolve(state) {
+      const answers = state.answers || {};
+
+      let total = 0;
+      let filled = 0;
+
+      for (const fieldId of flow.order) {
+        const field = flow.fields[fieldId];
+
+        if (!field) continue;
+
+        // ==================================================
+        // RULE ENGINE VISIBILITY
+        // ==================================================
+
+        const relevant = rules.isFieldRelevant(fieldId, state);
+
+        if (!relevant) continue;
+
+        total++;
+
+        // ==================================================
+        // SKIP ANSWERED
+        // ==================================================
+
+        const alreadyAnswered = answers[fieldId] !== undefined && answers[fieldId] !== null && answers[fieldId] !== "";
+
+        if (alreadyAnswered) {
+          filled++;
+          continue;
+        }
+
+        // ==================================================
+        // SKIP EXTRACTED
+        // ==================================================
+
+        if (state.extracted.includes(fieldId)) {
+          filled++;
+          continue;
+        }
+
+        // ==================================================
+        // SKIP USER SKIPPED
+        // ==================================================
+
+        if (state.skipped.includes(fieldId)) {
+          continue;
+        }
+
+        // ==================================================
+        // GET QUESTION
+        // ==================================================
+
+        const question = flow.questions?.[fieldId];
+
+        // ==================================================
+        // RETURN NEXT FIELD
+        // ==================================================
+
+        return {
+          field,
+
+          question: question || {
+            fieldId,
+
+            prompt: field.question || `Please provide ${field.label}`,
+          },
+
+          done: false,
+
+          progress: {
+            filled,
+            total,
+          },
+        };
+      }
+
+      // ====================================================
+      // FLOW COMPLETED
+      // ====================================================
+
       return {
         field: null,
+
         question: null,
+
         done: true,
-        progress: { filled: 0, total: 0 },
+
+        progress: {
+          filled,
+          total,
+        },
       };
     },
-    progress(_state) {
-      // TODO: count relevant + filled
-      return { filled: 0, total: 0 };
+
+    // ======================================================
+    // PROGRESS
+    // ======================================================
+
+    progress(state) {
+      let total = 0;
+      let filled = 0;
+
+      for (const fieldId of flow.order) {
+        const relevant = rules.isFieldRelevant(fieldId, state);
+
+        if (!relevant) continue;
+
+        total++;
+
+        const value = state.answers[fieldId];
+
+        const isFilled = value !== undefined && value !== null && value !== "";
+
+        if (isFilled) {
+          filled++;
+        }
+      }
+
+      return {
+        filled,
+        total,
+      };
     },
   };
 }
