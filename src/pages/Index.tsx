@@ -38,6 +38,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="JAAGA X — AI-Powered Real Estate in Hyderabad & Vijayawada"
+        description="Discover verified properties, new projects, agents, and market insights across Hyderabad and Vijayawada with India's first AI-powered real estate platform."
+        canonicalPath="/"
+        type="website"
+      />
       <Navigation />
       <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
       
