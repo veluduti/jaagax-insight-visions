@@ -400,6 +400,27 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${property.title} in ${property.locality}, ${property.city}`}
+        description={(property.description || `${property.bhk ? property.bhk + ' BHK ' : ''}${property.type || 'Property'} in ${property.locality}, ${property.city}. ${property.area ? property.area + ' sqft. ' : ''}Verified by JAAGA X.`).slice(0, 160)}
+        canonicalPath={`/property/${slug}`}
+        image={property.images?.[0]}
+        type="product"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: property.title,
+          description: property.description,
+          image: property.images?.slice(0, 5),
+          offers: {
+            "@type": "Offer",
+            price: property.price,
+            priceCurrency: "INR",
+            availability: property.is_live ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          },
+          brand: { "@type": "Brand", name: "JAAGA X" },
+        }}
+      />
       {/* Back Button & Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
         <Button
