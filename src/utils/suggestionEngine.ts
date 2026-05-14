@@ -1,109 +1,367 @@
 // ============================================================
 // Smart Suggestion Engine
-// Deterministic helpers for price / rent / unit suggestions
-// in the Indian numbering system.
+//
+// Deterministic helpers for:
+//   - Indian price formatting
+//   - Rent suggestions
+//   - Measurement suggestions
+//
+// Lightweight + scalable.
 // ============================================================
 
 export type PriceUnit =
-  | "Sq Ft"
-  | "Sq Yard"
-  | "Cent"
-  | "Gunta"
-  | "Acre"
-  | "Bigha"
-  | "Hectare"
-  | "Sq M"
-  | "Katha";
+| "Sq Ft"
+| "Sq Yard"
+| "Cent"
+| "Gunta"
+| "Acre"
+| "Bigha"
+| "Hectare"
+| "Sq M"
+| "Katha";
+
+// ============================================================
+// TYPES
+// ============================================================
 
 export interface PriceSuggestion {
-  label: string;
-  value: number;
+label: string;
+
+value: number;
 }
 
 export interface RentSuggestion {
-  label: string;
-  value: number;
-  duration: string;
+label: string;
+
+value: number;
+
+duration: string;
 }
 
-// ------------------------------------------------------------
-// Indian numbering format
-//   1000 -> "1 Thousand"
-//   100000 -> "1 Lakh"
-//   10000000 -> "1 Crore"
-// ------------------------------------------------------------
-export function formatIndianNumber(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return "";
+export interface UnitSuggestion {
+label: string;
 
-  const trim = (n: number) => {
-    const s = n.toFixed(2);
-    return s.endsWith(".00") ? s.slice(0, -3) : s.replace(/0+$/, "").replace(/\.$/, "");
-  };
+value: number;
 
-  if (value >= 1_00_00_000) return `${trim(value / 1_00_00_000)} Crore`;
-  if (value >= 1_00_000) return `${trim(value / 1_00_000)} Lakh`;
-  if (value >= 1_000) return `${trim(value / 1_000)} Thousand`;
-  if (value >= 100) return `${trim(value / 100)} Hundred`;
-  return String(value);
+unit: PriceUnit;
 }
 
-// ------------------------------------------------------------
-// Price suggestions — derived from the user's typed number.
-// Returns a few sensible Indian-format interpretations.
-// ------------------------------------------------------------
-export function getPriceSuggestions(input: string | number): PriceSuggestion[] {
-  const raw = typeof input === "number" ? input : parseFloat(String(input).replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(raw) || raw <= 0) return [];
+// ============================================================
+// HELPERS
+// ============================================================
 
-  const out: PriceSuggestion[] = [];
-  const seen = new Set<number>();
-  const push = (v: number) => {
-    if (!Number.isFinite(v) || v <= 0 || seen.has(v)) return;
-    seen.add(v);
-    const label = formatIndianNumber(v);
-    if (label) out.push({ label: `₹ ${label}`, value: v });
-  };
-
-  push(raw);
-  if (raw < 100) {
-    push(raw * 1_000);
-    push(raw * 1_00_000);
-    push(raw * 1_00_00_000);
-  } else if (raw < 1_000) {
-    push(raw * 1_000);
-    push(raw * 1_00_000);
-  } else if (raw < 1_00_000) {
-    push(raw * 100);
-  }
-
-  return out.slice(0, 5);
+function cleanNumericInput(
+input: string | number,
+): number {
+if (
+typeof input === "number"
+) {
+return input;
 }
 
-// ------------------------------------------------------------
-// Rent suggestions — same number with multiple durations.
-// ------------------------------------------------------------
+const lower =
+input.toLowerCase();
+
+// ==========================================================
+// 25K
+// ==========================================================
+
+if (
+lower.endsWith("k")
+) {
+return (
+parseFloat(lower) *
+1000
+);
+}
+
+// ==========================================================
+// 50L
+// ==========================================================
+
+if (
+lower.endsWith("l")
+) {
+return (
+parseFloat(lower) *
+100000
+);
+}
+
+// ==========================================================
+// 2CR
+// ==========================================================
+
+if (
+lower.endsWith("cr")
+) {
+return (
+parseFloat(lower) *
+10000000
+);
+}
+
+const cleaned =
+input.replace(
+/[^0-9.]/g,
+"",
+);
+
+return parseFloat(cleaned);
+}
+
+// ============================================================
+// FORMAT INDIAN NUMBER
+// ============================================================
+
+export function formatIndianNumber(
+value: number,
+): string {
+if (
+!Number.isFinite(value) ||
+value <= 0
+) {
+return "";
+}
+
+const trim = (
+n: number,
+) => {
+const s =
+n.toFixed(2);
+
+```
+return s
+  .replace(/\.00$/, "")
+  .replace(
+    /(\.\d*[1-9])0+$/,
+    "$1",
+  );
+```
+
+};
+
+// ==========================================================
+// CRORE
+// ==========================================================
+
+if (
+value >= 10000000
+) {
+return `${trim(
+      value / 10000000,
+    )} Crore`;
+}
+
+// ==========================================================
+// LAKH
+// ==========================================================
+
+if (
+value >= 100000
+) {
+return `${trim(
+      value / 100000,
+    )} Lakh`;
+}
+
+// ==========================================================
+// THOUSAND
+// ==========================================================
+
+if (
+value >= 1000
+) {
+return `${trim(
+      value / 1000,
+    )} Thousand`;
+}
+
+return new Intl.NumberFormat(
+"en-IN",
+).format(value);
+}
+
+// ============================================================
+// PRICE SUGGESTIONS
+// ============================================================
+
+export function getPriceSuggestions(
+input: string | number,
+): PriceSuggestion[] {
+const raw =
+cleanNumericInput(input);
+
+if (
+!Number.isFinite(raw) ||
+raw <= 0
+) {
+return [];
+}
+
+const suggestions: PriceSuggestion[] =
+[];
+
+const seen =
+new Set<number>();
+
+const push = (
+value: number,
+) => {
+if (
+!Number.isFinite(
+value,
+) ||
+value <= 0 ||
+seen.has(value)
+) {
+return;
+}
+
+```
+seen.add(value);
+
+suggestions.push({
+  label: `₹ ${formatIndianNumber(
+    value,
+  )}`,
+
+  value,
+});
+```
+
+};
+
+// ==========================================================
+// RAW VALUE
+// ==========================================================
+
+push(raw);
+
+// ==========================================================
+// SMALL NUMBERS
+// ==========================================================
+
+if (raw < 100) {
+push(raw * 1000);
+
+```
+push(raw * 100000);
+
+push(raw * 10000000);
+```
+
+}
+
+// ==========================================================
+// MEDIUM NUMBERS
+// ==========================================================
+
+else if (raw < 1000) {
+push(raw * 1000);
+
+```
+push(raw * 100000);
+```
+
+}
+
+// ==========================================================
+// LARGE NUMBERS
+// ==========================================================
+
+else if (
+raw < 100000
+) {
+push(raw * 100);
+}
+
+return suggestions.slice(
+0,
+6,
+);
+}
+
+// ============================================================
+// RENT SUGGESTIONS
+// ============================================================
+
 export function getRentSuggestions(
-  input: string | number,
-  durations: string[] = ["Monthly", "Weekly", "Daily", "Yearly"],
+input: string | number,
+
+durations: string[] = [
+"Monthly",
+"Weekly",
+"Daily",
+"3 Months",
+"Yearly",
+],
 ): RentSuggestion[] {
-  const raw = typeof input === "number" ? input : parseFloat(String(input).replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(raw) || raw <= 0) return [];
-  const fmt = new Intl.NumberFormat("en-IN");
-  return durations.slice(0, 5).map((d) => ({
-    label: `₹${fmt.format(raw)} / ${d}`,
-    value: raw,
-    duration: d,
-  }));
+const raw =
+cleanNumericInput(input);
+
+if (
+!Number.isFinite(raw) ||
+raw <= 0
+) {
+return [];
 }
 
-// ------------------------------------------------------------
-// Measurement / unit suggestions — same number across units.
-// ------------------------------------------------------------
+const formatted =
+new Intl.NumberFormat(
+"en-IN",
+).format(raw);
+
+return durations.map(
+(duration) => ({
+label: `₹${formatted} / ${duration}`,
+
+```
+  value: raw,
+
+  duration,
+}),
+```
+
+);
+}
+
+// ============================================================
+// UNIT SUGGESTIONS
+// ============================================================
+
 export function getUnitSuggestions(
-  input: string | number,
-  units: PriceUnit[] = ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha"],
-): { label: string; value: number; unit: PriceUnit }[] {
-  const raw = typeof input === "number" ? input : parseFloat(String(input).replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(raw) || raw <= 0) return [];
-  return units.map((u) => ({ label: `${raw} ${u}`, value: raw, unit: u }));
+input: string | number,
+
+units: PriceUnit[] = [
+"Sq Ft",
+"Sq Yard",
+"Cent",
+"Gunta",
+"Acre",
+"Bigha",
+],
+): UnitSuggestion[] {
+const raw =
+cleanNumericInput(input);
+
+if (
+!Number.isFinite(raw) ||
+raw <= 0
+) {
+return [];
+}
+
+return units.map(
+(unit) => ({
+label: `${raw} ${unit}`,
+
+```
+  value: raw,
+
+  unit,
+}),
+```
+
+);
 }
