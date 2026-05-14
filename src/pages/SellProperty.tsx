@@ -1074,7 +1074,7 @@ export default function SellProperty() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
+    <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
 
       {/* Chat header */}
@@ -1183,7 +1183,7 @@ export default function SellProperty() {
           backgroundSize: "16px 16px",
         }}
       >
-        <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-6 space-y-2">
+        <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-6 space-y-2 flex flex-col justify-end min-h-full">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div
@@ -1655,7 +1655,7 @@ export default function SellProperty() {
 
       {/* Input dock */}
       {showInputBar && (
-        <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
+        <div className="border-t border-border/40 bg-card/95 backdrop-blur shrink-0 sticky bottom-0 z-20 pb-[env(safe-area-inset-bottom)]">
           <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
             {/* Intake composer (free-form first message) */}
             {showCategoryPicker ? (
