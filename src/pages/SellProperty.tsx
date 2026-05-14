@@ -74,6 +74,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     email: "email",
     text: "text",
   };
+  const ss = raw?.smartSuggestions || {};
   return {
     id: fieldId,
     question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
@@ -81,6 +82,9 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     options: Array.isArray(raw?.options) ? raw.options : undefined,
     required: raw?.required === true,
     optional: raw?.required !== true,
+    units: Array.isArray(raw?.units) ? raw.units : (Array.isArray(ss.units) ? ss.units : undefined),
+    durations: Array.isArray(ss.durations) ? ss.durations : undefined,
+    suggestionType: ss.type || (t === "rental_price" ? "rental_duration" : t === "measurement" ? "measurement_units" : t === "price" || t === "price_per_unit" ? "price" : undefined),
   };
 }
 
@@ -98,6 +102,9 @@ type FieldDef = {
   options?: string[];
   optional?: boolean;
   required?: boolean;
+  units?: string[];
+  durations?: string[];
+  suggestionType?: string;
 };
 
 type NextResp =
