@@ -260,6 +260,18 @@ export const residentialFlow = {
       options: ["Ready", "Under Construction"],
     },
 
+    possession_date: {
+      type: "future_date",
+
+      required: true,
+
+      visibleIf: {
+        availability_status: ["Under Construction"],
+      },
+
+      question: "When is possession expected?",
+    },
+
     // =========================================================
     // FLAT SIZE
     // =========================================================
@@ -323,6 +335,30 @@ export const residentialFlow = {
       },
 
       question: "How many total floors are there in the building?",
+    },
+
+    parking_type: {
+      type: "single_select",
+
+      required: false,
+
+      question: "What type of parking is available?",
+
+      options: ["Covered Parking", "Open Parking", "Both", "No Parking"],
+    },
+
+    parking_count: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        parking_type: ["Covered Parking", "Open Parking", "Both"],
+      },
+
+      question: "How many parking spaces are available?",
+
+      options: ["1", "2", "3", "4+"],
     },
 
     // =========================================================
