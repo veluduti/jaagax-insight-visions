@@ -941,7 +941,7 @@ export default function SellProperty() {
       const payload: any = {
         submitted_by: user.id,
         title: finalTitle,
-        description: state.description || null,
+        description: (reviewDescription || state.description || buildPropertyDescription(state)) || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
