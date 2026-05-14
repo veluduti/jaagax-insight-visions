@@ -157,7 +157,6 @@ const mappings = [
 {
 keywords: ["villa", "vilaa"],
 
-```
   value: "Villa",
 },
 
@@ -213,7 +212,6 @@ keywords: ["villa", "vilaa"],
 
   value: "Duplex / Triplex",
 },
-```
 
 ];
 
@@ -223,11 +221,9 @@ mapping.keywords.some((keyword) =>
 lower.includes(keyword),
 );
 
-```
 if (matched) {
   return mapping.value;
 }
-```
 
 }
 
@@ -360,9 +356,7 @@ return {};
 return {
 value: Number(measurementMatch[1]),
 
-```
 unit: measurementMatch[3],
-```
 
 };
 }
@@ -392,10 +386,8 @@ price:
 Number(croreMatch[1]) *
 10000000,
 
-```
   unit: "crore",
 };
-```
 
 }
 
@@ -412,10 +404,8 @@ price:
 Number(lakhMatch[1]) *
 100000,
 
-```
   unit: "lakh",
 };
-```
 
 }
 
@@ -432,10 +422,8 @@ price:
 Number(thousandMatch[1]) *
 1000,
 
-```
   unit: "thousand",
 };
-```
 
 }
 
@@ -448,10 +436,8 @@ if (numberMatch) {
 return {
 price: Number(numberMatch[0]),
 
-```
   unit: "raw",
 };
-```
 
 }
 
@@ -563,17 +549,14 @@ measurement.unit
 fields.measurement_value =
 measurement.value;
 
-```
 fields.measurement_unit =
   measurement.unit;
-```
 
 }
 
 return {
 greeting,
 
-```
 correction,
 
 intent,
@@ -589,7 +572,6 @@ price: pricing.price,
 priceUnit: pricing.unit,
 
 fields,
-```
 
 };
 }
