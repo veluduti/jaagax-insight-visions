@@ -593,6 +593,9 @@ export default function SellProperty() {
     setState(newState);
     setValue("");
     setError(null);
+    // Explicit engine answer — guarantees the field is marked answered
+    // regardless of value shape (objects, arrays, etc.).
+    try { engineRef.current?.applyAnswer(f.id, val); } catch {}
     await fetchNext(newState);
   };
 
