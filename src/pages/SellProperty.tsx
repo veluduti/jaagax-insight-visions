@@ -1327,15 +1327,37 @@ export default function SellProperty() {
             </div>
           )}
 
-          {/* Smart price / rent suggestion chips (Indian numbering) */}
+          {/* Smart suggestion chips — clickable, commits to engine */}
           {field && !loadingNext && !done && field.input === "number" && value && (
             (() => {
-              const isRent = /rent/i.test(field.id);
-              const chips = isRent
-                ? getRentSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
-                : (/price|amount|cost|budget/i.test(field.id)
-                  ? getPriceSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
-                  : []);
+              const sType = field.suggestionType
+                || (/rent/i.test(field.id) ? "rental_duration"
+                  : /price|amount|cost|budget/i.test(field.id) ? "price"
+                  : /area|size|sqft|sqyd|land|plot|built/i.test(field.id) ? "measurement_units"
+                  : undefined);
+
+              type Chip = { label: string; commit: any; display: string };
+              let chips: Chip[] = [];
+
+              if (sType === "rental_duration") {
+                chips = getRentSuggestions(value, field.durations).map((s) => ({
+                  label: s.label,
+                  commit: { amount: s.value, duration: s.duration },
+                  display: s.label,
+                }));
+              } else if (sType === "price" || sType === "price_per_unit") {
+                chips = getPriceSuggestions(value).map((s) => ({
+                  label: s.label, commit: s.value, display: s.label,
+                }));
+              } else if (sType === "measurement_units") {
+                const units = (field.units && field.units.length ? field.units : ["Sq Ft","Sq Yard","Acre","Gunta","Cent","Bigha"]) as PriceUnit[];
+                chips = getUnitSuggestions(value, units).map((s) => ({
+                  label: s.label,
+                  commit: { area: s.value, unit: s.unit },
+                  display: s.label,
+                }));
+              }
+
               if (chips.length === 0) return null;
               return (
                 <div className="pt-1 pl-1">
@@ -1347,7 +1369,7 @@ export default function SellProperty() {
                       <button
                         key={i}
                         type="button"
-                        onClick={() => setValue(c.val)}
+                        onClick={() => commitAnswer(c.commit, c.display)}
                         className="text-xs px-3 py-1.5 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 transition"
                       >
                         {c.label}
