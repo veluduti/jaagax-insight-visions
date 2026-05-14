@@ -73,7 +73,6 @@ category: PropertyCategory | null = null,
 return {
 category,
 
-```
 answers: {},
 
 skipped: [],
@@ -85,7 +84,6 @@ currentFieldId: null,
 messages: [],
 
 done: false,
-```
 
 };
 }
@@ -104,9 +102,7 @@ getPropertyFlow(category);
 let state: ConversationState = {
 ...createInitialState(category),
 
-```
 ...initial,
-```
 
 };
 
@@ -129,7 +125,6 @@ fieldId,
 flow,
 );
 
-```
 for (const resetField of resetFields) {
   delete state.answers[
     resetField
@@ -145,7 +140,6 @@ for (const resetField of resetFields) {
       (id) => id !== resetField,
     );
 }
-```
 
 }
 
@@ -154,7 +148,6 @@ return {
 // FLOW
 // ======================================================
 
-```
 get flow() {
   return flow;
 },
@@ -394,7 +387,6 @@ reset() {
       category,
     );
 },
-```
 
 };
 }
