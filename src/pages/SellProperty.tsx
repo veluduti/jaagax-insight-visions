@@ -19,7 +19,31 @@ import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
-import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
+import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+
+const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
+
+/** Build a natural, SEO-friendly description deterministically from collected state. */
+function buildPropertyDescription(s: Record<string, any>): string {
+  const parts: string[] = [];
+  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.type].filter(Boolean).join(" ").trim();
+  const purpose = (s.purpose || "sale").toString().toLowerCase();
+  const where = s.locality || s.city || "a prime location";
+  if (typeLabel) parts.push(`${typeLabel} available for ${purpose} in ${where}.`);
+  const area = s.built_up_area || s.plot_area || s.carpet_area || s.shop_area;
+  if (area) parts.push(`Spread across ${area} ${s.area_unit || "sq ft"}${s.facing ? `, facing ${String(s.facing).toLowerCase()}` : ""}.`);
+  if (s.furnishing) parts.push(`The unit comes ${String(s.furnishing).toLowerCase()}.`);
+  if (s.floor_number || s.total_floors) {
+    parts.push(`Located on floor ${s.floor_number ?? "—"}${s.total_floors ? ` of ${s.total_floors}` : ""}.`);
+  }
+  if (Array.isArray(s.amenities) && s.amenities.length) {
+    parts.push(`Amenities include ${s.amenities.slice(0, 8).join(", ")}.`);
+  }
+  if (s.parking) parts.push(`${s.parking} parking available.`);
+  if (s.project_name) parts.push(`Part of ${s.project_name}.`);
+  if (s.highlights) parts.push(String(s.highlights));
+  return parts.join(" ");
+}
 
 /* ============================================================
    Engine field -> UI FieldDef adapter
