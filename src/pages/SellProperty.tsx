@@ -18,7 +18,7 @@ import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
-import type { FieldDefinition, NextQuestionResult } from "@/engines/types";
+import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
 
 /* ============================================================
