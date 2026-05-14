@@ -278,6 +278,9 @@ export default function SellProperty() {
     setReviewPricePerUnit(pu.pricePerUnit || "");
     setReviewUnit(pu.unit || state.area_unit || "sq ft");
     setReviewAmenities(Array.isArray(state.amenities) ? state.amenities : []);
+    if (!reviewDescription) {
+      setReviewDescription(state.description || buildPropertyDescription(state));
+    }
     if (aiTitles.length === 0) regenerateTitles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
