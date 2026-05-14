@@ -130,14 +130,12 @@ n: number,
 const s =
 n.toFixed(2);
 
-```
 return s
   .replace(/\.00$/, "")
   .replace(
     /(\.\d*[1-9])0+$/,
     "$1",
   );
-```
 
 };
 
@@ -218,7 +216,6 @@ seen.has(value)
 return;
 }
 
-```
 seen.add(value);
 
 suggestions.push({
@@ -228,7 +225,6 @@ suggestions.push({
 
   value,
 });
-```
 
 };
 
@@ -245,11 +241,9 @@ push(raw);
 if (raw < 100) {
 push(raw * 1000);
 
-```
 push(raw * 100000);
 
 push(raw * 10000000);
-```
 
 }
 
@@ -260,9 +254,7 @@ push(raw * 10000000);
 else if (raw < 1000) {
 push(raw * 1000);
 
-```
 push(raw * 100000);
-```
 
 }
 
@@ -316,12 +308,10 @@ return durations.map(
 (duration) => ({
 label: `₹${formatted} / ${duration}`,
 
-```
   value: raw,
 
   duration,
 }),
-```
 
 );
 }
@@ -356,12 +346,10 @@ return units.map(
 (unit) => ({
 label: `${raw} ${unit}`,
 
-```
   value: raw,
 
   unit,
 }),
-```
 
 );
 }
