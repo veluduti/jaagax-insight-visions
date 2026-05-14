@@ -66,7 +66,6 @@ return {
 // RESOLVE NEXT QUESTION
 // ======================================================
 
-```
 resolve(state) {
   const answers =
     state.answers || {};
@@ -265,7 +264,6 @@ progress(state) {
     total,
   };
 },
-```
 
 };
 }
