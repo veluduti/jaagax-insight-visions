@@ -316,7 +316,7 @@ export default function SellProperty() {
     })();
   }, []);
 
-  /* ----- Greeting + first intake prompt (no orchestrator yet) ----- */
+  /* ----- Greeting + property category prompt ----- */
   useEffect(() => {
     setMessages([
       {
@@ -325,11 +325,28 @@ export default function SellProperty() {
       },
       {
         id: uid(), role: "ai", kind: "text",
-        text: "Tell me about your property — you can type, speak, or upload an image, PDF or brochure. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
+        text: "What type of property are you listing?",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ----- Handle category selection — initialize engine dynamically ----- */
+  const selectCategory = (cat: PropertyCategory) => {
+    if (category) return;
+    const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
+    engineRef.current = createConversationEngine(cat);
+    setCategory(cat);
+    setState((s) => ({ ...s, property_category: cat }));
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: opt?.label || cat },
+      {
+        id: uid(), role: "ai", kind: "text",
+        text: `Great — let's list your ${opt?.label || cat} property. Tell me about it — type, speak, or upload an image, PDF or brochure. Or skip to go step by step.`,
+      },
+    ]);
+  };
 
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
   const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
