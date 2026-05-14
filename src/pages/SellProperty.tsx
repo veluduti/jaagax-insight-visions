@@ -593,6 +593,9 @@ export default function SellProperty() {
     setState(newState);
     setValue("");
     setError(null);
+    // Explicit engine answer — guarantees the field is marked answered
+    // regardless of value shape (objects, arrays, etc.).
+    try { engineRef.current?.applyAnswer(f.id, val); } catch {}
     await fetchNext(newState);
   };
 
@@ -619,16 +622,18 @@ export default function SellProperty() {
 
   const onSkip = async () => {
     if (!field || !isOptional(field)) return;
+    const skippedId = field.id;
     setMessages((m) => [
       ...m,
       { id: uid(), role: "user", kind: "text", text: "Skip" },
     ]);
-    const newState = { ...state, [field.id]: null };
     setHistory((h) => [...h, { field, value: null }]);
-    setState(newState);
     setValue("");
     setError(null);
-    await fetchNext(newState);
+    // Tell the engine this field was deliberately skipped so the
+    // resolver doesn't re-ask it on the next call.
+    try { engineRef.current?.skipField(skippedId); } catch {}
+    await fetchNext(state);
   };
 
   const onBack = async () => {
@@ -670,6 +675,13 @@ export default function SellProperty() {
       }
       setState((s) => ({ ...s, media_urls: urls }));
       toast.success(`${urls.length} photo(s) added`);
+
+      // If the user is currently being asked for media, treat the upload
+      // as the answer and advance the conversation (don't leave the field hanging
+      // and don't fall through to the skip path).
+      if (field && field.input === "media") {
+        await commitAnswer(urls, `${urls.length} photo(s) attached`);
+      }
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
     } finally {
