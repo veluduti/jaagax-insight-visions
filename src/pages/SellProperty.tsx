@@ -1317,7 +1317,7 @@ export default function SellProperty() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => setValue(s)}
+                    onClick={() => commitAnswer(s, s)}
                     className="text-left text-xs px-3 py-2 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/20 transition max-w-[260px]"
                   >
                     {s}
