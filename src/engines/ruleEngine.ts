@@ -81,7 +81,6 @@ switch (condition.operator) {
 // EQUAL
 // ======================================================
 
-```
 case "eq":
   return (
     currentValue ===
@@ -186,7 +185,6 @@ case "lt":
 
 default:
   return true;
-```
 
 }
 }
@@ -203,7 +201,6 @@ return {
 // FIELD VISIBILITY
 // ======================================================
 
-```
 isFieldRelevant(
   fieldId,
   state,
@@ -412,7 +409,6 @@ fieldsToResetOnChange(
     resets,
   );
 },
-```
 
 };
 }
