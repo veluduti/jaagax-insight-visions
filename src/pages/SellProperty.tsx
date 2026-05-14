@@ -977,8 +977,9 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showIntakeBar = !intakeDone && !done;
-  const showInputBar = (intakeDone && field && !done) || showIntakeBar;
+  const showCategoryPicker = !category && !done;
+  const showIntakeBar = !!category && !intakeDone && !done;
+  const showInputBar = showCategoryPicker || (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
