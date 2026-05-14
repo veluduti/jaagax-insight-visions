@@ -294,6 +294,10 @@ export const residentialFlow = {
       question: "What is the land size?",
 
       units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
+      smartSuggestions: {
+        enabled: true,
+        type: "measurement_units",
+      },
     },
 
     built_area: {
