@@ -19,7 +19,31 @@ import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
-import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
+import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+
+const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
+
+/** Build a natural, SEO-friendly description deterministically from collected state. */
+function buildPropertyDescription(s: Record<string, any>): string {
+  const parts: string[] = [];
+  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.type].filter(Boolean).join(" ").trim();
+  const purpose = (s.purpose || "sale").toString().toLowerCase();
+  const where = s.locality || s.city || "a prime location";
+  if (typeLabel) parts.push(`${typeLabel} available for ${purpose} in ${where}.`);
+  const area = s.built_up_area || s.plot_area || s.carpet_area || s.shop_area;
+  if (area) parts.push(`Spread across ${area} ${s.area_unit || "sq ft"}${s.facing ? `, facing ${String(s.facing).toLowerCase()}` : ""}.`);
+  if (s.furnishing) parts.push(`The unit comes ${String(s.furnishing).toLowerCase()}.`);
+  if (s.floor_number || s.total_floors) {
+    parts.push(`Located on floor ${s.floor_number ?? "—"}${s.total_floors ? ` of ${s.total_floors}` : ""}.`);
+  }
+  if (Array.isArray(s.amenities) && s.amenities.length) {
+    parts.push(`Amenities include ${s.amenities.slice(0, 8).join(", ")}.`);
+  }
+  if (s.parking) parts.push(`${s.parking} parking available.`);
+  if (s.project_name) parts.push(`Part of ${s.project_name}.`);
+  if (s.highlights) parts.push(String(s.highlights));
+  return parts.join(" ");
+}
 
 /* ============================================================
    Engine field -> UI FieldDef adapter
@@ -50,6 +74,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     email: "email",
     text: "text",
   };
+  const ss = raw?.smartSuggestions || {};
   return {
     id: fieldId,
     question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
@@ -57,6 +82,9 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     options: Array.isArray(raw?.options) ? raw.options : undefined,
     required: raw?.required === true,
     optional: raw?.required !== true,
+    units: Array.isArray(raw?.units) ? raw.units : (Array.isArray(ss.units) ? ss.units : undefined),
+    durations: Array.isArray(ss.durations) ? ss.durations : undefined,
+    suggestionType: ss.type || (t === "rental_price" ? "rental_duration" : t === "measurement" ? "measurement_units" : t === "price" || t === "price_per_unit" ? "price" : undefined),
   };
 }
 
@@ -74,6 +102,9 @@ type FieldDef = {
   options?: string[];
   optional?: boolean;
   required?: boolean;
+  units?: string[];
+  durations?: string[];
+  suggestionType?: string;
 };
 
 type NextResp =
@@ -185,6 +216,7 @@ export default function SellProperty() {
   const [reviewPricePerUnit, setReviewPricePerUnit] = useState("");
   const [reviewUnit, setReviewUnit] = useState("sq ft");
   const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
+  const [reviewDescription, setReviewDescription] = useState("");
   const [newAmenity, setNewAmenity] = useState("");
 
   /* Chat transcript */
@@ -246,6 +278,9 @@ export default function SellProperty() {
     setReviewPricePerUnit(pu.pricePerUnit || "");
     setReviewUnit(pu.unit || state.area_unit || "sq ft");
     setReviewAmenities(Array.isArray(state.amenities) ? state.amenities : []);
+    if (!reviewDescription) {
+      setReviewDescription(state.description || buildPropertyDescription(state));
+    }
     if (aiTitles.length === 0) regenerateTitles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
@@ -545,23 +580,41 @@ export default function SellProperty() {
     }
   };
 
+  /* ----- Commit a value (used by suggestion chips & main submit) ----- */
+  const commitAnswer = async (val: any, displayText?: string, targetField?: FieldDef) => {
+    const f = targetField || field;
+    if (!f) return;
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: displayText ?? formatAnswer(f, val) },
+    ]);
+    const newState = { ...state, [f.id]: val };
+    setHistory((h) => [...h, { field: f, value: val }]);
+    setState(newState);
+    setValue("");
+    setError(null);
+    await fetchNext(newState);
+  };
+
   /* ----- Submit current answer ----- */
   const onNext = async () => {
     if (!field) return;
+
+    // Conversational correction: free-form text containing correction keywords
+    // is routed through the AI extractor so multiple fields can be updated at once.
+    if (
+      typeof value === "string" &&
+      value.trim().length > 6 &&
+      CORRECTION_RE.test(value) &&
+      (field.input === "text" || field.input === "textarea")
+    ) {
+      await runAiExtraction({ text: value });
+      return;
+    }
+
     const err = validate(field, value);
     if (err) { setError(err); return; }
-
-    // Push the user's answer as a chat bubble
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "user", kind: "text", text: formatAnswer(field, value) },
-    ]);
-
-    const newState = { ...state, [field.id]: value };
-    setHistory((h) => [...h, { field, value }]);
-    setState(newState);
-    setError(null);
-    await fetchNext(newState);
+    await commitAnswer(value);
   };
 
   const onSkip = async () => {
@@ -888,7 +941,7 @@ export default function SellProperty() {
       const payload: any = {
         submitted_by: user.id,
         title: finalTitle,
-        description: state.description || null,
+        description: (reviewDescription || state.description || buildPropertyDescription(state)) || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
@@ -1264,7 +1317,7 @@ export default function SellProperty() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => setValue(s)}
+                    onClick={() => commitAnswer(s, s)}
                     className="text-left text-xs px-3 py-2 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/20 transition max-w-[260px]"
                   >
                     {s}
@@ -1274,15 +1327,37 @@ export default function SellProperty() {
             </div>
           )}
 
-          {/* Smart price / rent suggestion chips (Indian numbering) */}
+          {/* Smart suggestion chips — clickable, commits to engine */}
           {field && !loadingNext && !done && field.input === "number" && value && (
             (() => {
-              const isRent = /rent/i.test(field.id);
-              const chips = isRent
-                ? getRentSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
-                : (/price|amount|cost|budget/i.test(field.id)
-                  ? getPriceSuggestions(value).map((s) => ({ label: s.label, val: s.value }))
-                  : []);
+              const sType = field.suggestionType
+                || (/rent/i.test(field.id) ? "rental_duration"
+                  : /price|amount|cost|budget/i.test(field.id) ? "price"
+                  : /area|size|sqft|sqyd|land|plot|built/i.test(field.id) ? "measurement_units"
+                  : undefined);
+
+              type Chip = { label: string; commit: any; display: string };
+              let chips: Chip[] = [];
+
+              if (sType === "rental_duration") {
+                chips = getRentSuggestions(value, field.durations).map((s) => ({
+                  label: s.label,
+                  commit: { amount: s.value, duration: s.duration },
+                  display: s.label,
+                }));
+              } else if (sType === "price" || sType === "price_per_unit") {
+                chips = getPriceSuggestions(value).map((s) => ({
+                  label: s.label, commit: s.value, display: s.label,
+                }));
+              } else if (sType === "measurement_units") {
+                const units = (field.units && field.units.length ? field.units : ["Sq Ft","Sq Yard","Acre","Gunta","Cent","Bigha"]) as PriceUnit[];
+                chips = getUnitSuggestions(value, units).map((s) => ({
+                  label: s.label,
+                  commit: { area: s.value, unit: s.unit },
+                  display: s.label,
+                }));
+              }
+
               if (chips.length === 0) return null;
               return (
                 <div className="pt-1 pl-1">
@@ -1294,7 +1369,7 @@ export default function SellProperty() {
                       <button
                         key={i}
                         type="button"
-                        onClick={() => setValue(c.val)}
+                        onClick={() => commitAnswer(c.commit, c.display)}
                         className="text-xs px-3 py-1.5 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 transition"
                       >
                         {c.label}
@@ -1397,6 +1472,27 @@ export default function SellProperty() {
                       {reviewTitle || <span className="text-muted-foreground italic">No title yet</span>}
                     </div>
                   )}
+                </div>
+
+                {/* AI-generated Description */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1"><Wand2 className="h-3 w-3 text-primary" /> Description</span>
+                    <button
+                      type="button"
+                      onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Sparkles className="h-3 w-3" /> Regenerate
+                    </button>
+                  </label>
+                  <Textarea
+                    value={reviewDescription}
+                    onChange={(e) => setReviewDescription(e.target.value)}
+                    rows={4}
+                    placeholder="A natural, SEO-friendly description will appear here…"
+                    className="resize-none rounded-xl text-sm"
+                  />
                 </div>
 
                 {/* Location */}
