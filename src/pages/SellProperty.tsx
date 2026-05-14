@@ -580,23 +580,41 @@ export default function SellProperty() {
     }
   };
 
+  /* ----- Commit a value (used by suggestion chips & main submit) ----- */
+  const commitAnswer = async (val: any, displayText?: string, targetField?: FieldDef) => {
+    const f = targetField || field;
+    if (!f) return;
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: displayText ?? formatAnswer(f, val) },
+    ]);
+    const newState = { ...state, [f.id]: val };
+    setHistory((h) => [...h, { field: f, value: val }]);
+    setState(newState);
+    setValue("");
+    setError(null);
+    await fetchNext(newState);
+  };
+
   /* ----- Submit current answer ----- */
   const onNext = async () => {
     if (!field) return;
+
+    // Conversational correction: free-form text containing correction keywords
+    // is routed through the AI extractor so multiple fields can be updated at once.
+    if (
+      typeof value === "string" &&
+      value.trim().length > 6 &&
+      CORRECTION_RE.test(value) &&
+      (field.input === "text" || field.input === "textarea")
+    ) {
+      await runAiExtraction({ text: value });
+      return;
+    }
+
     const err = validate(field, value);
     if (err) { setError(err); return; }
-
-    // Push the user's answer as a chat bubble
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "user", kind: "text", text: formatAnswer(field, value) },
-    ]);
-
-    const newState = { ...state, [field.id]: value };
-    setHistory((h) => [...h, { field, value }]);
-    setState(newState);
-    setError(null);
-    await fetchNext(newState);
+    await commitAnswer(value);
   };
 
   const onSkip = async () => {
