@@ -11,169 +11,410 @@
 //   AI NEVER controls rules.
 // ============================================================
 
-import type { ConditionalRule, ConditionGroup, ConversationState, PropertyFlowConfig, FieldCondition } from "./types";
+import type {
+ConditionalRule,
+ConditionGroup,
+ConversationState,
+PropertyFlowConfig,
+FieldCondition,
+} from "./types";
 
 // ============================================================
 // RULE ENGINE INTERFACE
 // ============================================================
 
 export interface RuleEngine {
-  isFieldRelevant(fieldId: string, state: ConversationState): boolean;
+isFieldRelevant(
+fieldId: string,
+state: ConversationState,
+): boolean;
 
-  evaluateCondition(condition: ConditionGroup, state: ConversationState): boolean;
+evaluateCondition(
+condition: ConditionGroup,
+state: ConversationState,
+): boolean;
 
-  fieldsToResetOnChange(fieldId: string, flow: PropertyFlowConfig): string[];
+fieldsToResetOnChange(
+fieldId: string,
+flow: PropertyFlowConfig,
+): string[];
+}
+
+// ============================================================
+// NORMALIZE VALUE
+// ============================================================
+
+function normalizeValue(
+value: unknown,
+): unknown {
+if (
+typeof value === "string"
+) {
+return value.trim();
+}
+
+return value;
 }
 
 // ============================================================
 // SINGLE CONDITION EVALUATOR
 // ============================================================
 
-function evaluateSingleCondition(condition: FieldCondition, state: ConversationState): boolean {
-  const currentValue = state.answers[condition.fieldId];
+function evaluateSingleCondition(
+condition: FieldCondition,
+state: ConversationState,
+): boolean {
+const currentValue =
+normalizeValue(
+state.answers[
+condition.fieldId
+],
+);
 
-  switch (condition.operator) {
-    case "eq":
-      return currentValue === condition.value;
+const expectedValue =
+normalizeValue(
+condition.value,
+);
 
-    case "neq":
-      return currentValue !== condition.value;
+switch (condition.operator) {
+// ======================================================
+// EQUAL
+// ======================================================
 
-    case "exists":
-      return currentValue !== undefined && currentValue !== null && currentValue !== "";
+```
+case "eq":
+  return (
+    currentValue ===
+    expectedValue
+  );
 
-    case "missing":
-      return currentValue === undefined || currentValue === null || currentValue === "";
+// ======================================================
+// NOT EQUAL
+// ======================================================
 
-    case "truthy":
-      return Boolean(currentValue);
+case "neq":
+  return (
+    currentValue !==
+    expectedValue
+  );
 
-    case "falsy":
-      return !currentValue;
+// ======================================================
+// EXISTS
+// ======================================================
 
-    case "in":
-      return Array.isArray(condition.value) ? condition.value.includes(currentValue) : false;
+case "exists":
+  return (
+    currentValue !==
+      undefined &&
+    currentValue !== null &&
+    currentValue !== ""
+  );
 
-    case "notIn":
-      return Array.isArray(condition.value) ? !condition.value.includes(currentValue) : false;
+// ======================================================
+// MISSING
+// ======================================================
 
-    case "gt":
-      return Number(currentValue) > Number(condition.value);
+case "missing":
+  return (
+    currentValue ===
+      undefined ||
+    currentValue === null ||
+    currentValue === ""
+  );
 
-    case "lt":
-      return Number(currentValue) < Number(condition.value);
+// ======================================================
+// TRUTHY
+// ======================================================
 
-    default:
-      return true;
-  }
+case "truthy":
+  return Boolean(
+    currentValue,
+  );
+
+// ======================================================
+// FALSY
+// ======================================================
+
+case "falsy":
+  return !currentValue;
+
+// ======================================================
+// IN ARRAY
+// ======================================================
+
+case "in":
+  return Array.isArray(
+    expectedValue,
+  )
+    ? expectedValue.includes(
+        currentValue,
+      )
+    : false;
+
+// ======================================================
+// NOT IN ARRAY
+// ======================================================
+
+case "notIn":
+  return Array.isArray(
+    expectedValue,
+  )
+    ? !expectedValue.includes(
+        currentValue,
+      )
+    : false;
+
+// ======================================================
+// GREATER THAN
+// ======================================================
+
+case "gt":
+  return (
+    Number(currentValue) >
+    Number(expectedValue)
+  );
+
+// ======================================================
+// LESS THAN
+// ======================================================
+
+case "lt":
+  return (
+    Number(currentValue) <
+    Number(expectedValue)
+  );
+
+default:
+  return true;
+```
+
+}
 }
 
 // ============================================================
 // CREATE RULE ENGINE
 // ============================================================
 
-export function createRuleEngine(flow: PropertyFlowConfig): RuleEngine {
-  return {
-    // ======================================================
-    // FIELD RELEVANCE
-    // ======================================================
+export function createRuleEngine(
+flow: PropertyFlowConfig,
+): RuleEngine {
+return {
+// ======================================================
+// FIELD VISIBILITY
+// ======================================================
 
-    isFieldRelevant(fieldId, state) {
-      const field = flow.fields[fieldId];
+```
+isFieldRelevant(
+  fieldId,
+  state,
+) {
+  const field =
+    flow.fields[fieldId];
 
-      if (!field) {
-        return false;
-      }
+  if (!field) {
+    return false;
+  }
 
-      // ====================================================
-      // visibleIf SUPPORT
-      // ====================================================
+  // ====================================================
+  // visibleIf SUPPORT
+  // ====================================================
 
-      if (field.visibleIf) {
-        const visible = Object.entries(field.visibleIf).every(([dependency, values]) => {
-          const current = state.answers[dependency];
+  if (
+    field.visibleIf
+  ) {
+    const visible =
+      Object.entries(
+        field.visibleIf,
+      ).every(
+        ([
+          dependency,
+          values,
+        ]) => {
+          const current =
+            state.answers[
+              dependency
+            ];
 
-          return values.includes(String(current));
-        });
+          if (
+            current ===
+              undefined ||
+            current ===
+              null
+          ) {
+            return false;
+          }
 
-        if (!visible) {
-          return false;
-        }
-      }
+          return values.includes(
+            String(current),
+          );
+        },
+      );
 
-      // ====================================================
-      // CONDITIONAL RULES
-      // ====================================================
+    if (!visible) {
+      return false;
+    }
+  }
 
-      const matchingRules = flow.rules.filter((rule) => rule.fieldId === fieldId);
+  // ====================================================
+  // CONDITIONAL RULES
+  // ====================================================
 
-      for (const rule of matchingRules) {
-        if (!rule.when) {
-          continue;
-        }
+  const matchingRules =
+    flow.rules.filter(
+      (rule) =>
+        rule.fieldId ===
+        fieldId,
+    );
 
-        const valid = this.evaluateCondition(rule.when, state);
+  for (const rule of matchingRules) {
+    if (!rule.when) {
+      continue;
+    }
 
-        if (!valid) {
-          return false;
-        }
-      }
+    const valid =
+      this.evaluateCondition(
+        rule.when,
+        state,
+      );
 
-      return true;
-    },
+    if (!valid) {
+      return false;
+    }
+  }
 
-    // ======================================================
-    // CONDITION EVALUATOR
-    // ======================================================
+  return true;
+},
 
-    evaluateCondition(condition, state) {
-      // ====================================================
-      // ALL CONDITIONS
-      // ====================================================
+// ======================================================
+// CONDITION EVALUATOR
+// ======================================================
 
-      if ("all" in condition) {
-        return condition.all.every((singleCondition) => evaluateSingleCondition(singleCondition, state));
-      }
+evaluateCondition(
+  condition,
+  state,
+) {
+  // ====================================================
+  // ALL CONDITIONS
+  // ====================================================
 
-      // ====================================================
-      // ANY CONDITIONS
-      // ====================================================
+  if (
+    "all" in condition
+  ) {
+    return condition.all.every(
+      (
+        singleCondition,
+      ) =>
+        evaluateSingleCondition(
+          singleCondition,
+          state,
+        ),
+    );
+  }
 
-      if ("any" in condition) {
-        return condition.any.some((singleCondition) => evaluateSingleCondition(singleCondition, state));
-      }
+  // ====================================================
+  // ANY CONDITIONS
+  // ====================================================
 
-      // ====================================================
-      // SINGLE CONDITION
-      // ====================================================
+  if (
+    "any" in condition
+  ) {
+    return condition.any.some(
+      (
+        singleCondition,
+      ) =>
+        evaluateSingleCondition(
+          singleCondition,
+          state,
+        ),
+    );
+  }
 
-      return evaluateSingleCondition(condition, state);
-    },
+  // ====================================================
+  // SINGLE CONDITION
+  // ====================================================
 
-    // ======================================================
-    // FIELD RESETS
-    // ======================================================
+  return evaluateSingleCondition(
+    condition,
+    state,
+  );
+},
 
-    fieldsToResetOnChange(fieldId, flow) {
-      const resets = new Set<string>();
+// ======================================================
+// DEPENDENT FIELD RESETS
+// ======================================================
 
-      for (const rule of flow.rules) {
-        if (rule.fieldId !== fieldId) {
-          continue;
-        }
+fieldsToResetOnChange(
+  fieldId,
+  flow,
+) {
+  const resets =
+    new Set<string>();
 
-        if (!rule.resets?.length) {
-          continue;
-        }
+  // ====================================================
+  // EXPLICIT RULE RESETS
+  // ====================================================
 
-        for (const fieldToReset of rule.resets) {
-          resets.add(fieldToReset);
-        }
-      }
+  for (const rule of flow.rules) {
+    if (
+      rule.fieldId !==
+      fieldId
+    ) {
+      continue;
+    }
 
-      return Array.from(resets);
-    },
-  };
+    if (
+      !rule.resets
+        ?.length
+    ) {
+      continue;
+    }
+
+    for (const fieldToReset of rule.resets) {
+      resets.add(
+        fieldToReset,
+      );
+    }
+  }
+
+  // ====================================================
+  // visibleIf DEPENDENCY RESETS
+  // ====================================================
+
+  for (const [
+    targetFieldId,
+    targetField,
+  ] of Object.entries(
+    flow.fields,
+  )) {
+    if (
+      !targetField.visibleIf
+    ) {
+      continue;
+    }
+
+    const dependencies =
+      Object.keys(
+        targetField.visibleIf,
+      );
+
+    if (
+      dependencies.includes(
+        fieldId,
+      )
+    ) {
+      resets.add(
+        targetFieldId,
+      );
+    }
+  }
+
+  return Array.from(
+    resets,
+  );
+},
+```
+
+};
 }
 
 // ============================================================
