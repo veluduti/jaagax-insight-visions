@@ -1183,7 +1183,7 @@ export default function SellProperty() {
           backgroundSize: "16px 16px",
         }}
       >
-        <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-6 space-y-2 flex flex-col justify-end min-h-full">
+        <div className="container max-w-3xl mx-auto px-3 sm:px-4 pt-4 pb-6 space-y-2 flex flex-col">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div
