@@ -197,11 +197,17 @@ export default function SellProperty() {
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
 
-  /* Deterministic conversation engine (single persistent instance) */
+  /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
-  if (engineRef.current === null) {
-    engineRef.current = createConversationEngine("residential");
-  }
+  const [category, setCategory] = useState<PropertyCategory | null>(null);
+
+  const CATEGORY_OPTIONS: { id: PropertyCategory; label: string; emoji: string }[] = [
+    { id: "residential", label: "Residential", emoji: "🏠" },
+    { id: "commercial", label: "Commercial", emoji: "🏢" },
+    { id: "plots", label: "Plots / Land", emoji: "📐" },
+    { id: "agriculture", label: "Agricultural", emoji: "🌾" },
+    { id: "coworking", label: "Co-working", emoji: "💼" },
+  ];
 
   /* ----- Auto-scroll on new messages ----- */
   useEffect(() => {
