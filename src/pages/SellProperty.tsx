@@ -216,6 +216,7 @@ export default function SellProperty() {
   const [reviewPricePerUnit, setReviewPricePerUnit] = useState("");
   const [reviewUnit, setReviewUnit] = useState("sq ft");
   const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
+  const [reviewDescription, setReviewDescription] = useState("");
   const [newAmenity, setNewAmenity] = useState("");
 
   /* Chat transcript */
