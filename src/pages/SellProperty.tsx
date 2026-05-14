@@ -1550,7 +1550,24 @@ export default function SellProperty() {
         <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
           <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
             {/* Intake composer (free-form first message) */}
-            {showIntakeBar ? (
+            {showCategoryPicker ? (
+              <div className="space-y-2">
+                <div className="text-[11px] text-muted-foreground px-1">Pick a category to begin</div>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => selectCategory(opt.id)}
+                      className="px-4 py-2 rounded-full border border-border bg-background hover:bg-primary/10 hover:border-primary text-sm font-medium transition flex items-center gap-2"
+                    >
+                      <span>{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : showIntakeBar ? (
               <>
                 <input
                   ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
