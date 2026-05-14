@@ -1474,6 +1474,27 @@ export default function SellProperty() {
                   )}
                 </div>
 
+                {/* AI-generated Description */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1"><Wand2 className="h-3 w-3 text-primary" /> Description</span>
+                    <button
+                      type="button"
+                      onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Sparkles className="h-3 w-3" /> Regenerate
+                    </button>
+                  </label>
+                  <Textarea
+                    value={reviewDescription}
+                    onChange={(e) => setReviewDescription(e.target.value)}
+                    rows={4}
+                    placeholder="A natural, SEO-friendly description will appear here…"
+                    className="resize-none rounded-xl text-sm"
+                  />
+                </div>
+
                 {/* Location */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
