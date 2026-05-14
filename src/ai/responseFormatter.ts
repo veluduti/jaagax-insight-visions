@@ -61,11 +61,9 @@ if (!question || !field) {
 return {
 role: "assistant",
 
-```
   content:
     "Great! Your property details are almost ready. Please review and publish your listing.",
 };
-```
 
 }
 
@@ -81,11 +79,9 @@ field.question ||
 return {
 role: "assistant",
 
-```
 content: prompt,
 
 fieldId: field.id,
-```
 
 };
 }
@@ -105,10 +101,8 @@ return question.quickReplies.map(
 (reply) => ({
 label: reply,
 
-```
   value: reply,
 }),
-```
 
 );
 }
@@ -196,10 +190,8 @@ return field.options.map(
 (option) => ({
 label: option,
 
-```
   value: option,
 }),
-```
 
 );
 }
@@ -223,7 +215,6 @@ question,
 field,
 ),
 
-```
 quickReplies:
   formatQuickReplies(
     question,
@@ -238,7 +229,6 @@ dropdown:
   formatDropdown(
     field,
   ),
-```
 
 };
 }
