@@ -675,6 +675,13 @@ export default function SellProperty() {
       }
       setState((s) => ({ ...s, media_urls: urls }));
       toast.success(`${urls.length} photo(s) added`);
+
+      // If the user is currently being asked for media, treat the upload
+      // as the answer and advance the conversation (don't leave the field hanging
+      // and don't fall through to the skip path).
+      if (field && field.input === "media") {
+        await commitAnswer(urls, `${urls.length} photo(s) attached`);
+      }
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
     } finally {
