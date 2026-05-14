@@ -172,7 +172,7 @@ export const residentialFlow = {
       smartSuggestions: {
         enabled: true,
 
-        type: "unit_price",
+        type: "measurement_units",
 
         units: ["Sqft", "Sqyd", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Sqm", "Katha"],
       },
@@ -267,6 +267,10 @@ export const residentialFlow = {
 
       visibleIf: {
         availability_status: ["Under Construction"],
+      },
+
+      visibleIf: {
+        property_condition: ["New"],
       },
 
       question: "When is possession expected?",
