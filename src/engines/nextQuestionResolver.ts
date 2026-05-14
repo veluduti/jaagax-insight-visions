@@ -12,150 +12,260 @@
 // AI NEVER decides workflow.
 // ============================================================
 
-import type { ConversationState, NextQuestionResult, PropertyFlowConfig } from "./types";
+import type {
+ConversationState,
+NextQuestionResult,
+PropertyFlowConfig,
+} from "./types";
 
 import { createRuleEngine } from "./ruleEngine";
 
-export interface NextQuestionResolver {
-  resolve(state: ConversationState): NextQuestionResult;
+// ============================================================
+// RESOLVER INTERFACE
+// ============================================================
 
-  progress(state: ConversationState): {
-    filled: number;
-    total: number;
-  };
+export interface NextQuestionResolver {
+resolve(
+state: ConversationState,
+): NextQuestionResult;
+
+progress(
+state: ConversationState,
+): {
+filled: number;
+total: number;
+};
 }
 
-export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuestionResolver {
-  const rules = createRuleEngine(flow);
+// ============================================================
+// HELPERS
+// ============================================================
 
-  return {
-    // ======================================================
-    // RESOLVE NEXT QUESTION
-    // ======================================================
+function isFilled(
+value: unknown,
+): boolean {
+return !(
+value === undefined ||
+value === null ||
+value === ""
+);
+}
 
-    resolve(state) {
-      const answers = state.answers || {};
+// ============================================================
+// CREATE RESOLVER
+// ============================================================
 
-      let total = 0;
-      let filled = 0;
+export function createNextQuestionResolver(
+flow: PropertyFlowConfig,
+): NextQuestionResolver {
+const rules =
+createRuleEngine(flow);
 
-      for (const fieldId of flow.order) {
-        const field = flow.fields[fieldId];
+return {
+// ======================================================
+// RESOLVE NEXT QUESTION
+// ======================================================
 
-        if (!field) continue;
+```
+resolve(state) {
+  const answers =
+    state.answers || {};
 
-        // ==================================================
-        // RULE ENGINE VISIBILITY
-        // ==================================================
+  let total = 0;
 
-        const relevant = rules.isFieldRelevant(fieldId, state);
+  let filled = 0;
 
-        if (!relevant) continue;
+  // ====================================================
+  // FIRST PASS
+  // CALCULATE PROGRESS
+  // ====================================================
 
-        total++;
+  for (const fieldId of flow.order) {
+    const field =
+      flow.fields[fieldId];
 
-        // ==================================================
-        // SKIP ANSWERED
-        // ==================================================
+    if (!field) {
+      continue;
+    }
 
-        const alreadyAnswered = answers[fieldId] !== undefined && answers[fieldId] !== null && answers[fieldId] !== "";
+    const relevant =
+      rules.isFieldRelevant(
+        fieldId,
+        state,
+      );
 
-        if (alreadyAnswered) {
-          filled++;
-          continue;
-        }
+    if (!relevant) {
+      continue;
+    }
 
-        // ==================================================
-        // SKIP EXTRACTED
-        // ==================================================
+    total++;
 
-        if (state.extracted.includes(fieldId)) {
-          filled++;
-          continue;
-        }
+    const value =
+      answers[fieldId];
 
-        // ==================================================
-        // SKIP USER SKIPPED
-        // ==================================================
+    if (isFilled(value)) {
+      filled++;
+    }
+  }
 
-        if (state.skipped.includes(fieldId)) {
-          continue;
-        }
+  // ====================================================
+  // SECOND PASS
+  // FIND NEXT QUESTION
+  // ====================================================
 
-        // ==================================================
-        // GET QUESTION
-        // ==================================================
+  for (const fieldId of flow.order) {
+    const field =
+      flow.fields[fieldId];
 
-        const question = flow.questions?.[fieldId];
+    if (!field) {
+      continue;
+    }
 
-        // ==================================================
-        // RETURN NEXT FIELD
-        // ==================================================
+    // ==================================================
+    // VISIBILITY
+    // ==================================================
 
-        return {
-          field,
+    const relevant =
+      rules.isFieldRelevant(
+        fieldId,
+        state,
+      );
 
-          question: question || {
-            fieldId,
+    if (!relevant) {
+      continue;
+    }
 
-            prompt: field.question || `Please provide ${field.label}`,
-          },
+    // ==================================================
+    // SKIP ANSWERED
+    // ==================================================
 
-          done: false,
+    const value =
+      answers[fieldId];
 
-          progress: {
-            filled,
-            total,
-          },
-        };
-      }
+    if (isFilled(value)) {
+      continue;
+    }
 
-      // ====================================================
-      // FLOW COMPLETED
-      // ====================================================
+    // ==================================================
+    // SKIP EXTRACTED
+    // ==================================================
 
-      return {
-        field: null,
+    if (
+      state.extracted.includes(
+        fieldId,
+      )
+    ) {
+      continue;
+    }
 
-        question: null,
+    // ==================================================
+    // SKIP USER SKIPPED
+    // ==================================================
 
-        done: true,
+    if (
+      state.skipped.includes(
+        fieldId,
+      )
+    ) {
+      continue;
+    }
 
-        progress: {
-          filled,
-          total,
-        },
+    // ==================================================
+    // BUILD QUESTION
+    // ==================================================
+
+    const question =
+      flow.questions?.[
+        fieldId
+      ] || {
+        fieldId,
+
+        prompt:
+          field.question ||
+          `Please provide ${field.label}`,
       };
-    },
 
-    // ======================================================
-    // PROGRESS
-    // ======================================================
+    // ==================================================
+    // RETURN NEXT QUESTION
+    // ==================================================
 
-    progress(state) {
-      let total = 0;
-      let filled = 0;
+    return {
+      field,
 
-      for (const fieldId of flow.order) {
-        const relevant = rules.isFieldRelevant(fieldId, state);
+      question,
 
-        if (!relevant) continue;
+      done: false,
 
-        total++;
-
-        const value = state.answers[fieldId];
-
-        const isFilled = value !== undefined && value !== null && value !== "";
-
-        if (isFilled) {
-          filled++;
-        }
-      }
-
-      return {
+      progress: {
         filled,
         total,
-      };
+      },
+    };
+  }
+
+  // ====================================================
+  // FLOW COMPLETED
+  // ====================================================
+
+  return {
+    field: null,
+
+    question: null,
+
+    done: true,
+
+    progress: {
+      filled,
+      total,
     },
   };
+},
+
+// ======================================================
+// PROGRESS
+// ======================================================
+
+progress(state) {
+  let total = 0;
+
+  let filled = 0;
+
+  for (const fieldId of flow.order) {
+    const field =
+      flow.fields[fieldId];
+
+    if (!field) {
+      continue;
+    }
+
+    const relevant =
+      rules.isFieldRelevant(
+        fieldId,
+        state,
+      );
+
+    if (!relevant) {
+      continue;
+    }
+
+    total++;
+
+    const value =
+      state.answers[
+        fieldId
+      ];
+
+    if (isFilled(value)) {
+      filled++;
+    }
+  }
+
+  return {
+    filled,
+    total,
+  };
+},
+```
+
+};
 }
