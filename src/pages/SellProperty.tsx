@@ -18,7 +18,7 @@ import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
-import type { FieldDefinition, NextQuestionResult } from "@/engines/types";
+import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions } from "@/utils/suggestionEngine";
 
 /* ============================================================
@@ -197,11 +197,17 @@ export default function SellProperty() {
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
 
-  /* Deterministic conversation engine (single persistent instance) */
+  /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
-  if (engineRef.current === null) {
-    engineRef.current = createConversationEngine("residential");
-  }
+  const [category, setCategory] = useState<PropertyCategory | null>(null);
+
+  const CATEGORY_OPTIONS: { id: PropertyCategory; label: string; emoji: string }[] = [
+    { id: "residential", label: "Residential", emoji: "🏠" },
+    { id: "commercial", label: "Commercial", emoji: "🏢" },
+    { id: "plots", label: "Plots / Land", emoji: "📐" },
+    { id: "agriculture", label: "Agricultural", emoji: "🌾" },
+    { id: "coworking", label: "Co-working", emoji: "💼" },
+  ];
 
   /* ----- Auto-scroll on new messages ----- */
   useEffect(() => {
@@ -310,7 +316,7 @@ export default function SellProperty() {
     })();
   }, []);
 
-  /* ----- Greeting + first intake prompt (no orchestrator yet) ----- */
+  /* ----- Greeting + property category prompt ----- */
   useEffect(() => {
     setMessages([
       {
@@ -319,11 +325,28 @@ export default function SellProperty() {
       },
       {
         id: uid(), role: "ai", kind: "text",
-        text: "Tell me about your property — you can type, speak, or upload an image, PDF or brochure. For example: \"3 BHK flat in Kondapur, 1200 sqft\" or just \"plot in Patancheru\".",
+        text: "What type of property are you listing?",
       },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ----- Handle category selection — initialize engine dynamically ----- */
+  const selectCategory = (cat: PropertyCategory) => {
+    if (category) return;
+    const opt = CATEGORY_OPTIONS.find((o) => o.id === cat);
+    engineRef.current = createConversationEngine(cat);
+    setCategory(cat);
+    setState((s) => ({ ...s, property_category: cat }));
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", kind: "text", text: opt?.label || cat },
+      {
+        id: uid(), role: "ai", kind: "text",
+        text: `Great — let's list your ${opt?.label || cat} property. Tell me about it — type, speak, or upload an image, PDF or brochure. Or skip to go step by step.`,
+      },
+    ]);
+  };
 
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
   const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
@@ -954,8 +977,9 @@ export default function SellProperty() {
   const missing = missingRequired(state);
   const answered = answeredFields(state);
 
-  const showIntakeBar = !intakeDone && !done;
-  const showInputBar = (intakeDone && field && !done) || showIntakeBar;
+  const showCategoryPicker = !category && !done;
+  const showIntakeBar = !!category && !intakeDone && !done;
+  const showInputBar = showCategoryPicker || (intakeDone && field && !done) || showIntakeBar;
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
@@ -1526,7 +1550,24 @@ export default function SellProperty() {
         <div className="border-t border-border/40 bg-card/80 backdrop-blur sticky bottom-0">
           <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
             {/* Intake composer (free-form first message) */}
-            {showIntakeBar ? (
+            {showCategoryPicker ? (
+              <div className="space-y-2">
+                <div className="text-[11px] text-muted-foreground px-1">Pick a category to begin</div>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => selectCategory(opt.id)}
+                      className="px-4 py-2 rounded-full border border-border bg-background hover:bg-primary/10 hover:border-primary text-sm font-medium transition flex items-center gap-2"
+                    >
+                      <span>{opt.emoji}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : showIntakeBar ? (
               <>
                 <input
                   ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
