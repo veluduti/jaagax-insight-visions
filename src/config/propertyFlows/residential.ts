@@ -255,6 +255,10 @@ export const residentialFlow = {
 
       required: true,
 
+      visibleIf: {
+        property_condition: ["New"],
+      },
+
       question: "What is the availability status?",
 
       options: ["Ready", "Under Construction"],
@@ -418,20 +422,11 @@ export const residentialFlow = {
     // =========================================================
 
     project_details: {
-      type: "group",
+      type: "textarea",
 
       required: false,
 
       question: "Please provide project or community details.",
-
-      fields: [
-        "Community / Project Name",
-        "Gated Community",
-        "Total Towers",
-        "Total Floors per Tower",
-        "Total Units",
-        "Total Land Area of Project",
-      ],
     },
 
     // =========================================================
