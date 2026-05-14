@@ -282,6 +282,47 @@ export const residentialFlow = {
       question: "What is the flat size?",
 
       units: ["Sq Ft"],
+
+      smartSuggestions: {
+        enabled: true,
+        type: "measurement_units",
+      },
+    },
+
+    floor_number: {
+      type: "number",
+
+      required: true,
+
+      visibleIf: {
+        property_type: [
+          "Apartment / Flat",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Studio Apartment",
+          "Serviced Apartment",
+        ],
+      },
+
+      question: "Which floor is the property on?",
+    },
+
+    total_floors: {
+      type: "number",
+
+      required: true,
+
+      visibleIf: {
+        property_type: [
+          "Apartment / Flat",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Studio Apartment",
+          "Serviced Apartment",
+        ],
+      },
+
+      question: "How many total floors are there in the building?",
     },
 
     // =========================================================
@@ -311,9 +352,14 @@ export const residentialFlow = {
 
       required: false,
 
-      question: "What is the built area in Sq Ft?",
+      question: "What is the built area?",
 
-      units: ["Sq Ft"],
+      units: ["Sq Ft", "Sq Yard"],
+
+      smartSuggestions: {
+        enabled: true,
+        type: "measurement_units",
+      },
     },
 
     // =========================================================
