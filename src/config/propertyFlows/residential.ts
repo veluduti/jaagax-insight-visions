@@ -267,9 +267,6 @@ export const residentialFlow = {
 
       visibleIf: {
         availability_status: ["Under Construction"],
-      },
-
-      visibleIf: {
         property_condition: ["New"],
       },
 
