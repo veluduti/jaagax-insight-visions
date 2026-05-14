@@ -44,8 +44,14 @@ export const residentialFlow = {
     "availability_status",
 
     "flat_size",
+    "floor_number",
+    "total_floors",
+
     "land_size",
     "built_area",
+
+    "parking_type",
+    "parking_count",
 
     "bhk_type",
 
