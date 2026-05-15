@@ -715,15 +715,13 @@ export default function SellProperty() {
       // -------------------------------------------------------
 
       if (smartSuggestions) {
-        setSuggestions(
-          Array.isArray(ui.examples) && ui.examples.length > 0
-            ? ui.examples
-            : Array.isArray(units) && units.length > 0
-              ? units
-              : Array.isArray(ui.options) && ui.options.length > 0
-                ? ui.options
-                : [],
-        );
+        setSuggestions([
+          {
+            type: "smart",
+            config: smartSuggestions,
+            units,
+          },
+        ]);
       } else {
         setSuggestions([]);
       }
@@ -2167,318 +2165,401 @@ export default function SellProperty() {
       </div>
 
       {/* Input dock */}
-      {showInputBar && (
-        <div className="border-t border-border/40 bg-card/95 backdrop-blur shrink-0 sticky bottom-0 z-20 pb-[env(safe-area-inset-bottom)]">
-          <div className="container max-w-3xl mx-auto px-3 sm:px-4 py-3">
-            {/* Intake composer (free-form first message) */}
-            {showCategoryPicker ? (
-              <div className="space-y-2">
-                <div className="text-[11px] text-muted-foreground px-1">Pick a category to begin</div>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => selectCategory(opt.id)}
-                      className="px-4 py-2 rounded-full border border-border bg-background hover:bg-primary/10 hover:border-primary text-sm font-medium transition flex items-center gap-2"
-                    >
-                      <span>{opt.emoji}</span>
-                      <span>{opt.label}</span>
-                    </button>
-                  ))}
+     {showInputBar && (
+  <div className="sticky bottom-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+    <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+
+      {/* =======================================================
+          CATEGORY SELECTOR
+      ======================================================= */}
+
+      {showCategoryPicker ? (
+        <div className="flex flex-col items-center justify-center py-6 sm:py-10">
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-semibold">
+              What type of property are you listing?
+            </h2>
+
+            <p className="text-sm text-muted-foreground mt-2">
+              Choose a category to begin your AI-assisted listing
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+            {CATEGORY_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => selectCategory(opt.id)}
+                className="group rounded-2xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all p-4 text-left shadow-sm hover:shadow-md"
+              >
+                <div className="text-2xl mb-2">
+                  {opt.emoji}
                 </div>
+
+                <div className="font-medium text-sm">
+                  {opt.label}
+                </div>
+
+                <div className="text-[11px] text-muted-foreground mt-1">
+                  AI guided flow
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : showIntakeBar ? (
+        <>
+          <input
+            ref={imageRef}
+            type="file"
+            accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            className="hidden"
+            onChange={(e) =>
+              e.target.files &&
+              handleQuickImage(e.target.files)
+            }
+          />
+
+          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+
+            {/* ===================================================
+                SUGGESTION HEADER
+            =================================================== */}
+
+            <div className="px-4 pt-3 pb-2 border-b border-border/40 bg-muted/20">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                AI can detect property type, price, area, location, BHK and more
               </div>
-            ) : showIntakeBar ? (
-              <>
-                <input
-                  ref={imageRef}
-                  type="file"
-                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  className="hidden"
-                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+            </div>
+
+            {/* ===================================================
+                INPUT ROW
+            =================================================== */}
+
+            <div className="flex items-end gap-2 p-3">
+
+              <button
+                type="button"
+                onClick={() =>
+                  imageRef.current?.click()
+                }
+                className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </button>
+
+              <div className="flex-1">
+                <Textarea
+                  value={intakeText}
+                  onChange={(e) =>
+                    setIntakeText(
+                      e.target.value,
+                    )
+                  }
+                  onKeyDown={(e) => {
+                    if (
+                      e.key ===
+                        "Enter" &&
+                      !e.shiftKey
+                    ) {
+                      e.preventDefault();
+
+                      submitIntake();
+                    }
+                  }}
+                  rows={2}
+                  placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
+                  className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
+                  disabled={extracting}
                 />
-                <div className="flex items-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => imageRef.current?.click()}
-                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image, PDF or document"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </button>
-                  <div className="flex-1">
-                    <Textarea
-                      value={intakeText}
-                      onChange={(e) => setIntakeText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          submitIntake();
+              </div>
+
+              <button
+                type="button"
+                onClick={toggleVoice}
+                className={cn(
+                  "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                  isListening
+                    ? "bg-destructive text-destructive-foreground animate-pulse"
+                    : "border border-border bg-background hover:bg-muted text-muted-foreground",
+                )}
+              >
+                {isListening ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={submitIntake}
+                disabled={
+                  extracting ||
+                  !intakeText.trim()
+                }
+                className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+              >
+                {extracting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+
+            {/* ===================================================
+                FOOTER
+            =================================================== */}
+
+            <div className="flex items-center justify-between px-4 pb-3">
+              <span className="text-[11px] text-muted-foreground">
+                Upload image, brochure, PDF or type manually
+              </span>
+
+              <button
+                type="button"
+                onClick={skipIntake}
+                disabled={extracting}
+                className="text-[11px] text-primary hover:underline"
+              >
+                Skip intake
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ===================================================
+              FLOATING AI SUGGESTIONS
+          =================================================== */}
+
+          {field &&
+            !loadingNext &&
+            !done &&
+            field.input === "number" &&
+            value && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {(() => {
+                  const sType =
+                    field.suggestionType ||
+                    (/rent/i.test(field.id)
+                      ? "rental_duration"
+                      : /price|amount|cost|budget/i.test(field.id)
+                        ? "price"
+                        : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
+                          ? "measurement_units"
+                          : undefined);
+
+                  let chips: any[] = [];
+
+                  if (
+                    sType === "rental_duration"
+                  ) {
+                    chips =
+                      getRentSuggestions(
+                        value,
+                        field.durations,
+                      );
+                  } else if (
+                    sType === "price" ||
+                    sType ===
+                      "price_per_unit"
+                  ) {
+                    chips =
+                      getPriceSuggestions(
+                        value,
+                      );
+                  } else if (
+                    sType ===
+                    "measurement_units"
+                  ) {
+                    chips =
+                      getUnitSuggestions(
+                        value,
+                        (
+                          field.units &&
+                          field.units
+                            .length
+                            ? field.units
+                            : [
+                                "Sq Ft",
+                                "Sq Yard",
+                                "Acre",
+                                "Gunta",
+                                "Cent",
+                              ]
+                        ) as PriceUnit[],
+                      );
+                  }
+
+                  return chips.map(
+                    (
+                      c: any,
+                      i: number,
+                    ) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() =>
+                          commitAnswer(
+                            c.value ||
+                              c,
+                            c.label ||
+                              String(c),
+                          )
                         }
-                      }}
-                      rows={2}
-                      placeholder='e.g. "3 BHK flat in Kondapur 1200 sqft for sale"'
-                      className="resize-none rounded-2xl"
-                      disabled={extracting}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // reuse voice for intake
-                      const rec = recognitionRef.current;
-                      if (!rec) {
-                        toast.error("Voice not supported");
-                        return;
-                      }
-                      if (isListening) {
-                        rec.stop();
-                        setIsListening(false);
-                      } else {
-                        rec.onresult = (e: any) => {
-                          let txt = "";
-                          for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
-                          if (txt) setIntakeText(txt);
-                        };
-                        try {
-                          rec.start();
-                          setIsListening(true);
-                        } catch {}
-                      }
-                    }}
-                    className={cn(
-                      "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
-                      isListening
-                        ? "bg-destructive text-destructive-foreground animate-pulse"
-                        : "border border-border bg-background hover:bg-muted text-muted-foreground",
-                    )}
-                    title={isListening ? "Stop" : "Speak"}
-                  >
-                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={submitIntake}
-                    disabled={extracting || !intakeText.trim()}
-                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-                    title="Send"
-                  >
-                    {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </button>
-                </div>
-                <div className="flex items-center justify-between mt-2 px-1">
-                  <span className="text-[11px] text-muted-foreground">
-                    AI will auto-detect type, location, BHK, area & more
-                  </span>
-                  <button
-                    type="button"
-                    onClick={skipIntake}
-                    disabled={extracting}
-                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
-                  >
-                    Skip — go step by step
-                  </button>
-                </div>
-              </>
-            ) : field?.input === "city" || field?.input === "locality" ? (
-              <div className="space-y-2">
-                {field.input === "city" ? (
-                  <CityAutocomplete
+                        className="px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 text-xs font-medium transition"
+                      >
+                        {c.label ||
+                          String(c)}
+                      </button>
+                    ),
+                  );
+                })()}
+              </div>
+            )}
+
+          {/* ===================================================
+              MAIN INPUT
+          =================================================== */}
+
+          <input
+            ref={imageRef}
+            type="file"
+            accept="image/*,application/pdf,.pdf,.doc,.docx"
+            className="hidden"
+            onChange={(e) =>
+              e.target.files &&
+              handleQuickImage(e.target.files)
+            }
+          />
+
+          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+
+            <div className="flex items-end gap-2 p-3">
+
+              <button
+                type="button"
+                onClick={() =>
+                  imageRef.current?.click()
+                }
+                className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </button>
+
+              <div className="flex-1">
+                {isMultiline ? (
+                  <Textarea
                     value={value || ""}
-                    onChange={(c) => setValue(c)}
-                    placeholder="Search your city..."
+                    onChange={(e) =>
+                      setValue(
+                        e.target.value,
+                      )
+                    }
+                    rows={2}
+                    placeholder="Type your answer..."
+                    className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
                   />
                 ) : (
                   <Input
                     value={value || ""}
-                    onChange={(e) => setValue(e.target.value)}
-                    placeholder="Type your area / locality..."
+                    onChange={(e) =>
+                      setValue(
+                        e.target.value,
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (
+                        e.key ===
+                          "Enter" &&
+                        !e.shiftKey
+                      ) {
+                        e.preventDefault();
+
+                        onNext();
+                      }
+                    }}
+                    type={
+                      field?.input ===
+                      "number"
+                        ? "number"
+                        : "text"
+                    }
+                    placeholder="Type your answer..."
+                    className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
                   />
                 )}
-                <PrimaryActions
-                  onNext={onNext}
-                  onSkip={onSkip}
-                  onBack={onBack}
-                  optional={isOptional(field)}
-                  canBack={history.length > 0}
-                  loading={loadingNext}
-                />
               </div>
-            ) : field?.input === "price_unit" ? (
-              <PriceUnitComposer
-                value={value}
-                onChange={setValue}
-                onNext={onNext}
-                onBack={onBack}
-                canBack={history.length > 0}
-                loading={loadingNext}
-              />
-            ) : field?.input === "media" ? (
-              <div className="space-y-3">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files && handleFiles(e.target.files)}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <ImagePlus className="h-4 w-4 mr-2" />
-                  )}
-                  Upload photos / video
-                </Button>
-                {state.media_urls?.length > 0 && (
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {state.media_urls.map((url: string, i: number) => (
-                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setState((s) => ({
-                              ...s,
-                              media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
-                            }))
-                          }
-                          className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+
+              <button
+                type="button"
+                onClick={toggleVoice}
+                className={cn(
+                  "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                  isListening
+                    ? "bg-destructive text-destructive-foreground animate-pulse"
+                    : "border border-border bg-background hover:bg-muted text-muted-foreground",
                 )}
-                <PrimaryActions
-                  onNext={onNext}
-                  onSkip={onSkip}
-                  onBack={onBack}
-                  optional={isOptional(field)}
-                  canBack={history.length > 0}
-                  loading={loadingNext}
-                  nextLabel="Continue"
-                />
-              </div>
-            ) : (
-              /* Standard text / number / textarea / chip-augmented composer */
-              <>
-                <input
-                  ref={imageRef}
-                  type="file"
-                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  className="hidden"
-                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
-                />
-                <div className="flex items-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => imageRef.current?.click()}
-                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-                    title="Attach image, PDF or document"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </button>
+              >
+                {isListening ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </button>
 
-                  <div className="flex-1">
-                    {isMultiline ? (
-                      <Textarea
-                        value={value || ""}
-                        onChange={(e) => setValue(e.target.value)}
-                        rows={2}
-                        placeholder="Type your answer…"
-                        className="resize-none rounded-2xl"
-                      />
-                    ) : (
-                      <Input
-                        value={value || ""}
-                        onChange={(e) => setValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            onNext();
-                          }
-                        }}
-                        type={field?.input === "number" ? "number" : "text"}
-                        inputMode={
-                          field?.input === "phone"
-                            ? "tel"
-                            : field?.input === "email"
-                              ? "email"
-                              : field?.input === "number"
-                                ? "decimal"
-                                : "text"
-                        }
-                        placeholder={
-                          field?.input === "single" || field?.input === "yesno" || field?.input === "multi"
-                            ? "Or type your answer…"
-                            : "Type your answer…"
-                        }
-                        className="rounded-full h-11"
-                      />
-                    )}
-                  </div>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={loadingNext}
+                className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+              >
+                {loadingNext ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={toggleVoice}
-                    className={cn(
-                      "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
-                      isListening
-                        ? "bg-destructive text-destructive-foreground animate-pulse"
-                        : "border border-border bg-background hover:bg-muted text-muted-foreground",
-                    )}
-                    title={isListening ? "Stop" : "Speak"}
-                  >
-                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </button>
+            {/* ===================================================
+                FOOTER ACTIONS
+            =================================================== */}
 
-                  <button
-                    type="button"
-                    onClick={onNext}
-                    disabled={loadingNext}
-                    className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-                    title="Send"
-                  >
-                    {loadingNext ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </button>
-                </div>
-                <div className="flex items-center justify-between mt-2 px-1">
-                  <button
-                    type="button"
-                    onClick={onBack}
-                    disabled={history.length === 0}
-                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
-                  >
-                    <ChevronLeft className="h-3 w-3" /> Back
-                  </button>
-                  {isOptional(field) && (
-                    <button
-                      type="button"
-                      onClick={onSkip}
-                      className="text-[11px] text-muted-foreground hover:text-foreground"
-                    >
-                      Skip
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
+            <div className="flex items-center justify-between px-4 pb-3">
+
+              <button
+                type="button"
+                onClick={onBack}
+                disabled={
+                  history.length === 0
+                }
+                className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                Back
+              </button>
+
+              {isOptional(field) && (
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  className="text-[11px] text-primary hover:underline"
+                >
+                  Skip
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
-  );
-}
-
+  </div>
+)}
 /* ============================================================
    Bubble — WhatsApp style
    ============================================================ */
