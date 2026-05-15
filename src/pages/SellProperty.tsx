@@ -1640,9 +1640,11 @@ export default function SellProperty() {
       {/* Chat scroll area */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto overscroll-contain"
         style={{
-          backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
+          paddingBottom: "180px",
+          backgroundImage:
+            "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
           backgroundSize: "16px 16px",
         }}
       >
