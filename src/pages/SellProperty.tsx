@@ -229,7 +229,7 @@ export default function SellProperty() {
   /* Session / answers state */
   const [state, setState] = useState<Record<string, any>>({});
   const [field, setField] = useState<FieldDef | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
   const [error, setError] = useState<string | null>(null);
@@ -2559,7 +2559,11 @@ export default function SellProperty() {
       )}
     </div>
   </div>
-)}
+      )}
+    </div>
+  );
+}
+
 /* ============================================================
    Bubble — WhatsApp style
    ============================================================ */
