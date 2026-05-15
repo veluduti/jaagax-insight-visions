@@ -141,7 +141,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What type of listing is this?",
 
-      options: ["Buy", "Lease"],
+      options: ["Buy", "Lease", "Rent", "Partnership"],
     },
 
     // =========================================================
@@ -186,14 +186,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_measurement_units",
 
-        units: [
-          "Acre",
-          "Gunta",
-          "Cent",
-          "Bigha",
-          "Hectare",
-          "Katha",
-        ],
+        units: ["Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
       },
     },
 
@@ -215,14 +208,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_price_per_unit",
 
-        units: [
-          "Acre",
-          "Gunta",
-          "Cent",
-          "Bigha",
-          "Hectare",
-          "Katha",
-        ],
+        units: ["Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
       },
     },
 
@@ -247,13 +233,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         chips: true,
         type: "rental_duration_suggestions",
 
-        durations: [
-          "Monthly",
-          "Yearly",
-          "3 Years",
-          "5 Years",
-          "10 Years",
-        ],
+        durations: ["Monthly", "Yearly", "3 Years", "5 Years", "10 Years"],
       },
     },
 
@@ -268,12 +248,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What is the lease duration?",
 
-      options: [
-        "1 Year",
-        "3 Years",
-        "5 Years",
-        "10 Years",
-      ],
+      options: ["1 Year", "3 Years", "5 Years", "10 Years"],
     },
 
     available_from: {
@@ -299,14 +274,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What is the land size?",
 
-      units: [
-        "Acre",
-        "Gunta",
-        "Cent",
-        "Bigha",
-        "Hectare",
-        "Katha",
-      ],
+      units: ["Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
 
       smartSuggestions: {
         enabled: true,
@@ -315,11 +283,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_measurement_units",
 
-        examples: [
-          "1 Acre",
-          "5 Gunta",
-          "10 Acre",
-        ],
+        examples: ["1 Acre", "5 Gunta", "10 Acre"],
       },
     },
 
@@ -334,14 +298,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What is the soil type?",
 
-      options: [
-        "Black Soil",
-        "Red Soil",
-        "Alluvial Soil",
-        "Clay Soil",
-        "Sandy Soil",
-        "Loamy Soil",
-      ],
+      options: ["Black Soil", "Red Soil", "Alluvial Soil", "Clay Soil", "Sandy Soil", "Loamy Soil"],
     },
 
     crop_type: {
@@ -378,15 +335,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What water sources are available?",
 
-      options: [
-        "Borewell",
-        "Canal",
-        "River",
-        "Lake",
-        "Pond",
-        "Rainwater",
-        "Government Water",
-      ],
+      options: ["Borewell", "Canal", "River", "Lake", "Pond", "Rainwater", "Government Water"],
     },
 
     irrigation_type: {
@@ -396,12 +345,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What irrigation systems are available?",
 
-      options: [
-        "Drip Irrigation",
-        "Sprinkler",
-        "Flood Irrigation",
-        "Canal Irrigation",
-      ],
+      options: ["Drip Irrigation", "Sprinkler", "Flood Irrigation", "Canal Irrigation"],
     },
 
     // =========================================================
@@ -415,13 +359,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What type of road access does the land have?",
 
-      options: [
-        "National Highway",
-        "State Highway",
-        "Village Road",
-        "Mud Road",
-        "Black Top Road",
-      ],
+      options: ["National Highway", "State Highway", "Village Road", "Mud Road", "Black Top Road"],
     },
 
     road_width: {
@@ -509,16 +447,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What approvals or documents are available?",
 
-      options: [
-        "Patta",
-        "Passbook",
-        "Title Deed",
-        "Survey Number",
-        "EC Available",
-        "FMB Sketch",
-        "Pahani",
-        "Adangal",
-      ],
+      options: ["Patta", "Passbook", "Title Deed", "Survey Number", "EC Available", "FMB Sketch", "Pahani", "Adangal"],
     },
 
     // =========================================================
