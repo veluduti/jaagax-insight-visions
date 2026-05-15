@@ -1724,13 +1724,8 @@ export default function SellProperty() {
                       const numeric = opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
                       const sendVal = isNaN(numeric) ? opt : numeric;
                       setValue(sendVal);
-                      setTimeout(() => {
-                        setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
-                        const newState = { ...state, [field.id]: sendVal };
-                        setHistory((h) => [...h, { field, value: sendVal }]);
-                        setState(newState);
-                        setError(null);
-                        fetchNext(newState);
+                      setTimeout(async () => {
+                        await commitAnswer(sendVal, opt);
                       }, 80);
                     }}
                     className={cn(
