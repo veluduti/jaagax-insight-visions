@@ -272,6 +272,8 @@ export interface AIFlowConfig {
   supportContextAwareness?: boolean;
 
   supportDynamicFollowups?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
