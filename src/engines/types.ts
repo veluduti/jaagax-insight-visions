@@ -173,7 +173,21 @@ export interface FieldDefinition {
 
   extraction?: ExtractionConfig;
 
+  // SEMANTIC FIELD KIND (price, single_select, location, etc.)
+
   type?: string;
+
+  // INPUT PLACEHOLDER
+
+  placeholder?: string;
+
+  // EXPLICIT SKIP ALLOWED
+
+  allowSkip?: boolean;
+
+  // AI HINT FOR PROMPT BUILDING
+
+  aiSuggestionHint?: string;
 
   [key: string]: unknown;
 }
