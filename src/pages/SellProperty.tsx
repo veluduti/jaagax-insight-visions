@@ -1686,14 +1686,9 @@ export default function SellProperty() {
                           setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
                         } else {
                           setValue(opt);
-                          // auto-send on single-pick for snappy UX
-                          setTimeout(() => {
-                            setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
-                            const newState = { ...state, [field.id]: opt };
-                            setHistory((h) => [...h, { field, value: opt }]);
-                            setState(newState);
-                            setError(null);
-                            fetchNext(newState);
+
+                          setTimeout(async () => {
+                            await commitAnswer(opt, opt);
                           }, 80);
                         }
                       }}
