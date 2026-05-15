@@ -85,11 +85,11 @@ export type VisibilityRule = Record<string, string[]>;
 export interface FieldDefinition {
   // STABLE FIELD ID
 
-  id: string;
+  id?: string;
 
   // HUMAN LABEL
 
-  label: string;
+  label?: string;
 
   // OPTIONAL GROUPING
 
@@ -97,7 +97,7 @@ export interface FieldDefinition {
 
   // INPUT TYPE
 
-  input: FieldInputType;
+  input?: FieldInputType;
 
   // REQUIRED OR OPTIONAL
 
