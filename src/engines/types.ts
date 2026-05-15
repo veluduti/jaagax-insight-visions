@@ -54,6 +54,10 @@ export interface SmartSuggestionsConfig {
   durations?: string[];
 
   examples?: string[];
+
+  realtime?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
@@ -66,6 +70,8 @@ export interface ExtractionConfig {
   autoExtractPropertyData?: boolean;
 
   autoDetectMissingFields?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
@@ -81,11 +87,11 @@ export type VisibilityRule = Record<string, string[]>;
 export interface FieldDefinition {
   // STABLE FIELD ID
 
-  id: string;
+  id?: string;
 
   // HUMAN LABEL
 
-  label: string;
+  label?: string;
 
   // OPTIONAL GROUPING
 
@@ -93,7 +99,7 @@ export interface FieldDefinition {
 
   // INPUT TYPE
 
-  input: FieldInputType;
+  input?: FieldInputType;
 
   // REQUIRED OR OPTIONAL
 
@@ -146,6 +152,10 @@ export interface FieldDefinition {
   // FILE / PDF EXTRACTION
 
   extraction?: ExtractionConfig;
+
+  type?: string;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
@@ -262,6 +272,8 @@ export interface AIFlowConfig {
   supportContextAwareness?: boolean;
 
   supportDynamicFollowups?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
