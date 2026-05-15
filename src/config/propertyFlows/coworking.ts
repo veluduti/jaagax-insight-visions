@@ -6,7 +6,7 @@
 import type { PropertyFlowConfig } from "@/engines/types";
 
 export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
-  category: "coworking_shared_spaces",
+  category: "coworking",
 
   label: "Co-working / Shared Spaces",
 

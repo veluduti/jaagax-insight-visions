@@ -6,7 +6,7 @@
 import type { PropertyFlowConfig } from "@/engines/types";
 
 export const agricultureLandFlow: PropertyFlowConfig = {
-  category: "agriculture_land",
+  category: "agriculture",
 
   label: "Agriculture Land",
 
