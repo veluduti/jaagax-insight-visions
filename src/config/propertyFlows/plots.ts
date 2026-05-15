@@ -106,7 +106,6 @@ export const plotsFlow: PropertyFlowConfig = {
         "Residential Plot",
         "Villa Plot",
         "Farm Land",
-        "Agricultural Land",
         "Commercial Plot",
         "Industrial Plot",
         "Layout Plot",
@@ -128,7 +127,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "Who are you listing this property as?",
 
-      options: ["Owner", "Agent", "Builder", "Developer"],
+      options: ["Owner", "Agent", "Builder"],
     },
 
     // =========================================================
@@ -167,11 +166,7 @@ export const plotsFlow: PropertyFlowConfig = {
         chips: true,
         type: "indian_price_format",
 
-        examples: [
-          "1000 → 1 Thousand",
-          "100000 → 1 Lakh",
-          "10000000 → 1 Crore",
-        ],
+        examples: ["1000 → 1 Thousand", "100000 → 1 Lakh", "10000000 → 1 Crore"],
       },
     },
 
@@ -196,17 +191,7 @@ export const plotsFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_measurement_units",
 
-        units: [
-          "Sqft",
-          "Sqyd",
-          "Sqm",
-          "Acre",
-          "Gunta",
-          "Cent",
-          "Bigha",
-          "Hectare",
-          "Katha",
-        ],
+        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
       },
     },
 
@@ -232,17 +217,7 @@ export const plotsFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_price_per_unit",
 
-        units: [
-          "Sqft",
-          "Sqyd",
-          "Sqm",
-          "Acre",
-          "Gunta",
-          "Cent",
-          "Bigha",
-          "Hectare",
-          "Katha",
-        ],
+        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
       },
     },
 
@@ -267,15 +242,7 @@ export const plotsFlow: PropertyFlowConfig = {
         chips: true,
         type: "rental_duration_suggestions",
 
-        durations: [
-          "Monthly",
-          "Weekly",
-          "Daily",
-          "Yearly",
-          "3 Months",
-          "6 Months",
-          "Quarterly",
-        ],
+        durations: ["Monthly", "Weekly", "Daily", "Yearly", "3 Months", "6 Months", "Quarterly"],
       },
     },
 
@@ -290,14 +257,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What is the lease duration?",
 
-      options: [
-        "6 Months",
-        "1 Year",
-        "2 Years",
-        "3 Years",
-        "5 Years",
-        "10 Years",
-      ],
+      options: ["6 Months", "1 Year", "2 Years", "3 Years", "5 Years", "10 Years"],
     },
 
     available_from: {
@@ -323,16 +283,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What is the plot size?",
 
-      units: [
-        "Sq Ft",
-        "Sq Yard",
-        "Acre",
-        "Gunta",
-        "Cent",
-        "Bigha",
-        "Hectare",
-        "Katha",
-      ],
+      units: ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
 
       smartSuggestions: {
         enabled: true,
@@ -341,12 +292,7 @@ export const plotsFlow: PropertyFlowConfig = {
         chips: true,
         type: "dynamic_measurement_units",
 
-        examples: [
-          "100 Sqft",
-          "100 Gunta",
-          "100 Acre",
-          "100 Sq Yard",
-        ],
+        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sq Yard"],
       },
     },
 
@@ -403,16 +349,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What is the plot facing?",
 
-      options: [
-        "East",
-        "West",
-        "North",
-        "South",
-        "North East",
-        "North West",
-        "South East",
-        "South West",
-      ],
+      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
     },
 
     // =========================================================
@@ -468,12 +405,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What type of layout is it?",
 
-      options: [
-        "Open Layout",
-        "Gated Layout",
-        "Premium Layout",
-        "Villa Layout",
-      ],
+      options: ["Open Layout", "Gated Layout", "Premium Layout", "Villa Layout"],
     },
 
     total_layout_area: {
