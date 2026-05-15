@@ -715,13 +715,15 @@ export default function SellProperty() {
       // -------------------------------------------------------
 
       if (smartSuggestions) {
-        setSuggestions([
-          {
-            type: "smart",
-            config: smartSuggestions,
-            units,
-          },
-        ]);
+        setSuggestions(
+          Array.isArray(ui.examples) && ui.examples.length > 0
+            ? ui.examples
+            : Array.isArray(units) && units.length > 0
+              ? units
+              : Array.isArray(ui.options) && ui.options.length > 0
+                ? ui.options
+                : [],
+        );
       } else {
         setSuggestions([]);
       }
