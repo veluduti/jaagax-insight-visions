@@ -15,11 +15,11 @@
 // ============================================================
 
 import type {
-ConversationMessage,
-ConversationState,
-NextQuestionResult,
-PropertyCategory,
-PropertyFlowConfig,
+  ConversationMessage,
+  ConversationState,
+  NextQuestionResult,
+  PropertyCategory,
+  PropertyFlowConfig,
 } from "./types";
 
 import { getPropertyFlow } from "@/config/propertyFlows";
@@ -30,23 +30,124 @@ import { createRuleEngine } from "./ruleEngine";
 
 // ============================================================
 // PRICE NORMALIZATION
-// "5cr" -> 50000000, "50L"/"50 lakh" -> 5000000, "25k" -> 25000
 // ============================================================
 
 function normalizePriceString(input: string): number {
-  const s = String(input).trim().toLowerCase().replace(/[₹,\s]/g, "");
-  if (!s) return NaN;
+  const s = String(input)
+    .trim()
+    .toLowerCase()
+    .replace(/[₹,\s]/g, "");
+
+  if (!s) {
+    return NaN;
+  }
 
   const numMatch = s.match(/^(\d+(?:\.\d+)?)/);
-  if (!numMatch) return NaN;
-  const num = parseFloat(numMatch[1]);
-  if (!Number.isFinite(num)) return NaN;
 
-  if (/cr(ore)?s?$/.test(s)) return num * 1e7;
-  if (/lakhs?$|lacs?$|^\d+(?:\.\d+)?l$/.test(s) || s.endsWith("l")) return num * 1e5;
-  if (/thousands?$|^\d+(?:\.\d+)?k$/.test(s) || s.endsWith("k")) return num * 1e3;
+  if (!numMatch) {
+    return NaN;
+  }
+
+  const num = parseFloat(numMatch[1]);
+
+  if (!Number.isFinite(num)) {
+    return NaN;
+  }
+
+  // crore
+  if (/cr(ore)?s?$/.test(s)) {
+    return num * 10000000;
+  }
+
+  // lakh
+  if (/lakhs?$|lacs?$/.test(s) || s.endsWith("l")) {
+    return num * 100000;
+  }
+
+  // thousand
+  if (/thousands?$/.test(s) || s.endsWith("k")) {
+    return num * 1000;
+  }
 
   return num;
+}
+
+// ============================================================
+// PRICE FORMATTER
+// ============================================================
+
+export function formatIndianPrice(value: number): string {
+  if (value >= 10000000) {
+    return `${(value / 10000000).toFixed(2)} Crore`;
+  }
+
+  if (value >= 100000) {
+    return `${(value / 100000).toFixed(2)} Lakh`;
+  }
+
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(2)} Thousand`;
+  }
+
+  return String(value);
+}
+
+// ============================================================
+// SMART AI SUGGESTIONS
+// ============================================================
+
+export function generateSuggestions(field: any, input: string): string[] {
+  if (!input) {
+    return [];
+  }
+
+  const value = Number(input);
+
+  if (!Number.isFinite(value)) {
+    return [];
+  }
+
+  const type = field?.type;
+
+  // ==========================================================
+  // PRICE SUGGESTIONS
+  // ==========================================================
+
+  if (type === "price" || type === "rental_price" || type === "price_per_unit") {
+    const formatted = formatIndianPrice(value);
+
+    const suggestions = [formatted];
+
+    const units = field?.units || ["Sqft", "Sq Yard", "Acre", "Gunta"];
+
+    if (type === "price_per_unit") {
+      for (const unit of units) {
+        suggestions.push(`₹${formatted}/${unit}`);
+      }
+    }
+
+    if (type === "rental_price") {
+      suggestions.push(`₹${formatted}/Month`);
+
+      suggestions.push(`₹${formatted}/Week`);
+
+      suggestions.push(`₹${formatted}/Year`);
+    }
+
+    return suggestions;
+  }
+
+  // ==========================================================
+  // LAND / AREA SUGGESTIONS
+  // ==========================================================
+
+  if (type === "measurement" || type === "measurement_unit") {
+    const units = field?.units || ["Sqft", "Sq Yard", "Acre", "Gunta", "Cent"];
+
+    return units.map((unit: string) => `${value} ${unit}`);
+  }
+
+  return [];
 }
 
 // ============================================================
@@ -54,59 +155,51 @@ function normalizePriceString(input: string): number {
 // ============================================================
 
 export interface ConversationEngine {
-readonly flow: PropertyFlowConfig;
+  readonly flow: PropertyFlowConfig;
 
-getState(): ConversationState;
+  getState(): ConversationState;
 
-setCategory(category: PropertyCategory): void;
+  setCategory(category: PropertyCategory): void;
 
-applyAnswer(
-fieldId: string,
-value: unknown,
-): void;
+  applyAnswer(fieldId: string, value: unknown): void;
 
-applyExtractedFields(
-values: Record<string, unknown>,
-options?: {
-overwrite?: boolean;
-isCorrection?: boolean;
-},
-): void;
+  applyExtractedFields(
+    values: Record<string, unknown>,
+    options?: {
+      overwrite?: boolean;
+      isCorrection?: boolean;
+    },
+  ): void;
 
-skipField(fieldId: string): void;
+  skipField(fieldId: string): void;
 
-appendMessage(
-message: ConversationMessage,
-): void;
+  appendMessage(message: ConversationMessage): void;
 
-next(): NextQuestionResult;
+  next(): NextQuestionResult;
 
-reset(): void;
+  reset(): void;
 }
 
 // ============================================================
 // INITIAL STATE
 // ============================================================
 
-export function createInitialState(
-category: PropertyCategory | null = null,
-): ConversationState {
-return {
-category,
+export function createInitialState(category: PropertyCategory | null = null): ConversationState {
+  return {
+    category,
 
-answers: {},
+    answers: {},
 
-skipped: [],
+    skipped: [],
 
-extracted: [],
+    extracted: [],
 
-currentFieldId: null,
+    currentFieldId: null,
 
-messages: [],
+    messages: [],
 
-done: false,
-
-};
+    done: false,
+  };
 }
 
 // ============================================================
@@ -114,320 +207,228 @@ done: false,
 // ============================================================
 
 export function createConversationEngine(
-category: PropertyCategory,
-initial?: Partial<ConversationState>,
+  category: PropertyCategory,
+  initial?: Partial<ConversationState>,
 ): ConversationEngine {
-let flow =
-getPropertyFlow(category);
+  let flow = getPropertyFlow(category);
 
-let state: ConversationState = {
-...createInitialState(category),
+  let state: ConversationState = {
+    ...createInitialState(category),
 
-...initial,
-
-};
-
-const resolver =
-createNextQuestionResolver(flow);
-
-const rules =
-createRuleEngine(flow);
-
-// ==========================================================
-// INTERNAL RESET HELPER
-// ==========================================================
-
-function resetDependentFields(
-fieldId: string,
-) {
-const resetFields =
-rules.fieldsToResetOnChange(
-fieldId,
-flow,
-);
-
-for (const resetField of resetFields) {
-  delete state.answers[
-    resetField
-  ];
-
-  state.skipped =
-    state.skipped.filter(
-      (id) => id !== resetField,
-    );
-
-  state.extracted =
-    state.extracted.filter(
-      (id) => id !== resetField,
-    );
-}
-
-}
-
-return {
-// ======================================================
-// FLOW
-// ======================================================
-
-get flow() {
-  return flow;
-},
-
-// ======================================================
-// GET STATE
-// ======================================================
-
-getState() {
-  return state;
-},
-
-// ======================================================
-// CHANGE CATEGORY
-// ======================================================
-
-setCategory(nextCategory) {
-  flow =
-    getPropertyFlow(
-      nextCategory,
-    );
-
-  state = {
-    ...createInitialState(
-      nextCategory,
-    ),
+    ...initial,
   };
-},
 
-// ======================================================
-// APPLY USER ANSWER
-// ======================================================
+  const resolver = createNextQuestionResolver(flow);
 
-applyAnswer(fieldId, value) {
-  const previousValue =
-    state.answers[fieldId];
+  const rules = createRuleEngine(flow);
 
-  // ====================================================
-  // IGNORE EMPTY VALUES
-  // ====================================================
+  // ==========================================================
+  // INTERNAL RESET HELPER
+  // ==========================================================
 
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
-    return;
-  }
+  function resetDependentFields(fieldId: string) {
+    const resetFields = rules.fieldsToResetOnChange(fieldId, flow);
 
-  // ====================================================
-  // PRICING NORMALIZATION
-  // (5cr -> 50000000, 50L -> 5000000, 25k -> 25000)
-  // ====================================================
+    for (const resetField of resetFields) {
+      delete state.answers[resetField];
 
-  const fieldDef = flow.fields[fieldId];
-  const fieldKind = (fieldDef as any)?.type || fieldDef?.input;
-  const isPriceField =
-    flow.ai?.autoNormalizePricingUnits !== false &&
-    (fieldKind === "price" ||
-      fieldKind === "rental_price" ||
-      fieldKind === "price_per_unit");
+      state.skipped = state.skipped.filter((id) => id !== resetField);
 
-  if (isPriceField && typeof value === "string") {
-    const normalized = normalizePriceString(value);
-    if (Number.isFinite(normalized) && normalized > 0) {
-      value = normalized;
+      state.extracted = state.extracted.filter((id) => id !== resetField);
     }
   }
 
-  // ====================================================
-  // APPLY ANSWER
-  // ====================================================
+  return {
+    // ======================================================
+    // FLOW
+    // ======================================================
 
-  state.answers[fieldId] =
-    value;
+    get flow() {
+      return flow;
+    },
 
-  // ====================================================
-  // REMOVE FROM SKIPPED
-  // ====================================================
+    // ======================================================
+    // GET STATE
+    // ======================================================
 
-  state.skipped =
-    state.skipped.filter(
-      (id) => id !== fieldId,
-    );
+    getState() {
+      return state;
+    },
 
-  // ====================================================
-  // REMOVE FROM EXTRACTED
-  // ====================================================
+    // ======================================================
+    // CHANGE CATEGORY
+    // ======================================================
 
-  state.extracted =
-    state.extracted.filter(
-      (id) => id !== fieldId,
-    );
+    setCategory(nextCategory) {
+      flow = getPropertyFlow(nextCategory);
 
-  // ====================================================
-  // RESET DEPENDENT FIELDS
-  // ONLY IF VALUE CHANGED
-  // ====================================================
+      state = {
+        ...createInitialState(nextCategory),
+      };
+    },
 
-  if (
-    previousValue !== value
-  ) {
-    resetDependentFields(
-      fieldId,
-    );
-  }
+    // ======================================================
+    // APPLY USER ANSWER
+    // ======================================================
 
-  // ====================================================
-  // UPDATE CURRENT FIELD
-  // ====================================================
+    applyAnswer(fieldId, value) {
+      // ====================================================
+      // EMPTY / SKIP DETECTION
+      // ====================================================
 
-  state.currentFieldId =
-    fieldId;
-},
+      if (value === undefined || value === null) {
+        return;
+      }
 
-// ======================================================
-// APPLY AI-EXTRACTED VALUES
-// ======================================================
+      if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
 
-applyExtractedFields(
-  values,
-  options = {},
-) {
-  const {
-    overwrite = true,
-    isCorrection = false,
-  } = options;
+        // ------------------------------------------------
+        // skip keywords
+        // ------------------------------------------------
 
-  for (const [
-    fieldId,
-    value,
-  ] of Object.entries(values)) {
-    // ==================================================
-    // SKIP EMPTY
-    // ==================================================
+        if (normalized === "skip" || normalized === "skipped" || normalized === "na" || normalized === "n/a") {
+          this.skipField(fieldId);
 
-    if (
-      value === undefined ||
-      value === null ||
-      value === ""
-    ) {
-      continue;
-    }
+          return;
+        }
 
-    const existingValue =
-      state.answers[fieldId];
+        if (normalized === "") {
+          return;
+        }
+      }
 
-    // ==================================================
-    // PREVENT OVERWRITE
-    // ==================================================
+      const previousValue = state.answers[fieldId];
 
-    if (
-      !overwrite &&
-      existingValue !== undefined
-    ) {
-      continue;
-    }
+      // ====================================================
+      // PRICE NORMALIZATION
+      // ====================================================
 
-    // ==================================================
-    // APPLY VALUE
-    // ==================================================
+      const fieldDef = flow.fields[fieldId];
 
-    state.answers[fieldId] =
-      value;
+      const fieldKind = (fieldDef as any)?.type || fieldDef?.input;
 
-    // ==================================================
-    // TRACK EXTRACTED
-    // ==================================================
+      const isPriceField =
+        flow.ai?.autoNormalizePricingUnits !== false &&
+        (fieldKind === "price" || fieldKind === "rental_price" || fieldKind === "price_per_unit");
 
-    if (
-      !state.extracted.includes(
-        fieldId,
-      )
-    ) {
-      state.extracted.push(
-        fieldId,
-      );
-    }
+      if (isPriceField && typeof value === "string") {
+        const normalized = normalizePriceString(value);
 
-    // ==================================================
-    // HANDLE CORRECTIONS
-    // ==================================================
+        if (Number.isFinite(normalized) && normalized > 0) {
+          value = normalized;
+        }
+      }
 
-    if (
-      isCorrection &&
-      existingValue !== value
-    ) {
-      resetDependentFields(
-        fieldId,
-      );
-    }
+      // ====================================================
+      // APPLY ANSWER
+      // ====================================================
 
-    // ==================================================
-    // REMOVE FROM SKIPPED
-    // ==================================================
+      state.answers[fieldId] = value;
 
-    state.skipped =
-      state.skipped.filter(
-        (id) => id !== fieldId,
-      );
-  }
-},
+      // ====================================================
+      // REMOVE FROM SKIPPED
+      // ====================================================
 
-// ======================================================
-// SKIP FIELD
-// ======================================================
+      state.skipped = state.skipped.filter((id) => id !== fieldId);
 
-skipField(fieldId) {
-  if (
-    !state.skipped.includes(
-      fieldId,
-    )
-  ) {
-    state.skipped.push(
-      fieldId,
-    );
-  }
-},
+      // ====================================================
+      // REMOVE FROM EXTRACTED
+      // ====================================================
 
-// ======================================================
-// APPEND CHAT MESSAGE
-// ======================================================
+      state.extracted = state.extracted.filter((id) => id !== fieldId);
 
-appendMessage(message) {
-  state.messages.push({
-    ...message,
+      // ====================================================
+      // RESET DEPENDENT FIELDS
+      // ====================================================
 
-    createdAt:
-      new Date().toISOString(),
-  });
-},
+      if (previousValue !== value) {
+        resetDependentFields(fieldId);
+      }
 
-// ======================================================
-// NEXT QUESTION
-// ======================================================
+      // ====================================================
+      // UPDATE CURRENT FIELD
+      // ====================================================
 
-next() {
-  const result =
-    resolver.resolve(state);
+      state.currentFieldId = fieldId;
+    },
 
-  state.done =
-    result.done;
+    // ======================================================
+    // APPLY AI EXTRACTED VALUES
+    // ======================================================
 
-  state.currentFieldId =
-    result.field?.id || null;
+    applyExtractedFields(values, options = {}) {
+      const { overwrite = true, isCorrection = false } = options;
 
-  return result;
-},
+      for (const [fieldId, value] of Object.entries(values)) {
+        if (value === undefined || value === null || value === "") {
+          continue;
+        }
 
-// ======================================================
-// RESET ENGINE
-// ======================================================
+        const existingValue = state.answers[fieldId];
 
-reset() {
-  state =
-    createInitialState(
-      category,
-    );
-},
+        if (!overwrite && existingValue !== undefined) {
+          continue;
+        }
 
-};
+        state.answers[fieldId] = value;
+
+        if (!state.extracted.includes(fieldId)) {
+          state.extracted.push(fieldId);
+        }
+
+        if (isCorrection && existingValue !== value) {
+          resetDependentFields(fieldId);
+        }
+
+        state.skipped = state.skipped.filter((id) => id !== fieldId);
+      }
+    },
+
+    // ======================================================
+    // SKIP FIELD
+    // ======================================================
+
+    skipField(fieldId) {
+      if (!state.skipped.includes(fieldId)) {
+        state.skipped.push(fieldId);
+      }
+
+      delete state.answers[fieldId];
+    },
+
+    // ======================================================
+    // APPEND CHAT MESSAGE
+    // ======================================================
+
+    appendMessage(message) {
+      state.messages.push({
+        ...message,
+
+        createdAt: new Date().toISOString(),
+      });
+    },
+
+    // ======================================================
+    // NEXT QUESTION
+    // ======================================================
+
+    next() {
+      const result = resolver.resolve(state);
+
+      state.done = result.done;
+
+      state.currentFieldId = result.field?.id || null;
+
+      return result;
+    },
+
+    // ======================================================
+    // RESET ENGINE
+    // ======================================================
+
+    reset() {
+      state = createInitialState(category);
+    },
+  };
 }
