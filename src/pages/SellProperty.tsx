@@ -2069,6 +2069,7 @@ export default function SellProperty() {
           )}
         </div>
       </div>
+      )}
 
       {/* Input dock */}
      {showInputBar && (
