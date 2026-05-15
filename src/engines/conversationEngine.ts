@@ -29,6 +29,27 @@ import { createNextQuestionResolver } from "./nextQuestionResolver";
 import { createRuleEngine } from "./ruleEngine";
 
 // ============================================================
+// PRICE NORMALIZATION
+// "5cr" -> 50000000, "50L"/"50 lakh" -> 5000000, "25k" -> 25000
+// ============================================================
+
+function normalizePriceString(input: string): number {
+  const s = String(input).trim().toLowerCase().replace(/[₹,\s]/g, "");
+  if (!s) return NaN;
+
+  const numMatch = s.match(/^(\d+(?:\.\d+)?)/);
+  if (!numMatch) return NaN;
+  const num = parseFloat(numMatch[1]);
+  if (!Number.isFinite(num)) return NaN;
+
+  if (/cr(ore)?s?$/.test(s)) return num * 1e7;
+  if (/lakhs?$|lacs?$|^\d+(?:\.\d+)?l$/.test(s) || s.endsWith("l")) return num * 1e5;
+  if (/thousands?$|^\d+(?:\.\d+)?k$/.test(s) || s.endsWith("k")) return num * 1e3;
+
+  return num;
+}
+
+// ============================================================
 // ENGINE INTERFACE
 // ============================================================
 
@@ -195,6 +216,26 @@ applyAnswer(fieldId, value) {
     value === ""
   ) {
     return;
+  }
+
+  // ====================================================
+  // PRICING NORMALIZATION
+  // (5cr -> 50000000, 50L -> 5000000, 25k -> 25000)
+  // ====================================================
+
+  const fieldDef = flow.fields[fieldId];
+  const fieldKind = (fieldDef as any)?.type || fieldDef?.input;
+  const isPriceField =
+    flow.ai?.autoNormalizePricingUnits !== false &&
+    (fieldKind === "price" ||
+      fieldKind === "rental_price" ||
+      fieldKind === "price_per_unit");
+
+  if (isPriceField && typeof value === "string") {
+    const normalized = normalizePriceString(value);
+    if (Number.isFinite(normalized) && normalized > 0) {
+      value = normalized;
+    }
   }
 
   // ====================================================

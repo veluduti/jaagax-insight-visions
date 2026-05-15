@@ -57,6 +57,24 @@ export interface SmartSuggestionsConfig {
 
   realtime?: boolean;
 
+  searchable?: boolean;
+
+  chips?: boolean;
+
+  typoFriendly?: boolean;
+
+  gpsSupport?: boolean;
+
+  mapSelection?: boolean;
+
+  pincodeAutoFill?: boolean;
+
+  dependentHierarchy?: boolean;
+
+  currentLocation?: boolean;
+
+  behavior?: Record<string, unknown>;
+
   [key: string]: unknown;
 }
 
@@ -70,6 +88,8 @@ export interface ExtractionConfig {
   autoExtractPropertyData?: boolean;
 
   autoDetectMissingFields?: boolean;
+
+  continueFromExtractedState?: boolean;
 
   [key: string]: unknown;
 }
@@ -153,7 +173,21 @@ export interface FieldDefinition {
 
   extraction?: ExtractionConfig;
 
+  // SEMANTIC FIELD KIND (price, single_select, location, etc.)
+
   type?: string;
+
+  // INPUT PLACEHOLDER
+
+  placeholder?: string;
+
+  // EXPLICIT SKIP ALLOWED
+
+  allowSkip?: boolean;
+
+  // AI HINT FOR PROMPT BUILDING
+
+  aiSuggestionHint?: string;
 
   [key: string]: unknown;
 }
@@ -272,6 +306,22 @@ export interface AIFlowConfig {
   supportContextAwareness?: boolean;
 
   supportDynamicFollowups?: boolean;
+
+  // ===== runtime behavior flags consumed by engine =====
+
+  persistSkippedFields?: boolean;
+
+  preventDuplicateQuestions?: boolean;
+
+  maintainConversationState?: boolean;
+
+  realtimeSuggestions?: boolean;
+
+  autoNormalizePricingUnits?: boolean;
+
+  supportQuickReplyChips?: boolean;
+
+  supportSearchableDropdowns?: boolean;
 
   [key: string]: unknown;
 }
