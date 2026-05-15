@@ -229,7 +229,7 @@ export default function SellProperty() {
   /* Session / answers state */
   const [state, setState] = useState<Record<string, any>>({});
   const [field, setField] = useState<FieldDef | null>(null);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
   const [error, setError] = useState<string | null>(null);
@@ -793,79 +793,308 @@ export default function SellProperty() {
   };
 
   /* ----- Commit a value (used by suggestion chips & main submit) ----- */
+  /* ===========================================================
+   COMMIT ANSWER
+=========================================================== */
+
   const commitAnswer = async (val: any, displayText?: string, targetField?: FieldDef) => {
     const f = targetField || field;
-    if (!f) return;
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: displayText ?? formatAnswer(f, val) }]);
-    const newState = { ...state, [f.id]: val };
-    setHistory((h) => [...h, { field: f, value: val }]);
+
+    if (!f) {
+      return;
+    }
+
+    // =========================================================
+    // NORMALIZE STRING INPUT
+    // =========================================================
+
+    let normalized = val;
+
+    if (typeof val === "string") {
+      normalized = val.trim();
+
+      // -------------------------------------------------------
+      // empty
+      // -------------------------------------------------------
+
+      if (normalized === "") {
+        return;
+      }
+
+      // -------------------------------------------------------
+      // skip keywords
+      // -------------------------------------------------------
+
+      const lower = normalized.toLowerCase();
+
+      if (lower === "skip" || lower === "skipped" || lower === "na" || lower === "n/a") {
+        await onSkip();
+
+        return;
+      }
+    }
+
+    // =========================================================
+    // USER MESSAGE
+    // =========================================================
+
+    setMessages((m) => [
+      ...m,
+      {
+        id: uid(),
+        role: "user",
+        kind: "text",
+        text: displayText ?? formatAnswer(f, normalized),
+      },
+    ]);
+
+    // =========================================================
+    // NEW STATE
+    // =========================================================
+
+    const newState = {
+      ...state,
+      [f.id]: normalized,
+    };
+
+    // =========================================================
+    // HISTORY
+    // =========================================================
+
+    setHistory((h) => [
+      ...h,
+      {
+        field: f,
+        value: normalized,
+      },
+    ]);
+
+    // =========================================================
+    // SAVE STATE
+    // =========================================================
+
     setState(newState);
-    setValue("");
+
     setError(null);
-    // Explicit engine answer — guarantees the field is marked answered
-    // regardless of value shape (objects, arrays, etc.).
+
+    // =========================================================
+    // APPLY ENGINE ANSWER
+    // =========================================================
+
     try {
-      engineRef.current?.applyAnswer(f.id, val);
+      engineRef.current?.applyAnswer(f.id, normalized);
     } catch {}
+
+    // =========================================================
+    // IMPORTANT
+    // clear AFTER apply
+    // =========================================================
+
+    setValue("");
+
+    // =========================================================
+    // FETCH NEXT
+    // =========================================================
+
     await fetchNext(newState);
   };
 
-  /* ----- Submit current answer ----- */
-  const onNext = async () => {
-    if (!field) return;
+  /* ===========================================================
+   NEXT
+=========================================================== */
 
-    // Conversational correction: free-form text containing correction keywords
-    // is routed through the AI extractor so multiple fields can be updated at once.
+  const onNext = async () => {
+    if (!field) {
+      return;
+    }
+
+    // =========================================================
+    // CONVERSATIONAL CORRECTIONS
+    // =========================================================
+
     if (
       typeof value === "string" &&
       value.trim().length > 6 &&
       CORRECTION_RE.test(value) &&
       (field.input === "text" || field.input === "textarea")
     ) {
-      await runAiExtraction({ text: value });
+      await runAiExtraction({
+        text: value,
+      });
+
       return;
     }
 
+    // =========================================================
+    // VALIDATE
+    // =========================================================
+
     const err = validate(field, value);
+
     if (err) {
       setError(err);
+
       return;
     }
+
+    // =========================================================
+    // COMMIT
+    // =========================================================
+
     await commitAnswer(value);
   };
 
+  /* ===========================================================
+   SKIP
+=========================================================== */
+
   const onSkip = async () => {
-    if (!field || !isOptional(field)) return;
+    if (!field || !isOptional(field)) {
+      return;
+    }
+
     const skippedId = field.id;
-    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: "Skip" }]);
-    setHistory((h) => [...h, { field, value: null }]);
+
+    // =========================================================
+    // USER MESSAGE
+    // =========================================================
+
+    setMessages((m) => [
+      ...m,
+      {
+        id: uid(),
+        role: "user",
+        kind: "text",
+        text: "Skip",
+      },
+    ]);
+
+    // =========================================================
+    // HISTORY
+    // =========================================================
+
+    setHistory((h) => [
+      ...h,
+      {
+        field,
+        value: null,
+      },
+    ]);
+
+    // =========================================================
+    // NEW STATE
+    // IMPORTANT
+    // REMOVE FIELD
+    // =========================================================
+
+    const newState = {
+      ...state,
+    };
+
+    delete newState[skippedId];
+
+    // =========================================================
+    // SAVE STATE
+    // =========================================================
+
+    setState(newState);
+
     setValue("");
+
     setError(null);
-    // Tell the engine this field was deliberately skipped so the
-    // resolver doesn't re-ask it on the next call.
+
+    // =========================================================
+    // ENGINE SKIP
+    // =========================================================
+
     try {
       engineRef.current?.skipField(skippedId);
     } catch {}
-    await fetchNext(state);
+
+    // =========================================================
+    // IMPORTANT
+    // USE UPDATED STATE
+    // =========================================================
+
+    await fetchNext(newState);
   };
 
+  /* ===========================================================
+   BACK
+=========================================================== */
+
   const onBack = async () => {
-    if (history.length === 0) return;
+    if (history.length === 0) {
+      return;
+    }
+
     const prev = history[history.length - 1];
+
+    // =========================================================
+    // REMOVE HISTORY
+    // =========================================================
+
     setHistory(history.slice(0, -1));
-    const cleared = { ...state };
+
+    // =========================================================
+    // CLEAR STATE
+    // =========================================================
+
+    const cleared = {
+      ...state,
+    };
+
     delete cleared[prev.field.id];
+
     setState(cleared);
+
     setDone(false);
-    // remove last user + last ai question pair
+
+    // =========================================================
+    // REMOVE CHAT PAIR
+    // =========================================================
+
     setMessages((m) => {
       const copy = [...m];
-      // pop trailing AI question
-      while (copy.length && copy[copy.length - 1].role === "ai") copy.pop();
-      // pop user answer
-      if (copy.length && copy[copy.length - 1].role === "user") copy.pop();
+
+      // -------------------------------------------------------
+      // remove trailing ai
+      // -------------------------------------------------------
+
+      while (copy.length && copy[copy.length - 1].role === "ai") {
+        copy.pop();
+      }
+
+      // -------------------------------------------------------
+      // remove user answer
+      // -------------------------------------------------------
+
+      if (copy.length && copy[copy.length - 1].role === "user") {
+        copy.pop();
+      }
+
       return copy;
     });
+
+    // =========================================================
+    // IMPORTANT
+    // REMOVE SKIPPED TOO
+    // =========================================================
+
+    try {
+      const engine = engineRef.current;
+
+      if (engine) {
+        const s = engine.getState();
+
+        s.skipped = s.skipped.filter((id) => id !== prev.field.id);
+      }
+    } catch {}
+
+    // =========================================================
+    // FETCH
+    // =========================================================
+
     await fetchNext(cleared);
   };
 
