@@ -1,6 +1,3 @@
-# Updated agricultureLand.ts (Client Excel Aligned)
-
-```ts
 // ============================================================
 // Agriculture Land conversational flow config
 // CLIENT EXCEL ALIGNED VERSION
@@ -763,4 +760,4 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 };
 
 export default agricultureLandFlow;
-```
+export { agricultureLandFlow as agricultureFlow };
