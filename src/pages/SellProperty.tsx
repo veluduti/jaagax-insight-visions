@@ -1638,6 +1638,7 @@ export default function SellProperty() {
       </div>
 
       {/* Chat scroll area */}
+      {!showCategoryPicker && (
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto overscroll-contain"
