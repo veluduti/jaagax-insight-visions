@@ -54,6 +54,10 @@ export interface SmartSuggestionsConfig {
   durations?: string[];
 
   examples?: string[];
+
+  realtime?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
