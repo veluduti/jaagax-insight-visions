@@ -1,6 +1,3 @@
-# Updated plots.ts (Client Excel Aligned)
-
-```ts
 // ============================================================
 // Plots / Land conversational flow config
 // CLIENT EXCEL ALIGNED VERSION
