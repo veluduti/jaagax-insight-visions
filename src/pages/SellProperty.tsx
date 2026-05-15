@@ -1638,6 +1638,7 @@ export default function SellProperty() {
       </div>
 
       {/* Chat scroll area */}
+      {!showCategoryPicker && (
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto overscroll-contain"
@@ -1765,26 +1766,7 @@ export default function SellProperty() {
             </div>
           )}
 
-          {/* AI suggestions chips (titles, etc.) */}
-          {field && suggestions.length > 0 && !loadingNext && !done && (
-            <div className="pt-1 pl-1">
-              <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-1">
-                <Wand2 className="h-3 w-3" /> AI suggestions
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => commitAnswer(s, s)}
-                    className="text-left text-xs px-3 py-2 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/20 transition max-w-[260px]"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
 
@@ -2088,6 +2070,7 @@ export default function SellProperty() {
           )}
         </div>
       </div>
+      )}
 
       {/* Input dock */}
      {showInputBar && (
