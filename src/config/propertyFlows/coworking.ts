@@ -1,6 +1,3 @@
-# Updated coworkingSharedSpaces.ts (Client Excel Aligned)
-
-```ts
 // ============================================================
 // Co-working / Shared Spaces conversational flow config
 // CLIENT EXCEL ALIGNED VERSION
@@ -812,4 +809,4 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 };
 
 export default coworkingSharedSpacesFlow;
-```
+export { coworkingSharedSpacesFlow as coworkingFlow };
