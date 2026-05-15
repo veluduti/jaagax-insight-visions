@@ -158,10 +158,14 @@ resolve(state) {
     }
 
     // ==================================================
-    // SKIP USER SKIPPED
+    // SKIP USER SKIPPED (honor flow.ai.persistSkippedFields)
     // ==================================================
 
+    const persistSkipped =
+      flow.ai?.persistSkippedFields !== false;
+
     if (
+      persistSkipped &&
       state.skipped.includes(
         fieldId,
       )
@@ -170,18 +174,33 @@ resolve(state) {
     }
 
     // ==================================================
-    // BUILD QUESTION
+    // BUILD QUESTION (schema-driven, with field fallback)
     // ==================================================
 
+    const explicit =
+      flow.questions?.[fieldId];
+
+    const isMulti =
+      (field as any).type === "multi_select" ||
+      field.input === "multi" ||
+      field.input === "multi_select";
+
     const question =
-      flow.questions?.[
-        fieldId
-      ] || {
+      explicit || {
         fieldId,
 
         prompt:
           field.question ||
-          `Please provide ${field.label}`,
+          field.label ||
+          `Please provide ${fieldId.replace(/_/g, " ")}`,
+
+        helper: (field as any).placeholder,
+
+        quickReplies: field.options,
+
+        multiSelect: isMulti,
+
+        aiSuggestionHint: (field as any).aiSuggestionHint,
       };
 
     // ==================================================
