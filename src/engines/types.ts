@@ -150,6 +150,10 @@ export interface FieldDefinition {
   // FILE / PDF EXTRACTION
 
   extraction?: ExtractionConfig;
+
+  type?: string;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
