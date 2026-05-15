@@ -60,6 +60,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     price_per_unit: "number",
     rental_price: "number",
     measurement: "number",
+    measurement_unit: "single",
     number: "number",
     future_date: "text",
     date: "text",
@@ -75,16 +76,35 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     text: "text",
   };
   const ss = raw?.smartSuggestions || {};
+  const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
   return {
     id: fieldId,
     question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
+    placeholder: raw?.placeholder,
     input: map[t] || "text",
-    options: Array.isArray(raw?.options) ? raw.options : undefined,
+    options: Array.isArray(raw?.options)
+      ? raw.options
+      : isMeasurementUnit && Array.isArray(ss.units)
+        ? ss.units
+        : undefined,
     required: raw?.required === true,
-    optional: raw?.required !== true,
+    optional: raw?.required !== true || raw?.allowSkip === true,
+    allowSkip: raw?.allowSkip === true,
     units: Array.isArray(raw?.units) ? raw.units : (Array.isArray(ss.units) ? ss.units : undefined),
     durations: Array.isArray(ss.durations) ? ss.durations : undefined,
-    suggestionType: ss.type || (t === "rental_price" ? "rental_duration" : t === "measurement" ? "measurement_units" : t === "price" || t === "price_per_unit" ? "price" : undefined),
+    examples: Array.isArray(ss.examples) ? ss.examples : undefined,
+    searchable: ss.searchable === true,
+    realtime: ss.realtime === true,
+    suggestionType:
+      ss.type ||
+      (t === "rental_price"
+        ? "rental_duration"
+        : t === "measurement" || t === "measurement_unit"
+          ? "measurement_units"
+          : t === "price" || t === "price_per_unit"
+            ? "price"
+            : undefined),
+    raw,
   };
 }
 
@@ -95,6 +115,7 @@ type FieldDef = {
   id: string;
   section?: string;
   question: string;
+  placeholder?: string;
   input:
     | "text" | "textarea" | "number" | "phone" | "email"
     | "single" | "multi" | "yesno" | "media"
@@ -102,9 +123,14 @@ type FieldDef = {
   options?: string[];
   optional?: boolean;
   required?: boolean;
+  allowSkip?: boolean;
   units?: string[];
   durations?: string[];
+  examples?: string[];
+  searchable?: boolean;
+  realtime?: boolean;
   suggestionType?: string;
+  raw?: any;
 };
 
 type NextResp =
