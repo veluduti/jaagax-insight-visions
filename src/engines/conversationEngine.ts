@@ -198,6 +198,26 @@ applyAnswer(fieldId, value) {
   }
 
   // ====================================================
+  // PRICING NORMALIZATION
+  // (5cr -> 50000000, 50L -> 5000000, 25k -> 25000)
+  // ====================================================
+
+  const fieldDef = flow.fields[fieldId];
+  const fieldKind = (fieldDef as any)?.type || fieldDef?.input;
+  const isPriceField =
+    flow.ai?.autoNormalizePricingUnits !== false &&
+    (fieldKind === "price" ||
+      fieldKind === "rental_price" ||
+      fieldKind === "price_per_unit");
+
+  if (isPriceField && typeof value === "string") {
+    const normalized = normalizePriceString(value);
+    if (Number.isFinite(normalized) && normalized > 0) {
+      value = normalized;
+    }
+  }
+
+  // ====================================================
   // APPLY ANSWER
   // ====================================================
 
