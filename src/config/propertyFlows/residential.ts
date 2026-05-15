@@ -1,10 +1,11 @@
 // ============================================================
-// Residential flow config — SCAFFOLD ONLY.
-// Business logic intentionally not implemented yet.
+// Residential conversational flow config
+// CLIENT EXCEL ALIGNED VERSION
 // ============================================================
+
 import type { PropertyFlowConfig } from "@/engines/types";
 
-export const residentialFlow = {
+export const residentialFlow: PropertyFlowConfig = {
   category: "residential",
 
   label: "Residential",
@@ -25,6 +26,13 @@ export const residentialFlow = {
     supportHumanLikeReplies: true,
     supportContextAwareness: true,
     supportDynamicFollowups: true,
+    persistSkippedFields: true,
+    preventDuplicateQuestions: true,
+    maintainConversationState: true,
+    realtimeSuggestions: true,
+    autoNormalizePricingUnits: true,
+    supportQuickReplyChips: true,
+    supportSearchableDropdowns: true,
   },
 
   order: [
@@ -33,6 +41,7 @@ export const residentialFlow = {
     "listing_type",
 
     "total_price",
+    "unit_type",
     "price_per_unit",
 
     "monthly_rent",
@@ -42,6 +51,7 @@ export const residentialFlow = {
     "property_age",
 
     "availability_status",
+    "possession_date",
 
     "flat_size",
     "floor_number",
@@ -55,7 +65,12 @@ export const residentialFlow = {
 
     "bhk_type",
 
-    "project_details",
+    "project_name",
+    "gated_community",
+    "total_towers",
+    "floors_per_tower",
+    "total_units",
+    "project_land_area",
 
     "furnishing_status",
     "furnishing_items",
@@ -73,6 +88,9 @@ export const residentialFlow = {
     "property_highlights",
 
     "media_uploads",
+
+    "contact_name",
+    "mobile_number",
   ],
 
   fields: {
@@ -145,12 +163,62 @@ export const residentialFlow = {
 
       question: "What is the total property price?",
 
+      placeholder: "Enter property price",
+
       smartSuggestions: {
         enabled: true,
 
+        realtime: true,
+
+        searchable: true,
+
+        chips: true,
+
         type: "indian_price_format",
 
-        examples: ["2 Hundred", "2 Thousand", "2.5 Lakhs", "1 Crore"],
+        behavior: {
+          whileTyping: true,
+          allowClickSelection: true,
+          preserveRawValue: true,
+        },
+
+        examples: [
+          "100 → 1 Hundred",
+          "1000 → 1 Thousand",
+          "100000 → 1 Lakh",
+          "1000000 → 10 Lakhs",
+          "10000000 → 1 Crore",
+        ],
+      },
+    },
+
+    // =========================================================
+    // UNIT TYPE
+    // =========================================================
+
+    unit_type: {
+      type: "measurement_unit",
+
+      required: false,
+
+      visibleIf: {
+        listing_type: ["Buy"],
+      },
+
+      question: "Select pricing unit.",
+
+      smartSuggestions: {
+        enabled: true,
+
+        realtime: true,
+
+        chips: true,
+
+        type: "dynamic_measurement_units",
+
+        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
+
+        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sqyd"],
       },
     },
 
@@ -172,9 +240,17 @@ export const residentialFlow = {
       smartSuggestions: {
         enabled: true,
 
-        type: "measurement_units",
+        realtime: true,
 
-        units: ["Sqft", "Sqyd", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Sqm", "Katha"],
+        chips: true,
+
+        searchable: true,
+
+        type: "dynamic_price_per_unit",
+
+        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
+
+        examples: ["₹5000 / Sqft", "₹5000 / Gunta", "₹5000 / Acre"],
       },
     },
 
@@ -196,9 +272,17 @@ export const residentialFlow = {
       smartSuggestions: {
         enabled: true,
 
-        type: "rental_duration",
+        realtime: true,
 
-        durations: ["Monthly", "Hourly", "Weekly", "Daily", "3 Months", "6 Months", "Yearly", "Per Night", "Quarterly"],
+        searchable: true,
+
+        chips: true,
+
+        type: "rental_duration_suggestions",
+
+        durations: ["Monthly", "Weekly", "Daily", "3 Months", "6 Months", "Yearly", "Per Night", "Quarterly"],
+
+        examples: ["₹10000 / Monthly", "₹10000 / Weekly", "₹10000 / Daily"],
       },
     },
 
@@ -271,7 +355,6 @@ export const residentialFlow = {
 
       visibleIf: {
         availability_status: ["Under Construction"],
-        property_condition: ["New"],
       },
 
       question: "When is possession expected?",
@@ -302,6 +385,8 @@ export const residentialFlow = {
 
       smartSuggestions: {
         enabled: true,
+        realtime: true,
+        chips: true,
         type: "measurement_units",
       },
     },
@@ -342,6 +427,59 @@ export const residentialFlow = {
       question: "How many total floors are there in the building?",
     },
 
+    // =========================================================
+    // LAND SIZE
+    // =========================================================
+
+    land_size: {
+      type: "measurement",
+
+      required: true,
+
+      visibleIf: {
+        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+      },
+
+      question: "What is the land size?",
+
+      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
+
+      smartSuggestions: {
+        enabled: true,
+        realtime: true,
+        searchable: true,
+        chips: true,
+        type: "dynamic_measurement_units",
+
+        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sq Yard"],
+      },
+    },
+
+    built_area: {
+      type: "measurement",
+
+      required: true,
+
+      visibleIf: {
+        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+      },
+
+      question: "What is the built area?",
+
+      units: ["Sq Ft", "Sq Yard"],
+
+      smartSuggestions: {
+        enabled: true,
+        realtime: true,
+        chips: true,
+        type: "measurement_units",
+      },
+    },
+
+    // =========================================================
+    // PARKING
+    // =========================================================
+
     parking_type: {
       type: "single_select",
 
@@ -367,43 +505,6 @@ export const residentialFlow = {
     },
 
     // =========================================================
-    // LAND SIZE
-    // =========================================================
-
-    land_size: {
-      type: "measurement",
-
-      required: true,
-
-      visibleIf: {
-        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
-      },
-
-      question: "What is the land size?",
-
-      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
-      smartSuggestions: {
-        enabled: true,
-        type: "measurement_units",
-      },
-    },
-
-    built_area: {
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the built area?",
-
-      units: ["Sq Ft", "Sq Yard"],
-
-      smartSuggestions: {
-        enabled: true,
-        type: "measurement_units",
-      },
-    },
-
-    // =========================================================
     // BHK
     // =========================================================
 
@@ -421,12 +522,83 @@ export const residentialFlow = {
     // PROJECT DETAILS
     // =========================================================
 
-    project_details: {
-      type: "textarea",
+    project_name: {
+      type: "text",
 
       required: false,
 
-      question: "Please provide project or community details.",
+      question: "Please provide project or community name.",
+
+      allowSkip: true,
+    },
+
+    gated_community: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Is this inside a gated community?",
+
+      options: ["Yes", "No"],
+    },
+
+    total_towers: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        property_type: ["Apartment / Flat", "Penthouse", "Builder Floor Apartment", "Serviced Apartment"],
+        gated_community: ["Yes"],
+      },
+
+      question: "How many towers are in the project?",
+
+      allowSkip: true,
+    },
+
+    floors_per_tower: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        gated_community: ["Yes"],
+      },
+
+      question: "How many floors per tower?",
+
+      allowSkip: true,
+    },
+
+    total_units: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        gated_community: ["Yes"],
+      },
+
+      question: "How many total units are there?",
+
+      allowSkip: true,
+    },
+
+    project_land_area: {
+      type: "measurement",
+
+      required: false,
+
+      visibleIf: {
+        gated_community: ["Yes"],
+      },
+
+      question: "What is the total project land area?",
+
+      units: ["Acres", "Sq Yard", "Sq Ft"],
+
+      allowSkip: true,
     },
 
     // =========================================================
@@ -512,8 +684,16 @@ export const residentialFlow = {
         "EMI Available",
         "Installments Available",
         "Flexible Payment Plan",
+        "Construction Linked Payment",
+        "Possession Linked Payment",
         "Zero Down Payment",
         "Low Booking Amount",
+        "Assured Rental Returns",
+        "Investor Friendly",
+        "NRI Assistance",
+        "Pre-EMI Support",
+        "Premium Bank Tie-Ups",
+        "Custom Payment Plans",
         "Immediate Registration",
       ],
     },
@@ -564,12 +744,25 @@ export const residentialFlow = {
       ],
 
       smartSuggestions: {
+        enabled: true,
+
         realtime: true,
+
+        searchable: true,
+
+        chips: true,
+
         typoFriendly: true,
+
         gpsSupport: true,
+
         mapSelection: true,
+
         pincodeAutoFill: true,
+
         dependentHierarchy: true,
+
+        currentLocation: true,
       },
     },
 
@@ -621,7 +814,31 @@ export const residentialFlow = {
         autoExtractPropertyData: true,
 
         autoDetectMissingFields: true,
+
+        continueFromExtractedState: true,
       },
+    },
+
+    // =========================================================
+    // CONTACT
+    // =========================================================
+
+    contact_name: {
+      type: "text",
+
+      required: false,
+
+      question: "Could I have your full name for the listing?",
+
+      allowSkip: true,
+    },
+
+    mobile_number: {
+      type: "phone",
+
+      required: true,
+
+      question: "Please share your 10-digit mobile number.",
     },
   },
 
@@ -633,6 +850,10 @@ export const residentialFlow = {
     },
 
     {
+      type: "normalize_pricing_units",
+    },
+
+    {
       type: "ask_only_missing_fields",
     },
 
@@ -641,11 +862,27 @@ export const residentialFlow = {
     },
 
     {
+      type: "persist_skipped_fields",
+    },
+
+    {
+      type: "prevent_duplicate_questions",
+    },
+
+    {
       type: "dynamic_followup_questions",
     },
 
     {
       type: "human_like_conversation",
+    },
+
+    {
+      type: "realtime_suggestions",
+    },
+
+    {
+      type: "multiple_listing_variations",
     },
   ],
 };
