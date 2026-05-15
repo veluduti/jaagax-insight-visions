@@ -760,3 +760,4 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 };
 
 export default agricultureLandFlow;
+export { agricultureLandFlow as agricultureFlow };
