@@ -1640,9 +1640,11 @@ export default function SellProperty() {
       {/* Chat scroll area */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto overscroll-contain"
         style={{
-          backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
+          paddingBottom: "180px",
+          backgroundImage:
+            "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
           backgroundSize: "16px 16px",
         }}
       >
@@ -1684,14 +1686,9 @@ export default function SellProperty() {
                           setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
                         } else {
                           setValue(opt);
-                          // auto-send on single-pick for snappy UX
-                          setTimeout(() => {
-                            setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
-                            const newState = { ...state, [field.id]: opt };
-                            setHistory((h) => [...h, { field, value: opt }]);
-                            setState(newState);
-                            setError(null);
-                            fetchNext(newState);
+
+                          setTimeout(async () => {
+                            await commitAnswer(opt, opt);
                           }, 80);
                         }
                       }}
@@ -1727,13 +1724,8 @@ export default function SellProperty() {
                       const numeric = opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
                       const sendVal = isNaN(numeric) ? opt : numeric;
                       setValue(sendVal);
-                      setTimeout(() => {
-                        setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
-                        const newState = { ...state, [field.id]: sendVal };
-                        setHistory((h) => [...h, { field, value: sendVal }]);
-                        setState(newState);
-                        setError(null);
-                        fetchNext(newState);
+                      setTimeout(async () => {
+                        await commitAnswer(sendVal, opt);
                       }, 80);
                     }}
                     className={cn(
@@ -1793,73 +1785,6 @@ export default function SellProperty() {
               </div>
             </div>
           )}
-
-          {/* Smart suggestion chips — clickable, commits to engine */}
-          {field &&
-            !loadingNext &&
-            !done &&
-            field.input === "number" &&
-            value &&
-            (() => {
-              const sType =
-                field.suggestionType ||
-                (/rent/i.test(field.id)
-                  ? "rental_duration"
-                  : /price|amount|cost|budget/i.test(field.id)
-                    ? "price"
-                    : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
-                      ? "measurement_units"
-                      : undefined);
-
-              type Chip = { label: string; commit: any; display: string };
-              let chips: Chip[] = [];
-
-              if (sType === "rental_duration") {
-                chips = getRentSuggestions(value, field.durations).map((s) => ({
-                  label: s.label,
-                  commit: { amount: s.value, duration: s.duration },
-                  display: s.label,
-                }));
-              } else if (sType === "price" || sType === "price_per_unit") {
-                chips = getPriceSuggestions(value).map((s) => ({
-                  label: s.label,
-                  commit: s.value,
-                  display: s.label,
-                }));
-              } else if (sType === "measurement_units") {
-                const units = (
-                  field.units && field.units.length
-                    ? field.units
-                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha"]
-                ) as PriceUnit[];
-                chips = getUnitSuggestions(value, units).map((s) => ({
-                  label: s.label,
-                  commit: { area: s.value, unit: s.unit },
-                  display: s.label,
-                }));
-              }
-
-              if (chips.length === 0) return null;
-              return (
-                <div className="pt-1 pl-1">
-                  <div className="text-[10px] text-muted-foreground mb-1.5 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Did you mean
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {chips.map((c, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => commitAnswer(c.commit, c.display)}
-                        className="text-xs px-3 py-1.5 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 transition"
-                      >
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
 
           {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
 
