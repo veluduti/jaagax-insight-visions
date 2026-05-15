@@ -70,6 +70,8 @@ export interface ExtractionConfig {
   autoExtractPropertyData?: boolean;
 
   autoDetectMissingFields?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------
