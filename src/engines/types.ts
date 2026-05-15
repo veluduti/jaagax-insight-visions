@@ -57,6 +57,24 @@ export interface SmartSuggestionsConfig {
 
   realtime?: boolean;
 
+  searchable?: boolean;
+
+  chips?: boolean;
+
+  typoFriendly?: boolean;
+
+  gpsSupport?: boolean;
+
+  mapSelection?: boolean;
+
+  pincodeAutoFill?: boolean;
+
+  dependentHierarchy?: boolean;
+
+  currentLocation?: boolean;
+
+  behavior?: Record<string, unknown>;
+
   [key: string]: unknown;
 }
 
@@ -70,6 +88,8 @@ export interface ExtractionConfig {
   autoExtractPropertyData?: boolean;
 
   autoDetectMissingFields?: boolean;
+
+  continueFromExtractedState?: boolean;
 
   [key: string]: unknown;
 }
