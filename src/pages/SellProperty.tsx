@@ -10,9 +10,21 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
-  Sparkles, ChevronLeft, CheckCircle2, Loader2, Wand2, ArrowRight,
-  ImagePlus, X, Mic, MicOff, Send, Image as ImageIcon, Camera,
-  Pencil, Lightbulb,
+  Sparkles,
+  ChevronLeft,
+  CheckCircle2,
+  Loader2,
+  Wand2,
+  ArrowRight,
+  ImagePlus,
+  X,
+  Mic,
+  MicOff,
+  Send,
+  Image as ImageIcon,
+  Camera,
+  Pencil,
+  Lightbulb,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
@@ -31,7 +43,10 @@ function buildPropertyDescription(s: Record<string, any>): string {
   const where = s.locality || s.city || "a prime location";
   if (typeLabel) parts.push(`${typeLabel} available for ${purpose} in ${where}.`);
   const area = s.built_up_area || s.plot_area || s.carpet_area || s.shop_area;
-  if (area) parts.push(`Spread across ${area} ${s.area_unit || "sq ft"}${s.facing ? `, facing ${String(s.facing).toLowerCase()}` : ""}.`);
+  if (area)
+    parts.push(
+      `Spread across ${area} ${s.area_unit || "sq ft"}${s.facing ? `, facing ${String(s.facing).toLowerCase()}` : ""}.`,
+    );
   if (s.furnishing) parts.push(`The unit comes ${String(s.furnishing).toLowerCase()}.`);
   if (s.floor_number || s.total_floors) {
     parts.push(`Located on floor ${s.floor_number ?? "—"}${s.total_floors ? ` of ${s.total_floors}` : ""}.`);
@@ -90,7 +105,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     required: raw?.required === true,
     optional: raw?.required !== true || raw?.allowSkip === true,
     allowSkip: raw?.allowSkip === true,
-    units: Array.isArray(raw?.units) ? raw.units : (Array.isArray(ss.units) ? ss.units : undefined),
+    units: Array.isArray(raw?.units) ? raw.units : Array.isArray(ss.units) ? ss.units : undefined,
     durations: Array.isArray(ss.durations) ? ss.durations : undefined,
     examples: Array.isArray(ss.examples) ? ss.examples : undefined,
     searchable: ss.searchable === true,
@@ -117,9 +132,18 @@ type FieldDef = {
   question: string;
   placeholder?: string;
   input:
-    | "text" | "textarea" | "number" | "phone" | "email"
-    | "single" | "multi" | "yesno" | "media"
-    | "city" | "locality" | "price_unit";
+    | "text"
+    | "textarea"
+    | "number"
+    | "phone"
+    | "email"
+    | "single"
+    | "multi"
+    | "yesno"
+    | "media"
+    | "city"
+    | "locality"
+    | "price_unit";
   options?: string[];
   optional?: boolean;
   required?: boolean;
@@ -276,19 +300,25 @@ export default function SellProperty() {
 
   /* ----- Smart locality-aware hint per current field ----- */
   useEffect(() => {
-    if (!field) { setSmartHint(null); return; }
+    if (!field) {
+      setSmartHint(null);
+      return;
+    }
     let cancelled = false;
     setSmartHint(null);
     (async () => {
       try {
-        const { data } = await supabase.functions.invoke<{ hint: string | null }>(
-          "ai-smart-hint",
-          { body: { field_id: field.id, state } },
-        );
+        const { data } = await supabase.functions.invoke<{ hint: string | null }>("ai-smart-hint", {
+          body: { field_id: field.id, state },
+        });
         if (!cancelled && data?.hint) setSmartHint(data.hint);
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [field?.id]);
 
@@ -344,28 +374,45 @@ export default function SellProperty() {
       for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
       if (txt) setValue((prev: any) => (typeof prev === "string" ? txt : prev));
     };
-    rec.onerror = () => { setIsListening(false); toast.error("Voice failed. Try again."); };
+    rec.onerror = () => {
+      setIsListening(false);
+      toast.error("Voice failed. Try again.");
+    };
     rec.onend = () => setIsListening(false);
     recognitionRef.current = rec;
   }, []);
 
   const toggleVoice = () => {
     const rec = recognitionRef.current;
-    if (!rec) { toast.error("Voice not supported in this browser"); return; }
-    if (isListening) { rec.stop(); setIsListening(false); }
-    else {
-      try { rec.start(); setIsListening(true); }
-      catch { /* already started */ }
+    if (!rec) {
+      toast.error("Voice not supported in this browser");
+      return;
+    }
+    if (isListening) {
+      rec.stop();
+      setIsListening(false);
+    } else {
+      try {
+        rec.start();
+        setIsListening(true);
+      } catch {
+        /* already started */
+      }
     }
   };
 
   /* ----- Pre-fill seller from auth ----- */
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
       const { data: profile } = await supabase
-        .from("profiles" as any).select("name, phone, email").eq("user_id", user.id).maybeSingle();
+        .from("profiles" as any)
+        .select("name, phone, email")
+        .eq("user_id", user.id)
+        .maybeSingle();
       if (profile) {
         setState((s) => ({
           ...s,
@@ -381,11 +428,15 @@ export default function SellProperty() {
   useEffect(() => {
     setMessages([
       {
-        id: uid(), role: "ai", kind: "text",
+        id: uid(),
+        role: "ai",
+        kind: "text",
         text: "👋 Hi! I'll help you list your property.",
       },
       {
-        id: uid(), role: "ai", kind: "text",
+        id: uid(),
+        role: "ai",
+        kind: "text",
         text: "What type of property are you listing?",
       },
     ]);
@@ -403,19 +454,22 @@ export default function SellProperty() {
       ...m,
       { id: uid(), role: "user", kind: "text", text: opt?.label || cat },
       {
-        id: uid(), role: "ai", kind: "text",
+        id: uid(),
+        role: "ai",
+        kind: "text",
         text: `Great — let's list your ${opt?.label || cat} property. Tell me about it — type, speak, or upload an image, PDF or brochure. Or skip to go step by step.`,
       },
     ]);
   };
 
   /* ----- Run AI extraction on free-form text / poster image and start the structured flow ----- */
-  const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Could not read the selected image"));
-    reader.readAsDataURL(file);
-  });
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read the selected image"));
+      reader.readAsDataURL(file);
+    });
 
   const buildDetectedSummary = (ext: Record<string, any>) => {
     const parts: string[] = [];
@@ -427,7 +481,8 @@ export default function SellProperty() {
     if (ext.location) tail.push(`in ${ext.location}`);
     if (ext.city) tail.push(ext.city);
     if (ext.built_up_area) tail.push(`${ext.built_up_area} ${ext.area_unit || "sq ft"}`);
-    if (ext.price_per_unit) tail.push(`₹${new Intl.NumberFormat("en-IN").format(Number(ext.price_per_unit))}/${ext.area_unit || "unit"}`);
+    if (ext.price_per_unit)
+      tail.push(`₹${new Intl.NumberFormat("en-IN").format(Number(ext.price_per_unit))}/${ext.area_unit || "unit"}`);
     if (ext.furnishing) tail.push(ext.furnishing);
     if (ext.purpose) tail.push(`for ${ext.purpose}`);
 
@@ -437,7 +492,8 @@ export default function SellProperty() {
   const normalizeListingState = (incoming: Record<string, any>) => {
     const next = { ...incoming };
     const existingPriceUnit = typeof next.price_unit === "object" && next.price_unit ? next.price_unit : {};
-    const inferredArea = next.plot_area || next.built_up_area || next.shop_area || next.total_area || next.carpet_area || "";
+    const inferredArea =
+      next.plot_area || next.built_up_area || next.shop_area || next.total_area || next.carpet_area || "";
     const inferredUnit = next.unit || next.area_unit || existingPriceUnit.unit || "sq ft";
     const inferredPricePerUnit = next.price_per_unit || existingPriceUnit.pricePerUnit || "";
 
@@ -508,17 +564,21 @@ export default function SellProperty() {
         if (v === "" || v === null || v === undefined) return false;
         if (Array.isArray(v) && v.length === 0) return false;
         const prev = (before as any)[k];
-        const wasEmpty = prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
+        const wasEmpty =
+          prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
         return wasEmpty;
       }).length;
 
       setMessages((m) => [
         ...m.filter((x) => x.id !== typingId),
         {
-          id: uid(), role: "ai", kind: "text",
-          text: newlyFilled > 0
-            ? `✨ Auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}. Just a few quick questions left.`
-            : "Got it — let me ask a couple of quick questions.",
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text:
+            newlyFilled > 0
+              ? `✨ Auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}. Just a few quick questions left.`
+              : "Got it — let me ask a couple of quick questions.",
         },
       ]);
     } catch (e: any) {
@@ -542,64 +602,190 @@ export default function SellProperty() {
 
   const skipIntake = async () => {
     setIntakeDone(true);
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "user", kind: "text", text: "Let's go step by step" },
-    ]);
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: "Let's go step by step" }]);
     await fetchNext(state, true);
   };
 
   /* ----- Resolve next field via the deterministic local engine ----- */
   const fetchNext = async (currentState: Record<string, any>, _isFirst = false, sharedTypingId?: string) => {
     setLoadingNext(true);
+
     setError(null);
 
     const typingId = sharedTypingId || uid();
+
+    // =========================================================
+    // SHOW TYPING
+    // =========================================================
+
     if (!sharedTypingId) {
-      setMessages((m) => [...m, { id: typingId, role: "ai", kind: "typing" }]);
+      setMessages((m) => [
+        ...m,
+        {
+          id: typingId,
+          role: "ai",
+          kind: "typing",
+        },
+      ]);
     }
 
     try {
       const engine = engineRef.current!;
-      engine.applyExtractedFields(currentState);
+
+      // =======================================================
+      // IMPORTANT
+      // APPLY ONLY SAFE EXTRACTED FIELDS
+      // =======================================================
+
+      if (currentState && Object.keys(currentState).length > 0) {
+        engine.applyExtractedFields(currentState, {
+          overwrite: false,
+        });
+      }
+
+      // =======================================================
+      // GET NEXT QUESTION
+      // =======================================================
+
       const result: NextQuestionResult = engine.next();
 
-      await new Promise((r) => setTimeout(r, 120));
+      // =======================================================
+      // SMALL HUMAN DELAY
+      // =======================================================
+
+      await new Promise((r) => setTimeout(r, 180));
+
+      // =======================================================
+      // REMOVE TYPING
+      // =======================================================
+
       setMessages((m) => m.filter((x) => x.id !== typingId));
+
+      // =======================================================
+      // COMPLETED
+      // =======================================================
 
       if (result.done || !result.field) {
         setDone(true);
+
         setField(null);
+
         setProgress(result.progress);
+
+        setSuggestions([]);
+
         setMessages((m) => [
           ...m,
-          { id: uid(), role: "ai", kind: "text", text: "🎉 That's everything I need! Review your details below and publish when ready." },
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: "🎉 That's everything I need! Review your details below and publish when ready.",
+          },
         ]);
+
         return;
       }
 
+      // =======================================================
+      // FIELD SETUP
+      // =======================================================
+
       const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
+
       const ui = adaptEngineField(fieldId, result.field);
+
+      // =======================================================
+      // IMPORTANT
+      // STORE FIELD
+      // =======================================================
+
       setField(ui);
-      setSuggestions([]);
+
+      // =======================================================
+      // REALTIME SMART SUGGESTIONS
+      // =======================================================
+
+      const smartSuggestions = (result.question as any)?.smartSuggestions;
+
+      const units = (result.question as any)?.units || [];
+
+      // -------------------------------------------------------
+      // DO NOT CLEAR SUGGESTIONS
+      // -------------------------------------------------------
+
+      if (smartSuggestions) {
+        setSuggestions([
+          {
+            type: "smart",
+            config: smartSuggestions,
+            units,
+          },
+        ]);
+      } else {
+        setSuggestions([]);
+      }
+
+      // =======================================================
+      // PROGRESS
+      // =======================================================
+
       setProgress(result.progress);
 
-      const existing = currentState[fieldId];
-      if (existing !== undefined && existing !== null && existing !== "") setValue(existing);
-      else if (ui.input === "multi") setValue([]);
-      else if (ui.input === "price_unit") setValue({ unit: "sq ft", area: "", pricePerUnit: "" });
-      else setValue("");
+      // =======================================================
+      // EXISTING VALUE
+      // =======================================================
+
+      const existing = currentState?.[fieldId];
+
+      if (existing !== undefined && existing !== null && existing !== "") {
+        setValue(existing);
+      } else if (ui.input === "multi") {
+        setValue([]);
+      } else if (ui.input === "price_unit") {
+        setValue({
+          unit: "sq ft",
+          area: "",
+          pricePerUnit: "",
+        });
+      } else {
+        setValue("");
+      }
+
+      // =======================================================
+      // AI MESSAGE
+      // =======================================================
 
       setMessages((m) => [
         ...m,
-        { id: uid(), role: "ai", kind: "text", text: result.question?.prompt || ui.question },
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: result.question?.prompt || ui.question,
+        },
       ]);
     } catch (e: any) {
+      // =======================================================
+      // REMOVE TYPING
+      // =======================================================
+
       setMessages((m) => m.filter((x) => x.kind !== "typing"));
+
+      // =======================================================
+      // ERROR
+      // =======================================================
+
       setError(e.message || "Could not load next question");
+
       setMessages((m) => [
         ...m,
-        { id: uid(), role: "ai", kind: "text", text: "Hmm, I had trouble continuing. Tap retry or type your answer." },
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: "Hmm, I had trouble continuing. Tap retry or type your answer.",
+        },
       ]);
     } finally {
       setLoadingNext(false);
@@ -610,10 +796,7 @@ export default function SellProperty() {
   const commitAnswer = async (val: any, displayText?: string, targetField?: FieldDef) => {
     const f = targetField || field;
     if (!f) return;
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "user", kind: "text", text: displayText ?? formatAnswer(f, val) },
-    ]);
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: displayText ?? formatAnswer(f, val) }]);
     const newState = { ...state, [f.id]: val };
     setHistory((h) => [...h, { field: f, value: val }]);
     setState(newState);
@@ -621,7 +804,9 @@ export default function SellProperty() {
     setError(null);
     // Explicit engine answer — guarantees the field is marked answered
     // regardless of value shape (objects, arrays, etc.).
-    try { engineRef.current?.applyAnswer(f.id, val); } catch {}
+    try {
+      engineRef.current?.applyAnswer(f.id, val);
+    } catch {}
     await fetchNext(newState);
   };
 
@@ -642,23 +827,25 @@ export default function SellProperty() {
     }
 
     const err = validate(field, value);
-    if (err) { setError(err); return; }
+    if (err) {
+      setError(err);
+      return;
+    }
     await commitAnswer(value);
   };
 
   const onSkip = async () => {
     if (!field || !isOptional(field)) return;
     const skippedId = field.id;
-    setMessages((m) => [
-      ...m,
-      { id: uid(), role: "user", kind: "text", text: "Skip" },
-    ]);
+    setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: "Skip" }]);
     setHistory((h) => [...h, { field, value: null }]);
     setValue("");
     setError(null);
     // Tell the engine this field was deliberately skipped so the
     // resolver doesn't re-ask it on the next call.
-    try { engineRef.current?.skipField(skippedId); } catch {}
+    try {
+      engineRef.current?.skipField(skippedId);
+    } catch {}
     await fetchNext(state);
   };
 
@@ -684,8 +871,13 @@ export default function SellProperty() {
 
   /* ----- Property images upload ----- */
   const handleFiles = async (files: FileList, options?: { showChatBubble?: boolean }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Please sign in to upload"); return; }
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in to upload");
+      return;
+    }
     setUploading(true);
     try {
       const urls: string[] = [...(state.media_urls || [])];
@@ -719,10 +911,9 @@ export default function SellProperty() {
   const redactPosterFile = async (file: File): Promise<File> => {
     try {
       const dataUrl = await fileToDataUrl(file);
-      const { data } = await supabase.functions.invoke<{ cleaned_url: string | null }>(
-        "clean-poster-image",
-        { body: { image_url: dataUrl } },
-      );
+      const { data } = await supabase.functions.invoke<{ cleaned_url: string | null }>("clean-poster-image", {
+        body: { image_url: dataUrl },
+      });
       const cleanedUrl = data?.cleaned_url;
       if (!cleanedUrl || !cleanedUrl.startsWith("data:image")) {
         // AI couldn't clean — upload original (better than a black-box poster)
@@ -747,8 +938,7 @@ export default function SellProperty() {
       const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
       pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
     } catch {
-      pdfjs.GlobalWorkerOptions.workerSrc =
-        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version || "4.0.379"}/build/pdf.worker.min.mjs`;
     }
     return pdfjs;
   };
@@ -783,10 +973,9 @@ export default function SellProperty() {
   const extractPdfText = async (file: File): Promise<string> => {
     try {
       const dataUrl = await fileToDataUrl(file);
-      const { data, error } = await supabase.functions.invoke<{ text: string }>(
-        "extract-pdf-text",
-        { body: { pdf_data_url: dataUrl } },
-      );
+      const { data, error } = await supabase.functions.invoke<{ text: string }>("extract-pdf-text", {
+        body: { pdf_data_url: dataUrl },
+      });
       if (!error && data?.text && data.text.trim().length >= 20) {
         return data.text.trim();
       }
@@ -828,7 +1017,8 @@ export default function SellProperty() {
     const isDoc =
       file.type === "application/msword" ||
       file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      name.endsWith(".doc") || name.endsWith(".docx");
+      name.endsWith(".doc") ||
+      name.endsWith(".docx");
     const isImage = file.type.startsWith("image/");
 
     if (!isPdf && !isDoc && !isImage) {
@@ -859,14 +1049,18 @@ export default function SellProperty() {
         (async () => {
           try {
             const redacted = await redactPosterFile(file);
-            const { data: { user } } = await supabase.auth.getUser();
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
             if (!user) return;
             const path = `${user.id}/${Date.now()}-${redacted.name}`;
             const { error: upErr } = await supabase.storage.from("property-images").upload(path, redacted);
             if (upErr) return;
             const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
             setState((s) => ({ ...s, media_urls: [...(s.media_urls || []), pub.publicUrl] }));
-          } catch {/* silent */}
+          } catch {
+            /* silent */
+          }
         })();
 
         // Run extraction reusing the SAME typing bubble (no flicker, no duplicate loaders)
@@ -922,26 +1116,36 @@ export default function SellProperty() {
       setMessages((m) => m.filter((x) => x.id !== bubbleId));
       toast.error(e.message || "Could not analyze the file");
     }
-
   };
 
   /* ----- Final submit ----- */
   const onSubmit = async () => {
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("Please sign in"); navigate("/auth"); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in");
+        navigate("/auth");
+        return;
+      }
 
       // Use review-screen edits as the source of truth
       const area = Number(reviewArea) || null;
       const ppu = Number(reviewPricePerUnit) || null;
       const totalPrice = area && ppu ? area * ppu : null;
       const UNIT_TO_SQFT: Record<string, number> = {
-        "sq ft": 1, "sq m": 10.7639, "gunta": 1089, "acre": 43560, "cent": 435.6, "sq yard": 9,
+        "sq ft": 1,
+        "sq m": 10.7639,
+        gunta: 1089,
+        acre: 43560,
+        cent: 435.6,
+        "sq yard": 9,
       };
       const areaSqft = area ? Math.round(area * (UNIT_TO_SQFT[reviewUnit] || 1)) : null;
 
-      const typesArr = Array.isArray(state.type) ? state.type : (state.type ? [state.type] : []);
+      const typesArr = Array.isArray(state.type) ? state.type : state.type ? [state.type] : [];
       const primaryType = typesArr[0] || null;
 
       const finalTitle =
@@ -979,7 +1183,7 @@ export default function SellProperty() {
       const payload: any = {
         submitted_by: user.id,
         title: finalTitle,
-        description: (reviewDescription || state.description || buildPropertyDescription(state)) || null,
+        description: reviewDescription || state.description || buildPropertyDescription(state) || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
@@ -1014,7 +1218,9 @@ export default function SellProperty() {
       };
 
       const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
-        .insert(payload).select("id").single();
+        .insert(payload)
+        .select("id")
+        .single();
       if (insErr) throw insErr;
 
       // Save granular field key/values to property_details (one row per field)
@@ -1036,7 +1242,9 @@ export default function SellProperty() {
       if (propertyId && !(isAgentMode && isTrustedAgent)) {
         try {
           await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
-        } catch (e) { console.warn("auto-assign failed", e); }
+        } catch (e) {
+          console.warn("auto-assign failed", e);
+        }
       }
 
       if (isAgentMode && isTrustedAgent) {
@@ -1140,19 +1348,19 @@ export default function SellProperty() {
             </button>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5">
-                <span className={cn(
-                  "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
-                  tierBadgeClasses[tier.label],
-                )}>
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                    tierBadgeClasses[tier.label],
+                  )}
+                >
                   {tier.label}
                 </span>
                 <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
               </div>
               <Progress value={pct} className="h-1 w-24 mt-1" />
               {missing.length > 0 && intakeDone && (
-                <div className="text-[9px] text-muted-foreground mt-0.5">
-                  {missing.length} required left
-                </div>
+                <div className="text-[9px] text-muted-foreground mt-0.5">{missing.length} required left</div>
               )}
             </div>
           </div>
@@ -1170,10 +1378,7 @@ export default function SellProperty() {
               <div className="container max-w-3xl mx-auto px-4 py-3">
                 <div className="text-[11px] text-muted-foreground mb-2 flex items-center justify-between">
                   <span>Tap any answer to edit it (this will rewind to that question)</span>
-                  <button
-                    onClick={() => setEditorOpen(false)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
+                  <button onClick={() => setEditorOpen(false)} className="text-muted-foreground hover:text-foreground">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -1187,7 +1392,11 @@ export default function SellProperty() {
                     >
                       <span className="text-muted-foreground">{f.id.replace(/_/g, " ")}:</span>
                       <span className="font-medium max-w-[140px] truncate">
-                        {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? `${(v as any).area} ${(v as any).unit}` : String(v)}
+                        {Array.isArray(v)
+                          ? v.join(", ")
+                          : typeof v === "object"
+                            ? `${(v as any).area} ${(v as any).unit}`
+                            : String(v)}
                       </span>
                       <Pencil className="h-2.5 w-2.5 text-muted-foreground group-hover:text-primary" />
                     </button>
@@ -1204,8 +1413,7 @@ export default function SellProperty() {
         ref={scrollRef}
         className="flex-1 overflow-y-auto"
         style={{
-          backgroundImage:
-            "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
           backgroundSize: "16px 16px",
         }}
       >
@@ -1217,10 +1425,7 @@ export default function SellProperty() {
                 initial={{ opacity: 0, y: 8, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.18 }}
-                className={cn(
-                  "flex w-full",
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                )}
+                className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
               >
                 <Bubble msg={msg} />
               </motion.div>
@@ -1228,49 +1433,52 @@ export default function SellProperty() {
           </AnimatePresence>
 
           {/* Quick-reply chips for the current field (single / multi / yesno) */}
-          {field && !loadingNext && !done && (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-wrap gap-2 pt-1 pl-1"
-            >
-              {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
-                const isMulti = field.input === "multi";
-                const arr: string[] = Array.isArray(value) ? value : [];
-                const active = isMulti ? arr.includes(opt) : value === opt;
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => {
-                      if (isMulti) {
-                        setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
-                      } else {
-                        setValue(opt);
-                        // auto-send on single-pick for snappy UX
-                        setTimeout(() => {
-                          setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
-                          const newState = { ...state, [field.id]: opt };
-                          setHistory((h) => [...h, { field, value: opt }]);
-                          setState(newState);
-                          setError(null);
-                          fetchNext(newState);
-                        }, 80);
-                      }
-                    }}
-                    className={cn(
-                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                      active
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card hover:bg-primary/5 border-border"
-                    )}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
-            </motion.div>
-          )}
+          {field &&
+            !loadingNext &&
+            !done &&
+            (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-2 pt-1 pl-1"
+              >
+                {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
+                  const isMulti = field.input === "multi";
+                  const arr: string[] = Array.isArray(value) ? value : [];
+                  const active = isMulti ? arr.includes(opt) : value === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        if (isMulti) {
+                          setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
+                        } else {
+                          setValue(opt);
+                          // auto-send on single-pick for snappy UX
+                          setTimeout(() => {
+                            setMessages((m) => [...m, { id: uid(), role: "user", kind: "text", text: opt }]);
+                            const newState = { ...state, [field.id]: opt };
+                            setHistory((h) => [...h, { field, value: opt }]);
+                            setState(newState);
+                            setError(null);
+                            fetchNext(newState);
+                          }, 80);
+                        }
+                      }}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-card hover:bg-primary/5 border-border",
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
 
           {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
           {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
@@ -1287,9 +1495,7 @@ export default function SellProperty() {
                     type="button"
                     onClick={() => {
                       // strip "+" or "Ground" → numeric where possible
-                      const numeric =
-                        opt === "Ground" ? 0 :
-                        opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
+                      const numeric = opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
                       const sendVal = isNaN(numeric) ? opt : numeric;
                       setValue(sendVal);
                       setTimeout(() => {
@@ -1305,24 +1511,18 @@ export default function SellProperty() {
                       "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
                       active
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card hover:bg-primary/5 border-border"
+                        : "bg-card hover:bg-primary/5 border-border",
                     )}
                   >
                     {opt}
                   </button>
                 );
               })}
-              <span className="text-[10px] text-muted-foreground self-center pl-1">
-                or enter manually below
-              </span>
+              <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
             </motion.div>
           )}
           {field && smartHint && !loadingNext && !done && (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="pl-1 pt-1"
-            >
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
               <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
                 <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
                 <span className="text-foreground/90">{smartHint}</span>
@@ -1333,12 +1533,12 @@ export default function SellProperty() {
           {/* Required/optional inline indicator */}
           {field && !loadingNext && !done && (
             <div className="pl-1 pt-1">
-              <span className={cn(
-                "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                isOptional(field)
-                  ? "text-muted-foreground"
-                  : "text-primary bg-primary/10",
-              )}>
+              <span
+                className={cn(
+                  "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                  isOptional(field) ? "text-muted-foreground" : "text-primary bg-primary/10",
+                )}
+              >
                 {isOptional(field) ? "Optional · you can skip" : "Required"}
               </span>
             </div>
@@ -1366,13 +1566,21 @@ export default function SellProperty() {
           )}
 
           {/* Smart suggestion chips — clickable, commits to engine */}
-          {field && !loadingNext && !done && field.input === "number" && value && (
+          {field &&
+            !loadingNext &&
+            !done &&
+            field.input === "number" &&
+            value &&
             (() => {
-              const sType = field.suggestionType
-                || (/rent/i.test(field.id) ? "rental_duration"
-                  : /price|amount|cost|budget/i.test(field.id) ? "price"
-                  : /area|size|sqft|sqyd|land|plot|built/i.test(field.id) ? "measurement_units"
-                  : undefined);
+              const sType =
+                field.suggestionType ||
+                (/rent/i.test(field.id)
+                  ? "rental_duration"
+                  : /price|amount|cost|budget/i.test(field.id)
+                    ? "price"
+                    : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
+                      ? "measurement_units"
+                      : undefined);
 
               type Chip = { label: string; commit: any; display: string };
               let chips: Chip[] = [];
@@ -1385,10 +1593,16 @@ export default function SellProperty() {
                 }));
               } else if (sType === "price" || sType === "price_per_unit") {
                 chips = getPriceSuggestions(value).map((s) => ({
-                  label: s.label, commit: s.value, display: s.label,
+                  label: s.label,
+                  commit: s.value,
+                  display: s.label,
                 }));
               } else if (sType === "measurement_units") {
-                const units = (field.units && field.units.length ? field.units : ["Sq Ft","Sq Yard","Acre","Gunta","Cent","Bigha"]) as PriceUnit[];
+                const units = (
+                  field.units && field.units.length
+                    ? field.units
+                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha"]
+                ) as PriceUnit[];
                 chips = getUnitSuggestions(value, units).map((s) => ({
                   label: s.label,
                   commit: { area: s.value, unit: s.unit },
@@ -1416,20 +1630,13 @@ export default function SellProperty() {
                   </div>
                 </div>
               );
-            })()
-          )}
+            })()}
 
-          {error && (
-            <div className="pl-1 text-xs text-destructive">{error}</div>
-          )}
+          {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
 
           {/* Final review screen */}
           {done && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 space-y-4"
-            >
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-4">
               {/* AI title picker */}
               <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-emerald-500/5 p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -1448,7 +1655,7 @@ export default function SellProperty() {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {(titlesLoading && aiTitles.length === 0) && (
+                  {titlesLoading && aiTitles.length === 0 && (
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
                       <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
                     </div>
@@ -1459,12 +1666,14 @@ export default function SellProperty() {
                       <button
                         key={i}
                         type="button"
-                        onClick={() => { setSelectedTitleIdx(i); setReviewTitle(t.title); setEditingTitle(false); }}
+                        onClick={() => {
+                          setSelectedTitleIdx(i);
+                          setReviewTitle(t.title);
+                          setEditingTitle(false);
+                        }}
                         className={cn(
                           "w-full text-left p-3 rounded-xl border transition",
-                          active
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-card hover:border-primary/50"
+                          active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50",
                         )}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -1502,7 +1711,10 @@ export default function SellProperty() {
                   {editingTitle ? (
                     <Input
                       value={reviewTitle}
-                      onChange={(e) => { setReviewTitle(e.target.value); setSelectedTitleIdx(null); }}
+                      onChange={(e) => {
+                        setReviewTitle(e.target.value);
+                        setSelectedTitleIdx(null);
+                      }}
                       placeholder="Listing title"
                     />
                   ) : (
@@ -1515,7 +1727,9 @@ export default function SellProperty() {
                 {/* AI-generated Description */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
-                    <span className="flex items-center gap-1"><Wand2 className="h-3 w-3 text-primary" /> Description</span>
+                    <span className="flex items-center gap-1">
+                      <Wand2 className="h-3 w-3 text-primary" /> Description
+                    </span>
                     <button
                       type="button"
                       onClick={() => setReviewDescription(buildPropertyDescription(state))}
@@ -1545,7 +1759,11 @@ export default function SellProperty() {
                   </div>
                   <div className="col-span-2">
                     <label className="text-xs text-muted-foreground mb-1 block">Address</label>
-                    <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} placeholder="Street / landmark" />
+                    <Input
+                      value={reviewAddress}
+                      onChange={(e) => setReviewAddress(e.target.value)}
+                      placeholder="Street / landmark"
+                    />
                   </div>
                 </div>
 
@@ -1553,21 +1771,36 @@ export default function SellProperty() {
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Price</label>
                   <div className="grid grid-cols-3 gap-2">
-                    <Input type="number" placeholder="Area" value={reviewArea} onChange={(e) => setReviewArea(e.target.value)} />
-                    <Input type="number" placeholder={`₹/${reviewUnit}`} value={reviewPricePerUnit} onChange={(e) => setReviewPricePerUnit(e.target.value)} />
+                    <Input
+                      type="number"
+                      placeholder="Area"
+                      value={reviewArea}
+                      onChange={(e) => setReviewArea(e.target.value)}
+                    />
+                    <Input
+                      type="number"
+                      placeholder={`₹/${reviewUnit}`}
+                      value={reviewPricePerUnit}
+                      onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                    />
                     <select
                       value={reviewUnit}
                       onChange={(e) => setReviewUnit(e.target.value)}
                       className="rounded-md border border-input bg-background px-3 text-sm"
                     >
-                      {["sq ft","sq yard","sq m","gunta","acre","cent"].map((u) => <option key={u}>{u}</option>)}
+                      {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
+                        <option key={u}>{u}</option>
+                      ))}
                     </select>
                   </div>
                   {Number(reviewArea) > 0 && Number(reviewPricePerUnit) > 0 && (
                     <div className="mt-2 text-sm flex items-center justify-between px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
                       <span className="text-muted-foreground">Total</span>
                       <span className="font-semibold text-primary">
-                        ₹ {new Intl.NumberFormat("en-IN").format(Math.round(Number(reviewArea) * Number(reviewPricePerUnit)))}
+                        ₹{" "}
+                        {new Intl.NumberFormat("en-IN").format(
+                          Math.round(Number(reviewArea) * Number(reviewPricePerUnit)),
+                        )}
                       </span>
                     </div>
                   )}
@@ -1581,9 +1814,15 @@ export default function SellProperty() {
                       <span className="text-[11px] text-muted-foreground italic">No amenities added</span>
                     )}
                     {reviewAmenities.map((a, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                      >
                         {a}
-                        <button type="button" onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}>
+                        <button
+                          type="button"
+                          onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                        >
                           <X className="h-2.5 w-2.5" />
                         </button>
                       </span>
@@ -1603,11 +1842,18 @@ export default function SellProperty() {
                       }}
                     />
                     <Button
-                      type="button" variant="outline" size="sm"
+                      type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
-                        if (newAmenity.trim()) { setReviewAmenities((arr) => [...arr, newAmenity.trim()]); setNewAmenity(""); }
+                        if (newAmenity.trim()) {
+                          setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                          setNewAmenity("");
+                        }
                       }}
-                    >Add</Button>
+                    >
+                      Add
+                    </Button>
                   </div>
                 </div>
 
@@ -1617,17 +1863,25 @@ export default function SellProperty() {
                     Photos ({(state.media_urls || []).length})
                   </label>
                   <input
-                    ref={fileRef} type="file" multiple accept="image/*,video/*"
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
                     className="hidden"
                     onChange={(e) => e.target.files && handleFiles(e.target.files)}
                   />
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
                     {(state.media_urls || []).map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
+                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                         <button
                           type="button"
-                          onClick={() => setState((s) => ({ ...s, media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i) }))}
+                          onClick={() =>
+                            setState((s) => ({
+                              ...s,
+                              media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
+                            }))
+                          }
                           className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
                         >
                           <X className="h-3 w-3" />
@@ -1650,11 +1904,13 @@ export default function SellProperty() {
                   <label className="text-xs text-muted-foreground mb-1 block">All captured details</label>
                   <div className="flex flex-wrap gap-1.5">
                     {Object.entries(state).map(([k, v]) =>
-                      v && !["media_urls","amenities","title","city","locality","address","price_unit"].includes(k) ? (
+                      v &&
+                      !["media_urls", "amenities", "title", "city", "locality", "address", "price_unit"].includes(k) ? (
                         <Badge key={k} variant="secondary" className="font-normal text-[10px]">
-                          {k.replace(/_/g, " ")}: {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? "✓" : String(v)}
+                          {k.replace(/_/g, " ")}:{" "}
+                          {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? "✓" : String(v)}
                         </Badge>
-                      ) : null
+                      ) : null,
                     )}
                   </div>
                 </div>
@@ -1704,7 +1960,9 @@ export default function SellProperty() {
             ) : showIntakeBar ? (
               <>
                 <input
-                  ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
                 />
@@ -1723,7 +1981,8 @@ export default function SellProperty() {
                       onChange={(e) => setIntakeText(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault(); submitIntake();
+                          e.preventDefault();
+                          submitIntake();
                         }
                       }}
                       rows={2}
@@ -1737,22 +1996,30 @@ export default function SellProperty() {
                     onClick={() => {
                       // reuse voice for intake
                       const rec = recognitionRef.current;
-                      if (!rec) { toast.error("Voice not supported"); return; }
-                      if (isListening) { rec.stop(); setIsListening(false); }
-                      else {
+                      if (!rec) {
+                        toast.error("Voice not supported");
+                        return;
+                      }
+                      if (isListening) {
+                        rec.stop();
+                        setIsListening(false);
+                      } else {
                         rec.onresult = (e: any) => {
                           let txt = "";
                           for (let i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
                           if (txt) setIntakeText(txt);
                         };
-                        try { rec.start(); setIsListening(true); } catch {}
+                        try {
+                          rec.start();
+                          setIsListening(true);
+                        } catch {}
                       }
                     }}
                     className={cn(
                       "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
                       isListening
                         ? "bg-destructive text-destructive-foreground animate-pulse"
-                        : "border border-border bg-background hover:bg-muted text-muted-foreground"
+                        : "border border-border bg-background hover:bg-muted text-muted-foreground",
                     )}
                     title={isListening ? "Stop" : "Speak"}
                   >
@@ -1769,7 +2036,9 @@ export default function SellProperty() {
                   </button>
                 </div>
                 <div className="flex items-center justify-between mt-2 px-1">
-                  <span className="text-[11px] text-muted-foreground">AI will auto-detect type, location, BHK, area & more</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    AI will auto-detect type, location, BHK, area & more
+                  </span>
                   <button
                     type="button"
                     onClick={skipIntake}
@@ -1783,7 +2052,11 @@ export default function SellProperty() {
             ) : field?.input === "city" || field?.input === "locality" ? (
               <div className="space-y-2">
                 {field.input === "city" ? (
-                  <CityAutocomplete value={value || ""} onChange={(c) => setValue(c)} placeholder="Search your city..." />
+                  <CityAutocomplete
+                    value={value || ""}
+                    onChange={(c) => setValue(c)}
+                    placeholder="Search your city..."
+                  />
                 ) : (
                   <Input
                     value={value || ""}
@@ -1792,41 +2065,60 @@ export default function SellProperty() {
                   />
                 )}
                 <PrimaryActions
-                  onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={isOptional(field)} canBack={history.length > 0}
+                  onNext={onNext}
+                  onSkip={onSkip}
+                  onBack={onBack}
+                  optional={isOptional(field)}
+                  canBack={history.length > 0}
                   loading={loadingNext}
                 />
               </div>
             ) : field?.input === "price_unit" ? (
               <PriceUnitComposer
-                value={value} onChange={setValue}
-                onNext={onNext} onBack={onBack} canBack={history.length > 0} loading={loadingNext}
+                value={value}
+                onChange={setValue}
+                onNext={onNext}
+                onBack={onBack}
+                canBack={history.length > 0}
+                loading={loadingNext}
               />
             ) : field?.input === "media" ? (
               <div className="space-y-3">
                 <input
-                  ref={fileRef} type="file" multiple accept="image/*,video/*"
+                  ref={fileRef}
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
                   className="hidden"
                   onChange={(e) => e.target.files && handleFiles(e.target.files)}
                 />
                 <Button
-                  type="button" variant="outline" onClick={() => fileRef.current?.click()}
-                  disabled={uploading} className="w-full"
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full"
                 >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ImagePlus className="h-4 w-4 mr-2" />}
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <ImagePlus className="h-4 w-4 mr-2" />
+                  )}
                   Upload photos / video
                 </Button>
                 {state.media_urls?.length > 0 && (
                   <div className="grid grid-cols-5 gap-1.5">
                     {state.media_urls.map((url: string, i: number) => (
                       <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover"  loading="lazy" decoding="async" />
+                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                         <button
                           type="button"
-                          onClick={() => setState((s) => ({
-                            ...s,
-                            media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
-                          }))}
+                          onClick={() =>
+                            setState((s) => ({
+                              ...s,
+                              media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
+                            }))
+                          }
                           className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
                         >
                           <X className="h-3 w-3" />
@@ -1836,8 +2128,11 @@ export default function SellProperty() {
                   </div>
                 )}
                 <PrimaryActions
-                  onNext={onNext} onSkip={onSkip} onBack={onBack}
-                  optional={isOptional(field)} canBack={history.length > 0}
+                  onNext={onNext}
+                  onSkip={onSkip}
+                  onBack={onBack}
+                  optional={isOptional(field)}
+                  canBack={history.length > 0}
                   loading={loadingNext}
                   nextLabel="Continue"
                 />
@@ -1846,7 +2141,9 @@ export default function SellProperty() {
               /* Standard text / number / textarea / chip-augmented composer */
               <>
                 <input
-                  ref={imageRef} type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
                 />
@@ -1873,12 +2170,21 @@ export default function SellProperty() {
                       <Input
                         value={value || ""}
                         onChange={(e) => setValue(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onNext(); } }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            onNext();
+                          }
+                        }}
                         type={field?.input === "number" ? "number" : "text"}
                         inputMode={
-                          field?.input === "phone" ? "tel" :
-                          field?.input === "email" ? "email" :
-                          field?.input === "number" ? "decimal" : "text"
+                          field?.input === "phone"
+                            ? "tel"
+                            : field?.input === "email"
+                              ? "email"
+                              : field?.input === "number"
+                                ? "decimal"
+                                : "text"
                         }
                         placeholder={
                           field?.input === "single" || field?.input === "yesno" || field?.input === "multi"
@@ -1897,7 +2203,7 @@ export default function SellProperty() {
                       "h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition",
                       isListening
                         ? "bg-destructive text-destructive-foreground animate-pulse"
-                        : "border border-border bg-background hover:bg-muted text-muted-foreground"
+                        : "border border-border bg-background hover:bg-muted text-muted-foreground",
                     )}
                     title={isListening ? "Stop" : "Speak"}
                   >
@@ -1963,13 +2269,13 @@ function Bubble({ msg }: { msg: ChatMsg }) {
     "max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 shadow-sm text-sm break-words",
     isUser
       ? "bg-gradient-to-br from-primary to-emerald-500 text-white rounded-2xl rounded-br-sm"
-      : "bg-card border border-border rounded-2xl rounded-bl-sm"
+      : "bg-card border border-border rounded-2xl rounded-bl-sm",
   );
 
   if (msg.kind === "image") {
     return (
       <div className={cn(base, "p-1.5")}>
-        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover"  loading="lazy" decoding="async" />
+        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover" loading="lazy" decoding="async" />
         {msg.caption && <div className="px-2 py-1 text-xs opacity-90">{msg.caption}</div>}
       </div>
     );
@@ -1992,10 +2298,21 @@ function Dot({ delay }: { delay: number }) {
    Primary actions row (Back / Skip / Continue)
    ============================================================ */
 function PrimaryActions({
-  onNext, onSkip, onBack, optional, canBack, loading, nextLabel = "Continue",
+  onNext,
+  onSkip,
+  onBack,
+  optional,
+  canBack,
+  loading,
+  nextLabel = "Continue",
 }: {
-  onNext: () => void; onSkip: () => void; onBack: () => void;
-  optional: boolean; canBack: boolean; loading: boolean; nextLabel?: string;
+  onNext: () => void;
+  onSkip: () => void;
+  onBack: () => void;
+  optional: boolean;
+  canBack: boolean;
+  loading: boolean;
+  nextLabel?: string;
 }) {
   return (
     <div className="flex items-center justify-between">
@@ -2003,7 +2320,11 @@ function PrimaryActions({
         <ChevronLeft className="h-4 w-4 mr-1" /> Back
       </Button>
       <div className="flex gap-2">
-        {optional && <Button variant="outline" size="sm" onClick={onSkip}>Skip</Button>}
+        {optional && (
+          <Button variant="outline" size="sm" onClick={onSkip}>
+            Skip
+          </Button>
+        )}
         <Button size="sm" onClick={onNext} disabled={loading} className="bg-gradient-to-r from-primary to-emerald-500">
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
           {nextLabel} <ArrowRight className="h-3.5 w-3.5 ml-1" />
@@ -2017,10 +2338,19 @@ function PrimaryActions({
    Price unit composer
    ============================================================ */
 function PriceUnitComposer({
-  value, onChange, onNext, onBack, canBack, loading,
+  value,
+  onChange,
+  onNext,
+  onBack,
+  canBack,
+  loading,
 }: {
-  value: any; onChange: (v: any) => void;
-  onNext: () => void; onBack: () => void; canBack: boolean; loading: boolean;
+  value: any;
+  onChange: (v: any) => void;
+  onNext: () => void;
+  onBack: () => void;
+  canBack: boolean;
+  loading: boolean;
 }) {
   const v = value && typeof value === "object" ? value : { unit: "sq ft", area: "", pricePerUnit: "" };
   const units = ["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"];
@@ -2033,19 +2363,34 @@ function PriceUnitComposer({
           const active = v.unit === u;
           return (
             <button
-              key={u} type="button"
+              key={u}
+              type="button"
               onClick={() => onChange({ ...v, unit: u })}
               className={cn(
                 "px-2.5 py-1 rounded-full text-xs font-medium border",
-                active ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-primary/5 border-border"
+                active
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background hover:bg-primary/5 border-border",
               )}
-            >{u}</button>
+            >
+              {u}
+            </button>
           );
         })}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Input type="number" placeholder={`Area (${v.unit})`} value={v.area} onChange={(e) => onChange({ ...v, area: e.target.value })} />
-        <Input type="number" placeholder={`₹ / ${v.unit}`} value={v.pricePerUnit} onChange={(e) => onChange({ ...v, pricePerUnit: e.target.value })} />
+        <Input
+          type="number"
+          placeholder={`Area (${v.unit})`}
+          value={v.area}
+          onChange={(e) => onChange({ ...v, area: e.target.value })}
+        />
+        <Input
+          type="number"
+          placeholder={`₹ / ${v.unit}`}
+          value={v.pricePerUnit}
+          onChange={(e) => onChange({ ...v, pricePerUnit: e.target.value })}
+        />
       </div>
       {total > 0 && (
         <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 flex items-center justify-between text-sm">
@@ -2053,7 +2398,14 @@ function PriceUnitComposer({
           <span className="font-semibold text-primary">₹ {fmt(total)}</span>
         </div>
       )}
-      <PrimaryActions onNext={onNext} onSkip={() => {}} onBack={onBack} optional={false} canBack={canBack} loading={loading} />
+      <PrimaryActions
+        onNext={onNext}
+        onSkip={() => {}}
+        onBack={onBack}
+        optional={false}
+        canBack={canBack}
+        loading={loading}
+      />
     </div>
   );
 }
