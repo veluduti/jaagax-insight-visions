@@ -1,6 +1,3 @@
-# Updated commercial.ts (Client Excel Aligned)
-
-```ts
 // ============================================================
 // Commercial conversational flow config
 // CLIENT EXCEL ALIGNED VERSION
@@ -767,4 +764,3 @@ export const commercialFlow: PropertyFlowConfig = {
 };
 
 export default commercialFlow;
-```
