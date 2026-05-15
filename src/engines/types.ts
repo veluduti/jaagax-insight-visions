@@ -307,6 +307,22 @@ export interface AIFlowConfig {
 
   supportDynamicFollowups?: boolean;
 
+  // ===== runtime behavior flags consumed by engine =====
+
+  persistSkippedFields?: boolean;
+
+  preventDuplicateQuestions?: boolean;
+
+  maintainConversationState?: boolean;
+
+  realtimeSuggestions?: boolean;
+
+  autoNormalizePricingUnits?: boolean;
+
+  supportQuickReplyChips?: boolean;
+
+  supportSearchableDropdowns?: boolean;
+
   [key: string]: unknown;
 }
 
