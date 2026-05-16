@@ -423,12 +423,24 @@ export default function SellProperty() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (profile) {
+        const prefill = {
+          contact_name: (profile as any).name,
+          contact_mobile: (profile as any).phone,
+          mobile_number: (profile as any).phone,
+          contact_email: (profile as any).email,
+        };
         setState((s) => ({
           ...s,
-          contact_name: (profile as any).name || s.contact_name,
-          contact_mobile: (profile as any).phone || s.contact_mobile,
-          contact_email: (profile as any).email || s.contact_email,
+          contact_name: prefill.contact_name || s.contact_name,
+          contact_mobile: prefill.contact_mobile || s.contact_mobile,
+          mobile_number: prefill.mobile_number || (s as any).mobile_number,
+          contact_email: prefill.contact_email || s.contact_email,
         }));
+        try {
+          engineRef.current?.applyExtractedFields(prefill, { overwrite: false });
+        } catch {
+          /* engine not ready yet — fetchNext will sync later */
+        }
       }
     })();
   }, []);
