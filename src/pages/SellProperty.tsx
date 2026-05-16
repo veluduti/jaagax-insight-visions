@@ -37,27 +37,104 @@ const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
 function buildPropertyDescription(s: Record<string, any>): string {
-  const parts: string[] = [];
-  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.type].filter(Boolean).join(" ").trim();
-  const purpose = (s.purpose || "sale").toString().toLowerCase();
-  const where = s.locality || s.city || "a prime location";
-  if (typeLabel) parts.push(`${typeLabel} available for ${purpose} in ${where}.`);
-  const area = s.built_up_area || s.plot_area || s.carpet_area || s.shop_area;
-  if (area)
-    parts.push(
-      `Spread across ${area} ${s.area_unit || "sq ft"}${s.facing ? `, facing ${String(s.facing).toLowerCase()}` : ""}.`,
+  const cap = (v: any) =>
+    String(v ?? "")
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  const lower = (v: any) => String(v ?? "").trim().toLowerCase();
+  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.property_type || s.type]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  const purpose = lower(s.listing_type || s.purpose) === "rent" ? "rent" : "sale";
+  const locality = s.locality || s.area || s.sub_locality;
+  const city = s.city || s.location?.city;
+  const where = [locality, city].filter(Boolean).join(", ") || "a sought-after neighbourhood";
+  const area =
+    s.built_up_area || s.built_area || s.plot_area || s.carpet_area || s.land_size || s.shop_area;
+  const unit = s.area_unit || s.unit_type || "sq ft";
+  const facing = s.facing ? `${lower(s.facing)}-facing` : "";
+  const furnishing = s.furnishing ? `${lower(s.furnishing)}` : "";
+  const floor = s.floor_number
+    ? `situated on the ${s.floor_number}${s.total_floors ? ` of ${s.total_floors}` : ""} floor`
+    : "";
+  const project = s.project_name ? `part of the well-planned ${cap(s.project_name)} project` : "";
+  const amenities: string[] = Array.isArray(s.amenities) ? s.amenities : [];
+  const highlights: string[] = Array.isArray(s.property_highlights) ? s.property_highlights : [];
+  const gated = /gated|community|township/i.test(highlights.join(" ")) || s.gated_community === true;
+  const approvals = [s.rera_id && `RERA approved (${s.rera_id})`, s.approval_type]
+    .filter(Boolean)
+    .join(", ");
+  const price =
+    s.total_price || s.property_price || s.amount || s.budget || s.monthly_rent || s.rent;
+  const priceLine = price
+    ? purpose === "rent"
+      ? `Offered at a competitive rent of ₹${price}.`
+      : `Priced at ₹${price}, this property offers strong long-term value.`
+    : "";
+
+  // ---------- Paragraph 1 — headline + core specs ----------
+  const p1Parts: string[] = [];
+  if (typeLabel) {
+    p1Parts.push(
+      `Presenting a ${facing ? facing + " " : ""}${typeLabel} available for ${purpose} in ${where}.`,
     );
-  if (s.furnishing) parts.push(`The unit comes ${String(s.furnishing).toLowerCase()}.`);
-  if (s.floor_number || s.total_floors) {
-    parts.push(`Located on floor ${s.floor_number ?? "—"}${s.total_floors ? ` of ${s.total_floors}` : ""}.`);
+  } else {
+    p1Parts.push(`A thoughtfully designed property available for ${purpose} in ${where}.`);
   }
-  if (Array.isArray(s.amenities) && s.amenities.length) {
-    parts.push(`Amenities include ${s.amenities.slice(0, 8).join(", ")}.`);
+  if (area) {
+    p1Parts.push(
+      `The home spans ${area} ${unit}${floor ? `, ${floor}` : ""}${
+        furnishing ? `, and is offered ${furnishing}` : ""
+      }.`,
+    );
+  } else if (floor || furnishing) {
+    p1Parts.push(
+      [floor && `It is ${floor}`, furnishing && `offered ${furnishing}`]
+        .filter(Boolean)
+        .join(" and ") + ".",
+    );
   }
-  if (s.parking) parts.push(`${s.parking} parking available.`);
-  if (s.project_name) parts.push(`Part of ${s.project_name}.`);
-  if (s.highlights) parts.push(String(s.highlights));
-  return parts.join(" ");
+  if (project) p1Parts.push(`${cap(project)}, it enjoys a well-maintained address.`);
+
+  // ---------- Paragraph 2 — amenities + lifestyle ----------
+  const p2Parts: string[] = [];
+  if (amenities.length) {
+    p2Parts.push(
+      `Residents enjoy a curated set of amenities including ${amenities
+        .slice(0, 8)
+        .join(", ")}.`,
+    );
+  }
+  if (gated) p2Parts.push(`The property sits inside a secure gated community with 24x7 access control.`);
+  if (s.parking) p2Parts.push(`${cap(s.parking)} parking is available for convenience.`);
+  if (highlights.length)
+    p2Parts.push(`Key highlights: ${highlights.slice(0, 5).join(", ")}.`);
+  if (!p2Parts.length)
+    p2Parts.push(
+      `The layout has been designed for comfortable everyday living with ample natural light and ventilation.`,
+    );
+
+  // ---------- Paragraph 3 — connectivity + investment ----------
+  const p3Parts: string[] = [];
+  if (locality || city) {
+    p3Parts.push(
+      `${cap(locality || city)} is well-connected to major business hubs, schools, hospitals and retail destinations, making daily commute effortless.`,
+    );
+  }
+  if (approvals) p3Parts.push(`The project is ${approvals}.`);
+  if (priceLine) p3Parts.push(priceLine);
+  p3Parts.push(
+    purpose === "rent"
+      ? `An ideal pick for families and professionals looking for a move-in-ready home in ${where}.`
+      : `With steady appreciation in the area, this is a compelling opportunity for both end-users and investors.`,
+  );
+  if (s.highlights && typeof s.highlights === "string") p3Parts.push(String(s.highlights));
+
+  return [p1Parts.join(" "), p2Parts.join(" "), p3Parts.join(" ")]
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 /* ============================================================
