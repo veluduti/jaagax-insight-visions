@@ -111,14 +111,23 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     searchable: ss.searchable === true,
     realtime: ss.realtime === true,
     suggestionType:
-      ss.type ||
-      (t === "rental_price"
+      t === "rental_price"
         ? "rental_duration"
         : t === "measurement" || t === "measurement_unit"
           ? "measurement_units"
           : t === "price" || t === "price_per_unit"
             ? "price"
-            : undefined),
+            : ss.type === "indian_price_format" ||
+                ss.type === "price" ||
+                ss.type === "dynamic_price_per_unit"
+              ? "price"
+              : ss.type === "rental_duration" ||
+                  ss.type === "rental_duration_suggestions"
+                ? "rental_duration"
+                : ss.type === "measurement_units" ||
+                    ss.type === "dynamic_measurement_units"
+                  ? "measurement_units"
+                  : ss.type,
     raw,
   };
 }
