@@ -1,6 +1,7 @@
 // ============================================================
 // Co-working / Shared Spaces conversational flow config
-// CLIENT EXCEL ALIGNED VERSION
+// FULL CLIENT EXCEL ALIGNED VERSION
+// UPDATED + VERIFIED
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -33,6 +34,13 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     autoNormalizePricingUnits: true,
     supportQuickReplyChips: true,
     supportSearchableDropdowns: true,
+    supportContextualQuestions: true,
+    supportConditionalFollowups: true,
+    supportNestedWorkspaceVariations: true,
+    supportInventoryManagement: true,
+    supportAiGeneratedDescriptions: true,
+    supportDynamicPricingLogic: true,
+    supportWorkspaceAvailabilityLogic: true,
   },
 
   order: [
@@ -40,14 +48,23 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     "listed_by",
     "listing_type",
 
+    "workspace_variations",
+
+    "pricing_model",
     "monthly_rent",
     "price_per_seat",
+    "hourly_pricing",
+    "daily_pricing",
+    "weekly_pricing",
     "security_deposit",
+
+    "availability_status",
     "available_from",
 
     "workspace_capacity",
     "available_seats",
     "minimum_seats",
+    "maximum_seats",
 
     "commercial_area",
     "built_area",
@@ -55,14 +72,23 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     "floor_number",
     "total_floors",
 
+    "office_infrastructure",
+
     "meeting_rooms",
     "conference_rooms",
     "private_cabins",
+    "shared_cabins",
     "hot_desks",
     "dedicated_desks",
+    "event_spaces",
+    "training_rooms",
+    "interview_cabins",
 
     "operating_hours",
     "working_days",
+    "weekend_access",
+    "holiday_access",
+    "visitor_timing",
 
     "furnishing_status",
     "furnishing_items",
@@ -77,7 +103,20 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
     "amenities",
 
+    "virtual_office_services",
+
+    "meeting_room_features",
+
+    "community_features",
+
+    "suitable_for",
+
     "membership_options",
+
+    "lockin_period",
+    "notice_period",
+    "minimum_booking_duration",
+    "maximum_booking_duration",
 
     "payment_options",
 
@@ -89,9 +128,15 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     "latitude",
     "longitude",
 
+    "business_connectivity",
+
     "nearby_landmarks",
 
     "property_highlights",
+
+    "property_description",
+
+    "assign_nearest_agent",
 
     "media_uploads",
 
@@ -105,11 +150,11 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     // =========================================================
 
     space_type: {
-      type: "single_select",
+      type: "multi_select",
 
       required: true,
 
-      question: "What type of co-working or shared space are you listing?",
+      question: "What types of coworking or shared spaces are available?",
 
       options: [
         "Coworking Space",
@@ -124,7 +169,20 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
         "Incubation Center",
         "Training Center",
         "Shared Studio",
+        "Meeting Room",
+        "Conference Hall",
+        "Interview Cabin",
+        "Training Room",
+        "Event Space",
+        "Flexible Workspace",
+        "Shared Cabin",
       ],
+
+      smartSuggestions: {
+        enabled: true,
+        searchable: true,
+        chips: true,
+      },
     },
 
     // =========================================================
@@ -156,32 +214,52 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // PRICING
+    // WORKSPACE VARIATIONS
     // =========================================================
+
+    workspace_variations: {
+      type: "repeatable_group",
+
+      required: false,
+
+      question: "Would you like to add multiple workspace types, cabins or seating variations?",
+
+      repeatFields: [
+        "space_type",
+        "workspace_capacity",
+        "available_seats",
+        "pricing_model",
+        "monthly_rent",
+        "price_per_seat",
+      ],
+
+      allowDynamicCopies: true,
+    },
+
+    // =========================================================
+    // PRICING MODELS
+    // =========================================================
+
+    pricing_model: {
+      type: "multi_select",
+
+      required: true,
+
+      question: "What pricing models are available?",
+
+      options: ["Per Seat", "Per Cabin", "Per Day", "Per Hour", "Monthly", "Quarterly", "Yearly"],
+    },
 
     monthly_rent: {
       type: "rental_price",
 
-      required: true,
+      required: false,
 
-      question: "What is the monthly rent or membership price?",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        type: "rental_duration_suggestions",
-
-        durations: [
-          "Per Seat / Month",
-          "Monthly",
-          "Weekly",
-          "Daily",
-          "Hourly",
-          "Yearly",
-        ],
+      visibleIf: {
+        pricing_model: ["Monthly", "Quarterly", "Yearly"],
       },
+
+      question: "What is the monthly or membership pricing?",
     },
 
     price_per_seat: {
@@ -189,15 +267,47 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "What is the price per seat?",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        type: "indian_price_format",
+      visibleIf: {
+        pricing_model: ["Per Seat"],
       },
+
+      question: "What is the price per seat?",
+    },
+
+    hourly_pricing: {
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        pricing_model: ["Per Hour"],
+      },
+
+      question: "What is the hourly pricing?",
+    },
+
+    daily_pricing: {
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        pricing_model: ["Per Day"],
+      },
+
+      question: "What is the daily pricing?",
+    },
+
+    weekly_pricing: {
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        pricing_model: ["Weekly"],
+      },
+
+      question: "What is the weekly pricing?",
     },
 
     security_deposit: {
@@ -208,21 +318,32 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       question: "What is the security deposit amount?",
 
       allowSkip: true,
+    },
 
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "indian_price_format",
-      },
+    // =========================================================
+    // AVAILABILITY
+    // =========================================================
+
+    availability_status: {
+      type: "single_select",
+
+      required: true,
+
+      question: "What is the current availability status?",
+
+      options: ["Immediate Availability", "Available Soon", "Limited Seats", "Fully Occupied", "Waitlist Available"],
     },
 
     available_from: {
       type: "future_date",
 
-      required: true,
+      required: false,
 
-      question: "When will the space be available?",
+      visibleIf: {
+        availability_status: ["Available Soon"],
+      },
+
+      question: "When will the workspace be available?",
     },
 
     // =========================================================
@@ -250,9 +371,15 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "What is the minimum number of seats that can be booked?",
+      question: "Minimum number of seats that can be booked?",
+    },
 
-      allowSkip: true,
+    maximum_seats: {
+      type: "number",
+
+      required: false,
+
+      question: "Maximum number of seats that can be booked?",
     },
 
     // =========================================================
@@ -267,13 +394,6 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       question: "What is the workspace area size?",
 
       units: ["Sq Ft", "Sq Yard", "Sqm"],
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "measurement_units",
-      },
     },
 
     built_area: {
@@ -284,8 +404,6 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       question: "What is the built-up area?",
 
       units: ["Sq Ft", "Sq Yard"],
-
-      allowSkip: true,
     },
 
     floor_number: {
@@ -294,8 +412,6 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       required: false,
 
       question: "Which floor is the workspace on?",
-
-      allowSkip: true,
     },
 
     total_floors: {
@@ -304,8 +420,31 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       required: false,
 
       question: "How many total floors are there in the building?",
+    },
 
-      allowSkip: true,
+    // =========================================================
+    // INFRASTRUCTURE
+    // =========================================================
+
+    office_infrastructure: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "What office infrastructure is available?",
+
+      options: [
+        "Conference Rooms",
+        "Meeting Rooms",
+        "Pantry",
+        "Cafeteria",
+        "Lounge",
+        "Event Space",
+        "Interview Rooms",
+        "Printing Zone",
+        "Phone Booth",
+        "Lockers",
+      ],
     },
 
     // =========================================================
@@ -317,9 +456,11 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many meeting rooms are available?",
+      visibleIf: {
+        space_type: ["Meeting Room"],
+      },
 
-      allowSkip: true,
+      question: "How many meeting rooms are available?",
     },
 
     conference_rooms: {
@@ -327,9 +468,11 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many conference rooms are available?",
+      visibleIf: {
+        space_type: ["Conference Hall"],
+      },
 
-      allowSkip: true,
+      question: "How many conference halls are available?",
     },
 
     private_cabins: {
@@ -337,9 +480,23 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many private cabins are available?",
+      visibleIf: {
+        space_type: ["Private Office"],
+      },
 
-      allowSkip: true,
+      question: "How many private cabins are available?",
+    },
+
+    shared_cabins: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Shared Cabin"],
+      },
+
+      question: "How many shared cabins are available?",
     },
 
     hot_desks: {
@@ -347,9 +504,11 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many hot desks are available?",
+      visibleIf: {
+        space_type: ["Hot Desk"],
+      },
 
-      allowSkip: true,
+      question: "How many hot desks are available?",
     },
 
     dedicated_desks: {
@@ -357,13 +516,51 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many dedicated desks are available?",
+      visibleIf: {
+        space_type: ["Dedicated Desk"],
+      },
 
-      allowSkip: true,
+      question: "How many dedicated desks are available?",
+    },
+
+    event_spaces: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Event Space"],
+      },
+
+      question: "How many event spaces are available?",
+    },
+
+    training_rooms: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Training Room"],
+      },
+
+      question: "How many training rooms are available?",
+    },
+
+    interview_cabins: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Interview Cabin"],
+      },
+
+      question: "How many interview cabins are available?",
     },
 
     // =========================================================
-    // WORKING HOURS
+    // OPERATIONS
     // =========================================================
 
     operating_hours: {
@@ -371,14 +568,9 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "What are the operating hours?",
+      question: "What are the workspace operating hours?",
 
-      options: [
-        "24/7",
-        "Business Hours Only",
-        "Flexible Access",
-        "Custom Timings",
-      ],
+      options: ["24/7", "Business Hours Only", "Flexible Access", "Custom Timings"],
     },
 
     working_days: {
@@ -388,15 +580,35 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       question: "Which working days are supported?",
 
-      options: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
+      options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    },
+
+    weekend_access: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Is weekend access available?",
+
+      options: ["Yes", "No"],
+    },
+
+    holiday_access: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Is holiday access available?",
+
+      options: ["Yes", "No"],
+    },
+
+    visitor_timing: {
+      type: "text",
+
+      required: false,
+
+      question: "Visitor timing restrictions if any?",
     },
 
     // =========================================================
@@ -410,11 +622,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       question: "What is the furnishing status?",
 
-      options: [
-        "Unfurnished",
-        "Semi Furnished",
-        "Fully Furnished",
-      ],
+      options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
     },
 
     furnishing_items: {
@@ -423,10 +631,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       required: false,
 
       visibleIf: {
-        furnishing_status: [
-          "Semi Furnished",
-          "Fully Furnished",
-        ],
+        furnishing_status: ["Semi Furnished", "Fully Furnished"],
       },
 
       question: "What furnishing items are included?",
@@ -458,13 +663,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       question: "What internet speed is available?",
 
-      options: [
-        "50 Mbps",
-        "100 Mbps",
-        "200 Mbps",
-        "500 Mbps",
-        "1 Gbps",
-      ],
+      options: ["50 Mbps", "100 Mbps", "200 Mbps", "500 Mbps", "1 Gbps"],
     },
 
     power_backup: {
@@ -549,7 +748,85 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // MEMBERSHIP OPTIONS
+    // VIRTUAL OFFICE
+    // =========================================================
+
+    virtual_office_services: {
+      type: "multi_select",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Virtual Office"],
+      },
+
+      question: "What virtual office services are available?",
+
+      options: [
+        "Business Address",
+        "GST Registration Support",
+        "Mail Handling",
+        "Reception Support",
+        "Company Registration Support",
+      ],
+    },
+
+    // =========================================================
+    // MEETING ROOM FEATURES
+    // =========================================================
+
+    meeting_room_features: {
+      type: "multi_select",
+
+      required: false,
+
+      visibleIf: {
+        space_type: ["Meeting Room"],
+      },
+
+      question: "What meeting room features are available?",
+
+      options: ["Projector", "Video Conferencing", "Whiteboard", "Speaker System", "Screen Sharing"],
+    },
+
+    // =========================================================
+    // COMMUNITY
+    // =========================================================
+
+    community_features: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "What community features are available?",
+
+      options: ["Networking Events", "Startup Ecosystem", "Mentor Sessions", "Investor Network", "Community Meetups"],
+    },
+
+    // =========================================================
+    // SUITABLE FOR
+    // =========================================================
+
+    suitable_for: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "Who is this workspace suitable for?",
+
+      options: [
+        "Startups",
+        "Freelancers",
+        "IT Companies",
+        "Remote Teams",
+        "Consultants",
+        "Enterprises",
+        "Training Institutes",
+      ],
+    },
+
+    // =========================================================
+    // MEMBERSHIP
     // =========================================================
 
     membership_options: {
@@ -571,7 +848,43 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // PAYMENT OPTIONS
+    // CONTRACT
+    // =========================================================
+
+    lockin_period: {
+      type: "text",
+
+      required: false,
+
+      question: "What is the lock-in period?",
+    },
+
+    notice_period: {
+      type: "text",
+
+      required: false,
+
+      question: "What is the notice period?",
+    },
+
+    minimum_booking_duration: {
+      type: "text",
+
+      required: false,
+
+      question: "Minimum booking duration?",
+    },
+
+    maximum_booking_duration: {
+      type: "text",
+
+      required: false,
+
+      question: "Maximum booking duration?",
+    },
+
+    // =========================================================
+    // PAYMENT
     // =========================================================
 
     payment_options: {
@@ -604,13 +917,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       question: "What approvals or certifications are available?",
 
-      options: [
-        "Trade License",
-        "Fire Safety Approved",
-        "Occupancy Certificate",
-        "RERA Approved",
-        "ISO Certified",
-      ],
+      options: ["Trade License", "Fire Safety Approved", "Occupancy Certificate", "RERA Approved", "ISO Certified"],
     },
 
     // =========================================================
@@ -659,8 +966,6 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       required: false,
 
       question: "Would you like to pin the workspace location on map?",
-
-      allowSkip: true,
     },
 
     latitude: {
@@ -688,6 +993,27 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // BUSINESS CONNECTIVITY
+    // =========================================================
+
+    business_connectivity: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "Select nearby business connectivity options.",
+
+      options: [
+        "Near Metro",
+        "Near IT Park",
+        "Near Airport",
+        "Near Business District",
+        "Near Startup Hub",
+        "Near Corporate Zone",
+      ],
+    },
+
+    // =========================================================
     // LANDMARKS
     // =========================================================
 
@@ -698,15 +1024,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       question: "What nearby landmarks are available?",
 
-      options: [
-        "Near Metro",
-        "Near IT Park",
-        "Near Airport",
-        "Near Bus Stop",
-        "Near Railway Station",
-        "Near Mall",
-        "Near Restaurant",
-      ],
+      options: ["Near Bus Stop", "Near Railway Station", "Near Mall", "Near Restaurant"],
     },
 
     // =========================================================
@@ -720,7 +1038,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       maxSelections: 3,
 
-      question: "Select property highlights or ribbons.",
+      question: "Select workspace highlights.",
 
       options: [
         "Verified Property",
@@ -739,6 +1057,38 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // DESCRIPTION
+    // =========================================================
+
+    property_description: {
+      type: "textarea",
+
+      required: false,
+
+      question: "Workspace description",
+
+      aiGenerated: true,
+
+      autoGenerate: true,
+
+      allowEditing: true,
+    },
+
+    // =========================================================
+    // AGENT
+    // =========================================================
+
+    assign_nearest_agent: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Would you like to assign this workspace to the nearest agent?",
+
+      options: ["Yes", "No"],
+    },
+
+    // =========================================================
     // MEDIA
     // =========================================================
 
@@ -747,7 +1097,7 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Upload workspace images, brochures, PDFs or documents.",
+      question: "Upload workspace images, cabin photos, brochures, videos or documents.",
 
       extraction: {
         enabled: true,
@@ -767,8 +1117,6 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
       required: false,
 
       question: "Could I have your full name for the listing?",
-
-      allowSkip: true,
     },
 
     mobile_number: {
@@ -776,34 +1124,69 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "Please share your 10-digit mobile number.",
+      question: "Please share your mobile number.",
     },
   },
+
+  // =========================================================
+  // RULES
+  // =========================================================
 
   rules: [
     {
       type: "normalize_pricing_units",
     },
+
     {
       type: "ask_only_missing_fields",
     },
+
     {
       type: "skip_hidden_fields",
     },
+
     {
       type: "persist_skipped_fields",
     },
+
     {
       type: "prevent_duplicate_questions",
     },
+
     {
       type: "dynamic_followup_questions",
     },
+
     {
       type: "human_like_conversation",
     },
+
     {
       type: "realtime_suggestions",
+    },
+
+    {
+      type: "multiple_workspace_variations",
+    },
+
+    {
+      type: "dynamic_workspace_inventory",
+    },
+
+    {
+      type: "context_aware_questioning",
+    },
+
+    {
+      type: "dynamic_pricing_logic",
+    },
+
+    {
+      type: "workspace_availability_management",
+    },
+
+    {
+      type: "ai_generate_property_description",
     },
   ],
 };
