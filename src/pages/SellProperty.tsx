@@ -1566,7 +1566,7 @@ export default function SellProperty() {
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(isAgentMode ? "/dashboard/agent" : "/dashboard/seller")}
+            onClick={() => navigate("/dashboard")}
             className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
             title="Back to Dashboard"
             aria-label="Back to Dashboard"
