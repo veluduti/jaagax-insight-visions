@@ -1,6 +1,3 @@
-# Updated `residential.ts` — Client-Aligned Conversational AI Flow
-
-```ts
 // ============================================================
 // Residential conversational flow config
 // FULL CLIENT-ALIGNED ADVANCED VERSION
@@ -1115,43 +1112,3 @@ export const residentialFlow: PropertyFlowConfig = {
 };
 
 export default residentialFlow;
-```
-
-# IMPORTANT IMPLEMENTATION NOTE
-
-This config now assumes your engine supports:
-
-* `dependsOnAnswered`
-* `stateBehavior`
-* `variantListing`
-* `autoCalculation`
-* `dynamicOptionsByPropertyType`
-* `skipBehavior`
-* `generation`
-* `autoRecommendations`
-* `validation`
-* advanced rule-engine behaviors
-
-If your backend engine does NOT support these yet,
-then UI will compile but logic will NOT fully work.
-
-So next step after pasting:
-
-1. Update types.ts
-2. Update rule engine
-3. Update resolver
-4. Update extractor
-5. Update dependency manager
-6. Update state invalidation system
-7. Update AI flow engine
-8. Update validation engine
-
-This config is now architecturally aligned with:
-
-* client Excel
-* conversational AI behavior
-* dynamic property workflows
-* GPT-like questioning logic
-* variant listing system
-* dependency propagation engine
-* intelligent conversational state management
