@@ -1,6 +1,7 @@
 // ============================================================
 // Agriculture Land conversational flow config
-// CLIENT EXCEL ALIGNED VERSION
+// FULL CLIENT EXCEL ALIGNED VERSION
+// UPDATED + VERIFIED
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -33,6 +34,10 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     autoNormalizePricingUnits: true,
     supportQuickReplyChips: true,
     supportSearchableDropdowns: true,
+    supportContextualQuestions: true,
+    supportSectionSkipping: true,
+    supportConditionalFollowups: true,
+    supportAiGeneratedDescriptions: true,
   },
 
   order: [
@@ -44,29 +49,49 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     "unit_type",
     "price_per_unit",
 
+    "rent_amount",
+    "rent_frequency",
+    "security_deposit",
+
     "lease_price",
     "lease_duration",
     "available_from",
 
+    "partnership_type",
+    "investment_expected",
+    "revenue_sharing",
+
     "land_size",
+
     "soil_type",
-    "crop_type",
+    "crops_grown",
+    "current_usage",
+
     "water_source",
     "irrigation_type",
 
     "road_access",
     "road_width",
+    "truck_access",
 
-    "fencing",
-    "electricity_availability",
+    "additional_features",
 
-    "farm_house_available",
-    "storage_available",
+    "electricity_connection",
+
+    "farm_infrastructure",
+
     "borewell_count",
+    "borewell_depth",
+    "motor_hp",
 
     "organic_certification",
 
+    "connectivity",
+
     "approvals",
+    "ownership_type",
+    "encumbrance_status",
+    "survey_verified",
 
     "payment_options",
 
@@ -80,7 +105,11 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
     "property_highlights",
 
+    "property_description",
+
     "multiple_land_variations",
+
+    "assign_nearest_agent",
 
     "media_uploads",
 
@@ -94,7 +123,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     // =========================================================
 
     land_type: {
-      type: "single_select",
+      type: "multi_select",
 
       required: true,
 
@@ -103,9 +132,9 @@ export const agricultureLandFlow: PropertyFlowConfig = {
       options: [
         "Farm Land",
         "Agricultural Land",
+        "Organic Farm",
         "Orchard",
         "Plantation",
-        "Organic Farm",
         "Dairy Farm",
         "Poultry Farm",
         "Fish Farm",
@@ -113,7 +142,19 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         "Mango Farm",
         "Tea Estate",
         "Coffee Estate",
+        "Palm Oil Farm",
+        "Greenhouse Farm",
+        "Polyhouse Farm",
+        "Horticulture Land",
+        "Mixed Crop Farm",
+        "Open Farm Land",
       ],
+
+      smartSuggestions: {
+        enabled: true,
+        searchable: true,
+        chips: true,
+      },
     },
 
     // =========================================================
@@ -145,7 +186,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // PRICE
+    // BUY PRICE
     // =========================================================
 
     total_price: {
@@ -181,7 +222,6 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       smartSuggestions: {
         enabled: true,
-        realtime: true,
         searchable: true,
         chips: true,
         type: "dynamic_measurement_units",
@@ -201,6 +241,8 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What is the price per unit?",
 
+      dynamicQuestionLabel: true,
+
       smartSuggestions: {
         enabled: true,
         realtime: true,
@@ -209,11 +251,55 @@ export const agricultureLandFlow: PropertyFlowConfig = {
         type: "dynamic_price_per_unit",
 
         units: ["Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
+
+        examples: ["₹1 Crore per Acre", "₹10 Lakhs per Gunta", "₹5 Lakhs per Cent"],
       },
     },
 
     // =========================================================
-    // LEASE
+    // RENT FLOW
+    // =========================================================
+
+    rent_amount: {
+      type: "rental_price",
+
+      required: true,
+
+      visibleIf: {
+        listing_type: ["Rent"],
+      },
+
+      question: "What is the rent amount?",
+    },
+
+    rent_frequency: {
+      type: "single_select",
+
+      required: true,
+
+      visibleIf: {
+        listing_type: ["Rent"],
+      },
+
+      question: "Select rent frequency.",
+
+      options: ["Monthly", "Yearly"],
+    },
+
+    security_deposit: {
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        listing_type: ["Rent"],
+      },
+
+      question: "What is the security deposit amount?",
+    },
+
+    // =========================================================
+    // LEASE FLOW
     // =========================================================
 
     lease_price: {
@@ -226,15 +312,6 @@ export const agricultureLandFlow: PropertyFlowConfig = {
       },
 
       question: "What is the lease amount?",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "rental_duration_suggestions",
-
-        durations: ["Monthly", "Yearly", "3 Years", "5 Years", "10 Years"],
-      },
     },
 
     lease_duration: {
@@ -264,6 +341,48 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // PARTNERSHIP FLOW
+    // =========================================================
+
+    partnership_type: {
+      type: "single_select",
+
+      required: true,
+
+      visibleIf: {
+        listing_type: ["Partnership"],
+      },
+
+      question: "What type of partnership are you looking for?",
+
+      options: ["Joint Venture", "Revenue Sharing", "Investment Partnership", "Operational Partnership"],
+    },
+
+    investment_expected: {
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        listing_type: ["Partnership"],
+      },
+
+      question: "Expected investment amount?",
+    },
+
+    revenue_sharing: {
+      type: "text",
+
+      required: false,
+
+      visibleIf: {
+        listing_type: ["Partnership"],
+      },
+
+      question: "Describe revenue sharing expectations.",
+    },
+
+    // =========================================================
     // LAND SIZE
     // =========================================================
 
@@ -278,21 +397,19 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       smartSuggestions: {
         enabled: true,
-        realtime: true,
         searchable: true,
         chips: true,
-        type: "dynamic_measurement_units",
 
-        examples: ["1 Acre", "5 Gunta", "10 Acre"],
+        examples: ["1 Acre", "5 Gunta", "10 Acres"],
       },
     },
 
     // =========================================================
-    // SOIL & CROPS
+    // SOIL
     // =========================================================
 
     soil_type: {
-      type: "multi_select",
+      type: "single_select",
 
       required: false,
 
@@ -301,7 +418,11 @@ export const agricultureLandFlow: PropertyFlowConfig = {
       options: ["Black Soil", "Red Soil", "Alluvial Soil", "Clay Soil", "Sandy Soil", "Loamy Soil"],
     },
 
-    crop_type: {
+    // =========================================================
+    // CROPS
+    // =========================================================
+
+    crops_grown: {
       type: "multi_select",
 
       required: false,
@@ -325,6 +446,28 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // CURRENT USAGE
+    // =========================================================
+
+    current_usage: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "What is the current land usage?",
+
+      options: [
+        "Currently Cultivated",
+        "Vacant Land",
+        "Organic Farming",
+        "Poultry",
+        "Dairy",
+        "Fish Farming",
+        "Plantation",
+      ],
+    },
+
+    // =========================================================
     // WATER
     // =========================================================
 
@@ -335,7 +478,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What water sources are available?",
 
-      options: ["Borewell", "Canal", "River", "Lake", "Pond", "Rainwater", "Government Water"],
+      options: ["Borewell", "Canal", "River", "Lake", "Pond", "Rainwater", "Government Water", "Open Well"],
     },
 
     irrigation_type: {
@@ -353,13 +496,21 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     // =========================================================
 
     road_access: {
-      type: "single_select",
+      type: "multi_select",
 
       required: false,
 
-      question: "What type of road access does the land have?",
+      question: "What road access types are available?",
 
-      options: ["National Highway", "State Highway", "Village Road", "Mud Road", "Black Top Road"],
+      options: [
+        "National Highway",
+        "State Highway",
+        "Village Road",
+        "Cement Road",
+        "BT Road",
+        "Gravel Road",
+        "Mud Road",
+      ],
     },
 
     road_width: {
@@ -372,68 +523,157 @@ export const agricultureLandFlow: PropertyFlowConfig = {
       units: ["Feet", "Meters"],
     },
 
-    // =========================================================
-    // UTILITIES
-    // =========================================================
-
-    fencing: {
+    truck_access: {
       type: "single_select",
 
       required: false,
 
-      question: "Is fencing available?",
-
-      options: ["Yes", "No", "Partial"],
-    },
-
-    electricity_availability: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Electricity availability status?",
-
-      options: ["Available", "Nearby", "Not Available"],
-    },
-
-    farm_house_available: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Is there a farmhouse on the property?",
+      question: "Is truck access available?",
 
       options: ["Yes", "No"],
     },
 
-    storage_available: {
-      type: "single_select",
+    // =========================================================
+    // ADDITIONAL FEATURES
+    // =========================================================
+
+    additional_features: {
+      type: "multi_select",
 
       required: false,
 
-      question: "Is storage or warehouse available?",
+      question: "Select additional land features.",
 
-      options: ["Yes", "No"],
+      options: [
+        "Corner Plot",
+        "Boundary Wall",
+        "Fencing",
+        "Water Connection",
+        "Electricity Available",
+        "Bore Available",
+        "River Access",
+        "Pond Water",
+        "Rainwater Harvesting",
+      ],
     },
+
+    // =========================================================
+    // ELECTRICITY
+    // =========================================================
+
+    electricity_connection: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "Electricity facilities available?",
+
+      options: ["Agricultural Power", "3 Phase Power", "Transformer Nearby", "Electricity Connection Available"],
+    },
+
+    // =========================================================
+    // INFRASTRUCTURE
+    // =========================================================
+
+    farm_infrastructure: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "What farm infrastructure is available?",
+
+      options: [
+        "Farm House",
+        "Storage Shed",
+        "Tractor Access",
+        "Boundary Wall",
+        "Workers Quarters",
+        "Cold Storage",
+        "Greenhouse",
+        "Polyhouse",
+        "Cattle Shed",
+      ],
+    },
+
+    // =========================================================
+    // BOREWELL
+    // =========================================================
 
     borewell_count: {
       type: "number",
 
       required: false,
 
-      question: "How many borewells are available?",
+      visibleIf: {
+        water_source: ["Borewell"],
+      },
 
-      allowSkip: true,
+      question: "How many borewells are available?",
     },
+
+    borewell_depth: {
+      type: "measurement",
+
+      required: false,
+
+      visibleIf: {
+        water_source: ["Borewell"],
+      },
+
+      question: "What is the borewell depth?",
+
+      units: ["Feet"],
+    },
+
+    motor_hp: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        water_source: ["Borewell"],
+      },
+
+      question: "What is the motor capacity (HP)?",
+    },
+
+    // =========================================================
+    // ORGANIC
+    // =========================================================
 
     organic_certification: {
       type: "single_select",
 
       required: false,
 
+      visibleIf: {
+        land_type: ["Organic Farm"],
+      },
+
       question: "Does the land have organic certification?",
 
       options: ["Yes", "No", "In Process"],
+    },
+
+    // =========================================================
+    // CONNECTIVITY
+    // =========================================================
+
+    connectivity: {
+      type: "multi_select",
+
+      required: false,
+
+      question: "Select nearby connectivity options.",
+
+      options: [
+        "Main Road Access",
+        "Village Road Access",
+        "Highway Access",
+        "Near Market Yard",
+        "Near Town",
+        "Near River",
+      ],
     },
 
     // =========================================================
@@ -447,7 +687,49 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       question: "What approvals or documents are available?",
 
-      options: ["Patta", "Passbook", "Title Deed", "Survey Number", "EC Available", "FMB Sketch", "Pahani", "Adangal"],
+      options: [
+        "Patta",
+        "Passbook",
+        "Pattadar Passbook",
+        "Title Deed",
+        "Survey Number",
+        "EC Available",
+        "FMB Sketch",
+        "Pahani",
+        "Adangal",
+        "Clear Title",
+        "Government Approved",
+      ],
+    },
+
+    ownership_type: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Ownership type?",
+
+      options: ["Single Owner", "Joint Ownership", "Inherited Property"],
+    },
+
+    encumbrance_status: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Encumbrance status?",
+
+      options: ["Clear", "Loan Active", "Dispute"],
+    },
+
+    survey_verified: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Is survey verification completed?",
+
+      options: ["Yes", "No"],
     },
 
     // =========================================================
@@ -480,12 +762,14 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "Please provide location details.",
+      question: "Please provide property location details.",
 
       hierarchy: [
         "Country",
         "State",
         "City",
+        "Area / Locality",
+        "Sub Locality",
         "Village",
         "Mandal / Taluk",
         "District",
@@ -517,9 +801,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Would you like to pin the land location on map?",
-
-      allowSkip: true,
+      question: "Would you like to pin the property on map?",
     },
 
     latitude: {
@@ -555,7 +837,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "What nearby landmarks or access points are available?",
+      question: "Nearby landmarks?",
 
       options: [
         "Near Highway",
@@ -579,7 +861,7 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       maxSelections: 3,
 
-      question: "Select property highlights or ribbons.",
+      question: "Select property highlights.",
 
       options: [
         "Verified Property",
@@ -598,15 +880,49 @@ export const agricultureLandFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // AI DESCRIPTION
+    // =========================================================
+
+    property_description: {
+      type: "textarea",
+
+      required: false,
+
+      question: "Property description",
+
+      aiGenerated: true,
+
+      autoGenerate: true,
+
+      allowEditing: true,
+    },
+
+    // =========================================================
     // MULTIPLE VARIATIONS
     // =========================================================
 
     multiple_land_variations: {
+      type: "repeatable_group",
+
+      required: false,
+
+      question: "Would you like to add another land size and pricing variation?",
+
+      repeatFields: ["land_size", "total_price", "price_per_unit", "unit_type"],
+
+      allowDynamicCopies: true,
+    },
+
+    // =========================================================
+    // AGENT ASSIGNMENT
+    // =========================================================
+
+    assign_nearest_agent: {
       type: "single_select",
 
       required: false,
 
-      question: "Would you like to create another listing variation for different land sizes?",
+      question: "Would you like to assign this property to the nearest agent?",
 
       options: ["Yes", "No"],
     },
@@ -649,41 +965,66 @@ export const agricultureLandFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "Please share your 10-digit mobile number.",
+      question: "Please share your mobile number.",
     },
   },
+
+  // =========================================================
+  // RULES
+  // =========================================================
 
   rules: [
     {
       type: "auto_calculate_total_price",
       formula: "land_size * price_per_unit",
     },
+
     {
       type: "normalize_pricing_units",
     },
+
     {
       type: "ask_only_missing_fields",
     },
+
     {
       type: "skip_hidden_fields",
     },
+
     {
       type: "persist_skipped_fields",
     },
+
     {
       type: "prevent_duplicate_questions",
     },
+
     {
       type: "dynamic_followup_questions",
     },
+
     {
       type: "human_like_conversation",
     },
+
     {
       type: "realtime_suggestions",
     },
+
     {
       type: "multiple_listing_variations",
+    },
+
+    {
+      type: "dynamic_dependency_questions",
+    },
+
+    {
+      type: "context_aware_questioning",
+    },
+
+    {
+      type: "ai_generate_property_description",
     },
   ],
 };
