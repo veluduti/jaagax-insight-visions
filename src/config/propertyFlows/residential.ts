@@ -1,6 +1,9 @@
+# Updated `residential.ts` — Client-Aligned Conversational AI Flow
+
+```ts
 // ============================================================
 // Residential conversational flow config
-// CLIENT EXCEL ALIGNED VERSION
+// FULL CLIENT-ALIGNED ADVANCED VERSION
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -33,6 +36,28 @@ export const residentialFlow: PropertyFlowConfig = {
     autoNormalizePricingUnits: true,
     supportQuickReplyChips: true,
     supportSearchableDropdowns: true,
+
+    // ========================================================
+    // NEW ADVANCED AI FEATURES
+    // ========================================================
+
+    supportAnswerRevision: true,
+    autoInvalidateDependentFields: true,
+    recalculateFlowOnCorrection: true,
+    supportSkipReasoning: true,
+    supportNotApplicableState: true,
+    supportDependencyPropagation: true,
+    supportDynamicValidation: true,
+    supportVariantListings: true,
+    supportAutoDescriptionGeneration: true,
+    supportDerivedRecommendations: true,
+    supportStateRecovery: true,
+    supportConversationMemory: true,
+    supportConditionalRequirements: true,
+    supportContextualAmenities: true,
+    supportDynamicPricingComputation: true,
+    supportDependentQuestionSuppression: true,
+    supportMultiVariantPricing: true,
   },
 
   order: [
@@ -87,6 +112,8 @@ export const residentialFlow: PropertyFlowConfig = {
 
     "property_highlights",
 
+    "property_description",
+
     "media_uploads",
 
     "contact_name",
@@ -118,6 +145,11 @@ export const residentialFlow: PropertyFlowConfig = {
         "Builder Floor Apartment",
         "Gated Community House",
       ],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
+      },
     },
 
     // =========================================================
@@ -146,6 +178,11 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What type of listing is this?",
 
       options: ["Buy", "Rent"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
+      },
     },
 
     // =========================================================
@@ -165,15 +202,31 @@ export const residentialFlow: PropertyFlowConfig = {
 
       placeholder: "Enter property price",
 
-      smartSuggestions: {
+      autoCalculation: {
         enabled: true,
 
+        formulaByPropertyType: {
+          "Apartment / Flat": "flat_size * price_per_unit",
+          Penthouse: "flat_size * price_per_unit",
+          "Studio Apartment": "flat_size * price_per_unit",
+          "Builder Floor Apartment": "flat_size * price_per_unit",
+          "Serviced Apartment": "flat_size * price_per_unit",
+          Villa: "built_area * price_per_unit",
+          "Independent House": "built_area * price_per_unit",
+          "Duplex / Triplex": "built_area * price_per_unit",
+          "Farm House": "land_size * price_per_unit",
+          "Row House / Townhouse": "built_area * price_per_unit",
+        },
+
         realtime: true,
+        allowManualOverride: true,
+      },
 
+      smartSuggestions: {
+        enabled: true,
+        realtime: true,
         searchable: true,
-
         chips: true,
-
         type: "indian_price_format",
 
         behavior: {
@@ -209,16 +262,21 @@ export const residentialFlow: PropertyFlowConfig = {
 
       smartSuggestions: {
         enabled: true,
-
         realtime: true,
-
         chips: true,
-
         type: "dynamic_measurement_units",
 
-        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
-
-        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sqyd"],
+        units: [
+          "Sqft",
+          "Sqyd",
+          "Sqm",
+          "Acre",
+          "Gunta",
+          "Cent",
+          "Bigha",
+          "Hectare",
+          "Katha",
+        ],
       },
     },
 
@@ -239,23 +297,27 @@ export const residentialFlow: PropertyFlowConfig = {
 
       smartSuggestions: {
         enabled: true,
-
         realtime: true,
-
-        chips: true,
-
         searchable: true,
-
+        chips: true,
         type: "dynamic_price_per_unit",
 
-        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
-
-        examples: ["₹5000 / Sqft", "₹5000 / Gunta", "₹5000 / Acre"],
+        units: [
+          "Sqft",
+          "Sqyd",
+          "Sqm",
+          "Acre",
+          "Gunta",
+          "Cent",
+          "Bigha",
+          "Hectare",
+          "Katha",
+        ],
       },
     },
 
     // =========================================================
-    // MONTHLY RENT
+    // RENTAL
     // =========================================================
 
     monthly_rent: {
@@ -268,27 +330,7 @@ export const residentialFlow: PropertyFlowConfig = {
       },
 
       question: "What is the monthly rent?",
-
-      smartSuggestions: {
-        enabled: true,
-
-        realtime: true,
-
-        searchable: true,
-
-        chips: true,
-
-        type: "rental_duration_suggestions",
-
-        durations: ["Monthly", "Weekly", "Daily", "3 Months", "6 Months", "Yearly", "Per Night", "Quarterly"],
-
-        examples: ["₹10000 / Monthly", "₹10000 / Weekly", "₹10000 / Daily"],
-      },
     },
-
-    // =========================================================
-    // AVAILABLE FROM
-    // =========================================================
 
     available_from: {
       type: "future_date",
@@ -311,9 +353,18 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      visibleIf: {
+        listing_type: ["Buy"],
+      },
+
       question: "What is the property condition?",
 
       options: ["New", "Resale"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
+      },
     },
 
     property_age: {
@@ -329,10 +380,6 @@ export const residentialFlow: PropertyFlowConfig = {
 
       options: ["0-1 Years", "1-5 Years", "5-10 Years", "10+ Years"],
     },
-
-    // =========================================================
-    // AVAILABILITY
-    // =========================================================
 
     availability_status: {
       type: "single_select",
@@ -383,6 +430,19 @@ export const residentialFlow: PropertyFlowConfig = {
 
       units: ["Sq Ft"],
 
+      allowMultipleVariants: true,
+
+      variantListing: {
+        enabled: true,
+        createSeparateListings: true,
+
+        linkedFields: [
+          "flat_size",
+          "price_per_unit",
+          "total_price",
+        ],
+      },
+
       smartSuggestions: {
         enabled: true,
         realtime: true,
@@ -407,6 +467,11 @@ export const residentialFlow: PropertyFlowConfig = {
       },
 
       question: "Which floor is the property on?",
+
+      validation: {
+        min: 0,
+        maxField: "total_floors",
+      },
     },
 
     total_floors: {
@@ -425,6 +490,10 @@ export const residentialFlow: PropertyFlowConfig = {
       },
 
       question: "How many total floors are there in the building?",
+
+      validation: {
+        min: 1,
+      },
     },
 
     // =========================================================
@@ -437,7 +506,13 @@ export const residentialFlow: PropertyFlowConfig = {
       required: true,
 
       visibleIf: {
-        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+        property_type: [
+          "Independent House",
+          "Villa",
+          "Duplex / Triplex",
+          "Farm House",
+          "Row House / Townhouse",
+        ],
       },
 
       question: "What is the land size?",
@@ -450,8 +525,6 @@ export const residentialFlow: PropertyFlowConfig = {
         searchable: true,
         chips: true,
         type: "dynamic_measurement_units",
-
-        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sq Yard"],
       },
     },
 
@@ -461,19 +534,18 @@ export const residentialFlow: PropertyFlowConfig = {
       required: true,
 
       visibleIf: {
-        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+        property_type: [
+          "Independent House",
+          "Villa",
+          "Duplex / Triplex",
+          "Farm House",
+          "Row House / Townhouse",
+        ],
       },
 
       question: "What is the built area?",
 
       units: ["Sq Ft", "Sq Yard"],
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "measurement_units",
-      },
     },
 
     // =========================================================
@@ -513,9 +585,25 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      visibleIf: {
+        property_type: {
+          notIn: ["Studio Apartment"],
+        },
+      },
+
       question: "What is the BHK type?",
 
-      options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK"],
+      options: [
+        "1 RK",
+        "1 BHK",
+        "2 BHK",
+        "3 BHK",
+        "4 BHK",
+        "5 BHK",
+        "6+ BHK",
+      ],
+
+      allowCustomInput: true,
     },
 
     // =========================================================
@@ -540,6 +628,10 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "Is this inside a gated community?",
 
       options: ["Yes", "No"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+      },
     },
 
     total_towers: {
@@ -548,13 +640,25 @@ export const residentialFlow: PropertyFlowConfig = {
       required: false,
 
       visibleIf: {
-        property_type: ["Apartment / Flat", "Penthouse", "Builder Floor Apartment", "Serviced Apartment"],
+        property_type: [
+          "Apartment / Flat",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Serviced Apartment",
+        ],
+
         gated_community: ["Yes"],
       },
 
       question: "How many towers are in the project?",
 
       allowSkip: true,
+
+      skipBehavior: {
+        reasonAware: true,
+        suppressDependents: true,
+        neverReask: true,
+      },
     },
 
     floors_per_tower: {
@@ -565,6 +669,8 @@ export const residentialFlow: PropertyFlowConfig = {
       visibleIf: {
         gated_community: ["Yes"],
       },
+
+      dependsOnAnswered: ["total_towers"],
 
       question: "How many floors per tower?",
 
@@ -580,6 +686,8 @@ export const residentialFlow: PropertyFlowConfig = {
         gated_community: ["Yes"],
       },
 
+      dependsOnAnswered: ["total_towers"],
+
       question: "How many total units are there?",
 
       allowSkip: true,
@@ -593,6 +701,8 @@ export const residentialFlow: PropertyFlowConfig = {
       visibleIf: {
         gated_community: ["Yes"],
       },
+
+      dependsOnAnswered: ["total_towers"],
 
       question: "What is the total project land area?",
 
@@ -626,7 +736,16 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What furnishing items are included?",
 
-      options: ["AC", "Wardrobes", "Modular Kitchen", "Geysers", "Beds", "Sofa", "Dining Table", "TV"],
+      options: [
+        "AC",
+        "Wardrobes",
+        "Modular Kitchen",
+        "Geysers",
+        "Beds",
+        "Sofa",
+        "Dining Table",
+        "TV",
+      ],
     },
 
     // =========================================================
@@ -640,7 +759,16 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What is the property facing?",
 
-      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
+      options: [
+        "East",
+        "West",
+        "North",
+        "South",
+        "North East",
+        "North West",
+        "South East",
+        "South West",
+      ],
     },
 
     // =========================================================
@@ -654,17 +782,32 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What amenities are available?",
 
-      options: [
-        "Lift",
-        "Parking",
-        "Swimming Pool",
-        "Gym",
-        "Security",
-        "Club House",
-        "Power Backup",
-        "Children Play Area",
-        "Garden",
-      ],
+      dynamicOptionsByPropertyType: {
+        "Apartment / Flat": [
+          "Lift",
+          "Swimming Pool",
+          "Gym",
+          "Club House",
+          "Security",
+          "Power Backup",
+          "Children Play Area",
+        ],
+
+        Villa: [
+          "Private Garden",
+          "Private Pool",
+          "Club House",
+          "Security",
+          "Power Backup",
+        ],
+
+        "Independent House": [
+          "Parking",
+          "Garden",
+          "Power Backup",
+          "Security",
+        ],
+      },
     },
 
     // =========================================================
@@ -745,23 +888,14 @@ export const residentialFlow: PropertyFlowConfig = {
 
       smartSuggestions: {
         enabled: true,
-
         realtime: true,
-
         searchable: true,
-
         chips: true,
-
         typoFriendly: true,
-
         gpsSupport: true,
-
         mapSelection: true,
-
         pincodeAutoFill: true,
-
         dependentHierarchy: true,
-
         currentLocation: true,
       },
     },
@@ -778,6 +912,28 @@ export const residentialFlow: PropertyFlowConfig = {
       maxSelections: 3,
 
       question: "Select property highlights or ribbons.",
+
+      autoRecommendations: {
+        enabled: true,
+
+        rules: [
+          {
+            when: {
+              gated_community: ["Yes"],
+            },
+
+            suggest: ["Gated Community"],
+          },
+
+          {
+            when: {
+              furnishing_status: ["Fully Furnished"],
+            },
+
+            suggest: ["Fully Furnished"],
+          },
+        ],
+      },
 
       options: [
         "Verified Property",
@@ -798,6 +954,38 @@ export const residentialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // AI DESCRIPTION
+    // =========================================================
+
+    property_description: {
+      type: "ai_generated_text",
+
+      required: false,
+
+      question: "AI will generate a smart property description.",
+
+      generation: {
+        enabled: true,
+        autoGenerate: true,
+        regenerateOnFieldChange: true,
+
+        useFields: [
+          "property_type",
+          "bhk_type",
+          "flat_size",
+          "built_area",
+          "land_size",
+          "furnishing_status",
+          "amenities",
+          "location",
+          "project_name",
+          "total_price",
+          "monthly_rent",
+        ],
+      },
+    },
+
+    // =========================================================
     // MEDIA
     // =========================================================
 
@@ -810,11 +998,8 @@ export const residentialFlow: PropertyFlowConfig = {
 
       extraction: {
         enabled: true,
-
         autoExtractPropertyData: true,
-
         autoDetectMissingFields: true,
-
         continueFromExtractedState: true,
       },
     },
@@ -842,11 +1027,13 @@ export const residentialFlow: PropertyFlowConfig = {
     },
   },
 
+  // ============================================================
+  // GLOBAL RULE ENGINE
+  // ============================================================
+
   rules: [
     {
-      type: "auto_calculate_total_price",
-
-      formula: "land_size * price_per_unit",
+      type: "dynamic_price_computation",
     },
 
     {
@@ -884,7 +1071,87 @@ export const residentialFlow: PropertyFlowConfig = {
     {
       type: "multiple_listing_variations",
     },
+
+    {
+      type: "dependency_propagation",
+    },
+
+    {
+      type: "skip_reasoning_engine",
+    },
+
+    {
+      type: "auto_invalidate_hidden_fields",
+    },
+
+    {
+      type: "recalculate_dependent_fields",
+    },
+
+    {
+      type: "not_applicable_state_engine",
+    },
+
+    {
+      type: "dynamic_validation_engine",
+    },
+
+    {
+      type: "auto_generate_description",
+    },
+
+    {
+      type: "variant_listing_engine",
+    },
+
+    {
+      type: "derived_recommendation_engine",
+    },
+
+    {
+      type: "conversation_recovery_engine",
+    },
   ],
 };
 
 export default residentialFlow;
+```
+
+# IMPORTANT IMPLEMENTATION NOTE
+
+This config now assumes your engine supports:
+
+* `dependsOnAnswered`
+* `stateBehavior`
+* `variantListing`
+* `autoCalculation`
+* `dynamicOptionsByPropertyType`
+* `skipBehavior`
+* `generation`
+* `autoRecommendations`
+* `validation`
+* advanced rule-engine behaviors
+
+If your backend engine does NOT support these yet,
+then UI will compile but logic will NOT fully work.
+
+So next step after pasting:
+
+1. Update types.ts
+2. Update rule engine
+3. Update resolver
+4. Update extractor
+5. Update dependency manager
+6. Update state invalidation system
+7. Update AI flow engine
+8. Update validation engine
+
+This config is now architecturally aligned with:
+
+* client Excel
+* conversational AI behavior
+* dynamic property workflows
+* GPT-like questioning logic
+* variant listing system
+* dependency propagation engine
+* intelligent conversational state management
