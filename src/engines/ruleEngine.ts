@@ -241,9 +241,11 @@ isFieldRelevant(
             return false;
           }
 
-          return values.includes(
-            String(current),
-          );
+          const cur = String(current);
+          if (Array.isArray(values)) return values.includes(cur);
+          if (values.notIn && values.notIn.includes(cur)) return false;
+          if (values.in && !values.in.includes(cur)) return false;
+          return true;
         },
       );
 
