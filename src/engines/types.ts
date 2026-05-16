@@ -98,7 +98,7 @@ export interface ExtractionConfig {
 // Field Visibility Rules
 // ------------------------------------------------------------
 
-export type VisibilityRule = Record<string, string[]>;
+export type VisibilityRule = Record<string, string[] | { notIn?: string[]; in?: string[] }>;
 
 // ------------------------------------------------------------
 // Field Definition
