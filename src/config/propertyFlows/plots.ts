@@ -1,6 +1,6 @@
 // ============================================================
 // Plots / Land conversational flow config
-// CLIENT EXCEL ALIGNED VERSION
+// FULL CLIENT-ALIGNED ADVANCED VERSION
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -9,6 +9,10 @@ export const plotsFlow: PropertyFlowConfig = {
   category: "plots",
 
   label: "Plots / Land",
+
+  // ============================================================
+  // AI ENGINE
+  // ============================================================
 
   ai: {
     conversational: true,
@@ -33,7 +37,38 @@ export const plotsFlow: PropertyFlowConfig = {
     autoNormalizePricingUnits: true,
     supportQuickReplyChips: true,
     supportSearchableDropdowns: true,
+
+    // ========================================================
+    // ADVANCED CLIENT AI FEATURES
+    // ========================================================
+
+    supportAnswerRevision: true,
+    autoInvalidateDependentFields: true,
+    recalculateFlowOnCorrection: true,
+    supportSkipReasoning: true,
+    supportNotApplicableState: true,
+    supportDependencyPropagation: true,
+    supportDynamicValidation: true,
+    supportVariantListings: true,
+    supportAutoDescriptionGeneration: true,
+    supportDerivedRecommendations: true,
+    supportStateRecovery: true,
+    supportConversationMemory: true,
+    supportConditionalRequirements: true,
+    supportContextualAmenities: true,
+    supportDynamicPricingComputation: true,
+    supportDependentQuestionSuppression: true,
+    supportMultiVariantPricing: true,
+    supportRegionalMeasurementUnderstanding: true,
+    supportLandSuitabilityInference: true,
+    supportLegalIntelligence: true,
+    supportAgriculturalLogic: true,
+    supportRoadConnectivityLogic: true,
   },
+
+  // ============================================================
+  // QUESTION ORDER
+  // ============================================================
 
   order: [
     "plot_type",
@@ -50,13 +85,20 @@ export const plotsFlow: PropertyFlowConfig = {
 
     "plot_size",
     "plot_dimensions",
+
     "road_width",
+    "road_type",
+    "approach_road",
+    "highway_access",
+
     "corner_plot",
     "open_sides",
 
     "plot_facing",
 
     "boundary_wall",
+    "fencing_type",
+
     "gated_layout",
 
     "layout_name",
@@ -66,11 +108,25 @@ export const plotsFlow: PropertyFlowConfig = {
 
     "approvals",
 
+    "legal_status",
+    "clear_title",
+    "registration_ready",
+    "encumbrance_status",
+    "land_conversion_status",
+
     "plot_amenities",
 
     "water_availability",
     "electricity_availability",
     "drainage_availability",
+
+    // Agricultural
+    "irrigation_type",
+    "water_source",
+    "soil_type",
+    "crop_type",
+    "borewell_count",
+    "tractor_road_access",
 
     "payment_options",
 
@@ -82,6 +138,8 @@ export const plotsFlow: PropertyFlowConfig = {
 
     "property_highlights",
 
+    "plot_description",
+
     "multiple_plot_variations",
 
     "media_uploads",
@@ -89,6 +147,10 @@ export const plotsFlow: PropertyFlowConfig = {
     "contact_name",
     "mobile_number",
   ],
+
+  // ============================================================
+  // FIELDS
+  // ============================================================
 
   fields: {
     // =========================================================
@@ -114,6 +176,11 @@ export const plotsFlow: PropertyFlowConfig = {
         "Lake View Plot",
         "Highway Facing Plot",
       ],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
+      },
     },
 
     // =========================================================
@@ -142,6 +209,11 @@ export const plotsFlow: PropertyFlowConfig = {
       question: "What type of listing is this?",
 
       options: ["Buy", "Rent", "Lease"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
+      },
     },
 
     // =========================================================
@@ -159,14 +231,24 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What is the total plot price?",
 
+      autoCalculation: {
+        enabled: true,
+
+        formula: "plot_size * price_per_unit",
+
+        realtime: true,
+
+        normalizeRegionalUnits: true,
+
+        allowManualOverride: true,
+      },
+
       smartSuggestions: {
         enabled: true,
         realtime: true,
         searchable: true,
         chips: true,
         type: "indian_price_format",
-
-        examples: ["1000 → 1 Thousand", "100000 → 1 Lakh", "10000000 → 1 Crore"],
       },
     },
 
@@ -188,7 +270,9 @@ export const plotsFlow: PropertyFlowConfig = {
       smartSuggestions: {
         enabled: true,
         realtime: true,
+        searchable: true,
         chips: true,
+
         type: "dynamic_measurement_units",
 
         units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
@@ -215,6 +299,7 @@ export const plotsFlow: PropertyFlowConfig = {
         realtime: true,
         searchable: true,
         chips: true,
+
         type: "dynamic_price_per_unit",
 
         units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
@@ -235,15 +320,6 @@ export const plotsFlow: PropertyFlowConfig = {
       },
 
       question: "What is the rent or lease amount?",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "rental_duration_suggestions",
-
-        durations: ["Monthly", "Weekly", "Daily", "Yearly", "3 Months", "6 Months", "Quarterly"],
-      },
     },
 
     lease_duration: {
@@ -285,14 +361,24 @@ export const plotsFlow: PropertyFlowConfig = {
 
       units: ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
 
+      allowMultipleVariants: true,
+
+      variantListing: {
+        enabled: true,
+        createSeparateListings: true,
+
+        linkedFields: ["plot_size", "price_per_unit", "total_price"],
+      },
+
       smartSuggestions: {
         enabled: true,
         realtime: true,
         searchable: true,
         chips: true,
+
         type: "dynamic_measurement_units",
 
-        examples: ["100 Sqft", "100 Gunta", "100 Acre", "100 Sq Yard"],
+        autoUnitConversion: true,
       },
     },
 
@@ -306,6 +392,10 @@ export const plotsFlow: PropertyFlowConfig = {
       allowSkip: true,
     },
 
+    // =========================================================
+    // ROAD LOGIC
+    // =========================================================
+
     road_width: {
       type: "measurement",
 
@@ -316,7 +406,61 @@ export const plotsFlow: PropertyFlowConfig = {
       units: ["Feet", "Meters"],
 
       allowSkip: true,
+
+      validation: {
+        min: 1,
+      },
     },
+
+    road_type: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land", "Open Land"],
+        },
+      },
+
+      question: "What type of road access is available?",
+
+      options: ["Black Top Road", "Cement Road", "Gravel Road", "Mud Road", "Internal Layout Road", "Highway Access"],
+    },
+
+    approach_road: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land"],
+        },
+      },
+
+      question: "Is there proper approach road connectivity?",
+
+      options: ["Yes", "No", "Partially"],
+    },
+
+    highway_access: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Commercial Plot", "Industrial Plot", "Highway Facing Plot"],
+      },
+
+      question: "Does the property have highway access?",
+
+      options: ["Direct Access", "Nearby", "No"],
+    },
+
+    // =========================================================
+    // PLOT FEATURES
+    // =========================================================
 
     corner_plot: {
       type: "single_select",
@@ -333,19 +477,27 @@ export const plotsFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land", "Open Land"],
+        },
+      },
+
       question: "How many sides are open?",
 
       options: ["1 Side", "2 Sides", "3 Sides", "4 Sides"],
     },
 
-    // =========================================================
-    // FACING
-    // =========================================================
-
     plot_facing: {
       type: "single_select",
 
-      required: true,
+      required: false,
+
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land", "Open Land"],
+        },
+      },
 
       question: "What is the plot facing?",
 
@@ -366,14 +518,42 @@ export const plotsFlow: PropertyFlowConfig = {
       options: ["Yes", "No", "Partial"],
     },
 
+    fencing_type: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land", "Open Land"],
+      },
+
+      question: "What type of fencing is available?",
+
+      options: ["Wire Fencing", "Stone Fencing", "Compound Wall", "Partial Fencing", "No Fencing"],
+    },
+
+    // =========================================================
+    // GATED LAYOUT
+    // =========================================================
+
     gated_layout: {
       type: "single_select",
 
       required: false,
 
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land", "Open Land"],
+        },
+      },
+
       question: "Is the plot inside a gated layout/community?",
 
       options: ["Yes", "No"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+      },
     },
 
     // =========================================================
@@ -389,6 +569,8 @@ export const plotsFlow: PropertyFlowConfig = {
         gated_layout: ["Yes"],
       },
 
+      dependsOnAnswered: ["gated_layout"],
+
       question: "What is the layout or project name?",
 
       allowSkip: true,
@@ -403,6 +585,8 @@ export const plotsFlow: PropertyFlowConfig = {
         gated_layout: ["Yes"],
       },
 
+      dependsOnAnswered: ["gated_layout"],
+
       question: "What type of layout is it?",
 
       options: ["Open Layout", "Gated Layout", "Premium Layout", "Villa Layout"],
@@ -416,6 +600,8 @@ export const plotsFlow: PropertyFlowConfig = {
       visibleIf: {
         gated_layout: ["Yes"],
       },
+
+      dependsOnAnswered: ["gated_layout"],
 
       question: "What is the total layout area?",
 
@@ -433,6 +619,8 @@ export const plotsFlow: PropertyFlowConfig = {
         gated_layout: ["Yes"],
       },
 
+      dependsOnAnswered: ["gated_layout"],
+
       question: "How many plots are there in the layout?",
 
       allowSkip: true,
@@ -446,6 +634,12 @@ export const plotsFlow: PropertyFlowConfig = {
       type: "multi_select",
 
       required: false,
+
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land", "Open Land"],
+        },
+      },
 
       question: "What approvals does this property have?",
 
@@ -462,6 +656,66 @@ export const plotsFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // LEGAL
+    // =========================================================
+
+    legal_status: {
+      type: "single_select",
+
+      required: false,
+
+      question: "What is the legal status of the land?",
+
+      options: ["Clear Title", "Dispute Free", "Under Verification", "Pending Clearance"],
+    },
+
+    clear_title: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Does the property have clear title?",
+
+      options: ["Yes", "No"],
+    },
+
+    registration_ready: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Is the property ready for registration?",
+
+      options: ["Yes", "No"],
+    },
+
+    encumbrance_status: {
+      type: "single_select",
+
+      required: false,
+
+      question: "Encumbrance status?",
+
+      options: ["No Encumbrance", "Encumbrance Available", "Pending Verification"],
+    },
+
+    land_conversion_status: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land"],
+        },
+      },
+
+      question: "Land conversion status?",
+
+      options: ["Converted", "Non Converted", "Conversion In Progress"],
+    },
+
+    // =========================================================
     // AMENITIES
     // =========================================================
 
@@ -472,20 +726,22 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What amenities are available?",
 
-      options: [
-        "Underground Electricity",
-        "Street Lights",
-        "Drainage",
-        "Water Connection",
-        "Black Top Roads",
-        "Security",
-        "Parks",
-        "Children Play Area",
-        "Club House",
-        "Avenue Plantation",
-        "Rain Water Harvesting",
-        "CCTV",
-      ],
+      dynamicOptionsByPlotType: {
+        "Residential Plot": [
+          "Underground Electricity",
+          "Street Lights",
+          "Drainage",
+          "Water Connection",
+          "Black Top Roads",
+          "Security",
+          "Parks",
+          "Club House",
+        ],
+
+        "Commercial Plot": ["Highway Access", "Wide Roads", "Street Lights", "Drainage", "Water Connection"],
+
+        "Farm Land": ["Borewell", "Canal Water", "Electricity", "Drip Irrigation", "Farm Shed"],
+      },
     },
 
     // =========================================================
@@ -499,7 +755,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "Water availability status?",
 
-      options: ["Available", "Bore Available", "Not Available"],
+      options: ["Available", "Bore Available", "Canal Water", "Not Available"],
     },
 
     electricity_availability: {
@@ -517,9 +773,105 @@ export const plotsFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        plot_type: {
+          notIn: ["Farm Land"],
+        },
+      },
+
       question: "Drainage availability status?",
 
       options: ["Available", "Planned", "Not Available"],
+    },
+
+    // =========================================================
+    // AGRICULTURAL LOGIC
+    // =========================================================
+
+    irrigation_type: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "What type of irrigation is available?",
+
+      options: ["Drip Irrigation", "Sprinkler", "Canal Irrigation", "Rain Fed", "Manual"],
+    },
+
+    water_source: {
+      type: "multi_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "What are the water sources?",
+
+      options: ["Borewell", "Canal", "Lake", "River", "Rain Water", "Water Tanker"],
+    },
+
+    soil_type: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "What type of soil is available?",
+
+      options: ["Red Soil", "Black Soil", "Sandy Soil", "Clay Soil", "Mixed Soil"],
+    },
+
+    crop_type: {
+      type: "multi_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "What crops are suitable or currently cultivated?",
+
+      options: ["Paddy", "Cotton", "Mango", "Coconut", "Banana", "Vegetables", "Sugarcane", "Maize"],
+    },
+
+    borewell_count: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "How many borewells are available?",
+
+      validation: {
+        min: 0,
+      },
+    },
+
+    tractor_road_access: {
+      type: "single_select",
+
+      required: false,
+
+      visibleIf: {
+        plot_type: ["Farm Land"],
+      },
+
+      question: "Is tractor road access available?",
+
+      options: ["Yes", "No"],
     },
 
     // =========================================================
@@ -539,16 +891,8 @@ export const plotsFlow: PropertyFlowConfig = {
         "EMI Available",
         "Installments Available",
         "Flexible Payment Plan",
-        "Construction Linked Payment",
-        "Possession Linked Payment",
-        "Zero Down Payment",
-        "Low Booking Amount",
-        "Assured Rental Returns",
         "Investor Friendly",
         "NRI Assistance",
-        "Pre-EMI Support",
-        "Premium Bank Tie-Ups",
-        "Custom Payment Plans",
         "Immediate Registration",
       ],
     },
@@ -590,7 +934,7 @@ export const plotsFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // MAP LOCATION
+    // MAP
     // =========================================================
 
     map_location: {
@@ -640,6 +984,36 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "Select property highlights or ribbons.",
 
+      autoRecommendations: {
+        enabled: true,
+
+        rules: [
+          {
+            when: {
+              corner_plot: ["Yes"],
+            },
+
+            suggest: ["Corner Plot"],
+          },
+
+          {
+            when: {
+              gated_layout: ["Yes"],
+            },
+
+            suggest: ["Premium Listing"],
+          },
+
+          {
+            when: {
+              highway_access: ["Direct Access"],
+            },
+
+            suggest: ["Near Highway"],
+          },
+        ],
+      },
+
       options: [
         "Verified Property",
         "Verified Owner",
@@ -652,11 +1026,39 @@ export const plotsFlow: PropertyFlowConfig = {
         "Corner Plot",
         "Lake View",
         "Near Highway",
-        "Near Metro",
         "Investment Opportunity",
         "Ready Registration",
         "Fast Growing Area",
       ],
+    },
+
+    // =========================================================
+    // AI DESCRIPTION
+    // =========================================================
+
+    plot_description: {
+      type: "ai_generated_text",
+
+      required: false,
+
+      question: "AI will generate smart plot description.",
+
+      generation: {
+        enabled: true,
+        autoGenerate: true,
+        regenerateOnFieldChange: true,
+
+        useFields: [
+          "plot_type",
+          "plot_size",
+          "road_width",
+          "road_type",
+          "approvals",
+          "plot_amenities",
+          "location",
+          "total_price",
+        ],
+      },
     },
 
     // =========================================================
@@ -715,10 +1117,13 @@ export const plotsFlow: PropertyFlowConfig = {
     },
   },
 
+  // ============================================================
+  // RULE ENGINE
+  // ============================================================
+
   rules: [
     {
-      type: "auto_calculate_total_price",
-      formula: "plot_size * price_per_unit",
+      type: "dynamic_price_computation",
     },
 
     {
@@ -755,6 +1160,62 @@ export const plotsFlow: PropertyFlowConfig = {
 
     {
       type: "multiple_listing_variations",
+    },
+
+    {
+      type: "dependency_propagation",
+    },
+
+    {
+      type: "skip_reasoning_engine",
+    },
+
+    {
+      type: "auto_invalidate_hidden_fields",
+    },
+
+    {
+      type: "recalculate_dependent_fields",
+    },
+
+    {
+      type: "not_applicable_state_engine",
+    },
+
+    {
+      type: "dynamic_validation_engine",
+    },
+
+    {
+      type: "auto_generate_description",
+    },
+
+    {
+      type: "variant_listing_engine",
+    },
+
+    {
+      type: "derived_recommendation_engine",
+    },
+
+    {
+      type: "conversation_recovery_engine",
+    },
+
+    {
+      type: "regional_measurement_normalization",
+    },
+
+    {
+      type: "land_suitability_engine",
+    },
+
+    {
+      type: "legal_verification_engine",
+    },
+
+    {
+      type: "agricultural_logic_engine",
     },
   ],
 };
