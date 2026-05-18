@@ -411,6 +411,146 @@ export function extractFurnishing(message: string): {
 }
 
 // ============================================================
+// FACING
+// ============================================================
+
+const FACING_DIRECTIONS = [
+  "North-East",
+  "North-West",
+  "South-East",
+  "South-West",
+  "North",
+  "South",
+  "East",
+  "West",
+];
+
+export function extractFacing(message: string): string | undefined {
+  const lower = normalizeText(message);
+  const facingMatch = lower.match(
+    /(north[-\s]?east|north[-\s]?west|south[-\s]?east|south[-\s]?west|north|south|east|west)\s*(facing|face)/,
+  );
+  if (!facingMatch) return undefined;
+  const raw = facingMatch[1].replace(/\s+/g, "-");
+  const normalized = FACING_DIRECTIONS.find((d) => d.toLowerCase() === raw);
+  return normalized;
+}
+
+// ============================================================
+// APPROVALS
+// ============================================================
+
+export function extractApprovals(message: string): string[] {
+  const out: string[] = [];
+  const map: Array<[RegExp, string]> = [
+    [/\bts\s*rera\b/i, "TS RERA"],
+    [/\brera\b/i, "RERA"],
+    [/\bdtcp\b/i, "DTCP"],
+    [/\bhmda\b/i, "HMDA"],
+    [/\bbmrda\b/i, "BMRDA"],
+    [/\bbda\b/i, "BDA"],
+  ];
+  for (const [re, label] of map) {
+    if (re.test(message) && !out.includes(label)) out.push(label);
+  }
+  return out;
+}
+
+// ============================================================
+// AMENITIES
+// ============================================================
+
+const AMENITY_KEYWORDS: Array<[RegExp, string]> = [
+  [/\bclub\s*house\b/i, "Clubhouse"],
+  [/\bswimming\s*pool\b/i, "Swimming Pool"],
+  [/\bgymnasium\b|\bgym\b/i, "Gym"],
+  [/\bsecurity\b/i, "Security"],
+  [/\bpower\s*backup\b/i, "Power Backup"],
+  [/\bkids?\s*play\s*area\b/i, "Kids Play Area"],
+  [/\bgarden\b|\bpark\b/i, "Park"],
+  [/\blift\b|\belevator\b/i, "Lift"],
+  [/\bcctv\b/i, "CCTV"],
+  [/\bjogging\s*track\b/i, "Jogging Track"],
+];
+
+export function extractAmenities(message: string): string[] {
+  const out: string[] = [];
+  for (const [re, label] of AMENITY_KEYWORDS) {
+    if (re.test(message) && !out.includes(label)) out.push(label);
+  }
+  return out;
+}
+
+// ============================================================
+// GATED COMMUNITY
+// ============================================================
+
+export function extractGatedCommunity(message: string): string | undefined {
+  if (/\bgated\s*community\b/i.test(message)) return "Yes";
+  return undefined;
+}
+
+// ============================================================
+// LOCATION (locality, city)
+// ============================================================
+
+const INDIAN_CITIES = [
+  "Hyderabad",
+  "Bangalore",
+  "Bengaluru",
+  "Chennai",
+  "Mumbai",
+  "Pune",
+  "Delhi",
+  "Gurgaon",
+  "Noida",
+  "Kolkata",
+  "Ahmedabad",
+  "Vizag",
+  "Visakhapatnam",
+];
+
+export function extractLocation(message: string): {
+  city?: string;
+  locality?: string;
+} {
+  const out: { city?: string; locality?: string } = {};
+  for (const city of INDIAN_CITIES) {
+    const re = new RegExp(`\\b${city}\\b`, "i");
+    if (re.test(message)) {
+      out.city = city === "Bengaluru" ? "Bangalore" : city === "Vizag" ? "Visakhapatnam" : city;
+      break;
+    }
+  }
+  const localityMatch = message.match(
+    /\b(?:at|in|near|location[:\s])\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})/,
+  );
+  if (localityMatch) out.locality = localityMatch[1].trim();
+  return out;
+}
+
+// ============================================================
+// PROJECT NAME
+// ============================================================
+
+export function extractProjectName(message: string): string | undefined {
+  const m = message.match(/\bproject\s*[:\-]?\s*([A-Z][\w&'\- ]{2,40})/i);
+  if (m) return m[1].trim();
+  return undefined;
+}
+
+// ============================================================
+// AVAILABILITY
+// ============================================================
+
+export function extractAvailability(message: string): string | undefined {
+  const lower = normalizeText(message);
+  if (/\bready\s*to\s*move\b/.test(lower)) return "Ready to Move";
+  if (/\bunder\s*construction\b/.test(lower)) return "Under Construction";
+  return undefined;
+}
+
+// ============================================================
 // MAIN EXTRACTION
 // ============================================================
 
@@ -520,6 +660,32 @@ export function extractAll(message: string): ExtractionResult {
   if (furnishing.furnishing_status) {
     fields.furnishing_status = furnishing.furnishing_status;
   }
+
+  // ==========================================================
+  // EXTENDED FIELDS
+  // ==========================================================
+
+  const facing = extractFacing(message);
+  if (facing) fields.property_facing = facing;
+
+  const approvals = extractApprovals(message);
+  if (approvals.length) fields.approvals = approvals;
+
+  const amenities = extractAmenities(message);
+  if (amenities.length) fields.amenities = amenities;
+
+  const gated = extractGatedCommunity(message);
+  if (gated) fields.gated_community = gated;
+
+  const loc = extractLocation(message);
+  if (loc.city) fields.city = loc.city;
+  if (loc.locality) fields.location = loc.locality;
+
+  const project = extractProjectName(message);
+  if (project) fields.project_name = project;
+
+  const availability = extractAvailability(message);
+  if (availability) fields.availability_status = availability;
 
   // ==========================================================
   // CONFIDENCE
