@@ -550,7 +550,7 @@ export const residentialFlow = {
 
         calculate: "total_price",
 
-        formula: "area * price_per_unit",
+        formula: "flat_size * price_per_unit",
       },
     },
 
