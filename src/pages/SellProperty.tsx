@@ -2601,7 +2601,6 @@ export default function SellProperty() {
                       </button>
                     )}
                   </div>
-                </div>
               </>
             )}
           </div>
