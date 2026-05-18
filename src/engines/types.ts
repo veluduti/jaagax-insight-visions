@@ -125,33 +125,10 @@ export interface ExtractionConfig {
 // VISIBILITY RULES
 // ============================================================
 
-export interface VisibilityRule {
-  // SIMPLE FIELD CHECK
-
-  field?: string;
-
-  // VALUE MATCHES
-
-  equals?: unknown;
-
-  notEquals?: unknown;
-
-  // ARRAY CONDITIONS
-
-  in?: unknown[];
-
-  notIn?: unknown[];
-
-  // LOGICAL GROUPS
-
-  and?: VisibilityRule[];
-
-  or?: VisibilityRule[];
-
-  // CUSTOM FUNCTION
-
-  function?: (state: ConversationState) => boolean;
-}
+export type VisibilityRule = Record<
+  string,
+  string[] | { notIn?: string[]; in?: string[] }
+>;
 
 // ============================================================
 // FIELD DEFINITION
