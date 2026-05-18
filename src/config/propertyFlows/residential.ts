@@ -287,7 +287,7 @@ export const residentialFlow = {
       priority: 6,
 
       type: "future_date",
-      renderAs: "calendar"
+      renderAs: "calendar",
 
       required: false,
 
@@ -324,7 +324,7 @@ export const residentialFlow = {
       priority: 8,
 
       type: "future_date",
-      renderAs: "calendar"
+      renderAs: "calendar",
 
       required: true,
 
