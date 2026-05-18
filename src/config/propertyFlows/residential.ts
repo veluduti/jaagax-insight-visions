@@ -914,23 +914,9 @@ export const residentialFlow = {
 
       required: true,
 
-      question: "Where is the property located?",
+      question: "Let's add the property location details.",
 
-      smartLocation: {
-        autoDetectCountry: true,
-
-        autoDetectState: true,
-
-        autoDetectCity: true,
-
-        autoDetectArea: true,
-
-        enableMapPin: true,
-
-        enableGoogleMapsSelection: true,
-
-        autoFillHierarchy: true,
-      },
+      groupedFields: ["country", "state_name", "city", "locality", "address", "pincode"],
     },
 
     property_highlights: {
