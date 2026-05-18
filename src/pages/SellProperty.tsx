@@ -159,10 +159,12 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
   const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
   const renderMode = raw?.renderMode || "input";
   const widgetType = raw?.widget || null;
+  const groupedFields = raw?.groupedFields || [];
   return {
     id: fieldId,
     renderMode,
     widgetType,
+    groupedFields,
     question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
     placeholder: raw?.placeholder,
     input: map[t] || "text",
@@ -203,10 +205,11 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
 type FieldDef = {
   id: string;
   section?: string;
-  renderMode?: string;
-  widgetType?: string | null;
   question: string;
   placeholder?: string;
+  renderMode?: "input" | "widget";
+  widgetType?: "SmartLocationWidget" | null;
+  groupedFields?: string[];
   input:
     | "text"
     | "textarea"
@@ -1596,7 +1599,7 @@ export default function SellProperty() {
   const showCategoryPicker = !category && !done;
   const showIntakeBar = !!category && !intakeDone && !done;
   const showInputBar =
-    (showCategoryPicker || (intakeDone && field && !done) || showIntakeBar) && field?.renderMode !== "widget";
+    showCategoryPicker || showIntakeBar || (intakeDone && field && !done && field.renderMode !== "widget");
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
