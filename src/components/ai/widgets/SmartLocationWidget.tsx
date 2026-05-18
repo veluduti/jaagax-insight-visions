@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
-
+  initialValue?: Record<string, any>;
   onChange?: (value: Record<string, any>) => void;
-
-  onSubmit?: (value: Record<string, any>) => void;
+  onSubmit?: (value: Record<string, any>) => void | Promise<void>;
 }
 
 const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({ value, onChange, onSubmit }) => {
