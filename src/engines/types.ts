@@ -463,6 +463,8 @@ export interface EngineConfig {
   supportAIExtraction?: boolean;
 
   conversationalPriorityMode?: boolean;
+
+  reevaluateOnEveryAnswer?: boolean;
 }
 
 // ============================================================
