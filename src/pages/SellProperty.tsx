@@ -1595,7 +1595,8 @@ export default function SellProperty() {
 
   const showCategoryPicker = !category && !done;
   const showIntakeBar = !!category && !intakeDone && !done;
-  const showInputBar = showCategoryPicker || (intakeDone && field && !done) || showIntakeBar;
+  const showInputBar =
+    (showCategoryPicker || (intakeDone && field && !done) || showIntakeBar) && field?.renderMode !== "widget";
   const isMultiline = field?.input === "textarea";
 
   const tierBadgeClasses: Record<string, string> = {
@@ -1838,6 +1839,19 @@ export default function SellProperty() {
                   <span className="text-foreground/90">{smartHint}</span>
                 </div>
               </motion.div>
+            )}
+
+            {/* SMART WIDGETS */}
+
+            {field?.renderMode === "widget" && field.widgetType === "SmartLocationWidget" && (
+              <div className="pt-3">
+                <SmartLocationWidget
+                  initialValue={state.location}
+                  onSubmit={async (data) => {
+                    await commitAnswer(data, `${data.locality}, ${data.city}`);
+                  }}
+                />
+              </div>
             )}
 
             {/* Required/optional inline indicator */}
