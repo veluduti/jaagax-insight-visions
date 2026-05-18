@@ -41,17 +41,16 @@ function buildPropertyDescription(s: Record<string, any>): string {
     String(v ?? "")
       .trim()
       .replace(/\b\w/g, (c) => c.toUpperCase());
-  const lower = (v: any) => String(v ?? "").trim().toLowerCase();
-  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.property_type || s.type]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const lower = (v: any) =>
+    String(v ?? "")
+      .trim()
+      .toLowerCase();
+  const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.property_type || s.type].filter(Boolean).join(" ").trim();
   const purpose = lower(s.listing_type || s.purpose) === "rent" ? "rent" : "sale";
   const locality = s.locality || s.area || s.sub_locality;
   const city = s.city || s.location?.city;
   const where = [locality, city].filter(Boolean).join(", ") || "a sought-after neighbourhood";
-  const area =
-    s.built_up_area || s.built_area || s.plot_area || s.carpet_area || s.land_size || s.shop_area;
+  const area = s.built_up_area || s.built_area || s.plot_area || s.carpet_area || s.land_size || s.shop_area;
   const unit = s.area_unit || s.unit_type || "sq ft";
   const facing = s.facing ? `${lower(s.facing)}-facing` : "";
   const furnishing = s.furnishing ? `${lower(s.furnishing)}` : "";
@@ -62,11 +61,8 @@ function buildPropertyDescription(s: Record<string, any>): string {
   const amenities: string[] = Array.isArray(s.amenities) ? s.amenities : [];
   const highlights: string[] = Array.isArray(s.property_highlights) ? s.property_highlights : [];
   const gated = /gated|community|township/i.test(highlights.join(" ")) || s.gated_community === true;
-  const approvals = [s.rera_id && `RERA approved (${s.rera_id})`, s.approval_type]
-    .filter(Boolean)
-    .join(", ");
-  const price =
-    s.total_price || s.property_price || s.amount || s.budget || s.monthly_rent || s.rent;
+  const approvals = [s.rera_id && `RERA approved (${s.rera_id})`, s.approval_type].filter(Boolean).join(", ");
+  const price = s.total_price || s.property_price || s.amount || s.budget || s.monthly_rent || s.rent;
   const priceLine = price
     ? purpose === "rent"
       ? `Offered at a competitive rent of ₹${price}.`
@@ -76,9 +72,7 @@ function buildPropertyDescription(s: Record<string, any>): string {
   // ---------- Paragraph 1 — headline + core specs ----------
   const p1Parts: string[] = [];
   if (typeLabel) {
-    p1Parts.push(
-      `Presenting a ${facing ? facing + " " : ""}${typeLabel} available for ${purpose} in ${where}.`,
-    );
+    p1Parts.push(`Presenting a ${facing ? facing + " " : ""}${typeLabel} available for ${purpose} in ${where}.`);
   } else {
     p1Parts.push(`A thoughtfully designed property available for ${purpose} in ${where}.`);
   }
@@ -90,9 +84,7 @@ function buildPropertyDescription(s: Record<string, any>): string {
     );
   } else if (floor || furnishing) {
     p1Parts.push(
-      [floor && `It is ${floor}`, furnishing && `offered ${furnishing}`]
-        .filter(Boolean)
-        .join(" and ") + ".",
+      [floor && `It is ${floor}`, furnishing && `offered ${furnishing}`].filter(Boolean).join(" and ") + ".",
     );
   }
   if (project) p1Parts.push(`${cap(project)}, it enjoys a well-maintained address.`);
@@ -100,16 +92,11 @@ function buildPropertyDescription(s: Record<string, any>): string {
   // ---------- Paragraph 2 — amenities + lifestyle ----------
   const p2Parts: string[] = [];
   if (amenities.length) {
-    p2Parts.push(
-      `Residents enjoy a curated set of amenities including ${amenities
-        .slice(0, 8)
-        .join(", ")}.`,
-    );
+    p2Parts.push(`Residents enjoy a curated set of amenities including ${amenities.slice(0, 8).join(", ")}.`);
   }
   if (gated) p2Parts.push(`The property sits inside a secure gated community with 24x7 access control.`);
   if (s.parking) p2Parts.push(`${cap(s.parking)} parking is available for convenience.`);
-  if (highlights.length)
-    p2Parts.push(`Key highlights: ${highlights.slice(0, 5).join(", ")}.`);
+  if (highlights.length) p2Parts.push(`Key highlights: ${highlights.slice(0, 5).join(", ")}.`);
   if (!p2Parts.length)
     p2Parts.push(
       `The layout has been designed for comfortable everyday living with ample natural light and ventilation.`,
@@ -169,8 +156,12 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
   };
   const ss = raw?.smartSuggestions || {};
   const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
+  const renderMode = raw?.renderMode || "input";
+  const widgetType = raw?.widget || null;
   return {
     id: fieldId,
+    renderMode,
+    widgetType,
     question: raw?.question || raw?.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
     placeholder: raw?.placeholder,
     input: map[t] || "text",
@@ -194,15 +185,11 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
           ? "measurement_units"
           : t === "price" || t === "price_per_unit"
             ? "price"
-            : ss.type === "indian_price_format" ||
-                ss.type === "price" ||
-                ss.type === "dynamic_price_per_unit"
+            : ss.type === "indian_price_format" || ss.type === "price" || ss.type === "dynamic_price_per_unit"
               ? "price"
-              : ss.type === "rental_duration" ||
-                  ss.type === "rental_duration_suggestions"
+              : ss.type === "rental_duration" || ss.type === "rental_duration_suggestions"
                 ? "rental_duration"
-                : ss.type === "measurement_units" ||
-                    ss.type === "dynamic_measurement_units"
+                : ss.type === "measurement_units" || ss.type === "dynamic_measurement_units"
                   ? "measurement_units"
                   : ss.type,
     raw,
@@ -1737,59 +1724,95 @@ export default function SellProperty() {
 
       {/* Chat scroll area */}
       {!showCategoryPicker && (
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{
-          paddingBottom: "180px",
-          backgroundImage:
-            "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
-          backgroundSize: "16px 16px",
-        }}
-      >
-        <div className="container max-w-3xl mx-auto px-3 sm:px-4 pt-4 pb-6 space-y-2 flex flex-col">
-          <AnimatePresence initial={false}>
-            {messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.18 }}
-                className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
-              >
-                <Bubble msg={msg} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto overscroll-contain"
+          style={{
+            paddingBottom: "180px",
+            backgroundImage: "radial-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
+        >
+          <div className="container max-w-3xl mx-auto px-3 sm:px-4 pt-4 pb-6 space-y-2 flex flex-col">
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.18 }}
+                  className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
+                >
+                  <Bubble msg={msg} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-          {/* Quick-reply chips for the current field (single / multi / yesno) */}
-          {field &&
-            !loadingNext &&
-            !done &&
-            (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
+            {/* Quick-reply chips for the current field (single / multi / yesno) */}
+            {field &&
+              !loadingNext &&
+              !done &&
+              (field.input === "single" || field.input === "yesno" || field.input === "multi") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap gap-2 pt-1 pl-1"
+                >
+                  {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
+                    const isMulti = field.input === "multi";
+                    const arr: string[] = Array.isArray(value) ? value : [];
+                    const active = isMulti ? arr.includes(opt) : value === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          if (isMulti) {
+                            setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
+                          } else {
+                            setValue(opt);
+
+                            setTimeout(async () => {
+                              await commitAnswer(opt, opt);
+                            }, 80);
+                          }
+                        }}
+                        className={cn(
+                          "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card hover:bg-primary/5 border-border",
+                        )}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+            {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
+            {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-wrap gap-2 pt-1 pl-1"
               >
-                {(field.input === "yesno" ? ["Yes", "No"] : field.options || []).map((opt) => {
-                  const isMulti = field.input === "multi";
-                  const arr: string[] = Array.isArray(value) ? value : [];
-                  const active = isMulti ? arr.includes(opt) : value === opt;
+                {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
+                  const active = String(value) === opt;
                   return (
                     <button
                       key={opt}
                       type="button"
                       onClick={() => {
-                        if (isMulti) {
-                          setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
-                        } else {
-                          setValue(opt);
-
-                          setTimeout(async () => {
-                            await commitAnswer(opt, opt);
-                          }, 80);
-                        }
+                        // strip "+" or "Ground" → numeric where possible
+                        const numeric =
+                          opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
+                        const sendVal = isNaN(numeric) ? opt : numeric;
+                        setValue(sendVal);
+                        setTimeout(async () => {
+                          await commitAnswer(sendVal, opt);
+                        }, 80);
                       }}
                       className={cn(
                         "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
@@ -1802,769 +1825,621 @@ export default function SellProperty() {
                     </button>
                   );
                 })}
+                <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
+              </motion.div>
+            )}
+            {field && smartHint && !loadingNext && !done && (
+              <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
+                <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
+                  <span className="text-foreground/90">{smartHint}</span>
+                </div>
               </motion.div>
             )}
 
-          {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
-          {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-wrap gap-2 pt-1 pl-1"
-            >
-              {NUMBER_QUICK_REPLIES[field.id].map((opt) => {
-                const active = String(value) === opt;
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => {
-                      // strip "+" or "Ground" → numeric where possible
-                      const numeric = opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
-                      const sendVal = isNaN(numeric) ? opt : numeric;
-                      setValue(sendVal);
-                      setTimeout(async () => {
-                        await commitAnswer(sendVal, opt);
-                      }, 80);
-                    }}
-                    className={cn(
-                      "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
-                      active
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card hover:bg-primary/5 border-border",
-                    )}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
-              <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
-            </motion.div>
-          )}
-          {field && smartHint && !loadingNext && !done && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
-              <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
-                <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-px" />
-                <span className="text-foreground/90">{smartHint}</span>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Required/optional inline indicator */}
-          {field && !loadingNext && !done && (
-            <div className="pl-1 pt-1">
-              <span
-                className={cn(
-                  "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                  isOptional(field) ? "text-muted-foreground" : "text-primary bg-primary/10",
-                )}
-              >
-                {isOptional(field) ? "Optional · you can skip" : "Required"}
-              </span>
-            </div>
-          )}
-
-
-
-          {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
-
-          {/* Final review screen */}
-          {done && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-4">
-              {/* AI title picker */}
-              <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-emerald-500/5 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Wand2 className="h-4 w-4 text-primary" />
-                    <h3 className="font-semibold text-sm">AI-suggested titles</h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={regenerateTitles}
-                    disabled={titlesLoading}
-                    className="text-[11px] text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
-                  >
-                    {titlesLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                    Regenerate
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {titlesLoading && aiTitles.length === 0 && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-2">
-                      <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
-                    </div>
+            {/* Required/optional inline indicator */}
+            {field && !loadingNext && !done && (
+              <div className="pl-1 pt-1">
+                <span
+                  className={cn(
+                    "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                    isOptional(field) ? "text-muted-foreground" : "text-primary bg-primary/10",
                   )}
-                  {aiTitles.map((t, i) => {
-                    const active = selectedTitleIdx === i;
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTitleIdx(i);
-                          setReviewTitle(t.title);
-                          setEditingTitle(false);
-                        }}
-                        className={cn(
-                          "w-full text-left p-3 rounded-xl border transition",
-                          active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50",
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-                            {t.label}
-                          </span>
-                          {active && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                        </div>
-                        <div className="text-sm">{t.title}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Editable review */}
-              <div className="rounded-2xl border border-emerald-500/30 bg-card p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                  <h2 className="font-semibold">Review & publish</h2>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
-                    <span>Title</span>
-                    <button
-                      type="button"
-                      onClick={() => setEditingTitle((v) => !v)}
-                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
-                    >
-                      <Pencil className="h-3 w-3" /> {editingTitle ? "Done" : "Edit"}
-                    </button>
-                  </label>
-                  {editingTitle ? (
-                    <Input
-                      value={reviewTitle}
-                      onChange={(e) => {
-                        setReviewTitle(e.target.value);
-                        setSelectedTitleIdx(null);
-                      }}
-                      placeholder="Listing title"
-                    />
-                  ) : (
-                    <div className="text-sm font-medium px-3 py-2 rounded-lg bg-muted/40 border border-border">
-                      {reviewTitle || <span className="text-muted-foreground italic">No title yet</span>}
-                    </div>
-                  )}
-                </div>
-
-                {/* AI-generated Description */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <Wand2 className="h-3 w-3 text-primary" /> Description
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setReviewDescription(buildPropertyDescription(state))}
-                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
-                    >
-                      <Sparkles className="h-3 w-3" /> Regenerate
-                    </button>
-                  </label>
-                  <Textarea
-                    value={reviewDescription}
-                    onChange={(e) => setReviewDescription(e.target.value)}
-                    rows={4}
-                    placeholder="A natural, SEO-friendly description will appear here…"
-                    className="resize-none rounded-xl text-sm"
-                  />
-                </div>
-
-                {/* Location */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                    <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                    <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-muted-foreground mb-1 block">Address</label>
-                    <Input
-                      value={reviewAddress}
-                      onChange={(e) => setReviewAddress(e.target.value)}
-                      placeholder="Street / landmark"
-                    />
-                  </div>
-                </div>
-
-                {/* Price */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Price</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Area"
-                      value={reviewArea}
-                      onChange={(e) => setReviewArea(e.target.value)}
-                    />
-                    <Input
-                      type="number"
-                      placeholder={`₹/${reviewUnit}`}
-                      value={reviewPricePerUnit}
-                      onChange={(e) => setReviewPricePerUnit(e.target.value)}
-                    />
-                    <select
-                      value={reviewUnit}
-                      onChange={(e) => setReviewUnit(e.target.value)}
-                      className="rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
-                        <option key={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
-                  {Number(reviewArea) > 0 && Number(reviewPricePerUnit) > 0 && (
-                    <div className="mt-2 text-sm flex items-center justify-between px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-semibold text-primary">
-                        ₹{" "}
-                        {new Intl.NumberFormat("en-IN").format(
-                          Math.round(Number(reviewArea) * Number(reviewPricePerUnit)),
-                        )}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Amenities */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Amenities</label>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {reviewAmenities.length === 0 && (
-                      <span className="text-[11px] text-muted-foreground italic">No amenities added</span>
-                    )}
-                    {reviewAmenities.map((a, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
-                      >
-                        {a}
-                        <button
-                          type="button"
-                          onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      value={newAmenity}
-                      onChange={(e) => setNewAmenity(e.target.value)}
-                      placeholder="e.g. Lift, Gym, Power backup"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && newAmenity.trim()) {
-                          e.preventDefault();
-                          setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                          setNewAmenity("");
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (newAmenity.trim()) {
-                          setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                          setNewAmenity("");
-                        }
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Images */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    Photos ({(state.media_urls || []).length})
-                  </label>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
-                  />
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
-                    {(state.media_urls || []).map((url: string, i: number) => (
-                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-                        <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setState((s) => ({
-                              ...s,
-                              media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
-                            }))
-                          }
-                          className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={uploading}
-                      className="aspect-square rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition"
-                    >
-                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Other captured details */}
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">All captured details</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {Object.entries(state).map(([k, v]) =>
-                      v &&
-                      !["media_urls", "amenities", "title", "city", "locality", "address", "price_unit"].includes(k) ? (
-                        <Badge key={k} variant="secondary" className="font-normal text-[10px]">
-                          {k.replace(/_/g, " ")}:{" "}
-                          {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? "✓" : String(v)}
-                        </Badge>
-                      ) : null,
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" onClick={onBack}>
-                    <ChevronLeft className="h-4 w-4 mr-1" /> Back
-                  </Button>
-                  <Button
-                    onClick={onSubmit}
-                    disabled={submitting}
-                    size="sm"
-                    className="bg-gradient-to-r from-primary to-emerald-500 flex-1"
-                  >
-                    {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Submit Property
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </div>
-      )}
-
-      {/* Input dock */}
-     {showInputBar && (
-  <div className="sticky bottom-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
-    <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
-
-      {/* =======================================================
-          CATEGORY SELECTOR
-      ======================================================= */}
-
-      {showCategoryPicker ? (
-        <div className="flex flex-col items-center justify-center py-6 sm:py-10">
-          <div className="text-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-semibold">
-              What type of property are you listing?
-            </h2>
-
-            <p className="text-sm text-muted-foreground mt-2">
-              Choose a category to begin your AI-assisted listing
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
-            {CATEGORY_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => selectCategory(opt.id)}
-                className="group rounded-2xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all p-4 text-left shadow-sm hover:shadow-md"
-              >
-                <div className="text-2xl mb-2">
-                  {opt.emoji}
-                </div>
-
-                <div className="font-medium text-sm">
-                  {opt.label}
-                </div>
-
-                <div className="text-[11px] text-muted-foreground mt-1">
-                  AI guided flow
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : showIntakeBar ? (
-        <>
-          <input
-            ref={imageRef}
-            type="file"
-            accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            className="hidden"
-            onChange={(e) =>
-              e.target.files &&
-              handleQuickImage(e.target.files)
-            }
-          />
-
-          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-
-            {/* ===================================================
-                SUGGESTION HEADER
-            =================================================== */}
-
-            <div className="px-4 pt-3 pb-2 border-b border-border/40 bg-muted/20">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                AI can detect property type, price, area, location, BHK and more
-              </div>
-            </div>
-
-            {/* ===================================================
-                INPUT ROW
-            =================================================== */}
-
-            <div className="flex items-end gap-2 p-3">
-
-              <button
-                type="button"
-                onClick={() =>
-                  imageRef.current?.click()
-                }
-                className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </button>
-
-              <div className="flex-1">
-                <Textarea
-                  value={intakeText}
-                  onChange={(e) =>
-                    setIntakeText(
-                      e.target.value,
-                    )
-                  }
-                  onKeyDown={(e) => {
-                    if (
-                      e.key ===
-                        "Enter" &&
-                      !e.shiftKey
-                    ) {
-                      e.preventDefault();
-
-                      submitIntake();
-                    }
-                  }}
-                  rows={2}
-                  placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
-                  className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
-                  disabled={extracting}
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={toggleVoice}
-                className={cn(
-                  "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
-                  isListening
-                    ? "bg-destructive text-destructive-foreground animate-pulse"
-                    : "border border-border bg-background hover:bg-muted text-muted-foreground",
-                )}
-              >
-                {isListening ? (
-                  <MicOff className="h-4 w-4" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={submitIntake}
-                disabled={
-                  extracting ||
-                  !intakeText.trim()
-                }
-                className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-              >
-                {extracting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-
-            {/* ===================================================
-                FOOTER
-            =================================================== */}
-
-            <div className="flex items-center justify-between px-4 pb-3">
-              <span className="text-[11px] text-muted-foreground">
-                Upload image, brochure, PDF or type manually
-              </span>
-
-              <button
-                type="button"
-                onClick={skipIntake}
-                disabled={extracting}
-                className="text-[11px] text-primary hover:underline"
-              >
-                Skip intake
-              </button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* ===================================================
-              FLOATING AI SUGGESTIONS
-          =================================================== */}
-
-          {field &&
-            !loadingNext &&
-            !done &&
-            field.input === "number" &&
-            value && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                {(() => {
-                  const sType =
-                    field.suggestionType ||
-                    (/rent/i.test(field.id)
-                      ? "rental_duration"
-                      : /price|amount|cost|budget/i.test(field.id)
-                        ? "price"
-                        : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
-                          ? "measurement_units"
-                          : undefined);
-
-                  let chips: any[] = [];
-
-                  if (
-                    sType === "rental_duration"
-                  ) {
-                    chips =
-                      getRentSuggestions(
-                        value,
-                        field.durations,
-                      );
-                  } else if (
-                    sType === "price" ||
-                    sType ===
-                      "price_per_unit"
-                  ) {
-                    chips =
-                      getPriceSuggestions(
-                        value,
-                      );
-                  } else if (
-                    sType ===
-                    "measurement_units"
-                  ) {
-                    chips =
-                      getUnitSuggestions(
-                        value,
-                        (
-                          field.units &&
-                          field.units
-                            .length
-                            ? field.units
-                            : [
-                                "Sq Ft",
-                                "Sq Yard",
-                                "Acre",
-                                "Gunta",
-                                "Cent",
-                              ]
-                        ) as PriceUnit[],
-                      );
-                  }
-
-                  return chips.map(
-                    (
-                      c: any,
-                      i: number,
-                    ) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() =>
-                          commitAnswer(
-                            c.value ||
-                              c,
-                            c.label ||
-                              String(c),
-                          )
-                        }
-                        className="px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 text-xs font-medium transition"
-                      >
-                        {c.label ||
-                          String(c)}
-                      </button>
-                    ),
-                  );
-                })()}
+                >
+                  {isOptional(field) ? "Optional · you can skip" : "Required"}
+                </span>
               </div>
             )}
 
-          {/* ===================================================
+            {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
+
+            {/* Final review screen */}
+            {done && (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-4 space-y-4">
+                {/* AI title picker */}
+                <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-emerald-500/5 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Wand2 className="h-4 w-4 text-primary" />
+                      <h3 className="font-semibold text-sm">AI-suggested titles</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={regenerateTitles}
+                      disabled={titlesLoading}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {titlesLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      Regenerate
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {titlesLoading && aiTitles.length === 0 && (
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
+                      </div>
+                    )}
+                    {aiTitles.map((t, i) => {
+                      const active = selectedTitleIdx === i;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTitleIdx(i);
+                            setReviewTitle(t.title);
+                            setEditingTitle(false);
+                          }}
+                          className={cn(
+                            "w-full text-left p-3 rounded-xl border transition",
+                            active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50",
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                              {t.label}
+                            </span>
+                            {active && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                          </div>
+                          <div className="text-sm">{t.title}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Editable review */}
+                <div className="rounded-2xl border border-emerald-500/30 bg-card p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    <h2 className="font-semibold">Review & publish</h2>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                      <span>Title</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTitle((v) => !v)}
+                        className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                      >
+                        <Pencil className="h-3 w-3" /> {editingTitle ? "Done" : "Edit"}
+                      </button>
+                    </label>
+                    {editingTitle ? (
+                      <Input
+                        value={reviewTitle}
+                        onChange={(e) => {
+                          setReviewTitle(e.target.value);
+                          setSelectedTitleIdx(null);
+                        }}
+                        placeholder="Listing title"
+                      />
+                    ) : (
+                      <div className="text-sm font-medium px-3 py-2 rounded-lg bg-muted/40 border border-border">
+                        {reviewTitle || <span className="text-muted-foreground italic">No title yet</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* AI-generated Description */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Wand2 className="h-3 w-3 text-primary" /> Description
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                        className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3 w-3" /> Regenerate
+                      </button>
+                    </label>
+                    <Textarea
+                      value={reviewDescription}
+                      onChange={(e) => setReviewDescription(e.target.value)}
+                      rows={4}
+                      placeholder="A natural, SEO-friendly description will appear here…"
+                      className="resize-none rounded-xl text-sm"
+                    />
+                  </div>
+
+                  {/* Location */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">City</label>
+                      <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
+                      <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-xs text-muted-foreground mb-1 block">Address</label>
+                      <Input
+                        value={reviewAddress}
+                        onChange={(e) => setReviewAddress(e.target.value)}
+                        placeholder="Street / landmark"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Price</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Area"
+                        value={reviewArea}
+                        onChange={(e) => setReviewArea(e.target.value)}
+                      />
+                      <Input
+                        type="number"
+                        placeholder={`₹/${reviewUnit}`}
+                        value={reviewPricePerUnit}
+                        onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                      />
+                      <select
+                        value={reviewUnit}
+                        onChange={(e) => setReviewUnit(e.target.value)}
+                        className="rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
+                          <option key={u}>{u}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {Number(reviewArea) > 0 && Number(reviewPricePerUnit) > 0 && (
+                      <div className="mt-2 text-sm flex items-center justify-between px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
+                        <span className="text-muted-foreground">Total</span>
+                        <span className="font-semibold text-primary">
+                          ₹{" "}
+                          {new Intl.NumberFormat("en-IN").format(
+                            Math.round(Number(reviewArea) * Number(reviewPricePerUnit)),
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Amenities */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Amenities</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {reviewAmenities.length === 0 && (
+                        <span className="text-[11px] text-muted-foreground italic">No amenities added</span>
+                      )}
+                      {reviewAmenities.map((a, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                        >
+                          {a}
+                          <button
+                            type="button"
+                            onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newAmenity}
+                        onChange={(e) => setNewAmenity(e.target.value)}
+                        placeholder="e.g. Lift, Gym, Power backup"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && newAmenity.trim()) {
+                            e.preventDefault();
+                            setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                            setNewAmenity("");
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (newAmenity.trim()) {
+                            setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                            setNewAmenity("");
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Images */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">
+                      Photos ({(state.media_urls || []).length})
+                    </label>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      multiple
+                      accept="image/*,video/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                    />
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+                      {(state.media_urls || []).map((url: string, i: number) => (
+                        <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-muted">
+                          <img
+                            src={url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setState((s) => ({
+                                ...s,
+                                media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
+                              }))
+                            }
+                            className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploading}
+                        className="aspect-square rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition"
+                      >
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Other captured details */}
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">All captured details</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(state).map(([k, v]) =>
+                        v &&
+                        !["media_urls", "amenities", "title", "city", "locality", "address", "price_unit"].includes(
+                          k,
+                        ) ? (
+                          <Badge key={k} variant="secondary" className="font-normal text-[10px]">
+                            {k.replace(/_/g, " ")}:{" "}
+                            {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? "✓" : String(v)}
+                          </Badge>
+                        ) : null,
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" size="sm" onClick={onBack}>
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                    </Button>
+                    <Button
+                      onClick={onSubmit}
+                      disabled={submitting}
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-emerald-500 flex-1"
+                    >
+                      {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                      Submit Property
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Input dock */}
+      {showInputBar && (
+        <div className="sticky bottom-0 z-40 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+          <div className="container max-w-4xl mx-auto px-3 sm:px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+            {/* =======================================================
+          CATEGORY SELECTOR
+      ======================================================= */}
+
+            {showCategoryPicker ? (
+              <div className="flex flex-col items-center justify-center py-6 sm:py-10">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl sm:text-2xl font-semibold">What type of property are you listing?</h2>
+
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Choose a category to begin your AI-assisted listing
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => selectCategory(opt.id)}
+                      className="group rounded-2xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all p-4 text-left shadow-sm hover:shadow-md"
+                    >
+                      <div className="text-2xl mb-2">{opt.emoji}</div>
+
+                      <div className="font-medium text-sm">{opt.label}</div>
+
+                      <div className="text-[11px] text-muted-foreground mt-1">AI guided flow</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : showIntakeBar ? (
+              <>
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
+
+                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                  {/* ===================================================
+                SUGGESTION HEADER
+            =================================================== */}
+
+                  <div className="px-4 pt-3 pb-2 border-b border-border/40 bg-muted/20">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      AI can detect property type, price, area, location, BHK and more
+                    </div>
+                  </div>
+
+                  {/* ===================================================
+                INPUT ROW
+            =================================================== */}
+
+                  <div className="flex items-end gap-2 p-3">
+                    <button
+                      type="button"
+                      onClick={() => imageRef.current?.click()}
+                      className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex-1">
+                      <Textarea
+                        value={intakeText}
+                        onChange={(e) => setIntakeText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+
+                            submitIntake();
+                          }
+                        }}
+                        rows={2}
+                        placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
+                        className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
+                        disabled={extracting}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={toggleVoice}
+                      className={cn(
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                        isListening
+                          ? "bg-destructive text-destructive-foreground animate-pulse"
+                          : "border border-border bg-background hover:bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={submitIntake}
+                      disabled={extracting || !intakeText.trim()}
+                      className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    >
+                      {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  </div>
+
+                  {/* ===================================================
+                FOOTER
+            =================================================== */}
+
+                  <div className="flex items-center justify-between px-4 pb-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      Upload image, brochure, PDF or type manually
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={skipIntake}
+                      disabled={extracting}
+                      className="text-[11px] text-primary hover:underline"
+                    >
+                      Skip intake
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* ===================================================
+              FLOATING AI SUGGESTIONS
+          =================================================== */}
+
+                {field && !loadingNext && !done && field.input === "number" && value && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {(() => {
+                      const sType =
+                        field.suggestionType ||
+                        (/rent/i.test(field.id)
+                          ? "rental_duration"
+                          : /price|amount|cost|budget/i.test(field.id)
+                            ? "price"
+                            : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
+                              ? "measurement_units"
+                              : undefined);
+
+                      let chips: any[] = [];
+
+                      if (sType === "rental_duration") {
+                        chips = getRentSuggestions(value, field.durations);
+                      } else if (sType === "price" || sType === "price_per_unit") {
+                        chips = getPriceSuggestions(value);
+                      } else if (sType === "measurement_units") {
+                        chips = getUnitSuggestions(
+                          value,
+                          (field.units && field.units.length
+                            ? field.units
+                            : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
+                        );
+                      }
+
+                      return chips.map((c: any, i: number) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => commitAnswer(c.value || c, c.label || String(c))}
+                          className="px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 text-xs font-medium transition"
+                        >
+                          {c.label || String(c)}
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                )}
+
+                {/* ===================================================
               MAIN INPUT
           =================================================== */}
 
-          <input
-            ref={imageRef}
-            type="file"
-            accept="image/*,application/pdf,.pdf,.doc,.docx"
-            className="hidden"
-            onChange={(e) =>
-              e.target.files &&
-              handleQuickImage(e.target.files)
-            }
-          />
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
 
-          <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                  <div className="flex items-end gap-2 p-3">
+                    <button
+                      type="button"
+                      onClick={() => imageRef.current?.click()}
+                      className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
 
-            <div className="flex items-end gap-2 p-3">
+                    <div className="flex-1">
+                      {isMultiline ? (
+                        <Textarea
+                          value={value || ""}
+                          onChange={(e) => setValue(e.target.value)}
+                          rows={2}
+                          placeholder="Type your answer..."
+                          className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
+                        />
+                      ) : (
+                        <Input
+                          value={value || ""}
+                          onChange={(e) => setValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
 
-              <button
-                type="button"
-                onClick={() =>
-                  imageRef.current?.click()
-                }
-                className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </button>
+                              onNext();
+                            }
+                          }}
+                          type={field?.input === "number" ? "number" : "text"}
+                          placeholder="Type your answer..."
+                          className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
+                        />
+                      )}
+                    </div>
 
-              <div className="flex-1">
-                {isMultiline ? (
-                  <Textarea
-                    value={value || ""}
-                    onChange={(e) =>
-                      setValue(
-                        e.target.value,
-                      )
-                    }
-                    rows={2}
-                    placeholder="Type your answer..."
-                    className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
-                  />
-                ) : (
-                  <Input
-                    value={value || ""}
-                    onChange={(e) =>
-                      setValue(
-                        e.target.value,
-                      )
-                    }
-                    onKeyDown={(e) => {
-                      if (
-                        e.key ===
-                          "Enter" &&
-                        !e.shiftKey
-                      ) {
-                        e.preventDefault();
+                    <button
+                      type="button"
+                      onClick={toggleVoice}
+                      className={cn(
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                        isListening
+                          ? "bg-destructive text-destructive-foreground animate-pulse"
+                          : "border border-border bg-background hover:bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
 
-                        onNext();
-                      }
-                    }}
-                    type={
-                      field?.input ===
-                      "number"
-                        ? "number"
-                        : "text"
-                    }
-                    placeholder="Type your answer..."
-                    className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
-                  />
-                )}
-              </div>
+                    <button
+                      type="button"
+                      onClick={onNext}
+                      disabled={loadingNext}
+                      className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    >
+                      {loadingNext ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  </div>
 
-              <button
-                type="button"
-                onClick={toggleVoice}
-                className={cn(
-                  "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
-                  isListening
-                    ? "bg-destructive text-destructive-foreground animate-pulse"
-                    : "border border-border bg-background hover:bg-muted text-muted-foreground",
-                )}
-              >
-                {isListening ? (
-                  <MicOff className="h-4 w-4" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={loadingNext}
-                className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-              >
-                {loadingNext ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-
-            {/* ===================================================
+                  {/* ===================================================
                 FOOTER ACTIONS
             =================================================== */}
 
-            <div className="flex items-center justify-between px-4 pb-3">
+                  <div className="flex items-center justify-between px-4 pb-3">
+                    <button
+                      type="button"
+                      onClick={onBack}
+                      disabled={history.length === 0}
+                      className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+                    >
+                      <ChevronLeft className="h-3 w-3" />
+                      Back
+                    </button>
 
-              <button
-                type="button"
-                onClick={onBack}
-                disabled={
-                  history.length === 0
-                }
-                className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
-              >
-                <ChevronLeft className="h-3 w-3" />
-                Back
-              </button>
-
-              {isOptional(field) && (
-                <button
-                  type="button"
-                  onClick={onSkip}
-                  className="text-[11px] text-primary hover:underline"
-                >
-                  Skip
-                </button>
-              )}
-            </div>
+                    {isOptional(field) && (
+                      <button type="button" onClick={onSkip} className="text-[11px] text-primary hover:underline">
+                        Skip
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </>
-      )}
-    </div>
-  </div>
+        </div>
       )}
     </div>
   );
