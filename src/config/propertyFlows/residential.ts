@@ -1,6 +1,3 @@
-# FINAL CLIENT-ALIGNED RESIDENTIAL FLOW
-
-```ts
 // ============================================================
 // FINAL CLIENT-ALIGNED RESIDENTIAL FLOW
 // EXACT CLIENT EXCEL BEHAVIOR VERSION
@@ -1053,41 +1050,3 @@ export const residentialFlow: PropertyFlowConfig = {
 };
 
 export default residentialFlow;
-```
-
----
-
-# IMPORTANT ENGINE FIX (VERY CRITICAL)
-
-Your flow will STILL fail if engine visibility validation is wrong.
-
-Inside your question resolver engine:
-
-Use this EXACT order:
-
-```ts
-if (!isFieldVisible(field, currentAnswers)) {
-  continue;
-}
-
-if (isFieldAlreadyAnswered(field, currentAnswers)) {
-  continue;
-}
-
-if (isFieldSkipped(field, currentAnswers)) {
-  continue;
-}
-
-askField(field);
-```
-
-Without this:
-
-AI will still:
-
-* ask hidden questions
-* ask gated community fields wrongly
-* ask resale fields during rent flow
-* ask skipped questions again
-
-This engine validation is mandatory.
