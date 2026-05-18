@@ -125,10 +125,29 @@ export interface ExtractionConfig {
 // VISIBILITY RULES
 // ============================================================
 
-export type VisibilityRule = Record<
-  string,
-  string[] | { notIn?: string[]; in?: string[] }
->;
+export type VisibilityValueMatcher = string[] | { notIn?: string[]; in?: string[] };
+
+export type VisibilityFieldMapRule = Record<string, VisibilityValueMatcher>;
+
+export interface StructuredVisibilityRule {
+  function?: (state: ConversationState) => boolean;
+
+  and?: VisibilityRule[];
+
+  or?: VisibilityRule[];
+
+  field?: string;
+
+  equals?: unknown;
+
+  notEquals?: unknown;
+
+  in?: unknown[];
+
+  notIn?: unknown[];
+}
+
+export type VisibilityRule = VisibilityFieldMapRule | StructuredVisibilityRule;
 
 // ============================================================
 // FIELD DEFINITION
