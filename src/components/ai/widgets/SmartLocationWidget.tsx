@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
-
+  initialValue?: Record<string, any>;
   onChange?: (value: Record<string, any>) => void;
-
-  onSubmit?: (value: Record<string, any>) => void;
+  onSubmit?: (value: Record<string, any>) => void | Promise<void>;
 }
 
-const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({ value, onChange, onSubmit }) => {
+const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({ value: valueProp, initialValue, onChange, onSubmit }) => {
+  const value = valueProp ?? initialValue;
   const [form, setForm] = useState({
     country: value?.country || "India",
 
