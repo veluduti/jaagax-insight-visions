@@ -17,7 +17,7 @@ const HOUSE_TYPES = [
   "Gated Community House",
 ];
 
-export const residentialFlow: PropertyFlowConfig = {
+export const residentialFlow = {
   category: "residential",
 
   label: "Residential",
