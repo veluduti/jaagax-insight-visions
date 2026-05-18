@@ -1846,12 +1846,93 @@ export default function SellProperty() {
 
             {/* SMART WIDGETS */}
 
+            {/* SMART WIDGETS */}
+
             {field?.renderMode === "widget" && field.widgetType === "SmartLocationWidget" && (
               <div className="pt-3">
                 <SmartLocationWidget
-                  initialValue={state.location}
                   onSubmit={async (data) => {
-                    await commitAnswer(data, `${data.locality}, ${data.city}`);
+                    // ============================================
+                    // MERGE LOCATION FIELDS
+                    // ============================================
+
+                    const merged = {
+                      ...state,
+
+                      country: data.country,
+
+                      state_name: data.state_name,
+
+                      city: data.city,
+
+                      locality: data.locality,
+
+                      address: data.address,
+
+                      pincode: data.pincode,
+                    };
+
+                    // ============================================
+                    // SAVE STATE
+                    // ============================================
+
+                    setState(merged);
+
+                    // ============================================
+                    // APPLY TO ENGINE
+                    // ============================================
+
+                    try {
+                      engineRef.current?.applyExtractedFields(
+                        {
+                          country: data.country,
+
+                          state_name: data.state_name,
+
+                          city: data.city,
+
+                          locality: data.locality,
+
+                          address: data.address,
+
+                          pincode: data.pincode,
+                        },
+                        {
+                          overwrite: true,
+                        },
+                      );
+                    } catch {}
+
+                    // ============================================
+                    // USER MESSAGE
+                    // ============================================
+
+                    setMessages((m) => [
+                      ...m,
+
+                      {
+                        id: uid(),
+
+                        role: "user",
+
+                        kind: "text",
+
+                        text: `${data.locality}, ${data.city}`,
+                      },
+                    ]);
+
+                    // ============================================
+                    // IMPORTANT
+                    // CLEAR CURRENT FIELD
+                    // ============================================
+
+                    setField(null);
+
+                    // ============================================
+                    // CONTINUE FLOW
+                    // ============================================
+
+                    await fetchNext(merged);
                   }}
                 />
               </div>
