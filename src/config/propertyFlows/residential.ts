@@ -1051,4 +1051,3 @@ export const residentialFlow: PropertyFlowConfig = {
 };
 
 export default residentialFlow;
-```
