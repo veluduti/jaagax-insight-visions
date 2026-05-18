@@ -1867,6 +1867,10 @@ export default function SellProperty() {
 
                       locality: data.locality,
 
+                      sub_locality: data.sub_locality,
+
+                      landmark: data.landmark,
+
                       address: data.address,
 
                       pincode: data.pincode,
