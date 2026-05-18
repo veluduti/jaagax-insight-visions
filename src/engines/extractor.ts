@@ -662,6 +662,32 @@ export function extractAll(message: string): ExtractionResult {
   }
 
   // ==========================================================
+  // EXTENDED FIELDS
+  // ==========================================================
+
+  const facing = extractFacing(message);
+  if (facing) fields.property_facing = facing;
+
+  const approvals = extractApprovals(message);
+  if (approvals.length) fields.approvals = approvals;
+
+  const amenities = extractAmenities(message);
+  if (amenities.length) fields.amenities = amenities;
+
+  const gated = extractGatedCommunity(message);
+  if (gated) fields.gated_community = gated;
+
+  const loc = extractLocation(message);
+  if (loc.city) fields.city = loc.city;
+  if (loc.locality) fields.location = loc.locality;
+
+  const project = extractProjectName(message);
+  if (project) fields.project_name = project;
+
+  const availability = extractAvailability(message);
+  if (availability) fields.availability_status = availability;
+
+  // ==========================================================
   // CONFIDENCE
   // ==========================================================
 
