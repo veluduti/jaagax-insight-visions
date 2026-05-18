@@ -346,6 +346,7 @@ export const residentialFlow: PropertyFlowConfig = {
       type: "number",
       required: true,
       question: "How many bathrooms are available?",
+      options: ["1", "2", "3+"],
     },
 
     balcony_count: {
@@ -357,6 +358,7 @@ export const residentialFlow: PropertyFlowConfig = {
         in: [...APARTMENT_TYPES, "Villa", "Duplex / Triplex"],
       },
       question: "How many balconies are available?",
+      options: ["1", "2", "3+"],
     },
 
     property_total_floors: {
