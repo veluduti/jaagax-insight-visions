@@ -465,6 +465,8 @@ export interface EngineConfig {
   conversationalPriorityMode?: boolean;
 
   reevaluateOnEveryAnswer?: boolean;
+
+  [key: string]: unknown;
 }
 
 // ============================================================
