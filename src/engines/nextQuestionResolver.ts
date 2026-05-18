@@ -1,18 +1,16 @@
 // ============================================================
-// Next Question Resolver
-//
-// Responsibility:
-//   - Walk flow.order in strict sequence
-//   - Apply visibility rules
-//   - Skip answered fields
-//   - Skip extracted fields
-//   - Skip explicitly skipped fields
-//   - Return next deterministic question
-//
-// AI NEVER decides workflow.
+// ADVANCED NEXT QUESTION RESOLVER
+// FULLY DYNAMIC AI CONVERSATIONAL ENGINE
+// CLIENT EXCEL ALIGNED VERSION
 // ============================================================
 
-import type { ConversationState, NextQuestionResult, PropertyFlowConfig } from "./types";
+import type {
+  ConversationState,
+  NextQuestionResult,
+  PropertyFlowConfig,
+  FieldDefinition,
+  QuestionDefinition,
+} from "./types";
 
 import { createRuleEngine } from "./ruleEngine";
 
@@ -27,6 +25,8 @@ export interface NextQuestionResolver {
     filled: number;
     total: number;
   };
+
+  getCandidateFields(state: ConversationState): FieldDefinition[];
 }
 
 // ============================================================
@@ -34,26 +34,24 @@ export interface NextQuestionResolver {
 // ============================================================
 
 function isFilled(value: unknown): boolean {
-  // ----------------------------------------------------------
+  // ==========================================================
   // undefined / null
-  // ----------------------------------------------------------
+  // ==========================================================
 
   if (value === undefined || value === null) {
     return false;
   }
 
-  // ----------------------------------------------------------
-  // empty string
-  // ----------------------------------------------------------
+  // ==========================================================
+  // STRING
+  // ==========================================================
 
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
 
-    // IMPORTANT:
-    // treat skip keywords as EMPTY
-    // so engine does not save them
-    // as actual answers
-    // ------------------------------------------------
+    // --------------------------------------------------------
+    // skip-like values
+    // --------------------------------------------------------
 
     if (
       normalized === "" ||
@@ -68,23 +66,31 @@ function isFilled(value: unknown): boolean {
     return true;
   }
 
-  // ----------------------------------------------------------
-  // arrays
-  // ----------------------------------------------------------
+  // ==========================================================
+  // ARRAYS
+  // ==========================================================
 
   if (Array.isArray(value)) {
     return value.length > 0;
   }
 
-  // ----------------------------------------------------------
-  // objects
-  // ----------------------------------------------------------
+  // ==========================================================
+  // OBJECTS
+  // ==========================================================
 
   if (typeof value === "object") {
     return Object.keys(value as object).length > 0;
   }
 
   return true;
+}
+
+// ============================================================
+// GET FIELD PRIORITY
+// ============================================================
+
+function getFieldPriority(field: FieldDefinition): number {
+  return field.priority || 9999;
 }
 
 // ============================================================
@@ -96,70 +102,24 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
 
   return {
     // ======================================================
-    // RESOLVE NEXT QUESTION
+    // GET CANDIDATE FIELDS
     // ======================================================
 
-    resolve(state) {
-      const answers = state.answers || {};
+    getCandidateFields(state) {
+      const candidates: FieldDefinition[] = [];
 
-      let total = 0;
-
-      let filled = 0;
-
-      // ====================================================
-      // FIRST PASS
-      // CALCULATE PROGRESS
-      // ====================================================
-
-      for (const fieldId of flow.order) {
-        const field = flow.fields[fieldId];
+      for (const [fieldId, field] of Object.entries(flow.fields)) {
+        // --------------------------------------------------
+        // FIELD EXISTS
+        // --------------------------------------------------
 
         if (!field) {
           continue;
         }
 
-        const relevant = rules.isFieldRelevant(fieldId, state);
-
-        // ------------------------------------------------
-        // ignore hidden fields
-        // ------------------------------------------------
-
-        if (!relevant) {
-          continue;
-        }
-
-        // ------------------------------------------------
-        // ignore skipped fields
-        // ------------------------------------------------
-
-        if (state.skipped.includes(fieldId)) {
-          continue;
-        }
-
-        total++;
-
-        const value = answers[fieldId];
-
-        if (isFilled(value)) {
-          filled++;
-        }
-      }
-
-      // ====================================================
-      // SECOND PASS
-      // FIND NEXT QUESTION
-      // ====================================================
-
-      for (const fieldId of flow.order) {
-        const field = flow.fields[fieldId];
-
-        if (!field) {
-          continue;
-        }
-
-        // ==================================================
+        // --------------------------------------------------
         // VISIBILITY
-        // ==================================================
+        // --------------------------------------------------
 
         const relevant = rules.isFieldRelevant(fieldId, state);
 
@@ -167,9 +127,9 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
           continue;
         }
 
-        // ==================================================
-        // SKIP USER SKIPPED
-        // ==================================================
+        // --------------------------------------------------
+        // SKIPPED
+        // --------------------------------------------------
 
         const persistSkipped = flow.ai?.persistSkippedFields !== false;
 
@@ -177,84 +137,147 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
           continue;
         }
 
-        // ==================================================
-        // SKIP ANSWERED
-        // ==================================================
+        // --------------------------------------------------
+        // REJECTED
+        // --------------------------------------------------
 
-        const value = answers[fieldId];
+        if (state.rejected?.includes(fieldId)) {
+          continue;
+        }
+
+        // --------------------------------------------------
+        // INVALIDATED
+        // --------------------------------------------------
+
+        if (state.invalidated?.includes(fieldId)) {
+          continue;
+        }
+
+        // --------------------------------------------------
+        // ANSWERED
+        // --------------------------------------------------
+
+        const value = state.answers[fieldId];
 
         if (isFilled(value)) {
           continue;
         }
 
-        // ==================================================
-        // SKIP EXTRACTED
-        // ==================================================
+        // --------------------------------------------------
+        // EXTRACTED
+        // extracted only skipped if actual value exists
+        // --------------------------------------------------
 
-        if (state.extracted.includes(fieldId)) {
+        if (state.extracted.includes(fieldId) && isFilled(value)) {
           continue;
         }
 
-        // ==================================================
-        // BUILD QUESTION
-        // ==================================================
+        candidates.push({
+          ...field,
+          id: fieldId,
+        });
+      }
 
-        const explicit = flow.questions?.[fieldId];
+      // ====================================================
+      // SORT BY PRIORITY
+      // ====================================================
 
-        const isMulti =
-          (field as any).type === "multi_select" || field.input === "multi" || field.input === "multi_select";
+      return candidates.sort((a, b) => getFieldPriority(a) - getFieldPriority(b));
+    },
 
-        const question = explicit || {
-          fieldId,
+    // ======================================================
+    // RESOLVE NEXT QUESTION
+    // ======================================================
 
-          prompt: field.question || field.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
+    resolve(state) {
+      // ====================================================
+      // CLEANUP HIDDEN FIELDS FIRST
+      // ====================================================
 
-          helper: (field as any).placeholder,
+      const cleanedState = rules.cleanupHiddenFields(state);
 
-          quickReplies: field.options || [],
+      // ====================================================
+      // GET CANDIDATES
+      // ====================================================
 
-          multiSelect: isMulti,
+      const candidateFields = this.getCandidateFields(cleanedState);
 
-          aiSuggestionHint: (field as any).aiSuggestionHint,
+      // ====================================================
+      // PROGRESS
+      // ====================================================
 
-          smartSuggestions: (field as any).smartSuggestions,
+      const progress = this.progress(cleanedState);
 
-          units: (field as any).units || [],
-        };
+      // ====================================================
+      // COMPLETED
+      // ====================================================
 
-        // ==================================================
-        // RETURN NEXT QUESTION
-        // ==================================================
-
+      if (candidateFields.length === 0) {
         return {
-          field,
+          field: null,
 
-          question,
+          question: null,
 
-          done: false,
+          done: true,
 
-          progress: {
-            filled,
-            total,
-          },
+          progress,
         };
       }
 
       // ====================================================
-      // FLOW COMPLETED
+      // NEXT FIELD
+      // ====================================================
+
+      const field = candidateFields[0];
+
+      const fieldId = field.id || "";
+
+      // ====================================================
+      // EXPLICIT QUESTION
+      // ====================================================
+
+      const explicitQuestion = flow.questions?.[fieldId];
+
+      // ====================================================
+      // MULTI SELECT
+      // ====================================================
+
+      const isMulti = field.type === "multi_select" || field.input === "multi" || field.input === "multi_select";
+
+      // ====================================================
+      // BUILD QUESTION
+      // ====================================================
+
+      const question: QuestionDefinition = explicitQuestion || {
+        fieldId,
+
+        prompt: field.question || field.label || `Please provide ${fieldId.replace(/_/g, " ")}`,
+
+        helper: field.helperText || field.placeholder,
+
+        quickReplies: field.options || [],
+
+        multiSelect: isMulti,
+
+        aiSuggestionHint: field.aiSuggestionHint,
+
+        smartSuggestions: field.smartSuggestions,
+
+        units: field.units || [],
+      };
+
+      // ====================================================
+      // RETURN RESULT
       // ====================================================
 
       return {
-        field: null,
+        field,
 
-        question: null,
+        question,
 
-        done: true,
+        done: false,
 
-        progress: {
-          filled,
-          total,
-        },
+        progress,
       };
     },
 
@@ -267,12 +290,18 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
 
       let filled = 0;
 
-      for (const fieldId of flow.order) {
-        const field = flow.fields[fieldId];
+      for (const [fieldId, field] of Object.entries(flow.fields)) {
+        // --------------------------------------------------
+        // FIELD EXISTS
+        // --------------------------------------------------
 
         if (!field) {
           continue;
         }
+
+        // --------------------------------------------------
+        // VISIBILITY
+        // --------------------------------------------------
 
         const relevant = rules.isFieldRelevant(fieldId, state);
 
@@ -280,11 +309,19 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
           continue;
         }
 
-        // ----------------------------------------------
-        // ignore skipped
-        // ----------------------------------------------
+        // --------------------------------------------------
+        // SKIPPED
+        // --------------------------------------------------
 
         if (state.skipped.includes(fieldId)) {
+          continue;
+        }
+
+        // --------------------------------------------------
+        // REJECTED
+        // --------------------------------------------------
+
+        if (state.rejected?.includes(fieldId)) {
           continue;
         }
 
