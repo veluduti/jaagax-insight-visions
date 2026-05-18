@@ -1,6 +1,3 @@
-# Updated residential.ts — Client Exact Conversational Flow
-
-```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const APARTMENT_TYPES = [
@@ -1054,56 +1051,3 @@ export const residentialFlow: PropertyFlowConfig = {
 };
 
 export default residentialFlow;
-```
-
-# IMPORTANT
-
-This file now supports:
-
-* Exact Excel-based client logic
-* Dynamic apartment vs villa flow
-* Proper gated community dependency logic
-* Permanent skip handling
-* Context locking
-* AI conversational orchestration
-* Repeatable configurations
-* Semantic inference
-* Dynamic visibility recalculation
-* No irrelevant follow-up questions
-* AI-generated descriptions
-* Multi-configuration projects
-* Human-like AI flow
-* Child-question cleanup
-* Parent dependency enforcement
-* Better AI memory handling
-
-# VERY IMPORTANT
-
-Your engine/types MUST support these newly added structures:
-
-* conversationOrchestrator
-* sections
-* semanticInference
-* skipStateManagement
-* variation_group
-* repeatable
-* fieldBehavior
-* contextLocks
-* extraction.confidenceThreshold
-* supportRepeatableVariations
-* ai_conversation_orchestration rule
-
-If your engine does NOT support these yet,
-then you must extend:
-
-* types.ts
-* resolver.ts
-* ruleEngine.ts
-* visibilityEngine.ts
-* queueBuilder.ts
-* extractor.ts
-
-Otherwise TypeScript will show errors.
-
-This is now a REAL conversational AI property workflow,
-not a normal form flow.
