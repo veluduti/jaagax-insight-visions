@@ -22,21 +22,31 @@ export const residentialFlow: PropertyFlowConfig = {
 
   label: "Residential",
 
-  version: "v4-client-final",
+  version: "v5-client-clean-final",
 
   engine: {
     mode: "dynamic_conversation",
 
     strictVisibilityResolution: true,
+
     removeHiddenFieldsFromQueue: true,
+
     clearHiddenFieldValues: true,
+
     dynamicQuestionResolver: true,
+
     dependencyReevaluation: true,
+
     preventQuestionRepetition: true,
+
     autoCleanupInvalidState: true,
+
     maintainConversationMemory: true,
+
     allowNaturalCorrections: true,
+
     supportAIExtraction: true,
+
     conversationalPriorityMode: true,
   },
 
@@ -44,7 +54,9 @@ export const residentialFlow: PropertyFlowConfig = {
     strategy: "dynamic_priority",
 
     skipHiddenFields: true,
+
     skipAnsweredFields: true,
+
     skipRejectedFields: true,
 
     reevaluateOnEveryAnswer: true,
@@ -123,6 +135,12 @@ export const residentialFlow: PropertyFlowConfig = {
         "Builder Floor Apartment",
         "Gated Community House",
       ],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
     },
 
     listed_by: {
@@ -135,6 +153,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "Who are you listing this property as?",
 
       options: ["Owner", "Agent", "Builder"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
     },
 
     listing_type: {
@@ -147,6 +171,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "Is this property for sale or rent?",
 
       options: ["Buy", "Rent"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
 
       invalidateOnChange: [
         "property_condition",
@@ -177,6 +207,12 @@ export const residentialFlow: PropertyFlowConfig = {
 
       options: ["New", "Resale"],
 
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
+
       invalidateOnChange: ["availability_status", "possession_date", "property_age"],
     },
 
@@ -197,6 +233,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What is the availability status?",
 
       options: ["Ready", "Under Construction"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
 
       invalidateOnChange: ["possession_date"],
     },
@@ -235,6 +277,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What is the property age?",
 
       options: ["0-1 Years", "1-5 Years", "5-10 Years", "10+ Years"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
     },
 
     available_from_date: {
@@ -271,6 +319,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What is the bedroom configuration?",
 
       options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
     },
 
     flat_size: {
@@ -290,6 +344,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What is the flat size?",
 
       units: ["Sq Ft"],
+
+      smartSuggestions: {
+        enabled: true,
+
+        examples: ["1200 Sq Ft", "1500 Sq Ft", "1800 Sq Ft"],
+      },
     },
 
     land_size: {
@@ -345,6 +405,12 @@ export const residentialFlow: PropertyFlowConfig = {
       dependsOn: ["listing_type"],
 
       question: "What is the total property price?",
+
+      smartSuggestions: {
+        enabled: true,
+
+        examples: ["75 Lakhs", "1.2 Crore", "2 Crore"],
+      },
     },
 
     monthly_rent: {
@@ -362,6 +428,12 @@ export const residentialFlow: PropertyFlowConfig = {
       dependsOn: ["listing_type"],
 
       question: "What is the monthly rent?",
+
+      smartSuggestions: {
+        enabled: true,
+
+        examples: ["15000", "25000", "50000"],
+      },
     },
 
     bathroom_count: {
@@ -430,6 +502,12 @@ export const residentialFlow: PropertyFlowConfig = {
 
       options: ["Covered Parking", "Open Parking", "Both", "No Parking"],
 
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
+
       invalidateOnChange: ["parking_count"],
     },
 
@@ -460,6 +538,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "Is this inside a gated community?",
 
       options: ["Yes", "No"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
 
       invalidateOnChange: ["project_name", "total_towers", "floors_per_tower", "total_units"],
     },
@@ -561,6 +645,12 @@ export const residentialFlow: PropertyFlowConfig = {
 
       options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
 
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
+
       invalidateOnChange: ["furnishing_items"],
     },
 
@@ -593,6 +683,12 @@ export const residentialFlow: PropertyFlowConfig = {
       question: "What is the property facing?",
 
       options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
+
+      suggestions: {
+        enabled: true,
+
+        chips: true,
+      },
     },
 
     amenities: {
@@ -628,88 +724,44 @@ export const residentialFlow: PropertyFlowConfig = {
       options: ["RERA Approved", "HMDA Approved", "DTCP Approved", "Municipal Approved", "Bank Approved"],
     },
 
-    country: {
+    location: {
       priority: 31,
 
-      type: "country",
+      type: "smart_location",
 
       required: true,
 
-      question: "Which country is the property located in?",
-    },
+      question: "Where is the property located?",
 
-    state: {
-      priority: 32,
+      smartLocation: {
+        autoDetectCountry: true,
 
-      type: "state",
+        autoDetectState: true,
 
-      required: true,
+        autoDetectCity: true,
 
-      dependsOn: ["country"],
+        autoDetectLocality: true,
 
-      question: "Which state is the property located in?",
-    },
+        enableGoogleMapsSelection: true,
 
-    city: {
-      priority: 33,
+        enableSearchSuggestions: true,
 
-      type: "city",
+        allowMapPinSelection: true,
 
-      required: true,
+        autofillHierarchy: true,
 
-      dependsOn: ["state"],
+        showPopularSuggestions: true,
+      },
 
-      question: "Which city is the property located in?",
-    },
+      smartSuggestions: {
+        enabled: true,
 
-    locality: {
-      priority: 34,
-
-      type: "locality",
-
-      required: true,
-
-      dependsOn: ["city"],
-
-      question: "Which locality is the property located in?",
-    },
-
-    landmark: {
-      priority: 35,
-
-      type: "text",
-
-      required: false,
-
-      dependsOn: ["locality"],
-
-      question: "Any nearby landmark?",
-    },
-
-    full_address: {
-      priority: 36,
-
-      type: "textarea",
-
-      required: true,
-
-      question: "Please provide the full property address.",
-    },
-
-    pincode: {
-      priority: 37,
-
-      type: "pincode",
-
-      required: true,
-
-      dependsOn: ["city"],
-
-      question: "What is the pincode?",
+        examples: ["Gachibowli Hyderabad", "Kondapur Hyderabad", "Madhapur Hyderabad"],
+      },
     },
 
     property_highlights: {
-      priority: 38,
+      priority: 32,
 
       type: "multi_select",
 
@@ -721,60 +773,42 @@ export const residentialFlow: PropertyFlowConfig = {
 
       options: ["Verified Property", "Ready to Move", "Luxury Living", "Near Metro", "Investment Hotspot", "High ROI"],
     },
+  },
 
-    property_description: {
-      priority: 39,
+  autoGeneration: {
+    enabled: true,
 
-      type: "ai_generated_text",
+    generateTitle: true,
 
-      required: false,
+    generateDescription: true,
 
-      question: "AI will generate the property description.",
+    generateSEODescription: true,
 
-      generation: {
-        enabled: true,
-        autoGenerate: true,
-      },
-    },
+    generateHighlights: true,
 
-    media_uploads: {
-      priority: 40,
+    triggerAfterFlowCompletion: true,
+  },
 
-      type: "media_upload",
+  uploadSupport: {
+    enabled: true,
 
-      required: false,
+    allowImages: true,
 
-      question: "Upload property images, brochures or PDFs.",
+    allowPDFs: true,
 
-      extraction: {
-        enabled: true,
-        autoExtractPropertyData: true,
-        autoDetectMissingFields: true,
-        continueFromExtractedState: true,
-        multiFieldExtraction: true,
-        confidenceScoring: true,
-      },
-    },
+    allowBrochures: true,
 
-    contact_name: {
-      priority: 41,
+    autoExtractPropertyData: true,
 
-      type: "text",
+    askOnlyMissingFieldsAfterExtraction: true,
+  },
 
-      required: false,
+  submitFlow: {
+    enabled: true,
 
-      question: "Please share your name.",
-    },
+    showPreviewBeforeSubmit: true,
 
-    mobile_number: {
-      priority: 42,
-
-      type: "phone",
-
-      required: true,
-
-      question: "Please share your mobile number.",
-    },
+    autoGenerateFinalSummary: true,
   },
 
   rules: [
