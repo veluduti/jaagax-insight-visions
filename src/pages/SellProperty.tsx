@@ -142,8 +142,8 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     measurement: "number",
     measurement_unit: "single",
     number: "number",
-    future_date: "text",
-    date: "text",
+    future_date: "date",
+    date: "date",
     group: "textarea",
     textarea: "textarea",
     location: "city",
@@ -222,7 +222,8 @@ type FieldDef = {
     | "media"
     | "city"
     | "locality"
-    | "price_unit";
+    | "price_unit"
+    | "date";
   options?: string[];
   optional?: boolean;
   required?: boolean;
@@ -2467,6 +2468,14 @@ export default function SellProperty() {
                     </button>
 
                     <div className="flex-1">
+                      {field?.input === "date" && (
+                        <Input
+                          type="date"
+                          value={value || ""}
+                          onChange={(e) => setValue(e.target.value)}
+                          className="h-12 rounded-2xl"
+                        />
+                      )}
                       {isMultiline ? (
                         <Textarea
                           value={value || ""}
