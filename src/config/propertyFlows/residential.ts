@@ -1,6 +1,9 @@
+# FINAL CLIENT-ALIGNED RESIDENTIAL FLOW
+
+```ts
 // ============================================================
-// Residential conversational flow config
-// CLIENT EXCEL ALIGNED SIMPLIFIED VERSION
+// FINAL CLIENT-ALIGNED RESIDENTIAL FLOW
+// EXACT CLIENT EXCEL BEHAVIOR VERSION
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -36,7 +39,7 @@ export const residentialFlow: PropertyFlowConfig = {
   },
 
   // ============================================================
-  // CLIENT FLOW ORDER
+  // FINAL CLIENT FLOW ORDER
   // ============================================================
 
   order: [
@@ -46,32 +49,43 @@ export const residentialFlow: PropertyFlowConfig = {
 
     "listing_type",
 
+    // BUY FLOW
     "property_condition",
-
+    "property_age",
     "availability_status",
     "possession_date",
 
+    // RENT FLOW
+    "available_from_date",
+
+    // AREA
     "flat_size",
     "land_size",
     "built_area",
 
+    // VARIATION
     "add_another_size_variation",
 
+    // PRICING
     "unit_type",
     "price_per_unit",
     "total_price",
     "monthly_rent",
 
+    // PROPERTY DETAILS
     "bhk_type",
     "bathroom_count",
     "balcony_count",
 
-    "floor_number",
+    // FLOOR
     "total_floors",
+    "floor_number",
 
+    // PARKING
     "parking_type",
     "parking_count",
 
+    // PROJECT
     "project_name",
     "gated_community",
     "total_towers",
@@ -79,31 +93,42 @@ export const residentialFlow: PropertyFlowConfig = {
     "total_units",
     "project_land_area",
 
+    // FURNISHING
     "furnishing_status",
     "furnishing_items",
 
+    // FACING
     "property_facing",
 
+    // AMENITIES
     "amenities",
 
+    // PAYMENT
     "payment_options",
 
+    // APPROVALS
     "approvals",
 
+    // LOCATION
     "location",
-
+    "google_maps_link",
     "map_location",
     "latitude",
     "longitude",
 
+    // HIGHLIGHTS
     "property_highlights",
 
+    // DESCRIPTION
     "property_description",
 
+    // AGENT
     "assign_nearest_agent",
 
+    // MEDIA
     "media_uploads",
 
+    // CONTACT
     "contact_name",
     "mobile_number",
   ],
@@ -181,6 +206,25 @@ export const residentialFlow: PropertyFlowConfig = {
       options: ["New", "Resale"],
     },
 
+    property_age: {
+      type: "single_select",
+
+      required: true,
+
+      visibleIf: {
+        property_condition: ["Resale"],
+      },
+
+      question: "What is the property age?",
+
+      options: [
+        "0-1 Years",
+        "1-5 Years",
+        "5-10 Years",
+        "10+ Years",
+      ],
+    },
+
     availability_status: {
       type: "single_select",
 
@@ -205,6 +249,18 @@ export const residentialFlow: PropertyFlowConfig = {
       },
 
       question: "When is possession expected?",
+    },
+
+    available_from_date: {
+      type: "future_date",
+
+      required: true,
+
+      visibleIf: {
+        listing_type: ["Rent"],
+      },
+
+      question: "When is the property available from?",
     },
 
     // =========================================================
@@ -237,12 +293,26 @@ export const residentialFlow: PropertyFlowConfig = {
       required: true,
 
       visibleIf: {
-        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+        property_type: [
+          "Independent House",
+          "Villa",
+          "Duplex / Triplex",
+          "Farm House",
+          "Row House / Townhouse",
+          "Gated Community House",
+        ],
       },
 
       question: "What is the land size?",
 
-      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre"],
+      units: [
+        "Sq Ft",
+        "Sq Yard",
+        "Cent",
+        "Gunta",
+        "Acre",
+        "Bigha",
+      ],
     },
 
     built_area: {
@@ -251,16 +321,23 @@ export const residentialFlow: PropertyFlowConfig = {
       required: true,
 
       visibleIf: {
-        property_type: ["Independent House", "Villa", "Duplex / Triplex", "Farm House", "Row House / Townhouse"],
+        property_type: [
+          "Independent House",
+          "Villa",
+          "Duplex / Triplex",
+          "Farm House",
+          "Row House / Townhouse",
+          "Gated Community House",
+        ],
       },
 
       question: "What is the built area?",
 
-      units: ["Sq Ft", "Sq Yard"],
+      units: ["Sq Ft"],
     },
 
     // =========================================================
-    // SIZE VARIATION
+    // SIZE VARIATIONS
     // =========================================================
 
     add_another_size_variation: {
@@ -268,11 +345,18 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Would you like to add another size and pricing variation?",
+      question:
+        "Would you like to add another size and pricing variation?",
 
       options: ["Yes", "No"],
 
-      variationFields: ["flat_size", "land_size", "built_area", "price_per_unit", "total_price", "property_facing"],
+      variationFields: [
+        "flat_size",
+        "land_size",
+        "built_area",
+        "total_price",
+        "property_facing",
+      ],
     },
 
     // =========================================================
@@ -295,7 +379,15 @@ export const residentialFlow: PropertyFlowConfig = {
         searchable: true,
         chips: true,
 
-        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha"],
+        units: [
+          "Sqft",
+          "Sqyd",
+          "Sqm",
+          "Acre",
+          "Gunta",
+          "Cent",
+          "Bigha",
+        ],
       },
     },
 
@@ -344,7 +436,7 @@ export const residentialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // BHK
+    // PROPERTY DETAILS
     // =========================================================
 
     bhk_type: {
@@ -358,9 +450,16 @@ export const residentialFlow: PropertyFlowConfig = {
         },
       },
 
-      question: "What is the BHK type?",
+      question: "What is the bedroom configuration?",
 
-      options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
+      options: [
+        "1 Bed Room",
+        "2 Bed Room",
+        "3 Bed Room",
+        "4 Bed Room",
+        "5 Bed Room",
+        "6+ Bed Room",
+      ],
     },
 
     bathroom_count: {
@@ -434,7 +533,12 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What type of parking is available?",
 
-      options: ["Covered Parking", "Open Parking", "Both", "No Parking"],
+      options: [
+        "Covered Parking",
+        "Open Parking",
+        "Both",
+        "No Parking",
+      ],
     },
 
     parking_count: {
@@ -460,6 +564,17 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        property_type: [
+          "Apartment / Flat",
+          "Villa",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Serviced Apartment",
+          "Gated Community House",
+        ],
+      },
+
       question: "What is the project or community name?",
     },
 
@@ -467,6 +582,17 @@ export const residentialFlow: PropertyFlowConfig = {
       type: "single_select",
 
       required: false,
+
+      visibleIf: {
+        property_type: [
+          "Apartment / Flat",
+          "Villa",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Serviced Apartment",
+          "Gated Community House",
+        ],
+      },
 
       question: "Is this inside a gated community?",
 
@@ -534,7 +660,11 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What is the furnishing status?",
 
-      options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
+      options: [
+        "Unfurnished",
+        "Semi Furnished",
+        "Fully Furnished",
+      ],
     },
 
     furnishing_items: {
@@ -548,7 +678,16 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What furnishing items are included?",
 
-      options: ["AC", "Wardrobes", "Modular Kitchen", "Geysers", "Beds", "Sofa", "Dining Table", "TV"],
+      options: [
+        "AC",
+        "Wardrobes",
+        "Modular Kitchen",
+        "Geysers",
+        "Beds",
+        "Sofa",
+        "Dining Table",
+        "TV",
+      ],
     },
 
     // =========================================================
@@ -562,7 +701,16 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What is the property facing?",
 
-      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
+      options: [
+        "East",
+        "West",
+        "North",
+        "South",
+        "North East",
+        "North West",
+        "South East",
+        "South West",
+      ],
     },
 
     // =========================================================
@@ -587,6 +735,7 @@ export const residentialFlow: PropertyFlowConfig = {
         "Indoor Games",
         "Jogging Track",
         "Guest Rooms",
+        "Parking",
       ],
     },
 
@@ -612,6 +761,12 @@ export const residentialFlow: PropertyFlowConfig = {
         "Investor Friendly",
         "NRI Assistance",
         "Immediate Registration",
+        "Zero Down Payment",
+        "Low Booking Amount",
+        "Assured Rental Returns",
+        "Pre-EMI Support",
+        "Premium Bank Tie-Ups",
+        "Custom Payment Plans",
       ],
     },
 
@@ -636,6 +791,7 @@ export const residentialFlow: PropertyFlowConfig = {
         "Approved Layout",
         "Occupancy Certificate",
         "Bank Approved",
+        "LP Number Available",
       ],
     },
 
@@ -675,9 +831,13 @@ export const residentialFlow: PropertyFlowConfig = {
       },
     },
 
-    // =========================================================
-    // MAP
-    // =========================================================
+    google_maps_link: {
+      type: "url",
+
+      required: false,
+
+      question: "Please share Google Maps link if available.",
+    },
 
     map_location: {
       type: "map_picker",
@@ -712,7 +872,7 @@ export const residentialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // HIGHLIGHTS / RIBBONS
+    // HIGHLIGHTS
     // =========================================================
 
     property_highlights: {
@@ -720,14 +880,16 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      maxSelections: 3,
+      maxSelections: 5,
 
       question: "Select property highlights or ribbons.",
 
       options: [
         "Verified Property",
         "Verified Owner",
+        "Trusted Agent",
         "RERA Approved",
+        "Clear Title",
         "Price Drop",
         "Best Deal",
         "Hot Property",
@@ -738,19 +900,38 @@ export const residentialFlow: PropertyFlowConfig = {
         "Luxury Living",
         "Near Metro",
         "Fully Furnished",
+        "Semi Furnished",
         "Family Friendly",
+        "Bachelor Friendly",
+        "Family Preferred",
+        "Pet Friendly",
         "Corner Flat",
+        "Corner Property",
         "Park Facing",
+        "Nature View",
         "East Facing",
         "Loan Approved",
         "Ready Registration",
         "Limited Units",
-        "Newly Launched",
+        "Limited Offer",
+        "Popular",
+        "Trending",
+        "Most Viewed",
+        "New Launch",
+        "Newly Renovated",
+        "Investment Hotspot",
+        "High ROI",
+        "Rental Income",
+        "Future Growth Area",
+        "By Owner",
+        "By Agent",
+        "By Builder",
+        "Negotiable",
       ],
     },
 
     // =========================================================
-    // AI DESCRIPTION
+    // DESCRIPTION
     // =========================================================
 
     property_description: {
@@ -767,7 +948,7 @@ export const residentialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // AGENT ASSIGNMENT
+    // AGENT
     // =========================================================
 
     assign_nearest_agent: {
@@ -775,7 +956,11 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Would you like to assign this property to the nearest agent?",
+      question:
+        "Would you like to assign this property to the nearest agent?",
+
+      helperText:
+        "Agent commission may apply depending on verification status.",
 
       options: ["Yes", "No"],
     },
@@ -789,7 +974,8 @@ export const residentialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Upload property images, brochures, PDFs or videos.",
+      question:
+        "Upload property images, brochures, PDFs or videos.",
 
       extraction: {
         enabled: true,
@@ -867,3 +1053,41 @@ export const residentialFlow: PropertyFlowConfig = {
 };
 
 export default residentialFlow;
+```
+
+---
+
+# IMPORTANT ENGINE FIX (VERY CRITICAL)
+
+Your flow will STILL fail if engine visibility validation is wrong.
+
+Inside your question resolver engine:
+
+Use this EXACT order:
+
+```ts
+if (!isFieldVisible(field, currentAnswers)) {
+  continue;
+}
+
+if (isFieldAlreadyAnswered(field, currentAnswers)) {
+  continue;
+}
+
+if (isFieldSkipped(field, currentAnswers)) {
+  continue;
+}
+
+askField(field);
+```
+
+Without this:
+
+AI will still:
+
+* ask hidden questions
+* ask gated community fields wrongly
+* ask resale fields during rent flow
+* ask skipped questions again
+
+This engine validation is mandatory.
