@@ -908,6 +908,10 @@ export const residentialFlow = {
 
       type: "smart_location",
 
+      renderMode: "widget",
+
+      widget: "SmartLocationWidget",
+
       required: true,
 
       question: "Where is the property located?",
