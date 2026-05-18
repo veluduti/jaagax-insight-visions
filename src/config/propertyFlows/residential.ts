@@ -360,7 +360,7 @@ export const residentialFlow: PropertyFlowConfig = {
 
       question: "What is the BHK type?",
 
-      options: ["1 RK", "1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
+      options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
     },
 
     bathroom_count: {
@@ -387,24 +387,6 @@ export const residentialFlow: PropertyFlowConfig = {
     // FLOOR DETAILS
     // =========================================================
 
-    floor_number: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        property_type: [
-          "Apartment / Flat",
-          "Penthouse",
-          "Builder Floor Apartment",
-          "Studio Apartment",
-          "Serviced Apartment",
-        ],
-      },
-
-      question: "Which floor is the property on?",
-    },
-
     total_floors: {
       type: "number",
 
@@ -421,6 +403,24 @@ export const residentialFlow: PropertyFlowConfig = {
       },
 
       question: "How many total floors are there?",
+    },
+
+    floor_number: {
+      type: "number",
+
+      required: false,
+
+      visibleIf: {
+        property_type: [
+          "Apartment / Flat",
+          "Penthouse",
+          "Builder Floor Apartment",
+          "Studio Apartment",
+          "Serviced Apartment",
+        ],
+      },
+
+      question: "Which floor is the property on?",
     },
 
     // =========================================================
