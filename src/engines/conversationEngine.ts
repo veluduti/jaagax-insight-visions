@@ -1,17 +1,7 @@
 // ============================================================
-// Conversation Engine
-//
-// Responsibility:
-//   - Own ConversationState lifecycle
-//   - Apply user answers
-//   - Apply extracted AI values
-//   - Handle corrections
-//   - Handle field skipping
-//   - Handle rule-based resets
-//   - Delegate next question resolution
-//
-// Deterministic:
-//   AI NEVER controls workflow order.
+// ADVANCED CONVERSATION ENGINE
+// FULLY DYNAMIC AI CONVERSATIONAL WORKFLOW ENGINE
+// CLIENT EXCEL ALIGNED VERSION
 // ============================================================
 
 import type {
@@ -20,6 +10,7 @@ import type {
   NextQuestionResult,
   PropertyCategory,
   PropertyFlowConfig,
+  FieldState,
 } from "./types";
 
 import { getPropertyFlow } from "@/config/propertyFlows";
@@ -54,100 +45,19 @@ function normalizePriceString(input: string): number {
     return NaN;
   }
 
-  // crore
   if (/cr(ore)?s?$/.test(s)) {
     return num * 10000000;
   }
 
-  // lakh
   if (/lakhs?$|lacs?$/.test(s) || s.endsWith("l")) {
     return num * 100000;
   }
 
-  // thousand
   if (/thousands?$/.test(s) || s.endsWith("k")) {
     return num * 1000;
   }
 
   return num;
-}
-
-// ============================================================
-// PRICE FORMATTER
-// ============================================================
-
-export function formatIndianPrice(value: number): string {
-  if (value >= 10000000) {
-    return `${(value / 10000000).toFixed(2)} Crore`;
-  }
-
-  if (value >= 100000) {
-    return `${(value / 100000).toFixed(2)} Lakh`;
-  }
-
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(2)} Thousand`;
-  }
-
-  return String(value);
-}
-
-// ============================================================
-// SMART AI SUGGESTIONS
-// ============================================================
-
-export function generateSuggestions(field: any, input: string): string[] {
-  if (!input) {
-    return [];
-  }
-
-  const value = Number(input);
-
-  if (!Number.isFinite(value)) {
-    return [];
-  }
-
-  const type = field?.type;
-
-  // ==========================================================
-  // PRICE SUGGESTIONS
-  // ==========================================================
-
-  if (type === "price" || type === "rental_price" || type === "price_per_unit") {
-    const formatted = formatIndianPrice(value);
-
-    const suggestions = [formatted];
-
-    const units = field?.units || ["Sqft", "Sq Yard", "Acre", "Gunta"];
-
-    if (type === "price_per_unit") {
-      for (const unit of units) {
-        suggestions.push(`₹${formatted}/${unit}`);
-      }
-    }
-
-    if (type === "rental_price") {
-      suggestions.push(`₹${formatted}/Month`);
-
-      suggestions.push(`₹${formatted}/Week`);
-
-      suggestions.push(`₹${formatted}/Year`);
-    }
-
-    return suggestions;
-  }
-
-  // ==========================================================
-  // LAND / AREA SUGGESTIONS
-  // ==========================================================
-
-  if (type === "measurement" || type === "measurement_unit") {
-    const units = field?.units || ["Sqft", "Sq Yard", "Acre", "Gunta", "Cent"];
-
-    return units.map((unit: string) => `${value} ${unit}`);
-  }
-
-  return [];
 }
 
 // ============================================================
@@ -190,15 +100,23 @@ export function createInitialState(category: PropertyCategory | null = null): Co
 
     answers: {},
 
+    fieldStates: {},
+
     skipped: [],
 
     extracted: [],
+
+    invalidated: [],
+
+    rejected: [],
 
     currentFieldId: null,
 
     messages: [],
 
     done: false,
+
+    memory: {},
   };
 }
 
@@ -223,7 +141,19 @@ export function createConversationEngine(
   const rules = createRuleEngine(flow);
 
   // ==========================================================
-  // INTERNAL RESET HELPER
+  // SET FIELD STATE
+  // ==========================================================
+
+  function setFieldState(fieldId: string, fieldState: FieldState) {
+    if (!state.fieldStates) {
+      state.fieldStates = {};
+    }
+
+    state.fieldStates[fieldId] = fieldState;
+  }
+
+  // ==========================================================
+  // RESET DEPENDENT FIELDS
   // ==========================================================
 
   function resetDependentFields(fieldId: string) {
@@ -235,7 +165,19 @@ export function createConversationEngine(
       state.skipped = state.skipped.filter((id) => id !== resetField);
 
       state.extracted = state.extracted.filter((id) => id !== resetField);
+
+      state.invalidated = state.invalidated?.filter((id) => id !== resetField) || [];
+
+      setFieldState(resetField, "invalidated");
     }
+  }
+
+  // ==========================================================
+  // CLEANUP HIDDEN FIELDS
+  // ==========================================================
+
+  function cleanupHiddenFields() {
+    state = rules.cleanupHiddenFields(state);
   }
 
   return {
@@ -273,18 +215,22 @@ export function createConversationEngine(
 
     applyAnswer(fieldId, value) {
       // ====================================================
-      // EMPTY / SKIP DETECTION
+      // EMPTY
       // ====================================================
 
       if (value === undefined || value === null) {
         return;
       }
 
+      // ====================================================
+      // STRING HANDLING
+      // ====================================================
+
       if (typeof value === "string") {
         const normalized = value.trim().toLowerCase();
 
         // ------------------------------------------------
-        // skip keywords
+        // SKIP
         // ------------------------------------------------
 
         if (normalized === "skip" || normalized === "skipped" || normalized === "na" || normalized === "n/a") {
@@ -306,7 +252,7 @@ export function createConversationEngine(
 
       const fieldDef = flow.fields[fieldId];
 
-      const fieldKind = (fieldDef as any)?.type || fieldDef?.input;
+      const fieldKind = fieldDef?.type || fieldDef?.input;
 
       const isPriceField =
         flow.ai?.autoNormalizePricingUnits !== false &&
@@ -327,19 +273,31 @@ export function createConversationEngine(
       state.answers[fieldId] = value;
 
       // ====================================================
-      // REMOVE FROM SKIPPED
+      // FIELD STATE
+      // ====================================================
+
+      setFieldState(fieldId, "answered");
+
+      // ====================================================
+      // REMOVE SKIPPED
       // ====================================================
 
       state.skipped = state.skipped.filter((id) => id !== fieldId);
 
       // ====================================================
-      // REMOVE FROM EXTRACTED
+      // REMOVE EXTRACTED
       // ====================================================
 
       state.extracted = state.extracted.filter((id) => id !== fieldId);
 
       // ====================================================
-      // RESET DEPENDENT FIELDS
+      // REMOVE INVALIDATED
+      // ====================================================
+
+      state.invalidated = state.invalidated?.filter((id) => id !== fieldId) || [];
+
+      // ====================================================
+      // RESET DEPENDENCIES
       // ====================================================
 
       if (previousValue !== value) {
@@ -347,14 +305,20 @@ export function createConversationEngine(
       }
 
       // ====================================================
-      // UPDATE CURRENT FIELD
+      // CLEANUP HIDDEN
+      // ====================================================
+
+      cleanupHiddenFields();
+
+      // ====================================================
+      // CURRENT FIELD
       // ====================================================
 
       state.currentFieldId = fieldId;
     },
 
     // ======================================================
-    // APPLY AI EXTRACTED VALUES
+    // APPLY EXTRACTED VALUES
     // ======================================================
 
     applyExtractedFields(values, options = {}) {
@@ -377,12 +341,16 @@ export function createConversationEngine(
           state.extracted.push(fieldId);
         }
 
+        setFieldState(fieldId, "inferred");
+
         if (isCorrection && existingValue !== value) {
           resetDependentFields(fieldId);
         }
 
         state.skipped = state.skipped.filter((id) => id !== fieldId);
       }
+
+      cleanupHiddenFields();
     },
 
     // ======================================================
@@ -395,10 +363,12 @@ export function createConversationEngine(
       }
 
       delete state.answers[fieldId];
+
+      setFieldState(fieldId, "skipped");
     },
 
     // ======================================================
-    // APPEND CHAT MESSAGE
+    // APPEND MESSAGE
     // ======================================================
 
     appendMessage(message) {
@@ -414,6 +384,8 @@ export function createConversationEngine(
     // ======================================================
 
     next() {
+      cleanupHiddenFields();
+
       const result = resolver.resolve(state);
 
       state.done = result.done;
@@ -424,7 +396,7 @@ export function createConversationEngine(
     },
 
     // ======================================================
-    // RESET ENGINE
+    // RESET
     // ======================================================
 
     reset() {
