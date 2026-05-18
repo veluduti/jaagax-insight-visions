@@ -10,7 +10,9 @@ import type {
   ConversationState,
   PropertyFlowConfig,
   FieldCondition,
+  StructuredVisibilityRule,
   VisibilityRule,
+  VisibilityValueMatcher,
 } from "./types";
 
 // ============================================================
@@ -53,6 +55,48 @@ function normalizeValue(value: unknown): unknown {
   }
 
   return value;
+}
+
+function isStructuredVisibilityRule(rule: VisibilityRule): rule is StructuredVisibilityRule {
+  return ["function", "and", "or", "field", "equals", "notEquals", "in", "notIn"].some((key) => key in rule);
+}
+
+function matchesVisibilityValue(matcher: VisibilityValueMatcher, currentValue: unknown): boolean {
+  const normalizedCurrentValue = String(normalizeValue(currentValue) ?? "");
+
+  if (Array.isArray(matcher)) {
+    return matcher.includes(normalizedCurrentValue);
+  }
+
+  if (Array.isArray(matcher.notIn) && matcher.notIn.includes(normalizedCurrentValue)) {
+    return false;
+  }
+
+  if (Array.isArray(matcher.in) && !matcher.in.includes(normalizedCurrentValue)) {
+    return false;
+  }
+
+  return true;
+}
+
+function visibilityRuleDependsOnField(rule: VisibilityRule, fieldId: string): boolean {
+  if (isStructuredVisibilityRule(rule)) {
+    if (rule.field === fieldId) {
+      return true;
+    }
+
+    if (Array.isArray(rule.and) && rule.and.some((childRule) => visibilityRuleDependsOnField(childRule, fieldId))) {
+      return true;
+    }
+
+    if (Array.isArray(rule.or) && rule.or.some((childRule) => visibilityRuleDependsOnField(childRule, fieldId))) {
+      return true;
+    }
+
+    return false;
+  }
+
+  return Object.prototype.hasOwnProperty.call(rule, fieldId);
 }
 
 // ============================================================
@@ -195,75 +239,65 @@ export function createRuleEngine(flow: PropertyFlowConfig): RuleEngine {
     // ======================================================
 
     evaluateVisibilityRule(rule, state) {
-      // ====================================================
-      // FUNCTION SUPPORT
-      // ====================================================
+      if (isStructuredVisibilityRule(rule)) {
+        // ====================================================
+        // FUNCTION SUPPORT
+        // ====================================================
 
-      if (typeof rule.function === "function") {
-        try {
-          return rule.function(state);
-        } catch {
-          return false;
+        if (typeof rule.function === "function") {
+          try {
+            return rule.function(state);
+          } catch {
+            return false;
+          }
         }
+
+        // ====================================================
+        // AND CONDITIONS
+        // ====================================================
+
+        if (Array.isArray(rule.and)) {
+          return rule.and.every((childRule) => this.evaluateVisibilityRule(childRule, state));
+        }
+
+        // ====================================================
+        // OR CONDITIONS
+        // ====================================================
+
+        if (Array.isArray(rule.or)) {
+          return rule.or.some((childRule) => this.evaluateVisibilityRule(childRule, state));
+        }
+
+        // ====================================================
+        // FIELD BASED RULES
+        // ====================================================
+
+        if (typeof rule.field === "string") {
+          const currentValue = state.answers[rule.field];
+
+          if (rule.equals !== undefined) {
+            return currentValue === rule.equals;
+          }
+
+          if (rule.notEquals !== undefined) {
+            return currentValue !== rule.notEquals;
+          }
+
+          if (Array.isArray(rule.in)) {
+            return rule.in.includes(currentValue);
+          }
+
+          if (Array.isArray(rule.notIn)) {
+            return !rule.notIn.includes(currentValue);
+          }
+        }
+
+        return true;
       }
 
-      // ====================================================
-      // AND CONDITIONS
-      // ====================================================
-
-      if (rule.and) {
-        return rule.and.every((childRule) => this.evaluateVisibilityRule(childRule, state));
-      }
-
-      // ====================================================
-      // OR CONDITIONS
-      // ====================================================
-
-      if (rule.or) {
-        return rule.or.some((childRule) => this.evaluateVisibilityRule(childRule, state));
-      }
-
-      // ====================================================
-      // FIELD BASED RULES
-      // ====================================================
-
-      if (rule.field) {
-        const currentValue = state.answers[rule.field];
-
-        // --------------------------------------------------
-        // equals
-        // --------------------------------------------------
-
-        if (rule.equals !== undefined) {
-          return currentValue === rule.equals;
-        }
-
-        // --------------------------------------------------
-        // notEquals
-        // --------------------------------------------------
-
-        if (rule.notEquals !== undefined) {
-          return currentValue !== rule.notEquals;
-        }
-
-        // --------------------------------------------------
-        // in
-        // --------------------------------------------------
-
-        if (rule.in) {
-          return rule.in.includes(currentValue);
-        }
-
-        // --------------------------------------------------
-        // notIn
-        // --------------------------------------------------
-
-        if (rule.notIn) {
-          return !rule.notIn.includes(currentValue);
-        }
-      }
-
-      return true;
+      return Object.entries(rule).every(([dependentFieldId, matcher]) =>
+        matchesVisibilityValue(matcher, state.answers[dependentFieldId]),
+      );
     },
 
     // ======================================================
@@ -340,38 +374,8 @@ export function createRuleEngine(flow: PropertyFlowConfig): RuleEngine {
           continue;
         }
 
-        const visibleIf = targetField.visibleIf;
-
-        // --------------------------------------------------
-        // SIMPLE FIELD RULE
-        // --------------------------------------------------
-
-        if (visibleIf.field === fieldId) {
+        if (visibilityRuleDependsOnField(targetField.visibleIf, fieldId)) {
           resets.add(targetFieldId);
-        }
-
-        // --------------------------------------------------
-        // AND RULES
-        // --------------------------------------------------
-
-        if (visibleIf.and) {
-          for (const childRule of visibleIf.and) {
-            if (childRule.field === fieldId) {
-              resets.add(targetFieldId);
-            }
-          }
-        }
-
-        // --------------------------------------------------
-        // OR RULES
-        // --------------------------------------------------
-
-        if (visibleIf.or) {
-          for (const childRule of visibleIf.or) {
-            if (childRule.field === fieldId) {
-              resets.add(targetFieldId);
-            }
-          }
         }
       }
 
