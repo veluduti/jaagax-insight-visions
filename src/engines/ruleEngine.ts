@@ -1,22 +1,16 @@
 // ============================================================
-// Rule Engine
-//
-// Responsibility:
-//   - Evaluate ConditionalRule[] against ConversationState
-//   - Determine field visibility
-//   - Handle dynamic conditional logic
-//   - Reset dependent fields
-//
-// Deterministic:
-//   AI NEVER controls rules.
+// ADVANCED RULE ENGINE
+// FULLY DYNAMIC AI CONVERSATIONAL WORKFLOW ENGINE
+// CLIENT EXCEL ALIGNED VERSION
 // ============================================================
 
 import type {
-ConditionalRule,
-ConditionGroup,
-ConversationState,
-PropertyFlowConfig,
-FieldCondition,
+  ConditionalRule,
+  ConditionGroup,
+  ConversationState,
+  PropertyFlowConfig,
+  FieldCondition,
+  VisibilityRule,
 } from "./types";
 
 // ============================================================
@@ -24,395 +18,422 @@ FieldCondition,
 // ============================================================
 
 export interface RuleEngine {
-isFieldRelevant(
-fieldId: string,
-state: ConversationState,
-): boolean;
+  // FIELD VISIBILITY
 
-evaluateCondition(
-condition: ConditionGroup,
-state: ConversationState,
-): boolean;
+  isFieldRelevant(fieldId: string, state: ConversationState): boolean;
 
-fieldsToResetOnChange(
-fieldId: string,
-flow: PropertyFlowConfig,
-): string[];
+  // VISIBILITY RULE EVALUATION
+
+  evaluateVisibilityRule(rule: VisibilityRule, state: ConversationState): boolean;
+
+  // CONDITIONAL RULE EVALUATION
+
+  evaluateCondition(condition: ConditionGroup, state: ConversationState): boolean;
+
+  // RESET FIELDS
+
+  fieldsToResetOnChange(fieldId: string, flow: PropertyFlowConfig): string[];
+
+  // GET HIDDEN FIELDS
+
+  getHiddenFields(state: ConversationState): string[];
+
+  // CLEANUP HIDDEN FIELDS
+
+  cleanupHiddenFields(state: ConversationState): ConversationState;
 }
 
 // ============================================================
 // NORMALIZE VALUE
 // ============================================================
 
-function normalizeValue(
-value: unknown,
-): unknown {
-if (
-typeof value === "string"
-) {
-return value.trim();
-}
+function normalizeValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.trim();
+  }
 
-return value;
+  return value;
 }
 
 // ============================================================
 // SINGLE CONDITION EVALUATOR
 // ============================================================
 
-function evaluateSingleCondition(
-condition: FieldCondition,
-state: ConversationState,
-): boolean {
-const currentValue =
-normalizeValue(
-state.answers[
-condition.fieldId
-],
-);
+function evaluateSingleCondition(condition: FieldCondition, state: ConversationState): boolean {
+  const currentValue = normalizeValue(state.answers[condition.fieldId]);
 
-const expectedValue =
-normalizeValue(
-condition.value,
-);
+  const expectedValue = normalizeValue(condition.value);
 
-switch (condition.operator) {
-// ======================================================
-// EQUAL
-// ======================================================
+  switch (condition.operator) {
+    // ======================================================
+    // EQUAL
+    // ======================================================
 
-case "eq":
-  return (
-    currentValue ===
-    expectedValue
-  );
+    case "eq":
+      return currentValue === expectedValue;
 
-// ======================================================
-// NOT EQUAL
-// ======================================================
+    // ======================================================
+    // NOT EQUAL
+    // ======================================================
 
-case "neq":
-  return (
-    currentValue !==
-    expectedValue
-  );
+    case "neq":
+      return currentValue !== expectedValue;
 
-// ======================================================
-// EXISTS
-// ======================================================
+    // ======================================================
+    // EXISTS
+    // ======================================================
 
-case "exists":
-  return (
-    currentValue !==
-      undefined &&
-    currentValue !== null &&
-    currentValue !== ""
-  );
+    case "exists":
+      return currentValue !== undefined && currentValue !== null && currentValue !== "";
 
-// ======================================================
-// MISSING
-// ======================================================
+    // ======================================================
+    // MISSING
+    // ======================================================
 
-case "missing":
-  return (
-    currentValue ===
-      undefined ||
-    currentValue === null ||
-    currentValue === ""
-  );
+    case "missing":
+      return currentValue === undefined || currentValue === null || currentValue === "";
 
-// ======================================================
-// TRUTHY
-// ======================================================
+    // ======================================================
+    // TRUTHY
+    // ======================================================
 
-case "truthy":
-  return Boolean(
-    currentValue,
-  );
+    case "truthy":
+      return Boolean(currentValue);
 
-// ======================================================
-// FALSY
-// ======================================================
+    // ======================================================
+    // FALSY
+    // ======================================================
 
-case "falsy":
-  return !currentValue;
+    case "falsy":
+      return !currentValue;
 
-// ======================================================
-// IN ARRAY
-// ======================================================
+    // ======================================================
+    // IN
+    // ======================================================
 
-case "in":
-  return Array.isArray(
-    expectedValue,
-  )
-    ? expectedValue.includes(
-        currentValue,
-      )
-    : false;
+    case "in":
+      return Array.isArray(expectedValue) ? expectedValue.includes(currentValue) : false;
 
-// ======================================================
-// NOT IN ARRAY
-// ======================================================
+    // ======================================================
+    // NOT IN
+    // ======================================================
 
-case "notIn":
-  return Array.isArray(
-    expectedValue,
-  )
-    ? !expectedValue.includes(
-        currentValue,
-      )
-    : false;
+    case "notIn":
+      return Array.isArray(expectedValue) ? !expectedValue.includes(currentValue) : false;
 
-// ======================================================
-// GREATER THAN
-// ======================================================
+    // ======================================================
+    // GREATER THAN
+    // ======================================================
 
-case "gt":
-  return (
-    Number(currentValue) >
-    Number(expectedValue)
-  );
+    case "gt":
+      return Number(currentValue) > Number(expectedValue);
 
-// ======================================================
-// LESS THAN
-// ======================================================
+    // ======================================================
+    // LESS THAN
+    // ======================================================
 
-case "lt":
-  return (
-    Number(currentValue) <
-    Number(expectedValue)
-  );
+    case "lt":
+      return Number(currentValue) < Number(expectedValue);
 
-default:
-  return true;
-
-}
+    default:
+      return true;
+  }
 }
 
 // ============================================================
 // CREATE RULE ENGINE
 // ============================================================
 
-export function createRuleEngine(
-flow: PropertyFlowConfig,
-): RuleEngine {
-return {
-// ======================================================
-// FIELD VISIBILITY
-// ======================================================
+export function createRuleEngine(flow: PropertyFlowConfig): RuleEngine {
+  return {
+    // ======================================================
+    // FIELD VISIBILITY
+    // ======================================================
 
-isFieldRelevant(
-  fieldId,
-  state,
-) {
-  const field =
-    flow.fields[fieldId];
+    isFieldRelevant(fieldId, state) {
+      const field = flow.fields[fieldId];
 
-  if (!field) {
-    return false;
-  }
+      if (!field) {
+        return false;
+      }
 
-  // ====================================================
-  // visibleIf SUPPORT
-  // ====================================================
+      // ====================================================
+      // visibleIf SUPPORT
+      // ====================================================
 
-  if (
-    field.visibleIf
-  ) {
-    const visible =
-      Object.entries(
-        field.visibleIf,
-      ).every(
-        ([
-          dependency,
-          values,
-        ]) => {
-          const current =
-            state.answers[
-              dependency
-            ];
+      if (field.visibleIf) {
+        const visible = this.evaluateVisibilityRule(field.visibleIf, state);
 
-          if (
-            current ===
-              undefined ||
-            current ===
-              null
-          ) {
-            return false;
+        if (!visible) {
+          return false;
+        }
+      }
+
+      // ====================================================
+      // CONDITIONAL RULES
+      // ====================================================
+
+      const matchingRules = flow.rules.filter((rule) => rule.fieldId === fieldId);
+
+      for (const rule of matchingRules) {
+        if (!rule.when) {
+          continue;
+        }
+
+        const valid = this.evaluateCondition(rule.when, state);
+
+        if (!valid) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    // ======================================================
+    // VISIBILITY RULE EVALUATION
+    // ======================================================
+
+    evaluateVisibilityRule(rule, state) {
+      // ====================================================
+      // FUNCTION SUPPORT
+      // ====================================================
+
+      if (typeof rule.function === "function") {
+        try {
+          return rule.function(state);
+        } catch {
+          return false;
+        }
+      }
+
+      // ====================================================
+      // AND CONDITIONS
+      // ====================================================
+
+      if (rule.and) {
+        return rule.and.every((childRule) => this.evaluateVisibilityRule(childRule, state));
+      }
+
+      // ====================================================
+      // OR CONDITIONS
+      // ====================================================
+
+      if (rule.or) {
+        return rule.or.some((childRule) => this.evaluateVisibilityRule(childRule, state));
+      }
+
+      // ====================================================
+      // FIELD BASED RULES
+      // ====================================================
+
+      if (rule.field) {
+        const currentValue = state.answers[rule.field];
+
+        // --------------------------------------------------
+        // equals
+        // --------------------------------------------------
+
+        if (rule.equals !== undefined) {
+          return currentValue === rule.equals;
+        }
+
+        // --------------------------------------------------
+        // notEquals
+        // --------------------------------------------------
+
+        if (rule.notEquals !== undefined) {
+          return currentValue !== rule.notEquals;
+        }
+
+        // --------------------------------------------------
+        // in
+        // --------------------------------------------------
+
+        if (rule.in) {
+          return rule.in.includes(currentValue);
+        }
+
+        // --------------------------------------------------
+        // notIn
+        // --------------------------------------------------
+
+        if (rule.notIn) {
+          return !rule.notIn.includes(currentValue);
+        }
+      }
+
+      return true;
+    },
+
+    // ======================================================
+    // CONDITION EVALUATOR
+    // ======================================================
+
+    evaluateCondition(condition, state) {
+      // ====================================================
+      // ALL CONDITIONS
+      // ====================================================
+
+      if ("all" in condition) {
+        return condition.all.every((singleCondition) => evaluateSingleCondition(singleCondition, state));
+      }
+
+      // ====================================================
+      // ANY CONDITIONS
+      // ====================================================
+
+      if ("any" in condition) {
+        return condition.any.some((singleCondition) => evaluateSingleCondition(singleCondition, state));
+      }
+
+      // ====================================================
+      // SINGLE CONDITION
+      // ====================================================
+
+      return evaluateSingleCondition(condition, state);
+    },
+
+    // ======================================================
+    // FIELD RESETS
+    // ======================================================
+
+    fieldsToResetOnChange(fieldId, flow) {
+      const resets = new Set<string>();
+
+      // ====================================================
+      // EXPLICIT RULE RESETS
+      // ====================================================
+
+      for (const rule of flow.rules) {
+        if (rule.fieldId !== fieldId) {
+          continue;
+        }
+
+        if (!rule.resets?.length) {
+          continue;
+        }
+
+        for (const fieldToReset of rule.resets) {
+          resets.add(fieldToReset);
+        }
+      }
+
+      // ====================================================
+      // invalidateOnChange SUPPORT
+      // ====================================================
+
+      const sourceField = flow.fields[fieldId];
+
+      if (sourceField?.invalidateOnChange?.length) {
+        for (const dependentField of sourceField.invalidateOnChange) {
+          resets.add(dependentField);
+        }
+      }
+
+      // ====================================================
+      // visibleIf DEPENDENCIES
+      // ====================================================
+
+      for (const [targetFieldId, targetField] of Object.entries(flow.fields)) {
+        if (!targetField.visibleIf) {
+          continue;
+        }
+
+        const visibleIf = targetField.visibleIf;
+
+        // --------------------------------------------------
+        // SIMPLE FIELD RULE
+        // --------------------------------------------------
+
+        if (visibleIf.field === fieldId) {
+          resets.add(targetFieldId);
+        }
+
+        // --------------------------------------------------
+        // AND RULES
+        // --------------------------------------------------
+
+        if (visibleIf.and) {
+          for (const childRule of visibleIf.and) {
+            if (childRule.field === fieldId) {
+              resets.add(targetFieldId);
+            }
           }
+        }
 
-          const cur = String(current);
-          if (Array.isArray(values)) return values.includes(cur);
-          if (values.notIn && values.notIn.includes(cur)) return false;
-          if (values.in && !values.in.includes(cur)) return false;
-          return true;
-        },
-      );
+        // --------------------------------------------------
+        // OR RULES
+        // --------------------------------------------------
 
-    if (!visible) {
-      return false;
-    }
-  }
+        if (visibleIf.or) {
+          for (const childRule of visibleIf.or) {
+            if (childRule.field === fieldId) {
+              resets.add(targetFieldId);
+            }
+          }
+        }
+      }
 
-  // ====================================================
-  // CONDITIONAL RULES
-  // ====================================================
+      return Array.from(resets);
+    },
 
-  const matchingRules =
-    flow.rules.filter(
-      (rule) =>
-        rule.fieldId ===
-        fieldId,
-    );
+    // ======================================================
+    // GET HIDDEN FIELDS
+    // ======================================================
 
-  for (const rule of matchingRules) {
-    if (!rule.when) {
-      continue;
-    }
+    getHiddenFields(state) {
+      const hiddenFields: string[] = [];
 
-    const valid =
-      this.evaluateCondition(
-        rule.when,
-        state,
-      );
+      for (const fieldId of Object.keys(flow.fields)) {
+        const visible = this.isFieldRelevant(fieldId, state);
 
-    if (!valid) {
-      return false;
-    }
-  }
+        if (!visible) {
+          hiddenFields.push(fieldId);
+        }
+      }
 
-  return true;
-},
+      return hiddenFields;
+    },
 
-// ======================================================
-// CONDITION EVALUATOR
-// ======================================================
+    // ======================================================
+    // CLEANUP HIDDEN FIELDS
+    // ======================================================
 
-evaluateCondition(
-  condition,
-  state,
-) {
-  // ====================================================
-  // ALL CONDITIONS
-  // ====================================================
+    cleanupHiddenFields(state) {
+      const hiddenFields = this.getHiddenFields(state);
 
-  if (
-    "all" in condition
-  ) {
-    return condition.all.every(
-      (
-        singleCondition,
-      ) =>
-        evaluateSingleCondition(
-          singleCondition,
-          state,
-        ),
-    );
-  }
+      const updatedAnswers = {
+        ...state.answers,
+      };
 
-  // ====================================================
-  // ANY CONDITIONS
-  // ====================================================
+      const updatedFieldStates = {
+        ...(state.fieldStates || {}),
+      };
 
-  if (
-    "any" in condition
-  ) {
-    return condition.any.some(
-      (
-        singleCondition,
-      ) =>
-        evaluateSingleCondition(
-          singleCondition,
-          state,
-        ),
-    );
-  }
+      for (const hiddenFieldId of hiddenFields) {
+        // --------------------------------------------------
+        // REMOVE ANSWERS
+        // --------------------------------------------------
 
-  // ====================================================
-  // SINGLE CONDITION
-  // ====================================================
+        delete updatedAnswers[hiddenFieldId];
 
-  return evaluateSingleCondition(
-    condition,
-    state,
-  );
-},
+        // --------------------------------------------------
+        // UPDATE FIELD STATE
+        // --------------------------------------------------
 
-// ======================================================
-// DEPENDENT FIELD RESETS
-// ======================================================
+        updatedFieldStates[hiddenFieldId] = "hidden";
+      }
 
-fieldsToResetOnChange(
-  fieldId,
-  flow,
-) {
-  const resets =
-    new Set<string>();
+      return {
+        ...state,
 
-  // ====================================================
-  // EXPLICIT RULE RESETS
-  // ====================================================
+        answers: updatedAnswers,
 
-  for (const rule of flow.rules) {
-    if (
-      rule.fieldId !==
-      fieldId
-    ) {
-      continue;
-    }
-
-    if (
-      !rule.resets
-        ?.length
-    ) {
-      continue;
-    }
-
-    for (const fieldToReset of rule.resets) {
-      resets.add(
-        fieldToReset,
-      );
-    }
-  }
-
-  // ====================================================
-  // visibleIf DEPENDENCY RESETS
-  // ====================================================
-
-  for (const [
-    targetFieldId,
-    targetField,
-  ] of Object.entries(
-    flow.fields,
-  )) {
-    if (
-      !targetField.visibleIf
-    ) {
-      continue;
-    }
-
-    const dependencies =
-      Object.keys(
-        targetField.visibleIf,
-      );
-
-    if (
-      dependencies.includes(
-        fieldId,
-      )
-    ) {
-      resets.add(
-        targetFieldId,
-      );
-    }
-  }
-
-  return Array.from(
-    resets,
-  );
-},
-
-};
+        fieldStates: updatedFieldStates,
+      };
+    },
+  };
 }
 
 // ============================================================
