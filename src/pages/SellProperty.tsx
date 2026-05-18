@@ -202,6 +202,8 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
 type FieldDef = {
   id: string;
   section?: string;
+  renderMode?: string;
+  widgetType?: string | null;
   question: string;
   placeholder?: string;
   input:
