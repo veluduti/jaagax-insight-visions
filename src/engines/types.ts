@@ -646,6 +646,9 @@ export interface NextQuestionResult {
 
   done: boolean;
 
+  state?: ConversationState;
+
+
   progress: {
     filled: number;
 
