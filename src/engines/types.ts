@@ -236,6 +236,8 @@ export interface FieldDefinition {
     autoGenerate?: boolean;
 
     include?: string[];
+
+    [key: string]: unknown;
   };
 
   // =========================================================
