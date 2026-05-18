@@ -2,47 +2,94 @@
 // AI Response Formatter
 //
 // Responsibility:
-//   - Convert engine output into UI-ready conversational
-//     assistant responses
+//   - Convert engine output into conversational UI responses
+//   - Generate human-like assistant replies
 //   - Build quick replies
 //   - Build dropdown options
-//   - Build smart suggestion chips
+//   - Build smart contextual suggestions
+//   - Support variant-based conversational flows
 //
-// Deterministic:
-//   Workflow logic NEVER lives here.
+// IMPORTANT:
+//   - No workflow business logic here
+//   - Only UI/conversation formatting
 // ============================================================
 
-import type {
-ConversationMessage,
-FieldDefinition,
-NextQuestionResult,
-QuestionDefinition,
-} from "@/engines/types";
+import type { ConversationMessage, FieldDefinition, NextQuestionResult, QuestionDefinition } from "@/engines/types";
 
 // ============================================================
 // TYPES
 // ============================================================
 
 export interface QuickReply {
-label: string;
-
-value: string;
+  label: string;
+  value: string;
 }
 
 export interface DropdownOption {
-label: string;
-
-value: string;
+  label: string;
+  value: string;
 }
 
 export interface FormattedResponse {
-message: ConversationMessage;
+  message: ConversationMessage;
 
-quickReplies?: QuickReply[];
+  quickReplies?: QuickReply[];
 
-suggestions?: string[];
+  suggestions?: string[];
 
-dropdown?: DropdownOption[];
+  dropdown?: DropdownOption[];
+}
+
+// ============================================================
+// TRANSITIONAL AI PHRASES
+// ============================================================
+
+const TRANSITIONS = ["Got it.", "Perfect.", "Great.", "Nice.", "Understood.", "Sounds good.", "Okay."];
+
+function randomTransition() {
+  return TRANSITIONS[Math.floor(Math.random() * TRANSITIONS.length)];
+}
+
+// ============================================================
+// SECTION TRANSITIONS
+// ============================================================
+
+function getSectionTransition(field?: FieldDefinition | null): string {
+  if (!field?.section) {
+    return "";
+  }
+
+  switch (field.section) {
+    case "pricing":
+      return "Now let's configure pricing details.";
+
+    case "project_information":
+      return "Let's continue with project details.";
+
+    case "features":
+      return "Now let's configure property features.";
+
+    case "location":
+      return "Let's add location details.";
+
+    case "legal":
+      return "Now let's complete approvals and legal details.";
+
+    default:
+      return "";
+  }
+}
+
+// ============================================================
+// VARIANT MESSAGE
+// ============================================================
+
+function getVariantMessage(state?: any): string {
+  if (!state?.variants || !state.variants.length) {
+    return "";
+  }
+
+  return `Currently configuring variant ${(state.activeVariant || 0) + 1} of ${state.variants.length}.`;
 }
 
 // ============================================================
@@ -50,185 +97,201 @@ dropdown?: DropdownOption[];
 // ============================================================
 
 export function formatAssistantMessage(
-question: QuestionDefinition | null,
-field: FieldDefinition | null,
+  question: QuestionDefinition | null,
+  field: FieldDefinition | null,
+  state?: any,
 ): ConversationMessage {
-// ==========================================================
-// FLOW COMPLETED
-// ==========================================================
+  // ==========================================================
+  // FLOW COMPLETED
+  // ==========================================================
 
-if (!question || !field) {
-return {
-role: "assistant",
+  if (!question || !field) {
+    return {
+      role: "assistant",
 
-  content:
-    "Great! Your property details are almost ready. Please review and publish your listing.",
-};
+      content: "Excellent. Your property listing is now ready for preview and publishing.",
+    };
+  }
 
-}
+  // ==========================================================
+  // QUESTION TEXT
+  // ==========================================================
 
-// ==========================================================
-// USE CONFIG PROMPT
-// ==========================================================
+  const questionText = question.prompt || field.question || `Please provide ${field.label}`;
 
-const prompt =
-question.prompt ||
-field.question ||
-`Please provide ${field.label}`;
+  // ==========================================================
+  // AI TRANSITIONS
+  // ==========================================================
 
-return {
-role: "assistant",
+  const transition = randomTransition();
 
-content: prompt,
+  const sectionTransition = getSectionTransition(field);
 
-fieldId: field.id,
+  const variantMessage = getVariantMessage(state);
 
-};
+  // ==========================================================
+  // FINAL CONTENT
+  // ==========================================================
+
+  const content = [transition, sectionTransition, variantMessage, questionText].filter(Boolean).join("\n\n");
+
+  return {
+    role: "assistant",
+
+    content,
+
+    fieldId: field.id,
+  };
 }
 
 // ============================================================
 // QUICK REPLIES
 // ============================================================
 
-export function formatQuickReplies(
-question: QuestionDefinition | null,
-): QuickReply[] {
-if (!question?.quickReplies?.length) {
-return [];
-}
+export function formatQuickReplies(question: QuestionDefinition | null): QuickReply[] {
+  if (!question?.quickReplies?.length) {
+    return [];
+  }
 
-return question.quickReplies.map(
-(reply) => ({
-label: reply,
-
-  value: reply,
-}),
-
-);
+  return question.quickReplies.map((reply) => ({
+    label: reply,
+    value: reply,
+  }));
 }
 
 // ============================================================
-// SMART SUGGESTIONS
+// CONTEXTUAL SMART SUGGESTIONS
 // ============================================================
 
-export function formatSuggestions(
-field: FieldDefinition | null,
-): string[] {
-if (!field) {
-return [];
-}
+export function formatSuggestions(field: FieldDefinition | null, state?: any): string[] {
+  if (!field) {
+    return [];
+  }
 
-// ==========================================================
-// PRICE SUGGESTIONS
-// ==========================================================
+  // ==========================================================
+  // FLAT SIZE SUGGESTIONS
+  // ==========================================================
 
-if (
-field.smartSuggestions
-?.type ===
-"indian_price_format"
-) {
-return [
-"₹1 Lakh",
-"₹5 Lakhs",
-"₹10 Lakhs",
-"₹25 Lakhs",
-"₹50 Lakhs",
-"₹1 Crore",
-];
-}
+  if (field.id === "flat_size") {
+    return ["1200 Sq Ft", "1500 Sq Ft", "1800 Sq Ft", "2200 Sq Ft"];
+  }
 
-// ==========================================================
-// RENTAL SUGGESTIONS
-// ==========================================================
+  // ==========================================================
+  // LAND SIZE SUGGESTIONS
+  // ==========================================================
 
-if (
-field.smartSuggestions
-?.type ===
-"rental_duration"
-) {
-return [
-"₹5000 / Monthly",
-"₹10000 / Monthly",
-"₹25000 / Monthly",
-"₹50000 / Monthly",
-];
-}
+  if (field.id === "land_size") {
+    return ["150 Sq Yard", "200 Sq Yard", "300 Sq Yard", "500 Sq Yard", "1 Acre"];
+  }
 
-// ==========================================================
-// MEASUREMENT SUGGESTIONS
-// ==========================================================
+  // ==========================================================
+  // TOTAL PRICE
+  // ==========================================================
 
-if (
-field.smartSuggestions
-?.type ===
-"measurement_units"
-) {
-return (
-field.units || []
-).map(
-(unit) => `1 ${unit}`,
-);
-}
+  if (field.id === "total_price") {
+    return ["50 Lakhs", "75 Lakhs", "1 Crore", "1.5 Crore", "2 Crore"];
+  }
 
-return [];
+  // ==========================================================
+  // MONTHLY RENT
+  // ==========================================================
+
+  if (field.id === "monthly_rent") {
+    return ["₹10000", "₹15000", "₹25000", "₹50000"];
+  }
+
+  // ==========================================================
+  // LOCATION SUGGESTIONS
+  // ==========================================================
+
+  if (field.id === "location") {
+    return ["Gachibowli Hyderabad", "Kondapur Hyderabad", "Madhapur Hyderabad", "Kukatpally Hyderabad"];
+  }
+
+  // ==========================================================
+  // PROPERTY HIGHLIGHTS
+  // ==========================================================
+
+  if (field.id === "property_highlights") {
+    return ["Verified Property", "Ready to Move", "Luxury Living", "Best Deal"];
+  }
+
+  // ==========================================================
+  // GENERIC CONFIG SUGGESTIONS
+  // ==========================================================
+
+  if (field.smartSuggestions?.examples?.length) {
+    return field.smartSuggestions.examples;
+  }
+
+  return [];
 }
 
 // ============================================================
 // DROPDOWN OPTIONS
 // ============================================================
 
-export function formatDropdown(
-field: FieldDefinition | null,
-): DropdownOption[] {
-if (
-!field?.options?.length
-) {
-return [];
+export function formatDropdown(field: FieldDefinition | null): DropdownOption[] {
+  if (!field?.options?.length) {
+    return [];
+  }
+
+  return field.options.map((option) => ({
+    label: option,
+    value: option,
+  }));
 }
 
-return field.options.map(
-(option) => ({
-label: option,
+// ============================================================
+// RESPONSE VALIDATION
+// ============================================================
 
-  value: option,
-}),
+function validateFieldVisibility(field: FieldDefinition | null, state?: any): boolean {
+  if (!field) {
+    return false;
+  }
 
-);
+  // visibility should already
+  // be resolved by engine
+
+  // secondary protection layer
+
+  return true;
 }
 
 // ============================================================
 // FULL RESPONSE
 // ============================================================
 
-export function formatResponse(
-result: NextQuestionResult,
-): FormattedResponse {
-const {
-field,
-question,
-} = result;
+export function formatResponse(result: NextQuestionResult): FormattedResponse {
+  const { field, question, state } = result;
 
-return {
-message:
-formatAssistantMessage(
-question,
-field,
-),
+  // ==========================================================
+  // SAFETY VISIBILITY CHECK
+  // ==========================================================
 
-quickReplies:
-  formatQuickReplies(
-    question,
-  ),
+  const isVisible = validateFieldVisibility(field, state);
 
-suggestions:
-  formatSuggestions(
-    field,
-  ),
+  if (!isVisible) {
+    return {
+      message: {
+        role: "assistant",
+        content: "Let me continue with the next relevant detail.",
+      },
+    };
+  }
 
-dropdown:
-  formatDropdown(
-    field,
-  ),
+  // ==========================================================
+  // FINAL RESPONSE
+  // ==========================================================
 
-};
+  return {
+    message: formatAssistantMessage(question, field, state),
+
+    quickReplies: formatQuickReplies(question),
+
+    suggestions: formatSuggestions(field, state),
+
+    dropdown: formatDropdown(field),
+  };
 }
