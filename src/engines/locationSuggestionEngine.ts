@@ -96,7 +96,7 @@ const LOCATION_DB = {
       },
     },
 
-    Andhra Pradesh: {
+    "Andhra Pradesh": {
       Vijayawada: {
         localities: [
           "Benz Circle",
