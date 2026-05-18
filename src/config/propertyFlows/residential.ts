@@ -350,14 +350,7 @@ export const residentialFlow = {
 
       question: "What is the BHK type?",
 
-      options: [
-        "1 BHK",
-        "2 BHK",
-        "3 BHK",
-        "4 BHK",
-        "5 BHK",
-        "6+ BHK",
-      ],
+      options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
     },
 
     flat_size: {
@@ -429,13 +422,7 @@ export const residentialFlow = {
           "property_highlights",
         ],
 
-        editableFields: [
-          "flat_size",
-          "total_price",
-          "floor_number",
-          "property_facing",
-          "availability_status",
-        ],
+        editableFields: ["flat_size", "total_price", "floor_number", "property_facing", "availability_status"],
       },
     },
 
@@ -674,13 +661,7 @@ export const residentialFlow = {
 
       options: ["Yes", "No"],
 
-      invalidateOnChange: [
-        "project_name",
-        "total_towers",
-        "floors_per_tower",
-        "total_units",
-        "total_land_area",
-      ],
+      invalidateOnChange: ["project_name", "total_towers", "floors_per_tower", "total_units", "total_land_area"],
     },
 
     project_name: {
@@ -824,16 +805,7 @@ export const residentialFlow = {
 
       question: "Which furnishing items are included?",
 
-      options: [
-        "AC",
-        "Wardrobes",
-        "Modular Kitchen",
-        "Beds",
-        "Sofa",
-        "TV",
-        "Dining Table",
-        "Geysers",
-      ],
+      options: ["AC", "Wardrobes", "Modular Kitchen", "Beds", "Sofa", "TV", "Dining Table", "Geysers"],
     },
 
     property_facing: {
@@ -847,16 +819,7 @@ export const residentialFlow = {
 
       question: "What is the property facing?",
 
-      options: [
-        "East",
-        "West",
-        "North",
-        "South",
-        "North East",
-        "North West",
-        "South East",
-        "South West",
-      ],
+      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
     },
 
     amenities: {
@@ -896,10 +859,22 @@ export const residentialFlow = {
       question: "What payment options are available?",
 
       options: [
+        "Bank Loan Available",
+        "Price Negotiable",
         "EMI Available",
-        "Bank Loan",
+        "Installments Available",
+        "Flexible Payment Plan",
+        "Construction Linked Payment",
+        "Possession Linked Payment",
         "Zero Down Payment",
+        "Low Booking Amount",
+        "Assured Rental Returns",
         "Investor Friendly",
+        "NRI Assistance",
+        "Pre-EMI Support",
+        "Premium Bank Tie-Ups",
+        "Custom Payment Plans",
+        "Immediate Registration",
       ],
     },
 
@@ -918,8 +893,11 @@ export const residentialFlow = {
         "RERA Approved",
         "HMDA Approved",
         "DTCP Approved",
+        "CRDA Approved",
         "Municipal Approved",
-        "Bank Approved",
+        "Panchayat Approved",
+        "LP Number Available",
+        "Approved Layout",
       ],
     },
 
@@ -966,13 +944,49 @@ export const residentialFlow = {
 
       options: [
         "Verified Property",
+        "Verified Owner",
+        "Trusted Agent",
+        "Bank Approved",
+        "RERA Approved",
+        "Approved Layout",
+        "Clear Title",
+        "Price Drop",
+        "Best Deal",
+        "Limited Offer",
+        "Negotiable",
+        "Low Booking Amount",
+        "Zero Down Payment",
+        "EMI Available",
+        "Popular",
+        "Trending",
+        "Most Viewed",
+        "By Owner",
+        "By Agent",
+        "By Builder",
+        "Hot Property",
+        "Premium Listing",
+        "Featured",
         "Ready to Move",
-        "Luxury Living",
-        "Near Metro",
+        "Under Construction",
+        "New Launch",
+        "Immediate Possession",
+        "Newly Renovated",
         "Investment Hotspot",
         "High ROI",
-        "Best Deal",
-        "Premium Property",
+        "Rental Income",
+        "Future Growth Area",
+        "Investor Friendly",
+        "Gated Community",
+        "Luxury Living",
+        "Family Friendly",
+        "Near Metro",
+        "Nature View",
+        "Corner Property",
+        "Fully Furnished",
+        "Semi Furnished",
+        "Bachelor Friendly",
+        "Family Preferred",
+        "Pet Friendly",
       ],
     },
 
