@@ -918,7 +918,7 @@ export const residentialFlow = {
 
       question: "Let's add the property location details.",
 
-      groupedFields: ["country", "state_name", "city", "locality", "address", "pincode"],
+      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
     },
 
     property_highlights: {
