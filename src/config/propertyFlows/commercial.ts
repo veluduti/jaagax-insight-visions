@@ -450,7 +450,7 @@ export const commercialFlow: PropertyFlowConfig = {
     floor_number: {
       section: "property_configuration",
 
-      priority: 12,
+      priority: 13,
 
       type: "number",
 
@@ -467,7 +467,7 @@ export const commercialFlow: PropertyFlowConfig = {
     total_floors: {
       section: "property_configuration",
 
-      priority: 13,
+      priority: 12,
 
       type: "number",
 
