@@ -18,7 +18,7 @@ const PLOT_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"];
 export const plotsFlow: PropertyFlowConfig = {
   id: "plots",
 
-  category: "plots_land",
+  category: "plots",
 
   label: "Plots & Land",
 
