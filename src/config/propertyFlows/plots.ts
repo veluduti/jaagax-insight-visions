@@ -1,4 +1,4 @@
-```ts
+
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const PLOT_TYPES = [
@@ -828,4 +828,4 @@ export const plotsFlow: PropertyFlowConfig = {
 };
 
 export default plotsFlow;
-```;
+
