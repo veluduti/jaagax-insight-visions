@@ -927,6 +927,10 @@ export const coworkingSharedSpacesFlow: PropertyFlowConfig = {
     location: {
       type: "location",
 
+      renderMode: "widget",
+      widget: "SmartLocationWidget",
+      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
+
       required: true,
 
       question: "Please provide location details.",

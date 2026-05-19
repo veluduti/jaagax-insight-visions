@@ -1857,24 +1857,30 @@ export default function SellProperty() {
                     // MERGE LOCATION FIELDS
                     // ============================================
 
+                    const locationFieldId = field?.id || "location";
+
                     const merged = {
                       ...state,
-
                       country: data.country,
-
                       state_name: data.state_name,
-
                       city: data.city,
-
                       locality: data.locality,
-
                       sub_locality: data.sub_locality,
-
                       landmark: data.landmark,
-
                       address: data.address,
-
                       pincode: data.pincode,
+                      // Mark the composite location field itself as answered
+                      // so the engine doesn't re-ask the same widget forever.
+                      [locationFieldId]: {
+                        country: data.country,
+                        state_name: data.state_name,
+                        city: data.city,
+                        locality: data.locality,
+                        sub_locality: data.sub_locality,
+                        landmark: data.landmark,
+                        address: data.address,
+                        pincode: data.pincode,
+                      },
                     };
 
                     // ============================================
@@ -1891,20 +1897,14 @@ export default function SellProperty() {
                       engineRef.current?.applyExtractedFields(
                         {
                           country: data.country,
-
                           state_name: data.state_name,
-
                           city: data.city,
-
                           locality: data.locality,
-
                           sub_locality: data.sub_locality,
-
                           landmark: data.landmark,
-
                           address: data.address,
-
                           pincode: data.pincode,
+                          [locationFieldId]: merged[locationFieldId],
                         },
                         {
                           overwrite: true,
