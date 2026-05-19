@@ -15,7 +15,7 @@ const PLOT_TYPES = [
 
 const PLOT_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"];
 
-export const plotsFlow = {
+export const plotsFlow: PropertyFlowConfig = {
   id: "plots",
 
   category: "plots_land",
@@ -359,6 +359,7 @@ export const plotsFlow = {
       renderMode: "interactive_widget",
 
       aiSuggestions: true,
+      allowSkipGroup: true,
     },
 
     road_width: {
@@ -680,7 +681,7 @@ export const plotsFlow = {
     property_description: {
       section: "finalization",
 
-      priority: 999,
+      priority: 23,
 
       type: "ai_generated_text",
 
