@@ -2280,8 +2280,8 @@ export default function SellProperty() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={onBack}>
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                    <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Back to Dashboard
                     </Button>
                     <Button
                       onClick={onSubmit}
