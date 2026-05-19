@@ -321,13 +321,13 @@ export const plotsFlow = {
 
       priority: 8,
 
-      type: "group_measurement",
+      type: "plot_measurement_widget",
 
       required: false,
 
       question: "Please provide plot side measurements.",
 
-      fields: [
+      directions: [
         {
           id: "east_measurement",
           label: "East",
@@ -349,6 +349,16 @@ export const plotsFlow = {
           unit: "Ft",
         },
       ],
+
+      smartSuggestions: {
+        enabled: true,
+
+        examples: ["30 Ft", "40 Ft", "50 Ft", "60 Ft"],
+      },
+
+      renderMode: "interactive_widget",
+
+      aiSuggestions: true,
     },
 
     road_width: {
