@@ -518,7 +518,7 @@ export const commercialFlow: PropertyFlowConfig = {
         equals: "Buy",
       },
 
-      question: "What is the price per unit?",
+      question: "What is the price per unit in SqFt?",
 
       dynamicUnitSource: {
         from: ["built_area", "land_size"],
