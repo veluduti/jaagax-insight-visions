@@ -604,7 +604,7 @@ export const commercialFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "business_details",
 
-      priority: 20,
+      priority: 21,
 
       type: "multi_select",
 
@@ -635,7 +635,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_furnishing: {
       section: "features",
 
-      priority: 21,
+      priority: 20,
 
       type: "multi_select",
 
