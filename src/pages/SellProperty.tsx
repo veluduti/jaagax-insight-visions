@@ -2576,8 +2576,7 @@ export default function SellProperty() {
                   <button
                     type="button"
                     onClick={onBack}
-                    disabled={history.length === 0}
-                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+                    className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
                   >
                     <ChevronLeft className="h-3 w-3" />
                     Back
