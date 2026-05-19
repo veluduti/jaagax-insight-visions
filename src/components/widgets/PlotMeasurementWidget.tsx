@@ -123,7 +123,7 @@ export const PlotMeasurementWidget = ({
         </div>
       </div>
 
-      {resolvedSuggestions.length > 0 && (
+      {resolvedSuggestions?.length > 0 && (
         <div className="flex flex-wrap gap-2 justify-center">
           <span className="text-xs text-muted-foreground self-center">Quick:</span>
           {resolvedSuggestions.map((s) => (
@@ -140,7 +140,7 @@ export const PlotMeasurementWidget = ({
               }}
               className="text-xs px-3 py-1 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
             >
-              {s} Ft
+              {s} {resolvedUnits[0]}
             </button>
           ))}
         </div>
