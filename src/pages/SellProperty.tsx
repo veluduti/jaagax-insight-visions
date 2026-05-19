@@ -156,6 +156,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     phone: "phone",
     email: "email",
     text: "text",
+    plot_measurement_widget: "text",
   };
   const ss = raw?.smartSuggestions || {};
   const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
@@ -164,6 +165,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
   const groupedFields = raw?.groupedFields || [];
   return {
     id: fieldId,
+    type: t,
     renderMode,
     widgetType,
     groupedFields,
@@ -206,6 +208,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
    ============================================================ */
 type FieldDef = {
   id: string;
+  type?: string;
   section?: string;
   question: string;
   placeholder?: string;
