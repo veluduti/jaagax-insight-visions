@@ -1,4 +1,3 @@
-
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const PLOT_TYPES = [
@@ -14,14 +13,7 @@ const PLOT_TYPES = [
   "Highway Facing Plot",
 ];
 
-const PLOT_UNITS = [
-  "Sq Ft",
-  "Sq Yard",
-  "Cent",
-  "Gunta",
-  "Acre",
-  "Bigha",
-];
+const PLOT_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"];
 
 export const plotsFlow = {
   id: "plots",
@@ -226,11 +218,7 @@ export const plotsFlow = {
 
       options: ["Buy", "Rent", "Lease"],
 
-      invalidateOnChange: [
-        "total_price",
-        "price_per_unit",
-        "rent_amount",
-      ],
+      invalidateOnChange: ["total_price", "price_per_unit", "rent_amount"],
     },
 
     plot_size: {
@@ -253,8 +241,7 @@ export const plotsFlow = {
 
         askForVariants: true,
 
-        followupQuestion:
-          "Do you have additional plot sizes available for separate listings?",
+        followupQuestion: "Do you have additional plot sizes available for separate listings?",
       },
     },
 
@@ -311,12 +298,7 @@ export const plotsFlow = {
           "property_highlights",
         ],
 
-        editableFields: [
-          "plot_size",
-          "total_price",
-          "price_per_unit",
-          "rent_amount",
-        ],
+        editableFields: ["plot_size", "total_price", "price_per_unit", "rent_amount"],
       },
     },
 
@@ -331,16 +313,7 @@ export const plotsFlow = {
 
       question: "What is the plot facing?",
 
-      options: [
-        "East",
-        "West",
-        "North",
-        "South",
-        "North East",
-        "North West",
-        "South East",
-        "South West",
-      ],
+      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
     },
 
     plot_measurements: {
@@ -456,7 +429,7 @@ export const plotsFlow = {
         equals: "Buy",
       },
 
-      question: "What is the price per unit?",
+      question: "What is the price per unit in SqFt?",
 
       dynamicUnitSource: {
         from: ["plot_size"],
@@ -467,8 +440,7 @@ export const plotsFlow = {
 
         calculate: "price_per_unit",
 
-        formula:
-          "Number(total_price) / Number((plot_size?.value))",
+        formula: "Number(total_price) / Number((plot_size?.value))",
       },
     },
 
@@ -636,36 +608,36 @@ export const plotsFlow = {
     },
 
     location: {
-  section: "location",
+      section: "location",
 
-  priority: 21,
+      priority: 21,
 
-  type: "smart_location",
+      type: "smart_location",
 
-  renderMode: "widget",
+      renderMode: "widget",
 
-  widgetType: "smart_location",
+      widgetType: "smart_location",
 
-  widget: "SmartLocationWidget",
+      widget: "SmartLocationWidget",
 
-  required: true,
+      required: true,
 
-  question: "Let's add the plot location details.",
+      question: "Let's add the plot location details.",
 
-  groupedFields: [
-    "country",
-    "state_name",
-    "city",
-    "locality",
-    "sub_locality",
-    "landmark",
-    "address",
-    "pincode",
-    "google_maps_link",
-    "latitude",
-    "longitude",
-  ],
-},
+      groupedFields: [
+        "country",
+        "state_name",
+        "city",
+        "locality",
+        "sub_locality",
+        "landmark",
+        "address",
+        "pincode",
+        "google_maps_link",
+        "latitude",
+        "longitude",
+      ],
+    },
 
     property_highlights: {
       section: "finalization",
@@ -696,30 +668,30 @@ export const plotsFlow = {
     },
 
     property_description: {
-  section: "finalization",
+      section: "finalization",
 
-  priority: 999,
+      priority: 999,
 
-  type: "ai_generated_text",
+      type: "ai_generated_text",
 
-  required: false,
+      required: false,
 
-  aiGenerated: true,
+      aiGenerated: true,
 
-  hiddenFromConversation: true,
+      hiddenFromConversation: true,
 
-  autoGenerateFrom: [
-    "plot_type",
-    "plot_size",
-    "facing",
-    "road_width",
-    "approvals",
-    "amenities",
-    "location",
-    "price_per_unit",
-    "additional_features",
-  ],
-},
+      autoGenerateFrom: [
+        "plot_type",
+        "plot_size",
+        "facing",
+        "road_width",
+        "approvals",
+        "amenities",
+        "location",
+        "price_per_unit",
+        "additional_features",
+      ],
+    },
 
     assign_nearest_agent: {
       section: "finalization",
@@ -730,8 +702,7 @@ export const plotsFlow = {
 
       required: false,
 
-      question:
-        "Do you want to assign this property to the nearest agent? Agent commission may apply.",
+      question: "Do you want to assign this property to the nearest agent? Agent commission may apply.",
 
       options: ["Yes", "No"],
     },
@@ -828,4 +799,3 @@ export const plotsFlow = {
 };
 
 export default plotsFlow;
-
