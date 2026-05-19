@@ -1,7 +1,7 @@
 // ============================================================
 // COMMERCIAL CONVERSATIONAL FLOW CONFIG
-// 100% CLIENT-ALIGNED FINAL VERSION
-// MAGICBRICKS / 99ACRES STYLE AI LISTING ENGINE
+// FINAL 100% CLIENT-ALIGNED VERSION
+// TRUE AI STAGED CONVERSATION ENGINE
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -70,11 +70,11 @@ export const commercialFlow: PropertyFlowConfig = {
     // TRUE AI DECISION ENGINE
     // ========================================================
 
-    resolverStrategy: "ai_dynamic",
+    resolverStrategy: "ai_staged_dynamic",
 
     nextQuestionEngine: {
       enabled: true,
-      mode: "priority_based",
+      mode: "stage_priority_based",
       dependencyAware: true,
       contextAware: true,
       skipAware: true,
@@ -83,6 +83,7 @@ export const commercialFlow: PropertyFlowConfig = {
       listingTypeAware: true,
       conversationAware: true,
       adaptiveFollowups: true,
+      stageAware: true,
     },
 
     extractionEngine: {
@@ -123,19 +124,90 @@ export const commercialFlow: PropertyFlowConfig = {
   },
 
   // ============================================================
-  // DYNAMIC RESOLVER STRATEGY
+  // RESOLVER STRATEGY
   // ============================================================
 
-  // @ts-expect-error - strategy is custom meta consumed by resolver
   strategy: {
-    mode: "ai_dynamic",
+    mode: "ai_staged_dynamic",
     priorityBased: true,
     dependencyAware: true,
     commercialTypeAware: true,
     listingTypeAware: true,
     skipAware: true,
     conversationAware: true,
+    stageAware: true,
   },
+
+  // ============================================================
+  // CONVERSATION STAGES
+  // ============================================================
+
+  conversationStages: [
+    {
+      id: "basic_classification",
+
+      requiredCompletion: true,
+
+      fields: ["commercial_type", "listed_by", "listing_type", "property_condition", "location"],
+    },
+
+    {
+      id: "property_dimensions",
+
+      fields: ["land_size", "built_area", "carpet_area", "super_builtup_area", "floor_number", "total_floors"],
+    },
+
+    {
+      id: "pricing",
+
+      fields: [
+        "total_price",
+        "price_per_unit",
+        "monthly_rent",
+        "security_deposit",
+        "lease_duration",
+        "available_from",
+        "possession_date",
+      ],
+    },
+
+    {
+      id: "commercial_features",
+
+      fields: [
+        "cabins",
+        "meeting_rooms",
+        "workstations",
+        "truck_access",
+        "truck_parking",
+        "truck_capacity",
+        "loading_docks",
+        "parking_features",
+        "furnishing_status",
+        "furnishing_items",
+        "currently_operating_as",
+        "suitable_for",
+      ],
+    },
+
+    {
+      id: "amenities_visibility",
+
+      fields: ["amenities", "visibility_access", "approvals", "property_highlights"],
+    },
+
+    {
+      id: "media_ai",
+
+      fields: ["media_uploads", "commercial_description", "multiple_listing_variations"],
+    },
+
+    {
+      id: "finalization",
+
+      fields: ["assign_nearest_agent", "contact_name", "mobile_number"],
+    },
+  ],
 
   // ============================================================
   // GLOBAL SKIP OPTIONS
@@ -156,6 +228,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "single_select",
 
       required: true,
+
+      stage: "basic_classification",
 
       priority: 10,
 
@@ -201,6 +275,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      stage: "basic_classification",
+
       priority: 9,
 
       question: "Are you listing this property as the owner, agent, or builder?",
@@ -216,6 +292,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "single_select",
 
       required: true,
+
+      stage: "basic_classification",
 
       priority: 10,
 
@@ -244,6 +322,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      stage: "basic_classification",
+
       priority: 8,
 
       question: "What's the current condition of the property?",
@@ -254,17 +334,14 @@ export const commercialFlow: PropertyFlowConfig = {
       ],
 
       options: ["New", "Resale", "Ready to Occupy", "Under Construction"],
-
-      stateBehavior: {
-        invalidateDependentsOnChange: true,
-        recomputeFlowOnChange: true,
-      },
     },
 
     property_age: {
       type: "single_select",
 
       required: false,
+
+      stage: "basic_classification",
 
       priority: 7,
 
@@ -294,6 +371,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      stage: "basic_classification",
+
       priority: 10,
 
       renderMode: "widget",
@@ -310,7 +389,7 @@ export const commercialFlow: PropertyFlowConfig = {
         autoFillHierarchy: true,
       },
 
-      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
+      groupedFields: ["country", "state_name", "city", "area", "sub_locality", "landmark", "full_address", "pincode"],
 
       smartSuggestions: {
         enabled: true,
@@ -321,10 +400,16 @@ export const commercialFlow: PropertyFlowConfig = {
       },
     },
 
+    // =========================================================
+    // MAP
+    // =========================================================
+
     map_location: {
       type: "map_picker",
 
       required: false,
+
+      stage: "basic_classification",
 
       priority: 4,
 
@@ -337,6 +422,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "number",
 
       required: false,
+
+      stage: "basic_classification",
 
       visibleIf: {
         map_location: ["Selected"],
@@ -351,6 +438,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "number",
 
       required: false,
+
+      stage: "basic_classification",
 
       visibleIf: {
         map_location: ["Selected"],
@@ -367,6 +456,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     available_from: {
       type: "future_date",
+
+      stage: "pricing",
 
       renderAs: "calendar",
 
@@ -385,6 +476,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     possession_date: {
       type: "future_date",
+
+      stage: "pricing",
 
       renderAs: "calendar",
 
@@ -407,6 +500,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     land_size: {
       type: "measurement",
+
+      stage: "property_dimensions",
 
       requiredIf: {
         commercial_type: ["Commercial Land / Plot"],
@@ -437,6 +532,8 @@ export const commercialFlow: PropertyFlowConfig = {
     built_area: {
       type: "measurement",
 
+      stage: "property_dimensions",
+
       requiredIf: {
         commercial_type: {
           notIn: ["Commercial Land / Plot"],
@@ -461,43 +558,15 @@ export const commercialFlow: PropertyFlowConfig = {
 
       variantListing: {
         enabled: true,
-
         createSeparateListings: true,
-
         askForAnotherVariant: true,
-
-        cloneStrategy: {
-          preserveFields: [
-            "commercial_type",
-            "listing_type",
-            "listed_by",
-
-            "country",
-            "state_name",
-            "city",
-            "locality",
-            "sub_locality",
-            "landmark",
-            "address",
-            "pincode",
-
-            "property_condition",
-            "property_age",
-
-            "furnishing_status",
-
-            "amenities",
-
-            "visibility_access",
-
-            "approvals",
-          ],
-        },
       },
     },
 
     carpet_area: {
       type: "measurement",
+
+      stage: "property_dimensions",
 
       required: false,
 
@@ -518,6 +587,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     super_builtup_area: {
       type: "measurement",
+
+      stage: "property_dimensions",
 
       required: false,
 
@@ -543,6 +614,8 @@ export const commercialFlow: PropertyFlowConfig = {
     floor_number: {
       type: "number",
 
+      stage: "property_dimensions",
+
       required: false,
 
       priority: 6,
@@ -564,6 +637,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     total_floors: {
       type: "number",
+
+      stage: "property_dimensions",
 
       required: false,
 
@@ -589,6 +664,8 @@ export const commercialFlow: PropertyFlowConfig = {
     total_price: {
       type: "price",
 
+      stage: "pricing",
+
       requiredIf: {
         listing_type: ["Buy"],
       },
@@ -600,15 +677,12 @@ export const commercialFlow: PropertyFlowConfig = {
       },
 
       question: "What is the expected sale price?",
-
-      smartSuggestions: {
-        enabled: true,
-        type: "indian_price_format",
-      },
     },
 
     price_per_unit: {
       type: "price_per_unit",
+
+      stage: "pricing",
 
       required: false,
 
@@ -630,6 +704,8 @@ export const commercialFlow: PropertyFlowConfig = {
     monthly_rent: {
       type: "price",
 
+      stage: "pricing",
+
       requiredIf: {
         listing_type: ["Rent", "Lease"],
       },
@@ -646,6 +722,8 @@ export const commercialFlow: PropertyFlowConfig = {
     security_deposit: {
       type: "price",
 
+      stage: "pricing",
+
       required: false,
 
       priority: 5,
@@ -661,6 +739,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     lease_duration: {
       type: "single_select",
+
+      stage: "pricing",
 
       required: false,
 
@@ -684,6 +764,8 @@ export const commercialFlow: PropertyFlowConfig = {
     cabins: {
       type: "number",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 5,
@@ -700,6 +782,8 @@ export const commercialFlow: PropertyFlowConfig = {
     meeting_rooms: {
       type: "number",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 5,
@@ -715,6 +799,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     workstations: {
       type: "number",
+
+      stage: "commercial_features",
 
       required: false,
 
@@ -736,6 +822,8 @@ export const commercialFlow: PropertyFlowConfig = {
     truck_access: {
       type: "single_select",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 8,
@@ -751,6 +839,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     truck_parking: {
       type: "single_select",
+
+      stage: "commercial_features",
 
       required: false,
 
@@ -778,6 +868,8 @@ export const commercialFlow: PropertyFlowConfig = {
     truck_capacity: {
       type: "number",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 4,
@@ -795,6 +887,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     loading_docks: {
       type: "number",
+
+      stage: "commercial_features",
 
       required: false,
 
@@ -816,6 +910,8 @@ export const commercialFlow: PropertyFlowConfig = {
     parking_features: {
       type: "multi_select",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 5,
@@ -833,6 +929,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     furnishing_status: {
       type: "single_select",
+
+      stage: "commercial_features",
 
       required: false,
 
@@ -853,6 +951,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     furnishing_items: {
       type: "multi_select",
+
+      stage: "commercial_features",
 
       required: false,
 
@@ -888,6 +988,8 @@ export const commercialFlow: PropertyFlowConfig = {
     currently_operating_as: {
       type: "single_select",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 5,
@@ -906,6 +1008,8 @@ export const commercialFlow: PropertyFlowConfig = {
     suitable_for: {
       type: "multi_select",
 
+      stage: "commercial_features",
+
       required: false,
 
       priority: 5,
@@ -923,6 +1027,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     amenities: {
       type: "multi_select",
+
+      stage: "amenities_visibility",
 
       required: false,
 
@@ -950,6 +1056,8 @@ export const commercialFlow: PropertyFlowConfig = {
     visibility_access: {
       type: "multi_select",
 
+      stage: "amenities_visibility",
+
       required: false,
 
       priority: 7,
@@ -970,29 +1078,13 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // PAYMENT OPTIONS
-    // =========================================================
-
-    payment_options: {
-      type: "multi_select",
-
-      required: false,
-
-      priority: 3,
-
-      question: "Do you offer any special payment options or buyer support?",
-
-      options: ["EMI Available", "Flexible Payment Plan", "Zero Down Payment", "Investor Friendly", "NRI Assistance"],
-
-      allowSkip: true,
-    },
-
-    // =========================================================
     // APPROVALS
     // =========================================================
 
     approvals: {
       type: "multi_select",
+
+      stage: "amenities_visibility",
 
       required: false,
 
@@ -1012,6 +1104,8 @@ export const commercialFlow: PropertyFlowConfig = {
     property_highlights: {
       type: "multi_select",
 
+      stage: "amenities_visibility",
+
       required: false,
 
       priority: 3,
@@ -1026,11 +1120,39 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
+    // MEDIA
+    // =========================================================
+
+    media_uploads: {
+      type: "media_upload",
+
+      stage: "media_ai",
+
+      required: false,
+
+      priority: 6,
+
+      question: "You can upload photos, brochures, PDFs, or floor plans if you'd like.",
+
+      extraction: {
+        enabled: true,
+        autoExtractPropertyData: true,
+        autoDetectMissingFields: true,
+        continueFromExtractedState: true,
+        confidenceBasedAutoFill: true,
+      },
+    },
+
+    // =========================================================
     // AI DESCRIPTION
     // =========================================================
 
     commercial_description: {
       type: "ai_generated_text",
+
+      stage: "media_ai",
+
+      requiresMinimumCompletion: 70,
 
       required: false,
 
@@ -1065,6 +1187,8 @@ export const commercialFlow: PropertyFlowConfig = {
     multiple_listing_variations: {
       type: "single_select",
 
+      stage: "media_ai",
+
       required: false,
 
       priority: 2,
@@ -1075,33 +1199,13 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // MEDIA
-    // =========================================================
-
-    media_uploads: {
-      type: "media_upload",
-
-      required: false,
-
-      priority: 6,
-
-      question: "You can upload photos, brochures, PDFs, or floor plans if you'd like.",
-
-      extraction: {
-        enabled: true,
-        autoExtractPropertyData: true,
-        autoDetectMissingFields: true,
-        continueFromExtractedState: true,
-        confidenceBasedAutoFill: true,
-      },
-    },
-
-    // =========================================================
     // AGENT ASSIGNMENT
     // =========================================================
 
     assign_nearest_agent: {
       type: "single_select",
+
+      stage: "finalization",
 
       required: false,
 
@@ -1119,6 +1223,8 @@ export const commercialFlow: PropertyFlowConfig = {
     contact_name: {
       type: "text",
 
+      stage: "finalization",
+
       required: false,
 
       priority: 4,
@@ -1130,6 +1236,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
     mobile_number: {
       type: "phone",
+
+      stage: "finalization",
 
       required: true,
 
@@ -1146,6 +1254,10 @@ export const commercialFlow: PropertyFlowConfig = {
   rules: [
     {
       type: "dynamic_resolver_engine",
+    },
+
+    {
+      type: "staged_conversation_engine",
     },
 
     {
