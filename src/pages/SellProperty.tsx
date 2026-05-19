@@ -33,6 +33,7 @@ import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES }
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
