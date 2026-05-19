@@ -402,7 +402,7 @@ export const commercialFlow: PropertyFlowConfig = {
         in: BUILT_AREA_TYPES,
       },
 
-      question: "Do you want to add multiple area variants?",
+      question: "Do you have more commercial area sizes available?",
 
       options: ["Yes", "No"],
     },
