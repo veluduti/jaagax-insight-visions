@@ -149,8 +149,6 @@ export const commercialFlow: PropertyFlowConfig = {
 
     autoGenerateSEO: true,
 
-    supportProgressiveLocationConversation: true,
-
     supportVariantDetection: true,
 
     supportContextualCommercialQuestions: true,
@@ -997,9 +995,6 @@ export const commercialFlow: PropertyFlowConfig = {
     },
     {
       type: "contextual_commercial_flow",
-    },
-    {
-      type: "progressive_location_flow",
     },
     {
       type: "commercial_property_dependency_flow",
