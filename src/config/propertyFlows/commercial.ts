@@ -1,6 +1,3 @@
-# Updated Commercial Flow (Client Excel Aligned)
-
-```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const COMMERCIAL_TYPES = [
@@ -1024,4 +1021,3 @@ export const commercialFlow: PropertyFlowConfig = {
 };
 
 export default commercialFlow;
-```
