@@ -1,887 +1,602 @@
-// ============================================================
-// Plots / Land conversational flow config
-// FULL CLIENT-ALIGNED ADVANCED VERSION
-// ============================================================
-
+```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
+const PLOT_TYPES = [
+  "Residential Plot",
+  "Villa Plot",
+  "Farm Plot",
+  "Commercial Plot",
+  "Industrial Plot",
+  "Layout Plot",
+  "Corner Plot",
+  "Open Land",
+  "Lake View Plot",
+  "Highway Facing Plot",
+];
+
+const PLOT_UNITS = [
+  "Sq Ft",
+  "Sq Yard",
+  "Cent",
+  "Gunta",
+  "Acre",
+  "Bigha",
+];
+
 export const plotsFlow: PropertyFlowConfig = {
-  category: "plots",
+  id: "plots",
 
-  label: "Plots / Land",
+  category: "plots_land",
 
-  // ============================================================
-  // AI ENGINE
-  // ============================================================
+  label: "Plots & Land",
 
-  ai: {
-    conversational: true,
-    dynamicQuestioning: true,
-    askOneQuestionAtATime: true,
-    askOnlyMissingFields: true,
-    allowNaturalConversation: true,
-    supportGreetings: true,
-    supportCorrections: true,
-    supportTypos: true,
-    supportIntentDetection: true,
-    supportExtractionFromUploads: true,
-    supportAutoFill: true,
-    supportSmartSuggestions: true,
-    supportHumanLikeReplies: true,
-    supportContextAwareness: true,
-    supportDynamicFollowups: true,
-    persistSkippedFields: true,
+  version: "v2-client-aligned-plots",
+
+  engine: {
+    mode: "dynamic_conversation",
+
+    strictVisibilityResolution: true,
+
+    dynamicQuestionResolver: true,
+
+    reevaluateOnEveryAnswer: true,
+
+    skipHiddenQuestions: true,
+
+    clearHiddenFieldValues: true,
+
     preventDuplicateQuestions: true,
-    maintainConversationState: true,
-    realtimeSuggestions: true,
-    autoNormalizePricingUnits: true,
-    supportQuickReplyChips: true,
-    supportSearchableDropdowns: true,
 
-    // ========================================================
-    // ADVANCED CLIENT AI FEATURES
-    // ========================================================
+    removeIrrelevantQuestions: true,
 
-    supportAnswerRevision: true,
-    autoInvalidateDependentFields: true,
-    recalculateFlowOnCorrection: true,
-    supportSkipReasoning: true,
-    supportNotApplicableState: true,
-    supportDependencyPropagation: true,
-    supportDynamicValidation: true,
-    supportVariantListings: true,
-    supportAutoDescriptionGeneration: true,
-    supportDerivedRecommendations: true,
-    supportStateRecovery: true,
-    supportConversationMemory: true,
-    supportConditionalRequirements: true,
-    supportContextualAmenities: true,
-    supportDynamicPricingComputation: true,
-    supportDependentQuestionSuppression: true,
-    supportMultiVariantPricing: true,
-    supportRegionalMeasurementUnderstanding: true,
-    supportLandSuitabilityInference: true,
-    supportLegalIntelligence: true,
-    supportAgriculturalLogic: true,
-    supportRoadConnectivityLogic: true,
+    conversationMemory: true,
+
+    smartConditionalFlow: true,
+
+    supportContextualQuestions: true,
+
+    supportAIExtraction: true,
+
+    supportNaturalCorrections: true,
+
+    supportConversationalAI: true,
+
+    autoRevalidateDependencies: true,
+
+    dynamicSectionActivation: true,
+
+    clonePropertySupport: true,
+
+    multiVariantSupport: true,
+
+    preserveParentDataDuringClone: true,
+
+    AIBasedNextQuestionSelection: true,
+
+    progressiveConversationMode: true,
+
+    intelligentDependencyRouting: true,
+
+    contextualSkipLogic: true,
+
+    askOnlyContextualQuestions: true,
+
+    propertyTypeAwareQuestions: true,
+
+    dynamicFlowReordering: true,
   },
 
-  // ============================================================
-  // QUESTION ORDER
-  // ============================================================
+  ai: {
+    enabled: true,
 
-  order: [
-    "plot_type",
-    "listed_by",
-    "listing_type",
+    askOneQuestionAtATime: true,
 
-    "total_price",
-    "unit_type",
-    "price_per_unit",
+    askOnlyRelevantQuestions: true,
 
-    "monthly_rent",
-    "lease_duration",
-    "available_from",
+    askOnlyMissingFields: true,
 
-    "plot_size",
-    "plot_dimensions",
+    supportGreetings: true,
 
-    "road_width",
-    "road_type",
-    "approach_road",
-    "highway_access",
+    supportNaturalLanguage: true,
 
-    "corner_plot",
-    "open_sides",
+    supportCorrections: true,
 
-    "plot_facing",
+    supportSkipIntent: true,
 
-    "boundary_wall",
-    "fencing_type",
+    supportIntentDetection: true,
 
-    "gated_layout",
+    supportContextAwareness: true,
 
-    "layout_name",
-    "layout_type",
-    "total_layout_area",
-    "total_plots",
+    supportConversationalMemory: true,
 
-    "approvals",
+    supportDocumentExtraction: true,
 
-    "legal_status",
-    "clear_title",
-    "registration_ready",
-    "encumbrance_status",
-    "land_conversion_status",
+    supportImageExtraction: true,
 
-    "plot_amenities",
+    supportAutoFill: true,
 
-    "water_availability",
-    "electricity_availability",
-    "drainage_availability",
+    supportDynamicFollowups: true,
 
-    // Agricultural
-    "irrigation_type",
-    "water_source",
-    "soil_type",
-    "crop_type",
-    "borewell_count",
-    "tractor_road_access",
+    supportPriceCalculation: true,
 
-    "payment_options",
+    supportSmartSuggestions: true,
 
-    "location",
+    supportHumanReplies: true,
 
-    "map_location",
-    "latitude",
-    "longitude",
+    autoGenerateDescription: true,
 
-    "property_highlights",
+    autoGenerateTitle: true,
 
-    "plot_description",
+    autoGenerateSEO: true,
 
-    "multiple_plot_variations",
+    supportProgressiveLocationConversation: true,
 
-    "media_uploads",
+    supportVariantDetection: true,
 
-    "contact_name",
-    "mobile_number",
-  ],
+    supportOptionalSectionSkipping: true,
+  },
 
-  // ============================================================
-  // FIELDS
-  // ============================================================
-
-  fields: {
-    // =========================================================
-    // PLOT TYPE
-    // =========================================================
-
-    plot_type: {
-      type: "single_select",
-
-      required: true,
-
-      question: "What type of plot or land are you listing?",
-
-      options: [
-        "Residential Plot",
-        "Villa Plot",
-        "Farm Land",
-        "Commercial Plot",
-        "Industrial Plot",
-        "Layout Plot",
-        "Corner Plot",
-        "Open Land",
-        "Lake View Plot",
-        "Highway Facing Plot",
-      ],
-
-      stateBehavior: {
-        invalidateDependentsOnChange: true,
-        recomputeFlowOnChange: true,
-      },
+  sections: [
+    {
+      id: "basic_information",
+      label: "Basic Information",
+      priority: 1,
     },
 
-    // =========================================================
-    // LISTED BY
-    // =========================================================
+    {
+      id: "plot_configuration",
+      label: "Plot Configuration",
+      priority: 2,
+    },
 
-    listed_by: {
+    {
+      id: "pricing",
+      label: "Pricing",
+      priority: 3,
+    },
+
+    {
+      id: "community",
+      label: "Community Details",
+      priority: 4,
+    },
+
+    {
+      id: "features",
+      label: "Features & Amenities",
+      priority: 5,
+    },
+
+    {
+      id: "legal",
+      label: "Legal & Approvals",
+      priority: 6,
+    },
+
+    {
+      id: "location",
+      label: "Location",
+      priority: 7,
+    },
+
+    {
+      id: "finalization",
+      label: "Finalization",
+      priority: 8,
+    },
+  ],
+
+  fields: {
+    plot_type: {
+      section: "basic_information",
+
+      priority: 1,
+
       type: "single_select",
 
       required: true,
 
-      question: "Who are you listing this property as?",
+      question: "What type of land are you listing?",
+
+      options: PLOT_TYPES,
+    },
+
+    listed_by: {
+      section: "basic_information",
+
+      priority: 2,
+
+      type: "single_select",
+
+      required: true,
+
+      question: "Who is listing this property?",
 
       options: ["Owner", "Agent", "Builder"],
     },
 
-    // =========================================================
-    // LISTING TYPE
-    // =========================================================
-
     listing_type: {
+      section: "basic_information",
+
+      priority: 3,
+
       type: "single_select",
 
       required: true,
 
-      question: "What type of listing is this?",
+      question: "Is this property for Buy, Rent or Lease?",
 
       options: ["Buy", "Rent", "Lease"],
 
-      stateBehavior: {
-        invalidateDependentsOnChange: true,
-        recomputeFlowOnChange: true,
-      },
+      invalidateOnChange: [
+        "total_price",
+        "price_per_unit",
+        "rent_amount",
+      ],
     },
 
-    // =========================================================
-    // TOTAL PRICE
-    // =========================================================
+    plot_size: {
+      section: "plot_configuration",
 
-    total_price: {
-      type: "price",
+      priority: 4,
+
+      type: "measurement",
 
       required: true,
 
+      requiredIfVisible: true,
+
+      question: "What is the plot size?",
+
+      units: PLOT_UNITS,
+
+      aiFollowup: {
+        triggerAfterAnswer: true,
+
+        askForVariants: true,
+
+        followupQuestion:
+          "Do you have additional plot sizes available for separate listings?",
+      },
+    },
+
+    add_multiple_plot_sizes: {
+      section: "plot_configuration",
+
+      priority: 5,
+
+      type: "single_select",
+
+      required: false,
+
+      question: "Do you want to add multiple plot sizes?",
+
+      options: ["Yes", "No"],
+    },
+
+    plot_variants: {
+      section: "plot_configuration",
+
+      priority: 6,
+
+      type: "multi_variant_group",
+
+      required: false,
+
       visibleIf: {
-        listing_type: ["Buy"],
+        field: "add_multiple_plot_sizes",
+        equals: "Yes",
+      },
+
+      question: "Add all available plot size variants.",
+
+      cloneStrategy: {
+        enabled: true,
+
+        preserveFields: [
+          "plot_type",
+          "listed_by",
+          "listing_type",
+          "facing",
+          "road_width",
+          "additional_features",
+          "amenities",
+          "approvals",
+          "country",
+          "state_name",
+          "city",
+          "locality",
+          "sub_locality",
+          "landmark",
+          "address",
+          "pincode",
+          "property_highlights",
+        ],
+
+        editableFields: [
+          "plot_size",
+          "total_price",
+          "price_per_unit",
+          "rent_amount",
+        ],
+      },
+    },
+
+    facing: {
+      section: "plot_configuration",
+
+      priority: 7,
+
+      type: "single_select",
+
+      required: false,
+
+      question: "What is the plot facing?",
+
+      options: [
+        "East",
+        "West",
+        "North",
+        "South",
+        "North East",
+        "North West",
+        "South East",
+        "South West",
+      ],
+    },
+
+    plot_measurements: {
+      section: "plot_configuration",
+
+      priority: 8,
+
+      type: "group_measurement",
+
+      required: false,
+
+      question: "Please provide plot side measurements.",
+
+      fields: [
+        {
+          id: "east_measurement",
+          label: "East",
+          unit: "Ft",
+        },
+        {
+          id: "west_measurement",
+          label: "West",
+          unit: "Ft",
+        },
+        {
+          id: "north_measurement",
+          label: "North",
+          unit: "Ft",
+        },
+        {
+          id: "south_measurement",
+          label: "South",
+          unit: "Ft",
+        },
+      ],
+    },
+
+    road_width: {
+      section: "plot_configuration",
+
+      priority: 9,
+
+      type: "measurement",
+
+      required: false,
+
+      question: "What is the road width?",
+
+      units: ["Ft"],
+    },
+
+    additional_features: {
+      section: "plot_configuration",
+
+      priority: 10,
+
+      type: "multi_select",
+
+      required: false,
+
+      allowSkipGroup: true,
+
+      question: "Which additional plot features are available?",
+
+      options: [
+        "Corner Plot",
+        "Boundary Wall",
+        "Fencing",
+        "Water Connection",
+        "Electricity Available",
+        "Bore Available",
+        "Cement Road",
+        "BT Road",
+        "Gravel Road",
+        "Mud Road",
+      ],
+    },
+
+    total_price: {
+      section: "pricing",
+
+      priority: 11,
+
+      type: "price",
+
+      required: false,
+
+      visibleIf: {
+        field: "listing_type",
+        equals: "Buy",
       },
 
       question: "What is the total plot price?",
 
-      autoCalculation: {
-        enabled: true,
-
-        formula: "plot_size * price_per_unit",
-
-        realtime: true,
-
-        normalizeRegionalUnits: true,
-
-        allowManualOverride: true,
-      },
-
       smartSuggestions: {
         enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        type: "indian_price_format",
+
+        examples: ["25 Lakhs", "50 Lakhs", "1 Crore", "2.5 Crore"],
       },
     },
-
-    // =========================================================
-    // UNIT TYPE
-    // =========================================================
-
-    unit_type: {
-      type: "measurement_unit",
-
-      required: true,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "Select pricing unit.",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-
-        type: "dynamic_measurement_units",
-
-        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
-      },
-    },
-
-    // =========================================================
-    // PRICE PER UNIT
-    // =========================================================
 
     price_per_unit: {
+      section: "pricing",
+
+      priority: 12,
+
       type: "price_per_unit",
 
       required: false,
 
       visibleIf: {
-        listing_type: ["Buy"],
+        field: "listing_type",
+        equals: "Buy",
       },
 
       question: "What is the price per unit?",
 
-      smartSuggestions: {
+      dynamicUnitSource: {
+        from: ["plot_size"],
+      },
+
+      autoCalculation: {
         enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
 
-        type: "dynamic_price_per_unit",
+        calculate: "price_per_unit",
 
-        units: ["Sqft", "Sqyd", "Sqm", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
+        formula:
+          "Number(total_price) / Number((plot_size?.value))",
       },
     },
 
-    // =========================================================
-    // RENT / LEASE
-    // =========================================================
+    rent_amount: {
+      section: "pricing",
 
-    monthly_rent: {
+      priority: 13,
+
       type: "rental_price",
 
-      required: true,
-
-      visibleIf: {
-        listing_type: ["Rent", "Lease"],
-      },
-
-      question: "What is the rent or lease amount?",
-    },
-
-    lease_duration: {
-      type: "single_select",
-
       required: false,
 
       visibleIf: {
-        listing_type: ["Lease"],
+        field: "listing_type",
+        in: ["Rent", "Lease"],
       },
 
-      question: "What is the lease duration?",
-
-      options: ["6 Months", "1 Year", "2 Years", "3 Years", "5 Years", "10 Years"],
+      question: "What is the monthly rental or lease amount?",
     },
 
-    available_from: {
-      type: "future_date",
+    project_name: {
+      section: "community",
 
-      required: true,
+      priority: 14,
 
-      visibleIf: {
-        listing_type: ["Rent", "Lease"],
-      },
-
-      question: "When will the land be available?",
-    },
-
-    // =========================================================
-    // PLOT SIZE
-    // =========================================================
-
-    plot_size: {
-      type: "measurement",
-
-      required: true,
-
-      question: "What is the plot size?",
-
-      units: ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha", "Hectare", "Katha"],
-
-      allowMultipleVariants: true,
-
-      variantListing: {
-        enabled: true,
-        createSeparateListings: true,
-
-        linkedFields: ["plot_size", "price_per_unit", "total_price"],
-      },
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-
-        type: "dynamic_measurement_units",
-
-        autoUnitConversion: true,
-      },
-    },
-
-    plot_dimensions: {
       type: "text",
 
       required: false,
 
-      question: "What are the plot dimensions? Example: 40 x 60",
-
-      allowSkip: true,
+      question: "What is the community or project name?",
     },
 
-    // =========================================================
-    // ROAD LOGIC
-    // =========================================================
+    gated_community: {
+      section: "community",
 
-    road_width: {
-      type: "measurement",
+      priority: 15,
 
-      required: false,
-
-      question: "What is the road width facing the plot?",
-
-      units: ["Feet", "Meters"],
-
-      allowSkip: true,
-
-      validation: {
-        min: 1,
-      },
-    },
-
-    road_type: {
       type: "single_select",
 
       required: false,
 
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land", "Open Land"],
-        },
-      },
-
-      question: "What type of road access is available?",
-
-      options: ["Black Top Road", "Cement Road", "Gravel Road", "Mud Road", "Internal Layout Road", "Highway Access"],
-    },
-
-    approach_road: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land"],
-        },
-      },
-
-      question: "Is there proper approach road connectivity?",
-
-      options: ["Yes", "No", "Partially"],
-    },
-
-    highway_access: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Commercial Plot", "Industrial Plot", "Highway Facing Plot"],
-      },
-
-      question: "Does the property have highway access?",
-
-      options: ["Direct Access", "Nearby", "No"],
-    },
-
-    // =========================================================
-    // PLOT FEATURES
-    // =========================================================
-
-    corner_plot: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Is this a corner plot?",
+      question: "Is this plot inside a gated community?",
 
       options: ["Yes", "No"],
-    },
-
-    open_sides: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land", "Open Land"],
-        },
-      },
-
-      question: "How many sides are open?",
-
-      options: ["1 Side", "2 Sides", "3 Sides", "4 Sides"],
-    },
-
-    plot_facing: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land", "Open Land"],
-        },
-      },
-
-      question: "What is the plot facing?",
-
-      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
-    },
-
-    // =========================================================
-    // BOUNDARY
-    // =========================================================
-
-    boundary_wall: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Does the plot have a boundary wall?",
-
-      options: ["Yes", "No", "Partial"],
-    },
-
-    fencing_type: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land", "Open Land"],
-      },
-
-      question: "What type of fencing is available?",
-
-      options: ["Wire Fencing", "Stone Fencing", "Compound Wall", "Partial Fencing", "No Fencing"],
-    },
-
-    // =========================================================
-    // GATED LAYOUT
-    // =========================================================
-
-    gated_layout: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land", "Open Land"],
-        },
-      },
-
-      question: "Is the plot inside a gated layout/community?",
-
-      options: ["Yes", "No"],
-
-      stateBehavior: {
-        invalidateDependentsOnChange: true,
-      },
-    },
-
-    // =========================================================
-    // LAYOUT DETAILS
-    // =========================================================
-
-    layout_name: {
-      type: "text",
-
-      required: false,
-
-      visibleIf: {
-        gated_layout: ["Yes"],
-      },
-
-      dependsOnAnswered: ["gated_layout"],
-
-      question: "What is the layout or project name?",
-
-      allowSkip: true,
-    },
-
-    layout_type: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        gated_layout: ["Yes"],
-      },
-
-      dependsOnAnswered: ["gated_layout"],
-
-      question: "What type of layout is it?",
-
-      options: ["Open Layout", "Gated Layout", "Premium Layout", "Villa Layout"],
-    },
-
-    total_layout_area: {
-      type: "measurement",
-
-      required: false,
-
-      visibleIf: {
-        gated_layout: ["Yes"],
-      },
-
-      dependsOnAnswered: ["gated_layout"],
-
-      question: "What is the total layout area?",
-
-      units: ["Acres", "Sq Yard", "Sq Ft"],
-
-      allowSkip: true,
     },
 
     total_plots: {
+      section: "community",
+
+      priority: 16,
+
       type: "number",
 
       required: false,
 
       visibleIf: {
-        gated_layout: ["Yes"],
+        field: "gated_community",
+        equals: "Yes",
       },
 
-      dependsOnAnswered: ["gated_layout"],
-
-      question: "How many plots are there in the layout?",
-
-      allowSkip: true,
+      question: "How many total plots are there in the project?",
     },
 
-    // =========================================================
-    // APPROVALS
-    // =========================================================
+    total_project_area: {
+      section: "community",
 
-    approvals: {
-      type: "multi_select",
+      priority: 17,
+
+      type: "measurement",
 
       required: false,
 
       visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land", "Open Land"],
-        },
+        field: "gated_community",
+        equals: "Yes",
       },
 
-      question: "What approvals does this property have?",
+      question: "What is the total project land area?",
+
+      units: PLOT_UNITS,
+    },
+
+    amenities: {
+      section: "features",
+
+      priority: 18,
+
+      type: "multi_select",
+
+      required: false,
+
+      allowSkipGroup: true,
+
+      question: "Which amenities are available?",
 
       options: [
-        "RERA Approved",
-        "HMDA Approved",
-        "DTCP Approved",
-        "CRDA Approved",
-        "Municipal Approved",
-        "Panchayat Approved",
-        "LP Number Available",
-        "Approved Layout",
+        "Gated Community",
+        "Underground Drainage",
+        "Street Lights",
+        "Water Connection",
+        "Electricity",
+        "Avenue Plantation",
+        "Black Top Roads",
+        "Compound Wall",
+        "Security",
+        "Park",
+        "Club House",
+        "Parking",
+        "Swimming Pool",
+        "Gym",
+        "Power Backup",
+        "Children Play Area",
+        "Garden",
       ],
     },
 
-    // =========================================================
-    // LEGAL
-    // =========================================================
-
-    legal_status: {
-      type: "single_select",
-
-      required: false,
-
-      question: "What is the legal status of the land?",
-
-      options: ["Clear Title", "Dispute Free", "Under Verification", "Pending Clearance"],
-    },
-
-    clear_title: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Does the property have clear title?",
-
-      options: ["Yes", "No"],
-    },
-
-    registration_ready: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Is the property ready for registration?",
-
-      options: ["Yes", "No"],
-    },
-
-    encumbrance_status: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Encumbrance status?",
-
-      options: ["No Encumbrance", "Encumbrance Available", "Pending Verification"],
-    },
-
-    land_conversion_status: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land"],
-        },
-      },
-
-      question: "Land conversion status?",
-
-      options: ["Converted", "Non Converted", "Conversion In Progress"],
-    },
-
-    // =========================================================
-    // AMENITIES
-    // =========================================================
-
-    plot_amenities: {
-      type: "multi_select",
-
-      required: false,
-
-      question: "What amenities are available?",
-
-      dynamicOptionsByPlotType: {
-        "Residential Plot": [
-          "Underground Electricity",
-          "Street Lights",
-          "Drainage",
-          "Water Connection",
-          "Black Top Roads",
-          "Security",
-          "Parks",
-          "Club House",
-        ],
-
-        "Commercial Plot": ["Highway Access", "Wide Roads", "Street Lights", "Drainage", "Water Connection"],
-
-        "Farm Land": ["Borewell", "Canal Water", "Electricity", "Drip Irrigation", "Farm Shed"],
-      },
-    },
-
-    // =========================================================
-    // UTILITIES
-    // =========================================================
-
-    water_availability: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Water availability status?",
-
-      options: ["Available", "Bore Available", "Canal Water", "Not Available"],
-    },
-
-    electricity_availability: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Electricity availability status?",
-
-      options: ["Available", "Nearby", "Not Available"],
-    },
-
-    drainage_availability: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: {
-          notIn: ["Farm Land"],
-        },
-      },
-
-      question: "Drainage availability status?",
-
-      options: ["Available", "Planned", "Not Available"],
-    },
-
-    // =========================================================
-    // AGRICULTURAL LOGIC
-    // =========================================================
-
-    irrigation_type: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "What type of irrigation is available?",
-
-      options: ["Drip Irrigation", "Sprinkler", "Canal Irrigation", "Rain Fed", "Manual"],
-    },
-
-    water_source: {
-      type: "multi_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "What are the water sources?",
-
-      options: ["Borewell", "Canal", "Lake", "River", "Rain Water", "Water Tanker"],
-    },
-
-    soil_type: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "What type of soil is available?",
-
-      options: ["Red Soil", "Black Soil", "Sandy Soil", "Clay Soil", "Mixed Soil"],
-    },
-
-    crop_type: {
-      type: "multi_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "What crops are suitable or currently cultivated?",
-
-      options: ["Paddy", "Cotton", "Mango", "Coconut", "Banana", "Vegetables", "Sugarcane", "Maize"],
-    },
-
-    borewell_count: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "How many borewells are available?",
-
-      validation: {
-        min: 0,
-      },
-    },
-
-    tractor_road_access: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        plot_type: ["Farm Land"],
-      },
-
-      question: "Is tractor road access available?",
-
-      options: ["Yes", "No"],
-    },
-
-    // =========================================================
-    // PAYMENT OPTIONS
-    // =========================================================
-
     payment_options: {
+      section: "legal",
+
+      priority: 19,
+
       type: "multi_select",
 
       required: false,
+
+      allowSkipGroup: true,
 
       question: "What payment options are available?",
 
@@ -897,331 +612,225 @@ export const plotsFlow: PropertyFlowConfig = {
       ],
     },
 
-    // =========================================================
-    // LOCATION
-    // =========================================================
+    approvals: {
+      section: "legal",
+
+      priority: 20,
+
+      type: "multi_select",
+
+      required: false,
+
+      allowSkipGroup: true,
+
+      question: "What approvals does this property have?",
+
+      options: [
+        "RERA Approved",
+        "HMDA Approved",
+        "DTCP Approved",
+        "CRDA Approved",
+        "Municipal Approved",
+        "Panchayat Approved",
+        "LP Number Available",
+        "Approved Layout",
+      ],
+    },
 
     location: {
-      type: "location",
+      section: "location",
 
-      renderMode: "widget",
+      priority: 21,
+
+      type: "smart_location",
+
+      renderMode: "progressive_conversation",
+
       widget: "SmartLocationWidget",
-      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
 
       required: true,
 
-      question: "Please provide location details.",
+      question: "Let's add the plot location details.",
 
-      hierarchy: [
-        "Country",
-        "State",
-        "City",
-        "Area / Locality",
-        "Sub Locality",
-        "Landmark",
-        "Full Address",
-        "ZIP / PIN Code",
+      groupedFields: [
+        "country",
+        "state_name",
+        "city",
+        "locality",
+        "sub_locality",
+        "landmark",
+        "address",
+        "pincode",
+        "google_maps_link",
+        "latitude",
+        "longitude",
       ],
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        typoFriendly: true,
-        gpsSupport: true,
-        mapSelection: true,
-        pincodeAutoFill: true,
-        dependentHierarchy: true,
-        currentLocation: true,
-      },
     },
-
-    // =========================================================
-    // MAP
-    // =========================================================
-
-    map_location: {
-      type: "map_picker",
-
-      required: false,
-
-      question: "Would you like to pin the plot location on map?",
-
-      allowSkip: true,
-    },
-
-    latitude: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        map_location: ["Selected"],
-      },
-
-      question: "Latitude",
-    },
-
-    longitude: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        map_location: ["Selected"],
-      },
-
-      question: "Longitude",
-    },
-
-    // =========================================================
-    // HIGHLIGHTS
-    // =========================================================
 
     property_highlights: {
+      section: "finalization",
+
+      priority: 22,
+
       type: "multi_select",
 
       required: false,
 
       maxSelections: 3,
 
-      question: "Select property highlights or ribbons.",
-
-      autoRecommendations: {
-        enabled: true,
-
-        rules: [
-          {
-            when: {
-              corner_plot: ["Yes"],
-            },
-
-            suggest: ["Corner Plot"],
-          },
-
-          {
-            when: {
-              gated_layout: ["Yes"],
-            },
-
-            suggest: ["Premium Listing"],
-          },
-
-          {
-            when: {
-              highway_access: ["Direct Access"],
-            },
-
-            suggest: ["Near Highway"],
-          },
-        ],
-      },
+      question: "Select up to 3 property highlights.",
 
       options: [
         "Verified Property",
-        "Verified Owner",
         "RERA Approved",
-        "Price Drop",
-        "Best Deal",
-        "Hot Property",
-        "Premium Listing",
+        "High ROI",
+        "Corner Property",
+        "Investment Hotspot",
+        "Future Growth Area",
+        "Near Metro",
         "Gated Community",
-        "Corner Plot",
+        "Prime Location",
         "Lake View",
-        "Near Highway",
-        "Investment Opportunity",
-        "Ready Registration",
-        "Fast Growing Area",
+        "Highway Facing",
       ],
     },
 
-    // =========================================================
-    // AI DESCRIPTION
-    // =========================================================
+    property_description: {
+      section: "finalization",
 
-    plot_description: {
-      type: "ai_generated_text",
+      priority: 23,
+
+      type: "textarea",
 
       required: false,
 
-      question: "AI will generate smart plot description.",
+      aiGenerated: true,
 
-      generation: {
-        enabled: true,
-        autoGenerate: true,
-        regenerateOnFieldChange: true,
+      hiddenFromConversation: true,
 
-        useFields: [
-          "plot_type",
-          "plot_size",
-          "road_width",
-          "road_type",
-          "approvals",
-          "plot_amenities",
-          "location",
-          "total_price",
-        ],
-      },
+      autoGenerateFrom: [
+        "plot_type",
+        "plot_size",
+        "facing",
+        "road_width",
+        "approvals",
+        "amenities",
+        "location",
+        "price_per_unit",
+        "additional_features",
+      ],
+
+      question: "Property description will be AI generated.",
     },
 
-    // =========================================================
-    // MULTIPLE VARIATIONS
-    // =========================================================
+    assign_nearest_agent: {
+      section: "finalization",
 
-    multiple_plot_variations: {
+      priority: 24,
+
       type: "single_select",
 
       required: false,
 
-      question: "Would you like to create another listing variation for different plot sizes?",
+      question:
+        "Do you want to assign this property to the nearest agent? Agent commission may apply.",
 
       options: ["Yes", "No"],
     },
-
-    // =========================================================
-    // MEDIA
-    // =========================================================
-
-    media_uploads: {
-      type: "media_upload",
-
-      required: false,
-
-      question: "Upload plot images, brochures, PDFs or documents.",
-
-      extraction: {
-        enabled: true,
-        autoExtractPropertyData: true,
-        autoDetectMissingFields: true,
-        continueFromExtractedState: true,
-      },
-    },
-
-    // =========================================================
-    // CONTACT
-    // =========================================================
-
-    contact_name: {
-      type: "text",
-
-      required: false,
-
-      question: "Could I have your full name for the listing?",
-
-      allowSkip: true,
-    },
-
-    mobile_number: {
-      type: "phone",
-
-      required: true,
-
-      question: "Please share your 10-digit mobile number.",
-    },
   },
 
-  // ============================================================
-  // RULE ENGINE
-  // ============================================================
+  autoGeneration: {
+    enabled: true,
+
+    generateTitle: true,
+
+    generateDescription: true,
+
+    generateSEODescription: true,
+
+    generateHighlights: true,
+
+    generateTags: true,
+
+    generatePropertySummary: true,
+
+    triggerAfterFlowCompletion: true,
+  },
+
+  uploadSupport: {
+    enabled: true,
+
+    allowImages: true,
+
+    allowPDFs: true,
+
+    allowBrochures: true,
+
+    autoExtractPropertyData: true,
+
+    autoDetectPricing: true,
+
+    autoDetectLocation: true,
+
+    autoDetectAmenities: true,
+
+    askOnlyMissingFieldsAfterExtraction: true,
+  },
+
+  submitFlow: {
+    enabled: true,
+
+    showPreviewBeforeSubmit: true,
+
+    autoGenerateFinalSummary: true,
+
+    showAIQualityScore: true,
+
+    verifyRequiredFields: true,
+  },
 
   rules: [
     {
-      type: "dynamic_price_computation",
+      type: "dynamic_next_question",
     },
-
     {
-      type: "normalize_pricing_units",
+      type: "skip_hidden_questions",
     },
-
     {
-      type: "ask_only_missing_fields",
+      type: "clear_hidden_values",
     },
-
-    {
-      type: "skip_hidden_fields",
-    },
-
-    {
-      type: "persist_skipped_fields",
-    },
-
     {
       type: "prevent_duplicate_questions",
     },
-
     {
       type: "dynamic_followup_questions",
     },
-
     {
-      type: "human_like_conversation",
+      type: "recalculate_visibility_after_each_answer",
     },
-
     {
-      type: "realtime_suggestions",
+      type: "ask_only_relevant_questions",
     },
-
     {
-      type: "multiple_listing_variations",
+      type: "smart_skip_logic",
     },
-
     {
-      type: "dependency_propagation",
+      type: "price_auto_calculation",
     },
-
     {
-      type: "skip_reasoning_engine",
+      type: "multi_variant_property_clone",
     },
-
-    {
-      type: "auto_invalidate_hidden_fields",
-    },
-
-    {
-      type: "recalculate_dependent_fields",
-    },
-
-    {
-      type: "not_applicable_state_engine",
-    },
-
-    {
-      type: "dynamic_validation_engine",
-    },
-
     {
       type: "auto_generate_description",
     },
-
     {
-      type: "variant_listing_engine",
+      type: "progressive_location_flow",
     },
-
     {
-      type: "derived_recommendation_engine",
-    },
-
-    {
-      type: "conversation_recovery_engine",
-    },
-
-    {
-      type: "regional_measurement_normalization",
-    },
-
-    {
-      type: "land_suitability_engine",
-    },
-
-    {
-      type: "legal_verification_engine",
-    },
-
-    {
-      type: "agricultural_logic_engine",
+      type: "plots_dependency_flow",
     },
   ],
 };
 
 export default plotsFlow;
+```;
