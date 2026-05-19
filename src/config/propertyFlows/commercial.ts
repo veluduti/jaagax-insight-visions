@@ -354,8 +354,7 @@ export const commercialFlow: PropertyFlowConfig = {
       aiFollowup: {
         triggerAfterAnswer: true,
         askForVariants: true,
-        followupQuestion:
-          "Do you have additional commercial area sizes available for separate listings?",
+        followupQuestion: "Do you have additional commercial area sizes available for separate listings?",
       },
     },
 
@@ -435,13 +434,7 @@ export const commercialFlow: PropertyFlowConfig = {
           "property_highlights",
         ],
 
-        editableFields: [
-          "built_area",
-          "land_size",
-          "total_price",
-          "rent_amount",
-          "floor_number",
-        ],
+        editableFields: ["built_area", "land_size", "total_price", "rent_amount", "floor_number"],
       },
     },
 
@@ -572,14 +565,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       question: "What business space facilities are available?",
 
-      options: [
-        "Cabins",
-        "Meeting Rooms",
-        "Conference Rooms",
-        "Washrooms",
-        "Reception Area",
-        "Pantry",
-      ],
+      options: ["Cabins", "Meeting Rooms", "Conference Rooms", "Washrooms", "Reception Area", "Pantry"],
     },
 
     parking: {
@@ -830,7 +816,9 @@ export const commercialFlow: PropertyFlowConfig = {
 
       type: "smart_location",
 
-      renderMode: "progressive_conversation",
+      renderMode: "widget",
+
+      widgetType: "smart_location",
 
       widget: "SmartLocationWidget",
 
@@ -917,8 +905,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question:
-        "Do you want to assign this property to the nearest agent? Agent commission may apply.",
+      question: "Do you want to assign this property to the nearest agent? Agent commission may apply.",
 
       options: ["Yes", "No"],
     },
