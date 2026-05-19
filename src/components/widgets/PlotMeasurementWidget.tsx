@@ -51,12 +51,18 @@ export const PlotMeasurementWidget = ({
 }: PlotMeasurementWidgetProps) => {
   const [internal, setInternal] = useState<PlotMeasurementValue>(value);
 
+  const resolvedDirections = directions || field?.directions || DEFAULT_DIRECTIONS;
+
+  const resolvedUnits = units || field?.units || DEFAULT_UNITS;
+
+  const resolvedSuggestions = suggestions || field?.smartSuggestions?.examples || ["30", "40", "50", "60"];
+
   useEffect(() => {
     setInternal(value || {});
   }, [value]);
 
   const update = (id: string, patch: Partial<{ value: string; unit: string }>) => {
-    const defaultUnit = directions.find((d) => d.id === id)?.unit || units[0];
+    const defaultUnit = resolvedDirections.find((d) => d.id === id)?.unit || units[0];
     const next: PlotMeasurementValue = {
       ...internal,
       [id]: {
@@ -77,14 +83,9 @@ export const PlotMeasurementWidget = ({
       </div>
 
       <div className="grid grid-cols-3 grid-rows-3 gap-3 mb-6 max-w-md mx-auto">
-        {directions.map((dir) => (
-          <div
-            key={dir.id}
-            className={POSITION_CLASSES[dir.id] || ""}
-          >
-            <Label className="text-xs text-muted-foreground mb-1 block text-center">
-              {dir.label}
-            </Label>
+        {resolvedDirections.map((dir) => (
+          <div key={dir.id} className={POSITION_CLASSES[dir.id] || ""}>
+            <Label className="text-xs text-muted-foreground mb-1 block text-center">{dir.label}</Label>
             <div className="flex gap-1">
               <Input
                 type="number"
@@ -102,7 +103,7 @@ export const PlotMeasurementWidget = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {units.map((u) => (
+                  {resolvedUnits.map((u) => (
                     <SelectItem key={u} value={u}>
                       {u}
                     </SelectItem>
@@ -123,7 +124,7 @@ export const PlotMeasurementWidget = ({
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 justify-center">
           <span className="text-xs text-muted-foreground self-center">Quick:</span>
-          {suggestions.map((s) => (
+          {resolvedSuggestions.map((s) => (
             <button
               key={s}
               type="button"
