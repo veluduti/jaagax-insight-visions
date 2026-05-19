@@ -51,11 +51,11 @@ export const PlotMeasurementWidget = ({
 }: PlotMeasurementWidgetProps) => {
   const [internal, setInternal] = useState<PlotMeasurementValue>(value);
 
-  const resolvedDirections = directions || field?.directions || DEFAULT_DIRECTIONS;
+  const resolvedDirections = directions || DEFAULT_DIRECTIONS;
 
-  const resolvedUnits = units || field?.units || DEFAULT_UNITS;
+  const resolvedUnits = units || DEFAULT_UNITS;
 
-  const resolvedSuggestions = suggestions || field?.smartSuggestions?.examples || ["30", "40", "50", "60"];
+  const resolvedSuggestions = suggestions || ["30", "40", "50", "60"];
 
   useEffect(() => {
     setInternal(value || {});
