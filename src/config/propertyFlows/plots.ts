@@ -1,4 +1,4 @@
-```ts
+
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const PLOT_TYPES = [
@@ -23,7 +23,7 @@ const PLOT_UNITS = [
   "Bigha",
 ];
 
-export const plotsFlow: PropertyFlowConfig = {
+export const plotsFlow = {
   id: "plots",
 
   category: "plots_land",
@@ -828,4 +828,4 @@ export const plotsFlow: PropertyFlowConfig = {
 };
 
 export default plotsFlow;
-```;
+
