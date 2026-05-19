@@ -12,7 +12,7 @@ import { coworkingFlow } from "./coworking";
 export const propertyFlows: Record<PropertyCategory, PropertyFlowConfig> = {
   residential: residentialFlow as unknown as PropertyFlowConfig,
   commercial: commercialFlow,
-  plots: plotsFlow,
+  plots: plotsFlow as unknown as PropertyFlowConfig,
   agriculture: agricultureFlow,
   coworking: coworkingFlow,
 };

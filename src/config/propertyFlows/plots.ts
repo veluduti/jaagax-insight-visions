@@ -22,7 +22,7 @@ const PLOT_UNITS = [
   "Bigha",
 ];
 
-export const plotsFlow: PropertyFlowConfig = {
+export const plotsFlow = {
   id: "plots",
 
   category: "plots_land",
