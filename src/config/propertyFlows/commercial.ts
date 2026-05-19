@@ -872,13 +872,15 @@ export const commercialFlow: PropertyFlowConfig = {
     property_description: {
       section: "finalization",
 
-      priority: 29,
+      priority: 999,
 
-      type: "textarea",
+      type: "ai_generated_text",
 
       required: false,
 
       aiGenerated: true,
+
+      hiddenFromConversation: true,
 
       autoGenerateFrom: [
         "property_type",
@@ -890,8 +892,6 @@ export const commercialFlow: PropertyFlowConfig = {
         "suitable_for",
         "currently_operating_as",
       ],
-
-      question: "Property description will be AI generated based on your inputs.",
     },
 
     assign_nearest_agent: {
