@@ -1133,6 +1133,7 @@ export default function SellProperty() {
 
   const onBack = async () => {
     if (history.length === 0) {
+      navigate("/dashboard");
       return;
     }
 
@@ -2279,8 +2280,8 @@ export default function SellProperty() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={onBack}>
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Back
+                    <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Back to Dashboard
                     </Button>
                     <Button
                       onClick={onSubmit}
@@ -2575,8 +2576,7 @@ export default function SellProperty() {
                   <button
                     type="button"
                     onClick={onBack}
-                    disabled={history.length === 0}
-                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+                    className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
                   >
                     <ChevronLeft className="h-3 w-3" />
                     Back
