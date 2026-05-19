@@ -1,4 +1,3 @@
-```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const PLOT_TYPES = [
