@@ -1852,6 +1852,23 @@ export default function SellProperty() {
             {field?.renderMode === "widget" && field.widgetType === "SmartLocationWidget" && (
               <div className="pt-3">
                 <SmartLocationWidget
+                  initialValue={{
+                    country: state.country || "India",
+
+                    state_name: state.state_name || state.state || "",
+
+                    city: state.city || "",
+
+                    locality: state.locality || "",
+
+                    sub_locality: state.sub_locality || "",
+
+                    landmark: state.landmark || "",
+
+                    address: state.address || "",
+
+                    pincode: state.pincode || "",
+                  }}
                   onSubmit={async (data) => {
                     // ============================================
                     // MERGE LOCATION FIELDS
@@ -2449,158 +2466,112 @@ export default function SellProperty() {
               MAIN INPUT
           =================================================== */}
 
-               <input
-  ref={imageRef}
-  type="file"
-  accept="image/*,application/pdf,.pdf,.doc,.docx"
-  className="hidden"
-  onChange={(e) =>
-    e.target.files &&
-    handleQuickImage(
-      e.target.files,
-    )
-  }
-/>
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
 
-<div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                  <div className="flex items-end gap-2 p-3">
+                    <button
+                      type="button"
+                      onClick={() => imageRef.current?.click()}
+                      className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
 
-  <div className="flex items-end gap-2 p-3">
+                    <div className="flex-1">
+                      {/* DATE INPUT */}
 
-    <button
-      type="button"
-      onClick={() =>
-        imageRef.current?.click()
-      }
-      className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-    >
-      <ImageIcon className="h-4 w-4" />
-    </button>
+                      {field?.input === "date" && (
+                        <Input
+                          type="date"
+                          value={value || ""}
+                          onChange={(e) => setValue(e.target.value)}
+                          className="h-12 rounded-2xl"
+                        />
+                      )}
 
-    <div className="flex-1">
+                      {/* TEXTAREA */}
 
-      {/* DATE INPUT */}
+                      {isMultiline ? (
+                        <Textarea
+                          value={value || ""}
+                          onChange={(e) => setValue(e.target.value)}
+                          rows={2}
+                          placeholder="Type your answer..."
+                          className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
+                        />
+                      ) : (
+                        field?.input !== "date" && (
+                          <Input
+                            value={value || ""}
+                            onChange={(e) => setValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
 
-      {field?.input === "date" && (
-        <Input
-          type="date"
-          value={value || ""}
-          onChange={(e) =>
-            setValue(
-              e.target.value,
-            )
-          }
-          className="h-12 rounded-2xl"
-        />
-      )}
+                                onNext();
+                              }
+                            }}
+                            type={field?.input === "number" ? "number" : "text"}
+                            placeholder="Type your answer..."
+                            className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
+                          />
+                        )
+                      )}
+                    </div>
 
-      {/* TEXTAREA */}
+                    <button
+                      type="button"
+                      onClick={toggleVoice}
+                      className={cn(
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
 
-      {isMultiline ? (
+                        isListening
+                          ? "bg-destructive text-destructive-foreground animate-pulse"
+                          : "border border-border bg-background hover:bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
 
-        <Textarea
-          value={value || ""}
-          onChange={(e) =>
-            setValue(
-              e.target.value,
-            )
-          }
-          rows={2}
-          placeholder="Type your answer..."
-          className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
-        />
+                    <button
+                      type="button"
+                      onClick={onNext}
+                      disabled={loadingNext}
+                      className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    >
+                      {loadingNext ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-      ) : (
-
-        field?.input !==
-          "date" && (
-
-          <Input
-            value={value || ""}
-            onChange={(e) =>
-              setValue(
-                e.target.value,
-              )
-            }
-            onKeyDown={(e) => {
-
-              if (
-                e.key ===
-                  "Enter" &&
-                !e.shiftKey
-              ) {
-                e.preventDefault();
-
-                onNext();
-              }
-            }}
-            type={
-              field?.input ===
-              "number"
-                ? "number"
-                : "text"
-            }
-            placeholder="Type your answer..."
-            className="border-0 bg-transparent focus-visible:ring-0 shadow-none h-11"
-          />
-        )
-      )}
-    </div>
-
-    <button
-      type="button"
-      onClick={toggleVoice}
-      className={cn(
-        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
-
-        isListening
-          ? "bg-destructive text-destructive-foreground animate-pulse"
-          : "border border-border bg-background hover:bg-muted text-muted-foreground",
-      )}
-    >
-      {isListening ? (
-        <MicOff className="h-4 w-4" />
-      ) : (
-        <Mic className="h-4 w-4" />
-      )}
-    </button>
-
-    <button
-      type="button"
-      onClick={onNext}
-      disabled={loadingNext}
-      className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-    >
-      {loadingNext ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Send className="h-4 w-4" />
-      )}
-    </button>
-
-  </div>
-</div>
-
-                  {/* ===================================================
+                {/* ===================================================
                 FOOTER ACTIONS
             =================================================== */}
 
-                  <div className="flex items-center justify-between px-4 pb-3">
-                    <button
-                      type="button"
-                      onClick={onBack}
-                      disabled={history.length === 0}
-                      className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
-                    >
-                      <ChevronLeft className="h-3 w-3" />
-                      Back
-                    </button>
+                <div className="flex items-center justify-between px-4 pb-3">
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    disabled={history.length === 0}
+                    className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 flex items-center gap-1"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                    Back
+                  </button>
 
-                    {isOptional(field) && (
-                      <button type="button" onClick={onSkip} className="text-[11px] text-primary hover:underline">
-                        Skip
-                      </button>
-                    )}
-                  </div>
+                  {isOptional(field) && (
+                    <button type="button" onClick={onSkip} className="text-[11px] text-primary hover:underline">
+                      Skip
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
