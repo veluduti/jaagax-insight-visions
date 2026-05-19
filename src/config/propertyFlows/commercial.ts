@@ -1,6 +1,7 @@
 // ============================================================
-// Commercial conversational flow config
-// FULL CLIENT-ALIGNED ADVANCED VERSION
+// COMMERCIAL CONVERSATIONAL FLOW CONFIG
+// 100% CLIENT-ALIGNED FINAL VERSION
+// MAGICBRICKS / 99ACRES STYLE AI LISTING ENGINE
 // ============================================================
 
 import type { PropertyFlowConfig } from "@/engines/types";
@@ -39,7 +40,7 @@ export const commercialFlow: PropertyFlowConfig = {
     supportSearchableDropdowns: true,
 
     // ========================================================
-    // ADVANCED AI FEATURES
+    // ADVANCED AI
     // ========================================================
 
     supportAnswerRevision: true,
@@ -64,115 +65,82 @@ export const commercialFlow: PropertyFlowConfig = {
     supportRentalYieldInference: true,
     supportOperationalInfrastructureLogic: true,
     supportIndustrySpecificQuestioning: true,
+
+    // ========================================================
+    // TRUE AI DECISION ENGINE
+    // ========================================================
+
+    resolverStrategy: "ai_dynamic",
+
+    nextQuestionEngine: {
+      enabled: true,
+      mode: "priority_based",
+      dependencyAware: true,
+      contextAware: true,
+      skipAware: true,
+      confidenceAware: true,
+      commercialTypeAware: true,
+      listingTypeAware: true,
+      conversationAware: true,
+      adaptiveFollowups: true,
+    },
+
+    extractionEngine: {
+      enabled: true,
+
+      confidenceThresholds: {
+        autoAccept: 0.9,
+        askConfirmation: 0.6,
+        rejectBelow: 0.4,
+      },
+
+      entityExtraction: {
+        location: true,
+        pricing: true,
+        commercialIntent: true,
+        propertyType: true,
+        amenities: true,
+        measurements: true,
+      },
+    },
+
+    dependencyResolver: {
+      enabled: true,
+      suppressChildrenOnSkip: true,
+      suppressChildrenOnNA: true,
+      suppressChildrenOnHidden: true,
+      invalidateChildrenOnParentChange: true,
+      preventDependencyLeaks: true,
+    },
+
+    conversationEngine: {
+      enabled: true,
+      useQuestionVariants: true,
+      useNaturalTransitions: true,
+      contextualFollowups: true,
+      avoidRoboticQuestions: true,
+    },
   },
 
   // ============================================================
-  // QUESTION ORDER
+  // DYNAMIC RESOLVER STRATEGY
   // ============================================================
 
-  order: [
-    "commercial_type",
-    "listed_by",
-    "listing_type",
+  strategy: {
+    mode: "ai_dynamic",
+    priorityBased: true,
+    dependencyAware: true,
+    commercialTypeAware: true,
+    listingTypeAware: true,
+    skipAware: true,
+    conversationAware: true,
+  },
 
-    "total_price",
-    "unit_type",
-    "price_per_unit",
+  // ============================================================
+  // GLOBAL SKIP OPTIONS
+  // ============================================================
 
-    "monthly_rent",
-    "lease_duration",
-    "available_from",
-
-    "property_condition",
-    "property_age",
-
-    "availability_status",
-    "possession_date",
-
-    "commercial_area",
-    "built_area",
-    "carpet_area",
-    "super_builtup_area",
-
-    "floor_number",
-    "total_floors",
-
-    "washrooms",
-
-    // Office / IT
-    "conference_rooms",
-    "cabins",
-    "workstations",
-
-    // Warehouse / Industrial
-    "loading_docks",
-    "truck_access",
-    "truck_parking",
-    "ceiling_height",
-    "industrial_power",
-    "cargo_lift",
-
-    // Retail
-    "frontage_width",
-    "main_road_facing",
-    "footfall_rating",
-
-    // Hotel / Restaurant
-    "room_count",
-    "banquet_hall",
-    "restaurant_capacity",
-    "kitchen_setup",
-
-    // Hospital / School
-    "icu_beds",
-    "operation_theaters",
-    "classrooms",
-    "labs",
-    "playground",
-
-    "parking_type",
-    "parking_count",
-
-    "furnishing_status",
-    "furnishing_items",
-
-    "power_backup",
-    "internet_availability",
-    "fire_safety",
-
-    "property_facing",
-
-    "project_name",
-    "gated_community",
-    "total_towers",
-    "total_units",
-
-    "amenities",
-
-    "rental_yield_estimation",
-    "investment_score",
-
-    "payment_options",
-
-    "approvals",
-
-    "location",
-
-    "map_location",
-    "latitude",
-    "longitude",
-
-    "property_highlights",
-
-    "commercial_description",
-
-    "multiple_listing_variations",
-
-    "media_uploads",
-
-    "contact_name",
-    "mobile_number",
-  ],
+  globalSkipOptions: ["Don't Know", "Will Update Later", "Not Applicable"],
 
   // ============================================================
   // FIELDS
@@ -188,178 +156,86 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "What type of commercial property are you listing?",
+      priority: 10,
+
+      question: "What kind of commercial property are you planning to list?",
+
+      questionVariants: [
+        "What type of commercial property is this?",
+        "Could you tell me what kind of commercial space you're listing?",
+        "Is this an office, warehouse, showroom, land, or something else?",
+      ],
 
       options: [
         "Office Space",
         "Coworking Space",
-        "Shop",
+        "Shop / Retail Store",
         "Showroom",
-        "Retail Space",
         "Commercial Building",
-        "Warehouse",
+        "Warehouse / Godown",
         "Industrial Shed",
         "Factory",
-        "Hotel",
-        "Restaurant",
-        "Hospital",
-        "School",
-        "Mall",
+        "Restaurant / Cafe Space",
+        "Hotel / Lodge Building",
+        "Clinic / Hospital Space",
+        "Educational Institute",
+        "Commercial Land / Plot",
+        "Business Center",
         "IT Park",
       ],
 
       stateBehavior: {
         invalidateDependentsOnChange: true,
         recomputeFlowOnChange: true,
+        clearIrrelevantFields: true,
       },
     },
+
+    // =========================================================
+    // LISTED BY
+    // =========================================================
 
     listed_by: {
       type: "single_select",
 
       required: true,
 
-      question: "Who are you listing this property as?",
+      priority: 9,
 
-      options: ["Owner", "Agent", "Builder", "Developer"],
+      question: "Are you listing this property as the owner, agent, or builder?",
+
+      options: ["Owner", "Agent", "Builder"],
     },
+
+    // =========================================================
+    // LISTING TYPE
+    // =========================================================
 
     listing_type: {
       type: "single_select",
 
       required: true,
 
-      question: "What type of listing is this?",
+      priority: 10,
+
+      question: "Is this property for sale, rent, or lease?",
+
+      questionVariants: [
+        "Are you planning to sell, rent, or lease this property?",
+        "What's the listing type for this commercial property?",
+      ],
 
       options: ["Buy", "Rent", "Lease"],
 
       stateBehavior: {
         invalidateDependentsOnChange: true,
         recomputeFlowOnChange: true,
+        clearIrrelevantPricingFields: true,
       },
     },
 
     // =========================================================
-    // PRICING
-    // =========================================================
-
-    total_price: {
-      type: "price",
-
-      required: true,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "What is the total property price?",
-
-      autoCalculation: {
-        enabled: true,
-
-        formula: "commercial_area * price_per_unit",
-
-        realtime: true,
-
-        allowManualOverride: true,
-      },
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        type: "indian_price_format",
-      },
-    },
-
-    unit_type: {
-      type: "measurement_unit",
-
-      required: false,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "Select pricing unit.",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "dynamic_measurement_units",
-
-        units: ["Sqft", "Sqyd", "Sqm", "Acre"],
-      },
-    },
-
-    price_per_unit: {
-      type: "price_per_unit",
-
-      required: false,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "What is the price per unit?",
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        type: "dynamic_price_per_unit",
-
-        units: ["Sqft", "Sqyd", "Sqm", "Acre"],
-      },
-    },
-
-    // =========================================================
-    // RENT / LEASE
-    // =========================================================
-
-    monthly_rent: {
-      type: "rental_price",
-
-      required: true,
-
-      visibleIf: {
-        listing_type: ["Rent", "Lease"],
-      },
-
-      question: "What is the rent amount?",
-    },
-
-    lease_duration: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        listing_type: ["Lease"],
-      },
-
-      question: "What is the lease duration?",
-
-      options: ["6 Months", "1 Year", "2 Years", "3 Years", "5 Years", "10 Years"],
-    },
-
-    available_from: {
-      type: "future_date",
-
-      required: true,
-
-      visibleIf: {
-        listing_type: ["Rent", "Lease"],
-      },
-
-      question: "When will the property be available?",
-    },
-
-    // =========================================================
-    // CONDITION
+    // PROPERTY CONDITION
     // =========================================================
 
     property_condition: {
@@ -367,13 +243,21 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
-      visibleIf: {
-        listing_type: ["Buy"],
+      priority: 8,
+
+      question: "What's the current condition of the property?",
+
+      questionVariants: [
+        "Is the property new, resale, under construction, or ready to occupy?",
+        "Can you tell me the current status of the property?",
+      ],
+
+      options: ["New", "Resale", "Ready to Occupy", "Under Construction"],
+
+      stateBehavior: {
+        invalidateDependentsOnChange: true,
+        recomputeFlowOnChange: true,
       },
-
-      question: "What is the property condition?",
-
-      options: ["New", "Resale"],
     },
 
     property_age: {
@@ -381,733 +265,23 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      priority: 7,
+
       visibleIf: {
         property_condition: ["Resale"],
       },
 
-      question: "What is the property age?",
+      dependsOnResolved: ["property_condition"],
+
+      question: "Approximately how old is the property?",
 
       options: ["0-1 Years", "1-5 Years", "5-10 Years", "10+ Years"],
-    },
-
-    availability_status: {
-      type: "single_select",
-
-      required: true,
-
-      visibleIf: {
-        property_condition: ["New"],
-      },
-
-      question: "What is the availability status?",
-
-      options: ["Ready", "Under Construction"],
-    },
-
-    possession_date: {
-      type: "future_date",
-
-      required: false,
-
-      visibleIf: {
-        availability_status: ["Under Construction"],
-      },
-
-      question: "When is possession expected?",
-    },
-
-    // =========================================================
-    // AREA
-    // =========================================================
-
-    commercial_area: {
-      type: "measurement",
-
-      required: true,
-
-      question: "What is the commercial area size?",
-
-      units: ["Sq Ft", "Sq Yard", "Sqm"],
-
-      allowMultipleVariants: true,
-
-      variantListing: {
-        enabled: true,
-        createSeparateListings: true,
-
-        linkedFields: ["commercial_area", "price_per_unit", "total_price"],
-      },
-
-      smartSuggestions: {
-        enabled: true,
-        realtime: true,
-        chips: true,
-        type: "measurement_units",
-      },
-    },
-
-    built_area: {
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the built-up area?",
-
-      units: ["Sq Ft", "Sq Yard"],
-
-      allowSkip: true,
-    },
-
-    carpet_area: {
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the carpet area?",
-
-      units: ["Sq Ft", "Sq Yard"],
-
-      allowSkip: true,
-    },
-
-    super_builtup_area: {
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the super built-up area?",
-
-      units: ["Sq Ft", "Sq Yard"],
-
-      allowSkip: true,
-    },
-
-    floor_number: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: {
-          notIn: ["Warehouse", "Industrial Shed", "Factory"],
-        },
-      },
-
-      question: "Which floor is the property on?",
-
-      validation: {
-        min: 0,
-        maxField: "total_floors",
-      },
-    },
-
-    total_floors: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: {
-          notIn: ["Warehouse", "Industrial Shed", "Factory"],
-        },
-      },
-
-      question: "How many total floors are there?",
-
-      validation: {
-        min: 1,
-      },
-    },
-
-    // =========================================================
-    // BASIC DETAILS
-    // =========================================================
-
-    washrooms: {
-      type: "number",
-
-      required: false,
-
-      question: "How many washrooms are available?",
-    },
-
-    // =========================================================
-    // OFFICE / IT
-    // =========================================================
-
-    conference_rooms: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Office Space", "Coworking Space", "IT Park"],
-      },
-
-      question: "How many conference rooms are available?",
-    },
-
-    cabins: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Office Space", "Coworking Space", "IT Park"],
-      },
-
-      question: "How many cabins are available?",
-    },
-
-    workstations: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Office Space", "Coworking Space", "IT Park"],
-      },
-
-      question: "How many workstations are available?",
-    },
-
-    // =========================================================
-    // WAREHOUSE / INDUSTRIAL
-    // =========================================================
-
-    loading_docks: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "How many loading docks are available?",
-    },
-
-    truck_access: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "Is truck access available?",
-
-      options: ["Yes", "No"],
-    },
-
-    truck_parking: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "Is truck parking available?",
-
-      options: ["Yes", "No"],
-    },
-
-    ceiling_height: {
-      type: "measurement",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "What is the ceiling height?",
-
-      units: ["Feet"],
-    },
-
-    industrial_power: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "Industrial power connection status?",
-
-      options: ["Available", "Not Available"],
-    },
-
-    cargo_lift: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Warehouse", "Industrial Shed", "Factory"],
-      },
-
-      question: "Is cargo lift available?",
-
-      options: ["Yes", "No"],
-    },
-
-    // =========================================================
-    // RETAIL
-    // =========================================================
-
-    frontage_width: {
-      type: "measurement",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Shop", "Showroom", "Retail Space", "Mall"],
-      },
-
-      question: "What is the frontage width?",
-
-      units: ["Feet"],
-    },
-
-    main_road_facing: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Shop", "Showroom", "Retail Space", "Mall"],
-      },
-
-      question: "Is the property main road facing?",
-
-      options: ["Yes", "No"],
-    },
-
-    footfall_rating: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Shop", "Showroom", "Retail Space", "Mall"],
-      },
-
-      question: "Expected customer footfall?",
-
-      options: ["Low", "Medium", "High", "Very High"],
-    },
-
-    // =========================================================
-    // HOTEL / RESTAURANT
-    // =========================================================
-
-    room_count: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Hotel"],
-      },
-
-      question: "How many rooms are available?",
-    },
-
-    banquet_hall: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Hotel"],
-      },
-
-      question: "Is banquet hall available?",
-
-      options: ["Yes", "No"],
-    },
-
-    restaurant_capacity: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Restaurant"],
-      },
-
-      question: "What is the seating capacity?",
-    },
-
-    kitchen_setup: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Restaurant"],
-      },
-
-      question: "Kitchen setup status?",
-
-      options: ["Fully Equipped", "Semi Equipped", "Not Available"],
-    },
-
-    // =========================================================
-    // HOSPITAL / SCHOOL
-    // =========================================================
-
-    icu_beds: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Hospital"],
-      },
-
-      question: "How many ICU beds are available?",
-    },
-
-    operation_theaters: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["Hospital"],
-      },
-
-      question: "How many operation theaters are available?",
-    },
-
-    classrooms: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["School"],
-      },
-
-      question: "How many classrooms are available?",
-    },
-
-    labs: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["School"],
-      },
-
-      question: "How many labs are available?",
-    },
-
-    playground: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: ["School"],
-      },
-
-      question: "Is playground available?",
-
-      options: ["Yes", "No"],
-    },
-
-    // =========================================================
-    // PARKING
-    // =========================================================
-
-    parking_type: {
-      type: "single_select",
-
-      required: false,
-
-      question: "What type of parking is available?",
-
-      options: ["Covered Parking", "Open Parking", "Both", "No Parking"],
-    },
-
-    parking_count: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        parking_type: ["Covered Parking", "Open Parking", "Both"],
-      },
-
-      question: "How many parking spaces are available?",
-
-      options: ["1", "2", "3", "4+", "10+", "50+"],
-    },
-
-    // =========================================================
-    // FURNISHING
-    // =========================================================
-
-    furnishing_status: {
-      type: "single_select",
-
-      required: true,
-
-      question: "What is the furnishing status?",
-
-      options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
-    },
-
-    furnishing_items: {
-      type: "multi_select",
-
-      required: false,
-
-      visibleIf: {
-        furnishing_status: ["Semi Furnished", "Fully Furnished"],
-      },
-
-      question: "What furnishing items are included?",
-
-      options: [
-        "AC",
-        "Workstations",
-        "Conference Tables",
-        "Cabins",
-        "Reception",
-        "CCTV",
-        "Server Room",
-        "UPS",
-        "Storage",
-      ],
-    },
-
-    // =========================================================
-    // INFRASTRUCTURE
-    // =========================================================
-
-    power_backup: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Is power backup available?",
-
-      options: ["Full Backup", "Partial Backup", "No"],
-    },
-
-    internet_availability: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        commercial_type: {
-          notIn: ["Warehouse", "Industrial Shed"],
-        },
-      },
-
-      question: "Internet availability status?",
-
-      options: ["Fiber", "Broadband", "Leased Line", "Not Available"],
-    },
-
-    fire_safety: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Fire safety status?",
-
-      options: ["Available", "Not Available"],
-    },
-
-    // =========================================================
-    // FACING
-    // =========================================================
-
-    property_facing: {
-      type: "single_select",
-
-      required: false,
-
-      question: "What is the property facing?",
-
-      options: ["East", "West", "North", "South", "North East", "North West", "South East", "South West"],
-    },
-
-    // =========================================================
-    // PROJECT
-    // =========================================================
-
-    project_name: {
-      type: "text",
-
-      required: false,
-
-      question: "What is the project or building name?",
-
-      allowSkip: true,
-    },
-
-    gated_community: {
-      type: "single_select",
-
-      required: false,
-
-      question: "Is this inside a gated commercial complex?",
-
-      options: ["Yes", "No"],
-
-      stateBehavior: {
-        invalidateDependentsOnChange: true,
-      },
-    },
-
-    total_towers: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        gated_community: ["Yes"],
-      },
-
-      dependsOnAnswered: ["gated_community"],
-
-      question: "How many towers are there?",
 
       allowSkip: true,
 
       skipBehavior: {
-        reasonAware: true,
         suppressDependents: true,
       },
-    },
-
-    total_units: {
-      type: "number",
-
-      required: false,
-
-      visibleIf: {
-        gated_community: ["Yes"],
-      },
-
-      dependsOnAnswered: ["total_towers"],
-
-      question: "How many total units are there?",
-
-      allowSkip: true,
-    },
-
-    // =========================================================
-    // AMENITIES
-    // =========================================================
-
-    amenities: {
-      type: "multi_select",
-
-      required: false,
-
-      question: "What amenities are available?",
-
-      dynamicOptionsByCommercialType: {
-        "Office Space": ["Lift", "Conference Room", "Reception", "Power Backup", "Cafeteria"],
-
-        Warehouse: ["Cargo Lift", "Truck Parking", "Loading Dock", "Industrial Power"],
-
-        Hotel: ["Swimming Pool", "Banquet Hall", "Restaurant", "Gym"],
-
-        Mall: ["Food Court", "Escalator", "ATM", "Visitor Parking"],
-      },
-    },
-
-    // =========================================================
-    // INVESTMENT
-    // =========================================================
-
-    rental_yield_estimation: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "Expected rental yield category?",
-
-      options: ["Low Yield", "Medium Yield", "High Yield", "Premium Yield"],
-    },
-
-    investment_score: {
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        listing_type: ["Buy"],
-      },
-
-      question: "Investment potential score?",
-
-      options: ["Low", "Medium", "High", "Very High"],
-    },
-
-    // =========================================================
-    // PAYMENT OPTIONS
-    // =========================================================
-
-    payment_options: {
-      type: "multi_select",
-
-      required: false,
-
-      question: "What payment options are available?",
-
-      options: [
-        "Price Negotiable",
-        "Bank Loan Available",
-        "EMI Available",
-        "Installments Available",
-        "Flexible Payment Plan",
-        "Investor Friendly",
-        "NRI Assistance",
-        "Immediate Registration",
-      ],
-    },
-
-    // =========================================================
-    // APPROVALS
-    // =========================================================
-
-    approvals: {
-      type: "multi_select",
-
-      required: false,
-
-      question: "What approvals does this property have?",
-
-      options: [
-        "RERA Approved",
-        "HMDA Approved",
-        "DTCP Approved",
-        "Municipal Approved",
-        "Fire NOC",
-        "Occupancy Certificate",
-        "Trade License",
-        "Pollution Clearance",
-      ],
     },
 
     // =========================================================
@@ -1117,49 +291,43 @@ export const commercialFlow: PropertyFlowConfig = {
     location: {
       type: "location",
 
-      renderMode: "widget",
-      widget: "SmartLocationWidget",
-      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
-
       required: true,
 
-      question: "Please provide location details.",
+      priority: 10,
 
-      hierarchy: [
-        "Country",
-        "State",
-        "City",
-        "Area / Locality",
-        "Sub Locality",
-        "Landmark",
-        "Full Address",
-        "ZIP / PIN Code",
-      ],
+      renderMode: "widget",
+
+      widgetType: "SmartLocationWidget",
+
+      question: "Could you share the property location details?",
+
+      questionVariants: ["Where exactly is the property located?", "Please share the property location details."],
+
+      extraction: {
+        enabled: true,
+        autoParseNaturalLocation: true,
+        autoFillHierarchy: true,
+      },
+
+      groupedFields: ["country", "state_name", "city", "area", "sub_locality", "landmark", "full_address", "pincode"],
 
       smartSuggestions: {
         enabled: true,
-        realtime: true,
-        searchable: true,
-        chips: true,
-        typoFriendly: true,
         gpsSupport: true,
         mapSelection: true,
         pincodeAutoFill: true,
-        dependentHierarchy: true,
         currentLocation: true,
       },
     },
-
-    // =========================================================
-    // MAP
-    // =========================================================
 
     map_location: {
       type: "map_picker",
 
       required: false,
 
-      question: "Would you like to pin the property location on map?",
+      priority: 4,
+
+      question: "Would you like to pin the exact property location on the map?",
 
       allowSkip: true,
     },
@@ -1173,6 +341,8 @@ export const commercialFlow: PropertyFlowConfig = {
         map_location: ["Selected"],
       },
 
+      dependsOnResolved: ["map_location"],
+
       question: "Latitude",
     },
 
@@ -1185,11 +355,627 @@ export const commercialFlow: PropertyFlowConfig = {
         map_location: ["Selected"],
       },
 
+      dependsOnResolved: ["map_location"],
+
       question: "Longitude",
     },
 
     // =========================================================
-    // HIGHLIGHTS
+    // AVAILABILITY
+    // =========================================================
+
+    available_from: {
+      type: "future_date",
+
+      renderAs: "calendar",
+
+      required: false,
+
+      priority: 7,
+
+      visibleIf: {
+        listing_type: ["Rent", "Lease"],
+      },
+
+      question: "When will the property be available?",
+
+      allowSkip: true,
+    },
+
+    possession_date: {
+      type: "future_date",
+
+      renderAs: "calendar",
+
+      required: false,
+
+      priority: 6,
+
+      visibleIf: {
+        property_condition: ["Under Construction"],
+      },
+
+      question: "When is possession expected?",
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // LAND SIZE
+    // =========================================================
+
+    land_size: {
+      type: "measurement",
+
+      requiredIf: {
+        commercial_type: ["Commercial Land / Plot"],
+      },
+
+      priority: 9,
+
+      visibleIf: {
+        commercial_type: ["Commercial Land / Plot"],
+      },
+
+      question: "What is the land size of the plot?",
+
+      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
+
+      allowSkip: true,
+
+      variantListing: {
+        enabled: true,
+        createSeparateListings: true,
+      },
+    },
+
+    // =========================================================
+    // BUILT AREA
+    // =========================================================
+
+    built_area: {
+      type: "measurement",
+
+      requiredIf: {
+        commercial_type: {
+          notIn: ["Commercial Land / Plot"],
+        },
+      },
+
+      priority: 9,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Commercial Land / Plot"],
+        },
+      },
+
+      question: "What is the built-up area?",
+
+      questionVariants: ["How much built-up area does the property have?", "Could you share the built-up area size?"],
+
+      units: ["Sq Ft", "Sq Yard", "Sqm"],
+
+      allowMultipleVariants: true,
+
+      variantListing: {
+        enabled: true,
+        createSeparateListings: true,
+        askForAnotherVariant: true,
+      },
+    },
+
+    carpet_area: {
+      type: "measurement",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Commercial Land / Plot"],
+        },
+      },
+
+      question: "Do you also know the carpet area?",
+
+      units: ["Sq Ft", "Sq Yard"],
+
+      allowSkip: true,
+    },
+
+    super_builtup_area: {
+      type: "measurement",
+
+      required: false,
+
+      priority: 4,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Commercial Land / Plot"],
+        },
+      },
+
+      question: "Would you like to share the super built-up area as well?",
+
+      units: ["Sq Ft", "Sq Yard"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // FLOOR DETAILS
+    // =========================================================
+
+    floor_number: {
+      type: "number",
+
+      required: false,
+
+      priority: 6,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Warehouse / Godown", "Industrial Shed", "Factory", "Commercial Land / Plot"],
+        },
+      },
+
+      question: "Which floor is the property located on?",
+
+      allowSkip: true,
+
+      skipBehavior: {
+        suppressDependents: true,
+      },
+    },
+
+    total_floors: {
+      type: "number",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Warehouse / Godown", "Industrial Shed", "Factory", "Commercial Land / Plot"],
+        },
+      },
+
+      dependsOnResolved: ["floor_number"],
+
+      question: "How many total floors does the building have?",
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // BUY PRICING
+    // =========================================================
+
+    total_price: {
+      type: "price",
+
+      requiredIf: {
+        listing_type: ["Buy"],
+      },
+
+      priority: 10,
+
+      visibleIf: {
+        listing_type: ["Buy"],
+      },
+
+      question: "What is the expected sale price?",
+
+      smartSuggestions: {
+        enabled: true,
+        type: "indian_price_format",
+      },
+    },
+
+    price_per_unit: {
+      type: "price_per_unit",
+
+      required: false,
+
+      priority: 6,
+
+      visibleIf: {
+        listing_type: ["Buy"],
+      },
+
+      question: "Do you know the approximate price per square foot or unit?",
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // RENT / LEASE
+    // =========================================================
+
+    monthly_rent: {
+      type: "price",
+
+      requiredIf: {
+        listing_type: ["Rent", "Lease"],
+      },
+
+      priority: 10,
+
+      visibleIf: {
+        listing_type: ["Rent", "Lease"],
+      },
+
+      question: "What monthly rent are you expecting?",
+    },
+
+    security_deposit: {
+      type: "price",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        listing_type: ["Rent", "Lease"],
+      },
+
+      question: "What security deposit are you expecting?",
+
+      allowSkip: true,
+    },
+
+    lease_duration: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        listing_type: ["Lease"],
+      },
+
+      question: "How long is the lease duration expected to be?",
+
+      options: ["6 Months", "1 Year", "2 Years", "3 Years", "5 Years", "10 Years"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // OFFICE / BUSINESS
+    // =========================================================
+
+    cabins: {
+      type: "number",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: ["Office Space", "Coworking Space", "Business Center", "IT Park"],
+      },
+
+      question: "How many cabins are available inside the office?",
+
+      allowSkip: true,
+    },
+
+    meeting_rooms: {
+      type: "number",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: ["Office Space", "Coworking Space", "Business Center", "IT Park"],
+      },
+
+      question: "Does the office include meeting rooms?",
+
+      allowSkip: true,
+    },
+
+    workstations: {
+      type: "number",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: ["Office Space", "Coworking Space", "Business Center", "IT Park"],
+      },
+
+      question: "Approximately how many workstations can fit comfortably?",
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // WAREHOUSE / INDUSTRIAL
+    // =========================================================
+
+    truck_access: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 8,
+
+      visibleIf: {
+        commercial_type: ["Warehouse / Godown", "Industrial Shed", "Factory"],
+      },
+
+      question: "Is truck access available for the property?",
+
+      options: ["Yes", "No"],
+    },
+
+    truck_parking: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 7,
+
+      visibleIf: {
+        commercial_type: ["Warehouse / Godown", "Industrial Shed", "Factory"],
+      },
+
+      question: "Is dedicated truck parking available?",
+
+      options: ["Yes", "No"],
+
+      contextualFollowups: [
+        {
+          when: {
+            truck_parking: ["Yes"],
+          },
+
+          ask: "truck_capacity",
+        },
+      ],
+    },
+
+    truck_capacity: {
+      type: "number",
+
+      required: false,
+
+      priority: 4,
+
+      visibleIf: {
+        truck_parking: ["Yes"],
+      },
+
+      dependsOnResolved: ["truck_parking"],
+
+      question: "Roughly how many trucks can park comfortably?",
+
+      allowSkip: true,
+    },
+
+    loading_docks: {
+      type: "number",
+
+      required: false,
+
+      priority: 5,
+
+      visibleIf: {
+        commercial_type: ["Warehouse / Godown", "Industrial Shed", "Factory"],
+      },
+
+      question: "How many loading docks are available?",
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // PARKING
+    // =========================================================
+
+    parking_features: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 5,
+
+      question: "What parking facilities are available?",
+
+      options: ["Car Parking", "Bike Parking", "Visitor Parking", "Truck Parking"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // FURNISHING
+    // =========================================================
+
+    furnishing_status: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 7,
+
+      visibleIf: {
+        commercial_type: {
+          notIn: ["Commercial Land / Plot"],
+        },
+      },
+
+      question: "Is the property fully furnished, semi-furnished, or unfurnished?",
+
+      options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
+
+      allowSkip: true,
+    },
+
+    furnishing_items: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 4,
+
+      visibleIf: {
+        furnishing_status: ["Semi Furnished", "Fully Furnished"],
+      },
+
+      dependsOnResolved: ["furnishing_status"],
+
+      question: "What furnishings or infrastructure are included?",
+
+      options: [
+        "Workstations",
+        "Reception",
+        "Central AC",
+        "CCTV",
+        "Server Room",
+        "Pantry",
+        "Fire Safety",
+        "Conference Tables",
+        "UPS",
+      ],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // CURRENTLY OPERATING AS
+    // =========================================================
+
+    currently_operating_as: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 5,
+
+      question: "What is the property currently being used for?",
+
+      options: ["Office", "Restaurant", "Gym", "Warehouse", "Retail Store", "Manufacturing Unit", "Vacant"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // SUITABLE FOR
+    // =========================================================
+
+    suitable_for: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 5,
+
+      question: "What kind of businesses would this property suit best?",
+
+      options: ["IT Company", "Startup", "Bank", "Showroom", "Call Center", "Clinic", "Restaurant", "Warehouse"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // AMENITIES
+    // =========================================================
+
+    amenities: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 4,
+
+      question: "What amenities are available in the property?",
+
+      dynamicOptionsByCommercialType: {
+        "Office Space": ["Lift", "Conference Room", "Reception", "Power Backup", "Cafeteria"],
+
+        "Warehouse / Godown": ["Loading Dock", "Industrial Power", "Cargo Lift", "Truck Parking"],
+
+        "Restaurant / Cafe Space": ["Kitchen Setup", "Dining Area", "Power Backup"],
+
+        "Hotel / Lodge Building": ["Swimming Pool", "Restaurant", "Gym", "Banquet Hall"],
+      },
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // VISIBILITY & ACCESS
+    // =========================================================
+
+    visibility_access: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 7,
+
+      question: "What visibility or accessibility advantages does the property have?",
+
+      options: [
+        "Main Road Facing",
+        "High Footfall Area",
+        "Near Metro",
+        "Highway Access",
+        "Corner Property",
+        "Easy Public Transport",
+        "Truck Access",
+      ],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // PAYMENT OPTIONS
+    // =========================================================
+
+    payment_options: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 3,
+
+      question: "Do you offer any special payment options or buyer support?",
+
+      options: ["EMI Available", "Flexible Payment Plan", "Zero Down Payment", "Investor Friendly", "NRI Assistance"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // APPROVALS
+    // =========================================================
+
+    approvals: {
+      type: "multi_select",
+
+      required: false,
+
+      priority: 4,
+
+      question: "Which approvals or certifications does the property have?",
+
+      options: ["RERA Approved", "Fire NOC", "Trade License", "Occupancy Certificate"],
+
+      allowSkip: true,
+    },
+
+    // =========================================================
+    // PROPERTY HIGHLIGHTS
     // =========================================================
 
     property_highlights: {
@@ -1197,56 +983,15 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      priority: 3,
+
       maxSelections: 3,
 
-      question: "Select property highlights or ribbons.",
+      question: "Pick up to 3 highlights you'd like shown on the listing.",
 
-      autoRecommendations: {
-        enabled: true,
+      options: ["Prime Location", "High ROI", "Startup Friendly", "Business Hub", "Main Road Facing"],
 
-        rules: [
-          {
-            when: {
-              furnishing_status: ["Fully Furnished"],
-            },
-
-            suggest: ["Fully Furnished"],
-          },
-
-          {
-            when: {
-              main_road_facing: ["Yes"],
-            },
-
-            suggest: ["Main Road Facing"],
-          },
-
-          {
-            when: {
-              rental_yield_estimation: ["High Yield"],
-            },
-
-            suggest: ["Investment Opportunity"],
-          },
-        ],
-      },
-
-      options: [
-        "Verified Property",
-        "Verified Owner",
-        "RERA Approved",
-        "Price Drop",
-        "Best Deal",
-        "Hot Property",
-        "Premium Listing",
-        "Ready to Move",
-        "Near Metro",
-        "Corner Property",
-        "Main Road Facing",
-        "High Rental Yield",
-        "Investment Opportunity",
-        "Fully Furnished",
-      ],
+      allowSkip: true,
     },
 
     // =========================================================
@@ -1258,7 +1003,9 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "AI will generate smart commercial property description.",
+      priority: 2,
+
+      question: "AI will now generate a professional commercial listing description.",
 
       generation: {
         enabled: true,
@@ -1267,9 +1014,12 @@ export const commercialFlow: PropertyFlowConfig = {
 
         useFields: [
           "commercial_type",
-          "commercial_area",
+          "listing_type",
+          "built_area",
+          "land_size",
           "furnishing_status",
           "amenities",
+          "visibility_access",
           "location",
           "total_price",
           "monthly_rent",
@@ -1278,7 +1028,7 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     // =========================================================
-    // MULTIPLE VARIATIONS
+    // MULTIPLE VARIANTS
     // =========================================================
 
     multiple_listing_variations: {
@@ -1286,7 +1036,9 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Would you like to create another listing variation for different sizes?",
+      priority: 2,
+
+      question: "Would you like to create another variation for a different size or pricing option?",
 
       options: ["Yes", "No"],
     },
@@ -1300,14 +1052,33 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Upload images, brochures, PDFs or documents.",
+      priority: 6,
+
+      question: "You can upload photos, brochures, PDFs, or floor plans if you'd like.",
 
       extraction: {
         enabled: true,
         autoExtractPropertyData: true,
         autoDetectMissingFields: true,
         continueFromExtractedState: true,
+        confidenceBasedAutoFill: true,
       },
+    },
+
+    // =========================================================
+    // AGENT ASSIGNMENT
+    // =========================================================
+
+    assign_nearest_agent: {
+      type: "single_select",
+
+      required: false,
+
+      priority: 2,
+
+      question: "Would you like us to assign the nearest agent to help market this property?",
+
+      options: ["Yes", "No"],
     },
 
     // =========================================================
@@ -1319,7 +1090,9 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Could I have your full name for the listing?",
+      priority: 4,
+
+      question: "Could I have your name for the listing contact details?",
 
       allowSkip: true,
     },
@@ -1329,7 +1102,9 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "Please share your 10-digit mobile number.",
+      priority: 10,
+
+      question: "Please share your mobile number for listing verification.",
     },
   },
 
@@ -1339,47 +1114,23 @@ export const commercialFlow: PropertyFlowConfig = {
 
   rules: [
     {
-      type: "dynamic_price_computation",
+      type: "dynamic_resolver_engine",
     },
 
     {
-      type: "normalize_pricing_units",
+      type: "next_best_question_engine",
     },
 
     {
-      type: "ask_only_missing_fields",
+      type: "commercial_context_engine",
     },
 
     {
-      type: "skip_hidden_fields",
+      type: "listing_type_pricing_engine",
     },
 
     {
-      type: "persist_skipped_fields",
-    },
-
-    {
-      type: "prevent_duplicate_questions",
-    },
-
-    {
-      type: "dynamic_followup_questions",
-    },
-
-    {
-      type: "human_like_conversation",
-    },
-
-    {
-      type: "realtime_suggestions",
-    },
-
-    {
-      type: "multiple_listing_variations",
-    },
-
-    {
-      type: "dependency_propagation",
+      type: "hard_dependency_suppression_engine",
     },
 
     {
@@ -1387,23 +1138,27 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     {
-      type: "auto_invalidate_hidden_fields",
+      type: "visibility_suppression_engine",
     },
 
     {
-      type: "recalculate_dependent_fields",
+      type: "question_priority_engine",
     },
 
     {
-      type: "not_applicable_state_engine",
+      type: "confidence_based_extraction_engine",
     },
 
     {
-      type: "dynamic_validation_engine",
+      type: "contextual_followup_engine",
     },
 
     {
-      type: "auto_generate_description",
+      type: "conversation_template_engine",
+    },
+
+    {
+      type: "humanized_conversation_engine",
     },
 
     {
@@ -1411,15 +1166,19 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     {
-      type: "derived_recommendation_engine",
+      type: "auto_generate_description_engine",
     },
 
     {
-      type: "conversation_recovery_engine",
+      type: "dynamic_validation_engine",
     },
 
     {
-      type: "commercial_investment_engine",
+      type: "location_intelligence_engine",
+    },
+
+    {
+      type: "commercial_recommendation_engine",
     },
 
     {
@@ -1427,7 +1186,7 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     {
-      type: "industry_specialization_engine",
+      type: "conversation_recovery_engine",
     },
   ],
 };
