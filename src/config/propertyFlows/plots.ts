@@ -1,3 +1,4 @@
+```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
 const PLOT_TYPES = [
@@ -22,7 +23,7 @@ const PLOT_UNITS = [
   "Bigha",
 ];
 
-export const plotsFlow = {
+export const plotsFlow: PropertyFlowConfig = {
   id: "plots",
 
   category: "plots_land",
@@ -127,8 +128,6 @@ export const plotsFlow = {
     autoGenerateTitle: true,
 
     autoGenerateSEO: true,
-
-    supportProgressiveLocationConversation: true,
 
     supportVariantDetection: true,
 
@@ -637,34 +636,36 @@ export const plotsFlow = {
     },
 
     location: {
-      section: "location",
+  section: "location",
 
-      priority: 21,
+  priority: 21,
 
-      type: "smart_location",
+  type: "smart_location",
 
-      renderMode: "progressive_conversation",
+  renderMode: "widget",
 
-      widget: "SmartLocationWidget",
+  widgetType: "smart_location",
 
-      required: true,
+  widget: "SmartLocationWidget",
 
-      question: "Let's add the plot location details.",
+  required: true,
 
-      groupedFields: [
-        "country",
-        "state_name",
-        "city",
-        "locality",
-        "sub_locality",
-        "landmark",
-        "address",
-        "pincode",
-        "google_maps_link",
-        "latitude",
-        "longitude",
-      ],
-    },
+  question: "Let's add the plot location details.",
+
+  groupedFields: [
+    "country",
+    "state_name",
+    "city",
+    "locality",
+    "sub_locality",
+    "landmark",
+    "address",
+    "pincode",
+    "google_maps_link",
+    "latitude",
+    "longitude",
+  ],
+},
 
     property_highlights: {
       section: "finalization",
@@ -695,32 +696,30 @@ export const plotsFlow = {
     },
 
     property_description: {
-      section: "finalization",
+  section: "finalization",
 
-      priority: 23,
+  priority: 999,
 
-      type: "textarea",
+  type: "ai_generated_text",
 
-      required: false,
+  required: false,
 
-      aiGenerated: true,
+  aiGenerated: true,
 
-      hiddenFromConversation: true,
+  hiddenFromConversation: true,
 
-      autoGenerateFrom: [
-        "plot_type",
-        "plot_size",
-        "facing",
-        "road_width",
-        "approvals",
-        "amenities",
-        "location",
-        "price_per_unit",
-        "additional_features",
-      ],
-
-      question: "Property description will be AI generated.",
-    },
+  autoGenerateFrom: [
+    "plot_type",
+    "plot_size",
+    "facing",
+    "road_width",
+    "approvals",
+    "amenities",
+    "location",
+    "price_per_unit",
+    "additional_features",
+  ],
+},
 
     assign_nearest_agent: {
       section: "finalization",
@@ -823,13 +822,10 @@ export const plotsFlow = {
       type: "auto_generate_description",
     },
     {
-      type: "progressive_location_flow",
-    },
-    {
       type: "plots_dependency_flow",
     },
   ],
 };
 
 export default plotsFlow;
-
+```;
