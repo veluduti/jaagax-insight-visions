@@ -19,6 +19,7 @@ export interface PlotMeasurementValue {
 }
 
 interface PlotMeasurementWidgetProps {
+  field?: any;
   directions?: PlotDirection[];
   value?: PlotMeasurementValue;
   onChange?: (value: PlotMeasurementValue) => void;
@@ -43,26 +44,27 @@ const POSITION_CLASSES: Record<string, string> = {
 };
 
 export const PlotMeasurementWidget = ({
-  directions = DEFAULT_DIRECTIONS,
+  field,
+  directions,
   value = {},
   onChange,
-  units = DEFAULT_UNITS,
-  suggestions = ["30", "40", "50", "60"],
+  units,
+  suggestions,
 }: PlotMeasurementWidgetProps) => {
   const [internal, setInternal] = useState<PlotMeasurementValue>(value);
 
-  const resolvedDirections = directions || DEFAULT_DIRECTIONS;
+  const resolvedDirections = directions || field?.directions || DEFAULT_DIRECTIONS;
 
-  const resolvedUnits = units || DEFAULT_UNITS;
+  const resolvedUnits = units || field?.units || DEFAULT_UNITS;
 
-  const resolvedSuggestions = suggestions || ["30", "40", "50", "60"];
+  const resolvedSuggestions = suggestions || field?.smartSuggestions?.examples || ["30", "40", "50", "60"];
 
   useEffect(() => {
     setInternal(value || {});
   }, [value]);
 
   const update = (id: string, patch: Partial<{ value: string; unit: string }>) => {
-    const defaultUnit = resolvedDirections.find((d) => d.id === id)?.unit || units[0];
+    const defaultUnit = resolvedDirections.find((d) => d.id === id)?.unit || resolvedUnits[0];
     const next: PlotMeasurementValue = {
       ...internal,
       [id]: {
@@ -96,7 +98,7 @@ export const PlotMeasurementWidget = ({
                 className="text-center"
               />
               <Select
-                value={internal[dir.id]?.unit ?? dir.unit ?? units[0]}
+                value={internal[dir.id]?.unit ?? dir.unit ?? resolvedUnits[0]}
                 onValueChange={(u) => update(dir.id, { unit: u })}
               >
                 <SelectTrigger className="w-20">
@@ -121,7 +123,7 @@ export const PlotMeasurementWidget = ({
         </div>
       </div>
 
-      {suggestions.length > 0 && (
+      {resolvedSuggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 justify-center">
           <span className="text-xs text-muted-foreground self-center">Quick:</span>
           {resolvedSuggestions.map((s) => (
@@ -130,8 +132,8 @@ export const PlotMeasurementWidget = ({
               type="button"
               onClick={() => {
                 const next: PlotMeasurementValue = { ...internal };
-                directions.forEach((d) => {
-                  next[d.id] = { value: s, unit: next[d.id]?.unit ?? d.unit ?? units[0] };
+                resolvedDirections.forEach((d) => {
+                  next[d.id] = { value: s, unit: next[d.id]?.unit ?? d.unit ?? resolvedUnits[0] };
                 });
                 setInternal(next);
                 onChange?.(next);

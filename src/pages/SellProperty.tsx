@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
+import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import {
   Sparkles,
   ChevronLeft,
@@ -1971,6 +1972,11 @@ export default function SellProperty() {
                     await fetchNext(merged);
                   }}
                 />
+              </div>
+            )}
+            {field?.type === "plot_measurement_widget" && (
+              <div className="pt-3">
+                <PlotMeasurementWidget field={field.raw} value={value} onChange={setValue} />
               </div>
             )}
 
