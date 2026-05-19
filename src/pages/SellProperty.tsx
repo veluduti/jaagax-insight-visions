@@ -33,6 +33,7 @@ import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES }
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
+import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
@@ -644,15 +645,30 @@ export default function SellProperty() {
       if (error) throw error;
 
       const incomingState = normalizeListingState(data?.listing_state || {});
-      merged = { ...before, ...incomingState };
+      const ext = data?.extracted || {};
+
+      // Translate raw AI extraction into the engine's canonical field IDs
+      // so the resolver can mark them answered and skip those questions.
+      const mappedEngine = mapExtractedToEngineFields(ext, category);
+
+      merged = { ...before, ...incomingState, ...mappedEngine };
       setState(merged);
 
-      const ext = data?.extracted || {};
+      // Push mapped values into the engine immediately (overwrite=true)
+      // so already-known questions are skipped on the very next fetchNext().
+      try {
+        if (engineRef.current && Object.keys(mappedEngine).length) {
+          engineRef.current.applyExtractedFields(mappedEngine, { overwrite: true });
+        }
+      } catch (err) {
+        console.warn("[SellProperty] applyExtractedFields failed", err);
+      }
+
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
       // Count ONLY newly saved fields (not already in state, non-empty, non-duplicate)
-      const newlyFilled = Object.entries(incomingState).filter(([k, v]) => {
+      const newlyFilled = Object.entries({ ...incomingState, ...mappedEngine }).filter(([k, v]) => {
         if (v === "" || v === null || v === undefined) return false;
         if (Array.isArray(v) && v.length === 0) return false;
         const prev = (before as any)[k];
