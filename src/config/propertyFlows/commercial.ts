@@ -310,7 +310,7 @@ export const commercialFlow: PropertyFlowConfig = {
         autoFillHierarchy: true,
       },
 
-      groupedFields: ["country", "state_name", "city", "area", "sub_locality", "landmark", "full_address", "pincode"],
+      groupedFields: ["country", "state_name", "city", "locality", "sub_locality", "landmark", "address", "pincode"],
 
       smartSuggestions: {
         enabled: true,
@@ -461,8 +461,38 @@ export const commercialFlow: PropertyFlowConfig = {
 
       variantListing: {
         enabled: true,
+
         createSeparateListings: true,
+
         askForAnotherVariant: true,
+
+        cloneStrategy: {
+          preserveFields: [
+            "commercial_type",
+            "listing_type",
+            "listed_by",
+
+            "country",
+            "state_name",
+            "city",
+            "locality",
+            "sub_locality",
+            "landmark",
+            "address",
+            "pincode",
+
+            "property_condition",
+            "property_age",
+
+            "furnishing_status",
+
+            "amenities",
+
+            "visibility_access",
+
+            "approvals",
+          ],
+        },
       },
     },
 
