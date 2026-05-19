@@ -136,6 +136,10 @@ export interface StructuredVisibilityRule {
 
   or?: VisibilityRule[];
 
+  all?: VisibilityRule[];
+
+  any?: VisibilityRule[];
+
   field?: string;
 
   equals?: unknown;
