@@ -918,6 +918,3 @@ export const commercialFlow: PropertyFlowConfig = {
 };
 
 export default commercialFlow;
-```
-
-Client commercial Excel reviewed from uploaded file fileciteturn0file0
