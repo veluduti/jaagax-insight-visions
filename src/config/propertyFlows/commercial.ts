@@ -544,7 +544,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       visibleIf: {
         field: "listing_type",
-        in: ["Rent", "Lease"],
+        in: ["Rent"],
       },
 
       question: "What is the monthly rent amount?",
