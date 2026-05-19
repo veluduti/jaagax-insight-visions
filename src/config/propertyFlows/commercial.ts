@@ -548,7 +548,7 @@ export const commercialFlow: PropertyFlowConfig = {
     business_space_details: {
       section: "business_details",
 
-      priority: 17,
+      priority: 23,
 
       type: "multi_select",
 
@@ -569,7 +569,7 @@ export const commercialFlow: PropertyFlowConfig = {
     parking: {
       section: "business_details",
 
-      priority: 18,
+      priority: 24,
 
       type: "multi_select",
 
@@ -585,7 +585,7 @@ export const commercialFlow: PropertyFlowConfig = {
     furnishing_status: {
       section: "features",
 
-      priority: 19,
+      priority: 17,
 
       type: "single_select",
 
@@ -604,7 +604,7 @@ export const commercialFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "business_details",
 
-      priority: 21,
+      priority: 19,
 
       type: "multi_select",
 
@@ -635,7 +635,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_furnishing: {
       section: "features",
 
-      priority: 20,
+      priority: 18,
 
       type: "multi_select",
 
@@ -669,7 +669,7 @@ export const commercialFlow: PropertyFlowConfig = {
     suitable_for: {
       section: "features",
 
-      priority: 22,
+      priority: 20,
 
       type: "multi_select",
 
@@ -701,7 +701,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_amenities: {
       section: "features",
 
-      priority: 23,
+      priority: 21,
 
       type: "multi_select",
 
@@ -730,7 +730,7 @@ export const commercialFlow: PropertyFlowConfig = {
     visibility_access: {
       section: "features",
 
-      priority: 24,
+      priority: 22,
 
       type: "multi_select",
 
