@@ -266,7 +266,15 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 function isEmpty(v: any) {
   if (v == null || v === "") return true;
   if (Array.isArray(v)) return v.length === 0;
-  if (typeof v === "object") return !v.unit || !v.area || !v.pricePerUnit;
+  if (typeof v === "object") {
+    // price unit object
+    if ("unit" in v || "area" in v || "pricePerUnit" in v) {
+      return !v.unit || !v.area || !v.pricePerUnit;
+    }
+
+    // generic object (plot widget etc.)
+    return Object.keys(v).length === 0;
+  }
   return false;
 }
 
