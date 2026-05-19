@@ -116,6 +116,13 @@ export function createNextQuestionResolver(flow: PropertyFlowConfig): NextQuesti
         if (!field) {
           continue;
         }
+        // --------------------------------------------------
+        // HIDDEN FROM CONVERSATION
+        // --------------------------------------------------
+
+        if (field.hiddenFromConversation || field.type === "ai_generated_text") {
+          continue;
+        }
 
         // --------------------------------------------------
         // VISIBILITY
