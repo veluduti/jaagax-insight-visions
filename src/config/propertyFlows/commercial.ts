@@ -529,7 +529,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
         calculate: "price_per_unit",
 
-        formula: "total_price / ((built_area?.value) || (land_size?.value))",
+        formula: "Number(total_price) / Number((built_area?.value) || (land_size?.value))",
       },
     },
 
