@@ -41,6 +41,9 @@ const BUSINESS_SPACE_TYPES = [
   "Business Center",
   "Clinic / Hospital Space",
   "Educational Institute",
+  "Restaurant / Cafe Space",
+  "Commercial Building",
+  "Showroom",
 ];
 
 export const commercialFlow: PropertyFlowConfig = {
@@ -284,8 +287,16 @@ export const commercialFlow: PropertyFlowConfig = {
       required: false,
 
       visibleIf: {
-        field: "property_condition",
-        equals: "Ready to Occupy",
+        all: [
+          {
+            field: "property_condition",
+            equals: "Ready to Occupy",
+          },
+          {
+            field: "listing_type",
+            in: ["Rent", "Lease"],
+          },
+        ],
       },
 
       question: "When is the property available from?",
@@ -518,7 +529,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
         calculate: "price_per_unit",
 
-        formula: "total_price / (built_area || land_size)",
+        formula: "total_price / ((built_area?.value) || (land_size?.value))",
       },
     },
 
@@ -604,7 +615,7 @@ export const commercialFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "business_details",
 
-      priority: 19,
+      priority: 18,
 
       type: "multi_select",
 
@@ -635,15 +646,23 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_furnishing: {
       section: "features",
 
-      priority: 18,
+      priority: 19,
 
       type: "multi_select",
 
       required: false,
 
       visibleIf: {
-        field: "furnishing_status",
-        in: ["Semi Furnished", "Fully Furnished"],
+        all: [
+          {
+            field: "property_type",
+            in: NON_LAND_TYPES,
+          },
+          {
+            field: "furnishing_status",
+            in: ["Semi Furnished", "Fully Furnished"],
+          },
+        ],
       },
 
       allowSkipGroup: true,
@@ -753,7 +772,7 @@ export const commercialFlow: PropertyFlowConfig = {
     payment_options: {
       section: "legal",
 
-      priority: 25,
+      priority: 26,
 
       type: "multi_select",
 
@@ -786,7 +805,7 @@ export const commercialFlow: PropertyFlowConfig = {
     approvals: {
       section: "legal",
 
-      priority: 26,
+      priority: 27,
 
       type: "multi_select",
 
@@ -810,7 +829,7 @@ export const commercialFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 27,
+      priority: 25,
 
       type: "smart_location",
 
