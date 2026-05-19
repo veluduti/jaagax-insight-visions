@@ -569,6 +569,9 @@ export interface PropertyFlowConfig {
   // =========================================================
 
   meta?: Record<string, unknown>;
+
+  // Allow custom meta fields (e.g. strategy) consumed by dynamic resolver
+  [key: string]: unknown;
 }
 
 // ============================================================
