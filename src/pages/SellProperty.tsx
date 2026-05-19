@@ -1133,6 +1133,7 @@ export default function SellProperty() {
 
   const onBack = async () => {
     if (history.length === 0) {
+      navigate("/dashboard");
       return;
     }
 
