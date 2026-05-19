@@ -612,37 +612,6 @@ export const commercialFlow: PropertyFlowConfig = {
       options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
     },
 
-    currently_operating_as: {
-      section: "business_details",
-
-      priority: 21,
-
-      type: "multi_select",
-
-      required: false,
-
-      allowSkipGroup: true,
-
-      question: "What is this property currently operating as?",
-
-      options: [
-        "Office",
-        "Retail Store",
-        "Restaurant",
-        "Cafe",
-        "Salon",
-        "Clinic",
-        "Gym",
-        "Warehouse",
-        "Coworking Space",
-        "Training Institute",
-        "Supermarket",
-        "Hotel",
-        "Manufacturing Unit",
-        "Vacant",
-      ],
-    },
-
     commercial_furnishing: {
       section: "features",
 
@@ -682,6 +651,37 @@ export const commercialFlow: PropertyFlowConfig = {
         "Pantry",
         "False Ceiling",
         "Fire Safety",
+      ],
+    },
+
+    currently_operating_as: {
+      section: "business_details",
+
+      priority: 21,
+
+      type: "multi_select",
+
+      required: false,
+
+      allowSkipGroup: true,
+
+      question: "What is this property currently operating as?",
+
+      options: [
+        "Office",
+        "Retail Store",
+        "Restaurant",
+        "Cafe",
+        "Salon",
+        "Clinic",
+        "Gym",
+        "Warehouse",
+        "Coworking Space",
+        "Training Institute",
+        "Supermarket",
+        "Hotel",
+        "Manufacturing Unit",
+        "Vacant",
       ],
     },
 
