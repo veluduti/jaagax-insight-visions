@@ -127,7 +127,6 @@ export const commercialFlow: PropertyFlowConfig = {
   // RESOLVER STRATEGY
   // ============================================================
 
-  // @ts-expect-error - strategy is custom meta consumed by resolver
   strategy: {
     mode: "ai_staged_dynamic",
     priorityBased: true,
