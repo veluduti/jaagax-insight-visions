@@ -1,3 +1,5 @@
+# Updated Commercial Flow (Client Excel Aligned)
+
 ```ts
 import type { PropertyFlowConfig } from "@/engines/types";
 
@@ -34,6 +36,16 @@ const BUILT_AREA_TYPES = [
   "Business Center",
 ];
 
+const NON_LAND_TYPES = BUILT_AREA_TYPES;
+
+const BUSINESS_SPACE_TYPES = [
+  "Office Space",
+  "Coworking Space",
+  "Business Center",
+  "Clinic / Hospital Space",
+  "Educational Institute",
+];
+
 export const commercialFlow: PropertyFlowConfig = {
   id: "commercial",
 
@@ -41,7 +53,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
   label: "Commercial",
 
-  version: "v1-client-commercial-excel-aligned",
+  version: "v2-client-commercial-fully-aligned",
 
   engine: {
     mode: "dynamic_conversation",
@@ -83,6 +95,18 @@ export const commercialFlow: PropertyFlowConfig = {
     preserveParentDataDuringClone: true,
 
     AIBasedNextQuestionSelection: true,
+
+    progressiveConversationMode: true,
+
+    intelligentDependencyRouting: true,
+
+    contextualSkipLogic: true,
+
+    askOnlyContextualQuestions: true,
+
+    propertyTypeAwareQuestions: true,
+
+    dynamicFlowReordering: true,
   },
 
   ai: {
@@ -127,63 +151,63 @@ export const commercialFlow: PropertyFlowConfig = {
     autoGenerateTitle: true,
 
     autoGenerateSEO: true,
+
+    supportProgressiveLocationConversation: true,
+
+    supportVariantDetection: true,
+
+    supportContextualCommercialQuestions: true,
+
+    supportOptionalSectionSkipping: true,
   },
 
   sections: [
     {
       id: "basic_information",
-
       label: "Basic Information",
-
       priority: 1,
     },
 
     {
       id: "property_configuration",
-
       label: "Commercial Configuration",
-
       priority: 2,
     },
 
     {
       id: "pricing",
-
       label: "Pricing",
-
       priority: 3,
     },
 
     {
       id: "business_details",
-
       label: "Business Details",
-
       priority: 4,
     },
 
     {
       id: "features",
-
       label: "Features & Amenities",
-
       priority: 5,
     },
 
     {
       id: "location",
-
       label: "Location",
-
       priority: 6,
     },
 
     {
       id: "legal",
-
       label: "Legal & Approvals",
-
       priority: 7,
+    },
+
+    {
+      id: "finalization",
+      label: "Finalization",
+      priority: 8,
     },
   ],
 
@@ -225,18 +249,17 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "Do you want to Sell, Rent or Lease this property?",
+      question: "Is this property for Buy, Rent or Lease?",
 
       options: ["Buy", "Rent", "Lease"],
 
       invalidateOnChange: [
-        "property_condition",
-        "availability_status",
+        "available_from_date",
         "possession_date",
         "property_age",
-        "available_from_date",
         "rent_amount",
         "total_price",
+        "price_per_unit",
       ],
     },
 
@@ -266,8 +289,8 @@ export const commercialFlow: PropertyFlowConfig = {
       required: false,
 
       visibleIf: {
-        field: "listing_type",
-        in: ["Rent", "Lease"],
+        field: "property_condition",
+        equals: "Ready to Occupy",
       },
 
       question: "When is the property available from?",
@@ -320,6 +343,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: true,
 
+      requiredIfVisible: true,
+
       visibleIf: {
         field: "property_type",
         in: BUILT_AREA_TYPES,
@@ -328,16 +353,49 @@ export const commercialFlow: PropertyFlowConfig = {
       question: "What is the built area size?",
 
       units: ["Sq Ft"],
+
+      aiFollowup: {
+        triggerAfterAnswer: true,
+        askForVariants: true,
+        followupQuestion:
+          "Do you have additional commercial area sizes available for separate listings?",
+      },
+    },
+
+    land_size: {
+      section: "property_configuration",
+
+      priority: 9,
+
+      type: "measurement",
+
+      required: true,
+
+      requiredIfVisible: true,
+
+      visibleIf: {
+        field: "property_type",
+        equals: "Commercial Land / Plot",
+      },
+
+      question: "What is the land size?",
+
+      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
     },
 
     add_multiple_sizes: {
       section: "property_configuration",
 
-      priority: 9,
+      priority: 10,
 
       type: "single_select",
 
       required: false,
+
+      visibleIf: {
+        field: "property_type",
+        in: BUILT_AREA_TYPES,
+      },
 
       question: "Do you want to add multiple area variants?",
 
@@ -347,7 +405,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_variants: {
       section: "property_configuration",
 
-      priority: 10,
+      priority: 11,
 
       type: "multi_variant_group",
 
@@ -390,20 +448,6 @@ export const commercialFlow: PropertyFlowConfig = {
       },
     },
 
-    land_size: {
-      section: "property_configuration",
-
-      priority: 11,
-
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the land size?",
-
-      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
-    },
-
     floor_number: {
       section: "property_configuration",
 
@@ -412,6 +456,11 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "number",
 
       required: false,
+
+      visibleIf: {
+        field: "property_type",
+        in: NON_LAND_TYPES,
+      },
 
       question: "Which floor is this commercial property on?",
     },
@@ -425,7 +474,12 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "How many total floors are there?",
+      visibleIf: {
+        field: "property_type",
+        in: NON_LAND_TYPES,
+      },
+
+      question: "How many total floors are there in the building?",
     },
 
     total_price: {
@@ -467,12 +521,16 @@ export const commercialFlow: PropertyFlowConfig = {
 
       question: "What is the price per unit?",
 
+      dynamicUnitSource: {
+        from: ["built_area", "land_size"],
+      },
+
       autoCalculation: {
         enabled: true,
 
-        calculate: "total_price",
+        calculate: "price_per_unit",
 
-        formula: "built_area * price_per_unit",
+        formula: "total_price / (built_area || land_size)",
       },
     },
 
@@ -508,6 +566,13 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        field: "property_type",
+        in: BUSINESS_SPACE_TYPES,
+      },
+
+      allowSkipGroup: true,
+
       question: "What business space facilities are available?",
 
       options: [
@@ -529,6 +594,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      allowSkipGroup: true,
+
       question: "What parking options are available?",
 
       options: ["Car Parking", "Bike Parking", "Visitor Parking"],
@@ -543,6 +610,11 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        field: "property_type",
+        in: NON_LAND_TYPES,
+      },
+
       question: "What is the furnishing status?",
 
       options: ["Unfurnished", "Semi Furnished", "Fully Furnished"],
@@ -553,11 +625,13 @@ export const commercialFlow: PropertyFlowConfig = {
 
       priority: 20,
 
-      type: "single_select",
+      type: "multi_select",
 
       required: false,
 
-      question: "What is the property currently operating as?",
+      allowSkipGroup: true,
+
+      question: "What is this property currently operating as?",
 
       options: [
         "Office",
@@ -591,6 +665,8 @@ export const commercialFlow: PropertyFlowConfig = {
         in: ["Semi Furnished", "Fully Furnished"],
       },
 
+      allowSkipGroup: true,
+
       question: "Which commercial furnishing items are available?",
 
       options: [
@@ -617,6 +693,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "multi_select",
 
       required: false,
+
+      allowSkipGroup: true,
 
       question: "Which businesses is this property suitable for?",
 
@@ -648,6 +726,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      allowSkipGroup: true,
+
       question: "Which commercial amenities are available?",
 
       options: [
@@ -675,6 +755,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      allowSkipGroup: true,
+
       question: "What visibility and access advantages does the property have?",
 
       options: [
@@ -695,6 +777,8 @@ export const commercialFlow: PropertyFlowConfig = {
       type: "multi_select",
 
       required: false,
+
+      allowSkipGroup: true,
 
       question: "What payment options are available?",
 
@@ -727,6 +811,8 @@ export const commercialFlow: PropertyFlowConfig = {
 
       required: false,
 
+      allowSkipGroup: true,
+
       question: "What approvals does this property have?",
 
       options: [
@@ -747,7 +833,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       type: "smart_location",
 
-      renderMode: "widget",
+      renderMode: "progressive_conversation",
 
       widget: "SmartLocationWidget",
 
@@ -771,7 +857,7 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     property_highlights: {
-      section: "features",
+      section: "finalization",
 
       priority: 28,
 
@@ -801,7 +887,7 @@ export const commercialFlow: PropertyFlowConfig = {
     },
 
     property_description: {
-      section: "features",
+      section: "finalization",
 
       priority: 29,
 
@@ -811,11 +897,22 @@ export const commercialFlow: PropertyFlowConfig = {
 
       aiGenerated: true,
 
+      autoGenerateFrom: [
+        "property_type",
+        "location",
+        "furnishing_status",
+        "commercial_amenities",
+        "visibility_access",
+        "pricing",
+        "suitable_for",
+        "currently_operating_as",
+      ],
+
       question: "Property description will be AI generated based on your inputs.",
     },
 
     assign_nearest_agent: {
-      section: "basic_information",
+      section: "finalization",
 
       priority: 30,
 
@@ -914,7 +1011,17 @@ export const commercialFlow: PropertyFlowConfig = {
     {
       type: "auto_generate_description",
     },
+    {
+      type: "contextual_commercial_flow",
+    },
+    {
+      type: "progressive_location_flow",
+    },
+    {
+      type: "commercial_property_dependency_flow",
+    },
   ],
 };
 
 export default commercialFlow;
+```
