@@ -304,6 +304,15 @@ function formatAnswer(field: FieldDef, value: any): string {
     const fmt = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n));
     return `${v.area} ${v.unit} × ₹${fmt(Number(v.pricePerUnit))}/${v.unit}  ≈  ₹${fmt(total)}`;
   }
+  if (field.type === "plot_measurement_widget" && typeof value === "object") {
+    return Object.entries(value)
+      .map(([k, v]: any) => {
+        const side = k.replace("_measurement", "");
+
+        return `${side}: ${v.value} ${v.unit}`;
+      })
+      .join(", ");
+  }
   return String(value);
 }
 
