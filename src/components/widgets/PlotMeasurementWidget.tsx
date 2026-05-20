@@ -74,7 +74,6 @@ export const PlotMeasurementWidget = ({
       },
     };
     setInternal(next);
-    onChange?.(next);
   };
 
   return (
@@ -136,7 +135,6 @@ export const PlotMeasurementWidget = ({
                   next[d.id] = { value: s, unit: next[d.id]?.unit ?? d.unit ?? resolvedUnits[0] };
                 });
                 setInternal(next);
-                onChange?.(next);
               }}
               className="text-xs px-3 py-1 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
             >
@@ -145,6 +143,21 @@ export const PlotMeasurementWidget = ({
           ))}
         </div>
       )}
+      <div className="flex justify-end mt-6">
+        <button
+          type="button"
+          onClick={() => onChange?.(internal)}
+          className="
+      px-5
+      py-2
+      rounded-xl
+      bg-primary
+      text-primary-foreground
+    "
+        >
+          Continue
+        </button>
+      </div>
     </Card>
   );
 };
