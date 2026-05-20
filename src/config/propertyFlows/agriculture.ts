@@ -578,6 +578,17 @@ export const agriculturalFlow: PropertyFlowConfig = {
       },
 
       question: "What type of agricultural partnership are you looking for?",
+
+      smartSuggestions: {
+        enabled: true,
+
+        examples: [
+          "Profit sharing farming partnership",
+          "Long-term agricultural lease partnership",
+          "Organic farming collaboration",
+          "Joint cultivation agreement",
+        ],
+      },
     },
 
     payment_options: {
@@ -634,10 +645,22 @@ export const agriculturalFlow: PropertyFlowConfig = {
       ],
     },
 
-    agriculture_highlights: {
+    media_uploads: {
       section: "finalization",
 
       priority: 21,
+
+      type: "media_upload",
+
+      required: false,
+
+      question: "Upload farm images, land documents or videos for AI auto-fill.",
+    },
+
+    agriculture_highlights: {
+      section: "finalization",
+
+      priority: 22,
 
       type: "multi_select",
 
@@ -693,7 +716,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 22,
+      priority: 23,
 
       type: "single_select",
 
