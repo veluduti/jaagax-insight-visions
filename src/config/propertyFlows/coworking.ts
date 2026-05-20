@@ -597,7 +597,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     available_from: {
       section: "availability",
 
-      priority: 27,
+      priority: 21,
 
       type: "future_date",
 
@@ -611,7 +611,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     access_24x7: {
       section: "availability",
 
-      priority: 28,
+      priority: 22,
 
       type: "single_select",
 
@@ -625,7 +625,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     working_hours: {
       section: "availability",
 
-      priority: 29,
+      priority: 23,
 
       type: "text",
 
@@ -642,7 +642,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     payment_options: {
       section: "pricing",
 
-      priority: 30,
+      priority: 24,
 
       type: "multi_select",
 
@@ -666,7 +666,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 31,
+      priority: 25,
 
       type: "smart_location",
 
@@ -698,7 +698,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     media_uploads: {
       section: "finalization",
 
-      priority: 32,
+      priority: 26,
 
       type: "media_upload",
 
@@ -710,7 +710,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     coworking_highlights: {
       section: "finalization",
 
-      priority: 33,
+      priority: 27,
 
       type: "multi_select",
 
@@ -763,7 +763,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 34,
+      priority: 28,
 
       type: "single_select",
 
