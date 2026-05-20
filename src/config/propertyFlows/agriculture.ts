@@ -182,7 +182,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
 
       priority: 1,
 
-      type: "single_select",
+      type: "multi_select",
 
       required: true,
 
