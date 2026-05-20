@@ -2007,13 +2007,15 @@ export default function SellProperty() {
               </div>
             )}
             {field?.type === "workspace_configuration_widget" && (
-              <WorkspaceConfigurationWidget
-                field={field.raw}
-                value={value}
-                onChange={(v) => {
-                  commitAnswer(v);
-                }}
-              />
+              <div className="pt-3">
+                <WorkspaceConfigurationWidget
+                  field={field.raw}
+                  value={value}
+                  onChange={(v) => {
+                    commitAnswer(v);
+                  }}
+                />
+              </div>
             )}
 
             {/* Required/optional inline indicator */}
