@@ -122,27 +122,6 @@ export const PlotMeasurementWidget = ({
         </div>
       </div>
 
-      {resolvedSuggestions?.length > 0 && (
-        <div className="flex flex-wrap gap-2 justify-center">
-          <span className="text-xs text-muted-foreground self-center">Quick:</span>
-          {resolvedSuggestions.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => {
-                const next: PlotMeasurementValue = { ...internal };
-                resolvedDirections.forEach((d) => {
-                  next[d.id] = { value: s, unit: next[d.id]?.unit ?? d.unit ?? resolvedUnits[0] };
-                });
-                setInternal(next);
-              }}
-              className="text-xs px-3 py-1 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-            >
-              {s} {resolvedUnits[0]}
-            </button>
-          ))}
-        </div>
-      )}
       <div className="flex justify-end mt-6">
         <button
           type="button"
