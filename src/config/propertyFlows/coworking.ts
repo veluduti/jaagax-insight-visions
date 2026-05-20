@@ -750,13 +750,13 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       autoGenerateFrom: [
         "shared_space_type",
+        "workspace_configuration",
         "workspace_features",
         "office_amenities",
         "industries_working_here",
         "community_type",
         "location",
         "price_per_seat",
-        "workspace_configuration",
       ],
     },
 
