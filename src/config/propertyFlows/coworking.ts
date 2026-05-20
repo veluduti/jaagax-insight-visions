@@ -242,7 +242,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     total_seats: {
       section: "workspace_configuration",
 
-      priority: 4,
+      priority: 5,
 
       type: "number",
 
@@ -254,7 +254,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     available_seats: {
       section: "workspace_configuration",
 
-      priority: 5,
+      priority: 6,
 
       type: "number",
 
@@ -266,7 +266,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     private_cabins: {
       section: "workspace_configuration",
 
-      priority: 6,
+      priority: 7,
 
       type: "number",
 
@@ -278,7 +278,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     meeting_rooms: {
       section: "workspace_configuration",
 
-      priority: 7,
+      priority: 8,
 
       type: "number",
 
@@ -290,7 +290,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     conference_rooms: {
       section: "workspace_configuration",
 
-      priority: 8,
+      priority: 9,
 
       type: "number",
 
@@ -302,7 +302,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     floor_number: {
       section: "workspace_configuration",
 
-      priority: 9,
+      priority: 11,
 
       type: "number",
 
@@ -326,7 +326,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     built_area: {
       section: "workspace_configuration",
 
-      priority: 11,
+      priority: 4,
 
       type: "measurement",
 
