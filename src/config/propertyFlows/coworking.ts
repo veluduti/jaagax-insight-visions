@@ -262,6 +262,8 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       required: true,
 
+      maxValueFromField: "total_seats"
+
       question: "How many seats are currently available?",
     },
 
