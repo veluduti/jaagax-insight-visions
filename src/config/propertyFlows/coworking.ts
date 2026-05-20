@@ -192,7 +192,7 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       priority: 1,
 
-      type: "multi_select"
+      type: "multi_select",
 
       required: true,
 
