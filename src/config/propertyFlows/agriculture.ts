@@ -474,7 +474,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     approvals: {
       section: "legal",
 
-      priority: 14,
+      priority: 15,
 
       type: "multi_select",
 
@@ -497,7 +497,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     total_price: {
       section: "pricing",
 
-      priority: 15,
+      priority: 16,
 
       type: "price",
 
@@ -520,7 +520,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 16,
+      priority: 17,
 
       type: "price_per_unit",
 
@@ -549,7 +549,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     rent_amount: {
       section: "pricing",
 
-      priority: 17,
+      priority: 18,
 
       type: "rental_price",
 
@@ -566,7 +566,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     partnership_details: {
       section: "pricing",
 
-      priority: 18,
+      priority: 19,
 
       type: "textarea",
 
@@ -583,7 +583,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     payment_options: {
       section: "legal",
 
-      priority: 19,
+      priority: 20,
 
       type: "multi_select",
 
@@ -605,7 +605,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 20,
+      priority: 14,
 
       type: "smart_location",
 
@@ -693,7 +693,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 23,
+      priority: 22,
 
       type: "single_select",
 
