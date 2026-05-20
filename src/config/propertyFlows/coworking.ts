@@ -262,7 +262,7 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       required: true,
 
-      maxValueFromField: "total_seats"
+      maxValueFromField: "total_seats",
 
       question: "How many seats are currently available?",
     },
@@ -426,10 +426,22 @@ export const coworkingFlow: PropertyFlowConfig = {
       question: "What is the price per seat?",
     },
 
-    security_deposit: {
+    add_multiple_workspace_variants: {
       section: "pricing",
 
       priority: 17,
+
+      type: "yes_no",
+
+      required: false,
+
+      question: "Do you have more workspace packages or seat variants available?",
+    },
+
+    security_deposit: {
+      section: "pricing",
+
+      priority: 18,
 
       type: "price",
 
@@ -446,7 +458,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     maintenance_charges: {
       section: "pricing",
 
-      priority: 18,
+      priority: 19,
 
       type: "price",
 
@@ -463,7 +475,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     workspace_features: {
       section: "workspace_features",
 
-      priority: 19,
+      priority: 20,
 
       type: "multi_select",
 
@@ -495,7 +507,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     office_amenities: {
       section: "workspace_features",
 
-      priority: 20,
+      priority: 21,
 
       type: "multi_select",
 
@@ -524,7 +536,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "workspace_features",
 
-      priority: 21,
+      priority: 22,
 
       type: "single_select",
 
@@ -546,7 +558,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     industries_working_here: {
       section: "workspace_features",
 
-      priority: 22,
+      priority: 23,
 
       type: "multi_select",
 
@@ -586,7 +598,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     community_type: {
       section: "workspace_features",
 
-      priority: 23,
+      priority: 24,
 
       type: "multi_select",
 
@@ -613,7 +625,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     suitable_for: {
       section: "workspace_features",
 
-      priority: 24,
+      priority: 25,
 
       type: "multi_select",
 
@@ -640,7 +652,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     available_from: {
       section: "availability",
 
-      priority: 25,
+      priority: 26,
 
       type: "future_date",
 
@@ -654,7 +666,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     access_24x7: {
       section: "availability",
 
-      priority: 26,
+      priority: 27,
 
       type: "single_select",
 
@@ -668,7 +680,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     working_hours: {
       section: "availability",
 
-      priority: 27,
+      priority: 28,
 
       type: "text",
 
@@ -685,7 +697,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     payment_options: {
       section: "pricing",
 
-      priority: 28,
+      priority: 29,
 
       type: "multi_select",
 
@@ -709,7 +721,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 29,
+      priority: 30,
 
       type: "smart_location",
 
@@ -741,7 +753,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     media_uploads: {
       section: "finalization",
 
-      priority: 30,
+      priority: 31,
 
       type: "media_upload",
 
@@ -753,7 +765,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     coworking_highlights: {
       section: "finalization",
 
-      priority: 31,
+      priority: 32,
 
       type: "multi_select",
 
@@ -807,7 +819,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 32,
+      priority: 33,
 
       type: "single_select",
 
