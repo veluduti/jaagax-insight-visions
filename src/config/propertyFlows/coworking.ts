@@ -595,18 +595,22 @@ export const coworkingFlow: PropertyFlowConfig = {
     },
 
     available_from: {
-      section: "availability",
+  section: "availability",
 
-      priority: 21,
+  priority: 21,
 
-      type: "future_date",
+  type: "future_date",
 
-      renderAs: "calendar",
+  renderAs: "calendar",
 
-      required: false,
+  required: false,
 
-      question: "When will this workspace be available from?",
-    },
+  validation: {
+    disablePastDates: true,
+  }
+
+  question: "When will this workspace be available from?",
+},
 
     access_24x7: {
       section: "availability",
