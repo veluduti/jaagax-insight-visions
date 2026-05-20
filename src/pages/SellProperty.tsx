@@ -2006,7 +2006,6 @@ export default function SellProperty() {
                 <PlotMeasurementWidget field={field.raw} value={value} onChange={setValue} />
               </div>
             )}
-
             {field?.type === "workspace_configuration_widget" && (
               <WorkspaceConfigurationWidget
                 field={field.raw}
@@ -2016,7 +2015,6 @@ export default function SellProperty() {
                 }}
               />
             )}
-
 
             {/* Required/optional inline indicator */}
             {field && !loadingNext && !done && (
