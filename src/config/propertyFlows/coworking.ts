@@ -769,44 +769,6 @@ export const coworkingFlow: PropertyFlowConfig = {
       ],
     },
 
-    nearest_metro: {
-      section: "location",
-
-      priority: 32,
-
-      type: "text",
-
-      required: false,
-
-      question: "Which is the nearest metro station?",
-    },
-
-    business_district: {
-      section: "location",
-
-      priority: 33,
-
-      type: "text",
-
-      required: false,
-
-      question: "Which business district or IT corridor is this workspace located in?",
-    },
-
-    nearby_landmarks: {
-      section: "location",
-
-      priority: 34,
-
-      type: "multi_select",
-
-      required: false,
-
-      allowCustomValues: true,
-
-      question: "What are the nearby landmarks or tech parks?",
-    },
-
     media_uploads: {
       section: "finalization",
 
