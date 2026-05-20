@@ -224,7 +224,7 @@ export const plotsFlow: PropertyFlowConfig = {
     plot_size: {
       section: "plot_configuration",
 
-      priority: 4,
+      priority: 5,
 
       type: "measurement",
 
