@@ -982,13 +982,31 @@ export default function SellProperty() {
     // USER MESSAGE
     // =========================================================
 
+    let userMessage = displayText ?? formatAnswer(f, normalized);
+
+    // =========================================================
+    // WIDGET PROTECTION
+    // =========================================================
+
+    if (
+      f.type === "plot_measurement_widget" ||
+      f.input === "plot_measurement_widget" ||
+      f.type === "workspace_configuration_widget" ||
+      f.input === "workspace_configuration_widget"
+    ) {
+      userMessage =
+        f.type === "workspace_configuration_widget" || f.input === "workspace_configuration_widget"
+          ? "Workspace configuration added"
+          : "Plot measurements added";
+    }
+
     setMessages((m) => [
       ...m,
       {
         id: uid(),
         role: "user",
         kind: "text",
-        text: displayText ?? formatAnswer(f, normalized),
+        text: userMessage,
       },
     ]);
 
