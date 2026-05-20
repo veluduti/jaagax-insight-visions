@@ -313,7 +313,7 @@ function formatAnswer(field: FieldDef, value: any): string {
     return `${v.area} ${v.unit} × ₹${fmt(Number(v.pricePerUnit))}/${v.unit}  ≈  ₹${fmt(total)}`;
   }
   if (
-    (field.type === "plot_measurement_widget" || field.input === "plot_measurement_widget") &&
+    (field.type === "plot_measurement_widget" || (field.input as string) === "plot_measurement_widget") &&
     typeof value === "object"
   ) {
     return Object.entries(value)
