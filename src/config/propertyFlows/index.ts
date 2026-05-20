@@ -6,7 +6,7 @@ import type { PropertyCategory, PropertyFlowConfig } from "@/engines/types";
 import { residentialFlow } from "./residential";
 import { commercialFlow } from "./commercial";
 import { plotsFlow } from "./plots";
-import { agricultureFlow } from "./agriculture";
+import { agriculturalFlow as agricultureFlow } from "./agriculture";
 import { coworkingFlow } from "./coworking";
 
 export const propertyFlows: Record<PropertyCategory, PropertyFlowConfig> = {
