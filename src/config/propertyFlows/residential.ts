@@ -473,58 +473,23 @@ export const residentialFlow = {
       units: ["Sq Ft"],
     },
 
-    east_measurement: {
+    plot_side_measurements: {
       section: "property_configuration",
 
       priority: 15,
 
-      type: "measurement",
+      type: "plot_measurement_widget",
+
+      renderMode: "widget",
 
       required: false,
 
-      question: "What is the East side measurement?",
+      visibleIf: {
+        field: "property_type",
+        in: HOUSE_TYPES,
+      },
 
-      units: ["Ft"],
-    },
-
-    west_measurement: {
-      section: "property_configuration",
-
-      priority: 16,
-
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the West side measurement?",
-
-      units: ["Ft"],
-    },
-
-    north_measurement: {
-      section: "property_configuration",
-
-      priority: 17,
-
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the North side measurement?",
-
-      units: ["Ft"],
-    },
-
-    south_measurement: {
-      section: "property_configuration",
-
-      priority: 18,
-
-      type: "measurement",
-
-      required: false,
-
-      question: "What is the South side measurement?",
+      question: "Please provide plot side measurements.",
 
       units: ["Ft"],
     },
