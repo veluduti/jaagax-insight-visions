@@ -666,7 +666,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     property_description: {
       section: "finalization",
 
-      priority: 22,
+      priority: 999,
 
       type: "ai_generated_text",
 
@@ -675,8 +675,6 @@ export const agriculturalFlow: PropertyFlowConfig = {
       aiGenerated: true,
 
       hiddenFromConversation: true,
-
-      question: "AI property description will be generated automatically.",
 
       autoGenerateFrom: [
         "agricultural_land_type",
