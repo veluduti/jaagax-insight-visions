@@ -704,7 +704,11 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       type: "smart_location",
 
-      renderMode: "progressive_conversation",
+      renderMode: "widget",
+
+      widgetType: "smart_location",
+
+      widget: "SmartLocationWidget",
 
       required: true,
 
