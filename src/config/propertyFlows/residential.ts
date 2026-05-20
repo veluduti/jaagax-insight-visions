@@ -497,7 +497,7 @@ export const residentialFlow = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 19,
+      priority: 16,
 
       type: "price_per_unit",
 
@@ -522,7 +522,7 @@ export const residentialFlow = {
     total_price: {
       section: "pricing",
 
-      priority: 20,
+      priority: 17,
 
       type: "price",
 
@@ -545,7 +545,7 @@ export const residentialFlow = {
     monthly_rent: {
       section: "pricing",
 
-      priority: 21,
+      priority: 18,
 
       type: "rental_price",
 
@@ -562,7 +562,7 @@ export const residentialFlow = {
     bathroom_count: {
       section: "property_configuration",
 
-      priority: 22,
+      priority: 19,
 
       type: "number",
 
@@ -574,7 +574,7 @@ export const residentialFlow = {
     balcony_count: {
       section: "property_configuration",
 
-      priority: 23,
+      priority: 20,
 
       type: "number",
 
@@ -591,7 +591,7 @@ export const residentialFlow = {
     floor_number: {
       section: "property_configuration",
 
-      priority: 24,
+      priority: 21,
 
       type: "number",
 
@@ -608,7 +608,7 @@ export const residentialFlow = {
     total_floors: {
       section: "property_configuration",
 
-      priority: 25,
+      priority: 22,
 
       type: "number",
 
@@ -625,7 +625,7 @@ export const residentialFlow = {
     gated_community: {
       section: "project_information",
 
-      priority: 26,
+      priority: 23,
 
       type: "single_select",
 
@@ -641,7 +641,7 @@ export const residentialFlow = {
     project_name: {
       section: "project_information",
 
-      priority: 27,
+      priority: 24,
 
       type: "text",
 
@@ -658,7 +658,7 @@ export const residentialFlow = {
     total_towers: {
       section: "project_information",
 
-      priority: 28,
+      priority: 25,
 
       type: "number",
 
@@ -683,7 +683,7 @@ export const residentialFlow = {
     floors_per_tower: {
       section: "project_information",
 
-      priority: 29,
+      priority: 26,
 
       type: "number",
 
@@ -708,7 +708,7 @@ export const residentialFlow = {
     total_units: {
       section: "project_information",
 
-      priority: 30,
+      priority: 27,
 
       type: "number",
 
@@ -733,7 +733,7 @@ export const residentialFlow = {
     total_land_area: {
       section: "project_information",
 
-      priority: 31,
+      priority: 28,
 
       type: "measurement",
 
@@ -752,7 +752,7 @@ export const residentialFlow = {
     furnishing_status: {
       section: "features",
 
-      priority: 32,
+      priority: 29,
 
       type: "single_select",
 
@@ -766,7 +766,7 @@ export const residentialFlow = {
     furnishing_items: {
       section: "features",
 
-      priority: 33,
+      priority: 30,
 
       type: "multi_select",
 
@@ -785,7 +785,7 @@ export const residentialFlow = {
     property_facing: {
       section: "features",
 
-      priority: 34,
+      priority: 31,
 
       type: "single_select",
 
@@ -799,7 +799,7 @@ export const residentialFlow = {
     amenities: {
       section: "features",
 
-      priority: 35,
+      priority: 32,
 
       type: "multi_select",
 
@@ -824,7 +824,7 @@ export const residentialFlow = {
     payment_options: {
       section: "legal",
 
-      priority: 36,
+      priority: 33,
 
       type: "multi_select",
 
@@ -855,7 +855,7 @@ export const residentialFlow = {
     approvals: {
       section: "legal",
 
-      priority: 37,
+      priority: 34,
 
       type: "multi_select",
 
@@ -878,7 +878,7 @@ export const residentialFlow = {
     location: {
       section: "location",
 
-      priority: 38,
+      priority: 35,
 
       type: "smart_location",
 
@@ -896,7 +896,7 @@ export const residentialFlow = {
     property_highlights: {
       section: "features",
 
-      priority: 39,
+      priority: 36,
 
       type: "multi_select",
 
@@ -957,7 +957,7 @@ export const residentialFlow = {
     assign_nearest_agent: {
       section: "basic_information",
 
-      priority: 40,
+      priority: 37,
 
       type: "single_select",
 
