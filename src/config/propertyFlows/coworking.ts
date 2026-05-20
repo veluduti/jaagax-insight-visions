@@ -751,7 +751,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     coworking_highlights: {
       section: "finalization",
 
-      priority: 30,
+      priority: 31,
 
       type: "multi_select",
 
