@@ -255,6 +255,20 @@ export const coworkingFlow: PropertyFlowConfig = {
       units: ["Sq Ft"],
     },
 
+    workspace_configuration: {
+      section: "workspace_configuration",
+
+      priority: 5,
+
+      type: "workspace_configuration_widget",
+
+      renderMode: "widget",
+
+      required: true,
+
+      question: "Please provide workspace configuration details.",
+    },
+
     hourly_price: {
       section: "pricing",
 
