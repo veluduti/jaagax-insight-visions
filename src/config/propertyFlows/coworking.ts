@@ -272,7 +272,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     hourly_price: {
       section: "pricing",
 
-      priority: 12,
+      priority: 6,
 
       type: "price",
 
@@ -289,7 +289,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     daily_pass_price: {
       section: "pricing",
 
-      priority: 13,
+      priority: 7,
 
       type: "price",
 
@@ -306,7 +306,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     weekly_price: {
       section: "pricing",
 
-      priority: 14,
+      priority: 8,
 
       type: "price",
 
@@ -323,7 +323,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     monthly_rent: {
       section: "pricing",
 
-      priority: 15,
+      priority: 9,
 
       type: "rental_price",
 
@@ -340,7 +340,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     price_per_seat: {
       section: "pricing",
 
-      priority: 16,
+      priority: 10,
 
       type: "price",
 
