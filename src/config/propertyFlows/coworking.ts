@@ -357,7 +357,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     add_multiple_workspace_variants: {
       section: "pricing",
 
-      priority: 17,
+      priority: 11,
 
       type: "yes_no",
 
@@ -369,7 +369,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     workspace_variant_details: {
       section: "pricing",
 
-      priority: 18,
+      priority: 12,
 
       type: "textarea",
 
@@ -386,7 +386,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     security_deposit: {
       section: "pricing",
 
-      priority: 19,
+      priority: 13,
 
       type: "price",
 
@@ -403,7 +403,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     maintenance_charges: {
       section: "pricing",
 
-      priority: 20,
+      priority: 14,
 
       type: "price",
 
@@ -420,7 +420,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     workspace_features: {
       section: "workspace_features",
 
-      priority: 21,
+      priority: 15,
 
       type: "multi_select",
 
@@ -452,7 +452,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     office_amenities: {
       section: "workspace_features",
 
-      priority: 22,
+      priority: 16,
 
       type: "multi_select",
 
@@ -481,7 +481,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "workspace_features",
 
-      priority: 23,
+      priority: 17,
 
       type: "single_select",
 
@@ -503,7 +503,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     industries_working_here: {
       section: "workspace_features",
 
-      priority: 24,
+      priority: 18,
 
       type: "multi_select",
 
@@ -543,7 +543,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     community_type: {
       section: "workspace_features",
 
-      priority: 25,
+      priority: 19,
 
       type: "multi_select",
 
@@ -570,7 +570,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     suitable_for: {
       section: "workspace_features",
 
-      priority: 26,
+      priority: 20,
 
       type: "multi_select",
 
