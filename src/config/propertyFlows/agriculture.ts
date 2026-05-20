@@ -154,19 +154,19 @@ export const agriculturalFlow: PropertyFlowConfig = {
     {
       id: "pricing",
       label: "Pricing",
-      priority: 4,
+      priority: 5,
     },
 
     {
       id: "legal",
       label: "Legal & Payment",
-      priority: 5,
+      priority: 6,
     },
 
     {
       id: "location",
       label: "Location",
-      priority: 6,
+      priority: 4,
     },
 
     {
