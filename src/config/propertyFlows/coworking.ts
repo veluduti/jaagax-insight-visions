@@ -194,12 +194,13 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       type: "multi_select",
 
+      allowMultipleSelection: true,
+
       required: true,
 
       question: "What type of shared workspace is this?",
 
       options: SHARED_SPACE_TYPES,
-      
     },
 
     listed_by: {
