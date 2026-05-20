@@ -156,7 +156,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     phone: "phone",
     email: "email",
     text: "text",
-    plot_measurement_widget: "text",
+    plot_measurement_widget: "plot_measurement_widget",
   };
   const ss = raw?.smartSuggestions || {};
   const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
