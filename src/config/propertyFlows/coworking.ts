@@ -607,7 +607,7 @@ export const coworkingFlow: PropertyFlowConfig = {
 
   validation: {
     disablePastDates: true,
-  }
+  },
 
   question: "When will this workspace be available from?",
 },
