@@ -760,7 +760,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     property_description: {
       section: "finalization",
 
-      priority: 31,
+      priority: 999,
 
       type: "ai_generated_text",
 
@@ -769,8 +769,6 @@ export const coworkingFlow: PropertyFlowConfig = {
       aiGenerated: true,
 
       hiddenFromConversation: true,
-
-      question: "AI workspace description will be generated automatically.",
 
       autoGenerateFrom: [
         "shared_space_type",
