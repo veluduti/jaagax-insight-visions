@@ -328,7 +328,6 @@ function formatAnswer(field: FieldDef, value: any): string {
       })
       .join(", ");
   }
-  return String(value);
 
   if (
     (field.type === "workspace_configuration_widget" || field.input === "workspace_configuration_widget") &&
@@ -336,6 +335,8 @@ function formatAnswer(field: FieldDef, value: any): string {
   ) {
     return "Workspace configuration added";
   }
+
+  return String(value);
 }
 
 export default function SellProperty() {
