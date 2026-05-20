@@ -670,6 +670,11 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       required: false,
 
+      visibleIf: {
+        field: "access_24x7",
+        equals: "No",
+      },
+
       question: "What are the workspace operating hours?",
     },
 
