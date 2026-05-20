@@ -248,7 +248,7 @@ export const plotsFlow: PropertyFlowConfig = {
     add_multiple_plot_sizes: {
       section: "plot_configuration",
 
-      priority: 5,
+      priority: 6,
 
       type: "single_select",
 
@@ -262,7 +262,7 @@ export const plotsFlow: PropertyFlowConfig = {
     plot_variants: {
       section: "plot_configuration",
 
-      priority: 6,
+      priority: 7,
 
       type: "multi_variant_group",
 
@@ -305,7 +305,7 @@ export const plotsFlow: PropertyFlowConfig = {
     facing: {
       section: "plot_configuration",
 
-      priority: 7,
+      priority: 8,
 
       type: "single_select",
 
@@ -319,7 +319,7 @@ export const plotsFlow: PropertyFlowConfig = {
     plot_measurements: {
       section: "plot_configuration",
 
-      priority: 8,
+      priority: 9,
 
       type: "plot_measurement_widget",
 
@@ -365,7 +365,7 @@ export const plotsFlow: PropertyFlowConfig = {
     road_width: {
       section: "plot_configuration",
 
-      priority: 9,
+      priority: 10,
 
       type: "measurement",
 
@@ -379,7 +379,7 @@ export const plotsFlow: PropertyFlowConfig = {
     additional_features: {
       section: "plot_configuration",
 
-      priority: 10,
+      priority: 11,
 
       type: "multi_select",
 
@@ -406,7 +406,7 @@ export const plotsFlow: PropertyFlowConfig = {
     total_price: {
       section: "pricing",
 
-      priority: 11,
+      priority: 12,
 
       type: "price",
 
@@ -429,7 +429,7 @@ export const plotsFlow: PropertyFlowConfig = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 12,
+      priority: 13,
 
       type: "price_per_unit",
 
@@ -458,7 +458,7 @@ export const plotsFlow: PropertyFlowConfig = {
     rent_amount: {
       section: "pricing",
 
-      priority: 13,
+      priority: 4,
 
       type: "rental_price",
 
