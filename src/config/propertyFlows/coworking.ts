@@ -772,7 +772,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     media_uploads: {
       section: "finalization",
 
-      priority: 35,
+      priority: 32,
 
       type: "media_upload",
 
@@ -784,7 +784,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     coworking_highlights: {
       section: "finalization",
 
-      priority: 36,
+      priority: 33,
 
       type: "multi_select",
 
@@ -838,7 +838,7 @@ export const coworkingFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 37,
+      priority: 34,
 
       type: "single_select",
 
