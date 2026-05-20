@@ -158,6 +158,7 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
     email: "email",
     text: "text",
     plot_measurement_widget: "text",
+    workspace_configuration_widget: "workspace_configuration_widget",
   };
   const ss = raw?.smartSuggestions || {};
   const isMeasurementUnit = t === "measurement_unit" || ss.type === "dynamic_measurement_units";
