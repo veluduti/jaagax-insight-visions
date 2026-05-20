@@ -729,6 +729,18 @@ export const coworkingFlow: PropertyFlowConfig = {
       ],
     },
 
+    media_uploads: {
+      section: "finalization",
+
+      priority: 30,
+
+      type: "media_upload",
+
+      required: false,
+
+      question: "Upload workspace photos, seat layouts or office videos for AI auto-fill.",
+    },
+
     coworking_highlights: {
       section: "finalization",
 
