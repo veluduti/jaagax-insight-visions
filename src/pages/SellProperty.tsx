@@ -230,8 +230,8 @@ type FieldDef = {
     | "locality"
     | "price_unit"
     | "date"
-    | "plot_measurement_widget";
-  | "workspace_configuration_widget";
+    | "plot_measurement_widget"
+    | "workspace_configuration_widget";
   options?: string[];
   optional?: boolean;
   required?: boolean;
