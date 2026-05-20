@@ -971,13 +971,21 @@ export default function SellProperty() {
     // USER MESSAGE
     // =========================================================
 
+    let userMessage = displayText ?? formatAnswer(f, normalized);
+
+    // IMPORTANT
+    // Avoid object rendering in chat
+    if (f.type === "plot_measurement_widget" || f.input === "plot_measurement_widget") {
+      userMessage = "Plot measurements added";
+    }
+
     setMessages((m) => [
       ...m,
       {
         id: uid(),
         role: "user",
         kind: "text",
-        text: displayText ?? formatAnswer(f, normalized),
+        text: userMessage,
       },
     ]);
 
