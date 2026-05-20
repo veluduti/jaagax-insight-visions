@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
 import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
+import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import {
   Sparkles,
   ChevronLeft,
@@ -230,6 +231,7 @@ type FieldDef = {
     | "price_unit"
     | "date"
     | "plot_measurement_widget";
+  | "workspace_configuration_widget";
   options?: string[];
   optional?: boolean;
   required?: boolean;
