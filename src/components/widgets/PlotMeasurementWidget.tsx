@@ -57,8 +57,6 @@ export const PlotMeasurementWidget = ({
 
   const resolvedUnits = units || field?.units || DEFAULT_UNITS;
 
-  const resolvedSuggestions = suggestions || field?.smartSuggestions?.examples || ["30", "40", "50", "60"];
-
   useEffect(() => {
     setInternal(value || {});
   }, [value]);
