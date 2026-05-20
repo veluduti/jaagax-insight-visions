@@ -198,7 +198,7 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       required: true,
 
-      question: "What type of shared workspace is this?",
+      question: "What workspace types are available?",
 
       options: SHARED_SPACE_TYPES,
     },
