@@ -254,7 +254,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
 
       required: false,
 
-      question: "Do you want to add multiple agricultural land sizes?",
+      question: "Do you have more agricultural land size options available?",
 
       options: ["Yes", "No"],
     },
