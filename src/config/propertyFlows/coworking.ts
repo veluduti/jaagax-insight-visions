@@ -192,13 +192,14 @@ export const coworkingFlow: PropertyFlowConfig = {
 
       priority: 1,
 
-      type: "single_select",
+      type: "multi_select"
 
       required: true,
 
       question: "What type of shared workspace is this?",
 
       options: SHARED_SPACE_TYPES,
+      
     },
 
     listed_by: {
