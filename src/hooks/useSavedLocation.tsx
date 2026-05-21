@@ -123,8 +123,10 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       profileSyncedRef.current = false;
       loadFromBackend();
 
-      // Auto-prompt GPS exactly once after sign-in IF the user has no preference set
-      // and no saved location. If mode is 'disabled' or 'manual', never auto-prompt.
+      // After sign-in, surface an in-app dialog asking the user to allow location.
+      // The actual navigator.geolocation call only fires when the user clicks "Allow"
+      // inside that dialog (a real user gesture), which is what triggers the
+      // browser's native permission popup reliably.
       if (event === "SIGNED_IN") {
         setTimeout(() => {
           if (cancelled) return;
@@ -134,8 +136,8 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
           const promptedKey = "jaagax_gps_auto_prompted";
           if (sessionStorage.getItem(promptedKey)) return;
           sessionStorage.setItem(promptedKey, "1");
-          // Fire-and-forget; user can still pick manually if they deny.
-          void requestGpsRef.current?.();
+          void logPermissionState("post-signin");
+          setPendingGpsPrompt(true);
         }, 600);
       }
     });
