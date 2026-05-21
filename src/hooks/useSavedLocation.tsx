@@ -18,16 +18,18 @@ interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
   hasLocation: boolean;
-  /** Current user preference: gps (auto), manual (city picked), disabled (off), or null (unset). */
   locationMode: LocationMode | null;
-  /** Persist a manually selected location (city/area) and optional coordinates. Sets mode='manual'. */
+  /** True when app wants to ask the user (via in-app dialog) for permission to use GPS. */
+  pendingGpsPrompt: boolean;
+  /** Dismiss the in-app prompt without invoking the browser API. */
+  dismissGpsPrompt: (remember?: boolean) => void;
   selectLocation: (loc: Omit<SavedLocation, "last_updated"> & Partial<Pick<SavedLocation, "last_updated">>) => Promise<void>;
-  /** USER-INITIATED only. Requests browser GPS, reverse-geocodes, persists. Sets mode='gps'. */
+  /** USER-INITIATED only. Must be called from a user-gesture event handler. */
   requestGpsLocation: () => Promise<void>;
-  /** Clears the saved location (does not change mode). */
   clearLocation: () => Promise<void>;
-  /** Turn location off — clears saved location and prevents auto-prompt. */
   disableLocation: () => Promise<void>;
+  /** DEV-ONLY: wipe saved location/mode and re-show the in-app prompt for testing. */
+  resetLocationForTesting: () => void;
 }
 
 /**
@@ -45,11 +47,25 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     readLocationModeFromStorage()
   );
   const [isResolvingGps, setIsResolvingGps] = useState(false);
+  const [pendingGpsPrompt, setPendingGpsPrompt] = useState(false);
   const profileSyncedRef = useRef(false);
 
   const setMode = useCallback((mode: LocationMode) => {
     writeLocationModeToStorage(mode);
     setLocationModeState(mode);
+  }, []);
+
+  const logPermissionState = useCallback(async (label: string) => {
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).permissions?.query) {
+        const status = await (navigator as any).permissions.query({ name: "geolocation" });
+        console.log(`[geolocation:${label}] permission state =`, status.state);
+      } else {
+        console.log(`[geolocation:${label}] navigator.permissions unavailable`);
+      }
+    } catch (e) {
+      console.warn(`[geolocation:${label}] permission query failed`, e);
+    }
   }, []);
 
   const normalizeSavedLocation = useCallback((loc: SavedLocation): SavedLocation => {
@@ -107,8 +123,10 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       profileSyncedRef.current = false;
       loadFromBackend();
 
-      // Auto-prompt GPS exactly once after sign-in IF the user has no preference set
-      // and no saved location. If mode is 'disabled' or 'manual', never auto-prompt.
+      // After sign-in, surface an in-app dialog asking the user to allow location.
+      // The actual navigator.geolocation call only fires when the user clicks "Allow"
+      // inside that dialog (a real user gesture), which is what triggers the
+      // browser's native permission popup reliably.
       if (event === "SIGNED_IN") {
         setTimeout(() => {
           if (cancelled) return;
@@ -118,8 +136,8 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
           const promptedKey = "jaagax_gps_auto_prompted";
           if (sessionStorage.getItem(promptedKey)) return;
           sessionStorage.setItem(promptedKey, "1");
-          // Fire-and-forget; user can still pick manually if they deny.
-          void requestGpsRef.current?.();
+          void logPermissionState("post-signin");
+          setPendingGpsPrompt(true);
         }, 600);
       }
     });
@@ -165,16 +183,19 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
   );
 
   const requestGpsLocation = useCallback(async () => {
+    setPendingGpsPrompt(false);
     if (!("geolocation" in navigator)) {
       toast.error("Your browser does not support location access. Please search manually.");
       return;
     }
+    await logPermissionState("pre-request");
 
     setIsResolvingGps(true);
     return new Promise<void>((resolve) => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+          console.log("[geolocation:success]", { latitude, longitude });
           const geo = await reverseGeocode(latitude, longitude);
           const next: SavedLocation = {
             latitude,
@@ -194,8 +215,8 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
         },
         (err) => {
           setIsResolvingGps(false);
+          console.warn("[geolocation:error]", { code: err.code, message: err.message });
           if (err.code === err.PERMISSION_DENIED) {
-            // User denied — remember so we don't re-prompt.
             setMode("disabled");
             toast.error("Location permission denied. You can pick a city manually.");
           } else if (err.code === err.TIMEOUT) {
@@ -205,10 +226,10 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
           }
           resolve();
         },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     });
-  }, [normalizeSavedLocation, persistToBackend, setMode]);
+  }, [logPermissionState, normalizeSavedLocation, persistToBackend, setMode]);
 
   // Keep a ref to the latest requestGpsLocation so the auth listener can call it.
   useEffect(() => {
@@ -226,17 +247,40 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     setSavedLocation(null);
     setMode("disabled");
     void persistToBackend(null);
+    setPendingGpsPrompt(false);
     toast.success("Location turned off");
   }, [persistToBackend, setMode]);
+
+  const dismissGpsPrompt = useCallback((remember = false) => {
+    setPendingGpsPrompt(false);
+    if (remember) {
+      setMode("disabled");
+    }
+  }, [setMode]);
+
+  const resetLocationForTesting = useCallback(() => {
+    console.log("[geolocation:dev] resetting saved location and re-prompting");
+    clearSavedLocationFromStorage();
+    clearLocationModeFromStorage();
+    setSavedLocation(null);
+    setLocationModeState(null);
+    try { sessionStorage.removeItem("jaagax_gps_auto_prompted"); } catch { /* ignore */ }
+    void logPermissionState("dev-reset");
+    setPendingGpsPrompt(true);
+  }, [logPermissionState]);
 
   return {
     savedLocation,
     isResolvingGps,
     hasLocation: !!savedLocation,
     locationMode,
+    pendingGpsPrompt,
+    dismissGpsPrompt,
     selectLocation,
     requestGpsLocation,
     clearLocation,
     disableLocation,
+    resetLocationForTesting,
+
   };
 };

@@ -14,19 +14,18 @@ interface LocationContextType {
   isResolvingGps: boolean;
   hasLocation: boolean;
   locationMode: LocationMode | null;
+  pendingGpsPrompt: boolean;
+  dismissGpsPrompt: ReturnType<typeof useSavedLocation>['dismissGpsPrompt'];
   selectLocation: ReturnType<typeof useSavedLocation>['selectLocation'];
   requestGpsLocation: ReturnType<typeof useSavedLocation>['requestGpsLocation'];
   clearLocation: ReturnType<typeof useSavedLocation>['clearLocation'];
   disableLocation: ReturnType<typeof useSavedLocation>['disableLocation'];
+  resetLocationForTesting: ReturnType<typeof useSavedLocation>['resetLocationForTesting'];
 
-  // ==== Legacy shim — kept so older pages (Hotels, Index, Projects, ...) keep working ====
-  /** Mirrors savedLocation as { city, state, country } for backwards compatibility. */
+  // ==== Legacy shim ====
   detectedLocation: LegacyDetectedLocation | null;
-  /** Always false — we no longer auto-detect on load. */
   isDetecting: boolean;
-  /** True iff a saved location exists. */
   hasDetected: boolean;
-  /** Legacy alias for requestGpsLocation. Prefer requestGpsLocation in new code. */
   detectUserLocation: () => void;
 }
 
@@ -68,10 +67,13 @@ export const useLocation = () => {
       isResolvingGps: false,
       hasLocation: false,
       locationMode: null,
+      pendingGpsPrompt: false,
+      dismissGpsPrompt: (() => {}) as any,
       selectLocation: noop as any,
       requestGpsLocation: noop as any,
       clearLocation: noop as any,
       disableLocation: noop as any,
+      resetLocationForTesting: (() => {}) as any,
       detectedLocation: null,
       isDetecting: false,
       hasDetected: false,

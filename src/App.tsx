@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BuyerOnboardingGuard from "./components/BuyerOnboardingGuard";
 import { LocationProvider } from "./contexts/LocationContext";
+import LocationPermissionDialog from "./components/location/LocationPermissionDialog";
+import DevLocationTestButton from "./components/location/DevLocationTestButton";
 import ProfileBootProvider from "./contexts/ProfileBootProvider";
 import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
@@ -281,6 +283,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         </Suspense>
+        <LocationPermissionDialog />
+        <DevLocationTestButton />
         </LocationProvider>
         </ProfileBootProvider>
       </BrowserRouter>
