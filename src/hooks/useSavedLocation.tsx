@@ -18,16 +18,18 @@ interface UseSavedLocationReturn {
   savedLocation: SavedLocation | null;
   isResolvingGps: boolean;
   hasLocation: boolean;
-  /** Current user preference: gps (auto), manual (city picked), disabled (off), or null (unset). */
   locationMode: LocationMode | null;
-  /** Persist a manually selected location (city/area) and optional coordinates. Sets mode='manual'. */
+  /** True when app wants to ask the user (via in-app dialog) for permission to use GPS. */
+  pendingGpsPrompt: boolean;
+  /** Dismiss the in-app prompt without invoking the browser API. */
+  dismissGpsPrompt: (remember?: boolean) => void;
   selectLocation: (loc: Omit<SavedLocation, "last_updated"> & Partial<Pick<SavedLocation, "last_updated">>) => Promise<void>;
-  /** USER-INITIATED only. Requests browser GPS, reverse-geocodes, persists. Sets mode='gps'. */
+  /** USER-INITIATED only. Must be called from a user-gesture event handler. */
   requestGpsLocation: () => Promise<void>;
-  /** Clears the saved location (does not change mode). */
   clearLocation: () => Promise<void>;
-  /** Turn location off — clears saved location and prevents auto-prompt. */
   disableLocation: () => Promise<void>;
+  /** DEV-ONLY: wipe saved location/mode and re-show the in-app prompt for testing. */
+  resetLocationForTesting: () => void;
 }
 
 /**
