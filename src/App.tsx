@@ -283,6 +283,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         </Suspense>
+        <LocationPermissionDialog />
+        <DevLocationTestButton />
         </LocationProvider>
         </ProfileBootProvider>
       </BrowserRouter>
