@@ -130,12 +130,10 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
       if (event === "SIGNED_IN") {
         setTimeout(() => {
           if (cancelled) return;
+          // Skip only if user already granted GPS in a prior session
+          // (so we don't nag users who've already shared location).
           const currentMode = readLocationModeFromStorage();
-          if (currentMode === "disabled" || currentMode === "manual") return;
-          if (readSavedLocationFromStorage()) return;
-          const promptedKey = "jaagax_gps_auto_prompted";
-          if (sessionStorage.getItem(promptedKey)) return;
-          sessionStorage.setItem(promptedKey, "1");
+          if (currentMode === "gps" && readSavedLocationFromStorage()) return;
           void logPermissionState("post-signin");
           setPendingGpsPrompt(true);
         }, 600);
