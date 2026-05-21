@@ -47,11 +47,25 @@ export const useSavedLocation = (): UseSavedLocationReturn => {
     readLocationModeFromStorage()
   );
   const [isResolvingGps, setIsResolvingGps] = useState(false);
+  const [pendingGpsPrompt, setPendingGpsPrompt] = useState(false);
   const profileSyncedRef = useRef(false);
 
   const setMode = useCallback((mode: LocationMode) => {
     writeLocationModeToStorage(mode);
     setLocationModeState(mode);
+  }, []);
+
+  const logPermissionState = useCallback(async (label: string) => {
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).permissions?.query) {
+        const status = await (navigator as any).permissions.query({ name: "geolocation" });
+        console.log(`[geolocation:${label}] permission state =`, status.state);
+      } else {
+        console.log(`[geolocation:${label}] navigator.permissions unavailable`);
+      }
+    } catch (e) {
+      console.warn(`[geolocation:${label}] permission query failed`, e);
+    }
   }, []);
 
   const normalizeSavedLocation = useCallback((loc: SavedLocation): SavedLocation => {
