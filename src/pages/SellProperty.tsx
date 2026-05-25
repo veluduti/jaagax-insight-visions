@@ -897,7 +897,7 @@ export default function SellProperty() {
           },
         ]);
       } else {
-        setSuggestions([]);
+        setSuggestions((prev) => (Array.isArray(prev) && typeof prev[0] === "string" ? prev : []));
       }
 
       // =======================================================
