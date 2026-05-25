@@ -2732,7 +2732,12 @@ export default function SellProperty() {
                     <button
                       type="button"
                       onClick={onNext}
-                      disabled={loadingNext}
+                      disabled={
+                        loadingNext ||
+                        ((field?.id === "bhk" || field?.id === "bhk_type") &&
+                          !BHK_PATTERN.test(String(value).trim())) ||
+                        (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim()))
+                      }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
                       {loadingNext ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
