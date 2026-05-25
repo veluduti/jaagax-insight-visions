@@ -341,7 +341,7 @@ export const residentialFlow = {
 
       priority: 9,
 
-      type: "single_select",
+      type: "text",
 
       required: true,
 
@@ -351,8 +351,6 @@ export const residentialFlow = {
       },
 
       question: "What is the BHK type?",
-
-      options: ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK", "6+ BHK"],
     },
 
     flat_size: {
