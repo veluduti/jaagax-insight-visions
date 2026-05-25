@@ -579,32 +579,6 @@ export default function SellProperty() {
   }, [field?.id]);
 
   /* ----- When the chat is "done", seed review fields and fetch AI titles ----- */
-  useEffect(() => {
-    if (!done) return;
-    const pu = state.price_unit || {};
-    setReviewTitle(state.title || "");
-    setReviewLocality(state.locality || "");
-    setReviewCity(state.city || "");
-    setReviewAddress(state.address || "");
-    setReviewArea(
-      pu.area ||
-        state.flat_size ||
-        state.built_area ||
-        state.land_size ||
-        state.total_land_area ||
-        state.plot_area ||
-        state.built_up_area ||
-        "",
-    );
-    setReviewPricePerUnit(pu.pricePerUnit || state.price_per_unit || "");
-    setReviewUnit(pu.unit || state.area_unit || "sq ft");
-    setReviewAmenities(Array.isArray(state.amenities) ? state.amenities : []);
-    if (!reviewDescription) {
-      setReviewDescription(state.description || buildPropertyDescription(state));
-    }
-    if (aiTitles.length === 0) regenerateTitles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done]);
 
   const regenerateTitles = async () => {
     setTitlesLoading(true);
