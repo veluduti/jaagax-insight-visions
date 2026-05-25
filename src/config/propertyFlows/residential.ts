@@ -712,6 +712,10 @@ export const residentialFlow = {
             field: "property_type",
             in: APARTMENT_TYPES,
           },
+          {
+            field: "total_towers",
+            exists: true,
+          },
         ],
       },
 
