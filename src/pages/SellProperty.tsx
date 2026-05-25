@@ -2722,6 +2722,10 @@ export default function SellProperty() {
                                   return;
                                 }
 
+                                if (field?.id === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) {
+                                  return;
+                                }
+
                                 if (
                                   (field?.id === "flat_size" ||
                                     field?.id === "built_up_area" ||
