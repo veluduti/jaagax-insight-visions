@@ -1760,15 +1760,6 @@ export default function SellProperty() {
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setEditorOpen((o) => !o)}
-              disabled={answered.length === 0}
-              className="hidden sm:inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:bg-muted transition disabled:opacity-40"
-              title="Edit previous answers"
-            >
-              <Pencil className="h-3 w-3" /> Edit ({answered.length})
-            </button>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5">
                 <span
