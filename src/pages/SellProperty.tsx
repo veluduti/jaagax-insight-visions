@@ -526,17 +526,6 @@ export default function SellProperty() {
   const [newAmenity, setNewAmenity] = useState("");
   const [showEditSheet, setShowEditSheet] = useState(false);
 
-  /* Review/edit fields */
-  const [reviewTitle, setReviewTitle] = useState("");
-  const [reviewDescription, setReviewDescription] = useState("");
-  const [reviewLocality, setReviewLocality] = useState("");
-  const [reviewCity, setReviewCity] = useState("");
-  const [reviewAddress, setReviewAddress] = useState("");
-  const [reviewArea, setReviewArea] = useState<string | number>("");
-  const [reviewPricePerUnit, setReviewPricePerUnit] = useState<string | number>("");
-  const [reviewUnit, setReviewUnit] = useState("sq ft");
-  const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
-
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
