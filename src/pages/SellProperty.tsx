@@ -41,14 +41,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
@@ -1160,7 +1153,10 @@ export default function SellProperty() {
         role: "user",
         kind: "text",
         text: userMessage,
-      },
+
+        // IMPORTANT
+        fieldId: f.id,
+      } as any,
     ]);
 
     // =========================================================
@@ -2175,8 +2171,7 @@ export default function SellProperty() {
             {/* Final review screen — premium AI-generated property preview */}
             {done &&
               (() => {
-                const fmtINR = (n: number) =>
-                  new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+                const fmtINR = (n: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
                 const fmtPrice = (n: number) => {
                   if (!n || !isFinite(n)) return "";
                   if (n >= 1e7) return `₹ ${(n / 1e7).toFixed(n % 1e7 === 0 ? 0 : 2)} Cr`;
@@ -2194,13 +2189,7 @@ export default function SellProperty() {
                   (Array.isArray(state.property_type) ? state.property_type[0] : state.property_type) ||
                   (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
                   "Property";
-                const purpose = (
-                  state.listing_type ||
-                  state.purpose ||
-                  "sale"
-                )
-                  .toString()
-                  .toLowerCase();
+                const purpose = (state.listing_type || state.purpose || "sale").toString().toLowerCase();
                 const locLine = [reviewLocality, reviewCity].filter(Boolean).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
@@ -2279,11 +2268,7 @@ export default function SellProperty() {
                   {
                     key: "gated_community",
                     label: "Gated Community",
-                    value: has(state.gated_community)
-                      ? /^y/i.test(String(state.gated_community))
-                        ? "Yes"
-                        : "No"
-                      : "",
+                    value: has(state.gated_community) ? (/^y/i.test(String(state.gated_community)) ? "Yes" : "No") : "",
                   },
                   {
                     key: "ownership_type",
@@ -2293,16 +2278,12 @@ export default function SellProperty() {
                   {
                     key: "maintenance",
                     label: "Maintenance",
-                    value: has(state.maintenance_charges)
-                      ? `₹ ${fmtINR(Number(state.maintenance_charges))}`
-                      : "",
+                    value: has(state.maintenance_charges) ? `₹ ${fmtINR(Number(state.maintenance_charges))}` : "",
                   },
                   {
                     key: "security_deposit",
                     label: "Security Deposit",
-                    value: has(state.security_deposit)
-                      ? `₹ ${fmtINR(Number(state.security_deposit))}`
-                      : "",
+                    value: has(state.security_deposit) ? `₹ ${fmtINR(Number(state.security_deposit))}` : "",
                   },
                   {
                     key: "price_per_unit",
@@ -2378,7 +2359,17 @@ export default function SellProperty() {
                   {
                     id: "property_facing",
                     label: "Facing",
-                    options: ["", "East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"],
+                    options: [
+                      "",
+                      "East",
+                      "West",
+                      "North",
+                      "South",
+                      "North-East",
+                      "North-West",
+                      "South-East",
+                      "South-West",
+                    ],
                   },
                   {
                     id: "furnishing_status",
@@ -2434,9 +2425,7 @@ export default function SellProperty() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             {totalPrice > 0 && (
-                              <div className="text-2xl sm:text-3xl font-bold text-primary">
-                                {fmtPrice(totalPrice)}
-                              </div>
+                              <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
                             )}
                             <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
                               {reviewTitle ||
@@ -2552,9 +2541,7 @@ export default function SellProperty() {
                             );
                           })}
                           {aiTitles.length === 0 && (
-                            <div className="text-xs text-muted-foreground italic">
-                              No titles yet — tap Regenerate.
-                            </div>
+                            <div className="text-xs text-muted-foreground italic">No titles yet — tap Regenerate.</div>
                           )}
                         </div>
                       )}
@@ -2587,9 +2574,13 @@ export default function SellProperty() {
                             className="mt-2 text-xs text-primary hover:underline inline-flex items-center gap-1"
                           >
                             {descExpanded ? (
-                              <>Show less <ChevronUp className="h-3 w-3" /></>
+                              <>
+                                Show less <ChevronUp className="h-3 w-3" />
+                              </>
                             ) : (
-                              <>Read more <ChevronDown className="h-3 w-3" /></>
+                              <>
+                                Read more <ChevronDown className="h-3 w-3" />
+                              </>
                             )}
                           </button>
                         )}
@@ -2605,10 +2596,7 @@ export default function SellProperty() {
                       >
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                           {allHighlights.map((h, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50"
-                            >
+                            <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50">
                               <span className="h-5 w-5 shrink-0 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
                                 <Check className="h-3 w-3" />
                               </span>
@@ -2632,8 +2620,7 @@ export default function SellProperty() {
                               key={r.key}
                               className={cn(
                                 "flex items-center justify-between py-2.5 text-sm border-b border-border/50",
-                                i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) &&
-                                  "sm:border-b-0",
+                                i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) && "sm:border-b-0",
                               )}
                             >
                               <dt className="text-muted-foreground">{r.label}</dt>
@@ -2659,9 +2646,7 @@ export default function SellProperty() {
                       >
                         <div className="space-y-1">
                           <div className="text-base font-medium">{locLine || "—"}</div>
-                          {reviewAddress && (
-                            <div className="text-sm text-muted-foreground">{reviewAddress}</div>
-                          )}
+                          {reviewAddress && <div className="text-sm text-muted-foreground">{reviewAddress}</div>}
                         </div>
                       </SectionCard>
                     )}
@@ -2681,10 +2666,7 @@ export default function SellProperty() {
                       />
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {photos.map((url: string, i: number) => (
-                          <div
-                            key={i}
-                            className="relative aspect-square rounded-xl overflow-hidden bg-muted group"
-                          >
+                          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
                             <img
                               src={url}
                               alt=""
@@ -2729,9 +2711,7 @@ export default function SellProperty() {
                       <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
                         {!titleReady && (
                           <div className="text-[11px] text-muted-foreground text-center">
-                            {titlesLoading
-                              ? "Generating title…"
-                              : "Pick or write a title to enable publish"}
+                            {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
                           </div>
                         )}
                         <div className="flex gap-2">
@@ -2789,28 +2769,20 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 {filledNumeric.map((f) => (
                                   <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">
-                                      {f.label}
-                                    </label>
+                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
                                     <Input
                                       type={f.type}
                                       value={(state as any)[f.id] ?? ""}
-                                      onChange={(e) =>
-                                        setState((s: any) => ({ ...s, [f.id]: e.target.value }))
-                                      }
+                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
                                     />
                                   </div>
                                 ))}
                                 {filledSelect.map((f) => (
                                   <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">
-                                      {f.label}
-                                    </label>
+                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
                                     <select
                                       value={String((state as any)[f.id] || "")}
-                                      onChange={(e) =>
-                                        setState((s: any) => ({ ...s, [f.id]: e.target.value }))
-                                      }
+                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
                                       className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                                     >
                                       {f.options.map((o) => (
@@ -2878,26 +2850,15 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                                  <Input
-                                    value={reviewCity}
-                                    onChange={(e) => setReviewCity(e.target.value)}
-                                  />
+                                  <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                                  <Input
-                                    value={reviewLocality}
-                                    onChange={(e) => setReviewLocality(e.target.value)}
-                                  />
+                                  <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
                                 </div>
                                 <div className="col-span-2">
-                                  <label className="text-xs text-muted-foreground mb-1 block">
-                                    Address / landmark
-                                  </label>
-                                  <Input
-                                    value={reviewAddress}
-                                    onChange={(e) => setReviewAddress(e.target.value)}
-                                  />
+                                  <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
+                                  <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} />
                                 </div>
                               </div>
                             </div>
@@ -2940,9 +2901,7 @@ export default function SellProperty() {
                                     {a}
                                     <button
                                       type="button"
-                                      onClick={() =>
-                                        setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))
-                                      }
+                                      onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
                                     >
                                       <X className="h-2.5 w-2.5" />
                                     </button>
@@ -2981,11 +2940,7 @@ export default function SellProperty() {
                         </div>
 
                         <SheetFooter className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] -mx-6 px-6 gap-2 flex-row">
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => setShowEditSheet(false)}
-                          >
+                          <Button variant="outline" className="flex-1" onClick={() => setShowEditSheet(false)}>
                             Cancel
                           </Button>
                           <Button
