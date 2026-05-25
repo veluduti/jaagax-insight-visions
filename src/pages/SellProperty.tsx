@@ -422,7 +422,6 @@ export default function SellProperty() {
   /* Voice */
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
 
   /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
@@ -1774,48 +1773,6 @@ export default function SellProperty() {
             </div>
           </div>
         </div>
-
-        {/* Edit-previous-answers drawer */}
-        <AnimatePresence>
-          {editorOpen && answered.length > 0 && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="border-t border-border/40 overflow-hidden"
-            >
-              <div className="container max-w-3xl mx-auto px-4 py-3">
-                <div className="text-[11px] text-muted-foreground mb-2 flex items-center justify-between">
-                  <span>Tap any answer to edit it (this will rewind to that question)</span>
-                  <button onClick={() => setEditorOpen(false)} className="text-muted-foreground hover:text-foreground">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {answered.map(({ field: f, value: v }) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => jumpToField(f.id)}
-                      className="group flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-border bg-card hover:border-primary hover:bg-primary/5 transition"
-                    >
-                      <span className="text-muted-foreground">{f.id.replace(/_/g, " ")}:</span>
-                      <span className="font-medium max-w-[140px] truncate">
-                        {Array.isArray(v)
-                          ? v.join(", ")
-                          : typeof v === "object"
-                            ? `${(v as any).area} ${(v as any).unit}`
-                            : String(v)}
-                      </span>
-                      <Pencil className="h-2.5 w-2.5 text-muted-foreground group-hover:text-primary" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
       {/* Chat scroll area */}
       {!showCategoryPicker && (
