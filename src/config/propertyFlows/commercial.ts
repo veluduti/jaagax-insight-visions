@@ -388,29 +388,10 @@ export const commercialFlow: PropertyFlowConfig = {
       units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
     },
 
-    add_multiple_sizes: {
-      section: "property_configuration",
-
-      priority: 10,
-
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        field: "property_type",
-        in: BUILT_AREA_TYPES,
-      },
-
-      question: "Do you have more commercial area sizes available?",
-
-      options: ["Yes", "No"],
-    },
-
     commercial_variants: {
       section: "property_configuration",
 
-      priority: 11,
+      priority: 10,
 
       type: "multi_variant_group",
 
