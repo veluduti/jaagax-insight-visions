@@ -155,11 +155,11 @@ export const LISTING_TYPE_OPTIONS = ["Buy", "Rent"];
 // Number quick-reply chips
 export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   flat_size: ["600 sqft", "1000 sqft", "1250 sqft", "1500 sqft", "2000 sqft"],
-  built_up_area: ["600", "1000", "1250", "1500", "2000"],
-  land_size: ["100", "200", "300", "500", "1000"],
-  total_floors: ["3", "5", "10", "15", "20+"],
-  floor_number: ["Ground", "1", "2", "3", "5", "10"],
-  total_towers: ["1", "2", "4", "6", "10+"],
+  built_up_area: ["600 sqft", "1000 sqft", "1250 sqft", "1500 sqft", "2000 sqft"],
+  land_size: ["100 sqyd", "20 gunta", "30 bhega", "5 acres", "100 cents"],
+  total_floors: ["Ground floor", "3 floor", "5 floor", "10 floor", "15 floor", "20+ floor"],
+  floor_number: ["Ground floor", "1 floor", "2 floor", "3 floor", "5 floor", "10 floor"],
+  total_towers: ["1 tower", "2 towers", "4 towers", "6 towers", "10+ towers"],
   total_units: ["50", "100", "200", "500", "1000+"],
   road_width: ["20", "30", "40", "60"],
   parking: ["1", "2", "3", "4+"],
