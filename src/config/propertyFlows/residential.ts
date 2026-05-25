@@ -568,6 +568,11 @@ export const residentialFlow = {
 
       required: true,
 
+      visibleIf: {
+        field: "bhk_type",
+        exists: true,
+      },
+
       question: "How many bathrooms are available?",
     },
 
