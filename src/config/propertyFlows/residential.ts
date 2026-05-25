@@ -581,7 +581,7 @@ export const residentialFlow = {
 
       priority: 20,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -598,7 +598,7 @@ export const residentialFlow = {
 
       priority: 21,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -648,7 +648,7 @@ export const residentialFlow = {
 
       priority: 24,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -673,7 +673,7 @@ export const residentialFlow = {
 
       priority: 25,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -702,7 +702,7 @@ export const residentialFlow = {
 
       priority: 26,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
