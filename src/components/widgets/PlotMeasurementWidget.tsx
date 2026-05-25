@@ -127,7 +127,11 @@ export const PlotMeasurementWidget = ({
       <div className="flex justify-end mt-6">
         <button
           type="button"
-          onClick={() => onChange?.(internal)}
+          onClick={() => {
+            onChange?.(internal);
+
+            onComplete?.(internal);
+          }}
           className="
       px-5
       py-2
