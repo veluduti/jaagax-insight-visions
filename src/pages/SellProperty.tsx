@@ -294,6 +294,23 @@ const getBathroomSuggestions = (input: string) => {
   return [`${input} ${input === "1" ? "Bathroom" : "Bathrooms"}`];
 };
 
+const getFloorSuggestions = (input: string) => {
+  if (!/^\d+$/.test(input)) return [];
+
+  const num = Number(input);
+
+  const suffix =
+    num % 10 === 1 && num !== 11
+      ? "st"
+      : num % 10 === 2 && num !== 12
+        ? "nd"
+        : num % 10 === 3 && num !== 13
+          ? "rd"
+          : "th";
+
+  return [`${num}${suffix} Floor`];
+};
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function isEmpty(v: any) {
