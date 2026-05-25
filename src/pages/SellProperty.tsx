@@ -455,7 +455,7 @@ export default function SellProperty() {
     if ((field.id === "bhk" || field.id === "bhk_type") && typeof value === "string") {
       setSuggestions(getBhkSuggestions(value));
       return;
-    }
+    
 
     // ============================================
     // PRICE UNIT Suggestions
@@ -526,24 +526,6 @@ export default function SellProperty() {
     toast.success("Property details updated");
   };
 
-  const openEditSheet = () => {
-      const updated = {
-        ...state,
-        ...editForm,
-      };
-
-      setState(updated);
-
-      try {
-        engineRef.current?.applyExtractedFields(updated, {
-          overwrite: true,
-        });
-      } catch {}
-
-      setShowEditSheet(false);
-
-      toast.success("Property details updated");
-    };
     setEditForm({
       ...state,
 
