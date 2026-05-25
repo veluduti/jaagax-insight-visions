@@ -527,7 +527,6 @@ export default function SellProperty() {
   };
 
   const openEditSheet = () => {
-    const saveEditedDetails = async () => {
       const updated = {
         ...state,
         ...editForm,
