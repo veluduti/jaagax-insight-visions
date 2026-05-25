@@ -336,6 +336,11 @@ function validate(field: FieldDef, value: any): string | null {
       return "Please enter format like ₹6000/sqft";
     }
   }
+  if (field.id === "bathroom_count") {
+    if (!BATHROOM_PATTERN.test(String(value).trim())) {
+      return "Please enter format like 2 Bathrooms";
+    }
+  }
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
   if (field.input === "price_unit") {
     if (isNaN(Number(value.area)) || Number(value.area) <= 0) return "Enter a valid area";
