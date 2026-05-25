@@ -505,6 +505,7 @@ export default function SellProperty() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [posterTitle, setPosterTitle] = useState<string>("");
 
+  const [editForm, setEditForm] = useState<Record<string, any>>({});
   /* Section-level edit toggles for preview-first review screen */
   const [editSection, setEditSection] = useState<null | "basic" | "description" | "location" | "price" | "amenities">(
     null,
