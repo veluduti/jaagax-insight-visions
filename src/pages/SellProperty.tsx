@@ -28,6 +28,17 @@ import {
   Camera,
   Lightbulb,
   Pencil,
+  MapPin,
+  Home,
+  Bath,
+  Maximize2,
+  Building2,
+  Compass,
+  Sofa,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
