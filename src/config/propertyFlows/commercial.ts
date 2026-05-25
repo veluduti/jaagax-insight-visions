@@ -359,12 +359,6 @@ export const commercialFlow: PropertyFlowConfig = {
       question: "What is the built area size?",
 
       units: ["Sq Ft"],
-
-      aiFollowup: {
-        triggerAfterAnswer: true,
-        askForVariants: true,
-        followupQuestion: "Do you have additional commercial area sizes available for separate listings?",
-      },
     },
 
     land_size: {
@@ -431,9 +425,9 @@ export const commercialFlow: PropertyFlowConfig = {
     floor_number: {
       section: "property_configuration",
 
-      priority: 13,
+      priority: 12,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -448,9 +442,9 @@ export const commercialFlow: PropertyFlowConfig = {
     total_floors: {
       section: "property_configuration",
 
-      priority: 12,
+      priority: 11,
 
-      type: "number",
+      type: "text",
 
       required: false,
 
@@ -465,7 +459,7 @@ export const commercialFlow: PropertyFlowConfig = {
     total_price: {
       section: "pricing",
 
-      priority: 14,
+      priority: 13,
 
       type: "price",
 
@@ -488,7 +482,7 @@ export const commercialFlow: PropertyFlowConfig = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 15,
+      priority: 14,
 
       type: "price_per_unit",
 
@@ -517,7 +511,7 @@ export const commercialFlow: PropertyFlowConfig = {
     rent_amount: {
       section: "pricing",
 
-      priority: 16,
+      priority: 15,
 
       type: "rental_price",
 
@@ -540,7 +534,7 @@ export const commercialFlow: PropertyFlowConfig = {
     business_space_details: {
       section: "business_details",
 
-      priority: 17,
+      priority: 16,
 
       type: "multi_select",
 
@@ -561,7 +555,7 @@ export const commercialFlow: PropertyFlowConfig = {
     parking: {
       section: "business_details",
 
-      priority: 18,
+      priority: 17,
 
       type: "multi_select",
 
@@ -577,7 +571,7 @@ export const commercialFlow: PropertyFlowConfig = {
     furnishing_status: {
       section: "features",
 
-      priority: 19,
+      priority: 18,
 
       type: "single_select",
 
@@ -596,7 +590,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_furnishing: {
       section: "features",
 
-      priority: 20,
+      priority: 19,
 
       type: "multi_select",
 
@@ -638,7 +632,7 @@ export const commercialFlow: PropertyFlowConfig = {
     currently_operating_as: {
       section: "business_details",
 
-      priority: 21,
+      priority: 20,
 
       type: "multi_select",
 
@@ -669,7 +663,7 @@ export const commercialFlow: PropertyFlowConfig = {
     suitable_for: {
       section: "features",
 
-      priority: 22,
+      priority: 21,
 
       type: "multi_select",
 
@@ -701,7 +695,7 @@ export const commercialFlow: PropertyFlowConfig = {
     commercial_amenities: {
       section: "features",
 
-      priority: 23,
+      priority: 22,
 
       type: "multi_select",
 
@@ -730,7 +724,7 @@ export const commercialFlow: PropertyFlowConfig = {
     visibility_access: {
       section: "features",
 
-      priority: 24,
+      priority: 23,
 
       type: "multi_select",
 
@@ -753,7 +747,7 @@ export const commercialFlow: PropertyFlowConfig = {
     payment_options: {
       section: "legal",
 
-      priority: 25,
+      priority: 24,
 
       type: "multi_select",
 
@@ -786,7 +780,7 @@ export const commercialFlow: PropertyFlowConfig = {
     approvals: {
       section: "legal",
 
-      priority: 27,
+      priority: 26,
 
       type: "multi_select",
 
@@ -810,7 +804,7 @@ export const commercialFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 26,
+      priority: 25,
 
       type: "smart_location",
 
@@ -842,7 +836,7 @@ export const commercialFlow: PropertyFlowConfig = {
     property_highlights: {
       section: "finalization",
 
-      priority: 28,
+      priority: 27,
 
       type: "multi_select",
 
@@ -897,7 +891,7 @@ export const commercialFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 30,
+      priority: 28,
 
       type: "single_select",
 
