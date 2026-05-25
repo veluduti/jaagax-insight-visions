@@ -407,6 +407,12 @@ export default function SellProperty() {
       setSuggestions(getPriceUnitSuggestions(value));
       return;
     }
+
+    if (field.id === "bathroom_count" && typeof value === "string") {
+      setSuggestions(getBathroomSuggestions(value));
+
+      return;
+    }
   }, [value, field]);
   const [error, setError] = useState<string | null>(null);
   const [loadingNext, setLoadingNext] = useState(false);
