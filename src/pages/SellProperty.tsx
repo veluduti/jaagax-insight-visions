@@ -1773,9 +1773,6 @@ export default function SellProperty() {
                 <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
               </div>
               <Progress value={pct} className="h-1 w-24 mt-1" />
-              {missing.length > 0 && intakeDone && (
-                <div className="text-[9px] text-muted-foreground mt-0.5">{missing.length} required left</div>
-              )}
             </div>
           </div>
         </div>
