@@ -1832,6 +1832,73 @@ export default function SellProperty() {
 
   /** Jump back to a previously answered field (edit it). Removes everything after it. */
 
+  const jumpToField = async (fieldId: string) => {
+    const index = history.findIndex((h) => h.field.id === fieldId);
+
+    if (index === -1) return;
+
+    const target = history[index];
+
+    // ============================================
+    // REMOVE FUTURE ANSWERS
+    // ============================================
+
+    const trimmedHistory = history.slice(0, index);
+
+    // ============================================
+    // REBUILD STATE
+    // ============================================
+
+    const rebuiltState = { ...state };
+
+    history.slice(index).forEach((h) => {
+      delete rebuiltState[h.field.id];
+    });
+
+    // ============================================
+    // SAVE
+    // ============================================
+
+    setHistory(trimmedHistory);
+
+    setState(rebuiltState);
+
+    // ============================================
+    // REOPEN FIELD
+    // ============================================
+
+    setField(target.field);
+
+    setValue(target.value || "");
+
+    // ============================================
+    // REMOVE FUTURE CHAT MESSAGES
+    // ============================================
+
+    setMessages((msgs) => {
+      const copied = [...msgs];
+
+      let removeCount = history.length - index;
+
+      while (removeCount > 0 && copied.length > 0) {
+        copied.pop(); // ai
+        copied.pop(); // user
+
+        removeCount--;
+      }
+
+      return copied;
+    });
+
+    // ============================================
+    // RESET
+    // ============================================
+
+    setDone(false);
+
+    toast.success(`Editing ${target.field.question}`);
+  };
+
   return (
     <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
