@@ -360,6 +360,11 @@ function validate(field: FieldDef, value: any): string | null {
       return "Please enter format like 2 Bathrooms";
     }
   }
+  if (field.id === "floor_number") {
+    if (!FLOOR_PATTERN.test(String(value).trim())) {
+      return "Please enter format like 5th Floor";
+    }
+  }
   if (field.id === "flat_size" || field.id === "built_up_area" || field.id === "land_size") {
     if (!MEASUREMENT_PATTERN.test(String(value).trim())) {
       return "Please enter format like 1200 sq ft";
