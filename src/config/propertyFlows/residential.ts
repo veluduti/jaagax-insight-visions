@@ -564,7 +564,7 @@ export const residentialFlow = {
 
       priority: 19,
 
-      type: "number",
+      type: "text",
 
       required: true,
 
@@ -811,7 +811,7 @@ export const residentialFlow = {
       type: "single_select",
 
       required: false,
-      
+
       allowSkip: true,
 
       question: "What is the property facing?",
