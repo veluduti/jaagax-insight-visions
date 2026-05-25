@@ -2674,6 +2674,14 @@ export default function SellProperty() {
                                   return;
                                 }
 
+                                // ============================================
+                                // BLOCK INVALID BATHROOM
+                                // ============================================
+
+                                if (field?.id === "bathroom_count" && !BATHROOM_PATTERN.test(String(value).trim())) {
+                                  return;
+                                }
+
                                 onNext();
                               }
                             }}
