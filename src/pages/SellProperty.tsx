@@ -1903,10 +1903,7 @@ export default function SellProperty() {
                         const numeric =
                           opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
                         const sendVal = isNaN(numeric) ? opt : numeric;
-                        setValue(sendVal);
-                        setTimeout(async () => {
-                          await commitAnswer(sendVal, opt);
-                        }, 80);
+                        setValue(opt);
                       }}
                       className={cn(
                         "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
