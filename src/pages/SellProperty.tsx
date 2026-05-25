@@ -1939,7 +1939,39 @@ export default function SellProperty() {
               </motion.div>
             )}
 
-            {/* SMART WIDGETS */}
+            {/* ============================================
+    DYNAMIC INPUT SUGGESTIONS
+============================================ */}
+
+            {Array.isArray(suggestions) && suggestions.length > 0 && typeof suggestions[0] === "string" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-wrap gap-2 pt-1 pl-1"
+              >
+                {suggestions.map((sug) => {
+                  const active = value === sug;
+
+                  return (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={() => {
+                        setValue(sug);
+                      }}
+                      className={cn(
+                        "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-card hover:bg-primary/5 border-border",
+                      )}
+                    >
+                      {sug}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
 
             {/* SMART WIDGETS */}
 
