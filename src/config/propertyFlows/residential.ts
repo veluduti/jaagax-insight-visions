@@ -738,9 +738,9 @@ export const residentialFlow = {
             equals: "Yes",
           },
           {
-            field: "total_towers",
-            exists: true,
-          },
+  field: "total_towers",
+  exists: true,
+}
           {
             field: "property_type",
             in: APARTMENT_TYPES,
@@ -810,7 +810,9 @@ export const residentialFlow = {
 
       type: "single_select",
 
-      required: true,
+      required: false,
+      
+      allowSkip: true,
 
       question: "What is the property facing?",
 
