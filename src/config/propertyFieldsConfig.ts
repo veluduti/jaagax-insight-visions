@@ -160,14 +160,14 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   total_floors: ["Ground floor", "3 floor", "5 floor", "10 floor", "15 floor", "20+ floor"],
   floor_number: ["Ground floor", "1 floor", "2 floor", "3 floor", "5 floor", "10 floor"],
   total_towers: ["1 tower", "2 towers", "4 towers", "6 towers", "10+ towers"],
-  total_units: ["50", "100", "200", "500", "1000+"],
-  road_width: ["20", "30", "40", "60"],
-  parking: ["1", "2", "3", "4+"],
-  bathrooms: ["1", "2", "3", "4+"],
-  total_acres: ["1", "2", "5", "10", "20+"],
-  monthly_rent: ["10000", "15000", "25000", "40000", "60000"],
-  total_price: ["2500000", "5000000", "10000000", "20000000"],
-  price_per_unit: ["3000", "4500", "6000", "8500"],
+  total_units: ["50 sqft", "100 sqft", "200 sqft", "500 sqft"],
+  road_width: ["20 ft", "30 ft", "40 ft", "60 ft"],
+  parking: ["1 parking", "2 parkings", "3 parkings", "4+ parkings"],
+  bathrooms: ["1 bathroom", "2 bathrooms", "3 bathrooms", "4+ bathrooms"],
+  total_acres: ["1 acres", "2 acres", "5 acres", "10 acres", "20+ acres"],
+  monthly_rent: ["10000/month", "1500/week", "25000/3 months", "200/hr", "600/day"],
+  total_price: ["25 lakh", "5 cr", "10 lakh", "2 cr"],
+  price_per_unit: ["3000/sqft", "4500/sqyd", "60000/cent", "850000/acre", "100000/gunta"],
 };
 
 // ============================================================
