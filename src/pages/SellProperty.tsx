@@ -422,6 +422,7 @@ export default function SellProperty() {
   /* Voice */
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
 
   /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
