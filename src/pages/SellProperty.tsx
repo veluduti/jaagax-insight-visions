@@ -2669,6 +2669,12 @@ export default function SellProperty() {
                                 return;
                               }
 
+                              if (field?.id === "floor_number") {
+                                setSuggestions(getFloorSuggestions(val));
+
+                                return;
+                              }
+
                               // ============================================
                               // CLEAR SUGGESTIONS
                               // ============================================
