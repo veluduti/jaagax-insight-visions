@@ -2181,7 +2181,7 @@ export default function SellProperty() {
                 ["Facing", state.facing],
                 ["Property Age", state.property_age],
                 ["Gated Community", state.gated_community],
-              ].filter(([, v]) => v !== null && v !== undefined && v !== "");
+              ].filter((row): row is [string, any] => row[1] !== null && row[1] !== undefined && row[1] !== "");
 
               // Build highlight chips from amenities + flag-y arrays + boolean flags
               const flagHighlights: string[] = [];
