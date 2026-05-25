@@ -2620,7 +2620,35 @@ export default function SellProperty() {
                         field?.input !== "date" && (
                           <Input
                             value={value || ""}
-                            onChange={(e) => setValue(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+
+                              setValue(val);
+
+                              // ============================================
+                              // BHK Suggestions
+                              // ============================================
+
+                              if (field?.id === "bhk" || field?.id === "bhk_type") {
+                                setSuggestions(getBhkSuggestions(val));
+                                return;
+                              }
+
+                              // ============================================
+                              // PRICE PER UNIT Suggestions
+                              // ============================================
+
+                              if (field?.id === "price_per_unit") {
+                                setSuggestions(getPriceUnitSuggestions(val));
+                                return;
+                              }
+
+                              // ============================================
+                              // CLEAR SUGGESTIONS
+                              // ============================================
+
+                              setSuggestions([]);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
