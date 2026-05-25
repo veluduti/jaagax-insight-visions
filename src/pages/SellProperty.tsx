@@ -294,8 +294,20 @@ const getBathroomSuggestions = (input: string) => {
   return [`${input} ${input === "1" ? "Bathroom" : "Bathrooms"}`];
 };
 
-const getFloorSuggestions = (input: string) => {
-  if (!/^\d+$/.test(input)) return [];
+const getFloorSuggestions = (input: string, type: "single" | "total" = "single") => {
+  if (!/^\d+(\+)?$/.test(input)) return [];
+
+  // ============================================
+  // TOTAL FLOORS
+  // ============================================
+
+  if (type === "total") {
+    return [`${input} Floors`];
+  }
+
+  // ============================================
+  // SINGLE FLOOR
+  // ============================================
 
   const num = Number(input);
 
