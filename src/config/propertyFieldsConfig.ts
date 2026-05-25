@@ -5,9 +5,19 @@
 // ============================================================
 
 export type FieldInput =
-  | "text" | "textarea" | "number" | "phone" | "email"
-  | "single" | "multi" | "yesno" | "media" | "date"
-  | "city" | "locality" | "price_unit";
+  | "text"
+  | "textarea"
+  | "number"
+  | "phone"
+  | "email"
+  | "single"
+  | "multi"
+  | "yesno"
+  | "media"
+  | "date"
+  | "city"
+  | "locality"
+  | "price_unit";
 
 export type FieldConfig = {
   id: string;
@@ -63,33 +73,77 @@ export const HOUSE_LIKE = new Set([
 ]);
 
 export const AREA_UNITS = ["Sq Ft", "Sq Yard", "Sq Meter", "Cent", "Gunta", "Acre", "Bigha", "Hectare", "Katha"];
-export const FACING_OPTIONS = ["East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"];
+export const FACING_OPTIONS = [
+  "East",
+  "West",
+  "North",
+  "South",
+  "North-East",
+  "North-West",
+  "South-East",
+  "South-West",
+];
 export const BHK_OPTIONS = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "5 BHK"];
 export const FURNISHING_OPTIONS = ["Unfurnished", "Semi Furnished", "Fully Furnished"];
 export const FURNISHING_ITEMS = ["AC", "Wardrobes", "Modular Kitchen", "Geysers", "Beds", "Sofa", "Dining Table", "TV"];
 
 export const AMENITIES_OPTIONS = [
-  "Lift", "Parking", "Swimming Pool", "Gym", "Security", "Club House",
-  "Power Backup", "Children Play Area", "Garden",
+  "Lift",
+  "Parking",
+  "Swimming Pool",
+  "Gym",
+  "Security",
+  "Club House",
+  "Power Backup",
+  "Children Play Area",
+  "Garden",
 ];
 
 export const PAYMENT_OPTIONS = [
-  "Price Negotiable", "Bank Loan Available", "EMI Available", "Installments Available",
-  "Flexible Payment Plan", "Construction Linked Payment", "Possession Linked Payment",
-  "Zero Down Payment", "Low Booking Amount", "Assured Rental Returns",
-  "Investor Friendly", "NRI Assistance", "Pre-EMI Support", "Premium Bank Tie-Ups",
-  "Custom Payment Plans", "Immediate Registration",
+  "Price Negotiable",
+  "Bank Loan Available",
+  "EMI Available",
+  "Installments Available",
+  "Flexible Payment Plan",
+  "Construction Linked Payment",
+  "Possession Linked Payment",
+  "Zero Down Payment",
+  "Low Booking Amount",
+  "Assured Rental Returns",
+  "Investor Friendly",
+  "NRI Assistance",
+  "Pre-EMI Support",
+  "Premium Bank Tie-Ups",
+  "Custom Payment Plans",
+  "Immediate Registration",
 ];
 
 export const APPROVAL_OPTIONS = [
-  "RERA Approved", "HMDA Approved", "DTCP Approved", "CRDA Approved",
-  "Municipal Approved", "Panchayat Approved", "LP Number Available", "Approved Layout",
+  "RERA Approved",
+  "HMDA Approved",
+  "DTCP Approved",
+  "CRDA Approved",
+  "Municipal Approved",
+  "Panchayat Approved",
+  "LP Number Available",
+  "Approved Layout",
 ];
 
 export const HIGHLIGHT_OPTIONS = [
-  "Verified Property", "Verified Owner", "RERA Approved", "Price Drop", "Best Deal",
-  "Hot Property", "Premium Listing", "Ready to Move", "Immediate Possession",
-  "Gated Community", "Luxury Living", "Near Metro", "Fully Furnished", "Family Friendly",
+  "Verified Property",
+  "Verified Owner",
+  "RERA Approved",
+  "Price Drop",
+  "Best Deal",
+  "Hot Property",
+  "Premium Listing",
+  "Ready to Move",
+  "Immediate Possession",
+  "Gated Community",
+  "Luxury Living",
+  "Near Metro",
+  "Fully Furnished",
+  "Family Friendly",
 ];
 
 export const PROPERTY_AGE_OPTIONS = ["0-1 Years", "1-5 Years", "5-10 Years", "10+ Years"];
@@ -100,7 +154,7 @@ export const LISTING_TYPE_OPTIONS = ["Buy", "Rent"];
 
 // Number quick-reply chips
 export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
-  flat_size: ["600", "1000", "1250", "1500", "2000"],
+  flat_size: ["600 sqft", "1000 sqft", "1250 sqft", "1500 sqft", "2000 sqft"],
   built_up_area: ["600", "1000", "1250", "1500", "2000"],
   land_size: ["100", "200", "300", "500", "1000"],
   total_floors: ["3", "5", "10", "15", "20+"],
@@ -121,41 +175,123 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
 // ============================================================
 const FIELDS: FieldConfig[] = [
   // 1. Category (always first)
-  { id: "category", question: "What type of property would you like to list?", input: "single", required: true, options: CATEGORY_OPTIONS, section: "Basic" },
+  {
+    id: "category",
+    question: "What type of property would you like to list?",
+    input: "single",
+    required: true,
+    options: CATEGORY_OPTIONS,
+    section: "Basic",
+  },
 
   // 2. Residential sub-type (only if category = Residential)
-  { id: "residential_type", question: "What is your residential property type?", input: "single", required: true, options: RESIDENTIAL_SUBTYPES, section: "Basic" },
+  {
+    id: "residential_type",
+    question: "What is your residential property type?",
+    input: "single",
+    required: true,
+    options: RESIDENTIAL_SUBTYPES,
+    section: "Basic",
+  },
 
   // 3. Owner type
-  { id: "owner_type", question: "Who are you listing this property as?", input: "single", required: true, options: OWNER_TYPE_OPTIONS, section: "Basic" },
+  {
+    id: "owner_type",
+    question: "Who are you listing this property as?",
+    input: "single",
+    required: true,
+    options: OWNER_TYPE_OPTIONS,
+    section: "Basic",
+  },
 
   // 4. Listing type
-  { id: "listing_type", question: "What type of listing is this?", input: "single", required: true, options: LISTING_TYPE_OPTIONS, section: "Basic" },
+  {
+    id: "listing_type",
+    question: "What type of listing is this?",
+    input: "single",
+    required: true,
+    options: LISTING_TYPE_OPTIONS,
+    section: "Basic",
+  },
 
   // 5. Pricing — Buy
   { id: "total_price", question: "What is the total price?", input: "number", required: true, section: "Price" },
-  { id: "price_unit_type", question: "Which unit do you want to use?", input: "single", required: true, options: AREA_UNITS, section: "Price" },
+  {
+    id: "price_unit_type",
+    question: "Which unit do you want to use?",
+    input: "single",
+    required: true,
+    options: AREA_UNITS,
+    section: "Price",
+  },
   { id: "price_per_unit", question: "Price per unit?", input: "number", required: true, section: "Price" },
 
   // 5. Pricing — Rent
   { id: "monthly_rent", question: "What is the monthly rent?", input: "number", required: true, section: "Price" },
-  { id: "available_from", question: "When will the property be available?", input: "date", required: true, section: "Availability" },
+  {
+    id: "available_from",
+    question: "When will the property be available?",
+    input: "date",
+    required: true,
+    section: "Availability",
+  },
 
   // 6. Condition + Age
-  { id: "property_condition", question: "What is the property condition?", input: "single", required: true, options: PROPERTY_CONDITION_OPTIONS, section: "Condition" },
-  { id: "property_age", question: "What is the property age?", input: "single", required: true, options: PROPERTY_AGE_OPTIONS, section: "Condition" },
+  {
+    id: "property_condition",
+    question: "What is the property condition?",
+    input: "single",
+    required: true,
+    options: PROPERTY_CONDITION_OPTIONS,
+    section: "Condition",
+  },
+  {
+    id: "property_age",
+    question: "What is the property age?",
+    input: "single",
+    required: true,
+    options: PROPERTY_AGE_OPTIONS,
+    section: "Condition",
+  },
 
   // 7. Availability status
-  { id: "availability_status", question: "What is the availability status?", input: "single", required: true, options: AVAILABILITY_OPTIONS, section: "Availability" },
+  {
+    id: "availability_status",
+    question: "What is the availability status?",
+    input: "single",
+    required: true,
+    options: AVAILABILITY_OPTIONS,
+    section: "Availability",
+  },
 
   // 8. Sizes
-  { id: "flat_size", question: "What is the flat built-up area (Sq Ft)?", input: "number", required: true, section: "Area" },
+  {
+    id: "flat_size",
+    question: "What is the flat built-up area (Sq Ft)?",
+    input: "number",
+    required: true,
+    section: "Area",
+  },
   { id: "land_size", question: "What is the land size?", input: "number", required: true, section: "Area" },
-  { id: "land_unit", question: "Land area unit?", input: "single", required: true, options: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"], section: "Area" },
+  {
+    id: "land_unit",
+    question: "Land area unit?",
+    input: "single",
+    required: true,
+    options: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
+    section: "Area",
+  },
   { id: "built_up_area", question: "Built-up area (Sq Ft)?", input: "number", required: true, section: "Area" },
 
   // 9. BHK
-  { id: "bhk", question: "What is the BHK type?", input: "single", required: true, options: BHK_OPTIONS, section: "Configuration" },
+  {
+    id: "bhk",
+    question: "What is the BHK type?",
+    input: "single",
+    required: true,
+    options: BHK_OPTIONS,
+    section: "Configuration",
+  },
 
   // 10. Project / community details
   { id: "project_name", question: "Community / project name?", input: "text", section: "Project" },
@@ -166,20 +302,59 @@ const FIELDS: FieldConfig[] = [
   { id: "project_land_area", question: "Total land area of the project?", input: "text", section: "Project" },
 
   // 11. Furnishing
-  { id: "furnishing_status", question: "What is the furnishing status?", input: "single", required: true, options: FURNISHING_OPTIONS, section: "Furnishing" },
-  { id: "furnishing_items", question: "What furnishing items are included?", input: "multi", options: FURNISHING_ITEMS, section: "Furnishing" },
+  {
+    id: "furnishing_status",
+    question: "What is the furnishing status?",
+    input: "single",
+    required: true,
+    options: FURNISHING_OPTIONS,
+    section: "Furnishing",
+  },
+  {
+    id: "furnishing_items",
+    question: "What furnishing items are included?",
+    input: "multi",
+    options: FURNISHING_ITEMS,
+    section: "Furnishing",
+  },
 
   // 12. Facing
-  { id: "facing", question: "What is the property facing?", input: "single", required: true, options: FACING_OPTIONS, section: "Configuration" },
+  {
+    id: "facing",
+    question: "What is the property facing?",
+    input: "single",
+    required: true,
+    options: FACING_OPTIONS,
+    section: "Configuration",
+  },
 
   // 13. Amenities
-  { id: "amenities", question: "What amenities are available?", input: "multi", options: AMENITIES_OPTIONS, section: "Amenities" },
+  {
+    id: "amenities",
+    question: "What amenities are available?",
+    input: "multi",
+    options: AMENITIES_OPTIONS,
+    section: "Amenities",
+  },
 
   // 14. Payment options
-  { id: "payment_options", question: "What payment options are available?", input: "multi", options: PAYMENT_OPTIONS, section: "Payment" },
+  {
+    id: "payment_options",
+    question: "What payment options are available?",
+    input: "multi",
+    options: PAYMENT_OPTIONS,
+    section: "Payment",
+  },
 
   // 15. Approvals
-  { id: "approvals", question: "What approvals does this property have?", input: "multi", required: true, options: APPROVAL_OPTIONS, section: "Legal" },
+  {
+    id: "approvals",
+    question: "What approvals does this property have?",
+    input: "multi",
+    required: true,
+    options: APPROVAL_OPTIONS,
+    section: "Legal",
+  },
 
   // 16. Location hierarchy
   { id: "country", question: "Country?", input: "text", required: true, section: "Location" },
@@ -192,7 +367,14 @@ const FIELDS: FieldConfig[] = [
   { id: "pincode", question: "ZIP / PIN code?", input: "number", required: true, section: "Location" },
 
   // 17. Highlights (max 3)
-  { id: "highlights", question: "Select up to 3 property highlights or ribbons.", input: "multi", options: HIGHLIGHT_OPTIONS, section: "Highlights", max: 3 },
+  {
+    id: "highlights",
+    question: "Select up to 3 property highlights or ribbons.",
+    input: "multi",
+    options: HIGHLIGHT_OPTIONS,
+    section: "Highlights",
+    max: 3,
+  },
 
   // 18. Media + contact (always last)
   { id: "media", question: "Upload photos of your property (optional)", input: "media", section: "Media" },
@@ -242,9 +424,14 @@ function fieldRelevant(id: string, state: Record<string, any>): boolean {
 
   // Project details only when residential building
   if (
-    id === "project_name" || id === "gated_community" || id === "total_towers" ||
-    id === "total_floors" || id === "total_units" || id === "project_land_area"
-  ) return cat === "Residential";
+    id === "project_name" ||
+    id === "gated_community" ||
+    id === "total_towers" ||
+    id === "total_floors" ||
+    id === "total_units" ||
+    id === "project_land_area"
+  )
+    return cat === "Residential";
 
   // Furnishing only for residential building / commercial / coworking (not pure plots)
   if (id === "furnishing_status") {
@@ -267,23 +454,43 @@ const ORDER: string[] = [
   "residential_type",
   "owner_type",
   "listing_type",
-  "property_condition", "property_age",
+  "property_condition",
+  "property_age",
   "availability_status",
   "available_from",
   "flat_size",
-  "land_size", "land_unit", "built_up_area",
-  "total_price", "price_unit_type", "price_per_unit",
+  "land_size",
+  "land_unit",
+  "built_up_area",
+  "total_price",
+  "price_unit_type",
+  "price_per_unit",
   "monthly_rent",
   "bhk",
-  "project_name", "gated_community", "total_towers", "total_floors", "total_units", "project_land_area",
-  "furnishing_status", "furnishing_items",
+  "project_name",
+  "gated_community",
+  "total_towers",
+  "total_floors",
+  "total_units",
+  "project_land_area",
+  "furnishing_status",
+  "furnishing_items",
   "facing",
   "amenities",
   "payment_options",
   "approvals",
-  "country", "state", "city", "locality", "sub_locality", "landmark", "address", "pincode",
+  "country",
+  "state",
+  "city",
+  "locality",
+  "sub_locality",
+  "landmark",
+  "address",
+  "pincode",
   "highlights",
-  "media", "contact_name", "contact_mobile",
+  "media",
+  "contact_name",
+  "contact_mobile",
 ];
 
 export function buildFieldFlow(_subtypes: string[] = []): FieldConfig[] {
@@ -334,30 +541,33 @@ export function completionTier(state: Record<string, any>): CompletionTier {
 }
 
 export function missingRequired(state: Record<string, any>): FieldConfig[] {
-  return ORDER
-    .map((id) => FIELD_BY_ID[id])
-    .filter((f) => f && f.required && fieldRelevant(f.id, state) && !isFilled(state[f.id]));
+  return ORDER.map((id) => FIELD_BY_ID[id]).filter(
+    (f) => f && f.required && fieldRelevant(f.id, state) && !isFilled(state[f.id]),
+  );
 }
 
 export function answeredFields(state: Record<string, any>): Array<{ field: FieldConfig; value: any }> {
-  return ORDER
-    .map((id) => FIELD_BY_ID[id])
+  return ORDER.map((id) => FIELD_BY_ID[id])
     .filter(Boolean)
     .map((f) => ({ field: f, value: state[f.id] }))
-    .filter(({ value }) =>
-      value !== undefined && value !== null && value !== "" &&
-      (!Array.isArray(value) || value.length > 0),
+    .filter(
+      ({ value }) =>
+        value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0),
     );
 }
 
 // Legacy compat exports (kept so other files don't break)
 export const COMMON_FIELDS: FieldConfig[] = [];
 export const CONTACT_FIELDS: FieldConfig[] = [
-  FIELD_BY_ID.media, FIELD_BY_ID.contact_name, FIELD_BY_ID.contact_mobile,
+  FIELD_BY_ID.media,
+  FIELD_BY_ID.contact_name,
+  FIELD_BY_ID.contact_mobile,
 ].filter(Boolean) as FieldConfig[];
 
 export type PropertySubType = string;
 export const SUBTYPE_LABEL: Record<string, string> = {};
 export const ALL_SUBTYPE_LABELS: string[] = RESIDENTIAL_SUBTYPES;
-export function labelToSubType(label: string): string | null { return label || null; }
+export function labelToSubType(label: string): string | null {
+  return label || null;
+}
 export const TYPE_FIELDS: Record<string, FieldConfig[]> = {};
