@@ -317,6 +317,17 @@ function validate(field: FieldDef, value: any): string | null {
     if (!re.test(String(value))) return "Enter a valid email";
   }
   if (field.input === "number" && isNaN(Number(value))) return "Enter a valid number";
+  if (field.id === "bhk_type") {
+    if (!BHK_PATTERN.test(String(value).trim())) {
+      return "Please enter format like 3 BHK";
+    }
+  }
+
+  if (field.id === "price_per_unit") {
+    if (!PRICE_UNIT_PATTERN.test(String(value).trim())) {
+      return "Please enter format like ₹6000/sqft";
+    }
+  }
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
   if (field.input === "price_unit") {
     if (isNaN(Number(value.area)) || Number(value.area) <= 0) return "Enter a valid area";
