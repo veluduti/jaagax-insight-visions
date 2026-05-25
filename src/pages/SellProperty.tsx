@@ -285,6 +285,13 @@ const getPriceUnitSuggestions = (input: string) => {
 
   return [`₹${input} / sqft`, `₹${input} / sq yd`, `₹${input} per sqft`, `₹${input} per sq yard`];
 };
+
+const getBathroomSuggestions = (input: string) => {
+  if (!/^\d+(\+)?$/.test(input)) return [];
+
+  return [`${input} ${input === "1" ? "Bathroom" : "Bathrooms"}`];
+};
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function isEmpty(v: any) {
