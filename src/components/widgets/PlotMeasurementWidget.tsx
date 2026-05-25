@@ -23,6 +23,9 @@ interface PlotMeasurementWidgetProps {
   directions?: PlotDirection[];
   value?: PlotMeasurementValue;
   onChange?: (value: PlotMeasurementValue) => void;
+
+  onComplete?: (value: PlotMeasurementValue) => void;
+
   units?: string[];
   suggestions?: string[];
 }
