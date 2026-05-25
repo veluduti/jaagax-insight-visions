@@ -265,7 +265,7 @@ type ChatMsg =
 
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
-const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK|RK|Bedroom)$/i;
+const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK)$/i;
 
 const PRICE_UNIT_PATTERN = /^(₹?\s?\d+(,\d+)?)(\s)?(per|\/)(\s)?(sqft|sq ft|sq yd|sq yard)$/i;
 
