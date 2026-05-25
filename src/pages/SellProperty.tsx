@@ -422,7 +422,6 @@ export default function SellProperty() {
   /* Voice */
   const recognitionRef = useRef<any>(null);
   const [isListening, setIsListening] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
 
   /* Deterministic conversation engine — created AFTER user picks a category */
   const engineRef = useRef<ConversationEngine | null>(null);
@@ -1710,23 +1709,7 @@ export default function SellProperty() {
   };
 
   /** Jump back to a previously answered field (edit it). Removes everything after it. */
-  const jumpToField = (fieldId: string) => {
-    setEditorOpen(false);
-    const idx = history.findIndex((h) => h.field.id === fieldId);
-    if (idx === -1) return;
-    const keep = history.slice(0, idx);
-    const cleared = { ...state };
-    for (const h of history.slice(idx)) delete cleared[h.field.id];
-    setHistory(keep);
-    setState(cleared);
-    setDone(false);
-    // trim trailing AI/user pair messages until we'd re-ask this question
-    setMessages((m) => {
-      // best-effort: keep messages then re-fetch will append a fresh question bubble
-      return m;
-    });
-    fetchNext(cleared);
-  };
+
 
   return (
     <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
@@ -1774,10 +1757,8 @@ export default function SellProperty() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Chat scroll area */}
-
       {!showCategoryPicker && (
         <div
           ref={scrollRef}
