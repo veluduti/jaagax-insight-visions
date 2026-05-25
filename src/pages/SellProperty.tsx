@@ -394,9 +394,6 @@ export default function SellProperty() {
   /* Smart hint per question (locality-aware AI tip) */
   const [smartHint, setSmartHint] = useState<string | null>(null);
 
-  /* Edit-previous drawer */
-  const [editorOpen, setEditorOpen] = useState(false);
-
   /* AI titles + review */
   const [aiTitles, setAiTitles] = useState<{ type: string; label: string; title: string }[]>([]);
   const [titlesLoading, setTitlesLoading] = useState(false);
