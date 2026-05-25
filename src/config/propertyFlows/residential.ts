@@ -738,6 +738,10 @@ export const residentialFlow = {
             equals: "Yes",
           },
           {
+  field: "total_towers",
+  exists: true,
+}
+          {
             field: "property_type",
             in: APARTMENT_TYPES,
           },
