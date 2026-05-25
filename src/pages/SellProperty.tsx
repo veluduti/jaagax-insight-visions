@@ -528,6 +528,7 @@ export default function SellProperty() {
   );
   const [descExpanded, setDescExpanded] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
+  const [showEditSheet, setShowEditSheet] = useState(false);
 
   /* Chat transcript */
   const [messages, setMessages] = useState<ChatMsg[]>([]);
