@@ -163,7 +163,7 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   total_units: ["50 sqft", "100 sqft", "200 sqft", "500 sqft"],
   road_width: ["20 ft", "30 ft", "40 ft", "60 ft"],
   parking: ["1 parking", "2 parkings", "3 parkings", "4+ parkings"],
-  bathrooms: ["1 bathroom", "2 bathrooms", "3 bathrooms", "4+ bathrooms"],
+  bathroom_count: ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ Bathrooms"],
   total_acres: ["1 acres", "2 acres", "5 acres", "10 acres", "20+ acres"],
   monthly_rent: ["10000/month", "1500/week", "25000/3 months", "200/hr", "600/day"],
   total_price: ["25 lakh", "5 cr", "10 lakh", "2 cr"],
