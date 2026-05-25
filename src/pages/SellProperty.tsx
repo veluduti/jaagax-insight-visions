@@ -265,6 +265,25 @@ type ChatMsg =
 
 const phoneRE = /^[6-9]\d{9}$/;
 const pinRE = /^\d{6}$/;
+const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK|RK|Bedroom)$/i;
+
+const PRICE_UNIT_PATTERN = /^(₹?\s?\d+(,\d+)?)(\s)?(per|\/)(\s)?(sqft|sq ft|sq yd|sq yard)$/i;
+
+const getBhkSuggestions = (input: string) => {
+  if (!input) return [];
+
+  const num = input.replace(/[^\d.]/g, "");
+
+  if (!num) return [];
+
+  return [`${num} BHK`, `${num}.5 BHK`, `${num} Bedroom`];
+};
+
+const getPriceUnitSuggestions = (input: string) => {
+  if (!/^\d+$/.test(input)) return [];
+
+  return [`₹${input} / sqft`, `₹${input} / sq yd`, `₹${input} per sqft`, `₹${input} per sq yard`];
+};
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 function isEmpty(v: any) {
