@@ -497,7 +497,9 @@ export const residentialFlow = {
 
       priority: 16,
 
-      type: "price_per_unit",
+      type: "text",
+
+      inputMode: "price_with_unit",
 
       required: false,
 
