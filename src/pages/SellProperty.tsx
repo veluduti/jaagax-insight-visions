@@ -2175,7 +2175,8 @@ export default function SellProperty() {
             {/* Final review screen — premium AI-generated property preview */}
             {done &&
               (() => {
-                const fmtINR = (n: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+                const fmtINR = (n: number) =>
+                  new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
                 const fmtPrice = (n: number) => {
                   if (!n || !isFinite(n)) return "";
                   if (n >= 1e7) return `₹ ${(n / 1e7).toFixed(n % 1e7 === 0 ? 0 : 2)} Cr`;
@@ -2184,68 +2185,151 @@ export default function SellProperty() {
                 };
                 const areaN = Number(reviewArea) || 0;
                 const ppuN = Number(reviewPricePerUnit) || 0;
-                const totalPrice = areaN > 0 && ppuN > 0 ? Math.round(areaN * ppuN) : 0;
+                const totalPrice =
+                  areaN > 0 && ppuN > 0
+                    ? Math.round(areaN * ppuN)
+                    : Number(state.total_price) || Number(state.monthly_rent) || 0;
+
                 const sub =
+                  (Array.isArray(state.property_type) ? state.property_type[0] : state.property_type) ||
                   (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
-                  (Array.isArray(state.type) ? state.type[0] : state.type) ||
                   "Property";
-                const purpose = (state.purpose || state.listing_type || "sale").toString().toLowerCase();
+                const purpose = (
+                  state.listing_type ||
+                  state.purpose ||
+                  "sale"
+                )
+                  .toString()
+                  .toLowerCase();
                 const locLine = [reviewLocality, reviewCity].filter(Boolean).join(", ");
-                const floorLine =
-                  state.floor_number != null && state.floor_number !== ""
-                    ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors} Floors` : " Floor"}`
-                    : null;
-                const furnishing = state.furnishing_status || state.furnishing;
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
-                const yn = (v: any) => {
-                  const s = String(v ?? "").toLowerCase();
-                  if (s === "true" || s === "yes") return "Yes";
-                  if (s === "false" || s === "no") return "No";
-                  return v;
-                };
-                const detailRows: Array<[string, any]> = [
-                  ["Property Type", cap(sub)],
-                  ["Listing For", cap(purpose)],
-                  ["BHK", state.bhk ? `${state.bhk} BHK` : null],
-                  ["Bathrooms", state.bathrooms],
-                  ["Balconies", state.balconies],
-                  ["Floor", floorLine],
-                  ["Total Floors", state.total_floors],
-                  ["Area", areaN ? `${areaN} ${reviewUnit}` : null],
-                  ["Carpet Area", state.carpet_area ? `${state.carpet_area} ${reviewUnit}` : null],
-                  ["Super Built-up", state.super_built_up_area ? `${state.super_built_up_area} ${reviewUnit}` : null],
-                  ["Plot Area", state.plot_area ? `${state.plot_area} ${reviewUnit}` : null],
-                  ["Furnishing", cap(furnishing)],
-                  ["Facing", cap(state.facing)],
-                  ["Property Age", state.property_age],
-                  ["Property Condition", cap(state.property_condition)],
-                  ["Possession", cap(state.possession_status)],
-                  ["Available From", state.available_from],
-                  ["Parking", state.parking],
-                  ["Gated Community", yn(state.gated_community)],
-                  ["Ownership Type", cap(state.ownership_type)],
-                  ["Maintenance", state.maintenance_charges ? `₹ ${fmtINR(Number(state.maintenance_charges))}` : null],
-                  ["Security Deposit", state.security_deposit ? `₹ ${fmtINR(Number(state.security_deposit))}` : null],
-                  [`Price / ${reviewUnit}`, ppuN ? `₹ ${fmtINR(ppuN)}` : null],
-                ].filter((row): row is [string, any] => row[1] !== null && row[1] !== undefined && row[1] !== "");
+                const asStr = (v: any) =>
+                  Array.isArray(v) ? v.filter(Boolean).join(", ") : v == null ? "" : String(v);
 
-                const flagHighlights: string[] = [];
-                if (state.facing) flagHighlights.push(`${cap(state.facing)} Facing`);
-                if (String(state.gated_community).toLowerCase() === "yes") flagHighlights.push("Gated Community");
+                // BHK normalize ("3 BHK" or "3")
+                const bhkRaw = state.bhk_type || state.bhk || "";
+                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? bhkRaw : `${bhkRaw} BHK`) : "";
+                const bathRaw = state.bathroom_count ?? state.bathrooms ?? "";
+                const facingRaw = state.property_facing || state.facing || "";
+                const furnishing = state.furnishing_status || state.furnishing || "";
+                const floorLine =
+                  state.floor_number != null && state.floor_number !== ""
+                    ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors}` : ""}`
+                    : "";
+
+                /* Canonical detail map — render in this order, skip empty */
+                const has = (v: any) =>
+                  v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
+                const unit = reviewUnit || state.area_unit || "sq ft";
+
+                const detailRows: Array<{ key: string; label: string; value: string }> = [
+                  { key: "sub_type", label: "Property Type", value: asStr(sub) },
+                  { key: "listing_type", label: "Listing For", value: cap(purpose) },
+                  { key: "bhk", label: "Configuration", value: bhkLabel },
+                  { key: "bathrooms", label: "Bathrooms", value: asStr(bathRaw) },
+                  { key: "balconies", label: "Balconies", value: asStr(state.balconies) },
+                  { key: "floor", label: "Floor", value: floorLine },
+                  { key: "total_floors", label: "Total Floors", value: asStr(state.total_floors) },
+                  {
+                    key: "area",
+                    label: "Built-up Area",
+                    value:
+                      has(state.flat_size) || has(state.built_area)
+                        ? `${state.flat_size || state.built_area} ${unit}`
+                        : "",
+                  },
+                  {
+                    key: "carpet",
+                    label: "Carpet Area",
+                    value: has(state.carpet_area) ? `${state.carpet_area} ${unit}` : "",
+                  },
+                  {
+                    key: "plot",
+                    label: "Plot / Land Area",
+                    value:
+                      has(state.land_size) || has(state.plot_area) || has(state.total_land_area)
+                        ? `${state.land_size || state.plot_area || state.total_land_area} ${unit}`
+                        : "",
+                  },
+                  { key: "furnishing", label: "Furnishing", value: cap(asStr(furnishing)) },
+                  { key: "facing", label: "Facing", value: cap(asStr(facingRaw)) },
+                  { key: "property_age", label: "Property Age", value: asStr(state.property_age) },
+                  {
+                    key: "property_condition",
+                    label: "Condition",
+                    value: cap(asStr(state.property_condition)),
+                  },
+                  {
+                    key: "availability_status",
+                    label: "Availability",
+                    value: cap(asStr(state.availability_status || state.possession_status)),
+                  },
+                  {
+                    key: "possession_date",
+                    label: "Possession",
+                    value: asStr(state.possession_date),
+                  },
+                  {
+                    key: "available_from",
+                    label: "Available From",
+                    value: asStr(state.available_from_date || state.available_from),
+                  },
+                  { key: "parking", label: "Parking", value: asStr(state.parking) },
+                  {
+                    key: "gated_community",
+                    label: "Gated Community",
+                    value: has(state.gated_community)
+                      ? /^y/i.test(String(state.gated_community))
+                        ? "Yes"
+                        : "No"
+                      : "",
+                  },
+                  {
+                    key: "ownership_type",
+                    label: "Ownership",
+                    value: cap(asStr(state.ownership_type)),
+                  },
+                  {
+                    key: "maintenance",
+                    label: "Maintenance",
+                    value: has(state.maintenance_charges)
+                      ? `₹ ${fmtINR(Number(state.maintenance_charges))}`
+                      : "",
+                  },
+                  {
+                    key: "security_deposit",
+                    label: "Security Deposit",
+                    value: has(state.security_deposit)
+                      ? `₹ ${fmtINR(Number(state.security_deposit))}`
+                      : "",
+                  },
+                  {
+                    key: "price_per_unit",
+                    label: `Price / ${unit}`,
+                    value: ppuN ? `₹ ${fmtINR(ppuN)}` : "",
+                  },
+                  { key: "project_name", label: "Project", value: asStr(state.project_name) },
+                ].filter((r) => has(r.value));
+
                 const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
                 const allHighlights = Array.from(
-                  new Set([
-                    ...flagHighlights,
-                    ...reviewAmenities,
-                    ...arrFlat(state.property_highlights),
-                    ...arrFlat(state.payment_options),
-                    ...arrFlat(state.approvals),
-                  ]),
-                ).filter(Boolean);
+                  new Set(
+                    [
+                      ...arrFlat(state.property_highlights),
+                      ...arrFlat(state.amenities),
+                      ...reviewAmenities,
+                      ...arrFlat(state.payment_options),
+                      ...arrFlat(state.approvals),
+                      ...arrFlat(state.furnishing_items),
+                    ].filter(Boolean),
+                  ),
+                );
 
                 const descTooLong = (reviewDescription || "").length > 280;
                 const photos: string[] = state.media_urls || [];
+                const titleReady = !!reviewTitle.trim();
+                const canPublish = titleReady && !submitting && !titlesLoading;
 
                 const SectionCard: React.FC<{
                   title: string;
@@ -2257,7 +2341,7 @@ export default function SellProperty() {
                     <div className="flex items-center justify-between px-5 py-3 border-b border-border/60">
                       <div className="flex items-center gap-2">
                         {icon}
-                        <h3 className="font-semibold text-sm">{title}</h3>
+                        <h3 className="font-semibold text-sm tracking-tight">{title}</h3>
                       </div>
                       {action}
                     </div>
@@ -2275,6 +2359,51 @@ export default function SellProperty() {
                   </button>
                 );
 
+                /* ------ Edit drawer: dynamic field map ------ */
+                const editableNumeric = [
+                  { id: "bhk_type", label: "BHK / Configuration", type: "text" },
+                  { id: "bathroom_count", label: "Bathrooms", type: "number" },
+                  { id: "balconies", label: "Balconies", type: "number" },
+                  { id: "floor_number", label: "Floor number", type: "number" },
+                  { id: "total_floors", label: "Total floors", type: "number" },
+                  { id: "property_age", label: "Property age", type: "text" },
+                  { id: "parking", label: "Parking", type: "text" },
+                  { id: "ownership_type", label: "Ownership", type: "text" },
+                  { id: "carpet_area", label: `Carpet area (${unit})`, type: "number" },
+                  { id: "maintenance_charges", label: "Maintenance (₹)", type: "number" },
+                  { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
+                  { id: "project_name", label: "Project name", type: "text" },
+                ];
+                const editableSelect = [
+                  {
+                    id: "property_facing",
+                    label: "Facing",
+                    options: ["", "East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"],
+                  },
+                  {
+                    id: "furnishing_status",
+                    label: "Furnishing",
+                    options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
+                  },
+                  {
+                    id: "gated_community",
+                    label: "Gated community",
+                    options: ["", "Yes", "No"],
+                  },
+                  {
+                    id: "property_condition",
+                    label: "Property condition",
+                    options: ["", "New", "Resale", "Under Construction"],
+                  },
+                  {
+                    id: "availability_status",
+                    label: "Availability",
+                    options: ["", "Ready to Move", "Under Construction"],
+                  },
+                ];
+                const filledNumeric = editableNumeric.filter((f) => has((state as any)[f.id]));
+                const filledSelect = editableSelect.filter((f) => has((state as any)[f.id]));
+
                 return (
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
@@ -2283,7 +2412,7 @@ export default function SellProperty() {
                   >
                     {/* 1. HERO */}
                     <div className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-primary/5 via-card to-emerald-500/5 shadow-md">
-                      <div className="relative h-44 sm:h-56 bg-muted overflow-hidden">
+                      <div className="relative h-44 sm:h-60 bg-muted overflow-hidden">
                         {photos[0] ? (
                           <img src={photos[0]} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -2295,15 +2424,29 @@ export default function SellProperty() {
                         <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/85 backdrop-blur text-[10px] font-semibold uppercase tracking-wider text-primary">
                           <Sparkles className="h-3 w-3" /> AI-generated preview
                         </div>
+                        {photos.length > 1 && (
+                          <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-background/85 backdrop-blur text-[10px] font-semibold">
+                            +{photos.length - 1} photos
+                          </div>
+                        )}
                       </div>
                       <div className="p-5 sm:p-6">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             {totalPrice > 0 && (
-                              <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
+                              <div className="text-2xl sm:text-3xl font-bold text-primary">
+                                {fmtPrice(totalPrice)}
+                              </div>
                             )}
                             <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
-                              {reviewTitle || `${state.bhk ? state.bhk + " BHK " : ""}${cap(sub)} for ${purpose}`}
+                              {reviewTitle ||
+                                (titlesLoading ? (
+                                  <span className="inline-flex items-center gap-2 text-muted-foreground italic font-normal">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Generating title…
+                                  </span>
+                                ) : (
+                                  `${bhkLabel ? bhkLabel + " " : ""}${cap(sub)} for ${purpose}`
+                                ))}
                             </h1>
                             {locLine && (
                               <div className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
@@ -2314,19 +2457,19 @@ export default function SellProperty() {
                           <EditBtn />
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                          {state.bhk && (
+                          {bhkLabel && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Home className="h-3 w-3" /> {state.bhk} BHK
+                              <Home className="h-3 w-3" /> {bhkLabel}
                             </span>
                           )}
                           {areaN > 0 && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Maximize2 className="h-3 w-3" /> {areaN} {reviewUnit}
+                              <Maximize2 className="h-3 w-3" /> {areaN} {unit}
                             </span>
                           )}
-                          {state.bathrooms && (
+                          {bathRaw && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Bath className="h-3 w-3" /> {state.bathrooms} Bath
+                              <Bath className="h-3 w-3" /> {bathRaw} Bath
                             </span>
                           )}
                           {floorLine && (
@@ -2334,9 +2477,9 @@ export default function SellProperty() {
                               <Building2 className="h-3 w-3" /> {floorLine}
                             </span>
                           )}
-                          {state.facing && (
+                          {facingRaw && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Compass className="h-3 w-3" /> {cap(state.facing)}
+                              <Compass className="h-3 w-3" /> {cap(facingRaw)}
                             </span>
                           )}
                           {furnishing && (
@@ -2359,7 +2502,11 @@ export default function SellProperty() {
                           disabled={titlesLoading}
                           className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
                         >
-                          {titlesLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          {titlesLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3" />
+                          )}
                           Regenerate
                         </button>
                       }
@@ -2404,11 +2551,16 @@ export default function SellProperty() {
                               </button>
                             );
                           })}
+                          {aiTitles.length === 0 && (
+                            <div className="text-xs text-muted-foreground italic">
+                              No titles yet — tap Regenerate.
+                            </div>
+                          )}
                         </div>
                       )}
                     </SectionCard>
 
-                    {/* 3. DESCRIPTION — read-only */}
+                    {/* 3. DESCRIPTION */}
                     <SectionCard
                       title="Description"
                       icon={<Sparkles className="h-4 w-4 text-primary" />}
@@ -2453,7 +2605,10 @@ export default function SellProperty() {
                       >
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                           {allHighlights.map((h, i) => (
-                            <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50">
+                            <div
+                              key={i}
+                              className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50"
+                            >
                               <span className="h-5 w-5 shrink-0 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
                                 <Check className="h-3 w-3" />
                               </span>
@@ -2464,51 +2619,52 @@ export default function SellProperty() {
                       </SectionCard>
                     )}
 
-                    {/* 5. DETAILS GRID — read-only */}
-                    <SectionCard
-                      title="Property Details"
-                      icon={<Home className="h-4 w-4 text-primary" />}
-                      action={<EditBtn />}
-                    >
-                      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                        {detailRows.map(([k, v], i) => (
-                          <div
-                            key={k}
-                            className={cn(
-                              "flex items-center justify-between py-2.5 text-sm border-b border-border/50",
-                              i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) && "sm:border-b-0",
-                            )}
-                          >
-                            <dt className="text-muted-foreground">{k}</dt>
-                            <dd className="font-medium text-right">{String(v)}</dd>
-                          </div>
-                        ))}
-                        {totalPrice > 0 && (
-                          <div className="flex items-center justify-between py-2.5 text-sm sm:col-span-2 border-t border-border/60 mt-1">
-                            <dt className="text-muted-foreground">Total Price</dt>
-                            <dd className="font-semibold text-primary">{fmtPrice(totalPrice)}</dd>
-                          </div>
-                        )}
-                      </dl>
-                    </SectionCard>
+                    {/* 5. DETAILS — only user-filled rows */}
+                    {detailRows.length > 0 && (
+                      <SectionCard
+                        title="Property Details"
+                        icon={<Home className="h-4 w-4 text-primary" />}
+                        action={<EditBtn />}
+                      >
+                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                          {detailRows.map((r, i) => (
+                            <div
+                              key={r.key}
+                              className={cn(
+                                "flex items-center justify-between py-2.5 text-sm border-b border-border/50",
+                                i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) &&
+                                  "sm:border-b-0",
+                              )}
+                            >
+                              <dt className="text-muted-foreground">{r.label}</dt>
+                              <dd className="font-medium text-right">{r.value}</dd>
+                            </div>
+                          ))}
+                          {totalPrice > 0 && (
+                            <div className="flex items-center justify-between py-2.5 text-sm sm:col-span-2 border-t border-border/60 mt-1">
+                              <dt className="text-muted-foreground">Total Price</dt>
+                              <dd className="font-semibold text-primary">{fmtPrice(totalPrice)}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </SectionCard>
+                    )}
 
-                    {/* 6. LOCATION — read-only */}
-                    <SectionCard
-                      title="Location"
-                      icon={<MapPin className="h-4 w-4 text-primary" />}
-                      action={<EditBtn />}
-                    >
-                      {locLine || reviewAddress ? (
+                    {/* 6. LOCATION */}
+                    {(locLine || reviewAddress) && (
+                      <SectionCard
+                        title="Location"
+                        icon={<MapPin className="h-4 w-4 text-primary" />}
+                        action={<EditBtn />}
+                      >
                         <div className="space-y-1">
                           <div className="text-base font-medium">{locLine || "—"}</div>
-                          {reviewAddress && <div className="text-sm text-muted-foreground">{reviewAddress}</div>}
+                          {reviewAddress && (
+                            <div className="text-sm text-muted-foreground">{reviewAddress}</div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground italic">
-                          No location set. Tap Edit to add city & locality.
-                        </div>
-                      )}
-                    </SectionCard>
+                      </SectionCard>
+                    )}
 
                     {/* 7. PHOTOS */}
                     <SectionCard
@@ -2525,8 +2681,17 @@ export default function SellProperty() {
                       />
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {photos.map((url: string, i: number) => (
-                          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
-                            <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                          <div
+                            key={i}
+                            className="relative aspect-square rounded-xl overflow-hidden bg-muted group"
+                          >
+                            <img
+                              src={url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                             <button
                               type="button"
                               onClick={() =>
@@ -2561,26 +2726,35 @@ export default function SellProperty() {
 
                     {/* 8. STICKY ACTION BAR */}
                     <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-                      <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowEditSheet(true)}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <Pencil className="h-4 w-4 mr-1" /> Edit details
-                        </Button>
-                        <Button
-                          onClick={onSubmit}
-                          disabled={submitting}
-                          className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95"
-                        >
-                          {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                          Publish Property
-                        </Button>
+                      <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
+                        {!titleReady && (
+                          <div className="text-[11px] text-muted-foreground text-center">
+                            {titlesLoading
+                              ? "Generating title…"
+                              : "Pick or write a title to enable publish"}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowEditSheet(true)}
+                            className="flex-1 sm:flex-none"
+                          >
+                            <Pencil className="h-4 w-4 mr-1" /> Edit details
+                          </Button>
+                          <Button
+                            onClick={onSubmit}
+                            disabled={!canPublish}
+                            className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95 disabled:opacity-50"
+                          >
+                            {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Publish Property
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* EDIT DRAWER — all details in one place */}
+                    {/* EDIT DRAWER — dynamic, only filled fields */}
                     <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
                       <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
                         <SheetHeader>
@@ -2591,217 +2765,227 @@ export default function SellProperty() {
                         </SheetHeader>
 
                         <div className="mt-6 space-y-6 pb-24">
-                          <div className="space-y-3">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Basics</h4>
-                            <div>
-                              <label className="text-xs text-muted-foreground mb-1 block">Listing title</label>
-                              <Input
-                                value={reviewTitle}
-                                onChange={(e) => {
-                                  setReviewTitle(e.target.value);
-                                  setSelectedTitleIdx(null);
-                                }}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">BHK</label>
-                                <Input
-                                  value={state.bhk || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, bhk: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Bathrooms</label>
-                                <Input
-                                  value={state.bathrooms || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, bathrooms: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Floor number</label>
-                                <Input
-                                  value={state.floor_number ?? ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, floor_number: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Total floors</label>
-                                <Input
-                                  value={state.total_floors || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, total_floors: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Facing</label>
-                                <Input
-                                  value={state.facing || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, facing: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Furnishing</label>
-                                <Input
-                                  value={state.furnishing_status || state.furnishing || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, furnishing_status: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Property age</label>
-                                <Input
-                                  value={state.property_age || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, property_age: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Parking</label>
-                                <Input
-                                  value={state.parking || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, parking: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Ownership</label>
-                                <Input
-                                  value={state.ownership_type || ""}
-                                  onChange={(e) => setState((s: any) => ({ ...s, ownership_type: e.target.value }))}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Gated community</label>
-                                <select
-                                  value={String(state.gated_community || "")}
-                                  onChange={(e) => setState((s: any) => ({ ...s, gated_community: e.target.value }))}
-                                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                                >
-                                  <option value="">—</option>
-                                  <option value="yes">Yes</option>
-                                  <option value="no">No</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Area & Pricing</h4>
-                            <div className="grid grid-cols-3 gap-2">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Area</label>
-                                <Input type="number" value={reviewArea} onChange={(e) => setReviewArea(e.target.value)} />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
-                                <Input
-                                  type="number"
-                                  value={reviewPricePerUnit}
-                                  onChange={(e) => setReviewPricePerUnit(e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
-                                <select
-                                  value={reviewUnit}
-                                  onChange={(e) => setReviewUnit(e.target.value)}
-                                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                                >
-                                  {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
-                                    <option key={u}>{u}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                            {totalPrice > 0 && (
-                              <div className="text-xs text-muted-foreground">
-                                Total: <span className="font-semibold text-primary">{fmtPrice(totalPrice)}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="space-y-3">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</h4>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                                <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                                <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
-                              </div>
-                              <div className="col-span-2">
-                                <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
-                                <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} />
-                              </div>
-                            </div>
-                          </div>
-
+                          {/* Title */}
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</h4>
-                            <Textarea
-                              value={reviewDescription}
-                              onChange={(e) => setReviewDescription(e.target.value)}
-                              rows={6}
-                              className="resize-none rounded-xl text-sm"
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              Listing title
+                            </h4>
+                            <Input
+                              value={reviewTitle}
+                              onChange={(e) => {
+                                setReviewTitle(e.target.value);
+                                setSelectedTitleIdx(null);
+                              }}
+                              placeholder="e.g. Spacious 3 BHK Independent House in Kondapur"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setReviewDescription(buildPropertyDescription(state))}
-                              className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                            >
-                              <Sparkles className="h-3 w-3" /> Regenerate with AI
-                            </button>
                           </div>
 
-                          <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amenities</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                              {reviewAmenities.map((a, i) => (
-                                <span
-                                  key={i}
-                                  className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
-                                >
-                                  {a}
-                                  <button
-                                    type="button"
-                                    onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                          {/* Filled details only */}
+                          {(filledNumeric.length > 0 || filledSelect.length > 0) && (
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Your details
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                {filledNumeric.map((f) => (
+                                  <div key={f.id}>
+                                    <label className="text-xs text-muted-foreground mb-1 block">
+                                      {f.label}
+                                    </label>
+                                    <Input
+                                      type={f.type}
+                                      value={(state as any)[f.id] ?? ""}
+                                      onChange={(e) =>
+                                        setState((s: any) => ({ ...s, [f.id]: e.target.value }))
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                                {filledSelect.map((f) => (
+                                  <div key={f.id}>
+                                    <label className="text-xs text-muted-foreground mb-1 block">
+                                      {f.label}
+                                    </label>
+                                    <select
+                                      value={String((state as any)[f.id] || "")}
+                                      onChange={(e) =>
+                                        setState((s: any) => ({ ...s, [f.id]: e.target.value }))
+                                      }
+                                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                    >
+                                      {f.options.map((o) => (
+                                        <option key={o} value={o}>
+                                          {o || "—"}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Area & Pricing */}
+                          {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Area & Pricing
+                              </h4>
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Area</label>
+                                  <Input
+                                    type="number"
+                                    value={reviewArea}
+                                    onChange={(e) => setReviewArea(e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
+                                  <Input
+                                    type="number"
+                                    value={reviewPricePerUnit}
+                                    onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
+                                  <select
+                                    value={reviewUnit}
+                                    onChange={(e) => setReviewUnit(e.target.value)}
+                                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                                   >
-                                    <X className="h-2.5 w-2.5" />
-                                  </button>
-                                </span>
-                              ))}
+                                    {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
+                                      <option key={u}>{u}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              {totalPrice > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  Total: <span className="font-semibold text-primary">{fmtPrice(totalPrice)}</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex gap-2">
-                              <Input
-                                value={newAmenity}
-                                onChange={(e) => setNewAmenity(e.target.value)}
-                                placeholder="Add amenity"
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" && newAmenity.trim()) {
-                                    e.preventDefault();
-                                    setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                    setNewAmenity("");
-                                  }
-                                }}
+                          )}
+
+                          {/* Location */}
+                          {(reviewCity || reviewLocality || reviewAddress) && (
+                            <div className="space-y-3">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Location
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">City</label>
+                                  <Input
+                                    value={reviewCity}
+                                    onChange={(e) => setReviewCity(e.target.value)}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
+                                  <Input
+                                    value={reviewLocality}
+                                    onChange={(e) => setReviewLocality(e.target.value)}
+                                  />
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="text-xs text-muted-foreground mb-1 block">
+                                    Address / landmark
+                                  </label>
+                                  <Input
+                                    value={reviewAddress}
+                                    onChange={(e) => setReviewAddress(e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Description */}
+                          {reviewDescription && (
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Description
+                              </h4>
+                              <Textarea
+                                value={reviewDescription}
+                                onChange={(e) => setReviewDescription(e.target.value)}
+                                rows={6}
+                                className="resize-none rounded-xl text-sm"
                               />
-                              <Button
+                              <button
                                 type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  if (newAmenity.trim()) {
-                                    setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                    setNewAmenity("");
-                                  }
-                                }}
+                                onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
-                                Add
-                              </Button>
+                                <Sparkles className="h-3 w-3" /> Regenerate with AI
+                              </button>
                             </div>
-                          </div>
+                          )}
+
+                          {/* Amenities / Highlights */}
+                          {(reviewAmenities.length > 0 || allHighlights.length > 0) && (
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Amenities & Highlights
+                              </h4>
+                              <div className="flex flex-wrap gap-1.5">
+                                {reviewAmenities.map((a, i) => (
+                                  <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                                  >
+                                    {a}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))
+                                      }
+                                    >
+                                      <X className="h-2.5 w-2.5" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex gap-2">
+                                <Input
+                                  value={newAmenity}
+                                  onChange={(e) => setNewAmenity(e.target.value)}
+                                  placeholder="Add amenity"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && newAmenity.trim()) {
+                                      e.preventDefault();
+                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                      setNewAmenity("");
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (newAmenity.trim()) {
+                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                      setNewAmenity("");
+                                    }
+                                  }}
+                                >
+                                  Add
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <SheetFooter className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] -mx-6 px-6 gap-2 flex-row">
-                          <Button variant="outline" className="flex-1" onClick={() => setShowEditSheet(false)}>
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => setShowEditSheet(false)}
+                          >
                             Cancel
                           </Button>
                           <Button
