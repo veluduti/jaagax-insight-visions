@@ -505,16 +505,6 @@ export default function SellProperty() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [posterTitle, setPosterTitle] = useState<string>("");
 
-  /* Editable review fields (mirror state but allow live edits on review screen) */
-  const [reviewTitle, setReviewTitle] = useState("");
-  const [reviewLocality, setReviewLocality] = useState("");
-  const [reviewCity, setReviewCity] = useState("");
-  const [reviewAddress, setReviewAddress] = useState("");
-  const [reviewArea, setReviewArea] = useState("");
-  const [reviewPricePerUnit, setReviewPricePerUnit] = useState("");
-  const [reviewUnit, setReviewUnit] = useState("sq ft");
-  const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
-  const [reviewDescription, setReviewDescription] = useState("");
   /* Section-level edit toggles for preview-first review screen */
   const [editSection, setEditSection] = useState<null | "basic" | "description" | "location" | "price" | "amenities">(
     null,
