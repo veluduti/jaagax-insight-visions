@@ -507,6 +507,18 @@ export default function SellProperty() {
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
+  const openEditSheet = () => {
+  setEditForm({
+    ...state,
+
+    title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
+
+    description: state.description || buildPropertyDescription(state),
+  });
+
+  setShowEditSheet(true);
+};
+
   const saveEditedDetails = async () => {
     const updated = {
       ...state,
