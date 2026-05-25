@@ -1773,8 +1773,10 @@ export default function SellProperty() {
             </div>
           </div>
         </div>
+      </div>
 
       {/* Chat scroll area */}
+
       {!showCategoryPicker && (
         <div
           ref={scrollRef}
