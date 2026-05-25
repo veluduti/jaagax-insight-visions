@@ -455,7 +455,7 @@ export default function SellProperty() {
     if ((field.id === "bhk" || field.id === "bhk_type") && typeof value === "string") {
       setSuggestions(getBhkSuggestions(value));
       return;
-    
+    }
 
     // ============================================
     // PRICE UNIT Suggestions
@@ -508,16 +508,16 @@ export default function SellProperty() {
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
   const openEditSheet = () => {
-  setEditForm({
-    ...state,
+    setEditForm({
+      ...state,
 
-    title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
+      title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
 
-    description: state.description || buildPropertyDescription(state),
-  });
+      description: state.description || buildPropertyDescription(state),
+    });
 
-  setShowEditSheet(true);
-};
+    setShowEditSheet(true);
+  };
 
   const saveEditedDetails = async () => {
     const updated = {
