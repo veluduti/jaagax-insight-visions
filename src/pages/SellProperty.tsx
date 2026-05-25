@@ -1899,9 +1899,6 @@ export default function SellProperty() {
                       type="button"
                       onClick={() => {
                         // strip "+" or "Ground" → numeric where possible
-                        const numeric =
-                          opt === "Ground" ? 0 : opt.endsWith("+") ? Number(opt.slice(0, -1)) : Number(opt);
-                        const sendVal = isNaN(numeric) ? opt : numeric;
                         setValue(opt);
                       }}
                       className={cn(
