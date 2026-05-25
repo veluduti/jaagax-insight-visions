@@ -2688,6 +2688,15 @@ export default function SellProperty() {
                                   return;
                                 }
 
+                                if (
+                                  (field?.id === "flat_size" ||
+                                    field?.id === "built_up_area" ||
+                                    field?.id === "land_size") &&
+                                  !MEASUREMENT_PATTERN.test(String(value).trim())
+                                ) {
+                                  return;
+                                }
+
                                 onNext();
                               }
                             }}
