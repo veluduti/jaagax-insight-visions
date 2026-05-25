@@ -1969,7 +1969,19 @@ export default function SellProperty() {
                   transition={{ duration: 0.18 }}
                   className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
                 >
-                  <Bubble msg={msg} />
+                  <div className="flex items-center gap-2">
+                    <Bubble msg={msg} />
+
+                    {msg.role === "user" && msg.kind === "text" && (msg as any).fieldId && (
+                      <button
+                        type="button"
+                        onClick={() => jumpToField((msg as any).fieldId)}
+                        className="opacity-60 hover:opacity-100 transition"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>
