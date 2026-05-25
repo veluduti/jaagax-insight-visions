@@ -2685,6 +2685,25 @@ export default function SellProperty() {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
 
+                                // ============================================
+                                // BLOCK INVALID BHK
+                                // ============================================
+
+                                if (
+                                  (field?.id === "bhk" || field?.id === "bhk_type") &&
+                                  !BHK_PATTERN.test(String(value).trim())
+                                ) {
+                                  return;
+                                }
+
+                                // ============================================
+                                // BLOCK INVALID PRICE UNIT
+                                // ============================================
+
+                                if (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) {
+                                  return;
+                                }
+
                                 onNext();
                               }
                             }}
