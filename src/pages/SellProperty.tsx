@@ -276,7 +276,7 @@ const getBhkSuggestions = (input: string) => {
 
   if (!num) return [];
 
-  return [`${num} BHK`, `${num}.5 BHK`, `${num} Bedroom`];
+  return [`${num} BHK`, `${num}.5 BHK`];
 };
 
 const getPriceUnitSuggestions = (input: string) => {
