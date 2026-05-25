@@ -235,14 +235,6 @@ export const plotsFlow: PropertyFlowConfig = {
       question: "What is the plot size?",
 
       units: PLOT_UNITS,
-
-      aiFollowup: {
-        triggerAfterAnswer: true,
-
-        askForVariants: true,
-
-        followupQuestion: "Do you have additional plot sizes available for separate listings?",
-      },
     },
 
     add_multiple_plot_sizes: {
