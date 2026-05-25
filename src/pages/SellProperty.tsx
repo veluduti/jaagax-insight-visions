@@ -2117,7 +2117,13 @@ export default function SellProperty() {
             )}
             {field?.type === "plot_measurement_widget" && (
               <div className="pt-3">
-                <PlotMeasurementWidget field={field.raw} value={value} onChange={setValue} />
+                <PlotMeasurementWidget
+                  value={value}
+                  onChange={setValue}
+                  onComplete={async (plotData) => {
+                    await commitAnswer(plotData, "Plot measurements added", field);
+                  }}
+                />
               </div>
             )}
             {field?.type === "workspace_configuration_widget" && (
@@ -2149,572 +2155,564 @@ export default function SellProperty() {
             {error && <div className="pl-1 text-xs text-destructive">{error}</div>}
 
             {/* Final review screen — premium AI-generated property preview */}
-            {done && (() => {
-              const fmtINR = (n: number) =>
-                new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
-              const fmtPrice = (n: number) => {
-                if (!n || !isFinite(n)) return "";
-                if (n >= 1e7) return `₹ ${(n / 1e7).toFixed(n % 1e7 === 0 ? 0 : 2)} Cr`;
-                if (n >= 1e5) return `₹ ${(n / 1e5).toFixed(n % 1e5 === 0 ? 0 : 2)} Lakh`;
-                return `₹ ${fmtINR(n)}`;
-              };
-              const areaN = Number(reviewArea) || 0;
-              const ppuN = Number(reviewPricePerUnit) || 0;
-              const totalPrice = areaN > 0 && ppuN > 0 ? Math.round(areaN * ppuN) : 0;
-              const sub = (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
-                          (Array.isArray(state.type) ? state.type[0] : state.type) || "Property";
-              const purpose = (state.purpose || state.listing_type || "sale").toString().toLowerCase();
-              const locLine = [reviewLocality, reviewCity].filter(Boolean).join(", ");
-              const floorLine =
-                state.floor_number != null && state.floor_number !== ""
-                  ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors} Floors` : " Floor"}`
-                  : null;
-              const furnishing = state.furnishing_status || state.furnishing;
-              const detailRows: Array<[string, any]> = [
-                ["Property Type", sub],
-                ["BHK", state.bhk ? `${state.bhk} BHK` : null],
-                ["Bathrooms", state.bathrooms],
-                ["Floor", floorLine],
-                ["Total Floors", state.total_floors],
-                ["Area", areaN ? `${areaN} ${reviewUnit}` : null],
-                ["Furnishing", furnishing],
-                ["Facing", state.facing],
-                ["Property Age", state.property_age],
-                ["Gated Community", state.gated_community],
-              ].filter((row): row is [string, any] => row[1] !== null && row[1] !== undefined && row[1] !== "");
+            {done &&
+              (() => {
+                const fmtINR = (n: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n);
+                const fmtPrice = (n: number) => {
+                  if (!n || !isFinite(n)) return "";
+                  if (n >= 1e7) return `₹ ${(n / 1e7).toFixed(n % 1e7 === 0 ? 0 : 2)} Cr`;
+                  if (n >= 1e5) return `₹ ${(n / 1e5).toFixed(n % 1e5 === 0 ? 0 : 2)} Lakh`;
+                  return `₹ ${fmtINR(n)}`;
+                };
+                const areaN = Number(reviewArea) || 0;
+                const ppuN = Number(reviewPricePerUnit) || 0;
+                const totalPrice = areaN > 0 && ppuN > 0 ? Math.round(areaN * ppuN) : 0;
+                const sub =
+                  (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
+                  (Array.isArray(state.type) ? state.type[0] : state.type) ||
+                  "Property";
+                const purpose = (state.purpose || state.listing_type || "sale").toString().toLowerCase();
+                const locLine = [reviewLocality, reviewCity].filter(Boolean).join(", ");
+                const floorLine =
+                  state.floor_number != null && state.floor_number !== ""
+                    ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors} Floors` : " Floor"}`
+                    : null;
+                const furnishing = state.furnishing_status || state.furnishing;
+                const detailRows: Array<[string, any]> = [
+                  ["Property Type", sub],
+                  ["BHK", state.bhk ? `${state.bhk} BHK` : null],
+                  ["Bathrooms", state.bathrooms],
+                  ["Floor", floorLine],
+                  ["Total Floors", state.total_floors],
+                  ["Area", areaN ? `${areaN} ${reviewUnit}` : null],
+                  ["Furnishing", furnishing],
+                  ["Facing", state.facing],
+                  ["Property Age", state.property_age],
+                  ["Gated Community", state.gated_community],
+                ].filter((row): row is [string, any] => row[1] !== null && row[1] !== undefined && row[1] !== "");
 
-              // Build highlight chips from amenities + flag-y arrays + boolean flags
-              const flagHighlights: string[] = [];
-              if (state.facing) flagHighlights.push(`${state.facing} Facing`);
-              if (String(state.gated_community).toLowerCase() === "yes") flagHighlights.push("Gated Community");
-              const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
-              const allHighlights = Array.from(
-                new Set([
-                  ...flagHighlights,
-                  ...reviewAmenities,
-                  ...arrFlat(state.property_highlights),
-                  ...arrFlat(state.payment_options),
-                  ...arrFlat(state.approvals),
-                ]),
-              ).filter(Boolean);
+                // Build highlight chips from amenities + flag-y arrays + boolean flags
+                const flagHighlights: string[] = [];
+                if (state.facing) flagHighlights.push(`${state.facing} Facing`);
+                if (String(state.gated_community).toLowerCase() === "yes") flagHighlights.push("Gated Community");
+                const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
+                const allHighlights = Array.from(
+                  new Set([
+                    ...flagHighlights,
+                    ...reviewAmenities,
+                    ...arrFlat(state.property_highlights),
+                    ...arrFlat(state.payment_options),
+                    ...arrFlat(state.approvals),
+                  ]),
+                ).filter(Boolean);
 
-              const descTooLong = (reviewDescription || "").length > 280;
-              const photos: string[] = state.media_urls || [];
+                const descTooLong = (reviewDescription || "").length > 280;
+                const photos: string[] = state.media_urls || [];
 
-              const SectionCard: React.FC<{
-                title: string;
-                icon?: React.ReactNode;
-                onEdit?: () => void;
-                editing?: boolean;
-                children: React.ReactNode;
-              }> = ({ title, icon, onEdit, editing, children }) => (
-                <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-3 border-b border-border/60">
-                    <div className="flex items-center gap-2">
-                      {icon}
-                      <h3 className="font-semibold text-sm">{title}</h3>
-                    </div>
-                    {onEdit && (
-                      <button
-                        type="button"
-                        onClick={onEdit}
-                        className="text-xs text-primary hover:underline flex items-center gap-1"
-                      >
-                        <Pencil className="h-3 w-3" /> {editing ? "Done" : "Edit"}
-                      </button>
-                    )}
-                  </div>
-                  <div className="p-5">{children}</div>
-                </div>
-              );
-
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 space-y-4 pb-28"
-                >
-                  {/* 1. HERO CARD */}
-                  <div className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-primary/5 via-card to-emerald-500/5 shadow-md">
-                    <div className="relative h-44 sm:h-56 bg-muted overflow-hidden">
-                      {photos[0] ? (
-                        <img src={photos[0]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted/40">
-                          <ImagePlus className="h-8 w-8 mb-2 opacity-50" />
-                          <div className="text-xs">Add photos to make your listing shine</div>
-                        </div>
+                const SectionCard: React.FC<{
+                  title: string;
+                  icon?: React.ReactNode;
+                  onEdit?: () => void;
+                  editing?: boolean;
+                  children: React.ReactNode;
+                }> = ({ title, icon, onEdit, editing, children }) => (
+                  <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-border/60">
+                      <div className="flex items-center gap-2">
+                        {icon}
+                        <h3 className="font-semibold text-sm">{title}</h3>
+                      </div>
+                      {onEdit && (
+                        <button
+                          type="button"
+                          onClick={onEdit}
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <Pencil className="h-3 w-3" /> {editing ? "Done" : "Edit"}
+                        </button>
                       )}
-                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/85 backdrop-blur text-[10px] font-semibold uppercase tracking-wider text-primary">
-                        <Sparkles className="h-3 w-3" /> AI-generated preview
-                      </div>
                     </div>
-                    <div className="p-5 sm:p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          {totalPrice > 0 && (
-                            <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
-                          )}
-                          <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
-                            {reviewTitle || `${state.bhk ? state.bhk + " BHK " : ""}${sub} for ${purpose}`}
-                          </h1>
-                          {locLine && (
-                            <div className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" /> {locLine}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setEditSection(editSection === "basic" ? null : "basic")}
-                          className="shrink-0 text-xs text-primary hover:underline flex items-center gap-1"
-                        >
-                          <Pencil className="h-3 w-3" /> Edit
-                        </button>
-                      </div>
-                      {/* Quick chips */}
-                      <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                        {state.bhk && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Home className="h-3 w-3" /> {state.bhk} BHK
-                          </span>
-                        )}
-                        {areaN > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Maximize2 className="h-3 w-3" /> {areaN} {reviewUnit}
-                          </span>
-                        )}
-                        {state.bathrooms && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Bath className="h-3 w-3" /> {state.bathrooms} Bath
-                          </span>
-                        )}
-                        {floorLine && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Building2 className="h-3 w-3" /> {floorLine}
-                          </span>
-                        )}
-                        {state.facing && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Compass className="h-3 w-3" /> {state.facing}
-                          </span>
-                        )}
-                        {furnishing && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                            <Sofa className="h-3 w-3" /> {furnishing}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Edit Basic Info accordion */}
-                      <AnimatePresence>
-                        {editSection === "basic" && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground mb-1 block">Title</label>
-                                <Input
-                                  value={reviewTitle}
-                                  onChange={(e) => {
-                                    setReviewTitle(e.target.value);
-                                    setSelectedTitleIdx(null);
-                                  }}
-                                  placeholder="Listing title"
-                                />
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    <div className="p-5">{children}</div>
                   </div>
+                );
 
-                  {/* 2. AI SUGGESTED TITLES */}
-                  <SectionCard
-                    title="AI Suggested Titles"
-                    icon={<Wand2 className="h-4 w-4 text-primary" />}
-                    onEdit={regenerateTitles}
-                    editing={titlesLoading}
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 space-y-4 pb-28"
                   >
-                    {titlesLoading && aiTitles.length === 0 ? (
-                      <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {aiTitles.slice(0, 3).map((t, i) => {
-                          const active = selectedTitleIdx === i;
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => {
-                                setSelectedTitleIdx(i);
-                                setReviewTitle(t.title);
-                              }}
-                              className={cn(
-                                "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
-                                active
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border bg-background hover:border-primary/40",
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  "mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                                  active ? "border-primary bg-primary" : "border-muted-foreground/40",
-                                )}
-                              >
-                                {active && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
-                              </span>
-                              <div className="min-w-0">
-                                <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
-                                  {t.label}
-                                </div>
-                                <div className="text-sm">{t.title}</div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </SectionCard>
-
-                  {/* 3. DESCRIPTION */}
-                  <SectionCard
-                    title="Description"
-                    icon={<Sparkles className="h-4 w-4 text-primary" />}
-                    onEdit={() => setEditSection(editSection === "description" ? null : "description")}
-                    editing={editSection === "description"}
-                  >
-                    {editSection === "description" ? (
-                      <div className="space-y-2">
-                        <Textarea
-                          value={reviewDescription}
-                          onChange={(e) => setReviewDescription(e.target.value)}
-                          rows={6}
-                          placeholder="A natural, SEO-friendly description…"
-                          className="resize-none rounded-xl text-sm"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setReviewDescription(buildPropertyDescription(state))}
-                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                        >
-                          <Sparkles className="h-3 w-3" /> Regenerate with AI
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <div
-                          className={cn(
-                            "relative text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed",
-                            !descExpanded && descTooLong && "max-h-28 overflow-hidden",
-                          )}
-                        >
-                          {reviewDescription || (
-                            <span className="italic text-muted-foreground">No description yet</span>
-                          )}
-                          {!descExpanded && descTooLong && (
-                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent pointer-events-none" />
-                          )}
+                    {/* 1. HERO CARD */}
+                    <div className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-primary/5 via-card to-emerald-500/5 shadow-md">
+                      <div className="relative h-44 sm:h-56 bg-muted overflow-hidden">
+                        {photos[0] ? (
+                          <img src={photos[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted/40">
+                            <ImagePlus className="h-8 w-8 mb-2 opacity-50" />
+                            <div className="text-xs">Add photos to make your listing shine</div>
+                          </div>
+                        )}
+                        <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/85 backdrop-blur text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          <Sparkles className="h-3 w-3" /> AI-generated preview
                         </div>
-                        {descTooLong && (
+                      </div>
+                      <div className="p-5 sm:p-6">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            {totalPrice > 0 && (
+                              <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
+                            )}
+                            <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
+                              {reviewTitle || `${state.bhk ? state.bhk + " BHK " : ""}${sub} for ${purpose}`}
+                            </h1>
+                            {locLine && (
+                              <div className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
+                                <MapPin className="h-3.5 w-3.5" /> {locLine}
+                              </div>
+                            )}
+                          </div>
                           <button
                             type="button"
-                            onClick={() => setDescExpanded((v) => !v)}
-                            className="mt-2 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                            onClick={() => setEditSection(editSection === "basic" ? null : "basic")}
+                            className="shrink-0 text-xs text-primary hover:underline flex items-center gap-1"
                           >
-                            {descExpanded ? (
-                              <>
-                                Show less <ChevronUp className="h-3 w-3" />
-                              </>
-                            ) : (
-                              <>
-                                Read more <ChevronDown className="h-3 w-3" />
-                              </>
-                            )}
+                            <Pencil className="h-3 w-3" /> Edit
                           </button>
-                        )}
-                      </div>
-                    )}
-                  </SectionCard>
-
-                  {/* 4. HIGHLIGHTS */}
-                  {allHighlights.length > 0 && (
-                    <SectionCard
-                      title="Property Highlights"
-                      icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                      onEdit={() => setEditSection(editSection === "amenities" ? null : "amenities")}
-                      editing={editSection === "amenities"}
-                    >
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                        {allHighlights.map((h, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50"
-                          >
-                            <span className="h-5 w-5 shrink-0 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
-                              <Check className="h-3 w-3" />
+                        </div>
+                        {/* Quick chips */}
+                        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                          {state.bhk && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Home className="h-3 w-3" /> {state.bhk} BHK
                             </span>
-                            <span className="truncate">{h}</span>
+                          )}
+                          {areaN > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Maximize2 className="h-3 w-3" /> {areaN} {reviewUnit}
+                            </span>
+                          )}
+                          {state.bathrooms && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Bath className="h-3 w-3" /> {state.bathrooms} Bath
+                            </span>
+                          )}
+                          {floorLine && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Building2 className="h-3 w-3" /> {floorLine}
+                            </span>
+                          )}
+                          {state.facing && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Compass className="h-3 w-3" /> {state.facing}
+                            </span>
+                          )}
+                          {furnishing && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
+                              <Sofa className="h-3 w-3" /> {furnishing}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Edit Basic Info accordion */}
+                        <AnimatePresence>
+                          {editSection === "basic" && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
+                                <div>
+                                  <label className="text-xs text-muted-foreground mb-1 block">Title</label>
+                                  <Input
+                                    value={reviewTitle}
+                                    onChange={(e) => {
+                                      setReviewTitle(e.target.value);
+                                      setSelectedTitleIdx(null);
+                                    }}
+                                    placeholder="Listing title"
+                                  />
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* 2. AI SUGGESTED TITLES */}
+                    <SectionCard
+                      title="AI Suggested Titles"
+                      icon={<Wand2 className="h-4 w-4 text-primary" />}
+                      onEdit={regenerateTitles}
+                      editing={titlesLoading}
+                    >
+                      {titlesLoading && aiTitles.length === 0 ? (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {aiTitles.slice(0, 3).map((t, i) => {
+                            const active = selectedTitleIdx === i;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTitleIdx(i);
+                                  setReviewTitle(t.title);
+                                }}
+                                className={cn(
+                                  "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
+                                  active
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border bg-background hover:border-primary/40",
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    "mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                                    active ? "border-primary bg-primary" : "border-muted-foreground/40",
+                                  )}
+                                >
+                                  {active && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                                    {t.label}
+                                  </div>
+                                  <div className="text-sm">{t.title}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </SectionCard>
+
+                    {/* 3. DESCRIPTION */}
+                    <SectionCard
+                      title="Description"
+                      icon={<Sparkles className="h-4 w-4 text-primary" />}
+                      onEdit={() => setEditSection(editSection === "description" ? null : "description")}
+                      editing={editSection === "description"}
+                    >
+                      {editSection === "description" ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={reviewDescription}
+                            onChange={(e) => setReviewDescription(e.target.value)}
+                            rows={6}
+                            placeholder="A natural, SEO-friendly description…"
+                            className="resize-none rounded-xl text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            <Sparkles className="h-3 w-3" /> Regenerate with AI
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div
+                            className={cn(
+                              "relative text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed",
+                              !descExpanded && descTooLong && "max-h-28 overflow-hidden",
+                            )}
+                          >
+                            {reviewDescription || (
+                              <span className="italic text-muted-foreground">No description yet</span>
+                            )}
+                            {!descExpanded && descTooLong && (
+                              <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                            )}
+                          </div>
+                          {descTooLong && (
+                            <button
+                              type="button"
+                              onClick={() => setDescExpanded((v) => !v)}
+                              className="mt-2 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                            >
+                              {descExpanded ? (
+                                <>
+                                  Show less <ChevronUp className="h-3 w-3" />
+                                </>
+                              ) : (
+                                <>
+                                  Read more <ChevronDown className="h-3 w-3" />
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </SectionCard>
+
+                    {/* 4. HIGHLIGHTS */}
+                    {allHighlights.length > 0 && (
+                      <SectionCard
+                        title="Property Highlights"
+                        icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                        onEdit={() => setEditSection(editSection === "amenities" ? null : "amenities")}
+                        editing={editSection === "amenities"}
+                      >
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                          {allHighlights.map((h, i) => (
+                            <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl bg-muted/50">
+                              <span className="h-5 w-5 shrink-0 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+                                <Check className="h-3 w-3" />
+                              </span>
+                              <span className="truncate">{h}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <AnimatePresence>
+                          {editSection === "amenities" && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-4 pt-4 border-t border-border/60 space-y-2">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {reviewAmenities.map((a, i) => (
+                                    <span
+                                      key={i}
+                                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                                    >
+                                      {a}
+                                      <button
+                                        type="button"
+                                        onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                                      >
+                                        <X className="h-2.5 w-2.5" />
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={newAmenity}
+                                    onChange={(e) => setNewAmenity(e.target.value)}
+                                    placeholder="Add amenity"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" && newAmenity.trim()) {
+                                        e.preventDefault();
+                                        setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                        setNewAmenity("");
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      if (newAmenity.trim()) {
+                                        setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                        setNewAmenity("");
+                                      }
+                                    }}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </SectionCard>
+                    )}
+
+                    {/* 5. DETAILS GRID */}
+                    <SectionCard title="Property Details" icon={<Home className="h-4 w-4 text-primary" />}>
+                      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                        {detailRows.map(([k, v], i) => (
+                          <div
+                            key={k}
+                            className={cn(
+                              "flex items-center justify-between py-2.5 text-sm border-b border-border/50",
+                              i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) && "sm:border-b-0",
+                            )}
+                          >
+                            <dt className="text-muted-foreground">{k}</dt>
+                            <dd className="font-medium text-right">{String(v)}</dd>
                           </div>
                         ))}
+                        {totalPrice > 0 && (
+                          <div className="flex items-center justify-between py-2.5 text-sm sm:col-span-2 border-t border-border/60 mt-1">
+                            <dt className="text-muted-foreground">Total Price</dt>
+                            <dd className="font-semibold text-primary">{fmtPrice(totalPrice)}</dd>
+                          </div>
+                        )}
+                      </dl>
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setEditSection(editSection === "price" ? null : "price")}
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          <Pencil className="h-3 w-3" /> Edit pricing
+                        </button>
                       </div>
                       <AnimatePresence>
-                        {editSection === "amenities" && (
+                        {editSection === "price" && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-4 pt-4 border-t border-border/60 space-y-2">
-                              <div className="flex flex-wrap gap-1.5">
-                                {reviewAmenities.map((a, i) => (
-                                  <span
-                                    key={i}
-                                    className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
-                                  >
-                                    {a}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))
-                                      }
-                                    >
-                                      <X className="h-2.5 w-2.5" />
-                                    </button>
-                                  </span>
+                            <div className="mt-3 pt-3 border-t border-border/60 grid grid-cols-3 gap-2">
+                              <Input
+                                type="number"
+                                placeholder="Area"
+                                value={reviewArea}
+                                onChange={(e) => setReviewArea(e.target.value)}
+                              />
+                              <Input
+                                type="number"
+                                placeholder={`₹/${reviewUnit}`}
+                                value={reviewPricePerUnit}
+                                onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                              />
+                              <select
+                                value={reviewUnit}
+                                onChange={(e) => setReviewUnit(e.target.value)}
+                                className="rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
+                                  <option key={u}>{u}</option>
                                 ))}
-                              </div>
-                              <div className="flex gap-2">
-                                <Input
-                                  value={newAmenity}
-                                  onChange={(e) => setNewAmenity(e.target.value)}
-                                  placeholder="Add amenity"
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" && newAmenity.trim()) {
-                                      e.preventDefault();
-                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                      setNewAmenity("");
-                                    }
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    if (newAmenity.trim()) {
-                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                      setNewAmenity("");
-                                    }
-                                  }}
-                                >
-                                  Add
-                                </Button>
-                              </div>
+                              </select>
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
                     </SectionCard>
-                  )}
 
-                  {/* 5. DETAILS GRID */}
-                  <SectionCard title="Property Details" icon={<Home className="h-4 w-4 text-primary" />}>
-                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                      {detailRows.map(([k, v], i) => (
-                        <div
-                          key={k}
-                          className={cn(
-                            "flex items-center justify-between py-2.5 text-sm border-b border-border/50",
-                            i >= detailRows.length - (detailRows.length % 2 === 0 ? 2 : 1) && "sm:border-b-0",
-                          )}
-                        >
-                          <dt className="text-muted-foreground">{k}</dt>
-                          <dd className="font-medium text-right">{String(v)}</dd>
-                        </div>
-                      ))}
-                      {totalPrice > 0 && (
-                        <div className="flex items-center justify-between py-2.5 text-sm sm:col-span-2 border-t border-border/60 mt-1">
-                          <dt className="text-muted-foreground">Total Price</dt>
-                          <dd className="font-semibold text-primary">{fmtPrice(totalPrice)}</dd>
-                        </div>
-                      )}
-                    </dl>
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setEditSection(editSection === "price" ? null : "price")}
-                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                      >
-                        <Pencil className="h-3 w-3" /> Edit pricing
-                      </button>
-                    </div>
-                    <AnimatePresence>
-                      {editSection === "price" && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="mt-3 pt-3 border-t border-border/60 grid grid-cols-3 gap-2">
-                            <Input
-                              type="number"
-                              placeholder="Area"
-                              value={reviewArea}
-                              onChange={(e) => setReviewArea(e.target.value)}
-                            />
-                            <Input
-                              type="number"
-                              placeholder={`₹/${reviewUnit}`}
-                              value={reviewPricePerUnit}
-                              onChange={(e) => setReviewPricePerUnit(e.target.value)}
-                            />
-                            <select
-                              value={reviewUnit}
-                              onChange={(e) => setReviewUnit(e.target.value)}
-                              className="rounded-md border border-input bg-background px-3 text-sm"
-                            >
-                              {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
-                                <option key={u}>{u}</option>
-                              ))}
-                            </select>
+                    {/* 6. LOCATION */}
+                    <SectionCard
+                      title="Location"
+                      icon={<MapPin className="h-4 w-4 text-primary" />}
+                      onEdit={() => setEditSection(editSection === "location" ? null : "location")}
+                      editing={editSection === "location"}
+                    >
+                      {editSection === "location" ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">City</label>
+                            <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
                           </div>
-                        </motion.div>
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
+                            <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="text-xs text-muted-foreground mb-1 block">Address</label>
+                            <Input
+                              value={reviewAddress}
+                              onChange={(e) => setReviewAddress(e.target.value)}
+                              placeholder="Street / landmark"
+                            />
+                          </div>
+                        </div>
+                      ) : locLine || reviewAddress ? (
+                        <div className="space-y-1">
+                          <div className="text-base font-medium">{locLine || "—"}</div>
+                          {reviewAddress && <div className="text-sm text-muted-foreground">{reviewAddress}</div>}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground italic">
+                          No location set yet. Tap Edit to add city & locality.
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </SectionCard>
+                    </SectionCard>
 
-                  {/* 6. LOCATION */}
-                  <SectionCard
-                    title="Location"
-                    icon={<MapPin className="h-4 w-4 text-primary" />}
-                    onEdit={() => setEditSection(editSection === "location" ? null : "location")}
-                    editing={editSection === "location"}
-                  >
-                    {editSection === "location" ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                          <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                          <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
-                        </div>
-                        <div className="col-span-2">
-                          <label className="text-xs text-muted-foreground mb-1 block">Address</label>
-                          <Input
-                            value={reviewAddress}
-                            onChange={(e) => setReviewAddress(e.target.value)}
-                            placeholder="Street / landmark"
-                          />
-                        </div>
-                      </div>
-                    ) : locLine || reviewAddress ? (
-                      <div className="space-y-1">
-                        <div className="text-base font-medium">{locLine || "—"}</div>
-                        {reviewAddress && (
-                          <div className="text-sm text-muted-foreground">{reviewAddress}</div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground italic">
-                        No location set yet. Tap Edit to add city & locality.
-                      </div>
-                    )}
-                  </SectionCard>
-
-                  {/* 7. PHOTOS */}
-                  <SectionCard
-                    title={`Photos (${photos.length})`}
-                    icon={<ImageIcon className="h-4 w-4 text-primary" />}
-                  >
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      className="hidden"
-                      onChange={(e) => e.target.files && handleFiles(e.target.files)}
-                    />
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {photos.map((url: string, i: number) => (
-                        <div
-                          key={i}
-                          className="relative aspect-square rounded-xl overflow-hidden bg-muted group"
+                    {/* 7. PHOTOS */}
+                    <SectionCard
+                      title={`Photos (${photos.length})`}
+                      icon={<ImageIcon className="h-4 w-4 text-primary" />}
+                    >
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        multiple
+                        accept="image/*,video/*"
+                        className="hidden"
+                        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                      />
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {photos.map((url: string, i: number) => (
+                          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
+                            <img
+                              src={url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setState((s) => ({
+                                  ...s,
+                                  media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
+                                }))
+                              }
+                              className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => fileRef.current?.click()}
+                          disabled={uploading}
+                          className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition"
                         >
-                          <img
-                            src={url}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setState((s) => ({
-                                ...s,
-                                media_urls: s.media_urls.filter((_: any, idx: number) => idx !== i),
-                              }))
-                            }
-                            className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        disabled={uploading}
-                        className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition"
-                      >
-                        {uploading ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <>
-                            <ImagePlus className="h-5 w-5" />
-                            <span className="text-[10px] font-medium">Add more</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </SectionCard>
+                          {uploading ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          ) : (
+                            <>
+                              <ImagePlus className="h-5 w-5" />
+                              <span className="text-[10px] font-medium">Add more</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </SectionCard>
 
-                  {/* 8. STICKY ACTION BAR */}
-                  <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-                    <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => navigate("/dashboard")}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-1" /> Edit details
-                      </Button>
-                      <Button
-                        onClick={onSubmit}
-                        disabled={submitting}
-                        className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95"
-                      >
-                        {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        Publish Property
-                      </Button>
+                    {/* 8. STICKY ACTION BAR */}
+                    <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+                      <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate("/dashboard")}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" /> Edit details
+                        </Button>
+                        <Button
+                          onClick={onSubmit}
+                          disabled={submitting}
+                          className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95"
+                        >
+                          {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          Publish Property
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })()}
+                  </motion.div>
+                );
+              })()}
           </div>
         </div>
       )}
