@@ -459,8 +459,14 @@ export default function SellProperty() {
 
       return;
     }
-    if ((field.id === "floor_number" || field.id === "total_floors") && typeof value === "string") {
-      setSuggestions(getFloorSuggestions(value));
+    if (field.id === "floor_number" && typeof value === "string") {
+      setSuggestions(getFloorSuggestions(value, "single"));
+
+      return;
+    }
+
+    if (field.id === "total_floors" && typeof value === "string") {
+      setSuggestions(getFloorSuggestions(value, "total"));
 
       return;
     }
