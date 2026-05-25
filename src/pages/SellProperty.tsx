@@ -1869,10 +1869,6 @@ export default function SellProperty() {
                             setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
                           } else {
                             setValue(opt);
-
-                            setTimeout(async () => {
-                              await commitAnswer(opt, opt);
-                            }, 80);
                           }
                         }}
                         className={cn(
