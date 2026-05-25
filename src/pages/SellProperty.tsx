@@ -442,6 +442,11 @@ export default function SellProperty() {
 
       return;
     }
+    if (field.id === "floor_number" && typeof value === "string") {
+      setSuggestions(getFloorSuggestions(value));
+
+      return;
+    }
   }, [value, field]);
   const [error, setError] = useState<string | null>(null);
   const [loadingNext, setLoadingNext] = useState(false);
