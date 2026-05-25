@@ -26,7 +26,6 @@ import {
   Send,
   Image as ImageIcon,
   Camera,
-  Pencil,
   Lightbulb,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
@@ -1709,7 +1708,6 @@ export default function SellProperty() {
   };
 
   /** Jump back to a previously answered field (edit it). Removes everything after it. */
-
 
   return (
     <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
