@@ -379,6 +379,27 @@ export default function SellProperty() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
+  useEffect(() => {
+    if (!field) return;
+
+    // ============================================
+    // BHK Suggestions
+    // ============================================
+
+    if ((field.id === "bhk" || field.id === "bhk_type") && typeof value === "string") {
+      setSuggestions(getBhkSuggestions(value));
+      return;
+    }
+
+    // ============================================
+    // PRICE UNIT Suggestions
+    // ============================================
+
+    if (field.id === "price_per_unit" && typeof value === "string") {
+      setSuggestions(getPriceUnitSuggestions(value));
+      return;
+    }
+  }, [value, field]);
   const [error, setError] = useState<string | null>(null);
   const [loadingNext, setLoadingNext] = useState(false);
   const [submitting, setSubmitting] = useState(false);
