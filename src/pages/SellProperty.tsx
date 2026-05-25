@@ -514,6 +514,11 @@ export default function SellProperty() {
   const [reviewUnit, setReviewUnit] = useState("sq ft");
   const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
   const [reviewDescription, setReviewDescription] = useState("");
+  /* Section-level edit toggles for preview-first review screen */
+  const [editSection, setEditSection] = useState<null | "basic" | "description" | "location" | "price" | "amenities">(
+    null,
+  );
+  const [descExpanded, setDescExpanded] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
 
   /* Chat transcript */
