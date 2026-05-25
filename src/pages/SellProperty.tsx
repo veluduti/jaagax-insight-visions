@@ -269,6 +269,7 @@ const BHK_PATTERN = /^\d+(\.\d+)?\s?(BHK)$/i;
 
 const PRICE_UNIT_PATTERN = /^(₹?\s?\d+(,\d+)?)(\s)?(per|\/)(\s)?(sqft|sq ft|sqyd|sq yd)$/i;
 const BATHROOM_PATTERN = /^\d+(\+)?\s?(bathroom|bathrooms)$/i;
+const MEASUREMENT_PATTERN = /^\d+(\.\d+)?\s?(sq\s?ft|sqft|sq\s?yd|sqyd)$/i;
 
 const getBhkSuggestions = (input: string) => {
   if (!input) return [];
