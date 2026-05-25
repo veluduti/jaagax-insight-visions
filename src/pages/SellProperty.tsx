@@ -507,6 +507,25 @@ export default function SellProperty() {
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
+  const saveEditedDetails = async () => {
+    const updated = {
+      ...state,
+      ...editForm,
+    };
+
+    setState(updated);
+
+    try {
+      engineRef.current?.applyExtractedFields(updated, {
+        overwrite: true,
+      });
+    } catch {}
+
+    setShowEditSheet(false);
+
+    toast.success("Property details updated");
+  };
+
   const openEditSheet = () => {
     const saveEditedDetails = async () => {
       const updated = {
