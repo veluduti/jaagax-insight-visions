@@ -237,20 +237,6 @@ export const plotsFlow: PropertyFlowConfig = {
       units: PLOT_UNITS,
     },
 
-    add_multiple_plot_sizes: {
-      section: "plot_configuration",
-
-      priority: 6,
-
-      type: "single_select",
-
-      required: false,
-
-      question: "Do you want to add multiple plot sizes?",
-
-      options: ["Yes", "No"],
-    },
-
     plot_variants: {
       section: "plot_configuration",
 
