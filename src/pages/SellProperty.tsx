@@ -751,7 +751,7 @@ export default function SellProperty() {
           kind: "text",
           text:
             newlyFilled > 0
-              ? `✨ Auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}. Just a few quick questions left.`
+              ? `✨ I understood ${newlyFilled} property detail${newlyFilled === 1 ? "" : "s"} automatically.`
               : "Got it — let me ask a couple of quick questions.",
         },
       ]);
