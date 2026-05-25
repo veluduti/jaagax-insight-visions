@@ -27,6 +27,7 @@ import {
   Image as ImageIcon,
   Camera,
   Lightbulb,
+  Pencil,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
 import { cn } from "@/lib/utils";
