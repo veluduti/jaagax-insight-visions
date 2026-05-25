@@ -505,6 +505,16 @@ export default function SellProperty() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [posterTitle, setPosterTitle] = useState<string>("");
 
+  const [reviewTitle, setReviewTitle] = useState<string>("");
+  const [reviewDescription, setReviewDescription] = useState<string>("");
+  const [reviewLocality, setReviewLocality] = useState<string>("");
+  const [reviewCity, setReviewCity] = useState<string>("");
+  const [reviewAddress, setReviewAddress] = useState<string>("");
+  const [reviewArea, setReviewArea] = useState<string | number>("");
+  const [reviewPricePerUnit, setReviewPricePerUnit] = useState<string | number>("");
+  const [reviewUnit, setReviewUnit] = useState<string>("sq ft");
+  const [reviewAmenities, setReviewAmenities] = useState<string[]>([]);
+
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
   const openEditSheet = () => {
