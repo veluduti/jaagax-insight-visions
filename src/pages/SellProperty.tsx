@@ -2629,6 +2629,11 @@ export default function SellProperty() {
                                 return;
                               }
 
+                              if (field?.id === "bathroom_count") {
+                                setSuggestions(getBathroomSuggestions(val));
+                                return;
+                              }
+
                               // ============================================
                               // CLEAR SUGGESTIONS
                               // ============================================
