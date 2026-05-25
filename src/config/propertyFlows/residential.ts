@@ -586,8 +586,16 @@ export const residentialFlow = {
       required: false,
 
       visibleIf: {
-        field: "property_type",
-        in: [...APARTMENT_TYPES, "Villa", "Duplex / Triplex"],
+        and: [
+          {
+            field: "property_type",
+            in: [...APARTMENT_TYPES, "Villa", "Duplex / Triplex"],
+          },
+          {
+            field: "bhk_type",
+            notEquals: "1 RK",
+          },
+        ],
       },
 
       question: "How many balconies are available?",
