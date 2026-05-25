@@ -51,6 +51,7 @@ export const PlotMeasurementWidget = ({
   directions,
   value = {},
   onChange,
+  onComplete,
   units,
   suggestions,
 }: PlotMeasurementWidgetProps) => {
