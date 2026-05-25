@@ -591,7 +591,10 @@ export default function SellProperty() {
       setAiTitles(t);
       if (t.length > 0 && selectedTitleIdx === null) {
         setSelectedTitleIdx(0);
-        if (!reviewTitle) setReviewTitle(t[0].title);
+        setEditForm((p) => ({
+          ...p,
+          title: p.title || t[0].title,
+        }));
       }
     } catch (e: any) {
       toast.error("Could not generate titles");
