@@ -2187,22 +2187,42 @@ export default function SellProperty() {
                     ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors} Floors` : " Floor"}`
                     : null;
                 const furnishing = state.furnishing_status || state.furnishing;
+                const cap = (v: any) =>
+                  typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
+                const yn = (v: any) => {
+                  const s = String(v ?? "").toLowerCase();
+                  if (s === "true" || s === "yes") return "Yes";
+                  if (s === "false" || s === "no") return "No";
+                  return v;
+                };
                 const detailRows: Array<[string, any]> = [
-                  ["Property Type", sub],
+                  ["Property Type", cap(sub)],
+                  ["Listing For", cap(purpose)],
                   ["BHK", state.bhk ? `${state.bhk} BHK` : null],
                   ["Bathrooms", state.bathrooms],
+                  ["Balconies", state.balconies],
                   ["Floor", floorLine],
                   ["Total Floors", state.total_floors],
                   ["Area", areaN ? `${areaN} ${reviewUnit}` : null],
-                  ["Furnishing", furnishing],
-                  ["Facing", state.facing],
+                  ["Carpet Area", state.carpet_area ? `${state.carpet_area} ${reviewUnit}` : null],
+                  ["Super Built-up", state.super_built_up_area ? `${state.super_built_up_area} ${reviewUnit}` : null],
+                  ["Plot Area", state.plot_area ? `${state.plot_area} ${reviewUnit}` : null],
+                  ["Furnishing", cap(furnishing)],
+                  ["Facing", cap(state.facing)],
                   ["Property Age", state.property_age],
-                  ["Gated Community", state.gated_community],
+                  ["Property Condition", cap(state.property_condition)],
+                  ["Possession", cap(state.possession_status)],
+                  ["Available From", state.available_from],
+                  ["Parking", state.parking],
+                  ["Gated Community", yn(state.gated_community)],
+                  ["Ownership Type", cap(state.ownership_type)],
+                  ["Maintenance", state.maintenance_charges ? `₹ ${fmtINR(Number(state.maintenance_charges))}` : null],
+                  ["Security Deposit", state.security_deposit ? `₹ ${fmtINR(Number(state.security_deposit))}` : null],
+                  [`Price / ${reviewUnit}`, ppuN ? `₹ ${fmtINR(ppuN)}` : null],
                 ].filter((row): row is [string, any] => row[1] !== null && row[1] !== undefined && row[1] !== "");
 
-                // Build highlight chips from amenities + flag-y arrays + boolean flags
                 const flagHighlights: string[] = [];
-                if (state.facing) flagHighlights.push(`${state.facing} Facing`);
+                if (state.facing) flagHighlights.push(`${cap(state.facing)} Facing`);
                 if (String(state.gated_community).toLowerCase() === "yes") flagHighlights.push("Gated Community");
                 const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
                 const allHighlights = Array.from(
@@ -2221,28 +2241,29 @@ export default function SellProperty() {
                 const SectionCard: React.FC<{
                   title: string;
                   icon?: React.ReactNode;
-                  onEdit?: () => void;
-                  editing?: boolean;
+                  action?: React.ReactNode;
                   children: React.ReactNode;
-                }> = ({ title, icon, onEdit, editing, children }) => (
+                }> = ({ title, icon, action, children }) => (
                   <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
                     <div className="flex items-center justify-between px-5 py-3 border-b border-border/60">
                       <div className="flex items-center gap-2">
                         {icon}
                         <h3 className="font-semibold text-sm">{title}</h3>
                       </div>
-                      {onEdit && (
-                        <button
-                          type="button"
-                          onClick={onEdit}
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                        >
-                          <Pencil className="h-3 w-3" /> {editing ? "Done" : "Edit"}
-                        </button>
-                      )}
+                      {action}
                     </div>
                     <div className="p-5">{children}</div>
                   </div>
+                );
+
+                const EditBtn = () => (
+                  <button
+                    type="button"
+                    onClick={() => setShowEditSheet(true)}
+                    className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <Pencil className="h-3 w-3" /> Edit
+                  </button>
                 );
 
                 return (
@@ -2251,7 +2272,7 @@ export default function SellProperty() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 space-y-4 pb-28"
                   >
-                    {/* 1. HERO CARD */}
+                    {/* 1. HERO */}
                     <div className="relative rounded-3xl overflow-hidden border border-border bg-gradient-to-br from-primary/5 via-card to-emerald-500/5 shadow-md">
                       <div className="relative h-44 sm:h-56 bg-muted overflow-hidden">
                         {photos[0] ? (
@@ -2273,7 +2294,7 @@ export default function SellProperty() {
                               <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
                             )}
                             <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
-                              {reviewTitle || `${state.bhk ? state.bhk + " BHK " : ""}${sub} for ${purpose}`}
+                              {reviewTitle || `${state.bhk ? state.bhk + " BHK " : ""}${cap(sub)} for ${purpose}`}
                             </h1>
                             {locLine && (
                               <div className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground">
@@ -2281,15 +2302,8 @@ export default function SellProperty() {
                               </div>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => setEditSection(editSection === "basic" ? null : "basic")}
-                            className="shrink-0 text-xs text-primary hover:underline flex items-center gap-1"
-                          >
-                            <Pencil className="h-3 w-3" /> Edit
-                          </button>
+                          <EditBtn />
                         </div>
-                        {/* Quick chips */}
                         <div className="mt-4 flex flex-wrap gap-2 text-xs">
                           {state.bhk && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
@@ -2313,50 +2327,33 @@ export default function SellProperty() {
                           )}
                           {state.facing && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Compass className="h-3 w-3" /> {state.facing}
+                              <Compass className="h-3 w-3" /> {cap(state.facing)}
                             </span>
                           )}
                           {furnishing && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted">
-                              <Sofa className="h-3 w-3" /> {furnishing}
+                              <Sofa className="h-3 w-3" /> {cap(furnishing)}
                             </span>
                           )}
                         </div>
-
-                        {/* Edit Basic Info accordion */}
-                        <AnimatePresence>
-                          {editSection === "basic" && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
-                                <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">Title</label>
-                                  <Input
-                                    value={reviewTitle}
-                                    onChange={(e) => {
-                                      setReviewTitle(e.target.value);
-                                      setSelectedTitleIdx(null);
-                                    }}
-                                    placeholder="Listing title"
-                                  />
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
                     </div>
 
-                    {/* 2. AI SUGGESTED TITLES */}
+                    {/* 2. AI TITLES */}
                     <SectionCard
                       title="AI Suggested Titles"
                       icon={<Wand2 className="h-4 w-4 text-primary" />}
-                      onEdit={regenerateTitles}
-                      editing={titlesLoading}
+                      action={
+                        <button
+                          type="button"
+                          onClick={regenerateTitles}
+                          disabled={titlesLoading}
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {titlesLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                          Regenerate
+                        </button>
+                      }
                     >
                       {titlesLoading && aiTitles.length === 0 ? (
                         <div className="text-xs text-muted-foreground flex items-center gap-2">
@@ -2402,64 +2399,40 @@ export default function SellProperty() {
                       )}
                     </SectionCard>
 
-                    {/* 3. DESCRIPTION */}
+                    {/* 3. DESCRIPTION — read-only */}
                     <SectionCard
                       title="Description"
                       icon={<Sparkles className="h-4 w-4 text-primary" />}
-                      onEdit={() => setEditSection(editSection === "description" ? null : "description")}
-                      editing={editSection === "description"}
+                      action={<EditBtn />}
                     >
-                      {editSection === "description" ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={reviewDescription}
-                            onChange={(e) => setReviewDescription(e.target.value)}
-                            rows={6}
-                            placeholder="A natural, SEO-friendly description…"
-                            className="resize-none rounded-xl text-sm"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setReviewDescription(buildPropertyDescription(state))}
-                            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                          >
-                            <Sparkles className="h-3 w-3" /> Regenerate with AI
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <div
-                            className={cn(
-                              "relative text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed",
-                              !descExpanded && descTooLong && "max-h-28 overflow-hidden",
-                            )}
-                          >
-                            {reviewDescription || (
-                              <span className="italic text-muted-foreground">No description yet</span>
-                            )}
-                            {!descExpanded && descTooLong && (
-                              <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent pointer-events-none" />
-                            )}
-                          </div>
-                          {descTooLong && (
-                            <button
-                              type="button"
-                              onClick={() => setDescExpanded((v) => !v)}
-                              className="mt-2 text-xs text-primary hover:underline inline-flex items-center gap-1"
-                            >
-                              {descExpanded ? (
-                                <>
-                                  Show less <ChevronUp className="h-3 w-3" />
-                                </>
-                              ) : (
-                                <>
-                                  Read more <ChevronDown className="h-3 w-3" />
-                                </>
-                              )}
-                            </button>
+                      <div>
+                        <div
+                          className={cn(
+                            "relative text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed",
+                            !descExpanded && descTooLong && "max-h-28 overflow-hidden",
+                          )}
+                        >
+                          {reviewDescription || (
+                            <span className="italic text-muted-foreground">No description yet</span>
+                          )}
+                          {!descExpanded && descTooLong && (
+                            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent pointer-events-none" />
                           )}
                         </div>
-                      )}
+                        {descTooLong && (
+                          <button
+                            type="button"
+                            onClick={() => setDescExpanded((v) => !v)}
+                            className="mt-2 text-xs text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            {descExpanded ? (
+                              <>Show less <ChevronUp className="h-3 w-3" /></>
+                            ) : (
+                              <>Read more <ChevronDown className="h-3 w-3" /></>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </SectionCard>
 
                     {/* 4. HIGHLIGHTS */}
@@ -2467,8 +2440,7 @@ export default function SellProperty() {
                       <SectionCard
                         title="Property Highlights"
                         icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                        onEdit={() => setEditSection(editSection === "amenities" ? null : "amenities")}
-                        editing={editSection === "amenities"}
+                        action={<EditBtn />}
                       >
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                           {allHighlights.map((h, i) => (
@@ -2480,67 +2452,15 @@ export default function SellProperty() {
                             </div>
                           ))}
                         </div>
-                        <AnimatePresence>
-                          {editSection === "amenities" && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="mt-4 pt-4 border-t border-border/60 space-y-2">
-                                <div className="flex flex-wrap gap-1.5">
-                                  {reviewAmenities.map((a, i) => (
-                                    <span
-                                      key={i}
-                                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
-                                    >
-                                      {a}
-                                      <button
-                                        type="button"
-                                        onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
-                                      >
-                                        <X className="h-2.5 w-2.5" />
-                                      </button>
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="flex gap-2">
-                                  <Input
-                                    value={newAmenity}
-                                    onChange={(e) => setNewAmenity(e.target.value)}
-                                    placeholder="Add amenity"
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter" && newAmenity.trim()) {
-                                        e.preventDefault();
-                                        setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                        setNewAmenity("");
-                                      }
-                                    }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      if (newAmenity.trim()) {
-                                        setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
-                                        setNewAmenity("");
-                                      }
-                                    }}
-                                  >
-                                    Add
-                                  </Button>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </SectionCard>
                     )}
 
-                    {/* 5. DETAILS GRID */}
-                    <SectionCard title="Property Details" icon={<Home className="h-4 w-4 text-primary" />}>
+                    {/* 5. DETAILS GRID — read-only */}
+                    <SectionCard
+                      title="Property Details"
+                      icon={<Home className="h-4 w-4 text-primary" />}
+                      action={<EditBtn />}
+                    >
                       <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                         {detailRows.map(([k, v], i) => (
                           <div
@@ -2561,85 +2481,22 @@ export default function SellProperty() {
                           </div>
                         )}
                       </dl>
-                      <div className="mt-3 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setEditSection(editSection === "price" ? null : "price")}
-                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                        >
-                          <Pencil className="h-3 w-3" /> Edit pricing
-                        </button>
-                      </div>
-                      <AnimatePresence>
-                        {editSection === "price" && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-3 pt-3 border-t border-border/60 grid grid-cols-3 gap-2">
-                              <Input
-                                type="number"
-                                placeholder="Area"
-                                value={reviewArea}
-                                onChange={(e) => setReviewArea(e.target.value)}
-                              />
-                              <Input
-                                type="number"
-                                placeholder={`₹/${reviewUnit}`}
-                                value={reviewPricePerUnit}
-                                onChange={(e) => setReviewPricePerUnit(e.target.value)}
-                              />
-                              <select
-                                value={reviewUnit}
-                                onChange={(e) => setReviewUnit(e.target.value)}
-                                className="rounded-md border border-input bg-background px-3 text-sm"
-                              >
-                                {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
-                                  <option key={u}>{u}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </SectionCard>
 
-                    {/* 6. LOCATION */}
+                    {/* 6. LOCATION — read-only */}
                     <SectionCard
                       title="Location"
                       icon={<MapPin className="h-4 w-4 text-primary" />}
-                      onEdit={() => setEditSection(editSection === "location" ? null : "location")}
-                      editing={editSection === "location"}
+                      action={<EditBtn />}
                     >
-                      {editSection === "location" ? (
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                            <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
-                          </div>
-                          <div>
-                            <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                            <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
-                          </div>
-                          <div className="col-span-2">
-                            <label className="text-xs text-muted-foreground mb-1 block">Address</label>
-                            <Input
-                              value={reviewAddress}
-                              onChange={(e) => setReviewAddress(e.target.value)}
-                              placeholder="Street / landmark"
-                            />
-                          </div>
-                        </div>
-                      ) : locLine || reviewAddress ? (
+                      {locLine || reviewAddress ? (
                         <div className="space-y-1">
                           <div className="text-base font-medium">{locLine || "—"}</div>
                           {reviewAddress && <div className="text-sm text-muted-foreground">{reviewAddress}</div>}
                         </div>
                       ) : (
                         <div className="text-sm text-muted-foreground italic">
-                          No location set yet. Tap Edit to add city & locality.
+                          No location set. Tap Edit to add city & locality.
                         </div>
                       )}
                     </SectionCard>
@@ -2660,13 +2517,7 @@ export default function SellProperty() {
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {photos.map((url: string, i: number) => (
                           <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
-                            <img
-                              src={url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                            />
+                            <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                             <button
                               type="button"
                               onClick={() =>
@@ -2704,10 +2555,10 @@ export default function SellProperty() {
                       <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex gap-2">
                         <Button
                           variant="outline"
-                          onClick={() => navigate("/dashboard")}
+                          onClick={() => setShowEditSheet(true)}
                           className="flex-1 sm:flex-none"
                         >
-                          <ChevronLeft className="h-4 w-4 mr-1" /> Edit details
+                          <Pencil className="h-4 w-4 mr-1" /> Edit details
                         </Button>
                         <Button
                           onClick={onSubmit}
@@ -2719,6 +2570,243 @@ export default function SellProperty() {
                         </Button>
                       </div>
                     </div>
+
+                    {/* EDIT DRAWER — all details in one place */}
+                    <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
+                      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+                        <SheetHeader>
+                          <SheetTitle>Edit property details</SheetTitle>
+                          <SheetDescription>
+                            Update any field. Changes apply to your preview instantly.
+                          </SheetDescription>
+                        </SheetHeader>
+
+                        <div className="mt-6 space-y-6 pb-24">
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Basics</h4>
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-1 block">Listing title</label>
+                              <Input
+                                value={reviewTitle}
+                                onChange={(e) => {
+                                  setReviewTitle(e.target.value);
+                                  setSelectedTitleIdx(null);
+                                }}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">BHK</label>
+                                <Input
+                                  value={state.bhk || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, bhk: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Bathrooms</label>
+                                <Input
+                                  value={state.bathrooms || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, bathrooms: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Floor number</label>
+                                <Input
+                                  value={state.floor_number ?? ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, floor_number: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Total floors</label>
+                                <Input
+                                  value={state.total_floors || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, total_floors: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Facing</label>
+                                <Input
+                                  value={state.facing || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, facing: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Furnishing</label>
+                                <Input
+                                  value={state.furnishing_status || state.furnishing || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, furnishing_status: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Property age</label>
+                                <Input
+                                  value={state.property_age || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, property_age: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Parking</label>
+                                <Input
+                                  value={state.parking || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, parking: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Ownership</label>
+                                <Input
+                                  value={state.ownership_type || ""}
+                                  onChange={(e) => setState((s: any) => ({ ...s, ownership_type: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Gated community</label>
+                                <select
+                                  value={String(state.gated_community || "")}
+                                  onChange={(e) => setState((s: any) => ({ ...s, gated_community: e.target.value }))}
+                                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                >
+                                  <option value="">—</option>
+                                  <option value="yes">Yes</option>
+                                  <option value="no">No</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Area & Pricing</h4>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Area</label>
+                                <Input type="number" value={reviewArea} onChange={(e) => setReviewArea(e.target.value)} />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
+                                <Input
+                                  type="number"
+                                  value={reviewPricePerUnit}
+                                  onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
+                                <select
+                                  value={reviewUnit}
+                                  onChange={(e) => setReviewUnit(e.target.value)}
+                                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                >
+                                  {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
+                                    <option key={u}>{u}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            {totalPrice > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                Total: <span className="font-semibold text-primary">{fmtPrice(totalPrice)}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">City</label>
+                                <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
+                                <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
+                              </div>
+                              <div className="col-span-2">
+                                <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
+                                <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</h4>
+                            <Textarea
+                              value={reviewDescription}
+                              onChange={(e) => setReviewDescription(e.target.value)}
+                              rows={6}
+                              className="resize-none rounded-xl text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                              className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                            >
+                              <Sparkles className="h-3 w-3" /> Regenerate with AI
+                            </button>
+                          </div>
+
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amenities</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {reviewAmenities.map((a, i) => (
+                                <span
+                                  key={i}
+                                  className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                                >
+                                  {a}
+                                  <button
+                                    type="button"
+                                    onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                value={newAmenity}
+                                onChange={(e) => setNewAmenity(e.target.value)}
+                                placeholder="Add amenity"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && newAmenity.trim()) {
+                                    e.preventDefault();
+                                    setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                    setNewAmenity("");
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (newAmenity.trim()) {
+                                    setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                    setNewAmenity("");
+                                  }
+                                }}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <SheetFooter className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] -mx-6 px-6 gap-2 flex-row">
+                          <Button variant="outline" className="flex-1" onClick={() => setShowEditSheet(false)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white"
+                            onClick={() => {
+                              setShowEditSheet(false);
+                              toast.success("Changes saved to preview");
+                            }}
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Save changes
+                          </Button>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
                   </motion.div>
                 );
               })()}
