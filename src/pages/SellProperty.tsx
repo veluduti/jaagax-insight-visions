@@ -506,6 +506,18 @@ export default function SellProperty() {
   const [posterTitle, setPosterTitle] = useState<string>("");
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
+
+  const openEditSheet = () => {
+    setEditForm({
+      ...state,
+
+      title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
+
+      description: state.description || buildPropertyDescription(state),
+    });
+
+    setShowEditSheet(true);
+  };
   /* Section-level edit toggles for preview-first review screen */
   const [editSection, setEditSection] = useState<null | "basic" | "description" | "location" | "price" | "amenities">(
     null,
