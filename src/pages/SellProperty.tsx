@@ -969,8 +969,6 @@ export default function SellProperty() {
         // INITIALIZE REVIEW FORM
         // ============================================
 
-  if (result.done || !result.field) {
-  setDone(true);
 
   // ============================================
   // PREPARE COMPLETE EDIT FORM
