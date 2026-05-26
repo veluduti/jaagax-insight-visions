@@ -633,9 +633,23 @@ function validate(field: FieldDef, value: any): string | null {
       return "Please enter format like 20 Floors";
     }
   }
-  if (field.id === "flat_size" || field.id === "built_up_area" || field.id === "land_size") {
-    if (!MEASUREMENT_PATTERN.test(String(value).trim())) {
-      return "Please enter format like 1200 sq ft";
+  // ============================================
+  // AREA VALIDATION
+  // ============================================
+
+  const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
+
+  const AREA_UNITS = ["sq ft", "sqft", "sq yd", "sqyd", "sq m", "sqm", "acre", "acres", "gunta", "cent"];
+
+  if (AREA_FIELDS.includes(canonId(field.id))) {
+    const text = String(value).toLowerCase().trim();
+
+    const hasNumber = /\d/.test(text);
+
+    const hasUnit = AREA_UNITS.some((u) => text.includes(u));
+
+    if (!hasNumber || !hasUnit) {
+      return "Please enter area with unit (example: 1000 Sq Ft)";
     }
   }
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
