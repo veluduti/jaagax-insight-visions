@@ -1936,7 +1936,7 @@ export default function SellProperty() {
 
         title: finalTitle,
 
-        description: editForm.description || state.description || buildPropertyDescription(state) || null,
+        description: editForm.description || buildPropertyDescription(editForm) || null,
 
         type: primaryType,
 
