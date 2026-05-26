@@ -1740,8 +1740,9 @@ export default function SellProperty() {
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
         price: totalPrice,
         area_sqft: areaSqft,
-        bhk: state.bhk ? parseInt(String(state.bhk)) || null : null,
-        bedrooms: state.bhk ? parseInt(String(state.bhk)) || null : null,
+        bhk: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
+
+        bedrooms: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
         bathrooms: state.bathrooms ? Number(state.bathrooms) : null,
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) : null,
