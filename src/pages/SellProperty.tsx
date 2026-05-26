@@ -51,6 +51,57 @@ import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
+/**
+ * Canonical alias map (Phase 1 standardization).
+ * Maps legacy/extracted field names → canonical IDs used by editForm,
+ * the review screen, the edit modal, and the submit payload.
+ *
+ * Canonical IDs: bhk, bathrooms, bedrooms, balconies, property_type,
+ * listing_type, area, area_unit, price_per_unit, total_price, land_size,
+ * built_area, built_up_area, plot_area, property_age, ownership, facing,
+ * gated_community.
+ */
+const CANONICAL_ALIASES: Record<string, string> = {
+  bhk_type: "bhk",
+  bathroom_count: "bathrooms",
+  purpose: "listing_type",
+  type: "property_type",
+  sub_type: "property_type",
+  flat_size: "area",
+  property_facing: "facing",
+  furnishing_status: "furnishing",
+  ownership_type: "ownership",
+};
+
+/**
+ * Returns a copy of `src` with canonical field IDs populated from any
+ * known aliases. Original keys are preserved so legacy reads keep working
+ * during the transition; canonical reads now have a single source of truth.
+ */
+function toCanonical(src: Record<string, any> = {}): Record<string, any> {
+  const out: Record<string, any> = { ...src };
+  for (const [alias, canonical] of Object.entries(CANONICAL_ALIASES)) {
+    const aliasVal = src[alias];
+    const canonVal = out[canonical];
+    if ((canonVal === undefined || canonVal === "" || canonVal === null) && aliasVal !== undefined && aliasVal !== "" && aliasVal !== null) {
+      // For property_type, prefer first item if array
+      if (canonical === "property_type" && Array.isArray(aliasVal)) {
+        out[canonical] = aliasVal[0];
+      } else {
+        out[canonical] = aliasVal;
+      }
+    }
+  }
+  // Area aggregate fallback: if `area` still empty, derive from built/plot/land sizes.
+  if (!out.area) {
+    out.area = src.flat_size || src.built_area || src.built_up_area || src.plot_area || src.land_size || "";
+  }
+  if (!out.area_unit) out.area_unit = src.area_unit || "sq ft";
+  return out;
+}
+
+
+
 /** Build a natural, SEO-friendly description deterministically from collected state. */
 function buildPropertyDescription(s: Record<string, any>): string {
   const cap = (v: any) =>
@@ -515,7 +566,7 @@ export default function SellProperty() {
 
   const openEditSheet = () => {
     setEditForm({
-      ...state,
+      ...toCanonical(state),
 
       title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
 
@@ -524,6 +575,7 @@ export default function SellProperty() {
 
     setShowEditSheet(true);
   };
+
 
   const saveEditedDetails = async () => {
     const updated = {
@@ -978,7 +1030,8 @@ export default function SellProperty() {
         // ============================================
 
         setEditForm({
-          ...currentState,
+          ...toCanonical(currentState),
+
 
           // ============================================
           // BASIC INFO
@@ -2526,13 +2579,12 @@ export default function SellProperty() {
                 const totalPrice =
                   areaN > 0 && ppuN > 0
                     ? Math.round(areaN * ppuN)
-                    : Number(state.total_price) || Number(state.monthly_rent) || 0;
+                    : Number(editForm.total_price) || Number(editForm.monthly_rent) || 0;
 
                 const sub =
-                  (Array.isArray(state.property_type) ? state.property_type[0] : state.property_type) ||
-                  (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
+                  (Array.isArray(editForm.property_type) ? editForm.property_type[0] : editForm.property_type) ||
                   "Property";
-                const purpose = (state.listing_type || state.purpose || "sale").toString().toLowerCase();
+                const purpose = (editForm.listing_type || "sale").toString().toLowerCase();
                 const locLine = [editForm.locality, editForm.city].filter(Boolean).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
@@ -2540,118 +2592,118 @@ export default function SellProperty() {
                   Array.isArray(v) ? v.filter(Boolean).join(", ") : v == null ? "" : String(v);
 
                 // BHK normalize ("3 BHK" or "3")
-                const bhkRaw = state.bhk_type || state.bhk || "";
+                const bhkRaw = editForm.bhk || "";
                 const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? bhkRaw : `${bhkRaw} BHK`) : "";
-                const bathRaw = state.bathroom_count ?? state.bathrooms ?? "";
-                const facingRaw = state.property_facing || state.facing || "";
-                const furnishing = state.furnishing_status || state.furnishing || "";
+                const bathRaw = editForm.bathrooms ?? "";
+                const facingRaw = editForm.facing || "";
+                const furnishing = editForm.furnishing || "";
                 const floorLine =
-                  state.floor_number != null && state.floor_number !== ""
-                    ? `${state.floor_number}${state.total_floors ? ` of ${state.total_floors}` : ""}`
+                  editForm.floor_number != null && editForm.floor_number !== ""
+                    ? `${editForm.floor_number}${editForm.total_floors ? ` of ${editForm.total_floors}` : ""}`
                     : "";
 
                 /* Canonical detail map — render in this order, skip empty */
                 const has = (v: any) =>
                   v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
-                const unit = editForm.area_unit || state.area_unit || "sq ft";
+                const unit = editForm.area_unit || "sq ft";
 
                 const detailRows: Array<{ key: string; label: string; value: string }> = [
-                  { key: "sub_type", label: "Property Type", value: asStr(sub) },
+                  { key: "property_type", label: "Property Type", value: asStr(sub) },
                   { key: "listing_type", label: "Listing For", value: cap(purpose) },
                   { key: "bhk", label: "Configuration", value: bhkLabel },
                   { key: "bathrooms", label: "Bathrooms", value: asStr(bathRaw) },
-                  { key: "balconies", label: "Balconies", value: asStr(state.balconies) },
+                  { key: "balconies", label: "Balconies", value: asStr(editForm.balconies) },
                   { key: "floor", label: "Floor", value: floorLine },
-                  { key: "total_floors", label: "Total Floors", value: asStr(state.total_floors) },
+                  { key: "total_floors", label: "Total Floors", value: asStr(editForm.total_floors) },
                   {
                     key: "area",
                     label: "Built-up Area",
                     value:
-                      has(state.flat_size) || has(state.built_area)
-                        ? `${state.flat_size || state.built_area} ${unit}`
+                      has(editForm.built_up_area) || has(editForm.built_area) || has(editForm.area)
+                        ? `${editForm.built_up_area || editForm.built_area || editForm.area} ${unit}`
                         : "",
                   },
                   {
                     key: "carpet",
                     label: "Carpet Area",
-                    value: has(state.carpet_area) ? `${state.carpet_area} ${unit}` : "",
+                    value: has(editForm.carpet_area) ? `${editForm.carpet_area} ${unit}` : "",
                   },
                   {
                     key: "plot",
                     label: "Plot / Land Area",
                     value:
-                      has(state.land_size) || has(state.plot_area) || has(state.total_land_area)
-                        ? `${state.land_size || state.plot_area || state.total_land_area} ${unit}`
+                      has(editForm.land_size) || has(editForm.plot_area)
+                        ? `${editForm.land_size || editForm.plot_area} ${unit}`
                         : "",
                   },
                   { key: "furnishing", label: "Furnishing", value: cap(asStr(furnishing)) },
                   { key: "facing", label: "Facing", value: cap(asStr(facingRaw)) },
-                  { key: "property_age", label: "Property Age", value: asStr(state.property_age) },
+                  { key: "property_age", label: "Property Age", value: asStr(editForm.property_age) },
                   {
                     key: "property_condition",
                     label: "Condition",
-                    value: cap(asStr(state.property_condition)),
+                    value: cap(asStr(editForm.property_condition)),
                   },
                   {
                     key: "availability_status",
                     label: "Availability",
-                    value: cap(asStr(state.availability_status || state.possession_status)),
+                    value: cap(asStr(editForm.availability_status || editForm.possession_status)),
                   },
                   {
                     key: "possession_date",
                     label: "Possession",
-                    value: asStr(state.possession_date),
+                    value: asStr(editForm.possession_date),
                   },
                   {
                     key: "available_from",
                     label: "Available From",
-                    value: asStr(state.available_from_date || state.available_from),
+                    value: asStr(editForm.available_from_date || editForm.available_from),
                   },
-                  { key: "parking", label: "Parking", value: asStr(state.parking) },
+                  { key: "parking", label: "Parking", value: asStr(editForm.parking) },
                   {
                     key: "gated_community",
                     label: "Gated Community",
-                    value: has(state.gated_community) ? (/^y/i.test(String(state.gated_community)) ? "Yes" : "No") : "",
+                    value: has(editForm.gated_community) ? (/^y/i.test(String(editForm.gated_community)) ? "Yes" : "No") : "",
                   },
                   {
-                    key: "ownership_type",
+                    key: "ownership",
                     label: "Ownership",
-                    value: cap(asStr(state.ownership_type)),
+                    value: cap(asStr(editForm.ownership)),
                   },
                   {
                     key: "maintenance",
                     label: "Maintenance",
-                    value: has(state.maintenance_charges) ? `₹ ${fmtINR(Number(state.maintenance_charges))}` : "",
+                    value: has(editForm.maintenance_charges) ? `₹ ${fmtINR(Number(editForm.maintenance_charges))}` : "",
                   },
                   {
                     key: "security_deposit",
                     label: "Security Deposit",
-                    value: has(state.security_deposit) ? `₹ ${fmtINR(Number(state.security_deposit))}` : "",
+                    value: has(editForm.security_deposit) ? `₹ ${fmtINR(Number(editForm.security_deposit))}` : "",
                   },
                   {
                     key: "price_per_unit",
                     label: `Price / ${unit}`,
                     value: ppuN ? `₹ ${fmtINR(ppuN)}` : "",
                   },
-                  { key: "project_name", label: "Project", value: asStr(state.project_name) },
+                  { key: "project_name", label: "Project", value: asStr(editForm.project_name) },
                 ].filter((r) => has(r.value));
 
                 const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
                 const allHighlights = Array.from(
                   new Set(
                     [
-                      ...arrFlat(state.property_highlights),
-                      ...arrFlat(state.amenities),
-                      ...(editForm.amenities || []),
-                      ...arrFlat(state.payment_options),
-                      ...arrFlat(state.approvals),
-                      ...arrFlat(state.furnishing_items),
+                      ...arrFlat(editForm.property_highlights),
+                      ...arrFlat(editForm.amenities),
+                      ...arrFlat(editForm.payment_options),
+                      ...arrFlat(editForm.approvals),
+                      ...arrFlat(editForm.furnishing_items),
                     ].filter(Boolean),
                   ),
                 );
 
                 const descTooLong = (editForm.description || "").length > 280;
-                const photos: string[] = state.media_urls || [];
+                const photos: string[] = editForm.media_urls || state.media_urls || [];
+
                 const titleReady = !!editForm.title.trim();
                 const canPublish = titleReady && !submitting && !titlesLoading;
 
@@ -2685,14 +2737,14 @@ export default function SellProperty() {
 
                 /* ------ Edit drawer: dynamic field map ------ */
                 const editableNumeric = [
-                  { id: "bhk_type", label: "BHK / Configuration", type: "text" },
-                  { id: "bathroom_count", label: "Bathrooms", type: "number" },
+                  { id: "bhk", label: "BHK / Configuration", type: "text" },
+                  { id: "bathrooms", label: "Bathrooms", type: "number" },
                   { id: "balconies", label: "Balconies", type: "number" },
                   { id: "floor_number", label: "Floor number", type: "number" },
                   { id: "total_floors", label: "Total floors", type: "number" },
                   { id: "property_age", label: "Property age", type: "text" },
                   { id: "parking", label: "Parking", type: "text" },
-                  { id: "ownership_type", label: "Ownership", type: "text" },
+                  { id: "ownership", label: "Ownership", type: "text" },
                   { id: "carpet_area", label: `Carpet area (${unit})`, type: "number" },
                   { id: "maintenance_charges", label: "Maintenance (₹)", type: "number" },
                   { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
@@ -2700,7 +2752,7 @@ export default function SellProperty() {
                 ];
                 const editableSelect = [
                   {
-                    id: "property_facing",
+                    id: "facing",
                     label: "Facing",
                     options: [
                       "",
@@ -2715,7 +2767,7 @@ export default function SellProperty() {
                     ],
                   },
                   {
-                    id: "furnishing_status",
+                    id: "furnishing",
                     label: "Furnishing",
                     options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
                   },
@@ -2735,8 +2787,9 @@ export default function SellProperty() {
                     options: ["", "Ready to Move", "Under Construction"],
                   },
                 ];
-                const filledNumeric = editableNumeric.filter((f) => has((state as any)[f.id]));
-                const filledSelect = editableSelect.filter((f) => has((state as any)[f.id]));
+                const filledNumeric = editableNumeric.filter((f) => has((editForm as any)[f.id]));
+                const filledSelect = editableSelect.filter((f) => has((editForm as any)[f.id]));
+
 
                 return (
                   <motion.div
