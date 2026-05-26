@@ -1249,17 +1249,17 @@ export default function SellProperty() {
             currentState.land_size ||
             "",
 
-          area_unit: currentState.area_unit || "sq ft",
+          area_unit: canonicalState.area_unit || "sq ft",
 
-          plot_measurements: currentState.plot_measurements || {},
+          plot_measurements: canonicalState.plot_measurements || {},
 
           // ============================================
           // PRICE
           // ============================================
 
-          total_price: currentState.total_price || "",
+          total_price: canonicalState.total_price || "",
 
-          price_per_unit: currentState.price_per_unit || "",
+          price_per_unit: canonicalState.price_per_unit || "",
 
           // ============================================
           // FEATURES
