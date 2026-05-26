@@ -1683,6 +1683,7 @@ export default function SellProperty() {
         acre: 43560,
         cent: 435.6,
         "sq yd": 9,
+        "sq yard": 9,
       };
       const areaSqft = area ? Math.round(area * (UNIT_TO_SQFT[editForm.area_unit] || 1)) : null;
 
