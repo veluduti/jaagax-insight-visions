@@ -2737,14 +2737,14 @@ export default function SellProperty() {
 
                 /* ------ Edit drawer: dynamic field map ------ */
                 const editableNumeric = [
-                  { id: "bhk_type", label: "BHK / Configuration", type: "text" },
-                  { id: "bathroom_count", label: "Bathrooms", type: "number" },
+                  { id: "bhk", label: "BHK / Configuration", type: "text" },
+                  { id: "bathrooms", label: "Bathrooms", type: "number" },
                   { id: "balconies", label: "Balconies", type: "number" },
                   { id: "floor_number", label: "Floor number", type: "number" },
                   { id: "total_floors", label: "Total floors", type: "number" },
                   { id: "property_age", label: "Property age", type: "text" },
                   { id: "parking", label: "Parking", type: "text" },
-                  { id: "ownership_type", label: "Ownership", type: "text" },
+                  { id: "ownership", label: "Ownership", type: "text" },
                   { id: "carpet_area", label: `Carpet area (${unit})`, type: "number" },
                   { id: "maintenance_charges", label: "Maintenance (₹)", type: "number" },
                   { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
@@ -2752,7 +2752,7 @@ export default function SellProperty() {
                 ];
                 const editableSelect = [
                   {
-                    id: "property_facing",
+                    id: "facing",
                     label: "Facing",
                     options: [
                       "",
@@ -2767,7 +2767,7 @@ export default function SellProperty() {
                     ],
                   },
                   {
-                    id: "furnishing_status",
+                    id: "furnishing",
                     label: "Furnishing",
                     options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
                   },
@@ -2787,8 +2787,9 @@ export default function SellProperty() {
                     options: ["", "Ready to Move", "Under Construction"],
                   },
                 ];
-                const filledNumeric = editableNumeric.filter((f) => has((state as any)[f.id]));
-                const filledSelect = editableSelect.filter((f) => has((state as any)[f.id]));
+                const filledNumeric = editableNumeric.filter((f) => has((editForm as any)[f.id]));
+                const filledSelect = editableSelect.filter((f) => has((editForm as any)[f.id]));
+
 
                 return (
                   <motion.div
