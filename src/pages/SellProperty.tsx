@@ -964,6 +964,36 @@ export default function SellProperty() {
       if (result.done || !result.field) {
         setDone(true);
 
+        // ============================================
+        // IMPORTANT
+        // INITIALIZE REVIEW FORM
+        // ============================================
+
+        setEditForm({
+          ...currentState,
+
+          title: currentState.title || aiTitles[0]?.title || "",
+
+          description: currentState.description || buildPropertyDescription(currentState),
+
+          locality: currentState.locality || "",
+          city: currentState.city || "",
+          address: currentState.address || "",
+
+          amenities: Array.isArray(currentState.amenities) ? currentState.amenities : [],
+
+          area:
+            currentState.flat_size ||
+            currentState.built_up_area ||
+            currentState.plot_area ||
+            currentState.land_size ||
+            "",
+
+          area_unit: currentState.area_unit || "sq ft",
+
+          price_per_unit: currentState.price_per_unit || "",
+        });
+
         setField(null);
 
         setProgress(result.progress);
