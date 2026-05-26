@@ -585,6 +585,38 @@ function validate(field: FieldDef, value: any): string | null {
       return "Please enter format like ₹6000/sqft";
     }
   }
+
+  // ============================================
+  // TOTAL PRICE VALIDATION
+  // ============================================
+
+  if (fid === "total_price") {
+    const text = String(value).toLowerCase().trim();
+
+    // plain number
+    const numeric = Number(text.replace(/[^\d.]/g, ""));
+
+    // accepted words
+    const hasCurrencyWord =
+      text.includes("cr") ||
+      text.includes("crore") ||
+      text.includes("lakh") ||
+      text.includes("lac") ||
+      text.includes("million") ||
+      text.includes("billion") ||
+      text.includes("k");
+
+    // reject tiny meaningless values
+    if (!hasCurrencyWord && numeric < 1000) {
+      return "Please enter a valid property price";
+    }
+
+    // reject invalid text
+    if (isNaN(numeric) || numeric <= 0) {
+      return "Please enter a valid property price";
+    }
+  }
+
   if (fid === "bathrooms") {
     if (!BATHROOM_PATTERN.test(String(value).trim())) {
       return "Please enter format like 2 Bathrooms";
