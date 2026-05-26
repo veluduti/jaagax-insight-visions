@@ -1884,7 +1884,7 @@ export default function SellProperty() {
         locality: editForm.locality || null,
         address: editForm.address || null,
         pincode: state.pincode || null,
-        furnishing: state.furnishing || null,
+        furnishing: editForm.furnishing || null,
         amenities: editForm.amenities || [],
         rera_id: state.rera_number || null,
         images: state.media_urls || [],
