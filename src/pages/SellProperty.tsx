@@ -511,12 +511,13 @@ export default function SellProperty() {
   const [value, setValue] = useState<any>("");
   useEffect(() => {
     if (!field) return;
+    const fid = canonId(field.id);
 
     // ============================================
     // BHK Suggestions
     // ============================================
 
-    if ((field.id === "bhk" || field.id === "bhk_type") && typeof value === "string") {
+    if (fid === "bhk" && typeof value === "string") {
       setSuggestions(getBhkSuggestions(value));
       return;
     }
@@ -525,12 +526,12 @@ export default function SellProperty() {
     // PRICE UNIT Suggestions
     // ============================================
 
-    if (field.id === "price_per_unit" && typeof value === "string") {
+    if (fid === "price_per_unit" && typeof value === "string") {
       setSuggestions(getPriceUnitSuggestions(value));
       return;
     }
 
-    if (field.id === "bathroom_count" && typeof value === "string") {
+    if (fid === "bathrooms" && typeof value === "string") {
       setSuggestions(getBathroomSuggestions(value));
 
       return;
