@@ -3340,7 +3340,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Location */}
-                          {(editForm.city || editForm.locality || editForm.address) && (
+                          {(
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Location
