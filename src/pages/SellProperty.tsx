@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
-import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
+import PlotMeasuremenWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import {
   Sparkles,
@@ -1275,8 +1275,8 @@ export default function SellProperty() {
 
           highlights: Array.isArray(canonicalState.highlights)
             ? canonicalState.highlights
-            : Array.isArray(canonicalState.property_highlights)
-              ? canonicalState.property_highlights
+            : canonicalState.highlights
+              ? [canonicalState.highlights]
               : [],
 
           payment_options: Array.isArray(canonicalState.payment_options)
