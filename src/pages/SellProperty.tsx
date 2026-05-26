@@ -614,30 +614,24 @@ export default function SellProperty() {
         titles: { type: string; label: string; title: string }[];
       }>("ai-generate-titles", { body: { state, extracted_title: posterTitle || state.title || "" } });
       const t = data?.titles || [];
-     setAiTitles(t);
+      setAiTitles(t);
 
-if (t.length > 0) {
-  if (selectedTitleIdx === null) {
-    setSelectedTitleIdx(0);
-  }
+      if (t.length > 0) {
+        if (selectedTitleIdx === null) {
+          setSelectedTitleIdx(0);
+        }
 
-  setEditForm((p) => ({
-    ...p,
-    title:
-      p.title &&
-      p.title.trim() !== ""
-        ? p.title
-        : t[0].title,
-  }));
-}
+        setEditForm((p) => ({
+          ...p,
+          title: p.title && p.title.trim() !== "" ? p.title : t[0].title,
+        }));
+      }
     } catch (e) {
       console.error("regenerateTitles failed", e);
     } finally {
       setTitlesLoading(false);
     }
   };
-
-
 
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
@@ -1882,7 +1876,7 @@ if (t.length > 0) {
         bhk: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
 
         bedrooms: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
-        bathrooms: state.bathroom_count ? parseInt(String(state.bathroom_count).replace(/[^\d]/g, "")) || null : null,
+        bathrooms: editForm.bathrooms ? parseInt(String(editForm.bathrooms).replace(/[^\d]/g, "")) || null : null,
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) || null : null,
         total_floors: state.total_floors ? parseInt(String(state.total_floors).replace(/[^\d]/g, "")) || null : null,
