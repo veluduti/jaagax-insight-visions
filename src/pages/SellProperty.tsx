@@ -1403,6 +1403,16 @@ export default function SellProperty() {
       }
     } catch {}
 
+    // ============================================
+    // REBUILD ENGINE
+    // ============================================
+
+    engineRef.current = createConversationEngine(category!);
+
+    engineRef.current.applyExtractedFields(cleared, {
+      overwrite: true,
+    });
+
     // =========================================================
     // FETCH
     // =========================================================
@@ -2941,7 +2951,10 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                                  <Input value={editForm.city ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, city: e.target.value }))} />
+                                  <Input
+                                    value={editForm.city ?? ""}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, city: e.target.value }))}
+                                  />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
@@ -2975,7 +2988,9 @@ export default function SellProperty() {
                               />
                               <button
                                 type="button"
-                                onClick={() => setEditForm((p) => ({ ...p, description: buildPropertyDescription(state) }))}
+                                onClick={() =>
+                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(state) }))
+                                }
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
                                 <Sparkles className="h-3 w-3" /> Regenerate with AI
@@ -2984,7 +2999,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Amenities / Highlights */}
-                          {(((editForm.amenities || []).length > 0) || allHighlights.length > 0) && (
+                          {((editForm.amenities || []).length > 0 || allHighlights.length > 0) && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Amenities & Highlights
@@ -3018,7 +3033,10 @@ export default function SellProperty() {
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" && newAmenity.trim()) {
                                       e.preventDefault();
-                                      setEditForm((p) => ({ ...p, amenities: [...(p.amenities || []), newAmenity.trim()] }));
+                                      setEditForm((p) => ({
+                                        ...p,
+                                        amenities: [...(p.amenities || []), newAmenity.trim()],
+                                      }));
                                       setNewAmenity("");
                                     }
                                   }}
@@ -3029,7 +3047,10 @@ export default function SellProperty() {
                                   size="sm"
                                   onClick={() => {
                                     if (newAmenity.trim()) {
-                                      setEditForm((p) => ({ ...p, amenities: [...(p.amenities || []), newAmenity.trim()] }));
+                                      setEditForm((p) => ({
+                                        ...p,
+                                        amenities: [...(p.amenities || []), newAmenity.trim()],
+                                      }));
                                       setNewAmenity("");
                                     }
                                   }}
