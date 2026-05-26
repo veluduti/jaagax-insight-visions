@@ -969,49 +969,373 @@ export default function SellProperty() {
         // INITIALIZE REVIEW FORM
         // ============================================
 
-        setEditForm({
-          ...currentState,
+  if (result.done || !result.field) {
+  setDone(true);
 
-          title: currentState.title || aiTitles[0]?.title || "",
+  // ============================================
+  // PREPARE COMPLETE EDIT FORM
+  // ============================================
 
-          description: currentState.description || buildPropertyDescription(currentState),
+  setEditForm({
+    ...currentState,
 
-          locality: currentState.locality || "",
-          city: currentState.city || "",
-          address: currentState.address || "",
+    // ============================================
+    // BASIC INFO
+    // ============================================
 
-          amenities: Array.isArray(currentState.amenities) ? currentState.amenities : [],
+    title:
+      currentState.title ||
+      aiTitles[0]?.title ||
+      "",
 
-          area:
-            currentState.flat_size ||
-            currentState.built_up_area ||
-            currentState.plot_area ||
-            currentState.land_size ||
-            "",
+    description:
+      currentState.description ||
+      buildPropertyDescription(currentState),
 
-          area_unit: currentState.area_unit || "sq ft",
+    property_type:
+      currentState.property_type || "",
 
-          price_per_unit: currentState.price_per_unit || "",
-        });
+    residential_type:
+      currentState.residential_type || "",
 
-        setField(null);
+    listing_type:
+      currentState.listing_type || "",
 
-        setProgress(result.progress);
+    ownership:
+      currentState.ownership || "",
 
-        setSuggestions([]);
+    property_condition:
+      currentState.property_condition || "",
 
-        setMessages((m) => [
-          ...m,
-          {
-            id: uid(),
-            role: "ai",
-            kind: "text",
-            text: "🎉 That's everything I need! Review your details below and publish when ready.",
-          },
-        ]);
+    property_age:
+      currentState.property_age || "",
 
-        return;
-      }
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+
+    bhk:
+      currentState.bhk ||
+      currentState.bhk_type ||
+      "",
+
+    bedrooms:
+      currentState.bedrooms || "",
+
+    bathrooms:
+      currentState.bathrooms || "",
+
+    balconies:
+      currentState.balconies || "",
+
+    furnishing:
+      currentState.furnishing || "",
+
+    furnishing_items:
+      Array.isArray(currentState.furnishing_items)
+        ? currentState.furnishing_items
+        : [],
+
+    facing:
+      currentState.facing || "",
+
+    gated_community:
+      currentState.gated_community || "",
+
+    // ============================================
+    // AREA
+    // ============================================
+
+    land_size:
+      currentState.land_size || "",
+
+    built_area:
+      currentState.built_area || "",
+
+    built_up_area:
+      currentState.built_up_area || "",
+
+    plot_area:
+      currentState.plot_area || "",
+
+    area:
+      currentState.flat_size ||
+      currentState.built_area ||
+      currentState.built_up_area ||
+      currentState.plot_area ||
+      currentState.land_size ||
+      "",
+
+    area_unit:
+      currentState.area_unit || "sq ft",
+
+    plot_measurements:
+      currentState.plot_measurements || {},
+
+    // ============================================
+    // PRICE
+    // ============================================
+
+    total_price:
+      currentState.total_price || "",
+
+    price_per_unit:
+      currentState.price_per_unit || "",
+
+    // ============================================
+    // FEATURES
+    // ============================================
+
+    amenities:
+      Array.isArray(currentState.amenities)
+        ? currentState.amenities
+        : [],
+
+    approvals:
+      Array.isArray(currentState.approvals)
+        ? currentState.approvals
+        : [],
+
+    highlights:
+      Array.isArray(currentState.highlights)
+        ? currentState.highlights
+        : [],
+
+    payment_options:
+      Array.isArray(currentState.payment_options)
+        ? currentState.payment_options
+        : [],
+
+    // ============================================
+    // LOCATION
+    // ============================================
+
+    locality:
+      currentState.locality || "",
+
+    city:
+      currentState.city || "",
+
+    address:
+      currentState.address || "",
+
+    // ============================================
+    // AGENT
+    // ============================================
+
+    assign_agent:
+      currentState.assign_agent || "",
+  });
+
+  // ============================================
+  // AUTO GENERATE TITLES
+  // ============================================
+
+  setTimeout(() => {
+    regenerateTitles();
+  }, 100);
+
+  setField(null);
+
+  setProgress(result.progress);
+
+  setSuggestions([]);
+
+  setMessages((m) => [
+    ...m,
+    {
+      id: uid(),
+      role: "ai",
+      kind: "text",
+      text: "🎉 That's everything I need! Review your details below and publish when ready.",
+    },
+  ]);
+
+  return;
+}if (result.done || !result.field) {
+  setDone(true);
+
+  // ============================================
+  // PREPARE COMPLETE EDIT FORM
+  // ============================================
+
+  setEditForm({
+    ...currentState,
+
+    // ============================================
+    // BASIC INFO
+    // ============================================
+
+    title:
+      currentState.title ||
+      aiTitles[0]?.title ||
+      "",
+
+    description:
+      currentState.description ||
+      buildPropertyDescription(currentState),
+
+    property_type:
+      currentState.property_type || "",
+
+    residential_type:
+      currentState.residential_type || "",
+
+    listing_type:
+      currentState.listing_type || "",
+
+    ownership:
+      currentState.ownership || "",
+
+    property_condition:
+      currentState.property_condition || "",
+
+    property_age:
+      currentState.property_age || "",
+
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+
+    bhk:
+      currentState.bhk ||
+      currentState.bhk_type ||
+      "",
+
+    bedrooms:
+      currentState.bedrooms || "",
+
+    bathrooms:
+      currentState.bathrooms || "",
+
+    balconies:
+      currentState.balconies || "",
+
+    furnishing:
+      currentState.furnishing || "",
+
+    furnishing_items:
+      Array.isArray(currentState.furnishing_items)
+        ? currentState.furnishing_items
+        : [],
+
+    facing:
+      currentState.facing || "",
+
+    gated_community:
+      currentState.gated_community || "",
+
+    // ============================================
+    // AREA
+    // ============================================
+
+    land_size:
+      currentState.land_size || "",
+
+    built_area:
+      currentState.built_area || "",
+
+    built_up_area:
+      currentState.built_up_area || "",
+
+    plot_area:
+      currentState.plot_area || "",
+
+    area:
+      currentState.flat_size ||
+      currentState.built_area ||
+      currentState.built_up_area ||
+      currentState.plot_area ||
+      currentState.land_size ||
+      "",
+
+    area_unit:
+      currentState.area_unit || "sq ft",
+
+    plot_measurements:
+      currentState.plot_measurements || {},
+
+    // ============================================
+    // PRICE
+    // ============================================
+
+    total_price:
+      currentState.total_price || "",
+
+    price_per_unit:
+      currentState.price_per_unit || "",
+
+    // ============================================
+    // FEATURES
+    // ============================================
+
+    amenities:
+      Array.isArray(currentState.amenities)
+        ? currentState.amenities
+        : [],
+
+    approvals:
+      Array.isArray(currentState.approvals)
+        ? currentState.approvals
+        : [],
+
+    highlights:
+      Array.isArray(currentState.highlights)
+        ? currentState.highlights
+        : [],
+
+    payment_options:
+      Array.isArray(currentState.payment_options)
+        ? currentState.payment_options
+        : [],
+
+    // ============================================
+    // LOCATION
+    // ============================================
+
+    locality:
+      currentState.locality || "",
+
+    city:
+      currentState.city || "",
+
+    address:
+      currentState.address || "",
+
+    // ============================================
+    // AGENT
+    // ============================================
+
+    assign_agent:
+      currentState.assign_agent || "",
+  });
+
+  // ============================================
+  // AUTO GENERATE TITLES
+  // ============================================
+
+  setTimeout(() => {
+    regenerateTitles();
+  }, 100);
+
+  setField(null);
+
+  setProgress(result.progress);
+
+  setSuggestions([]);
+
+  setMessages((m) => [
+    ...m,
+    {
+      id: uid(),
+      role: "ai",
+      kind: "text",
+      text: "🎉 That's everything I need! Review your details below and publish when ready.",
+    },
+  ]);
+
+  return;
+}
 
       // =======================================================
       // FIELD SETUP
