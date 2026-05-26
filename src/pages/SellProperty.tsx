@@ -3294,7 +3294,7 @@ export default function SellProperty() {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(state) }))
+                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(p) }))
                                 }
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
