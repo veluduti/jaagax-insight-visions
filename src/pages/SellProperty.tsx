@@ -614,20 +614,22 @@ export default function SellProperty() {
         titles: { type: string; label: string; title: string }[];
       }>("ai-generate-titles", { body: { state, extracted_title: posterTitle || state.title || "" } });
       const t = data?.titles || [];
-      setAiTitles(t);
-      if (t.length > 0 && selectedTitleIdx === null) {
-        setSelectedTitleIdx(0);
-        setEditForm((p) => ({
-          ...p,
-          title: p.title || t[0].title,
-        }));
-      }
-    } catch (e: any) {
-      toast.error("Could not generate titles");
-    } finally {
-      setTitlesLoading(false);
-    }
-  };
+     setAiTitles(t);
+
+if (t.length > 0) {
+  if (selectedTitleIdx === null) {
+    setSelectedTitleIdx(0);
+  }
+
+  setEditForm((p) => ({
+    ...p,
+    title:
+      p.title &&
+      p.title.trim() !== ""
+        ? p.title
+        : t[0].title,
+  }));
+}
 
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
