@@ -3622,11 +3622,13 @@ export default function SellProperty() {
 
                               setValue(val);
 
+                              const fid = canonId(field?.id);
+
                               // ============================================
                               // BHK Suggestions
                               // ============================================
 
-                              if (field?.id === "bhk" || field?.id === "bhk_type") {
+                              if (fid === "bhk") {
                                 setSuggestions(getBhkSuggestions(val));
                                 return;
                               }
@@ -3635,17 +3637,17 @@ export default function SellProperty() {
                               // PRICE PER UNIT Suggestions
                               // ============================================
 
-                              if (field?.id === "price_per_unit") {
+                              if (fid === "price_per_unit") {
                                 setSuggestions(getPriceUnitSuggestions(val));
                                 return;
                               }
 
-                              if (field?.id === "bathroom_count") {
+                              if (fid === "bathrooms") {
                                 setSuggestions(getBathroomSuggestions(val));
                                 return;
                               }
 
-                              if (field?.id === "floor_number") {
+                              if (fid === "floor_number") {
                                 setSuggestions(getFloorSuggestions(val));
 
                                 return;
@@ -3660,13 +3662,14 @@ export default function SellProperty() {
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
+                                const fid = canonId(field?.id);
 
                                 // ============================================
                                 // BLOCK INVALID BHK
                                 // ============================================
 
                                 if (
-                                  (field?.id === "bhk" || field?.id === "bhk_type") &&
+                                  fid === "bhk" &&
                                   !BHK_PATTERN.test(String(value).trim())
                                 ) {
                                   return;
@@ -3676,7 +3679,7 @@ export default function SellProperty() {
                                 // BLOCK INVALID PRICE UNIT
                                 // ============================================
 
-                                if (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) {
+                                if (fid === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
@@ -3684,18 +3687,18 @@ export default function SellProperty() {
                                 // BLOCK INVALID BATHROOM
                                 // ============================================
 
-                                if (field?.id === "bathroom_count" && !BATHROOM_PATTERN.test(String(value).trim())) {
+                                if (fid === "bathrooms" && !BATHROOM_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
-                                if (field?.id === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) {
+                                if (fid === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
                                 if (
-                                  (field?.id === "flat_size" ||
-                                    field?.id === "built_up_area" ||
-                                    field?.id === "land_size") &&
+                                  (fid === "flat_size" ||
+                                    fid === "built_up_area" ||
+                                    fid === "land_size") &&
                                   !MEASUREMENT_PATTERN.test(String(value).trim())
                                 ) {
                                   return;
