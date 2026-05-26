@@ -106,6 +106,125 @@ function canonId(id?: string | null): string {
   return CANONICAL_ALIASES[id] || id;
 }
 
+/**
+ * EDIT_FIELD_CONFIG (Phase 2)
+ * ---------------------------------------------------------------
+ * Single source of truth for the Edit Drawer. Each section renders
+ * all its fields against `editForm` (canonical IDs only). Fields are
+ * always editable — empty values are valid input affordances, not
+ * filters. Custom blocks (Title, Area & Pricing, Location,
+ * Description, Amenities) live outside this config because they have
+ * bespoke UX (chips, AI regen, multi-input rows).
+ */
+export type EditFieldType = "text" | "number" | "select" | "textarea";
+export interface EditFieldDef {
+  id: string;                  // canonical id on editForm
+  label: string;
+  type: EditFieldType;
+  placeholder?: string;
+  options?: string[];          // for type === "select"
+  colSpan?: 1 | 2;             // grid span within the section (default 1)
+  /** Hide this field for a given property category. Optional. */
+  hideFor?: PropertyCategory[];
+  /** Only show for these categories. Optional. */
+  onlyFor?: PropertyCategory[];
+}
+export interface EditFieldSection {
+  id: string;
+  title: string;
+  fields: EditFieldDef[];
+}
+
+export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
+  {
+    id: "configuration",
+    title: "Configuration",
+    fields: [
+      { id: "bhk", label: "BHK / Configuration", type: "text", placeholder: "e.g. 3 BHK" },
+      { id: "bedrooms", label: "Bedrooms", type: "number" },
+      { id: "bathrooms", label: "Bathrooms", type: "number" },
+      { id: "balconies", label: "Balconies", type: "number" },
+      { id: "parking", label: "Parking", type: "text", placeholder: "e.g. 2 covered" },
+    ],
+  },
+  {
+    id: "building",
+    title: "Building & Floor",
+    fields: [
+      { id: "floor_number", label: "Floor number", type: "number" },
+      { id: "total_floors", label: "Total floors", type: "number" },
+      { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years" },
+      { id: "carpet_area", label: "Carpet area", type: "number" },
+      { id: "project_name", label: "Project / Society", type: "text", colSpan: 2 },
+    ],
+  },
+  {
+    id: "furnishing",
+    title: "Furnishing & Orientation",
+    fields: [
+      {
+        id: "facing",
+        label: "Facing",
+        type: "select",
+        options: ["", "East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"],
+      },
+      {
+        id: "furnishing",
+        label: "Furnishing",
+        type: "select",
+        options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
+      },
+    ],
+  },
+  {
+    id: "ownership",
+    title: "Ownership & Status",
+    fields: [
+      {
+        id: "ownership",
+        label: "Ownership",
+        type: "select",
+        options: ["", "Freehold", "Leasehold", "Co-operative Society", "Power of Attorney"],
+      },
+      {
+        id: "gated_community",
+        label: "Gated community",
+        type: "select",
+        options: ["", "Yes", "No"],
+      },
+      {
+        id: "property_condition",
+        label: "Property condition",
+        type: "select",
+        options: ["", "New", "Resale", "Under Construction"],
+      },
+      {
+        id: "availability_status",
+        label: "Availability",
+        type: "select",
+        options: ["", "Ready to Move", "Under Construction"],
+      },
+      { id: "possession_date", label: "Possession date", type: "text", placeholder: "MMM YYYY" },
+      { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY" },
+    ],
+  },
+  {
+    id: "charges",
+    title: "Charges",
+    fields: [
+      { id: "maintenance_charges", label: "Maintenance (₹ / month)", type: "number" },
+      { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
+    ],
+  },
+  {
+    id: "compliance",
+    title: "Compliance",
+    fields: [
+      { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/..." },
+    ],
+  },
+];
+
 
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
