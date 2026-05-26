@@ -566,7 +566,7 @@ export default function SellProperty() {
 
   const openEditSheet = () => {
     setEditForm({
-      ...state,
+      ...toCanonical(state),
 
       title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
 
@@ -575,6 +575,7 @@ export default function SellProperty() {
 
     setShowEditSheet(true);
   };
+
 
   const saveEditedDetails = async () => {
     const updated = {
