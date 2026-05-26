@@ -1030,7 +1030,8 @@ export default function SellProperty() {
         // ============================================
 
         setEditForm({
-          ...currentState,
+          ...toCanonical(currentState),
+
 
           // ============================================
           // BASIC INFO
