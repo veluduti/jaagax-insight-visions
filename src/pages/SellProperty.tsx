@@ -647,6 +647,24 @@ function formatAnswer(field: FieldDef, value: any): string {
   return String(value);
 }
 
+function normalizeToArray(value: any): string[] {
+  // already array
+  if (Array.isArray(value)) {
+    return value.map((v) => String(v).trim()).filter(Boolean);
+  }
+
+  // comma separated string
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  // everything else
+  return [];
+}
+
 export default function SellProperty() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
