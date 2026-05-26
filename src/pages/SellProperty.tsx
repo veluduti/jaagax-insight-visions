@@ -1673,7 +1673,7 @@ export default function SellProperty() {
       }
 
       // Use review-screen edits as the source of truth
-      const area = Number(reviewArea) || null;
+      const area = Number(editForm.area) || null;
       const ppu = Number(reviewPricePerUnit) || null;
       const totalPrice = area && ppu ? area * ppu : null;
       const UNIT_TO_SQFT: Record<string, number> = {
