@@ -1009,17 +1009,14 @@ export default function SellProperty() {
       // -------------------------------------------------------
       // DO NOT CLEAR SUGGESTIONS
       // -------------------------------------------------------
+      // ============================================
+      // SMART SUGGESTIONS
+      // ============================================
 
-      if (smartSuggestions) {
-        setSuggestions([
-          {
-            type: "smart",
-            config: smartSuggestions,
-            units,
-          },
-        ]);
+      if (smartSuggestions?.examples?.length) {
+        setSuggestions(smartSuggestions.examples);
       } else {
-        setSuggestions((prev) => (Array.isArray(prev) && typeof prev[0] === "string" ? prev : []));
+        setSuggestions([]);
       }
 
       // =======================================================
