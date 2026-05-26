@@ -227,6 +227,18 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY" },
     ],
   },
+
+  {
+    id: "legal",
+    title: "Legal & Features",
+    fields: [
+      { id: "approvals", label: "Approvals", type: "text", colSpan: 2 },
+      { id: "payment_options", label: "Payment options", type: "text", colSpan: 2 },
+      { id: "highlights", label: "Highlights", type: "text", colSpan: 2 },
+      { id: "assign_agent", label: "Assigned agent", type: "text", colSpan: 2 },
+    ],
+  },
+
   {
     id: "charges",
     title: "Charges",
