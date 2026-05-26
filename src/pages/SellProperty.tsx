@@ -1893,6 +1893,16 @@ export default function SellProperty() {
     });
 
     // ============================================
+    // REBUILD ENGINE STATE
+    // ============================================
+
+    engineRef.current = createConversationEngine(category!);
+
+    engineRef.current.applyExtractedFields(rebuiltState, {
+      overwrite: true,
+    });
+
+    // ============================================
     // RESET
     // ============================================
 
