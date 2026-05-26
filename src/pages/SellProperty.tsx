@@ -271,7 +271,7 @@ function buildPropertyDescription(s: Record<string, any>): string {
   const locality = s.locality || s.area || s.sub_locality;
   const city = s.city || s.location?.city;
   const where = [locality, city].filter(Boolean).join(", ") || "a sought-after neighbourhood";
-  const area = s.built_up_area || s.built_area || s.plot_area || s.carpet_area || s.land_size || s.shop_area;
+  const area = s.area || s.built_area || s.land_size || s.carpet_area || s.shop_area;
   const unit = s.area_unit || s.unit_type || "sq ft";
   const facing = s.facing ? `${lower(s.facing)}-facing` : "";
   const furnishing = s.furnishing ? `${lower(s.furnishing)}` : "";
