@@ -1692,7 +1692,7 @@ export default function SellProperty() {
       const finalTitle =
         (editForm.title && editForm.title.trim()) ||
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
-        `${state.bhk || ""} ${primaryType || "Property"} in ${reviewLocality || reviewCity || ""}`.trim();
+        `${state.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || reviewCity || ""}`.trim();
 
       // Detect agent mode and trust level
       let agentRecord: any = null;
@@ -1738,7 +1738,7 @@ export default function SellProperty() {
         floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) || null : null,
         total_floors: state.total_floors ? parseInt(String(state.total_floors).replace(/[^\d]/g, "")) || null : null,
         city: reviewCity || null,
-        locality: reviewLocality || null,
+        locality: editForm.locality || null,
         address: reviewAddress || null,
         pincode: state.pincode || null,
         furnishing: state.furnishing || null,
@@ -2270,7 +2270,7 @@ export default function SellProperty() {
                   (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
                   "Property";
                 const purpose = (state.listing_type || state.purpose || "sale").toString().toLowerCase();
-                const locLine = [reviewLocality, reviewCity].filter(Boolean).join(", ");
+                const locLine = [editForm.locality, reviewCity].filter(Boolean).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
@@ -2922,7 +2922,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Location */}
-                          {(reviewCity || reviewLocality || reviewAddress) && (
+                          {(reviewCity || editForm.locality || reviewAddress) && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Location
@@ -2934,7 +2934,10 @@ export default function SellProperty() {
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
-                                  <Input value={reviewLocality} onChange={(e) => setReviewLocality(e.target.value)} />
+                                  <Input
+                                    value={editForm.locality}
+                                    onChange={(e) => seteditForm.locality(e.target.value)}
+                                  />
                                 </div>
                                 <div className="col-span-2">
                                   <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
