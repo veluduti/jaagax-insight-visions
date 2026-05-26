@@ -1219,7 +1219,7 @@ export default function SellProperty() {
 
           bathrooms: canonicalState.bathrooms || "",
 
-          balconies: currentState.balconies || "",
+          balconies: canonicalState.balconies || "",
 
           furnishing: canonicalState.furnishing || "",
 
