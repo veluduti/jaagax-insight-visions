@@ -100,6 +100,12 @@ function toCanonical(src: Record<string, any> = {}): Record<string, any> {
   return out;
 }
 
+/** Resolve any field id (alias or canonical) to its canonical id. */
+function canonId(id?: string | null): string {
+  if (!id) return "";
+  return CANONICAL_ALIASES[id] || id;
+}
+
 
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
