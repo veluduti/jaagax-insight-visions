@@ -1690,7 +1690,7 @@ export default function SellProperty() {
       const primaryType = typesArr[0] || null;
 
       const finalTitle =
-        (reviewTitle && reviewTitle.trim()) ||
+        (editForm.title && editForm.title.trim()) ||
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
         `${state.bhk || ""} ${primaryType || "Property"} in ${reviewLocality || reviewCity || ""}`.trim();
 
@@ -1724,7 +1724,7 @@ export default function SellProperty() {
       const payload: any = {
         submitted_by: user.id,
         title: finalTitle,
-        description: reviewDescription || state.description || buildPropertyDescription(state) || null,
+        description: editForm.description || state.description || buildPropertyDescription(state) || null,
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
@@ -2387,9 +2387,9 @@ export default function SellProperty() {
                   ),
                 );
 
-                const descTooLong = (reviewDescription || "").length > 280;
+                const descTooLong = (editForm.description || "").length > 280;
                 const photos: string[] = state.media_urls || [];
-                const titleReady = !!reviewTitle.trim();
+                const titleReady = !!editForm.title.trim();
                 const canPublish = titleReady && !submitting && !titlesLoading;
 
                 const SectionCard: React.FC<{
@@ -2508,7 +2508,7 @@ export default function SellProperty() {
                               <div className="text-2xl sm:text-3xl font-bold text-primary">{fmtPrice(totalPrice)}</div>
                             )}
                             <h1 className="mt-1 text-lg sm:text-xl font-semibold leading-snug">
-                              {reviewTitle ||
+                              {editForm.title ||
                                 (titlesLoading ? (
                                   <span className="inline-flex items-center gap-2 text-muted-foreground italic font-normal">
                                     <Loader2 className="h-4 w-4 animate-spin" /> Generating title…
@@ -2594,7 +2594,7 @@ export default function SellProperty() {
                                 type="button"
                                 onClick={() => {
                                   setSelectedTitleIdx(i);
-                                  setReviewTitle(t.title);
+                                  seteditForm.title(t.title);
                                 }}
                                 className={cn(
                                   "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
@@ -2640,7 +2640,7 @@ export default function SellProperty() {
                             !descExpanded && descTooLong && "max-h-28 overflow-hidden",
                           )}
                         >
-                          {reviewDescription || (
+                          {editForm.description || (
                             <span className="italic text-muted-foreground">No description yet</span>
                           )}
                           {!descExpanded && descTooLong && (
@@ -2831,9 +2831,9 @@ export default function SellProperty() {
                               Listing title
                             </h4>
                             <Input
-                              value={reviewTitle}
+                              value={editForm.title}
                               onChange={(e) => {
-                                setReviewTitle(e.target.value);
+                                seteditForm.title(e.target.value);
                                 setSelectedTitleIdx(null);
                               }}
                               placeholder="e.g. Spacious 3 BHK Independent House in Kondapur"
@@ -2945,20 +2945,20 @@ export default function SellProperty() {
                           )}
 
                           {/* Description */}
-                          {reviewDescription && (
+                          {editForm.description && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Description
                               </h4>
                               <Textarea
-                                value={reviewDescription}
-                                onChange={(e) => setReviewDescription(e.target.value)}
+                                value={editForm.description}
+                                onChange={(e) => seteditForm.description(e.target.value)}
                                 rows={6}
                                 className="resize-none rounded-xl text-sm"
                               />
                               <button
                                 type="button"
-                                onClick={() => setReviewDescription(buildPropertyDescription(state))}
+                                onClick={() => seteditForm.description(buildPropertyDescription(state))}
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
                                 <Sparkles className="h-3 w-3" /> Regenerate with AI
