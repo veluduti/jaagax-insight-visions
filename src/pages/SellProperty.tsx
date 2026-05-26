@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
-import PlotMeasuremenWidget from "@/components/widgets/PlotMeasurementWidget";
+import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import {
   Sparkles,
