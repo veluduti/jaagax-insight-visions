@@ -1223,7 +1223,7 @@ export default function SellProperty() {
 
           furnishing: canonicalState.furnishing || "",
 
-          furnishing_items: Array.isArray(currentState.furnishing_items) ? currentState.furnishing_items : [],
+          furnishing_items: Array.isArray(canonicalState.furnishing_items) ? canonicalState.furnishing_items : [],
 
           facing: canonicalState.facing || "",
 
