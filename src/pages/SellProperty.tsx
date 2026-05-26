@@ -1038,39 +1038,40 @@ export default function SellProperty() {
         // PREPARE COMPLETE EDIT FORM
         // ============================================
 
+        const canonicalState = toCanonical(currentState);
         setEditForm({
-          ...toCanonical(currentState),
+          ...canonicalState,
 
 
           // ============================================
           // BASIC INFO
           // ============================================
 
-          title: currentState.title || aiTitles[0]?.title || "",
+          title: canonicalState.title || aiTitles[0]?.title || "",
 
-          description: currentState.description || buildPropertyDescription(currentState),
+          description: canonicalState.description || buildPropertyDescription(canonicalState),
 
-          property_type: currentState.property_type || "",
+          property_type: canonicalState.property_type || "",
 
-          residential_type: currentState.residential_type || "",
+          residential_type: canonicalState.residential_type || "",
 
-          listing_type: currentState.listing_type || "",
+          listing_type: canonicalState.listing_type || "",
 
-          ownership: currentState.ownership || "",
+          ownership: canonicalState.ownership || "",
 
-          property_condition: currentState.property_condition || "",
+          property_condition: canonicalState.property_condition || "",
 
-          property_age: currentState.property_age || "",
+          property_age: canonicalState.property_age || "",
 
           // ============================================
           // CONFIGURATION
           // ============================================
 
-          bhk: currentState.bhk || currentState.bhk_type || "",
+          bhk: canonicalState.bhk || "",
 
-          bedrooms: currentState.bedrooms || "",
+          bedrooms: canonicalState.bedrooms || "",
 
-          bathrooms: currentState.bathrooms || currentState.bathroom_count || "",
+          bathrooms: canonicalState.bathrooms || "",
 
           balconies: currentState.balconies || "",
 
