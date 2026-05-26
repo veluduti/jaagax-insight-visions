@@ -1866,38 +1866,148 @@ export default function SellProperty() {
 
       const payload: any = {
         submitted_by: user.id,
-        title: finalTitle,
-        description: editForm.description || state.description || buildPropertyDescription(state) || null,
-        type: primaryType,
-        listing_type: state.listing_type?.toLowerCase() === "rent" ? "rent" : "sale",
-        listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
-        price: totalPrice || parseFloat(String(state.total_price || "").replace(/[^\d.]/g, "")) || null,
-        area_sqft: areaSqft,
-        bhk: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
 
-        bedrooms: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
+        // ============================================
+        // BASIC INFO
+        // ============================================
+
+        title: finalTitle,
+
+        description: editForm.description || state.description || buildPropertyDescription(state) || null,
+
+        type: primaryType,
+
+        listing_type: editForm.listing_type?.toLowerCase() === "rent" ? "rent" : "sale",
+
+        listed_by: isAgentMode ? "agent" : (editForm.listed_by || state.listed_by || "owner").toLowerCase(),
+
+        // ============================================
+        // PRICE
+        // ============================================
+
+        price:
+          totalPrice ||
+          parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
+          null,
+
+        area_sqft: areaSqft,
+
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+
+        bhk: editForm.bhk ? parseFloat(String(editForm.bhk).replace(/[^\d.]/g, "")) || null : null,
+
+        bedrooms:
+          editForm.bedrooms || editForm.bhk
+            ? parseFloat(String(editForm.bedrooms || editForm.bhk).replace(/[^\d.]/g, "")) || null
+            : null,
+
         bathrooms: editForm.bathrooms ? parseInt(String(editForm.bathrooms).replace(/[^\d]/g, "")) || null : null,
-        balconies: state.balconies ? Number(state.balconies) : null,
-        floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) || null : null,
-        total_floors: state.total_floors ? parseInt(String(state.total_floors).replace(/[^\d]/g, "")) || null : null,
-        city: editForm.city || null,
-        locality: editForm.locality || null,
-        address: editForm.address || null,
-        pincode: state.pincode || null,
+
+        balconies: editForm.balconies ? parseInt(String(editForm.balconies).replace(/[^\d]/g, "")) || null : null,
+
+        floor_number: editForm.floor_number
+          ? parseInt(String(editForm.floor_number).replace(/[^\d]/g, "")) || null
+          : null,
+
+        total_floors: editForm.total_floors
+          ? parseInt(String(editForm.total_floors).replace(/[^\d]/g, "")) || null
+          : null,
+
         furnishing: editForm.furnishing || null,
+
+        facing: editForm.facing || null,
+
+        gated_community: editForm.gated_community || null,
+
+        ownership: editForm.ownership || null,
+
+        property_age: editForm.property_age || null,
+
+        // ============================================
+        // AREA
+        // ============================================
+
+        land_size: editForm.land_size || null,
+
+        built_area: editForm.built_area || null,
+
+        built_up_area: editForm.built_up_area || null,
+
+        plot_area: editForm.plot_area || null,
+
+        plot_measurements: editForm.plot_measurements || {},
+
+        // ============================================
+        // LOCATION
+        // ============================================
+
+        city: editForm.city || null,
+
+        locality: editForm.locality || null,
+
+        address: editForm.address || null,
+
+        pincode: editForm.pincode || state.pincode || null,
+
+        // ============================================
+        // FEATURES
+        // ============================================
+
         amenities: editForm.amenities || [],
-        rera_id: state.rera_number || null,
+
+        approvals: editForm.approvals || [],
+
+        payment_options: editForm.payment_options || [],
+
+        highlights: editForm.highlights || [],
+
+        // ============================================
+        // DOCUMENTS
+        // ============================================
+
+        rera_id: editForm.rera_number || state.rera_number || null,
+
         images: state.media_urls || [],
+
+        // ============================================
+        // STATUS
+        // ============================================
+
         is_draft: false,
+
         verified: false,
+
         verification_status,
+
         listing_status,
+
         assigned_agent_id,
+
+        // ============================================
+        // AGENT
+        // ============================================
+
         agent_submitted_at: isAgentMode && isTrustedAgent ? new Date().toISOString() : null,
-        agent_data: isAgentMode ? { ...state, agent_id: agentRecord?.id, submitted_by_agent: true } : null,
+
+        agent_data: isAgentMode
+          ? {
+              ...editForm,
+              agent_id: agentRecord?.id,
+              submitted_by_agent: true,
+            }
+          : null,
+
+        // ============================================
+        // RAW DETAILS
+        // ============================================
+
         document_urls: {
-          ...state,
+          ...editForm,
+
           created_by_role: isAgentMode ? "agent" : "seller",
+
           created_by_id: isAgentMode && agentRecord ? agentRecord.id : user.id,
         },
       };
