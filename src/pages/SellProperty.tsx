@@ -1289,7 +1289,7 @@ export default function SellProperty() {
           // AGENT
           // ============================================
 
-          assign_agent: currentState.assign_agent || "",
+          assign_agent: canonicalState.assign_agent || "",
         });
 
         // ============================================
