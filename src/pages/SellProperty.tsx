@@ -171,6 +171,8 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "floor_number", label: "Floor number", type: "number" },
       { id: "total_floors", label: "Total floors", type: "number" },
       { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years" },
+      { id: "land_size", label: "Land size", type: "text" },
+      { id: "built_area", label: "Built area", type: "text" },
       { id: "carpet_area", label: "Carpet area", type: "number" },
       { id: "project_name", label: "Project / Society", type: "text", colSpan: 2 },
     ],
