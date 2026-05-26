@@ -26,6 +26,10 @@ interface PlotMeasurementWidgetProps {
 
   onComplete?: (value: PlotMeasurementValue) => void;
 
+  optional?: boolean;
+
+  onSkip?: () => void;
+
   units?: string[];
   suggestions?: string[];
 }
