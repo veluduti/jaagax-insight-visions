@@ -969,188 +969,140 @@ export default function SellProperty() {
         // INITIALIZE REVIEW FORM
         // ============================================
 
+        // ============================================
+        // PREPARE COMPLETE EDIT FORM
+        // ============================================
 
-  // ============================================
-  // PREPARE COMPLETE EDIT FORM
-  // ============================================
+        setEditForm({
+          ...currentState,
 
-  setEditForm({
-    ...currentState,
+          // ============================================
+          // BASIC INFO
+          // ============================================
 
-    // ============================================
-    // BASIC INFO
-    // ============================================
+          title: currentState.title || aiTitles[0]?.title || "",
 
-    title:
-      currentState.title ||
-      aiTitles[0]?.title ||
-      "",
+          description: currentState.description || buildPropertyDescription(currentState),
 
-    description:
-      currentState.description ||
-      buildPropertyDescription(currentState),
+          property_type: currentState.property_type || "",
 
-    property_type:
-      currentState.property_type || "",
+          residential_type: currentState.residential_type || "",
 
-    residential_type:
-      currentState.residential_type || "",
+          listing_type: currentState.listing_type || "",
 
-    listing_type:
-      currentState.listing_type || "",
+          ownership: currentState.ownership || "",
 
-    ownership:
-      currentState.ownership || "",
+          property_condition: currentState.property_condition || "",
 
-    property_condition:
-      currentState.property_condition || "",
+          property_age: currentState.property_age || "",
 
-    property_age:
-      currentState.property_age || "",
+          // ============================================
+          // CONFIGURATION
+          // ============================================
 
-    // ============================================
-    // CONFIGURATION
-    // ============================================
+          bhk: currentState.bhk || currentState.bhk_type || "",
 
-    bhk:
-      currentState.bhk ||
-      currentState.bhk_type ||
-      "",
+          bedrooms: currentState.bedrooms || "",
 
-    bedrooms:
-      currentState.bedrooms || "",
+          bathrooms: currentState.bathrooms || "",
 
-    bathrooms:
-      currentState.bathrooms || "",
+          balconies: currentState.balconies || "",
 
-    balconies:
-      currentState.balconies || "",
+          furnishing: currentState.furnishing || "",
 
-    furnishing:
-      currentState.furnishing || "",
+          furnishing_items: Array.isArray(currentState.furnishing_items) ? currentState.furnishing_items : [],
 
-    furnishing_items:
-      Array.isArray(currentState.furnishing_items)
-        ? currentState.furnishing_items
-        : [],
+          facing: currentState.facing || "",
 
-    facing:
-      currentState.facing || "",
+          gated_community: currentState.gated_community || "",
 
-    gated_community:
-      currentState.gated_community || "",
+          // ============================================
+          // AREA
+          // ============================================
 
-    // ============================================
-    // AREA
-    // ============================================
+          land_size: currentState.land_size || "",
 
-    land_size:
-      currentState.land_size || "",
+          built_area: currentState.built_area || "",
 
-    built_area:
-      currentState.built_area || "",
+          built_up_area: currentState.built_up_area || "",
 
-    built_up_area:
-      currentState.built_up_area || "",
+          plot_area: currentState.plot_area || "",
 
-    plot_area:
-      currentState.plot_area || "",
+          area:
+            currentState.flat_size ||
+            currentState.built_area ||
+            currentState.built_up_area ||
+            currentState.plot_area ||
+            currentState.land_size ||
+            "",
 
-    area:
-      currentState.flat_size ||
-      currentState.built_area ||
-      currentState.built_up_area ||
-      currentState.plot_area ||
-      currentState.land_size ||
-      "",
+          area_unit: currentState.area_unit || "sq ft",
 
-    area_unit:
-      currentState.area_unit || "sq ft",
+          plot_measurements: currentState.plot_measurements || {},
 
-    plot_measurements:
-      currentState.plot_measurements || {},
+          // ============================================
+          // PRICE
+          // ============================================
 
-    // ============================================
-    // PRICE
-    // ============================================
+          total_price: currentState.total_price || "",
 
-    total_price:
-      currentState.total_price || "",
+          price_per_unit: currentState.price_per_unit || "",
 
-    price_per_unit:
-      currentState.price_per_unit || "",
+          // ============================================
+          // FEATURES
+          // ============================================
 
-    // ============================================
-    // FEATURES
-    // ============================================
+          amenities: Array.isArray(currentState.amenities) ? currentState.amenities : [],
 
-    amenities:
-      Array.isArray(currentState.amenities)
-        ? currentState.amenities
-        : [],
+          approvals: Array.isArray(currentState.approvals) ? currentState.approvals : [],
 
-    approvals:
-      Array.isArray(currentState.approvals)
-        ? currentState.approvals
-        : [],
+          highlights: Array.isArray(currentState.highlights) ? currentState.highlights : [],
 
-    highlights:
-      Array.isArray(currentState.highlights)
-        ? currentState.highlights
-        : [],
+          payment_options: Array.isArray(currentState.payment_options) ? currentState.payment_options : [],
 
-    payment_options:
-      Array.isArray(currentState.payment_options)
-        ? currentState.payment_options
-        : [],
+          // ============================================
+          // LOCATION
+          // ============================================
 
-    // ============================================
-    // LOCATION
-    // ============================================
+          locality: currentState.locality || "",
 
-    locality:
-      currentState.locality || "",
+          city: currentState.city || "",
 
-    city:
-      currentState.city || "",
+          address: currentState.address || "",
 
-    address:
-      currentState.address || "",
+          // ============================================
+          // AGENT
+          // ============================================
 
-    // ============================================
-    // AGENT
-    // ============================================
+          assign_agent: currentState.assign_agent || "",
+        });
 
-    assign_agent:
-      currentState.assign_agent || "",
-  });
+        // ============================================
+        // AUTO GENERATE TITLES
+        // ============================================
 
-  // ============================================
-  // AUTO GENERATE TITLES
-  // ============================================
+        setTimeout(() => {
+          regenerateTitles();
+        }, 100);
 
-  setTimeout(() => {
-    regenerateTitles();
-  }, 100);
+        setField(null);
 
-  setField(null);
+        setProgress(result.progress);
 
-  setProgress(result.progress);
+        setSuggestions([]);
 
-  setSuggestions([]);
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: "🎉 That's everything I need! Review your details below and publish when ready.",
+          },
+        ]);
 
-  setMessages((m) => [
-    ...m,
-    {
-      id: uid(),
-      role: "ai",
-      kind: "text",
-      text: "🎉 That's everything I need! Review your details below and publish when ready.",
-    },
-  ]);
-
-  return;
-}
+        return;
+      }
 
       // =======================================================
       // FIELD SETUP
@@ -1911,7 +1863,7 @@ export default function SellProperty() {
         type: primaryType,
         listing_type: (state.purpose || "sale").toLowerCase(),
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
-        price: totalPrice,
+        price: totalPrice || parseFloat(String(state.total_price || "").replace(/[^\d.]/g, "")) || null,
         area_sqft: areaSqft,
         bhk: state.bhk ? parseFloat(String(state.bhk).replace(/[^\d.]/g, "")) || null : null,
 
