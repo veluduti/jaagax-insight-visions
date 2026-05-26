@@ -84,6 +84,8 @@ export const PlotMeasurementWidget = ({
     setInternal(next);
   };
 
+  const hasAnyMeasurement = Object.values(internal).some((item) => item?.value && Number(item.value) > 0);
+
   return (
     <Card className="p-6 bg-card border-border">
       <div className="flex items-center gap-2 mb-4">
