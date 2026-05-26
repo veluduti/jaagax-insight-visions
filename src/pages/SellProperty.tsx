@@ -1742,7 +1742,7 @@ export default function SellProperty() {
         address: editForm.address || null,
         pincode: state.pincode || null,
         furnishing: state.furnishing || null,
-        amenities: reviewAmenities,
+        amenities: editForm.amenities || [],
         rera_id: state.rera_number || null,
         images: state.media_urls || [],
         is_draft: false,
@@ -2379,7 +2379,7 @@ export default function SellProperty() {
                     [
                       ...arrFlat(state.property_highlights),
                       ...arrFlat(state.amenities),
-                      ...reviewAmenities,
+                      ...(editForm.amenities || []),
                       ...arrFlat(state.payment_options),
                       ...arrFlat(state.approvals),
                       ...arrFlat(state.furnishing_items),
@@ -2973,26 +2973,29 @@ export default function SellProperty() {
                           )}
 
                           {/* Amenities / Highlights */}
-                          {(reviewAmenities.length > 0 || allHighlights.length > 0) && (
+                          {(editForm.amenities || [].length > 0 || allHighlights.length > 0) && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Amenities & Highlights
                               </h4>
                               <div className="flex flex-wrap gap-1.5">
-                                {reviewAmenities.map((a, i) => (
-                                  <span
-                                    key={i}
-                                    className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
-                                  >
-                                    {a}
-                                    <button
-                                      type="button"
-                                      onClick={() => setReviewAmenities((arr) => arr.filter((_, idx) => idx !== i))}
+                                {editForm.amenities ||
+                                  [].map((a, i) => (
+                                    <span
+                                      key={i}
+                                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
                                     >
-                                      <X className="h-2.5 w-2.5" />
-                                    </button>
-                                  </span>
-                                ))}
+                                      {a}
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          seteditForm.amenities || []((arr) => arr.filter((_, idx) => idx !== i))
+                                        }
+                                      >
+                                        <X className="h-2.5 w-2.5" />
+                                      </button>
+                                    </span>
+                                  ))}
                               </div>
                               <div className="flex gap-2">
                                 <Input
@@ -3002,7 +3005,7 @@ export default function SellProperty() {
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" && newAmenity.trim()) {
                                       e.preventDefault();
-                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                      seteditForm.amenities || []((arr) => [...arr, newAmenity.trim()]);
                                       setNewAmenity("");
                                     }
                                   }}
@@ -3013,7 +3016,7 @@ export default function SellProperty() {
                                   size="sm"
                                   onClick={() => {
                                     if (newAmenity.trim()) {
-                                      setReviewAmenities((arr) => [...arr, newAmenity.trim()]);
+                                      seteditForm.amenities || []((arr) => [...arr, newAmenity.trim()]);
                                       setNewAmenity("");
                                     }
                                   }}
