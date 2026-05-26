@@ -1227,19 +1227,19 @@ export default function SellProperty() {
 
           facing: canonicalState.facing || "",
 
-          gated_community: currentState.gated_community || "",
+          gated_community: canonicalState.gated_community || "",
 
           // ============================================
           // AREA
           // ============================================
 
-          land_size: currentState.land_size || "",
+          land_size: canonicalState.land_size || "",
 
-          built_area: currentState.built_area || "",
+          built_area: canonicalState.built_area || "",
 
-          built_up_area: currentState.built_up_area || "",
+          built_up_area: canonicalState.built_up_area || "",
 
-          plot_area: currentState.plot_area || "",
+          plot_area: canonicalState.plot_area || "",
 
           area:
             currentState.flat_size ||
