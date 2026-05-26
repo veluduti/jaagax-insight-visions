@@ -1265,17 +1265,17 @@ export default function SellProperty() {
           // FEATURES
           // ============================================
 
-          amenities: Array.isArray(currentState.amenities) ? currentState.amenities : [],
+          amenities: Array.isArray(canonicalState.amenities) ? canonicalState.amenities : [],
 
           approvals: Array.isArray(canonicalState.approvals) ? canonicalState.approvals : [],
 
-          highlights: Array.isArray(currentState.highlights)
-            ? currentState.highlights
-            : Array.isArray(currentState.property_highlights)
-              ? currentState.property_highlights
+          highlights: Array.isArray(canonicalState.highlights)
+            ? canonicalState.highlights
+            : Array.isArray(canonicalState.property_highlights)
+              ? canonicalState.property_highlights
               : [],
 
-          payment_options: Array.isArray(currentState.payment_options) ? currentState.payment_options : [],
+          payment_options: Array.isArray(canonicalState.payment_options) ? canonicalState.payment_options : [],
 
           // ============================================
           // LOCATION
