@@ -1004,7 +1004,7 @@ export default function SellProperty() {
 
           bedrooms: currentState.bedrooms || "",
 
-          bathrooms: currentState.bathrooms || "",
+          bathrooms: currentState.bathrooms || currentState.bathroom_count || "",
 
           balconies: currentState.balconies || "",
 
