@@ -100,6 +100,12 @@ function toCanonical(src: Record<string, any> = {}): Record<string, any> {
   return out;
 }
 
+/** Resolve any field id (alias or canonical) to its canonical id. */
+function canonId(id?: string | null): string {
+  if (!id) return "";
+  return CANONICAL_ALIASES[id] || id;
+}
+
 
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
@@ -419,18 +425,19 @@ function validate(field: FieldDef, value: any): string | null {
     if (!re.test(String(value))) return "Enter a valid email";
   }
   if (field.input === "number" && isNaN(Number(value))) return "Enter a valid number";
-  if (field.id === "bhk_type" || field.id === "bhk") {
+  const fid = canonId(field.id);
+  if (fid === "bhk") {
     if (!BHK_PATTERN.test(String(value).trim())) {
       return "Please enter format like 3 BHK";
     }
   }
 
-  if (field.id === "price_per_unit") {
+  if (fid === "price_per_unit") {
     if (!PRICE_UNIT_PATTERN.test(String(value).trim())) {
       return "Please enter format like ₹6000/sqft";
     }
   }
-  if (field.id === "bathroom_count") {
+  if (fid === "bathrooms") {
     if (!BATHROOM_PATTERN.test(String(value).trim())) {
       return "Please enter format like 2 Bathrooms";
     }
@@ -504,12 +511,13 @@ export default function SellProperty() {
   const [value, setValue] = useState<any>("");
   useEffect(() => {
     if (!field) return;
+    const fid = canonId(field.id);
 
     // ============================================
     // BHK Suggestions
     // ============================================
 
-    if ((field.id === "bhk" || field.id === "bhk_type") && typeof value === "string") {
+    if (fid === "bhk" && typeof value === "string") {
       setSuggestions(getBhkSuggestions(value));
       return;
     }
@@ -518,12 +526,12 @@ export default function SellProperty() {
     // PRICE UNIT Suggestions
     // ============================================
 
-    if (field.id === "price_per_unit" && typeof value === "string") {
+    if (fid === "price_per_unit" && typeof value === "string") {
       setSuggestions(getPriceUnitSuggestions(value));
       return;
     }
 
-    if (field.id === "bathroom_count" && typeof value === "string") {
+    if (fid === "bathrooms" && typeof value === "string") {
       setSuggestions(getBathroomSuggestions(value));
 
       return;
@@ -565,12 +573,13 @@ export default function SellProperty() {
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
   const openEditSheet = () => {
+    const canonical = toCanonical(state);
     setEditForm({
-      ...toCanonical(state),
+      ...canonical,
 
-      title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
+      title: aiTitles[selectedTitleIdx || 0]?.title || canonical.title || "",
 
-      description: state.description || buildPropertyDescription(state),
+      description: canonical.description || buildPropertyDescription(canonical),
     });
 
     setShowEditSheet(true);
@@ -1029,39 +1038,40 @@ export default function SellProperty() {
         // PREPARE COMPLETE EDIT FORM
         // ============================================
 
+        const canonicalState = toCanonical(currentState);
         setEditForm({
-          ...toCanonical(currentState),
+          ...canonicalState,
 
 
           // ============================================
           // BASIC INFO
           // ============================================
 
-          title: currentState.title || aiTitles[0]?.title || "",
+          title: canonicalState.title || aiTitles[0]?.title || "",
 
-          description: currentState.description || buildPropertyDescription(currentState),
+          description: canonicalState.description || buildPropertyDescription(canonicalState),
 
-          property_type: currentState.property_type || "",
+          property_type: canonicalState.property_type || "",
 
-          residential_type: currentState.residential_type || "",
+          residential_type: canonicalState.residential_type || "",
 
-          listing_type: currentState.listing_type || "",
+          listing_type: canonicalState.listing_type || "",
 
-          ownership: currentState.ownership || "",
+          ownership: canonicalState.ownership || "",
 
-          property_condition: currentState.property_condition || "",
+          property_condition: canonicalState.property_condition || "",
 
-          property_age: currentState.property_age || "",
+          property_age: canonicalState.property_age || "",
 
           // ============================================
           // CONFIGURATION
           // ============================================
 
-          bhk: currentState.bhk || currentState.bhk_type || "",
+          bhk: canonicalState.bhk || "",
 
-          bedrooms: currentState.bedrooms || "",
+          bedrooms: canonicalState.bedrooms || "",
 
-          bathrooms: currentState.bathrooms || currentState.bathroom_count || "",
+          bathrooms: canonicalState.bathrooms || "",
 
           balconies: currentState.balconies || "",
 
@@ -1888,7 +1898,7 @@ export default function SellProperty() {
       const finalTitle =
         (editForm.title && editForm.title.trim()) ||
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
-        `${state.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || editForm.city || ""}`.trim();
+        `${editForm.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || editForm.city || ""}`.trim();
 
       // Detect agent mode and trust level
       let agentRecord: any = null;
@@ -1926,7 +1936,7 @@ export default function SellProperty() {
 
         title: finalTitle,
 
-        description: editForm.description || state.description || buildPropertyDescription(state) || null,
+        description: editForm.description || buildPropertyDescription(editForm) || null,
 
         type: primaryType,
 
@@ -3284,7 +3294,7 @@ export default function SellProperty() {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(state) }))
+                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(p) }))
                                 }
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
@@ -3612,11 +3622,13 @@ export default function SellProperty() {
 
                               setValue(val);
 
+                              const fid = canonId(field?.id);
+
                               // ============================================
                               // BHK Suggestions
                               // ============================================
 
-                              if (field?.id === "bhk" || field?.id === "bhk_type") {
+                              if (fid === "bhk") {
                                 setSuggestions(getBhkSuggestions(val));
                                 return;
                               }
@@ -3625,17 +3637,17 @@ export default function SellProperty() {
                               // PRICE PER UNIT Suggestions
                               // ============================================
 
-                              if (field?.id === "price_per_unit") {
+                              if (fid === "price_per_unit") {
                                 setSuggestions(getPriceUnitSuggestions(val));
                                 return;
                               }
 
-                              if (field?.id === "bathroom_count") {
+                              if (fid === "bathrooms") {
                                 setSuggestions(getBathroomSuggestions(val));
                                 return;
                               }
 
-                              if (field?.id === "floor_number") {
+                              if (fid === "floor_number") {
                                 setSuggestions(getFloorSuggestions(val));
 
                                 return;
@@ -3650,13 +3662,14 @@ export default function SellProperty() {
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
+                                const fid = canonId(field?.id);
 
                                 // ============================================
                                 // BLOCK INVALID BHK
                                 // ============================================
 
                                 if (
-                                  (field?.id === "bhk" || field?.id === "bhk_type") &&
+                                  fid === "bhk" &&
                                   !BHK_PATTERN.test(String(value).trim())
                                 ) {
                                   return;
@@ -3666,7 +3679,7 @@ export default function SellProperty() {
                                 // BLOCK INVALID PRICE UNIT
                                 // ============================================
 
-                                if (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) {
+                                if (fid === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
@@ -3674,18 +3687,18 @@ export default function SellProperty() {
                                 // BLOCK INVALID BATHROOM
                                 // ============================================
 
-                                if (field?.id === "bathroom_count" && !BATHROOM_PATTERN.test(String(value).trim())) {
+                                if (fid === "bathrooms" && !BATHROOM_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
-                                if (field?.id === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) {
+                                if (fid === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
                                 if (
-                                  (field?.id === "flat_size" ||
-                                    field?.id === "built_up_area" ||
-                                    field?.id === "land_size") &&
+                                  (fid === "flat_size" ||
+                                    fid === "built_up_area" ||
+                                    fid === "land_size") &&
                                   !MEASUREMENT_PATTERN.test(String(value).trim())
                                 ) {
                                   return;
@@ -3721,13 +3734,13 @@ export default function SellProperty() {
                       onClick={onNext}
                       disabled={
                         loadingNext ||
-                        ((field?.id === "bhk" || field?.id === "bhk_type") &&
+                        ((canonId(field?.id) === "bhk") &&
                           !BHK_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
-                        ((field?.id === "flat_size" || field?.id === "built_up_area" || field?.id === "land_size") &&
+                        (canonId(field?.id) === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
+                        ((canonId(field?.id) === "flat_size" || canonId(field?.id) === "built_up_area" || canonId(field?.id) === "land_size") &&
                           !MEASUREMENT_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "bathroom_count" && !BATHROOM_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "floor_number" && !FLOOR_PATTERN.test(String(value).trim()))
+                        (canonId(field?.id) === "bathrooms" && !BATHROOM_PATTERN.test(String(value).trim())) ||
+                        (canonId(field?.id) === "floor_number" && !FLOOR_PATTERN.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
