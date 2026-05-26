@@ -2864,60 +2864,18 @@ export default function SellProperty() {
                   </button>
                 );
 
-                /* ------ Edit drawer: dynamic field map ------ */
-                const editableNumeric = [
-                  { id: "bhk", label: "BHK / Configuration", type: "text" },
-                  { id: "bathrooms", label: "Bathrooms", type: "number" },
-                  { id: "balconies", label: "Balconies", type: "number" },
-                  { id: "floor_number", label: "Floor number", type: "number" },
-                  { id: "total_floors", label: "Total floors", type: "number" },
-                  { id: "property_age", label: "Property age", type: "text" },
-                  { id: "parking", label: "Parking", type: "text" },
-                  { id: "ownership", label: "Ownership", type: "text" },
-                  { id: "carpet_area", label: `Carpet area (${unit})`, type: "number" },
-                  { id: "maintenance_charges", label: "Maintenance (₹)", type: "number" },
-                  { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
-                  { id: "project_name", label: "Project name", type: "text" },
-                ];
-                const editableSelect = [
-                  {
-                    id: "facing",
-                    label: "Facing",
-                    options: [
-                      "",
-                      "East",
-                      "West",
-                      "North",
-                      "South",
-                      "North-East",
-                      "North-West",
-                      "South-East",
-                      "South-West",
-                    ],
-                  },
-                  {
-                    id: "furnishing",
-                    label: "Furnishing",
-                    options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
-                  },
-                  {
-                    id: "gated_community",
-                    label: "Gated community",
-                    options: ["", "Yes", "No"],
-                  },
-                  {
-                    id: "property_condition",
-                    label: "Property condition",
-                    options: ["", "New", "Resale", "Under Construction"],
-                  },
-                  {
-                    id: "availability_status",
-                    label: "Availability",
-                    options: ["", "Ready to Move", "Under Construction"],
-                  },
-                ];
-                const filledNumeric = editableNumeric.filter((f) => has((editForm as any)[f.id]));
-                const filledSelect = editableSelect.filter((f) => has((editForm as any)[f.id]));
+                /* ------ Edit drawer: config-driven sections (Phase 2) ------ */
+                const activeCategory = state.category as PropertyCategory | undefined;
+                const visibleSections = EDIT_FIELD_CONFIG
+                  .map((section) => ({
+                    ...section,
+                    fields: section.fields.filter((f) => {
+                      if (f.onlyFor && activeCategory && !f.onlyFor.includes(activeCategory)) return false;
+                      if (f.hideFor && activeCategory && f.hideFor.includes(activeCategory)) return false;
+                      return true;
+                    }),
+                  }))
+                  .filter((s) => s.fields.length > 0);
 
 
                 return (
