@@ -3340,7 +3340,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Location */}
-                          {(
+                          {true && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Location
