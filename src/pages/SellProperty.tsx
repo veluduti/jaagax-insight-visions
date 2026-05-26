@@ -3372,7 +3372,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Description */}
-                          {editForm.description && (
+                          {true && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Description
