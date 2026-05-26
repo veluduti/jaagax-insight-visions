@@ -573,12 +573,13 @@ export default function SellProperty() {
   const [editForm, setEditForm] = useState<Record<string, any>>({});
 
   const openEditSheet = () => {
+    const canonical = toCanonical(state);
     setEditForm({
-      ...toCanonical(state),
+      ...canonical,
 
-      title: aiTitles[selectedTitleIdx || 0]?.title || state.title || "",
+      title: aiTitles[selectedTitleIdx || 0]?.title || canonical.title || "",
 
-      description: state.description || buildPropertyDescription(state),
+      description: canonical.description || buildPropertyDescription(canonical),
     });
 
     setShowEditSheet(true);
