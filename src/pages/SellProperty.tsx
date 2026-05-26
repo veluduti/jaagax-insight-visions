@@ -71,6 +71,15 @@ const CANONICAL_ALIASES: Record<string, string> = {
   property_facing: "facing",
   furnishing_status: "furnishing",
   ownership_type: "ownership",
+  approval_type: "approvals",
+  approval: "approvals",
+
+  property_highlights: "highlights",
+
+  plot_area: "land_size",
+  built_up_area: "built_area",
+
+  assigned_agent: "assign_agent",
 };
 
 /**
