@@ -3243,42 +3243,57 @@ export default function SellProperty() {
                             />
                           </div>
 
-                          {/* Filled details only */}
-                          {(filledNumeric.length > 0 || filledSelect.length > 0) && (
-                            <div className="space-y-3">
+                          {/* Config-driven sections — writes to editForm (canonical) */}
+                          {visibleSections.map((section) => (
+                            <div key={section.id} className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Your details
+                                {section.title}
                               </h4>
                               <div className="grid grid-cols-2 gap-3">
-                                {filledNumeric.map((f) => (
-                                  <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
-                                    <Input
-                                      type={f.type}
-                                      value={(state as any)[f.id] ?? ""}
-                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
-                                    />
-                                  </div>
-                                ))}
-                                {filledSelect.map((f) => (
-                                  <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
-                                    <select
-                                      value={String((state as any)[f.id] || "")}
-                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
-                                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                                    >
-                                      {f.options.map((o) => (
-                                        <option key={o} value={o}>
-                                          {o || "—"}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                ))}
+                                {section.fields.map((f) => {
+                                  const span = f.colSpan === 2 ? "col-span-2" : "";
+                                  const val = (editForm as any)[f.id] ?? "";
+                                  const setVal = (v: any) =>
+                                    setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  return (
+                                    <div key={f.id} className={span}>
+                                      <label className="text-xs text-muted-foreground mb-1 block">
+                                        {f.label}
+                                      </label>
+                                      {f.type === "select" ? (
+                                        <select
+                                          value={String(val || "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                        >
+                                          {(f.options || []).map((o) => (
+                                            <option key={o} value={o}>
+                                              {o || "—"}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : f.type === "textarea" ? (
+                                        <Textarea
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          rows={3}
+                                        />
+                                      ) : (
+                                        <Input
+                                          type={f.type}
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => setVal(e.target.value)}
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
-                          )}
+                          ))}
+
 
                           {/* Area & Pricing */}
                           {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
