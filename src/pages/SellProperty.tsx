@@ -1692,7 +1692,7 @@ export default function SellProperty() {
       const finalTitle =
         (editForm.title && editForm.title.trim()) ||
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
-        `${state.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || reviewCity || ""}`.trim();
+        `${state.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || editForm.city || ""}`.trim();
 
       // Detect agent mode and trust level
       let agentRecord: any = null;
@@ -1737,9 +1737,9 @@ export default function SellProperty() {
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) || null : null,
         total_floors: state.total_floors ? parseInt(String(state.total_floors).replace(/[^\d]/g, "")) || null : null,
-        city: reviewCity || null,
+        city: editForm.city || null,
         locality: editForm.locality || null,
-        address: reviewAddress || null,
+        address: editForm.address || null,
         pincode: state.pincode || null,
         furnishing: state.furnishing || null,
         amenities: reviewAmenities,
@@ -2270,7 +2270,7 @@ export default function SellProperty() {
                   (Array.isArray(state.sub_type) ? state.sub_type[0] : state.sub_type) ||
                   "Property";
                 const purpose = (state.listing_type || state.purpose || "sale").toString().toLowerCase();
-                const locLine = [editForm.locality, reviewCity].filter(Boolean).join(", ");
+                const locLine = [editForm.locality, editForm.city].filter(Boolean).join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
@@ -2718,7 +2718,7 @@ export default function SellProperty() {
                     )}
 
                     {/* 6. LOCATION */}
-                    {(locLine || reviewAddress) && (
+                    {(locLine || editForm.address) && (
                       <SectionCard
                         title="Location"
                         icon={<MapPin className="h-4 w-4 text-primary" />}
@@ -2726,7 +2726,7 @@ export default function SellProperty() {
                       >
                         <div className="space-y-1">
                           <div className="text-base font-medium">{locLine || "—"}</div>
-                          {reviewAddress && <div className="text-sm text-muted-foreground">{reviewAddress}</div>}
+                          {editForm.address && <div className="text-sm text-muted-foreground">{editForm.address}</div>}
                         </div>
                       </SectionCard>
                     )}
@@ -2922,7 +2922,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Location */}
-                          {(reviewCity || editForm.locality || reviewAddress) && (
+                          {(editForm.city || editForm.locality || editForm.address) && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Location
@@ -2930,7 +2930,7 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                                  <Input value={reviewCity} onChange={(e) => setReviewCity(e.target.value)} />
+                                  <Input value={editForm.city} onChange={(e) => seteditForm.city(e.target.value)} />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
@@ -2941,7 +2941,10 @@ export default function SellProperty() {
                                 </div>
                                 <div className="col-span-2">
                                   <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
-                                  <Input value={reviewAddress} onChange={(e) => setReviewAddress(e.target.value)} />
+                                  <Input
+                                    value={editForm.address}
+                                    onChange={(e) => seteditForm.address(e.target.value)}
+                                  />
                                 </div>
                               </div>
                             </div>
