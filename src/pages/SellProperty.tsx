@@ -425,18 +425,19 @@ function validate(field: FieldDef, value: any): string | null {
     if (!re.test(String(value))) return "Enter a valid email";
   }
   if (field.input === "number" && isNaN(Number(value))) return "Enter a valid number";
-  if (field.id === "bhk_type" || field.id === "bhk") {
+  const fid = canonId(field.id);
+  if (fid === "bhk") {
     if (!BHK_PATTERN.test(String(value).trim())) {
       return "Please enter format like 3 BHK";
     }
   }
 
-  if (field.id === "price_per_unit") {
+  if (fid === "price_per_unit") {
     if (!PRICE_UNIT_PATTERN.test(String(value).trim())) {
       return "Please enter format like ₹6000/sqft";
     }
   }
-  if (field.id === "bathroom_count") {
+  if (fid === "bathrooms") {
     if (!BATHROOM_PATTERN.test(String(value).trim())) {
       return "Please enter format like 2 Bathrooms";
     }
