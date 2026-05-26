@@ -56,6 +56,8 @@ export const PlotMeasurementWidget = ({
   value = {},
   onChange,
   onComplete,
+  optional,
+  onSkip,
   units,
   suggestions,
 }: PlotMeasurementWidgetProps) => {
