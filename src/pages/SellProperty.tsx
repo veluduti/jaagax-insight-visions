@@ -106,6 +106,125 @@ function canonId(id?: string | null): string {
   return CANONICAL_ALIASES[id] || id;
 }
 
+/**
+ * EDIT_FIELD_CONFIG (Phase 2)
+ * ---------------------------------------------------------------
+ * Single source of truth for the Edit Drawer. Each section renders
+ * all its fields against `editForm` (canonical IDs only). Fields are
+ * always editable — empty values are valid input affordances, not
+ * filters. Custom blocks (Title, Area & Pricing, Location,
+ * Description, Amenities) live outside this config because they have
+ * bespoke UX (chips, AI regen, multi-input rows).
+ */
+export type EditFieldType = "text" | "number" | "select" | "textarea";
+export interface EditFieldDef {
+  id: string;                  // canonical id on editForm
+  label: string;
+  type: EditFieldType;
+  placeholder?: string;
+  options?: string[];          // for type === "select"
+  colSpan?: 1 | 2;             // grid span within the section (default 1)
+  /** Hide this field for a given property category. Optional. */
+  hideFor?: PropertyCategory[];
+  /** Only show for these categories. Optional. */
+  onlyFor?: PropertyCategory[];
+}
+export interface EditFieldSection {
+  id: string;
+  title: string;
+  fields: EditFieldDef[];
+}
+
+export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
+  {
+    id: "configuration",
+    title: "Configuration",
+    fields: [
+      { id: "bhk", label: "BHK / Configuration", type: "text", placeholder: "e.g. 3 BHK" },
+      { id: "bedrooms", label: "Bedrooms", type: "number" },
+      { id: "bathrooms", label: "Bathrooms", type: "number" },
+      { id: "balconies", label: "Balconies", type: "number" },
+      { id: "parking", label: "Parking", type: "text", placeholder: "e.g. 2 covered" },
+    ],
+  },
+  {
+    id: "building",
+    title: "Building & Floor",
+    fields: [
+      { id: "floor_number", label: "Floor number", type: "number" },
+      { id: "total_floors", label: "Total floors", type: "number" },
+      { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years" },
+      { id: "carpet_area", label: "Carpet area", type: "number" },
+      { id: "project_name", label: "Project / Society", type: "text", colSpan: 2 },
+    ],
+  },
+  {
+    id: "furnishing",
+    title: "Furnishing & Orientation",
+    fields: [
+      {
+        id: "facing",
+        label: "Facing",
+        type: "select",
+        options: ["", "East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"],
+      },
+      {
+        id: "furnishing",
+        label: "Furnishing",
+        type: "select",
+        options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
+      },
+    ],
+  },
+  {
+    id: "ownership",
+    title: "Ownership & Status",
+    fields: [
+      {
+        id: "ownership",
+        label: "Ownership",
+        type: "select",
+        options: ["", "Freehold", "Leasehold", "Co-operative Society", "Power of Attorney"],
+      },
+      {
+        id: "gated_community",
+        label: "Gated community",
+        type: "select",
+        options: ["", "Yes", "No"],
+      },
+      {
+        id: "property_condition",
+        label: "Property condition",
+        type: "select",
+        options: ["", "New", "Resale", "Under Construction"],
+      },
+      {
+        id: "availability_status",
+        label: "Availability",
+        type: "select",
+        options: ["", "Ready to Move", "Under Construction"],
+      },
+      { id: "possession_date", label: "Possession date", type: "text", placeholder: "MMM YYYY" },
+      { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY" },
+    ],
+  },
+  {
+    id: "charges",
+    title: "Charges",
+    fields: [
+      { id: "maintenance_charges", label: "Maintenance (₹ / month)", type: "number" },
+      { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
+    ],
+  },
+  {
+    id: "compliance",
+    title: "Compliance",
+    fields: [
+      { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/..." },
+    ],
+  },
+];
+
 
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
@@ -2745,60 +2864,18 @@ export default function SellProperty() {
                   </button>
                 );
 
-                /* ------ Edit drawer: dynamic field map ------ */
-                const editableNumeric = [
-                  { id: "bhk", label: "BHK / Configuration", type: "text" },
-                  { id: "bathrooms", label: "Bathrooms", type: "number" },
-                  { id: "balconies", label: "Balconies", type: "number" },
-                  { id: "floor_number", label: "Floor number", type: "number" },
-                  { id: "total_floors", label: "Total floors", type: "number" },
-                  { id: "property_age", label: "Property age", type: "text" },
-                  { id: "parking", label: "Parking", type: "text" },
-                  { id: "ownership", label: "Ownership", type: "text" },
-                  { id: "carpet_area", label: `Carpet area (${unit})`, type: "number" },
-                  { id: "maintenance_charges", label: "Maintenance (₹)", type: "number" },
-                  { id: "security_deposit", label: "Security deposit (₹)", type: "number" },
-                  { id: "project_name", label: "Project name", type: "text" },
-                ];
-                const editableSelect = [
-                  {
-                    id: "facing",
-                    label: "Facing",
-                    options: [
-                      "",
-                      "East",
-                      "West",
-                      "North",
-                      "South",
-                      "North-East",
-                      "North-West",
-                      "South-East",
-                      "South-West",
-                    ],
-                  },
-                  {
-                    id: "furnishing",
-                    label: "Furnishing",
-                    options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
-                  },
-                  {
-                    id: "gated_community",
-                    label: "Gated community",
-                    options: ["", "Yes", "No"],
-                  },
-                  {
-                    id: "property_condition",
-                    label: "Property condition",
-                    options: ["", "New", "Resale", "Under Construction"],
-                  },
-                  {
-                    id: "availability_status",
-                    label: "Availability",
-                    options: ["", "Ready to Move", "Under Construction"],
-                  },
-                ];
-                const filledNumeric = editableNumeric.filter((f) => has((editForm as any)[f.id]));
-                const filledSelect = editableSelect.filter((f) => has((editForm as any)[f.id]));
+                /* ------ Edit drawer: config-driven sections (Phase 2) ------ */
+                const activeCategory = state.category as PropertyCategory | undefined;
+                const visibleSections = EDIT_FIELD_CONFIG
+                  .map((section) => ({
+                    ...section,
+                    fields: section.fields.filter((f) => {
+                      if (f.onlyFor && activeCategory && !f.onlyFor.includes(activeCategory)) return false;
+                      if (f.hideFor && activeCategory && f.hideFor.includes(activeCategory)) return false;
+                      return true;
+                    }),
+                  }))
+                  .filter((s) => s.fields.length > 0);
 
 
                 return (
@@ -3166,42 +3243,57 @@ export default function SellProperty() {
                             />
                           </div>
 
-                          {/* Filled details only */}
-                          {(filledNumeric.length > 0 || filledSelect.length > 0) && (
-                            <div className="space-y-3">
+                          {/* Config-driven sections — writes to editForm (canonical) */}
+                          {visibleSections.map((section) => (
+                            <div key={section.id} className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                Your details
+                                {section.title}
                               </h4>
                               <div className="grid grid-cols-2 gap-3">
-                                {filledNumeric.map((f) => (
-                                  <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
-                                    <Input
-                                      type={f.type}
-                                      value={(state as any)[f.id] ?? ""}
-                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
-                                    />
-                                  </div>
-                                ))}
-                                {filledSelect.map((f) => (
-                                  <div key={f.id}>
-                                    <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
-                                    <select
-                                      value={String((state as any)[f.id] || "")}
-                                      onChange={(e) => setState((s: any) => ({ ...s, [f.id]: e.target.value }))}
-                                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                                    >
-                                      {f.options.map((o) => (
-                                        <option key={o} value={o}>
-                                          {o || "—"}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                ))}
+                                {section.fields.map((f) => {
+                                  const span = f.colSpan === 2 ? "col-span-2" : "";
+                                  const val = (editForm as any)[f.id] ?? "";
+                                  const setVal = (v: any) =>
+                                    setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  return (
+                                    <div key={f.id} className={span}>
+                                      <label className="text-xs text-muted-foreground mb-1 block">
+                                        {f.label}
+                                      </label>
+                                      {f.type === "select" ? (
+                                        <select
+                                          value={String(val || "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                        >
+                                          {(f.options || []).map((o) => (
+                                            <option key={o} value={o}>
+                                              {o || "—"}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : f.type === "textarea" ? (
+                                        <Textarea
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          rows={3}
+                                        />
+                                      ) : (
+                                        <Input
+                                          type={f.type}
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => setVal(e.target.value)}
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
-                          )}
+                          ))}
+
 
                           {/* Area & Pricing */}
                           {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
@@ -3248,7 +3340,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Location */}
-                          {(editForm.city || editForm.locality || editForm.address) && (
+                          {true && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Location
@@ -3280,7 +3372,7 @@ export default function SellProperty() {
                           )}
 
                           {/* Description */}
-                          {editForm.description && (
+                          {true && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Description
