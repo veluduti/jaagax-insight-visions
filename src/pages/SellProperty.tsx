@@ -1056,7 +1056,11 @@ export default function SellProperty() {
 
           approvals: Array.isArray(currentState.approvals) ? currentState.approvals : [],
 
-          highlights: Array.isArray(currentState.highlights) ? currentState.highlights : [],
+          highlights: Array.isArray(currentState.highlights)
+            ? currentState.highlights
+            : Array.isArray(currentState.property_highlights)
+              ? currentState.property_highlights
+              : [],
 
           payment_options: Array.isArray(currentState.payment_options) ? currentState.payment_options : [],
 
