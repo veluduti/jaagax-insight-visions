@@ -1717,7 +1717,7 @@ export default function SellProperty() {
 
       // Use review-screen edits as the source of truth
       const area = parseFloat(String(editForm.area).replace(/[^\d.]/g, "")) || null;
-      const ppu = Number(editForm.price_per_unit) || null;
+      const ppu = parseFloat(String(editForm.price_per_unit).replace(/[^\d.]/g, "")) || null;
       const totalPrice = area && ppu ? area * ppu : null;
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1,
