@@ -73,6 +73,7 @@ export const PlotMeasurementWidget = ({
 
   const update = (id: string, patch: Partial<{ value: string; unit: string }>) => {
     const defaultUnit = resolvedDirections.find((d) => d.id === id)?.unit || resolvedUnits[0];
+
     const next: PlotMeasurementValue = {
       ...internal,
       [id]: {
@@ -81,7 +82,11 @@ export const PlotMeasurementWidget = ({
         ...patch,
       },
     };
+
     setInternal(next);
+
+    // instant parent sync
+    onChange?.(next);
   };
 
   const hasAnyMeasurement = Object.values(internal).some((item) => item?.value && Number(item.value) > 0);
