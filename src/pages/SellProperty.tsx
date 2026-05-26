@@ -51,6 +51,57 @@ import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
+/**
+ * Canonical alias map (Phase 1 standardization).
+ * Maps legacy/extracted field names → canonical IDs used by editForm,
+ * the review screen, the edit modal, and the submit payload.
+ *
+ * Canonical IDs: bhk, bathrooms, bedrooms, balconies, property_type,
+ * listing_type, area, area_unit, price_per_unit, total_price, land_size,
+ * built_area, built_up_area, plot_area, property_age, ownership, facing,
+ * gated_community.
+ */
+const CANONICAL_ALIASES: Record<string, string> = {
+  bhk_type: "bhk",
+  bathroom_count: "bathrooms",
+  purpose: "listing_type",
+  type: "property_type",
+  sub_type: "property_type",
+  flat_size: "area",
+  property_facing: "facing",
+  furnishing_status: "furnishing",
+  ownership_type: "ownership",
+};
+
+/**
+ * Returns a copy of `src` with canonical field IDs populated from any
+ * known aliases. Original keys are preserved so legacy reads keep working
+ * during the transition; canonical reads now have a single source of truth.
+ */
+function toCanonical(src: Record<string, any> = {}): Record<string, any> {
+  const out: Record<string, any> = { ...src };
+  for (const [alias, canonical] of Object.entries(CANONICAL_ALIASES)) {
+    const aliasVal = src[alias];
+    const canonVal = out[canonical];
+    if ((canonVal === undefined || canonVal === "" || canonVal === null) && aliasVal !== undefined && aliasVal !== "" && aliasVal !== null) {
+      // For property_type, prefer first item if array
+      if (canonical === "property_type" && Array.isArray(aliasVal)) {
+        out[canonical] = aliasVal[0];
+      } else {
+        out[canonical] = aliasVal;
+      }
+    }
+  }
+  // Area aggregate fallback: if `area` still empty, derive from built/plot/land sizes.
+  if (!out.area) {
+    out.area = src.flat_size || src.built_area || src.built_up_area || src.plot_area || src.land_size || "";
+  }
+  if (!out.area_unit) out.area_unit = src.area_unit || "sq ft";
+  return out;
+}
+
+
+
 /** Build a natural, SEO-friendly description deterministically from collected state. */
 function buildPropertyDescription(s: Record<string, any>): string {
   const cap = (v: any) =>
