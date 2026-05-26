@@ -1515,7 +1515,7 @@ export default function SellProperty() {
     // =========================================================
 
     try {
-      engineRef.current?.applyAnswer(f.id, normalized);
+      engineRef.current?.applyAnswer(canonicalFieldId, normalized);
     } catch {}
 
     // =========================================================
