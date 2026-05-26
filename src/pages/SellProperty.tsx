@@ -2021,7 +2021,7 @@ export default function SellProperty() {
       // Save granular field key/values to property_details (one row per field)
       const propertyId = inserted?.id;
       if (propertyId) {
-        const detailRows = Object.entries(state)
+        const detailRows = Object.entries(editForm)
           .filter(([_, v]) => v !== null && v !== undefined && v !== "")
           .map(([k, v]) => ({
             property_id: propertyId,
