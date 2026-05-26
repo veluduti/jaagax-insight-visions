@@ -1227,7 +1227,7 @@ export default function SellProperty() {
 
           facing: canonicalState.facing || "",
 
-          gated_community: canonicalState.gated_community || "",
+          gated_community: canonicalState.gated_community ?? "",
 
           // ============================================
           // AREA
