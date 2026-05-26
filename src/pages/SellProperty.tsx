@@ -1267,7 +1267,11 @@ export default function SellProperty() {
 
           amenities: Array.isArray(canonicalState.amenities) ? canonicalState.amenities : [],
 
-          approvals: Array.isArray(canonicalState.approvals) ? canonicalState.approvals : [],
+          approvals: Array.isArray(canonicalState.approvals)
+            ? canonicalState.approvals
+            : canonicalState.approvals
+              ? [canonicalState.approvals]
+              : [],
 
           highlights: Array.isArray(canonicalState.highlights)
             ? canonicalState.highlights
