@@ -1279,7 +1279,11 @@ export default function SellProperty() {
               ? canonicalState.property_highlights
               : [],
 
-          payment_options: Array.isArray(canonicalState.payment_options) ? canonicalState.payment_options : [],
+          payment_options: Array.isArray(canonicalState.payment_options)
+            ? canonicalState.payment_options
+            : canonicalState.payment_options
+              ? [canonicalState.payment_options]
+              : [],
 
           // ============================================
           // LOCATION
