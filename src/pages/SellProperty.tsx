@@ -1195,7 +1195,7 @@ export default function SellProperty() {
 
           balconies: currentState.balconies || "",
 
-          furnishing: currentState.furnishing || "",
+          furnishing: canonicalState.furnishing || "",
 
           furnishing_items: Array.isArray(currentState.furnishing_items) ? currentState.furnishing_items : [],
 
