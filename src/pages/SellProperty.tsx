@@ -3734,13 +3734,13 @@ export default function SellProperty() {
                       onClick={onNext}
                       disabled={
                         loadingNext ||
-                        ((field?.id === "bhk" || field?.id === "bhk_type") &&
+                        ((canonId(field?.id) === "bhk") &&
                           !BHK_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
-                        ((field?.id === "flat_size" || field?.id === "built_up_area" || field?.id === "land_size") &&
+                        (canonId(field?.id) === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
+                        ((canonId(field?.id) === "flat_size" || canonId(field?.id) === "built_up_area" || canonId(field?.id) === "land_size") &&
                           !MEASUREMENT_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "bathroom_count" && !BATHROOM_PATTERN.test(String(value).trim())) ||
-                        (field?.id === "floor_number" && !FLOOR_PATTERN.test(String(value).trim()))
+                        (canonId(field?.id) === "bathrooms" && !BATHROOM_PATTERN.test(String(value).trim())) ||
+                        (canonId(field?.id) === "floor_number" && !FLOOR_PATTERN.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
