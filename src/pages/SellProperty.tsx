@@ -630,6 +630,14 @@ if (t.length > 0) {
         : t[0].title,
   }));
 }
+    } catch (e) {
+      console.error("regenerateTitles failed", e);
+    } finally {
+      setTitlesLoading(false);
+    }
+  };
+
+
 
   /* ----- Setup speech recognition ----- */
   useEffect(() => {
