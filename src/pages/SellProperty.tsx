@@ -1241,13 +1241,7 @@ export default function SellProperty() {
 
           plot_area: canonicalState.plot_area || "",
 
-          area:
-            canonicalState.flat_size ||
-            canonicalState.built_area ||
-            canonicalState.built_up_area ||
-            canonicalState.plot_area ||
-            canonicalState.land_size ||
-            "",
+          area: canonicalState.area || canonicalState.built_area || canonicalState.land_size || "",
 
           area_unit: canonicalState.area_unit || "sq ft",
 
