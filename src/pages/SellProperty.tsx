@@ -1898,7 +1898,7 @@ export default function SellProperty() {
       const finalTitle =
         (editForm.title && editForm.title.trim()) ||
         (selectedTitleIdx !== null ? aiTitles[selectedTitleIdx]?.title : "") ||
-        `${state.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || editForm.city || ""}`.trim();
+        `${editForm.bhk || ""} ${primaryType || "Property"} in ${editForm.locality || editForm.city || ""}`.trim();
 
       // Detect agent mode and trust level
       let agentRecord: any = null;
