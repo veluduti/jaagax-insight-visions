@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
-import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
+import PlotMeasuremenWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import {
   Sparkles,
@@ -1242,11 +1242,11 @@ export default function SellProperty() {
           plot_area: canonicalState.plot_area || "",
 
           area:
-            currentState.flat_size ||
-            currentState.built_area ||
-            currentState.built_up_area ||
-            currentState.plot_area ||
-            currentState.land_size ||
+            canonicalState.flat_size ||
+            canonicalState.built_area ||
+            canonicalState.built_up_area ||
+            canonicalState.plot_area ||
+            canonicalState.land_size ||
             "",
 
           area_unit: canonicalState.area_unit || "sq ft",
