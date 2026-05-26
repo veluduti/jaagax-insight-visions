@@ -1199,7 +1199,7 @@ export default function SellProperty() {
 
           furnishing_items: Array.isArray(currentState.furnishing_items) ? currentState.furnishing_items : [],
 
-          facing: currentState.facing || "",
+          facing: canonicalState.facing || "",
 
           gated_community: currentState.gated_community || "",
 
