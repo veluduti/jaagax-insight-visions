@@ -1746,7 +1746,7 @@ export default function SellProperty() {
         bathrooms: state.bathroom_count ? parseInt(String(state.bathroom_count).replace(/[^\d]/g, "")) || null : null,
         balconies: state.balconies ? Number(state.balconies) : null,
         floor_number: state.floor_number ? parseInt(String(state.floor_number).replace(/[^\d]/g, "")) || null : null,
-        total_floors: state.total_floors ? Number(state.total_floors) : null,
+        total_floors: state.total_floors ? parseInt(String(state.total_floors).replace(/[^\d]/g, "")) || null : null,
         city: reviewCity || null,
         locality: reviewLocality || null,
         address: reviewAddress || null,
