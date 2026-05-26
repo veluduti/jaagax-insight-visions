@@ -1281,11 +1281,9 @@ export default function SellProperty() {
           // LOCATION
           // ============================================
 
-          locality: currentState.locality || "",
-
-          city: currentState.city || "",
-
-          address: currentState.address || "",
+          locality: canonicalState.locality || "",
+          city: canonicalState.city || "",
+          address: canonicalState.address || "",
 
           // ============================================
           // AGENT
