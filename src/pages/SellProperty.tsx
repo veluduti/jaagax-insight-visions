@@ -1865,7 +1865,7 @@ export default function SellProperty() {
         title: finalTitle,
         description: editForm.description || state.description || buildPropertyDescription(state) || null,
         type: primaryType,
-        listing_type: (state.purpose || "sale").toLowerCase(),
+        listing_type: state.listing_type?.toLowerCase() === "rent" ? "rent" : "sale",
         listed_by: isAgentMode ? "agent" : (state.listed_by || "owner").toLowerCase(),
         price: totalPrice || parseFloat(String(state.total_price || "").replace(/[^\d.]/g, "")) || null,
         area_sqft: areaSqft,
