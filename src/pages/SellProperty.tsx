@@ -83,7 +83,12 @@ function toCanonical(src: Record<string, any> = {}): Record<string, any> {
   for (const [alias, canonical] of Object.entries(CANONICAL_ALIASES)) {
     const aliasVal = src[alias];
     const canonVal = out[canonical];
-    if ((canonVal === undefined || canonVal === "" || canonVal === null) && aliasVal !== undefined && aliasVal !== "" && aliasVal !== null) {
+    if (
+      (canonVal === undefined || canonVal === "" || canonVal === null) &&
+      aliasVal !== undefined &&
+      aliasVal !== "" &&
+      aliasVal !== null
+    ) {
       // For property_type, prefer first item if array
       if (canonical === "property_type" && Array.isArray(aliasVal)) {
         out[canonical] = aliasVal[0];
@@ -118,12 +123,12 @@ function canonId(id?: string | null): string {
  */
 export type EditFieldType = "text" | "number" | "select" | "textarea";
 export interface EditFieldDef {
-  id: string;                  // canonical id on editForm
+  id: string; // canonical id on editForm
   label: string;
   type: EditFieldType;
   placeholder?: string;
-  options?: string[];          // for type === "select"
-  colSpan?: 1 | 2;             // grid span within the section (default 1)
+  options?: string[]; // for type === "select"
+  colSpan?: 1 | 2; // grid span within the section (default 1)
   /** Hide this field for a given property category. Optional. */
   hideFor?: PropertyCategory[];
   /** Only show for these categories. Optional. */
@@ -224,8 +229,6 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     ],
   },
 ];
-
-
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
 function buildPropertyDescription(s: Record<string, any>): string {
@@ -704,7 +707,6 @@ export default function SellProperty() {
     setShowEditSheet(true);
   };
 
-
   const saveEditedDetails = async () => {
     const updated = {
       ...state,
@@ -1161,7 +1163,6 @@ export default function SellProperty() {
         setEditForm({
           ...canonicalState,
 
-
           // ============================================
           // BASIC INFO
           // ============================================
@@ -1477,9 +1478,16 @@ export default function SellProperty() {
     // NEW STATE
     // =========================================================
 
+    const canonicalFieldId = canonId(f.id);
+
     const newState = {
       ...state,
+
+      // original engine field
       [f.id]: normalized,
+
+      // canonical field
+      [canonicalFieldId]: normalized,
     };
 
     // =========================================================
@@ -2792,7 +2800,11 @@ export default function SellProperty() {
                   {
                     key: "gated_community",
                     label: "Gated Community",
-                    value: has(editForm.gated_community) ? (/^y/i.test(String(editForm.gated_community)) ? "Yes" : "No") : "",
+                    value: has(editForm.gated_community)
+                      ? /^y/i.test(String(editForm.gated_community))
+                        ? "Yes"
+                        : "No"
+                      : "",
                   },
                   {
                     key: "ownership",
@@ -2866,17 +2878,14 @@ export default function SellProperty() {
 
                 /* ------ Edit drawer: config-driven sections (Phase 2) ------ */
                 const activeCategory = state.category as PropertyCategory | undefined;
-                const visibleSections = EDIT_FIELD_CONFIG
-                  .map((section) => ({
-                    ...section,
-                    fields: section.fields.filter((f) => {
-                      if (f.onlyFor && activeCategory && !f.onlyFor.includes(activeCategory)) return false;
-                      if (f.hideFor && activeCategory && f.hideFor.includes(activeCategory)) return false;
-                      return true;
-                    }),
-                  }))
-                  .filter((s) => s.fields.length > 0);
-
+                const visibleSections = EDIT_FIELD_CONFIG.map((section) => ({
+                  ...section,
+                  fields: section.fields.filter((f) => {
+                    if (f.onlyFor && activeCategory && !f.onlyFor.includes(activeCategory)) return false;
+                    if (f.hideFor && activeCategory && f.hideFor.includes(activeCategory)) return false;
+                    return true;
+                  }),
+                })).filter((s) => s.fields.length > 0);
 
                 return (
                   <motion.div
@@ -3253,13 +3262,10 @@ export default function SellProperty() {
                                 {section.fields.map((f) => {
                                   const span = f.colSpan === 2 ? "col-span-2" : "";
                                   const val = (editForm as any)[f.id] ?? "";
-                                  const setVal = (v: any) =>
-                                    setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
                                   return (
                                     <div key={f.id} className={span}>
-                                      <label className="text-xs text-muted-foreground mb-1 block">
-                                        {f.label}
-                                      </label>
+                                      <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
                                       {f.type === "select" ? (
                                         <select
                                           value={String(val || "")}
@@ -3293,7 +3299,6 @@ export default function SellProperty() {
                               </div>
                             </div>
                           ))}
-
 
                           {/* Area & Pricing */}
                           {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
@@ -3385,9 +3390,7 @@ export default function SellProperty() {
                               />
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setEditForm((p) => ({ ...p, description: buildPropertyDescription(p) }))
-                                }
+                                onClick={() => setEditForm((p) => ({ ...p, description: buildPropertyDescription(p) }))}
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
                                 <Sparkles className="h-3 w-3" /> Regenerate with AI
@@ -3760,10 +3763,7 @@ export default function SellProperty() {
                                 // BLOCK INVALID BHK
                                 // ============================================
 
-                                if (
-                                  fid === "bhk" &&
-                                  !BHK_PATTERN.test(String(value).trim())
-                                ) {
+                                if (fid === "bhk" && !BHK_PATTERN.test(String(value).trim())) {
                                   return;
                                 }
 
@@ -3788,9 +3788,7 @@ export default function SellProperty() {
                                 }
 
                                 if (
-                                  (fid === "flat_size" ||
-                                    fid === "built_up_area" ||
-                                    fid === "land_size") &&
+                                  (fid === "flat_size" || fid === "built_up_area" || fid === "land_size") &&
                                   !MEASUREMENT_PATTERN.test(String(value).trim())
                                 ) {
                                   return;
@@ -3826,10 +3824,11 @@ export default function SellProperty() {
                       onClick={onNext}
                       disabled={
                         loadingNext ||
-                        ((canonId(field?.id) === "bhk") &&
-                          !BHK_PATTERN.test(String(value).trim())) ||
+                        (canonId(field?.id) === "bhk" && !BHK_PATTERN.test(String(value).trim())) ||
                         (canonId(field?.id) === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
-                        ((canonId(field?.id) === "flat_size" || canonId(field?.id) === "built_up_area" || canonId(field?.id) === "land_size") &&
+                        ((canonId(field?.id) === "flat_size" ||
+                          canonId(field?.id) === "built_up_area" ||
+                          canonId(field?.id) === "land_size") &&
                           !MEASUREMENT_PATTERN.test(String(value).trim())) ||
                         (canonId(field?.id) === "bathrooms" && !BATHROOM_PATTERN.test(String(value).trim())) ||
                         (canonId(field?.id) === "floor_number" && !FLOOR_PATTERN.test(String(value).trim()))
