@@ -2269,8 +2269,8 @@ export default function SellProperty() {
                   if (n >= 1e5) return `₹ ${(n / 1e5).toFixed(n % 1e5 === 0 ? 0 : 2)} Lakh`;
                   return `₹ ${fmtINR(n)}`;
                 };
-                const areaN = Number(reviewArea) || 0;
-                const ppuN = Number(reviewPricePerUnit) || 0;
+                const areaN = Number(editForm.area) || 0;
+                const ppuN = Number(editForm.price_per_unit) || 0;
                 const totalPrice =
                   areaN > 0 && ppuN > 0
                     ? Math.round(areaN * ppuN)
@@ -2301,7 +2301,7 @@ export default function SellProperty() {
                 /* Canonical detail map — render in this order, skip empty */
                 const has = (v: any) =>
                   v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
-                const unit = reviewUnit || state.area_unit || "sq ft";
+                const unit = editForm.area_unit || state.area_unit || "sq ft";
 
                 const detailRows: Array<{ key: string; label: string; value: string }> = [
                   { key: "sub_type", label: "Property Type", value: asStr(sub) },
@@ -2605,7 +2605,7 @@ export default function SellProperty() {
                                 type="button"
                                 onClick={() => {
                                   setSelectedTitleIdx(i);
-                                  seteditForm.title(t.title);
+                                  setEditForm((p) => ({ ...p, title: t.title }));
                                 }}
                                 className={cn(
                                   "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
@@ -2844,7 +2844,7 @@ export default function SellProperty() {
                             <Input
                               value={editForm.title}
                               onChange={(e) => {
-                                seteditForm.title(e.target.value);
+                                setEditForm((p) => ({ ...p, title: e.target.value }));
                                 setSelectedTitleIdx(null);
                               }}
                               placeholder="e.g. Spacious 3 BHK Independent House in Kondapur"
@@ -2899,23 +2899,23 @@ export default function SellProperty() {
                                   <label className="text-xs text-muted-foreground mb-1 block">Area</label>
                                   <Input
                                     type="number"
-                                    value={reviewArea}
-                                    onChange={(e) => setReviewArea(e.target.value)}
+                                    value={editForm.area ?? ""}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, area: e.target.value }))}
                                   />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
                                   <Input
                                     type="number"
-                                    value={reviewPricePerUnit}
-                                    onChange={(e) => setReviewPricePerUnit(e.target.value)}
+                                    value={editForm.price_per_unit ?? ""}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, price_per_unit: e.target.value }))}
                                   />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Unit</label>
                                   <select
-                                    value={reviewUnit}
-                                    onChange={(e) => setReviewUnit(e.target.value)}
+                                    value={editForm.area_unit ?? "sq ft"}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, area_unit: e.target.value }))}
                                     className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                                   >
                                     {["sq ft", "sq yard", "sq m", "gunta", "acre", "cent"].map((u) => (
@@ -2941,20 +2941,20 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
-                                  <Input value={editForm.city} onChange={(e) => seteditForm.city(e.target.value)} />
+                                  <Input value={editForm.city ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, city: e.target.value }))} />
                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Locality</label>
                                   <Input
-                                    value={editForm.locality}
-                                    onChange={(e) => seteditForm.locality(e.target.value)}
+                                    value={editForm.locality ?? ""}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, locality: e.target.value }))}
                                   />
                                 </div>
                                 <div className="col-span-2">
                                   <label className="text-xs text-muted-foreground mb-1 block">Address / landmark</label>
                                   <Input
-                                    value={editForm.address}
-                                    onChange={(e) => seteditForm.address(e.target.value)}
+                                    value={editForm.address ?? ""}
+                                    onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))}
                                   />
                                 </div>
                               </div>
@@ -2968,14 +2968,14 @@ export default function SellProperty() {
                                 Description
                               </h4>
                               <Textarea
-                                value={editForm.description}
-                                onChange={(e) => seteditForm.description(e.target.value)}
+                                value={editForm.description ?? ""}
+                                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
                                 rows={6}
                                 className="resize-none rounded-xl text-sm"
                               />
                               <button
                                 type="button"
-                                onClick={() => seteditForm.description(buildPropertyDescription(state))}
+                                onClick={() => setEditForm((p) => ({ ...p, description: buildPropertyDescription(state) }))}
                                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                               >
                                 <Sparkles className="h-3 w-3" /> Regenerate with AI
@@ -2984,29 +2984,31 @@ export default function SellProperty() {
                           )}
 
                           {/* Amenities / Highlights */}
-                          {(editForm.amenities || [].length > 0 || allHighlights.length > 0) && (
+                          {(((editForm.amenities || []).length > 0) || allHighlights.length > 0) && (
                             <div className="space-y-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Amenities & Highlights
                               </h4>
                               <div className="flex flex-wrap gap-1.5">
-                                {editForm.amenities ||
-                                  [].map((a, i) => (
-                                    <span
-                                      key={i}
-                                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                                {(editForm.amenities || []).map((a: string, i: number) => (
+                                  <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20"
+                                  >
+                                    {a}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditForm((p) => ({
+                                          ...p,
+                                          amenities: (p.amenities || []).filter((_: any, idx: number) => idx !== i),
+                                        }))
+                                      }
                                     >
-                                      {a}
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          seteditForm.amenities || []((arr) => arr.filter((_, idx) => idx !== i))
-                                        }
-                                      >
-                                        <X className="h-2.5 w-2.5" />
-                                      </button>
-                                    </span>
-                                  ))}
+                                      <X className="h-2.5 w-2.5" />
+                                    </button>
+                                  </span>
+                                ))}
                               </div>
                               <div className="flex gap-2">
                                 <Input
@@ -3016,7 +3018,7 @@ export default function SellProperty() {
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" && newAmenity.trim()) {
                                       e.preventDefault();
-                                      seteditForm.amenities || []((arr) => [...arr, newAmenity.trim()]);
+                                      setEditForm((p) => ({ ...p, amenities: [...(p.amenities || []), newAmenity.trim()] }));
                                       setNewAmenity("");
                                     }
                                   }}
@@ -3027,7 +3029,7 @@ export default function SellProperty() {
                                   size="sm"
                                   onClick={() => {
                                     if (newAmenity.trim()) {
-                                      seteditForm.amenities || []((arr) => [...arr, newAmenity.trim()]);
+                                      setEditForm((p) => ({ ...p, amenities: [...(p.amenities || []), newAmenity.trim()] }));
                                       setNewAmenity("");
                                     }
                                   }}
