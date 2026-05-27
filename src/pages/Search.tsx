@@ -785,7 +785,7 @@ const Search = () => {
       <Navigation />
       
       <div className="pt-24 pb-16">
-        <div className="container-padding max-w-7xl mx-auto">
+        <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Location selection screen — shown when the user has no saved location */}
           {!hasLocation && activeTab === "properties" && (
             <div className="mb-10">

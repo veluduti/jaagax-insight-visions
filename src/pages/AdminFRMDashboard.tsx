@@ -150,7 +150,7 @@ const AdminFRMDashboard = () => {
       <Navigation />
 
       <div className="pt-24 pb-16">
-        <div className="container-padding max-w-7xl mx-auto">
+        <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>

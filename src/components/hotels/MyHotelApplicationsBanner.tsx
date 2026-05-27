@@ -61,7 +61,7 @@ const MyHotelApplicationsBanner = () => {
   };
 
   return (
-    <section className="container mx-auto max-w-7xl px-4 mt-6">
+    <section className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 mt-6">
       <Card className="p-4 border-emerald-500/30 bg-emerald-500/5">
         <div className="flex items-center gap-2 mb-3">
           <ShieldCheck className="h-4 w-4 text-emerald-400" />
