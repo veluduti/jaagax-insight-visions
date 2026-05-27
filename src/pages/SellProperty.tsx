@@ -2743,15 +2743,21 @@ export default function SellProperty() {
             {field?.type === "plot_measurement_widget" && (
               <div className="pt-3">
                 <PlotMeasurementWidget
-                  field={field}
                   value={value}
                   onChange={setValue}
-                  optional={field?.optional}
+                  optional={field.optional}
                   onSkip={async () => {
-                    await commitAnswer("", "Skipped", field);
+                    await handleSkip(field);
                   }}
                   onComplete={async (plotData) => {
-                    await commitAnswer(plotData, "Plot measurements added", field);
+                    const formatted = Object.entries(plotData || {})
+                      .map(([key, v]: any) => {
+                        const side = key.replace("_measurement", "");
+                        return `${side}: ${v.value} ${v.unit}`;
+                      })
+                      .join(", ");
+
+                    await commitAnswer(plotData, formatted || "Plot measurements added", field);
                   }}
                 />
               </div>
