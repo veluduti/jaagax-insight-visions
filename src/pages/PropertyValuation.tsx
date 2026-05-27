@@ -216,7 +216,7 @@ const PropertyValuation = () => {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-5 gap-6 max-w-7xl 3xl:max-w-[1680px] mx-auto">
             {/* LEFT — FORM (40%) */}
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-2">
               <Card className="glass-panel p-6 sticky top-24">

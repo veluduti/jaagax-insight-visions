@@ -139,7 +139,7 @@ const Hotels = () => {
       <main className="flex-1 pt-20">
         {/* Hero Section */}
         <section className="relative py-16 px-4 overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background">
-          <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px]">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -218,7 +218,7 @@ const Hotels = () => {
 
         {/* Packages Section */}
         <section className="py-8 px-4">
-          <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px]">
             <h2 className="text-2xl font-bold mb-6">Visit + Stay Packages</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {packages.map((pkg) => (
@@ -281,7 +281,7 @@ const Hotels = () => {
 
         {/* Hotels Grid */}
         <section className="py-8 px-4">
-          <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px]">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">Partner Hotels</h2>
               <Button 

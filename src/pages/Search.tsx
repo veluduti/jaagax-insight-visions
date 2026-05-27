@@ -785,7 +785,7 @@ const Search = () => {
       <Navigation />
       
       <div className="pt-24 pb-16">
-        <div className="container-padding max-w-7xl mx-auto">
+        <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Location selection screen — shown when the user has no saved location */}
           {!hasLocation && activeTab === "properties" && (
             <div className="mb-10">
@@ -901,7 +901,7 @@ const Search = () => {
                       {renderTransactionTabs()}
 
                       {/* Location Input */}
-                      <div className="relative flex-1 min-w-[250px]">
+                      <div className="relative flex-1 min-w-full sm:min-w-[250px]">
                         <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-background border border-border/50 hover:border-primary/30 focus-within:border-primary/50 transition-colors">
                           <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                           <Input

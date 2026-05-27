@@ -77,7 +77,7 @@ export default function EventsNew() {
         <section className="relative py-20 px-4 overflow-hidden bg-gradient-to-br from-background via-primary/5 to-background">
           <div className="absolute inset-0 bg-grid-white/5" />
           
-          <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -111,7 +111,7 @@ export default function EventsNew() {
         {/* Featured Events */}
         {featuredEvents.length > 0 && (
           <section className="py-12 px-4">
-            <div className="container mx-auto max-w-7xl">
+            <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px]">
               <h2 className="text-3xl font-bold mb-8">Featured Events</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredEvents.map((event) => (
@@ -124,7 +124,7 @@ export default function EventsNew() {
 
         {/* Upcoming Events */}
         <section className="py-12 px-4">
-          <div className="container mx-auto max-w-7xl">
+          <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px]">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

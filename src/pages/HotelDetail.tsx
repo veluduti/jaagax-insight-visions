@@ -124,7 +124,7 @@ const HotelDetail = () => {
 
       <main className="flex-1 pt-20">
         {/* Breadcrumb */}
-        <div className="container mx-auto max-w-7xl px-4 py-4">
+        <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 py-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">Hotels</button>
             <span>/</span>
@@ -135,7 +135,7 @@ const HotelDetail = () => {
         </div>
 
         {/* Hero Image Gallery */}
-        <section className="container mx-auto max-w-7xl px-4">
+        <section className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4">
           <div className="relative rounded-2xl overflow-hidden group">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[420px]">
               {/* Main Image */}
@@ -201,7 +201,7 @@ const HotelDetail = () => {
         </section>
 
         {/* Main Content Grid */}
-        <section className="container mx-auto max-w-7xl px-4 py-8">
+        <section className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 py-8">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left Column - Details */}
             <div className="lg:col-span-2 space-y-8">

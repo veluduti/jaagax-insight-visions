@@ -247,7 +247,7 @@ const SmartVisitCluster = ({
           ))}
 
           {/* Add Custom Cluster */}
-          <Card className="w-[200px] border-dashed flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+          <Card className="w-[170px] sm:w-[200px] border-dashed flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
             <div className="text-center p-6">
               <div className="w-12 h-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
                 <Plus className="h-6 w-6 text-muted-foreground" />

@@ -427,7 +427,7 @@ export default function MediaHub({
 
       {/* Fullscreen Modal */}
       <Dialog open={showFullscreen} onOpenChange={setShowFullscreen}>
-        <DialogContent className="max-w-7xl h-[90vh] p-0">
+        <DialogContent className="max-w-7xl 3xl:max-w-[1680px] h-[90vh] p-0">
           <div className="relative w-full h-full bg-black">
             <Button
               variant="ghost"
@@ -494,7 +494,7 @@ export default function MediaHub({
 
       {/* Floor Plan Viewer with Zoom */}
       <Dialog open={floorPlanViewerOpen} onOpenChange={setFloorPlanViewerOpen}>
-        <DialogContent className="max-w-7xl h-[90vh] p-0">
+        <DialogContent className="max-w-7xl 3xl:max-w-[1680px] h-[90vh] p-0">
           <div className="relative w-full h-full bg-black">
             <Button
               variant="ghost"
