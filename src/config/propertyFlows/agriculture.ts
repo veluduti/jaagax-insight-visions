@@ -248,7 +248,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     land_variants: {
       section: "land_configuration",
 
-      priority: 6,
+      priority: 5,
 
       type: "multi_variant_group",
 
@@ -294,7 +294,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     additional_features: {
       section: "agriculture_details",
 
-      priority: 7,
+      priority: 6,
 
       type: "multi_select",
 
@@ -329,7 +329,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     electricity_available: {
       section: "agriculture_details",
 
-      priority: 8,
+      priority: 7,
 
       type: "single_select",
 
@@ -343,7 +343,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     soil_type: {
       section: "agriculture_details",
 
-      priority: 9,
+      priority: 8,
 
       type: "single_select",
 
@@ -357,7 +357,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     current_usage: {
       section: "agriculture_details",
 
-      priority: 10,
+      priority: 9,
 
       type: "multi_select",
 
@@ -381,7 +381,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     crops_grown: {
       section: "agriculture_details",
 
-      priority: 11,
+      priority: 10,
 
       type: "multi_select",
 
