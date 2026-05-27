@@ -80,7 +80,7 @@ const FeaturedBuilderProfiles = () => {
               href={`/builder-profile/${b.slug || b.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block min-w-[300px] max-w-[340px] snap-start"
+              className="block min-w-[260px] xs:min-w-[280px] sm:min-w-[300px] max-w-[340px] snap-start"
             >
               <Card
                 className={`relative cursor-pointer overflow-hidden rounded-2xl border-0 group transition-all duration-300 hover:scale-[1.03] hover:shadow-xl`}
