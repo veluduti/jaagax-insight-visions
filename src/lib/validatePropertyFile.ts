@@ -61,16 +61,7 @@ export const DEFAULT_VIDEO_RULES: FileValidationRules = {
  * Returns { valid: true } if all checks pass, or { valid: false, error: "…" } otherwise.
  */
 export function validateFile(file: File, rules: FileValidationRules = {}): FileValidationResult {
-  const {
-    maxSizeBytes,
-    maxSizeMB,
-    allowedTypes,
-    allowedExtensions,
-    minWidth,
-    maxWidth,
-    minHeight,
-    maxHeight,
-  } = rules;
+  const { maxSizeBytes, maxSizeMB, allowedTypes, allowedExtensions, minWidth, maxWidth, minHeight, maxHeight } = rules;
 
   // Size check
   const sizeLimit = maxSizeBytes ?? (maxSizeMB ? maxSizeMB * 1024 * 1024 : undefined);
@@ -86,7 +77,7 @@ export function validateFile(file: File, rules: FileValidationRules = {}): FileV
     if (!allowedTypes.includes(file.type)) {
       return {
         valid: false,
-        error: `Invalid file type. Allowed: ${allowedTypes.map(t => t.split("/")[1]?.toUpperCase() ?? t).join(", ")}`,
+        error: `Invalid file type. Allowed: ${allowedTypes.map((t) => t.split("/")[1]?.toUpperCase() ?? t).join(", ")}`,
       };
     }
   }
@@ -117,7 +108,7 @@ export function validateFile(file: File, rules: FileValidationRules = {}): FileV
  */
 export function validateImageDimensions(
   file: File,
-  rules: Pick<FileValidationRules, "minWidth" | "maxWidth" | "minHeight" | "maxHeight">
+  rules: Pick<FileValidationRules, "minWidth" | "maxWidth" | "minHeight" | "maxHeight">,
 ): Promise<FileValidationResult> {
   return new Promise((resolve) => {
     if (!file.type.startsWith("image/")) {
@@ -174,7 +165,7 @@ export interface MultiFileValidationResult {
 
 export function validateMultipleFiles(
   files: FileList | null | undefined,
-  rules: FileValidationRules = {}
+  rules: FileValidationRules = {},
 ): MultiFileValidationResult {
   if (!files || files.length === 0) {
     return { valid: false, error: "No files selected", files: [] };
@@ -204,10 +195,7 @@ export function validateMultipleFiles(
  * Convenience wrapper that shows toast on failure.
  * Returns the validated file or null.
  */
-export function validateFileWithToast(
-  file: File,
-  rules: FileValidationRules = {}
-): File | null {
+export function validateFileWithToast(file: File, rules: FileValidationRules = {}): File | null {
   const result = validateFile(file, rules);
   if (!result.valid) {
     toast.error(result.error || "Invalid file");
@@ -221,7 +209,7 @@ export function validateFileWithToast(
  */
 export function validateMultipleFilesWithToast(
   files: FileList | null | undefined,
-  rules: FileValidationRules = {}
+  rules: FileValidationRules = {},
 ): File[] | null {
   const result = validateMultipleFiles(files, rules);
   if (!result.valid) {
@@ -235,6 +223,103 @@ function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${bytes} B`;
+}
+
+// ============================================
+// PROPERTY RELEVANCE VALIDATION
+// ============================================
+
+export interface PropertyRelevanceResult {
+  valid: boolean;
+  confidence: number;
+  reason?: string;
+  documentType?: string;
+}
+
+const PROPERTY_KEYWORDS = [
+  "apartment",
+  "villa",
+  "flat",
+  "plot",
+  "office",
+  "commercial",
+  "layout",
+  "brochure",
+  "property",
+  "real estate",
+  "bhk",
+  "sq ft",
+  "sqyd",
+  "floor plan",
+  "tower",
+  "amenities",
+  "elevation",
+  "project",
+  "kitchen",
+  "bedroom",
+  "hall",
+  "balcony",
+  "bathroom",
+  "parking",
+  "site plan",
+  "master plan",
+];
+
+export async function validatePropertyRelevance(extractedText: string): Promise<PropertyRelevanceResult> {
+  try {
+    const text = extractedText.toLowerCase();
+
+    let matches = 0;
+
+    for (const keyword of PROPERTY_KEYWORDS) {
+      if (text.includes(keyword)) {
+        matches++;
+      }
+    }
+
+    const confidence = matches / PROPERTY_KEYWORDS.length;
+
+    // LOW CONFIDENCE
+    if (confidence < 0.08) {
+      return {
+        valid: false,
+        confidence,
+        reason: "This file does not appear related to a property listing.",
+        documentType: "unknown",
+      };
+    }
+
+    return {
+      valid: true,
+      confidence,
+      documentType: "property_document",
+    };
+  } catch (e) {
+    return {
+      valid: false,
+      confidence: 0,
+      reason: "Could not validate property relevance",
+      documentType: "unknown",
+    };
+  }
+}
+
+export async function validatePropertyImageName(fileName: string): Promise<boolean> {
+  const name = fileName.toLowerCase();
+
+  const suspiciousWords = [
+    "selfie",
+    "profile",
+    "food",
+    "meme",
+    "invoice",
+    "aadhaar",
+    "resume",
+    "certificate",
+    "marksheet",
+  ];
+
+  return !suspiciousWords.some((word) => name.includes(word));
 }
 
 export default {
