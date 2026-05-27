@@ -80,7 +80,6 @@ const CANONICAL_ALIASES: Record<string, string> = {
   built_up_area: "built_area",
   floor: "floor_number",
   floors: "total_floors",
-  flat_size: "built_area",
 
   assigned_agent: "assign_agent",
 };
