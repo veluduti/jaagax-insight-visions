@@ -1527,16 +1527,8 @@ export default function SellProperty() {
     // WIDGET PROTECTION
     // =========================================================
 
-    if (
-      f.type === "plot_measurement_widget" ||
-      f.input === "plot_measurement_widget" ||
-      f.type === "workspace_configuration_widget" ||
-      f.input === "workspace_configuration_widget"
-    ) {
-      userMessage =
-        f.type === "workspace_configuration_widget" || f.input === "workspace_configuration_widget"
-          ? "Workspace configuration added"
-          : "Plot measurements added";
+    if ((f.type === "workspace_configuration_widget" || f.input === "workspace_configuration_widget") && !displayText) {
+      userMessage = "Workspace configuration added";
     }
 
     setMessages((m) => [
@@ -2746,7 +2738,9 @@ export default function SellProperty() {
                   value={value}
                   onChange={setValue}
                   optional={field.optional}
-                  onSkip={onSkip}
+                  onSkip={async () => {
+                    await handleSkip(field);
+                  }}
                   onComplete={async (plotData) => {
                     const formatted = Object.entries(plotData || {})
                       .map(([key, v]: any) => {
