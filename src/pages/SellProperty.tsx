@@ -2082,6 +2082,32 @@ export default function SellProperty() {
         console.warn("Doc text extraction failed", err);
       }
 
+      // ============================================
+      // VALIDATE PROPERTY DOCUMENT RELEVANCE
+      // ============================================
+
+      if (extracted && extracted.length > 20) {
+        const relevance = await validatePropertyRelevance(extracted);
+
+        if (!relevance.valid) {
+          setMessages((m) => m.filter((x) => x.id !== bubbleId));
+
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "ai",
+              kind: "text",
+              text:
+                relevance.reason ||
+                "This document doesn't appear related to a property listing. Please upload property brochures, layouts, floor plans, or real-estate documents.",
+            },
+          ]);
+
+          return;
+        }
+      }
+
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
         await runAiExtraction({ text: combined, appendUserText: false, sharedTypingId: bubbleId });
