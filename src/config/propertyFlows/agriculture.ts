@@ -646,7 +646,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     agriculture_highlights: {
       section: "finalization",
 
-      priority: 22,
+      priority: 21,
 
       type: "multi_select",
 
@@ -702,7 +702,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     assign_nearest_agent: {
       section: "finalization",
 
-      priority: 23,
+      priority: 22,
 
       type: "single_select",
 
