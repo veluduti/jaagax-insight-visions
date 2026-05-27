@@ -628,7 +628,7 @@ function validate(field: FieldDef, value: any): string | null {
     }
   }
 
-  if (field.id === "total_floors") {
+  if (fid === "total_floors") {
     if (!FLOOR_PATTERN.test(String(value).trim())) {
       return "Please enter format like 20 Floors";
     }
