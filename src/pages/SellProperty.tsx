@@ -2128,6 +2128,10 @@ if (
   ]);
 }
 
+} // ← ADD THIS
+
+if (extracted && extracted.length >= 20) {
+
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
         await runAiExtraction({ text: combined, appendUserText: false, sharedTypingId: bubbleId });
