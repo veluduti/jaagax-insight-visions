@@ -759,7 +759,7 @@ export default function SellProperty() {
       return;
     }
 
-    if (field.id === "total_floors" && typeof value === "string") {
+    if (fid === "total_floors" && typeof value === "string") {
       setSuggestions(getFloorSuggestions(value, "total"));
 
       return;
