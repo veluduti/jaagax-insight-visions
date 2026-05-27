@@ -372,25 +372,6 @@ export const residentialFlow = {
       units: ["Sq Ft"],
     },
 
-    add_multiple_sizes: {
-      section: "property_configuration",
-
-      priority: 11,
-
-      type: "single_select",
-
-      required: false,
-
-      visibleIf: {
-        field: "listed_by",
-        equals: "Builder",
-      },
-
-      question: "Do you want to add multiple flat sizes for this project?",
-
-      options: ["Yes", "No"],
-    },
-
     flat_variants: {
       section: "property_configuration",
 
