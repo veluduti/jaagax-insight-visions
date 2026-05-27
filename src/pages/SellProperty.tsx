@@ -2089,48 +2089,40 @@ export default function SellProperty() {
       if (extracted && extracted.length > 20) {
         const relevance = await validatePropertyRelevance(extracted);
 
-       if (!relevance.valid) {
-  setMessages((m) =>
-    m.filter((x) => x.id !== bubbleId),
-  );
+        if (!relevance.valid) {
+          setMessages((m) => m.filter((x) => x.id !== bubbleId));
 
-  setMessages((m) => [
-    ...m,
-    {
-      id: uid(),
-      role: "ai",
-      kind: "text",
-      text:
-        relevance.reason ||
-        "This document doesn't appear related to a property listing. Please upload property brochures, layouts, floor plans, or real-estate documents.",
-    },
-  ]);
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "ai",
+              kind: "text",
+              text:
+                relevance.reason ||
+                "This document doesn't appear related to a property listing. Please upload property brochures, layouts, floor plans, or real-estate documents.",
+            },
+          ]);
 
-  return;
-}
+          return;
+        }
 
-// ============================================
-// LOW CONFIDENCE WARNING
-// ============================================
+        // ============================================
+        // LOW CONFIDENCE WARNING
+        // ============================================
 
-if (
-  relevance.confidence < 0.15
-) {
-  setMessages((m) => [
-    ...m,
-    {
-      id: uid(),
-      role: "ai",
-      kind: "text",
-      text:
-        "I found limited property-related information in this document. I'll still try to extract details, but some data may be incomplete.",
-    },
-  ]);
-}
-
-} // ← ADD THIS
-
-if (extracted && extracted.length >= 20) {
+        if (relevance.confidence < 0.15) {
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "ai",
+              kind: "text",
+              text: "I found limited property-related information in this document. I'll still try to extract details, but some data may be incomplete.",
+            },
+          ]);
+        }
+      } // ← ADD THIS
 
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
