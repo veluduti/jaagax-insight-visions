@@ -618,8 +618,10 @@ function validate(field: FieldDef, value: any): string | null {
   }
 
   if (fid === "bathrooms") {
-    if (!BATHROOM_PATTERN.test(String(value).trim())) {
-      return "Please enter format like 2 Bathrooms";
+    const txt = String(value).trim();
+
+    if (!/^\d+$/.test(txt) && !BATHROOM_PATTERN.test(txt)) {
+      return "Please enter valid bathrooms count";
     }
   }
   if (fid === "floor_number") {
