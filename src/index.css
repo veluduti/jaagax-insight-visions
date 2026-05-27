@@ -319,6 +319,22 @@ All colors MUST be HSL.
     }
   }
 
+  /* Fluid, capped container that adapts mobile → ultra-wide */
+  .responsive-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1rem, 4vw, 2rem);
+    padding-right: clamp(1rem, 4vw, 2rem);
+    max-width: 1440px;
+  }
+
+  @media (min-width: 1920px) {
+    .responsive-container {
+      max-width: 1680px;
+    }
+  }
+
   .section-spacing {
     padding-top: var(--section-spacing-mobile);
     padding-bottom: var(--section-spacing-mobile);
@@ -330,6 +346,18 @@ All colors MUST be HSL.
       padding-bottom: var(--section-spacing);
     }
   }
+
+  /* Safe-area helpers for sticky mobile bars / FABs */
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+  .safe-top {
+    padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+  }
+
+  /* Hide horizontal scrollbars on touch-scroll rows */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   /* ===== CUSTOM SCROLLBAR ===== */
   .scrollbar-thin {
