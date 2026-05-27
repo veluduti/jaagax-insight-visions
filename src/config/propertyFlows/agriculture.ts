@@ -245,20 +245,6 @@ export const agriculturalFlow: PropertyFlowConfig = {
       },
     },
 
-    add_multiple_land_sizes: {
-      section: "land_configuration",
-
-      priority: 5,
-
-      type: "single_select",
-
-      required: false,
-
-      question: "Do you have more agricultural land size options available?",
-
-      options: ["Yes", "No"],
-    },
-
     land_variants: {
       section: "land_configuration",
 
