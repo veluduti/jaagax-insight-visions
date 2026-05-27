@@ -21,12 +21,29 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const authClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await authClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+
     const { property_id } = await req.json();
     if (!property_id) {
       return json({ error: "property_id required" }, 400);
     }
 
     const sb = createClient(SUPABASE_URL, SERVICE_KEY);
+
+    // Authorization: only the property owner or an admin can trigger assignment
+    const { data: isAdminData } = await sb.rpc("is_admin", { _user_id: userData.user.id });
+    const { data: ownerCheck } = await sb.from("properties").select("submitted_by").eq("id", property_id).single();
+    if (!isAdminData && ownerCheck?.submitted_by !== userData.user.id) {
+      return json({ error: "Forbidden" }, 403);
+    }
 
     // 1. Load the property
     const { data: prop, error: pErr } = await sb

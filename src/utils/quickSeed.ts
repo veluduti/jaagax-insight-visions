@@ -146,7 +146,7 @@ export async function quickSeedData() {
   return { success: true, count: data?.length };
 }
 
-// Expose to window for console access
-if (typeof window !== 'undefined') {
+// Expose to window only in dev for console access
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).quickSeedData = quickSeedData;
 }

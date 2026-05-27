@@ -36,6 +36,18 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Authorization: only admins/agents (or system service role) can send arbitrary WhatsApp messages
+    const { data: isAdminData } = await supabase.rpc('is_admin', { _user_id: user.id });
+    const { data: roleRows } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+    const roles = (roleRows || []).map((r: any) => r.role);
+    const allowed = isAdminData === true || roles.includes('agent') || roles.includes('admin');
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Forbidden: insufficient role' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { to, message, bookingId } = await req.json();
 
     if (!to || !message) {
