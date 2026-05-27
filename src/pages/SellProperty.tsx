@@ -271,7 +271,7 @@ function buildPropertyDescription(s: Record<string, any>): string {
       .toLowerCase();
   const typeLabel = [s.bhk && `${s.bhk} BHK`, s.sub_type || s.property_type || s.type].filter(Boolean).join(" ").trim();
   const purpose = lower(s.listing_type || s.purpose) === "rent" ? "rent" : "sale";
-  const locality = s.locality || s.sub_locality;
+  const locality = s.locality || s.area || s.sub_locality;
   const city = s.city || s.location?.city;
   const where = [locality, city].filter(Boolean).join(", ") || "a sought-after neighbourhood";
   const area = s.area || s.built_area || s.land_size || s.carpet_area || s.shop_area;
