@@ -2738,9 +2738,7 @@ export default function SellProperty() {
                   value={value}
                   onChange={setValue}
                   optional={field.optional}
-                  onSkip={async () => {
-                    await handleSkip(field);
-                  }}
+                  onSkip={onSkip}
                   onComplete={async (plotData) => {
                     const formatted = Object.entries(plotData || {})
                       .map(([key, v]: any) => {
