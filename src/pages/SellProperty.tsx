@@ -1748,7 +1748,14 @@ export default function SellProperty() {
       ...state,
     };
 
+    const canonicalFieldId = canonId(prev.field.id);
+
     delete cleared[prev.field.id];
+    delete cleared[canonicalFieldId];
+
+    if (prev.field.type === "plot_measurement_widget") {
+      delete cleared["plot_measurements"];
+    }
 
     setState(cleared);
 
