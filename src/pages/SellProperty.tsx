@@ -1299,15 +1299,26 @@ export default function SellProperty() {
           // AREA
           // ============================================
 
-          land_size: canonicalState.land_size || "",
+          floor_number: canonicalState.floor_number || canonicalState.floor || "",
 
-          built_area: canonicalState.built_area || "",
+          total_floors: canonicalState.total_floors || canonicalState.floors || "",
 
-          built_up_area: canonicalState.built_up_area || "",
+          land_size: canonicalState.land_size || canonicalState.plot_area || "",
 
-          plot_area: canonicalState.plot_area || "",
+          built_area: canonicalState.built_area || canonicalState.built_up_area || canonicalState.flat_size || "",
 
-          area: canonicalState.area || canonicalState.built_area || canonicalState.land_size || "",
+          built_up_area: canonicalState.built_up_area || canonicalState.built_area || "",
+
+          plot_area: canonicalState.plot_area || canonicalState.land_size || "",
+
+          area:
+            canonicalState.area ||
+            canonicalState.built_area ||
+            canonicalState.built_up_area ||
+            canonicalState.flat_size ||
+            canonicalState.land_size ||
+            canonicalState.plot_area ||
+            "",
 
           area_unit: canonicalState.area_unit || "sq ft",
 
