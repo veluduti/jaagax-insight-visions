@@ -410,7 +410,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     farm_infrastructure: {
       section: "agriculture_details",
 
-      priority: 12,
+      priority: 11,
 
       type: "multi_select",
 
@@ -437,7 +437,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     connectivity: {
       section: "agriculture_details",
 
-      priority: 13,
+      priority: 12,
 
       type: "multi_select",
 
@@ -460,7 +460,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     approvals: {
       section: "legal",
 
-      priority: 15,
+      priority: 14,
 
       type: "multi_select",
 
@@ -483,7 +483,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     total_price: {
       section: "pricing",
 
-      priority: 16,
+      priority: 15,
 
       type: "price",
 
@@ -506,7 +506,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 17,
+      priority: 16,
 
       type: "price_per_unit",
 
@@ -535,7 +535,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     rent_amount: {
       section: "pricing",
 
-      priority: 18,
+      priority: 17,
 
       type: "rental_price",
 
@@ -552,7 +552,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     partnership_details: {
       section: "pricing",
 
-      priority: 19,
+      priority: 18,
 
       type: "textarea",
 
@@ -580,7 +580,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     payment_options: {
       section: "legal",
 
-      priority: 20,
+      priority: 19,
 
       type: "multi_select",
 
@@ -602,7 +602,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     location: {
       section: "location",
 
-      priority: 14,
+      priority: 13,
 
       type: "smart_location",
 
@@ -634,7 +634,7 @@ export const agriculturalFlow: PropertyFlowConfig = {
     media_uploads: {
       section: "finalization",
 
-      priority: 21,
+      priority: 20,
 
       type: "media_upload",
 
