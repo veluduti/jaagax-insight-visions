@@ -187,7 +187,7 @@ const AgentVerificationDashboard = () => {
           </div>
 
           {/* Stats strip */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
             <Card className="border-border/60">
               <CardContent className="p-4 text-center">
                 <Clock className="w-5 h-5 text-primary mx-auto mb-1" />
