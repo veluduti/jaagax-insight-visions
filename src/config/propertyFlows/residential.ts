@@ -375,7 +375,7 @@ export const residentialFlow = {
     flat_variants: {
       section: "property_configuration",
 
-      priority: 12,
+      priority: 11,
 
       type: "multi_variant_group",
 
@@ -417,7 +417,7 @@ export const residentialFlow = {
     land_size: {
       section: "property_configuration",
 
-      priority: 13,
+      priority: 12,
 
       type: "measurement",
 
@@ -436,7 +436,7 @@ export const residentialFlow = {
     built_area: {
       section: "property_configuration",
 
-      priority: 14,
+      priority: 13,
 
       type: "measurement",
 
@@ -455,7 +455,7 @@ export const residentialFlow = {
     plot_side_measurements: {
       section: "property_configuration",
 
-      priority: 15,
+      priority: 14,
 
       type: "plot_measurement_widget",
 
@@ -476,7 +476,7 @@ export const residentialFlow = {
     price_per_unit: {
       section: "pricing",
 
-      priority: 16,
+      priority: 15,
 
       type: "text",
 
@@ -503,7 +503,7 @@ export const residentialFlow = {
     total_price: {
       section: "pricing",
 
-      priority: 17,
+      priority: 16,
 
       type: "price",
 
@@ -526,7 +526,7 @@ export const residentialFlow = {
     monthly_rent: {
       section: "pricing",
 
-      priority: 18,
+      priority: 17,
 
       type: "rental_price",
 
@@ -543,7 +543,7 @@ export const residentialFlow = {
     bathroom_count: {
       section: "property_configuration",
 
-      priority: 19,
+      priority: 18,
 
       type: "text",
 
@@ -560,7 +560,7 @@ export const residentialFlow = {
     floor_number: {
       section: "property_configuration",
 
-      priority: 20,
+      priority: 19,
 
       type: "text",
 
@@ -577,7 +577,7 @@ export const residentialFlow = {
     total_floors: {
       section: "property_configuration",
 
-      priority: 21,
+      priority: 20,
 
       type: "text",
 
