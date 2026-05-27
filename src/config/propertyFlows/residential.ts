@@ -594,7 +594,7 @@ export const residentialFlow = {
     gated_community: {
       section: "project_information",
 
-      priority: 22,
+      priority: 21,
 
       type: "single_select",
 
@@ -610,7 +610,7 @@ export const residentialFlow = {
     project_name: {
       section: "project_information",
 
-      priority: 23,
+      priority: 22,
 
       type: "text",
 
@@ -627,7 +627,7 @@ export const residentialFlow = {
     total_towers: {
       section: "project_information",
 
-      priority: 24,
+      priority: 23,
 
       type: "text",
 
@@ -652,7 +652,7 @@ export const residentialFlow = {
     floors_per_tower: {
       section: "project_information",
 
-      priority: 25,
+      priority: 24,
 
       type: "text",
 
@@ -681,7 +681,7 @@ export const residentialFlow = {
     total_units: {
       section: "project_information",
 
-      priority: 26,
+      priority: 25,
 
       type: "text",
 
@@ -710,7 +710,7 @@ export const residentialFlow = {
     total_land_area: {
       section: "project_information",
 
-      priority: 27,
+      priority: 26,
 
       type: "measurement",
 
@@ -729,7 +729,7 @@ export const residentialFlow = {
     furnishing_status: {
       section: "features",
 
-      priority: 28,
+      priority: 27,
 
       type: "single_select",
 
@@ -743,7 +743,7 @@ export const residentialFlow = {
     furnishing_items: {
       section: "features",
 
-      priority: 29,
+      priority: 28,
 
       type: "multi_select",
 
@@ -762,7 +762,7 @@ export const residentialFlow = {
     property_facing: {
       section: "features",
 
-      priority: 30,
+      priority: 29,
 
       type: "single_select",
 
@@ -778,7 +778,7 @@ export const residentialFlow = {
     amenities: {
       section: "features",
 
-      priority: 31,
+      priority: 30,
 
       type: "multi_select",
 
@@ -803,7 +803,7 @@ export const residentialFlow = {
     payment_options: {
       section: "legal",
 
-      priority: 32,
+      priority: 31,
 
       type: "multi_select",
 
@@ -834,7 +834,7 @@ export const residentialFlow = {
     approvals: {
       section: "legal",
 
-      priority: 33,
+      priority: 32,
 
       type: "multi_select",
 
@@ -857,7 +857,7 @@ export const residentialFlow = {
     location: {
       section: "location",
 
-      priority: 34,
+      priority: 33,
 
       type: "smart_location",
 
@@ -875,7 +875,7 @@ export const residentialFlow = {
     property_highlights: {
       section: "features",
 
-      priority: 35,
+      priority: 34,
 
       type: "multi_select",
 
@@ -936,7 +936,7 @@ export const residentialFlow = {
     assign_nearest_agent: {
       section: "basic_information",
 
-      priority: 36,
+      priority: 35,
 
       type: "single_select",
 
