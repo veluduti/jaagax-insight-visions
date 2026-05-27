@@ -29,7 +29,7 @@ const Hero = ({
     value: "AI",
     label: "Powered Insights"
   }];
-  return <div className="relative min-h-[85vh] flex items-center overflow-hidden">
+  return <div className="relative min-h-[560px] sm:min-h-[640px] lg:min-h-[80vh] flex items-center overflow-hidden py-10 sm:py-14 lg:py-0">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-cover bg-center" style={{
@@ -41,7 +41,7 @@ const Hero = ({
 
       {/* Content */}
       <div className="relative z-10 w-full container-padding">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-20">
             {/* Left Content */}
             <motion.div initial={{

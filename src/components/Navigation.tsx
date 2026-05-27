@@ -130,7 +130,7 @@ const Navigation = () => {
         className="hidden xl:block fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
       >
         <div className="container-padding py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-0">
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center justify-between gap-4 min-w-0">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="JAAGA X - Home">
               <img
