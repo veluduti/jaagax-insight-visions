@@ -2004,6 +2004,27 @@ export default function SellProperty() {
 
     try {
       if (isImage) {
+        // ============================================
+        // VALIDATE PROPERTY IMAGE
+        // ============================================
+
+        const validImage = await validatePropertyImageName(file.name);
+
+        if (!validImage) {
+          setMessages((m) => m.filter((x) => x.id !== bubbleId));
+
+          setMessages((m) => [
+            ...m,
+            {
+              id: uid(),
+              role: "ai",
+              kind: "text",
+              text: "This image doesn't appear related to a property listing. Please upload property photos, brochures, layouts, or floor plans.",
+            },
+          ]);
+
+          return;
+        }
         // Show user's image bubble immediately so chat is not "blocked"
         const previewUrl = URL.createObjectURL(file);
         setMessages((m) => {
