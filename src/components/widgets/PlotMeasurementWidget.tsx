@@ -160,18 +160,21 @@ export const PlotMeasurementWidget = ({
 
         <button
           type="button"
+          disabled={!hasAnyMeasurement && !optional}
           onClick={() => {
             onChange?.(internal);
 
             onComplete?.(internal);
           }}
           className="
-      px-5
-      py-2
-      rounded-xl
-      bg-primary
-      text-primary-foreground
-    "
+    px-5
+    py-2
+    rounded-xl
+    bg-primary
+    text-primary-foreground
+    disabled:opacity-50
+    disabled:cursor-not-allowed
+  "
         >
           Continue
         </button>
