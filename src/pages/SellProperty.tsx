@@ -1558,14 +1558,14 @@ export default function SellProperty() {
 
     const canonicalFieldId = canonId(f.id);
 
+    const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
+
     const newState = {
       ...state,
 
-      // original engine field
       [f.id]: normalized,
 
-      // canonical field
-      [canonicalFieldId]: normalized,
+      [finalFieldId]: normalized,
     };
 
     // =========================================================
