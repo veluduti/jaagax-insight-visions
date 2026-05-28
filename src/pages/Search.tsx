@@ -309,55 +309,62 @@ const Search = () => {
     const from = (pageNum - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    // Prefer geo radius search when we have GPS coords from saved location.
-    const useGeo =
-      !!savedLocation?.latitude &&
-      !!savedLocation?.longitude &&
-      (!location || location.toLowerCase() === savedLocation.city.toLowerCase());
-
-    if (useGeo) {
-      const { data, error } = await (supabase as any).rpc("search_properties_nearby", {
-        _lat: savedLocation!.latitude,
-        _lng: savedLocation!.longitude,
-        _radius_km: 10,
-        _page: pageNum,
-        _limit: PAGE_SIZE,
-      });
-      if (!error && Array.isArray(data)) {
-        const cityForFilter = canonicalizeCity(location || savedLocation?.city);
-        const filtered = (data as any[]).map(toPublicRow)
-          .filter((p) => !cityForFilter || isSameCity(p.city, cityForFilter))
-          .filter((p) => {
-            const tier = classifyProperty(p);
-            return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-          });
-        setProperties((prev) => append ? [...prev, ...filtered] : filtered);
-        setTotal((prev) => append ? prev + filtered.length : filtered.length);
-        setHasMore(data.length >= PAGE_SIZE);
-        return;
-      }
-      // Fall through to text-based search on RPC error.
-    }
-
+    // City-based discovery with nearby prioritization.
+    // Strategy: fetch ALL properties matching the user's city (no hard radius),
+    // then sort client-side by distance to user coords so nearby localities rank first.
     let qb = supabase.from("properties").select("*", { count: "exact" }).neq("is_draft", true).eq("verified", true);
     qb = applyPropertyFilters(qb);
     const { data, error, count } = await qb
       .order("is_featured", { ascending: false })
       .order("trust_score", { ascending: false })
       .range(from, to);
-    if (!error) {
-      const all = ((data as any[]) || []).map(toPublicRow);
-      const normalizedLocation = canonicalizeCity(location);
-      const filtered = all
-        .filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation))
-        .filter((p) => {
-          const tier = classifyProperty(p);
-          return tierFilter === "featured" ? tier === "featured" : tier === "basic";
-        });
-      setProperties((prev) => append ? [...prev, ...filtered] : filtered);
-      setTotal(count || filtered.length);
-      setHasMore((data?.length || 0) >= PAGE_SIZE);
+    if (error) return;
+
+    const all = ((data as any[]) || []).map(toPublicRow);
+    const normalizedLocation = canonicalizeCity(location);
+    let filtered = all
+      .filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation))
+      .filter((p) => {
+        const tier = classifyProperty(p);
+        return tierFilter === "featured" ? tier === "featured" : tier === "basic";
+      });
+
+    // Nearby-first sort when we have user GPS coords.
+    const uLat = savedLocation?.latitude;
+    const uLng = savedLocation?.longitude;
+    if (typeof uLat === "number" && typeof uLng === "number") {
+      const toRad = (d: number) => (d * Math.PI) / 180;
+      const haversine = (lat: number, lng: number) => {
+        const R = 6371;
+        const dLat = toRad(lat - uLat);
+        const dLng = toRad(lng - uLng);
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+      };
+      const userLocality = (savedLocation?.area || "").toLowerCase().trim();
+      filtered = [...filtered].sort((a, b) => {
+        // Same locality first
+        const aLoc = (a.locality || "").toLowerCase().trim();
+        const bLoc = (b.locality || "").toLowerCase().trim();
+        if (userLocality) {
+          const aMatch = aLoc === userLocality ? 0 : 1;
+          const bMatch = bLoc === userLocality ? 0 : 1;
+          if (aMatch !== bMatch) return aMatch - bMatch;
+        }
+        const aHas = typeof a.latitude === "number" && typeof a.longitude === "number";
+        const bHas = typeof b.latitude === "number" && typeof b.longitude === "number";
+        if (aHas && bHas) return haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude);
+        if (aHas) return -1;
+        if (bHas) return 1;
+        return 0;
+      });
     }
+
+    setProperties((prev) => (append ? [...prev, ...filtered] : filtered));
+    setTotal(count || filtered.length);
+    setHasMore((data?.length || 0) >= PAGE_SIZE);
   };
 
   const fetchProjects = async (pageNum: number = 1, append: boolean = false) => {
