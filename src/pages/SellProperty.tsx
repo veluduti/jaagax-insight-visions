@@ -1564,6 +1564,30 @@ export default function SellProperty() {
 
     const canonicalFieldId = canonId(f.id);
 
+    // ============================================
+    // VALIDATE USER TEXT INPUT
+    // ============================================
+
+    if (typeof normalized === "string" && normalized.trim().length > 2) {
+      const validation = validatePropertyText(normalized);
+
+      if (!validation.valid) {
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: "Please provide property-related information so I can continue the listing process.",
+          },
+        ]);
+
+        return;
+      }
+    }
+
+    const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
+
     const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
 
     const newState = {
