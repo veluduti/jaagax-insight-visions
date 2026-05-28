@@ -304,6 +304,59 @@ export async function validatePropertyRelevance(extractedText: string): Promise<
   }
 }
 
+```ts
+// ============================================
+// VALIDATE PROPERTY IMAGE CONTENT
+// ============================================
+
+export async function validatePropertyImage(
+  imageBase64: string,
+) {
+  try {
+    const keywords = [
+      "building",
+      "apartment",
+      "villa",
+      "house",
+      "flat",
+      "property",
+      "real estate",
+      "interior",
+      "kitchen",
+      "bedroom",
+      "living room",
+      "plot",
+      "layout",
+      "floor plan",
+      "commercial",
+      "office",
+      "shop",
+      "tower",
+      "construction",
+    ];
+
+    const lower = imageBase64.toLowerCase();
+
+    const matched = keywords.filter((k) =>
+      lower.includes(k),
+    );
+
+    const confidence =
+      matched.length / keywords.length;
+
+    return {
+      valid: matched.length >= 1,
+      confidence,
+    };
+  } catch (e) {
+    return {
+      valid: false,
+      confidence: 0,
+    };
+  }
+}
+```;
+
 // ============================================
 // VALIDATE USER MESSAGE RELEVANCE
 // ============================================
