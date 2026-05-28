@@ -304,7 +304,6 @@ export async function validatePropertyRelevance(extractedText: string): Promise<
   }
 }
 
-```ts
 // ============================================
 // VALIDATE PROPERTY IMAGE CONTENT
 // ============================================
