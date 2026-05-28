@@ -628,8 +628,9 @@ function validate(field: FieldDef, value: any): string | null {
     }
   }
   if (fid === "floor_number") {
-    if (!FLOOR_PATTERN.test(String(value).trim())) {
-      return "Please enter format like 5th Floor";
+    const txt = String(value).trim();
+    if (!/^\d+$/.test(txt) && !FLOOR_PATTERN.test(txt)) {
+      return "Please enter valid floor";
     }
   }
 
