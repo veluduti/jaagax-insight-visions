@@ -2035,7 +2035,7 @@ export default function SellProperty() {
         // Run extraction reusing the SAME typing bubble (no flicker, no duplicate loaders)
         await runAiExtraction({
           text: intakeText,
-          imageUrl,
+          imageUrl: previewUrl,
           appendUserText: !!intakeText.trim(),
           sharedTypingId: bubbleId,
         });
