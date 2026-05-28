@@ -304,24 +304,6 @@ export async function validatePropertyRelevance(extractedText: string): Promise<
   }
 }
 
-export async function validatePropertyImageName(fileName: string): Promise<boolean> {
-  const name = fileName.toLowerCase();
-
-  const suspiciousWords = [
-    "selfie",
-    "profile",
-    "food",
-    "meme",
-    "invoice",
-    "aadhaar",
-    "resume",
-    "certificate",
-    "marksheet",
-  ];
-
-  return !suspiciousWords.some((word) => name.includes(word));
-}
-
 // ============================================
 // VALIDATE USER MESSAGE RELEVANCE
 // ============================================
