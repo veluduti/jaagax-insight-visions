@@ -2121,7 +2121,7 @@ export default function SellProperty() {
             },
           ]);
         }
-      } // ← ADD THIS
+      }
 
       if (extracted && extracted.length >= 20) {
         const combined = [intakeText.trim(), extracted].filter(Boolean).join("\n\n");
