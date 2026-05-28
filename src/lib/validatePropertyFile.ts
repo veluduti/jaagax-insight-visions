@@ -332,9 +332,20 @@ export async function validatePropertyImage(imageBase64: string) {
       "construction",
     ];
 
-    const lower = imageBase64.toLowerCase();
+    const fileHints = [
+      "property",
+      "villa",
+      "flat",
+      "apartment",
+      "layout",
+      "floorplan",
+      "brochure",
+      "interior",
+      "office",
+      "shop",
+    ];
 
-    const matched = keywords.filter((k) => lower.includes(k));
+    const matched = fileHints.filter((k) => imageBase64.toLowerCase().includes(k));
 
     const confidence = matched.length / keywords.length;
 
