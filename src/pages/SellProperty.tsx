@@ -634,8 +634,9 @@ function validate(field: FieldDef, value: any): string | null {
   }
 
   if (fid === "total_floors") {
-    if (!FLOOR_PATTERN.test(String(value).trim())) {
-      return "Please enter format like 20 Floors";
+    const txt = String(value).trim();
+    if (!/^\d+$/.test(txt) && !FLOOR_PATTERN.test(txt)) {
+      return "Please enter valid total floors";
     }
   }
   // ============================================
@@ -1594,8 +1595,7 @@ export default function SellProperty() {
       f.input !== "yesno" &&
       f.input !== "number" &&
       f.input !== "date"
-    )
-    {
+    ) {
       const validation = validatePropertyText(normalized);
 
       if (!validation.valid) {
