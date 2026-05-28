@@ -1,4 +1,6 @@
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export interface FileValidationResult {
   valid: boolean;
@@ -265,69 +267,84 @@ const PROPERTY_KEYWORDS = [
   "master plan",
 ];
 
-export async function validatePropertyRelevance(extractedText: string): Promise<PropertyRelevanceResult> {
+async function aiValidate(payload: {
+  image_url?: string;
+  image_base64?: string;
+  text?: string;
+}): Promise<PropertyRelevanceResult | null> {
   try {
-    const text = extractedText.toLowerCase();
-
-    let matches = 0;
-
-    for (const keyword of PROPERTY_KEYWORDS) {
-      if (text.includes(keyword)) {
-        matches++;
-      }
+    const { data, error } = await supabase.functions.invoke(
+      "ai-validate-property-content",
+      { body: payload },
+    );
+    if (error) {
+      console.warn("[validate] ai-validate-property-content error", error);
+      return null;
     }
-
-    const confidence = matches / PROPERTY_KEYWORDS.length;
-
-    // LOW CONFIDENCE
-    if (confidence < 0.08) {
-      return {
-        valid: false,
-        confidence,
-        reason: "This file does not appear related to a property listing.",
-        documentType: "unknown",
-      };
-    }
-
+    if (!data || typeof data !== "object") return null;
     return {
-      valid: true,
-      confidence,
-      documentType: "property_document",
+      valid: !!(data as any).valid,
+      confidence: typeof (data as any).confidence === "number" ? (data as any).confidence : 0,
+      reason: (data as any).reason,
+      documentType: (data as any).documentType,
     };
   } catch (e) {
+    console.warn("[validate] ai validator failed", e);
+    return null;
+  }
+}
+
+function keywordRelevance(extractedText: string): PropertyRelevanceResult {
+  const text = (extractedText || "").toLowerCase();
+  let matches = 0;
+  for (const k of PROPERTY_KEYWORDS) if (text.includes(k)) matches++;
+  const confidence = matches / PROPERTY_KEYWORDS.length;
+  if (confidence < 0.08) {
     return {
       valid: false,
-      confidence: 0,
-      reason: "Could not validate property relevance",
+      confidence,
+      reason: "This file doesn't appear related to a property listing.",
       documentType: "unknown",
     };
   }
+  return { valid: true, confidence, documentType: "property_document" };
+}
+
+export async function validatePropertyRelevance(
+  extractedText: string,
+): Promise<PropertyRelevanceResult> {
+  // Try AI first
+  if (extractedText && extractedText.trim().length > 20) {
+    const ai = await aiValidate({ text: extractedText });
+    if (ai) return ai;
+  }
+  // Fallback: keyword heuristic
+  return keywordRelevance(extractedText || "");
 }
 
 // ============================================
-// VALIDATE PROPERTY IMAGE CONTENT
+// VALIDATE PROPERTY IMAGE CONTENT (AI Vision)
 // ============================================
 
-export async function validatePropertyImage(imageBase64: string) {
+export async function validatePropertyImage(
+  imageUrlOrBase64: string,
+): Promise<PropertyRelevanceResult> {
   try {
-    if (!imageBase64 || imageBase64.length < 100) {
-      return {
-        valid: false,
-        confidence: 0,
-      };
+    if (!imageUrlOrBase64 || imageUrlOrBase64.length < 50) {
+      return { valid: false, confidence: 0, reason: "Empty image", documentType: "unknown" };
     }
-
-    return {
-      valid: true,
-      confidence: 0.8,
-    };
+    const isDataUrl = imageUrlOrBase64.startsWith("data:");
+    const ai = await aiValidate(
+      isDataUrl ? { image_base64: imageUrlOrBase64 } : { image_url: imageUrlOrBase64 },
+    );
+    if (ai) return ai;
+    // Fail-open if validator unreachable so uploads aren't blocked.
+    return { valid: true, confidence: 0, reason: "validator unavailable", documentType: "unknown" };
   } catch (e) {
-    return {
-      valid: false,
-      confidence: 0,
-    };
+    return { valid: true, confidence: 0, reason: "validator error", documentType: "unknown" };
   }
 }
+
 
 // ============================================
 // VALIDATE USER MESSAGE RELEVANCE
