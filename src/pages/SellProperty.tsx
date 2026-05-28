@@ -1588,8 +1588,6 @@ export default function SellProperty() {
 
     const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
 
-    const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
-
     const newState = {
       ...state,
 
