@@ -310,44 +310,6 @@ export async function validatePropertyRelevance(extractedText: string): Promise<
 
 export async function validatePropertyImage(imageBase64: string) {
   try {
-    const keywords = [
-      "building",
-      "apartment",
-      "villa",
-      "house",
-      "flat",
-      "property",
-      "real estate",
-      "interior",
-      "kitchen",
-      "bedroom",
-      "living room",
-      "plot",
-      "layout",
-      "floor plan",
-      "commercial",
-      "office",
-      "shop",
-      "tower",
-      "construction",
-    ];
-
-    const fileHints = [
-      "property",
-      "villa",
-      "flat",
-      "apartment",
-      "layout",
-      "floorplan",
-      "brochure",
-      "interior",
-      "office",
-      "shop",
-    ];
-
-    ```ts
-export async function validatePropertyImage(imageBase64: string) {
-  try {
     if (!imageBase64 || imageBase64.length < 100) {
       return {
         valid: false,
@@ -358,21 +320,6 @@ export async function validatePropertyImage(imageBase64: string) {
     return {
       valid: true,
       confidence: 0.8,
-    };
-  } catch (e) {
-    return {
-      valid: false,
-      confidence: 0,
-    };
-  }
-}
-```;
-
-    const confidence = matched.length / keywords.length;
-
-    return {
-      valid: matched.length >= 1,
-      confidence,
     };
   } catch (e) {
     return {
