@@ -2134,7 +2134,38 @@ export default function SellProperty() {
       // STOP INVALID DOCUMENT FLOW
       // ============================================
 
+      // ============================================
+      // OCR TEXT NOT DETECTED
+      // TRY PDF IMAGE EXTRACTION FALLBACK
+      // ============================================
+
       if (!extracted || extracted.length < 20) {
+        // ============================================
+        // PDF IMAGE FALLBACK
+        // ============================================
+
+        if (isPdf) {
+          const pageImages = await renderPdfPagesToImages(file);
+
+          if (pageImages.length > 0) {
+            await runAiExtraction({
+              text: intakeText || "Extract property details from brochure",
+
+              imageUrl: pageImages[0],
+
+              appendUserText: false,
+
+              sharedTypingId: bubbleId,
+            });
+
+            return;
+          }
+        }
+
+        // ============================================
+        // COMPLETE FAILURE
+        // ============================================
+
         setMessages((m) => m.filter((x) => x.id !== bubbleId));
 
         setMessages((m) => [
