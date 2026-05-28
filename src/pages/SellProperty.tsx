@@ -2013,8 +2013,6 @@ export default function SellProperty() {
           return [...m.slice(0, idx), imgMsg, ...m.slice(idx)];
         });
 
-        const imageUrl = await fileToDataUrl(file);
-
         // Fire-and-forget: redact + upload happens in background and silently
         // appends to media_urls when ready. It does NOT block the chat.
         (async () => {
