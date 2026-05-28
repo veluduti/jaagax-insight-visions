@@ -334,3 +334,54 @@ export default {
   DEFAULT_PROFILE_IMAGE_RULES,
   DEFAULT_VIDEO_RULES,
 };
+
+// ============================================================
+// Lightweight content relevance helpers (used by SellProperty)
+// ============================================================
+
+const PROPERTY_KEYWORDS = [
+  "property", "apartment", "flat", "villa", "house", "plot", "land",
+  "bhk", "bedroom", "bathroom", "sqft", "sq.ft", "sq ft", "carpet",
+  "builtup", "built-up", "super built", "amenities", "balcony", "parking",
+  "floor", "tower", "block", "rera", "khata", "layout", "floorplan",
+  "floor plan", "brochure", "site plan", "master plan", "elevation",
+  "kitchen", "hall", "living", "duplex", "penthouse", "studio",
+  "rent", "sale", "lease", "price", "lakh", "crore", "emi",
+  "society", "gated", "community", "locality", "city", "address",
+];
+
+export async function validatePropertyImageName(fileName: string): Promise<boolean> {
+  if (!fileName) return true;
+  const name = fileName.toLowerCase();
+  // Reject only obviously non-property images. Otherwise allow.
+  const badPatterns = [
+    /\bselfie\b/, /\bmeme\b/, /\bscreenshot.*(whatsapp|chat|insta|facebook|twitter)\b/,
+    /\bpornhub\b/, /\bnsfw\b/,
+  ];
+  if (badPatterns.some((re) => re.test(name))) return false;
+  return true;
+}
+
+export interface RelevanceResult {
+  valid: boolean;
+  score: number;
+  reason?: string;
+}
+
+export async function validatePropertyRelevance(text: string): Promise<RelevanceResult> {
+  if (!text || text.trim().length < 20) {
+    return { valid: false, score: 0, reason: "Document is empty or too short." };
+  }
+  const lower = text.toLowerCase();
+  let hits = 0;
+  for (const kw of PROPERTY_KEYWORDS) {
+    if (lower.includes(kw)) hits++;
+    if (hits >= 3) break;
+  }
+  if (hits >= 2) return { valid: true, score: hits };
+  return {
+    valid: false,
+    score: hits,
+    reason: "This document doesn't appear related to a property listing.",
+  };
+}
