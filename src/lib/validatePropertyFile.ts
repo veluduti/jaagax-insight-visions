@@ -328,13 +328,39 @@ export async function validatePropertyImageName(fileName: string): Promise<boole
 
 export function validatePropertyText(text: string) {
   const keywords = [
-    "bhk", "sqft", "sq ft", "square feet", "apartment", "flat", "villa",
-    "house", "plot", "land", "commercial", "office", "shop", "rent", "sale",
-    "buy", "price", "cr", "crore", "lakh", "facing", "furnished", "bathroom",
-    "balcony", "parking", "hyderabad", "kondapur", "gachibowli", "property",
+    "bhk",
+    "sqft",
+    "sq ft",
+    "square feet",
+    "apartment",
+    "flat",
+    "villa",
+    "house",
+    "plot",
+    "land",
+    "commercial",
+    "office",
+    "shop",
+    "rent",
+    "sale",
+    "buy",
+    "price",
+    "cr",
+    "crore",
+    "lakh",
+    "facing",
+    "furnished",
+    "bathroom",
+    "balcony",
+    "parking",
+    "hyderabad",
+    "kondapur",
+    "gachibowli",
+    "property",
   ];
 
   const lower = text.toLowerCase();
+
   const matched = keywords.filter((k) => lower.includes(k));
 
   return {
