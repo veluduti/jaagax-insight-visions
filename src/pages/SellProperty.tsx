@@ -1167,9 +1167,7 @@ export default function SellProperty() {
       setExtracting(false);
       setIntakeDone(true);
       // Re-use the same typing bubble for the next question fetch — no flicker
-      const nextTypingId = uid();
-      setMessages((m) => [...m, { id: nextTypingId, role: "ai", kind: "typing" }]);
-      await fetchNext(merged, true, nextTypingId);
+      await fetchNext(merged, true);
     }
   };
 
