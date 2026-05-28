@@ -334,3 +334,4 @@ export default {
   DEFAULT_PROFILE_IMAGE_RULES,
   DEFAULT_VIDEO_RULES,
 };
+
