@@ -2129,6 +2129,27 @@ export default function SellProperty() {
         return;
       }
 
+      // ============================================
+      // OCR EXTRACTION FAILED
+      // STOP INVALID DOCUMENT FLOW
+      // ============================================
+
+      if (!extracted || extracted.length < 20) {
+        setMessages((m) => m.filter((x) => x.id !== bubbleId));
+
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: "I couldn't detect enough property-related information in this document. Please upload a clearer brochure, layout, floor plan, or property document.",
+          },
+        ]);
+
+        return;
+      }
+
       // Fallback: render the FIRST PDF page as an image (single AI call, not per-page)
       if (isPdf) {
         const pageImages = await renderPdfPagesToImages(file, 1);
