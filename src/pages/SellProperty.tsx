@@ -1568,7 +1568,20 @@ export default function SellProperty() {
     // VALIDATE USER TEXT INPUT
     // ============================================
 
-    if (typeof normalized === "string" && normalized.trim().length > 2) {
+    const SKIP_VALIDATION_FIELDS = [
+      "city",
+      "locality",
+      "project_name",
+      "assign_agent",
+      "possession_date",
+      "available_from_date",
+    ];
+
+    if (
+      typeof normalized === "string" &&
+      normalized.trim().length > 2 &&
+      !SKIP_VALIDATION_FIELDS.includes(canonicalFieldId)
+    ) {
       const validation = validatePropertyText(normalized);
 
       if (!validation.valid) {
