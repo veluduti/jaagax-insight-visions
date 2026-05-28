@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { validatePropertyImageName, validatePropertyRelevance } from "@/lib/validatePropertyFile";
+import { validatePropertyImage, validatePropertyRelevance, validatePropertyText } from "@/lib/validatePropertyFile";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
