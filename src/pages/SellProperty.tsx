@@ -1575,6 +1575,14 @@ export default function SellProperty() {
       "assign_agent",
       "possession_date",
       "available_from_date",
+      "property_age",
+      "ownership",
+      "facing",
+      "furnishing",
+      "approvals",
+      "highlights",
+      "payment_options",
+      "parking",
     ];
 
     if (
