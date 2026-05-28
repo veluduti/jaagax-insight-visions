@@ -1585,11 +1585,19 @@ export default function SellProperty() {
       "parking",
     ];
 
-    if (
-      typeof normalized === "string" &&
-      normalized.trim().length > 2 &&
-      !SKIP_VALIDATION_FIELDS.includes(canonicalFieldId)
-    ) {
+    ```ts
+if (
+  typeof normalized === "string" &&
+  normalized.trim().length > 2 &&
+  !SKIP_VALIDATION_FIELDS.includes(canonicalFieldId) &&
+  f.input !== "single" &&
+  f.input !== "multi" &&
+  f.input !== "yesno" &&
+  f.input !== "number" &&
+  f.input !== "date"
+)
+```;
+    {
       const validation = validatePropertyText(normalized);
 
       if (!validation.valid) {
