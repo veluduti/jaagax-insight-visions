@@ -322,6 +322,58 @@ export async function validatePropertyImageName(fileName: string): Promise<boole
   return !suspiciousWords.some((word) => name.includes(word));
 }
 
+```ts
+// ============================================
+// VALIDATE USER MESSAGE RELEVANCE
+// ============================================
+
+export function validatePropertyText(text: string) {
+  const keywords = [
+    "bhk",
+    "sqft",
+    "sq ft",
+    "square feet",
+    "apartment",
+    "flat",
+    "villa",
+    "house",
+    "plot",
+    "land",
+    "commercial",
+    "office",
+    "shop",
+    "rent",
+    "sale",
+    "buy",
+    "price",
+    "cr",
+    "crore",
+    "lakh",
+    "facing",
+    "furnished",
+    "bathroom",
+    "balcony",
+    "parking",
+    "hyderabad",
+    "kondapur",
+    "gachibowli",
+    "property",
+  ];
+
+  const lower = text.toLowerCase();
+
+  const matched = keywords.filter((k) =>
+    lower.includes(k),
+  );
+
+  return {
+    valid: matched.length > 0,
+    confidence:
+      matched.length / keywords.length,
+  };
+}
+```;
+
 export default {
   validateFile,
   validateImageDimensions,
@@ -334,4 +386,3 @@ export default {
   DEFAULT_PROFILE_IMAGE_RULES,
   DEFAULT_VIDEO_RULES,
 };
-
