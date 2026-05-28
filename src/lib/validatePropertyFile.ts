@@ -308,9 +308,7 @@ export async function validatePropertyRelevance(extractedText: string): Promise<
 // VALIDATE PROPERTY IMAGE CONTENT
 // ============================================
 
-export async function validatePropertyImage(
-  imageBase64: string,
-) {
+export async function validatePropertyImage(imageBase64: string) {
   try {
     const keywords = [
       "building",
@@ -336,12 +334,9 @@ export async function validatePropertyImage(
 
     const lower = imageBase64.toLowerCase();
 
-    const matched = keywords.filter((k) =>
-      lower.includes(k),
-    );
+    const matched = keywords.filter((k) => lower.includes(k));
 
-    const confidence =
-      matched.length / keywords.length;
+    const confidence = matched.length / keywords.length;
 
     return {
       valid: matched.length >= 1,
@@ -354,7 +349,6 @@ export async function validatePropertyImage(
     };
   }
 }
-```;
 
 // ============================================
 // VALIDATE USER MESSAGE RELEVANCE
