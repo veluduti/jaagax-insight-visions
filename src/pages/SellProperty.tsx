@@ -2829,8 +2829,8 @@ export default function SellProperty() {
                     <button
                       key={sug}
                       type="button"
-                      onClick={() => {
-                        setValue(sug);
+                      onClick={async () => {
+                        await commitAnswer(sug);
                       }}
                       className={cn(
                         "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
