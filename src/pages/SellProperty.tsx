@@ -675,6 +675,16 @@ function validate(field: FieldDef, value: any): string | null {
       return "Please enter area with unit (example: 1000 Sq Ft)";
     }
   }
+
+  // ============================================
+  // TOTAL PLOTS VALIDATION
+  // ============================================
+
+  if (canonId(field.id) === "total_plots") {
+    if (!/^\d+\s?plots?$/i.test(String(value).trim())) {
+      return "Please enter value like 100 Plots";
+    }
+  }
   if (field.id === "pincode" && !pinRE.test(String(value))) return "Enter a valid 6-digit PIN";
   if (field.input === "price_unit") {
     if (isNaN(Number(value.area)) || Number(value.area) <= 0) return "Enter a valid area";
