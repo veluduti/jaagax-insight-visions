@@ -3432,6 +3432,73 @@ export default function SellProperty() {
                       </div>
                     </SectionCard>
 
+                    {/* 2. AI TITLES */}
+                    <SectionCard
+                      title="AI Suggested Titles"
+                      icon={<Wand2 className="h-4 w-4 text-primary" />}
+                      action={
+                        <button
+                          type="button"
+                          onClick={regenerateTitles}
+                          disabled={titlesLoading}
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {titlesLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3" />
+                          )}
+                          Regenerate
+                        </button>
+                      }
+                    >
+                      {titlesLoading && aiTitles.length === 0 ? (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {aiTitles.slice(0, 3).map((t, i) => {
+                            const active = selectedTitleIdx === i;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTitleIdx(i);
+                                  setEditForm((p) => ({ ...p, title: t.title }));
+                                }}
+                                className={cn(
+                                  "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
+                                  active
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border bg-background hover:border-primary/40",
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    "mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                                    active ? "border-primary bg-primary" : "border-muted-foreground/40",
+                                  )}
+                                >
+                                  {active && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                                    {t.label}
+                                  </div>
+                                  <div className="text-sm">{t.title}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                          {aiTitles.length === 0 && (
+                            <div className="text-xs text-muted-foreground italic">No titles yet — tap Regenerate.</div>
+                          )}
+                        </div>
+                      )}
+                    </SectionCard>
+
                     {/* 8. STICKY ACTION BAR */}
                     <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
                       <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
