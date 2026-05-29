@@ -511,7 +511,7 @@ const getPlotSuggestions = (input: string) => {
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
-  return [`₹${input} / sqft`, `₹${input} / sq yd`];
+  return [`₹${input} / sqft`, `₹${input} / sq yd`, `₹${input} / acre`, `₹${input} / gunta`, `₹${input} / cent`];
 };
 
 const getBathroomSuggestions = (input: string) => {
