@@ -3782,8 +3782,31 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 {section.fields.map((f) => {
                                   const span = f.colSpan === 2 ? "col-span-2" : "";
-                                  const val = (editForm as any)[f.id] ?? "";
+                                  const rawVal = (editForm as any)[f.id];
+                                  const isArr = Array.isArray(rawVal);
+                                  const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
+                                  // Display value: arrays -> "a, b, c", objects -> "k: v, k: v"
+                                  const val = isArr
+                                    ? (rawVal as any[]).join(", ")
+                                    : isObj
+                                      ? Object.entries(rawVal as Record<string, any>)
+                                          .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                                          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("/") : v}`)
+                                          .join(", ")
+                                      : (rawVal ?? "");
                                   const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  const onTextChange = (raw: string) => {
+                                    if (isArr) {
+                                      setVal(
+                                        raw
+                                          .split(",")
+                                          .map((s) => s.trim())
+                                          .filter(Boolean),
+                                      );
+                                    } else {
+                                      setVal(raw);
+                                    }
+                                  };
                                   return (
                                     <div key={f.id} className={span}>
                                       <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
@@ -3803,15 +3826,16 @@ export default function SellProperty() {
                                         <Textarea
                                           value={val}
                                           placeholder={f.placeholder}
-                                          onChange={(e) => setVal(e.target.value)}
+                                          onChange={(e) => onTextChange(e.target.value)}
                                           rows={3}
                                         />
                                       ) : (
                                         <Input
-                                          type={f.type}
+                                          type={isArr || isObj ? "text" : f.type}
                                           value={val}
                                           placeholder={f.placeholder}
-                                          onChange={(e) => setVal(e.target.value)}
+                                          onChange={(e) => onTextChange(e.target.value)}
+                                          readOnly={isObj}
                                         />
                                       )}
                                     </div>
