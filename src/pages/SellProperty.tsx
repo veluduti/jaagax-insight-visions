@@ -1608,14 +1608,45 @@ export default function SellProperty() {
       "assign_agent",
       "possession_date",
       "available_from_date",
+
       "property_age",
       "ownership",
       "facing",
       "furnishing",
+
       "approvals",
       "highlights",
       "payment_options",
       "parking",
+
+      // AREA
+      "area",
+      "built_area",
+      "built_up_area",
+      "land_size",
+      "plot_area",
+      "carpet_area",
+
+      // FLOORS
+      "floor_number",
+      "total_floors",
+
+      // COMMERCIAL
+      "business_space_details",
+      "workspace_configuration",
+      "workspace_configuration_details",
+
+      // PRICE
+      "total_price",
+      "price_per_unit",
+      "rent",
+      "monthly_rent",
+
+      // NUMERIC PROPERTY FIELDS
+      "seats",
+      "cabins",
+      "meeting_rooms",
+      "conference_rooms",
     ];
 
     if (
