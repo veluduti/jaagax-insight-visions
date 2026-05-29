@@ -4189,7 +4189,11 @@ export default function SellProperty() {
                         // Floor Number
                         (canonId(field?.id) === "floor_number" && !FLOOR_PATTERN.test(String(value).trim())) ||
                         // Total Floors
-                        (canonId(field?.id) === "total_floors" && !FLOOR_PATTERN.test(String(value).trim()))
+                        // Total Floors
+                        (canonId(field?.id) === "total_floors" && !FLOOR_PATTERN.test(String(value).trim())) ||
+                        // Monthly Rent / Rent
+                        ((canonId(field?.id) === "monthly_rent" || canonId(field?.id) === "rent") &&
+                          /^\d+$/.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
