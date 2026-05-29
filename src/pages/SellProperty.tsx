@@ -779,8 +779,7 @@ export default function SellProperty() {
 
         // Land / Plot Area
         if (fid === "plot_area") {
-          setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} cent`, `${num} gunta`, `${num} acre`]);
-
+          setSuggestions([]);
           return;
         }
       }
