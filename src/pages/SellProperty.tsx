@@ -4175,13 +4175,15 @@ export default function SellProperty() {
                         (canonId(field?.id) === "bhk" && !BHK_PATTERN.test(String(value).trim())) ||
                         // Price Per Unit
                         (canonId(field?.id) === "price_per_unit" && !PRICE_UNIT_PATTERN.test(String(value).trim())) ||
-                        // Area Fields (must contain unit)
+                        // Measurement Fields (must contain unit)
                         ((canonId(field?.id) === "flat_size" ||
                           canonId(field?.id) === "area" ||
                           canonId(field?.id) === "built_area" ||
                           canonId(field?.id) === "built_up_area" ||
                           canonId(field?.id) === "land_size" ||
                           canonId(field?.id) === "plot_area" ||
+                          canonId(field?.id) === "plot_size" ||
+                          canonId(field?.id) === "road_width" ||
                           canonId(field?.id) === "carpet_area") &&
                           !MEASUREMENT_PATTERN.test(String(value).trim())) ||
                         // Bathrooms
