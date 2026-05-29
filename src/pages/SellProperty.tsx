@@ -257,6 +257,20 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/..." },
     ],
   },
+
+  {
+    id: "coworking",
+    title: "Coworking Details",
+    fields: [
+      "workspace_types",
+      "workspace_plan",
+      "operating_as",
+      "community_type",
+      "suitable_for",
+      "access_24_7",
+      "available_from",
+    ],
+  },
 ];
 
 /** Build a natural, SEO-friendly description deterministically from collected state. */
