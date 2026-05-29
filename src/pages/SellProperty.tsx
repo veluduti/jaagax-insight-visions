@@ -2787,63 +2787,32 @@ export default function SellProperty() {
 
   /** Jump back to a previously answered field (edit it). Removes everything after it. */
 
-  const jumpToField = async (fieldId: string) => {
-    const index = history.findIndex((h) => h.field.id === fieldId);
+ const jumpToField = async (fieldId: string) => {
+  const index = history.findIndex((h) => h.field.id === fieldId);
 
-    if (index === -1) return;
+  if (index === -1) return;
 
-    const target = history[index];
+  const target = history[index];
 
-    // ============================================
-    // REMOVE FUTURE ANSWERS
-    // ============================================
+  // ============================================
+  // KEEP ALL ANSWERS
+  // DO NOT DELETE HISTORY
+  // DO NOT DELETE STATE
+  // ============================================
 
-    const trimmedHistory = history.slice(0, index);
+  setField(target.field);
 
-    // ============================================
-    // REBUILD STATE
-    // ============================================
+  setValue(target.value || "");
 
-    const rebuiltState = { ...state };
+  setEditorOpen(false);
 
-    history.slice(index).forEach((h) => {
-      delete rebuiltState[h.field.id];
+  requestAnimationFrame(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
     });
-
-    // ============================================
-    // SAVE
-    // ============================================
-
-    setHistory(trimmedHistory);
-
-    setState(rebuiltState);
-
-    // ============================================
-    // REOPEN FIELD
-    // ============================================
-
-    setField(target.field);
-
-    setValue(target.value || "");
-
-    // ============================================
-    // REMOVE FUTURE CHAT MESSAGES
-    // ============================================
-
-    setMessages((msgs) => {
-      const copied = [...msgs];
-
-      let removeCount = history.length - index;
-
-      while (removeCount > 0 && copied.length > 0) {
-        copied.pop(); // ai
-        copied.pop(); // user
-
-        removeCount--;
-      }
-
-      return copied;
-    });
+  });
+};
 
     // ============================================
     // REBUILD ENGINE STATE
