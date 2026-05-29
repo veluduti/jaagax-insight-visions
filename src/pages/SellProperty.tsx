@@ -505,7 +505,7 @@ const getBhkSuggestions = (input: string) => {
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
-  return [`₹${input} / sqft`, `₹${input} / sq yd`, `₹${input} per sqft`, `₹${input} per sq yard`];
+  return [`₹${input} / sqft`, `₹${input} / sq yd`];
 };
 
 const getBathroomSuggestions = (input: string) => {
