@@ -76,6 +76,8 @@ const CANONICAL_ALIASES: Record<string, string> = {
   approval: "approvals",
 
   property_highlights: "highlights",
+  coworking_highlights: "highlights",
+  agriculture_highlights: "highlights",
 
   plot_area: "land_size",
   built_up_area: "built_area",
@@ -83,6 +85,17 @@ const CANONICAL_ALIASES: Record<string, string> = {
   floors: "total_floors",
 
   assigned_agent: "assign_agent",
+  assign_nearest_agent: "assign_agent",
+
+  // Coworking engine IDs -> editForm canonical IDs
+  shared_space_type: "workspace_types",
+  currently_operating_as: "operating_as",
+  industries_working_here: "industries",
+  access_24x7: "access_24_7",
+
+  // Misc
+  facing_direction: "facing",
+  rera_number: "rera_id",
 };
 
 /**
