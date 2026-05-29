@@ -766,6 +766,20 @@ export default function SellProperty() {
 
       return;
     }
+
+    const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
+
+    if (AREA_FIELDS.includes(fid) && typeof value === "string") {
+      const num = value.trim();
+
+      if (/^\d+$/.test(num)) {
+        setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} cent`, `${num} gunta`, `${num} acre`]);
+      } else {
+        setSuggestions([]);
+      }
+
+      return;
+    }
   }, [value, field]);
   const [error, setError] = useState<string | null>(null);
   const [loadingNext, setLoadingNext] = useState(false);
