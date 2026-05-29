@@ -773,7 +773,7 @@ export default function SellProperty() {
 
     if (["area", "built_area", "built_up_area", "land_size", "plot_area"].includes(fid) && typeof value === "string") {
       if (!value.trim()) {
-        setSuggestions(["600 sqft", "1000 sqft", "1250 sqft", "1500 sqft", "2000 sqft"]);
+        setSuggestions([]);
       } else if (/^\d+$/.test(value.trim())) {
         setSuggestions([`${value} sqft`, `${value} sqyd`, `${value} cent`, `${value} acre`]);
       }
