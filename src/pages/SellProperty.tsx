@@ -644,7 +644,17 @@ function validate(field: FieldDef, value: any): string | null {
   // AREA VALIDATION
   // ============================================
 
-  const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
+  const AREA_FIELDS = [
+    "area",
+    "built_area",
+    "built_up_area",
+    "land_size",
+    "plot_area",
+    "plot_size",
+    "road_width",
+    "total_project_area",
+    "carpet_area",
+  ];
 
   const AREA_UNITS = ["sq ft", "sqft", "sq yd", "sqyd", "sq m", "sqm", "acre", "acres", "gunta", "cent"];
 
