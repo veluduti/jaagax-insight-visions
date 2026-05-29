@@ -13,7 +13,7 @@ const PLOT_TYPES = [
   "Highway Facing Plot",
 ];
 
-const PLOT_UNITS = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"];
+const PLOT_UNITS = ["sqft", "sqyd", "cent", "gunta", "acre", "Bigha"];
 
 export const plotsFlow: PropertyFlowConfig = {
   id: "plots",
