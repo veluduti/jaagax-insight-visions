@@ -805,6 +805,24 @@ export default function SellProperty() {
 
   const disableSendForArea = isAreaField && typeof value === "string" && value.trim().length > 0 && !hasValidAreaUnit;
 
+  const PRICE_FIELDS = ["monthly_rent", "rent", "total_price", "price_per_unit"];
+
+  const isPriceField = PRICE_FIELDS.includes(currentFieldId);
+
+  const hasValidPriceFormat =
+    typeof value === "string" &&
+    (/₹/.test(value) ||
+      /monthly/i.test(value) ||
+      /weekly/i.test(value) ||
+      /daily/i.test(value) ||
+      /yearly/i.test(value) ||
+      /sq\s*ft/i.test(value) ||
+      /sqft/i.test(value) ||
+      /sq\s*yd/i.test(value));
+
+  const disableSendForPrice =
+    isPriceField && typeof value === "string" && value.trim().length > 0 && !hasValidPriceFormat;
+
   /* Intake (first free-form description) */
   const [intakeDone, setIntakeDone] = useState(false);
   const [intakeText, setIntakeText] = useState("");
