@@ -309,29 +309,29 @@ export const plotsFlow: PropertyFlowConfig = {
         {
           id: "east_measurement",
           label: "East",
-          unit: "Ft",
+          unit: "ft",
         },
         {
           id: "west_measurement",
           label: "West",
-          unit: "Ft",
+          unit: "ft",
         },
         {
           id: "north_measurement",
           label: "North",
-          unit: "Ft",
+          unit: "ft",
         },
         {
           id: "south_measurement",
           label: "South",
-          unit: "Ft",
+          unit: "ft",
         },
       ],
 
       smartSuggestions: {
         enabled: true,
 
-        examples: ["30 Ft", "40 Ft", "50 Ft", "60 Ft"],
+        examples: ["30 ft", "40 ft", "50 ft", "60 ft"],
       },
 
       renderMode: "interactive_widget",
