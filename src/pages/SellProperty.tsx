@@ -499,7 +499,7 @@ const getBhkSuggestions = (input: string) => {
 
   if (!num) return [];
 
-  return [`${num} BHK`, `${num}.5 BHK`];
+  return [`${num} BHK`];
 };
 
 const getPriceUnitSuggestions = (input: string) => {
