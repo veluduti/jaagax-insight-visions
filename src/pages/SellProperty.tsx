@@ -95,7 +95,6 @@ const CANONICAL_ALIASES: Record<string, string> = {
 
   // Misc
   facing_direction: "facing",
-  rera_number: "rera_id",
 };
 
 /**
