@@ -430,7 +430,7 @@ export const residentialFlow = {
 
       question: "What is the land size?",
 
-      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre"],
+      units: ["sqft", "sqyd", "cent", "gunta", "acre"],
     },
 
     built_area: {
@@ -449,7 +449,7 @@ export const residentialFlow = {
 
       question: "What is the built area?",
 
-      units: ["Sq Ft"],
+      units: ["sqft"],
     },
 
     plot_side_measurements: {
@@ -489,7 +489,7 @@ export const residentialFlow = {
         equals: "Buy",
       },
 
-      question: "What is the price per Sq Ft / Sq Yard?",
+      question: "What is the price per sqft / sqyd?",
 
       autoCalculation: {
         enabled: true,
