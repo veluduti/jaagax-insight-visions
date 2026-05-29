@@ -358,7 +358,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       question: "What is the built area size?",
 
-      units: ["Sq Ft"],
+      units: ["sqft"],
     },
 
     land_size: {
