@@ -782,13 +782,16 @@ export default function SellProperty() {
 
       if (/^\d+$/.test(num)) {
         // Built Area / Flat Size / Carpet Area
-        if (fid === "area" || fid === "built_area" || fid === "built_up_area" || fid === "carpet_area") {
-          setSuggestions([]);
-          return;
-        }
-
-        // Land / Plot Area
-        if (fid === "plot_area") {
+        if (
+          fid === "area" ||
+          fid === "built_area" ||
+          fid === "built_up_area" ||
+          fid === "carpet_area" ||
+          fid === "plot_area" ||
+          fid === "plot_size" ||
+          fid === "road_width" ||
+          fid === "total_project_area"
+        ) {
           setSuggestions([]);
           return;
         }
