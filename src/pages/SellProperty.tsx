@@ -4039,6 +4039,8 @@ export default function SellProperty() {
                             ? field.units
                             : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
                         );
+                      } else if (canonId(field?.id) === "total_plots") {
+                        chips = getPlotSuggestions(String(value));
                       }
 
                       return chips.map((c: any, i: number) => (
