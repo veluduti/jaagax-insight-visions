@@ -1481,7 +1481,7 @@ export default function SellProperty() {
 
           workspace_types: canonicalState.workspace_types || [],
 
-          workspace_plan: canonicalState.workspace_plan || "",
+          workspace_plan: canonicalState.workspace_plan || canonicalState.listing_type || "",
 
           workspace_configuration: canonicalState.workspace_configuration || {},
 
