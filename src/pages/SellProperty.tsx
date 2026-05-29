@@ -4191,8 +4191,10 @@ export default function SellProperty() {
                         // Total Floors
                         (canonId(field?.id) === "total_floors" && !FLOOR_PATTERN.test(String(value).trim())) ||
                         // Rent / Price fields - plain number not allowed
+                        // Rent / Price fields - plain number not allowed
                         ((canonId(field?.id) === "monthly_rent" ||
                           canonId(field?.id) === "rent" ||
+                          canonId(field?.id) === "rent_amount" ||
                           canonId(field?.id) === "total_price" ||
                           canonId(field?.id) === "price_per_unit") &&
                           /^\d+$/.test(String(value).trim()))
