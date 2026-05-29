@@ -379,7 +379,7 @@ export const commercialFlow: PropertyFlowConfig = {
 
       question: "What is the land size?",
 
-      units: ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
+      units: ["sqft", "sqyd", "cent", "gunta", "acre", "bigha"],
     },
 
     commercial_variants: {
