@@ -773,7 +773,7 @@ export default function SellProperty() {
       if (/^\d+$/.test(num)) {
         // Built Area / Flat Size / Carpet Area
         if (fid === "area" || fid === "built_area" || fid === "built_up_area" || fid === "carpet_area") {
-          setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} sqm`]);
+          setSuggestions([`${num} sqft`, `${num} sqyd`]);
 
           return;
         }
