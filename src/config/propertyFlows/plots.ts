@@ -351,7 +351,7 @@ export const plotsFlow: PropertyFlowConfig = {
 
       question: "What is the road width?",
 
-      units: ["Ft"],
+      units: ["ft"],
     },
 
     additional_features: {
