@@ -793,11 +793,6 @@ export default function SellProperty() {
       return;
     }
 
-    if (fid === "total_plots" && typeof value === "string") {
-      setSuggestions(getPlotSuggestions(value));
-      return;
-    }
-
     if (typeof value === "string") {
       const num = value.trim();
 
