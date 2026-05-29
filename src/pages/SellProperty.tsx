@@ -2717,12 +2717,13 @@ export default function SellProperty() {
                       <button
                         key={opt}
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           if (isMulti) {
                             setValue(active ? arr.filter((x) => x !== opt) : [...arr, opt]);
-                          } else {
-                            setValue(opt);
+                            return;
                           }
+
+                          await commitAnswer(opt);
                         }}
                         className={cn(
                           "px-3.5 py-1.5 rounded-full text-xs font-medium border transition shadow-sm",
