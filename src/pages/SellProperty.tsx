@@ -788,6 +788,17 @@ export default function SellProperty() {
   const [history, setHistory] = useState<{ field: FieldDef; value: any }[]>([]);
   const [uploading, setUploading] = useState(false);
 
+  const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
+
+  const currentFieldId = field ? canonId(field.id) : "";
+
+  const isAreaField = AREA_FIELDS.includes(currentFieldId);
+
+  const hasValidAreaUnit =
+    typeof value === "string" && /\d/.test(value) && /(sq\s*ft|sqft|sq\s*yd|sqyd|acre|acres|gunta|cent)/i.test(value);
+
+  const disableSendForArea = isAreaField && typeof value === "string" && value.trim().length > 0 && !hasValidAreaUnit;
+
   /* Intake (first free-form description) */
   const [intakeDone, setIntakeDone] = useState(false);
   const [intakeText, setIntakeText] = useState("");
