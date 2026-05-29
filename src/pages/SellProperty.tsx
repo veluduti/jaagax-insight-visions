@@ -3272,7 +3272,7 @@ export default function SellProperty() {
                       </div>
                     </div>
 
-                    {/* 3. DESCRIPTION */}
+                    {/* 2. DESCRIPTION */}
                     <SectionCard
                       title="Description"
                       icon={<Sparkles className="h-4 w-4 text-primary" />}
@@ -3312,7 +3312,7 @@ export default function SellProperty() {
                       </div>
                     </SectionCard>
 
-                    {/* 4. HIGHLIGHTS */}
+                    {/* 3. HIGHLIGHTS */}
                     {allHighlights.length > 0 && (
                       <SectionCard
                         title="Property Highlights"
@@ -3332,7 +3332,7 @@ export default function SellProperty() {
                       </SectionCard>
                     )}
 
-                    {/* 5. DETAILS — only user-filled rows */}
+                    {/* 4. DETAILS — only user-filled rows */}
                     {detailRows.length > 0 && (
                       <SectionCard
                         title="Property Details"
@@ -3362,7 +3362,7 @@ export default function SellProperty() {
                       </SectionCard>
                     )}
 
-                    {/* 6. LOCATION */}
+                    {/* 5. LOCATION */}
                     {(locLine || editForm.address) && (
                       <SectionCard
                         title="Location"
@@ -3376,7 +3376,7 @@ export default function SellProperty() {
                       </SectionCard>
                     )}
 
-                    {/* 7. PHOTOS */}
+                    {/* 6. PHOTOS */}
                     <SectionCard
                       title={`Photos (${photos.length})`}
                       icon={<ImageIcon className="h-4 w-4 text-primary" />}
@@ -3431,7 +3431,7 @@ export default function SellProperty() {
                       </div>
                     </SectionCard>
 
-                    {/* 2. AI TITLES */}
+                    {/* 7. AI TITLES */}
                     <SectionCard
                       title="AI Suggested Titles"
                       icon={<Wand2 className="h-4 w-4 text-primary" />}
