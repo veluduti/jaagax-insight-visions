@@ -3995,13 +3995,15 @@ export default function SellProperty() {
                 {field && !loadingNext && !done && field.input === "number" && value && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     {(() => {
+                      // Count-style number fields (totals, counts) should NOT get measurement-unit chips.
+                      const isCountField = /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(field.id);
                       const sType =
                         field.suggestionType ||
                         (/rent/i.test(field.id)
                           ? "rental_duration"
                           : /price|amount|cost|budget/i.test(field.id)
                             ? "price"
-                            : /area|size|sqft|sqyd|land|plot|built/i.test(field.id)
+                            : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
                               ? "measurement_units"
                               : undefined);
 
