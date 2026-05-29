@@ -1367,6 +1367,32 @@ export default function SellProperty() {
           property_age: canonicalState.property_age || "",
 
           // ============================================
+          // COWORKING
+          // ============================================
+
+          workspace_types: canonicalState.workspace_types || [],
+
+          workspace_plan: canonicalState.workspace_plan || "",
+
+          workspace_configuration: canonicalState.workspace_configuration || {},
+
+          workspace_features: canonicalState.workspace_features || [],
+
+          office_amenities: canonicalState.office_amenities || [],
+
+          operating_as: canonicalState.operating_as || "",
+
+          industries: canonicalState.industries || [],
+
+          community_type: canonicalState.community_type || "",
+
+          suitable_for: canonicalState.suitable_for || [],
+
+          access_24_7: canonicalState.access_24_7 || "",
+
+          available_from: canonicalState.available_from || "",
+
+          // ============================================
           // CONFIGURATION
           // ============================================
 
