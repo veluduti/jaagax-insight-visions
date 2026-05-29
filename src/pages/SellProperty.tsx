@@ -767,18 +767,26 @@ export default function SellProperty() {
       return;
     }
 
-    const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
-
-    if (AREA_FIELDS.includes(fid) && typeof value === "string") {
+    if (typeof value === "string") {
       const num = value.trim();
 
       if (/^\d+$/.test(num)) {
-        setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} cent`, `${num} gunta`, `${num} acre`]);
-      } else {
-        setSuggestions([]);
+        // Built Area / Flat Size / Carpet Area
+        if (fid === "area" || fid === "built_area" || fid === "built_up_area" || fid === "carpet_area") {
+          setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} sqm`]);
+
+          return;
+        }
+
+        // Land / Plot Area
+        if (fid === "land_size" || fid === "plot_area") {
+          setSuggestions([`${num} sqft`, `${num} sqyd`, `${num} cent`, `${num} gunta`, `${num} acre`]);
+
+          return;
+        }
       }
 
-      return;
+      setSuggestions([]);
     }
   }, [value, field]);
   const [error, setError] = useState<string | null>(null);
