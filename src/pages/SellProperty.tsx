@@ -76,6 +76,8 @@ const CANONICAL_ALIASES: Record<string, string> = {
   approval: "approvals",
 
   property_highlights: "highlights",
+  coworking_highlights: "highlights",
+  agriculture_highlights: "highlights",
 
   plot_area: "land_size",
   built_up_area: "built_area",
@@ -83,6 +85,16 @@ const CANONICAL_ALIASES: Record<string, string> = {
   floors: "total_floors",
 
   assigned_agent: "assign_agent",
+  assign_nearest_agent: "assign_agent",
+
+  // Coworking engine IDs -> editForm canonical IDs
+  shared_space_type: "workspace_types",
+  currently_operating_as: "operating_as",
+  industries_working_here: "industries",
+  access_24x7: "access_24_7",
+
+  // Misc
+  facing_direction: "facing",
 };
 
 /**
@@ -157,27 +169,27 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     id: "configuration",
     title: "Configuration",
     fields: [
-      { id: "bhk", label: "BHK / Configuration", type: "text", placeholder: "e.g. 3 BHK" },
-      { id: "bedrooms", label: "Bedrooms", type: "number" },
-      { id: "bathrooms", label: "Bathrooms", type: "number" },
-      { id: "balconies", label: "Balconies", type: "number" },
-      { id: "property_type", label: "Property type", type: "text" },
-      { id: "listing_type", label: "Listing type", type: "text" },
+      { id: "bhk", label: "BHK / Configuration", type: "text", placeholder: "e.g. 3 BHK", onlyFor: ["residential"] },
+      { id: "bedrooms", label: "Bedrooms", type: "number", onlyFor: ["residential"] },
+      { id: "bathrooms", label: "Bathrooms", type: "number", onlyFor: ["residential"] },
+      { id: "balconies", label: "Balconies", type: "number", onlyFor: ["residential"] },
+      { id: "property_type", label: "Property type", type: "text", hideFor: ["coworking"] },
+      { id: "listing_type", label: "Listing type", type: "text", hideFor: ["coworking"] },
       { id: "listed_by", label: "Listed by", type: "text" },
-      { id: "parking", label: "Parking", type: "text", placeholder: "e.g. 2 covered" },
+      { id: "parking", label: "Parking", type: "text", placeholder: "e.g. 2 covered", onlyFor: ["residential", "commercial"] },
     ],
   },
   {
     id: "building",
     title: "Building & Floor",
     fields: [
-      { id: "floor_number", label: "Floor number", type: "number" },
-      { id: "total_floors", label: "Total floors", type: "number" },
-      { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years" },
-      { id: "land_size", label: "Land size", type: "text" },
-      { id: "built_area", label: "Built area", type: "text" },
-      { id: "carpet_area", label: "Carpet area", type: "number" },
-      { id: "project_name", label: "Project / Society", type: "text", colSpan: 2 },
+      { id: "floor_number", label: "Floor number", type: "number", onlyFor: ["residential", "commercial"] },
+      { id: "total_floors", label: "Total floors", type: "number", onlyFor: ["residential", "commercial"] },
+      { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years", onlyFor: ["residential", "commercial"] },
+      { id: "land_size", label: "Land size", type: "text", hideFor: ["coworking"] },
+      { id: "built_area", label: "Built area", type: "text", hideFor: ["plots", "agriculture"] },
+      { id: "carpet_area", label: "Carpet area", type: "number", onlyFor: ["residential"] },
+      { id: "project_name", label: "Project / Society", type: "text", colSpan: 2, onlyFor: ["residential", "plots"] },
     ],
   },
   {
@@ -189,12 +201,14 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
         label: "Facing",
         type: "select",
         options: ["", "East", "West", "North", "South", "North-East", "North-West", "South-East", "South-West"],
+        hideFor: ["coworking"],
       },
       {
         id: "furnishing",
         label: "Furnishing",
         type: "select",
         options: ["", "Furnished", "Semi Furnished", "Unfurnished"],
+        onlyFor: ["residential", "commercial"],
       },
     ],
   },
@@ -207,27 +221,31 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
         label: "Ownership",
         type: "select",
         options: ["", "Freehold", "Leasehold", "Co-operative Society", "Power of Attorney"],
+        hideFor: ["coworking"],
       },
       {
         id: "gated_community",
         label: "Gated community",
         type: "select",
         options: ["", "Yes", "No"],
+        onlyFor: ["residential", "plots"],
       },
       {
         id: "property_condition",
         label: "Property condition",
         type: "select",
         options: ["", "New", "Resale", "Under Construction"],
+        onlyFor: ["residential", "commercial"],
       },
       {
         id: "availability_status",
         label: "Availability",
         type: "select",
         options: ["", "Ready to Move", "Under Construction"],
+        onlyFor: ["residential", "commercial"],
       },
-      { id: "possession_date", label: "Possession date", type: "text", placeholder: "MMM YYYY" },
-      { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY" },
+      { id: "possession_date", label: "Possession date", type: "text", placeholder: "MMM YYYY", onlyFor: ["residential", "commercial"] },
+      { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY", onlyFor: ["residential", "commercial"] },
     ],
   },
 
@@ -236,6 +254,7 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     title: "Legal & Features",
     fields: [
       { id: "approvals", label: "Approvals", type: "text", colSpan: 2 },
+      { id: "amenities", label: "Amenities", type: "text", colSpan: 2, hideFor: ["coworking"] },
       { id: "payment_options", label: "Payment options", type: "text", colSpan: 2 },
       { id: "highlights", label: "Highlights", type: "text", colSpan: 2 },
       { id: "assign_agent", label: "Assigned agent", type: "text", colSpan: 2 },
@@ -254,7 +273,7 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     id: "compliance",
     title: "Compliance",
     fields: [
-      { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/..." },
+      { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/...", onlyFor: ["residential", "commercial", "plots"] },
     ],
   },
 
@@ -262,63 +281,75 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     id: "coworking",
     title: "Coworking Details",
     fields: [
-      {
-        id: "workspace_types",
-        label: "Workspace Types",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "workspace_plan",
-        label: "Workspace Plan",
-        type: "text",
-      },
-      {
-        id: "access_24_7",
-        label: "24/7 Access",
-        type: "text",
-      },
-      {
-        id: "operating_as",
-        label: "Operating As",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "community_type",
-        label: "Community Type",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "suitable_for",
-        label: "Suitable For",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "industries",
-        label: "Industries",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "workspace_features",
-        label: "Workspace Features",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "office_amenities",
-        label: "Office Amenities",
-        type: "text",
-        colSpan: 2,
-      },
-      {
-        id: "available_from",
-        label: "Available From",
-        type: "text",
-      },
+      { id: "workspace_types", label: "Workspace Types", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "workspace_plan", label: "Workspace Plan", type: "text", onlyFor: ["coworking"] },
+      { id: "access_24_7", label: "24/7 Access", type: "text", onlyFor: ["coworking"] },
+      { id: "operating_as", label: "Operating As", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "community_type", label: "Community Type", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "suitable_for", label: "Suitable For", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "industries", label: "Industries", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "workspace_features", label: "Workspace Features", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "office_amenities", label: "Office Amenities", type: "text", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "available_from", label: "Available From", type: "text", onlyFor: ["coworking"] },
+      { id: "working_hours", label: "Working Hours", type: "text", onlyFor: ["coworking"] },
+      { id: "workspace_variant_details", label: "Workspace Variants", type: "textarea", colSpan: 2, onlyFor: ["coworking"] },
+      { id: "hourly_price", label: "Hourly price (₹)", type: "number", onlyFor: ["coworking"] },
+      { id: "daily_pass_price", label: "Daily pass (₹)", type: "number", onlyFor: ["coworking"] },
+      { id: "weekly_price", label: "Weekly price (₹)", type: "number", onlyFor: ["coworking"] },
+      { id: "monthly_rent", label: "Monthly rent (₹)", type: "number", onlyFor: ["coworking"] },
+      { id: "price_per_seat", label: "Price per seat (₹)", type: "number", onlyFor: ["coworking"] },
+    ],
+  },
+
+  {
+    id: "plot_details",
+    title: "Plot Details",
+    fields: [
+      { id: "plot_type", label: "Plot type", type: "text", onlyFor: ["plots"] },
+      { id: "plot_size", label: "Plot size", type: "text", onlyFor: ["plots"] },
+      { id: "road_width", label: "Road width", type: "text", onlyFor: ["plots"] },
+      { id: "total_plots", label: "Total plots", type: "number", onlyFor: ["plots"] },
+      { id: "total_project_area", label: "Total project area", type: "text", onlyFor: ["plots"] },
+      { id: "plot_measurements", label: "Plot measurements", type: "text", colSpan: 2, onlyFor: ["plots"] },
+      { id: "additional_features", label: "Additional features", type: "text", colSpan: 2, onlyFor: ["plots", "agriculture"] },
+    ],
+  },
+
+  {
+    id: "agriculture_details",
+    title: "Agriculture Details",
+    fields: [
+      { id: "agricultural_land_type", label: "Land type", type: "text", onlyFor: ["agriculture"] },
+      { id: "land_area", label: "Land area", type: "text", onlyFor: ["agriculture"] },
+      { id: "soil_type", label: "Soil type", type: "text", onlyFor: ["agriculture"] },
+      { id: "electricity_available", label: "Electricity available", type: "text", onlyFor: ["agriculture"] },
+      { id: "current_usage", label: "Current usage", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
+      { id: "crops_grown", label: "Crops grown", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
+      { id: "farm_infrastructure", label: "Farm infrastructure", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
+      { id: "connectivity", label: "Connectivity", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
+      { id: "partnership_details", label: "Partnership details", type: "textarea", colSpan: 2, onlyFor: ["agriculture"] },
+    ],
+  },
+
+  {
+    id: "commercial_details",
+    title: "Commercial Details",
+    fields: [
+      { id: "operating_as", label: "Currently operating as", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      { id: "suitable_for", label: "Suitable for", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      { id: "commercial_amenities", label: "Commercial amenities", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      { id: "commercial_furnishing", label: "Commercial furnishing", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      { id: "visibility_access", label: "Visibility & access", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      { id: "business_space_details", label: "Business space details", type: "textarea", colSpan: 2, onlyFor: ["commercial"] },
+    ],
+  },
+
+  {
+    id: "pricing_extras",
+    title: "Pricing",
+    fields: [
+      { id: "rent_amount", label: "Rent amount (₹)", type: "number", onlyFor: ["residential", "commercial", "plots", "agriculture"] },
+      { id: "monthly_rent", label: "Monthly rent (₹)", type: "number", onlyFor: ["residential"] },
     ],
   },
 ];
@@ -1450,7 +1481,7 @@ export default function SellProperty() {
 
           workspace_types: canonicalState.workspace_types || [],
 
-          workspace_plan: canonicalState.workspace_plan || "",
+          workspace_plan: canonicalState.workspace_plan || canonicalState.listing_type || "",
 
           workspace_configuration: canonicalState.workspace_configuration || {},
 
@@ -3751,8 +3782,31 @@ export default function SellProperty() {
                               <div className="grid grid-cols-2 gap-3">
                                 {section.fields.map((f) => {
                                   const span = f.colSpan === 2 ? "col-span-2" : "";
-                                  const val = (editForm as any)[f.id] ?? "";
+                                  const rawVal = (editForm as any)[f.id];
+                                  const isArr = Array.isArray(rawVal);
+                                  const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
+                                  // Display value: arrays -> "a, b, c", objects -> "k: v, k: v"
+                                  const val = isArr
+                                    ? (rawVal as any[]).join(", ")
+                                    : isObj
+                                      ? Object.entries(rawVal as Record<string, any>)
+                                          .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                                          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("/") : v}`)
+                                          .join(", ")
+                                      : (rawVal ?? "");
                                   const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  const onTextChange = (raw: string) => {
+                                    if (isArr) {
+                                      setVal(
+                                        raw
+                                          .split(",")
+                                          .map((s) => s.trim())
+                                          .filter(Boolean),
+                                      );
+                                    } else {
+                                      setVal(raw);
+                                    }
+                                  };
                                   return (
                                     <div key={f.id} className={span}>
                                       <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
@@ -3772,15 +3826,16 @@ export default function SellProperty() {
                                         <Textarea
                                           value={val}
                                           placeholder={f.placeholder}
-                                          onChange={(e) => setVal(e.target.value)}
+                                          onChange={(e) => onTextChange(e.target.value)}
                                           rows={3}
                                         />
                                       ) : (
                                         <Input
-                                          type={f.type}
+                                          type={isArr || isObj ? "text" : f.type}
                                           value={val}
                                           placeholder={f.placeholder}
-                                          onChange={(e) => setVal(e.target.value)}
+                                          onChange={(e) => onTextChange(e.target.value)}
+                                          readOnly={isObj}
                                         />
                                       )}
                                     </div>
