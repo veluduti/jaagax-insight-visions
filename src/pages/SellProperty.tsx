@@ -4248,7 +4248,9 @@ export default function SellProperty() {
                           canonId(field?.id) === "rent_amount" ||
                           canonId(field?.id) === "total_price" ||
                           canonId(field?.id) === "price_per_unit") &&
-                          /^\d+$/.test(String(value).trim()))
+                          /^\d+$/.test(String(value).trim())) ||
+                        // Total Plots
+                        (canonId(field?.id) === "total_plots" && !/^\d+\s?plots?$/i.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
