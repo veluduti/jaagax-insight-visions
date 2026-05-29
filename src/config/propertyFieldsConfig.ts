@@ -72,7 +72,7 @@ export const HOUSE_LIKE = new Set([
   "Gated Community House",
 ]);
 
-export const AREA_UNITS = ["Sq Ft", "Sq Yard", "Sq Meter", "Cent", "Gunta", "Acre", "Bigha", "Hectare", "Katha"];
+export const AREA_UNITS = ["sqft", "sqyd", "Cent", "Gunta", "Acre", "Bigha", "Hectare", "Katha"];
 export const FACING_OPTIONS = [
   "East",
   "West",

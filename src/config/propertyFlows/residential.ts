@@ -369,7 +369,7 @@ export const residentialFlow = {
 
       question: "What is the flat size?",
 
-      units: ["Sq Ft"],
+      units: ["sqft"],
     },
 
     flat_variants: {
@@ -723,7 +723,7 @@ export const residentialFlow = {
 
       question: "What is the total project land area?",
 
-      units: ["Acre", "Sq Yard", "Sq Ft"],
+      units: ["acre", "sqyd", "sqft"],
     },
 
     furnishing_status: {
