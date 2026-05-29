@@ -162,7 +162,7 @@ export const NUMBER_QUICK_REPLIES: Record<string, string[]> = {
   total_floors: ["Ground floor", "3 floor", "5 floor", "10 floor", "15 floor", "20+ floor"],
   floor_number: ["Ground floor", "1 floor", "2 floor", "3 floor", "5 floor", "10 floor"],
   total_towers: ["1 tower", "2 towers", "4 towers", "6 towers", "10+ towers"],
-  total_units: ["50 sqft", "100 sqft", "200 sqft", "500 sqft"],
+  total_units: ["50 Units", "100 Units", "200 Units", "500 Units"],
   road_width: ["20 ft", "30 ft", "40 ft", "60 ft"],
   parking: ["1 parking", "2 parkings", "3 parkings", "4+ parkings"],
   bathroom_count: ["1 Bathroom", "2 Bathrooms", "3 Bathrooms", "4+ Bathrooms"],
