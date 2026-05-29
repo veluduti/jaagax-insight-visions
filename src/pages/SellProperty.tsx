@@ -804,7 +804,17 @@ export default function SellProperty() {
   const [history, setHistory] = useState<{ field: FieldDef; value: any }[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  const AREA_FIELDS = ["area", "built_area", "built_up_area", "land_size", "plot_area", "carpet_area"];
+  const AREA_FIELDS = [
+    "area",
+    "built_area",
+    "built_up_area",
+    "land_size",
+    "plot_area",
+    "plot_size",
+    "road_width",
+    "total_project_area",
+    "carpet_area",
+  ];
 
   const currentFieldId = field ? canonId(field.id) : "";
 
