@@ -916,6 +916,10 @@ export default function SellProperty() {
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  // Guards against fetchNext() appending the same AI question twice for the
+  // same resolved field (e.g. after editing a previously answered question).
+  const lastAskedFieldIdRef = useRef<string | null>(null);
+  const fetchNextCallCountRef = useRef<Record<string, number>>({});
   useEffect(() => {
     if (!field) return;
     const fid = canonId(field.id);
