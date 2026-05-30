@@ -2274,6 +2274,11 @@ export default function SellProperty() {
 
     engineRef.current = createConversationEngine(category!);
 
+    // Reset duplicate-question guard on conversation restart.
+    lastAskedFieldIdRef.current = null;
+    fetchNextCallCountRef.current = {};
+
+
     engineRef.current.applyExtractedFields(cleared, {
       overwrite: true,
     });
