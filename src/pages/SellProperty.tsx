@@ -915,6 +915,7 @@ export default function SellProperty() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   useEffect(() => {
     if (!field) return;
     const fid = canonId(field.id);
@@ -1792,6 +1793,15 @@ export default function SellProperty() {
       return;
     }
 
+    const isEditing = !!editingFieldId && canonId(editingFieldId) === canonId(f.id);
+
+    console.log("[commitAnswer] start", {
+      currentFieldId: f.id,
+      editingFieldId,
+      isEditing,
+      rawValue: val,
+    });
+
     // =========================================================
     // NORMALIZE STRING INPUT
     // =========================================================
@@ -1836,18 +1846,30 @@ export default function SellProperty() {
       userMessage = "Workspace configuration added";
     }
 
-    setMessages((m) => [
-      ...m,
-      {
-        id: uid(),
-        role: "user",
-        kind: "text",
-        text: userMessage,
-
-        // IMPORTANT
-        fieldId: f.id,
-      } as any,
-    ]);
+    setMessages((m) => {
+      // When editing, replace the prior user message for this field instead of appending a duplicate
+      if (isEditing) {
+        const idx = [...m].reverse().findIndex(
+          (msg: any) => msg.role === "user" && msg.fieldId && canonId(msg.fieldId) === canonId(f.id),
+        );
+        if (idx !== -1) {
+          const realIdx = m.length - 1 - idx;
+          const copy = [...m];
+          copy[realIdx] = { ...(copy[realIdx] as any), text: userMessage, fieldId: f.id } as any;
+          return copy;
+        }
+      }
+      return [
+        ...m,
+        {
+          id: uid(),
+          role: "user",
+          kind: "text",
+          text: userMessage,
+          fieldId: f.id,
+        } as any,
+      ];
+    });
 
     // =========================================================
     // NEW STATE
@@ -1949,26 +1971,28 @@ export default function SellProperty() {
     setHistory((h) => {
       const existingIndex = h.findIndex((x) => canonId(x.field.id) === canonId(f.id));
 
-      // Editing an already answered question
+      console.log("[commitAnswer] history before update", {
+        length: h.length,
+        existingIndex,
+        ids: h.map((x) => x.field.id),
+      });
+
+      let next: typeof h;
+      // Editing an already answered question — replace in place, never append
       if (existingIndex >= 0) {
         const copy = [...h];
-
-        copy[existingIndex] = {
-          field: f,
-          value: normalized,
-        };
-
-        return copy;
+        copy[existingIndex] = { field: f, value: normalized };
+        next = copy;
+      } else {
+        next = [...h, { field: f, value: normalized }];
       }
 
-      // New answer
-      return [
-        ...h,
-        {
-          field: f,
-          value: normalized,
-        },
-      ];
+      console.log("[commitAnswer] history after update", {
+        length: next.length,
+        ids: next.map((x) => x.field.id),
+      });
+
+      return next;
     });
 
     // =========================================================
@@ -1988,15 +2012,15 @@ export default function SellProperty() {
     } catch {}
 
     // =========================================================
-    // IMPORTANT
-    // clear AFTER apply
+    // Clear edit mode AFTER applying the answer so fetchNext
+    // resumes from the first unanswered field (preserves Q4..Qn).
     // =========================================================
+
+    if (isEditing) {
+      setEditingFieldId(null);
+    }
 
     setValue("");
-
-    // =========================================================
-    // FETCH NEXT
-    // =========================================================
 
     await fetchNext(newState);
   };
@@ -2888,17 +2912,27 @@ export default function SellProperty() {
 
     const target = history[index];
 
+    console.log("[jumpToField] entering edit mode", {
+      fieldId: target.field.id,
+      previousValue: target.value,
+      historyLength: history.length,
+      historyIds: history.map((h) => h.field.id),
+    });
+
     // ============================================
-    // KEEP ALL ANSWERS
-    // DO NOT DELETE HISTORY
-    // DO NOT DELETE STATE
+    // EXPLICIT EDIT MODE
+    // - keep all history entries
+    // - keep all state answers
+    // - keep all chat messages (Q4..Qn user/ai bubbles stay)
+    // - keep engine progress; commitAnswer will resume from
+    //   the first still-unanswered field after the edit.
     // ============================================
+
+    setEditingFieldId(target.field.id);
 
     setField(target.field);
 
-    setValue(target.value || "");
-
-    // (editor open state removed)
+    setValue(target.value ?? "");
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
@@ -2907,19 +2941,13 @@ export default function SellProperty() {
       });
     });
 
-    // ============================================
-    // REBUILD ENGINE STATE
-    // ============================================
-
-    engineRef.current = createConversationEngine(category!);
-
-    engineRef.current.applyExtractedFields(state, {
-      overwrite: true,
-    });
-
-    // ============================================
-    // RESET
-    // ============================================
+    // Re-sync engine with the full current answer set (non-destructive).
+    // Using overwrite:false keeps any engine-internal progress, while
+    // still ensuring previously answered fields are marked answered so
+    // engine.next() resumes at the first unanswered field after commit.
+    try {
+      engineRef.current?.applyExtractedFields(state, { overwrite: false });
+    } catch {}
 
     setDone(false);
 
