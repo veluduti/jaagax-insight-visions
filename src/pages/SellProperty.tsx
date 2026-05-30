@@ -2831,7 +2831,6 @@ setHistory((h) => {
       behavior: "smooth",
     });
   });
-};
 
     // ============================================
     // REBUILD ENGINE STATE
