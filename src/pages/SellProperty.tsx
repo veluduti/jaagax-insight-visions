@@ -2955,6 +2955,11 @@ export default function SellProperty() {
 
     setEditingFieldId(target.field.id);
 
+    // Reset duplicate-question guard so the next resumed question
+    // can be appended even if it shares the previous fieldId.
+    lastAskedFieldIdRef.current = null;
+
+
     setField(target.field);
 
     setValue(target.value ?? "");
