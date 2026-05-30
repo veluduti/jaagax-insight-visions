@@ -2043,6 +2043,10 @@ export default function SellProperty() {
 
     setValue("");
 
+    // Reset duplicate-question guard before the next fetchNext call.
+    lastAskedFieldIdRef.current = null;
+
+
     await fetchNext(newState);
   };
 
