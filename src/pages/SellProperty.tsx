@@ -1689,6 +1689,15 @@ export default function SellProperty() {
 
       const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
 
+      // Debug: track how many times fetchNext resolves to the same field.
+      fetchNextCallCountRef.current[fieldId] =
+        (fetchNextCallCountRef.current[fieldId] || 0) + 1;
+      console.log("[fetchNext] resolved field", {
+        fieldId,
+        callCountForField: fetchNextCallCountRef.current[fieldId],
+        lastAskedFieldId: lastAskedFieldIdRef.current,
+      });
+
       const ui = adaptEngineField(fieldId, result.field);
 
       // =======================================================
