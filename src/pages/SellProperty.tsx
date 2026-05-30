@@ -1756,17 +1756,25 @@ export default function SellProperty() {
 
       // =======================================================
       // AI MESSAGE
+      // - Guard: do not append the same question twice if the
+      //   resolver returned the same fieldId we just asked
+      //   (can happen after editing a previously answered field).
       // =======================================================
 
-      setMessages((m) => [
-        ...m,
-        {
-          id: uid(),
-          role: "ai",
-          kind: "text",
-          text: result.question?.prompt || ui.question,
-        },
-      ]);
+      if (lastAskedFieldIdRef.current === fieldId) {
+        console.log("[fetchNext] duplicate question suppressed", { fieldId });
+      } else {
+        lastAskedFieldIdRef.current = fieldId;
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: result.question?.prompt || ui.question,
+          },
+        ]);
+      }
     } catch (e: any) {
       // =======================================================
       // REMOVE TYPING
