@@ -915,6 +915,7 @@ export default function SellProperty() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   useEffect(() => {
     if (!field) return;
     const fid = canonId(field.id);
