@@ -1793,6 +1793,15 @@ export default function SellProperty() {
       return;
     }
 
+    const isEditing = !!editingFieldId && canonId(editingFieldId) === canonId(f.id);
+
+    console.log("[commitAnswer] start", {
+      currentFieldId: f.id,
+      editingFieldId,
+      isEditing,
+      rawValue: val,
+    });
+
     // =========================================================
     // NORMALIZE STRING INPUT
     // =========================================================
