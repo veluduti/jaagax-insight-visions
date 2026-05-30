@@ -2912,17 +2912,27 @@ export default function SellProperty() {
 
     const target = history[index];
 
+    console.log("[jumpToField] entering edit mode", {
+      fieldId: target.field.id,
+      previousValue: target.value,
+      historyLength: history.length,
+      historyIds: history.map((h) => h.field.id),
+    });
+
     // ============================================
-    // KEEP ALL ANSWERS
-    // DO NOT DELETE HISTORY
-    // DO NOT DELETE STATE
+    // EXPLICIT EDIT MODE
+    // - keep all history entries
+    // - keep all state answers
+    // - keep all chat messages (Q4..Qn user/ai bubbles stay)
+    // - keep engine progress; commitAnswer will resume from
+    //   the first still-unanswered field after the edit.
     // ============================================
+
+    setEditingFieldId(target.field.id);
 
     setField(target.field);
 
-    setValue(target.value || "");
-
-    // (editor open state removed)
+    setValue(target.value ?? "");
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
@@ -2931,19 +2941,13 @@ export default function SellProperty() {
       });
     });
 
-    // ============================================
-    // REBUILD ENGINE STATE
-    // ============================================
-
-    engineRef.current = createConversationEngine(category!);
-
-    engineRef.current.applyExtractedFields(state, {
-      overwrite: true,
-    });
-
-    // ============================================
-    // RESET
-    // ============================================
+    // Re-sync engine with the full current answer set (non-destructive).
+    // Using overwrite:false keeps any engine-internal progress, while
+    // still ensuring previously answered fields are marked answered so
+    // engine.next() resumes at the first unanswered field after commit.
+    try {
+      engineRef.current?.applyExtractedFields(state, { overwrite: false });
+    } catch {}
 
     setDone(false);
 
