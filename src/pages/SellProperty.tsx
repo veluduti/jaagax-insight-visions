@@ -2823,7 +2823,7 @@ setHistory((h) => {
 
   setValue(target.value || "");
 
-  setEditorOpen(false);
+  // (editor open state removed)
 
   requestAnimationFrame(() => {
     scrollRef.current?.scrollTo({
@@ -2838,7 +2838,7 @@ setHistory((h) => {
 
     engineRef.current = createConversationEngine(category!);
 
-    engineRef.current.applyExtractedFields(rebuiltState, {
+    engineRef.current.applyExtractedFields(state, {
       overwrite: true,
     });
 
