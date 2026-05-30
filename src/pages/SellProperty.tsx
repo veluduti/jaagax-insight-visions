@@ -916,6 +916,10 @@ export default function SellProperty() {
   const [progress, setProgress] = useState<{ filled: number; total: number }>({ filled: 0, total: 1 });
   const [value, setValue] = useState<any>("");
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  // Guards against fetchNext() appending the same AI question twice for the
+  // same resolved field (e.g. after editing a previously answered question).
+  const lastAskedFieldIdRef = useRef<string | null>(null);
+  const fetchNextCallCountRef = useRef<Record<string, number>>({});
   useEffect(() => {
     if (!field) return;
     const fid = canonId(field.id);
@@ -1685,6 +1689,15 @@ export default function SellProperty() {
 
       const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
 
+      // Debug: track how many times fetchNext resolves to the same field.
+      fetchNextCallCountRef.current[fieldId] =
+        (fetchNextCallCountRef.current[fieldId] || 0) + 1;
+      console.log("[fetchNext] resolved field", {
+        fieldId,
+        callCountForField: fetchNextCallCountRef.current[fieldId],
+        lastAskedFieldId: lastAskedFieldIdRef.current,
+      });
+
       const ui = adaptEngineField(fieldId, result.field);
 
       // =======================================================
@@ -1743,17 +1756,25 @@ export default function SellProperty() {
 
       // =======================================================
       // AI MESSAGE
+      // - Guard: do not append the same question twice if the
+      //   resolver returned the same fieldId we just asked
+      //   (can happen after editing a previously answered field).
       // =======================================================
 
-      setMessages((m) => [
-        ...m,
-        {
-          id: uid(),
-          role: "ai",
-          kind: "text",
-          text: result.question?.prompt || ui.question,
-        },
-      ]);
+      if (lastAskedFieldIdRef.current === fieldId) {
+        console.log("[fetchNext] duplicate question suppressed", { fieldId });
+      } else {
+        lastAskedFieldIdRef.current = fieldId;
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: result.question?.prompt || ui.question,
+          },
+        ]);
+      }
     } catch (e: any) {
       // =======================================================
       // REMOVE TYPING
@@ -2022,6 +2043,10 @@ export default function SellProperty() {
 
     setValue("");
 
+    // Reset duplicate-question guard before the next fetchNext call.
+    lastAskedFieldIdRef.current = null;
+
+
     await fetchNext(newState);
   };
 
@@ -2248,6 +2273,11 @@ export default function SellProperty() {
     // ============================================
 
     engineRef.current = createConversationEngine(category!);
+
+    // Reset duplicate-question guard on conversation restart.
+    lastAskedFieldIdRef.current = null;
+    fetchNextCallCountRef.current = {};
+
 
     engineRef.current.applyExtractedFields(cleared, {
       overwrite: true,
@@ -2929,6 +2959,11 @@ export default function SellProperty() {
     // ============================================
 
     setEditingFieldId(target.field.id);
+
+    // Reset duplicate-question guard so the next resumed question
+    // can be appended even if it shares the previous fieldId.
+    lastAskedFieldIdRef.current = null;
+
 
     setField(target.field);
 
