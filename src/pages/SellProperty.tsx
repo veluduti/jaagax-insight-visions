@@ -1971,26 +1971,28 @@ export default function SellProperty() {
     setHistory((h) => {
       const existingIndex = h.findIndex((x) => canonId(x.field.id) === canonId(f.id));
 
-      // Editing an already answered question
+      console.log("[commitAnswer] history before update", {
+        length: h.length,
+        existingIndex,
+        ids: h.map((x) => x.field.id),
+      });
+
+      let next: typeof h;
+      // Editing an already answered question — replace in place, never append
       if (existingIndex >= 0) {
         const copy = [...h];
-
-        copy[existingIndex] = {
-          field: f,
-          value: normalized,
-        };
-
-        return copy;
+        copy[existingIndex] = { field: f, value: normalized };
+        next = copy;
+      } else {
+        next = [...h, { field: f, value: normalized }];
       }
 
-      // New answer
-      return [
-        ...h,
-        {
-          field: f,
-          value: normalized,
-        },
-      ];
+      console.log("[commitAnswer] history after update", {
+        length: next.length,
+        ids: next.map((x) => x.field.id),
+      });
+
+      return next;
     });
 
     // =========================================================
@@ -2010,15 +2012,15 @@ export default function SellProperty() {
     } catch {}
 
     // =========================================================
-    // IMPORTANT
-    // clear AFTER apply
+    // Clear edit mode AFTER applying the answer so fetchNext
+    // resumes from the first unanswered field (preserves Q4..Qn).
     // =========================================================
+
+    if (isEditing) {
+      setEditingFieldId(null);
+    }
 
     setValue("");
-
-    // =========================================================
-    // FETCH NEXT
-    // =========================================================
 
     await fetchNext(newState);
   };
