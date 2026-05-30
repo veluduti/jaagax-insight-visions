@@ -176,7 +176,13 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "property_type", label: "Property type", type: "text", hideFor: ["coworking"] },
       { id: "listing_type", label: "Listing type", type: "text", hideFor: ["coworking"] },
       { id: "listed_by", label: "Listed by", type: "text" },
-      { id: "parking", label: "Parking", type: "text", placeholder: "e.g. 2 covered", onlyFor: ["residential", "commercial"] },
+      {
+        id: "parking",
+        label: "Parking",
+        type: "text",
+        placeholder: "e.g. 2 covered",
+        onlyFor: ["residential", "commercial"],
+      },
     ],
   },
   {
@@ -185,7 +191,13 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     fields: [
       { id: "floor_number", label: "Floor number", type: "number", onlyFor: ["residential", "commercial"] },
       { id: "total_floors", label: "Total floors", type: "number", onlyFor: ["residential", "commercial"] },
-      { id: "property_age", label: "Property age", type: "text", placeholder: "e.g. 5 years", onlyFor: ["residential", "commercial"] },
+      {
+        id: "property_age",
+        label: "Property age",
+        type: "text",
+        placeholder: "e.g. 5 years",
+        onlyFor: ["residential", "commercial"],
+      },
       { id: "land_size", label: "Land size", type: "text", hideFor: ["coworking"] },
       { id: "built_area", label: "Built area", type: "text", hideFor: ["plots", "agriculture"] },
       { id: "carpet_area", label: "Carpet area", type: "number", onlyFor: ["residential"] },
@@ -244,8 +256,20 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
         options: ["", "Ready to Move", "Under Construction"],
         onlyFor: ["residential", "commercial"],
       },
-      { id: "possession_date", label: "Possession date", type: "text", placeholder: "MMM YYYY", onlyFor: ["residential", "commercial"] },
-      { id: "available_from_date", label: "Available from", type: "text", placeholder: "MMM YYYY", onlyFor: ["residential", "commercial"] },
+      {
+        id: "possession_date",
+        label: "Possession date",
+        type: "text",
+        placeholder: "MMM YYYY",
+        onlyFor: ["residential", "commercial"],
+      },
+      {
+        id: "available_from_date",
+        label: "Available from",
+        type: "text",
+        placeholder: "MMM YYYY",
+        onlyFor: ["residential", "commercial"],
+      },
     ],
   },
 
@@ -273,7 +297,14 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     id: "compliance",
     title: "Compliance",
     fields: [
-      { id: "rera_number", label: "RERA number", type: "text", colSpan: 2, placeholder: "e.g. PRM/KA/RERA/...", onlyFor: ["residential", "commercial", "plots"] },
+      {
+        id: "rera_number",
+        label: "RERA number",
+        type: "text",
+        colSpan: 2,
+        placeholder: "e.g. PRM/KA/RERA/...",
+        onlyFor: ["residential", "commercial", "plots"],
+      },
     ],
   },
 
@@ -292,7 +323,13 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "office_amenities", label: "Office Amenities", type: "text", colSpan: 2, onlyFor: ["coworking"] },
       { id: "available_from", label: "Available From", type: "text", onlyFor: ["coworking"] },
       { id: "working_hours", label: "Working Hours", type: "text", onlyFor: ["coworking"] },
-      { id: "workspace_variant_details", label: "Workspace Variants", type: "textarea", colSpan: 2, onlyFor: ["coworking"] },
+      {
+        id: "workspace_variant_details",
+        label: "Workspace Variants",
+        type: "textarea",
+        colSpan: 2,
+        onlyFor: ["coworking"],
+      },
       { id: "hourly_price", label: "Hourly price (₹)", type: "number", onlyFor: ["coworking"] },
       { id: "daily_pass_price", label: "Daily pass (₹)", type: "number", onlyFor: ["coworking"] },
       { id: "weekly_price", label: "Weekly price (₹)", type: "number", onlyFor: ["coworking"] },
@@ -311,7 +348,13 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "total_plots", label: "Total plots", type: "number", onlyFor: ["plots"] },
       { id: "total_project_area", label: "Total project area", type: "text", onlyFor: ["plots"] },
       { id: "plot_measurements", label: "Plot measurements", type: "text", colSpan: 2, onlyFor: ["plots"] },
-      { id: "additional_features", label: "Additional features", type: "text", colSpan: 2, onlyFor: ["plots", "agriculture"] },
+      {
+        id: "additional_features",
+        label: "Additional features",
+        type: "text",
+        colSpan: 2,
+        onlyFor: ["plots", "agriculture"],
+      },
     ],
   },
 
@@ -327,7 +370,13 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "crops_grown", label: "Crops grown", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
       { id: "farm_infrastructure", label: "Farm infrastructure", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
       { id: "connectivity", label: "Connectivity", type: "text", colSpan: 2, onlyFor: ["agriculture"] },
-      { id: "partnership_details", label: "Partnership details", type: "textarea", colSpan: 2, onlyFor: ["agriculture"] },
+      {
+        id: "partnership_details",
+        label: "Partnership details",
+        type: "textarea",
+        colSpan: 2,
+        onlyFor: ["agriculture"],
+      },
     ],
   },
 
@@ -338,9 +387,21 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
       { id: "operating_as", label: "Currently operating as", type: "text", colSpan: 2, onlyFor: ["commercial"] },
       { id: "suitable_for", label: "Suitable for", type: "text", colSpan: 2, onlyFor: ["commercial"] },
       { id: "commercial_amenities", label: "Commercial amenities", type: "text", colSpan: 2, onlyFor: ["commercial"] },
-      { id: "commercial_furnishing", label: "Commercial furnishing", type: "text", colSpan: 2, onlyFor: ["commercial"] },
+      {
+        id: "commercial_furnishing",
+        label: "Commercial furnishing",
+        type: "text",
+        colSpan: 2,
+        onlyFor: ["commercial"],
+      },
       { id: "visibility_access", label: "Visibility & access", type: "text", colSpan: 2, onlyFor: ["commercial"] },
-      { id: "business_space_details", label: "Business space details", type: "textarea", colSpan: 2, onlyFor: ["commercial"] },
+      {
+        id: "business_space_details",
+        label: "Business space details",
+        type: "textarea",
+        colSpan: 2,
+        onlyFor: ["commercial"],
+      },
     ],
   },
 
@@ -348,7 +409,12 @@ export const EDIT_FIELD_CONFIG: EditFieldSection[] = [
     id: "pricing_extras",
     title: "Pricing",
     fields: [
-      { id: "rent_amount", label: "Rent amount (₹)", type: "number", onlyFor: ["residential", "commercial", "plots", "agriculture"] },
+      {
+        id: "rent_amount",
+        label: "Rent amount (₹)",
+        type: "number",
+        onlyFor: ["residential", "commercial", "plots", "agriculture"],
+      },
       { id: "monthly_rent", label: "Monthly rent (₹)", type: "number", onlyFor: ["residential"] },
     ],
   },
@@ -1876,36 +1942,34 @@ export default function SellProperty() {
       [finalFieldId]: normalized,
     };
 
-   // =========================================================
-// HISTORY
-// =========================================================
+    // =========================================================
+    // HISTORY
+    // =========================================================
 
-setHistory((h) => {
-  const existingIndex = h.findIndex(
-    (x) => canonId(x.field.id) === canonId(f.id)
-  );
+    setHistory((h) => {
+      const existingIndex = h.findIndex((x) => canonId(x.field.id) === canonId(f.id));
 
-  // Editing an already answered question
-  if (existingIndex >= 0) {
-    const copy = [...h];
+      // Editing an already answered question
+      if (existingIndex >= 0) {
+        const copy = [...h];
 
-    copy[existingIndex] = {
-      field: f,
-      value: normalized,
-    };
+        copy[existingIndex] = {
+          field: f,
+          value: normalized,
+        };
 
-    return copy;
-  }
+        return copy;
+      }
 
-  // New answer
-  return [
-    ...h,
-    {
-      field: f,
-      value: normalized,
-    },
-  ];
-});
+      // New answer
+      return [
+        ...h,
+        {
+          field: f,
+          value: normalized,
+        },
+      ];
+    });
 
     // =========================================================
     // SAVE STATE
@@ -2007,17 +2071,28 @@ setHistory((h) => {
       },
     ]);
 
-    // =========================================================
-    // HISTORY
-    // =========================================================
+    setHistory((h) => {
+      const existingIndex = h.findIndex((x) => canonId(x.field.id) === canonId(field.id));
 
-    setHistory((h) => [
-      ...h,
-      {
-        field,
-        value: null,
-      },
-    ]);
+      if (existingIndex >= 0) {
+        const copy = [...h];
+
+        copy[existingIndex] = {
+          field,
+          value: null,
+        };
+
+        return copy;
+      }
+
+      return [
+        ...h,
+        {
+          field,
+          value: null,
+        },
+      ];
+    });
 
     // =========================================================
     // NEW STATE
@@ -2806,31 +2881,31 @@ setHistory((h) => {
 
   /** Jump back to a previously answered field (edit it). Removes everything after it. */
 
- const jumpToField = async (fieldId: string) => {
-  const index = history.findIndex((h) => h.field.id === fieldId);
+  const jumpToField = async (fieldId: string) => {
+    const index = history.findIndex((h) => h.field.id === fieldId);
 
-  if (index === -1) return;
+    if (index === -1) return;
 
-  const target = history[index];
+    const target = history[index];
 
-  // ============================================
-  // KEEP ALL ANSWERS
-  // DO NOT DELETE HISTORY
-  // DO NOT DELETE STATE
-  // ============================================
+    // ============================================
+    // KEEP ALL ANSWERS
+    // DO NOT DELETE HISTORY
+    // DO NOT DELETE STATE
+    // ============================================
 
-  setField(target.field);
+    setField(target.field);
 
-  setValue(target.value || "");
+    setValue(target.value || "");
 
-  // (editor open state removed)
+    // (editor open state removed)
 
-  requestAnimationFrame(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     });
-  });
 
     // ============================================
     // REBUILD ENGINE STATE
