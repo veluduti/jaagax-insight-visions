@@ -1846,18 +1846,30 @@ export default function SellProperty() {
       userMessage = "Workspace configuration added";
     }
 
-    setMessages((m) => [
-      ...m,
-      {
-        id: uid(),
-        role: "user",
-        kind: "text",
-        text: userMessage,
-
-        // IMPORTANT
-        fieldId: f.id,
-      } as any,
-    ]);
+    setMessages((m) => {
+      // When editing, replace the prior user message for this field instead of appending a duplicate
+      if (isEditing) {
+        const idx = [...m].reverse().findIndex(
+          (msg: any) => msg.role === "user" && msg.fieldId && canonId(msg.fieldId) === canonId(f.id),
+        );
+        if (idx !== -1) {
+          const realIdx = m.length - 1 - idx;
+          const copy = [...m];
+          copy[realIdx] = { ...(copy[realIdx] as any), text: userMessage, fieldId: f.id } as any;
+          return copy;
+        }
+      }
+      return [
+        ...m,
+        {
+          id: uid(),
+          role: "user",
+          kind: "text",
+          text: userMessage,
+          fieldId: f.id,
+        } as any,
+      ];
+    });
 
     // =========================================================
     // NEW STATE
