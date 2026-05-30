@@ -1876,17 +1876,36 @@ export default function SellProperty() {
       [finalFieldId]: normalized,
     };
 
-    // =========================================================
-    // HISTORY
-    // =========================================================
+   // =========================================================
+// HISTORY
+// =========================================================
 
-    setHistory((h) => [
-      ...h,
-      {
-        field: f,
-        value: normalized,
-      },
-    ]);
+setHistory((h) => {
+  const existingIndex = h.findIndex(
+    (x) => canonId(x.field.id) === canonId(f.id)
+  );
+
+  // Editing an already answered question
+  if (existingIndex >= 0) {
+    const copy = [...h];
+
+    copy[existingIndex] = {
+      field: f,
+      value: normalized,
+    };
+
+    return copy;
+  }
+
+  // New answer
+  return [
+    ...h,
+    {
+      field: f,
+      value: normalized,
+    },
+  ];
+});
 
     // =========================================================
     // SAVE STATE
