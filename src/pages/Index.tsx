@@ -54,9 +54,11 @@ const Index = () => {
       <PromotedListings />
       
       {/* AI Insight Strip - Only shown to buyers with context. Lazy mount keeps initial paint fast. */}
-      <LazyMount fallback={<AISectionSkeleton />} rootMargin="300px" minHeight={240}>
-        <AIInsightStrip />
-      </LazyMount>
+      {role === "buyer" && (
+        <LazyMount fallback={<AISectionSkeleton />} rootMargin="300px">
+          <AIInsightStrip />
+        </LazyMount>
+      )}
       
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && showBuyRent && (
