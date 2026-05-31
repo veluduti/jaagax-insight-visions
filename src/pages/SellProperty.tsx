@@ -2806,7 +2806,7 @@ export default function SellProperty() {
 
         amenities: editForm.amenities || [],
 
-        approvals: editForm.approvals || [],
+        // approvals column doesn't exist on properties table — kept inside document_urls payload below
 
         payment_options: editForm.payment_options || [],
 
