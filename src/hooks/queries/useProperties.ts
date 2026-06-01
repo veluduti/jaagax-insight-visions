@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getFeaturedProperties,
-  getPartialProperties,
   getFavoritePropertyIds,
   addFavorite,
   removeFavorite,
@@ -12,7 +11,6 @@ import { queryKeys, STALE } from "./queryKeys";
 export const propertyKeys = {
   all: queryKeys.properties.all,
   featured: queryKeys.properties.featured,
-  partial: queryKeys.properties.partial,
   favorites: queryKeys.properties.favorites,
 };
 
@@ -20,14 +18,6 @@ export function useFeaturedProperties(detectedCity?: string) {
   return useQuery({
     queryKey: queryKeys.properties.featured(detectedCity),
     queryFn: () => getFeaturedProperties(detectedCity),
-    staleTime: STALE.MEDIUM,
-  });
-}
-
-export function usePartialProperties(detectedCity?: string) {
-  return useQuery({
-    queryKey: queryKeys.properties.partial(detectedCity),
-    queryFn: () => getPartialProperties(detectedCity),
     staleTime: STALE.MEDIUM,
   });
 }

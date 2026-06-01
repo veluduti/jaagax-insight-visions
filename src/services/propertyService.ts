@@ -68,7 +68,8 @@ async function fetchPublicProperties(opts: ListOptions = {}): Promise<PropertyRo
 }
 
 /**
- * Properties classified as "featured", optionally city-filtered.
+ * All public (non-draft) properties, optionally city-filtered.
+ * Featured + previously "partial" listings are now unified under Featured.
  */
 export async function getFeaturedProperties(detectedCity?: string): Promise<PropertyRow[]> {
   const rows = await fetchPublicProperties({
@@ -77,22 +78,8 @@ export async function getFeaturedProperties(detectedCity?: string): Promise<Prop
   const normalizedCity = canonicalizeCity(detectedCity);
   return rows
     .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
-    .filter((p) => classifyProperty(p) === "featured")
-    .slice(0, 4);
-}
-
-/**
- * Properties classified as "basic" / partial info, optionally city-filtered.
- */
-export async function getPartialProperties(detectedCity?: string): Promise<PropertyRow[]> {
-  const rows = await fetchPublicProperties({
-    orderBy: { column: "updated_at", ascending: false },
-  });
-  const normalizedCity = canonicalizeCity(detectedCity);
-  return rows
-    .filter((p) => !detectedCity || isSameCity(p.city, normalizedCity))
-    .filter((p) => classifyProperty(p) === "basic")
-    .slice(0, 8);
+    .filter((p) => classifyProperty(p) !== "draft")
+    .slice(0, 12);
 }
 
 /* ---------------- Favorites ---------------- */

@@ -85,7 +85,7 @@ const EditBuilderProfile = lazy(() => import("./pages/EditBuilderProfile"));
 const BuilderProfileDetail = lazy(() => import("./pages/BuilderProfileDetail"));
 const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
 const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
-const PartialPropertiesPage = lazy(() => import("./pages/PartialPropertiesPage"));
+
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
 const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
@@ -173,7 +173,6 @@ const App = () => (
           <Route path="/innovation" element={<InnovationHub />} />
           <Route path="/compare" element={<CompareProperties />} />
           <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
-          <Route path="/partial-properties" element={<PartialPropertiesPage />} />
           <Route path="/select-location" element={<SelectLocation />} />
 
           {/* AI Advisor Routes */}

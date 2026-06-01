@@ -23,7 +23,6 @@ export const queryKeys = {
   properties: {
     all: ["properties"] as const,
     featured: (city?: string) => ["properties", "featured", city ?? "all"] as const,
-    partial: (city?: string) => ["properties", "partial", city ?? "all"] as const,
     detail: (idOrSlug: string) => ["properties", "detail", idOrSlug] as const,
     favorites: (userId: string | null | undefined) => ["favorites", userId ?? "anon"] as const,
   },
