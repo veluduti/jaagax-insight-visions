@@ -2848,8 +2848,31 @@ export default function SellProperty() {
         },
       };
 
+      // Safety net: only send columns that exist on the `properties` table.
+      // Any unknown keys (from AI extraction or future schema drift) are dropped
+      // here and still preserved inside `document_urls` / `property_details`.
+      const PROPERTIES_COLUMNS = new Set([
+        "submitted_by","title","description","type","listing_type","listed_by",
+        "price","price_negotiable","maintenance_charges","booking_amount",
+        "area_sqft","building_area_sqft","bhk","bedrooms","bathrooms","balconies",
+        "floor_number","total_floors","total_parking","elevators",
+        "furnishing","completion_stage","property_age","building_name",
+        "city","locality","address","pincode","latitude","longitude",
+        "amenities","retail_centres","rera_id","rera_document_url",
+        "images","video_urls","is_draft","is_featured","is_live","verified",
+        "verification_status","listing_status","assigned_agent_id",
+        "agent_submitted_at","agent_data","agent_notes","field_verification",
+        "document_urls","original_snapshot","final_data","slug","trust_score",
+        "rejection_reason","expiry_date","featured_until","boost_payment_ref",
+        "builder_id",
+      ]);
+      const cleanPayload: any = {};
+      for (const k of Object.keys(payload)) {
+        if (PROPERTIES_COLUMNS.has(k)) cleanPayload[k] = payload[k];
+      }
+
       const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
-        .insert(payload)
+        .insert(cleanPayload)
         .select("id")
         .single();
       if (insErr) throw insErr;
