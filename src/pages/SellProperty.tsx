@@ -2771,27 +2771,15 @@ export default function SellProperty() {
 
         furnishing: editForm.furnishing || null,
 
-        facing: editForm.facing || null,
-
-        gated_community: editForm.gated_community || null,
-
-        ownership: editForm.ownership || null,
-
         property_age: editForm.property_age || null,
 
         // ============================================
-        // AREA
+        // AREA (extra area fields preserved in document_urls below)
         // ============================================
 
-        land_size: editForm.land_size || null,
-
-        built_area: editForm.built_area || null,
-
-        built_up_area: editForm.built_up_area || null,
-
-        plot_area: editForm.plot_area || null,
-
-        plot_measurements: editForm.plot_measurements || {},
+        building_area_sqft: editForm.built_up_area
+          ? parseFloat(String(editForm.built_up_area).replace(/[^\d.]/g, "")) || null
+          : null,
 
         // ============================================
         // LOCATION
@@ -2806,16 +2794,10 @@ export default function SellProperty() {
         pincode: editForm.pincode || state.pincode || null,
 
         // ============================================
-        // FEATURES
+        // FEATURES (facing/ownership/highlights/payment_options/etc. preserved in document_urls)
         // ============================================
 
         amenities: editForm.amenities || [],
-
-        // approvals column doesn't exist on properties table — kept inside document_urls payload below
-
-        payment_options: editForm.payment_options || [],
-
-        highlights: editForm.highlights || [],
 
         // ============================================
         // DOCUMENTS
