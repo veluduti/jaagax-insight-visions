@@ -3534,16 +3534,55 @@ export default function SellProperty() {
                   </button>
                 );
 
-                /* ------ Edit drawer: config-driven sections (Phase 2) ------ */
-                const activeCategory = state.category as PropertyCategory | undefined;
-                const visibleSections = EDIT_FIELD_CONFIG.map((section) => ({
-                  ...section,
-                  fields: section.fields.filter((f) => {
-                    if (f.onlyFor && activeCategory && !f.onlyFor.includes(activeCategory)) return false;
-                    if (f.hideFor && activeCategory && f.hideFor.includes(activeCategory)) return false;
+                /* ------ Edit drawer: config-driven sections (Phase 2) ------
+                 * Resolve active category from the React state set during
+                 * category pick (state stores `property_category`, not
+                 * `category`). Then apply STRICT filtering:
+                 *  - If field has onlyFor → must include activeCategory.
+                 *  - If field has hideFor → must NOT include activeCategory.
+                 *  - If field has neither (universal) → only show when the AI
+                 *    actually collected a value for it.
+                 * Category-specific sections (Coworking/Plot/Agriculture/
+                 * Commercial) are hard-gated to their matching category.
+                 */
+                const activeCategory = (category ||
+                  (state as any).property_category ||
+                  (state as any).category) as PropertyCategory | undefined;
+
+                const hasValue = (id: string) => {
+                  const v = (editForm as any)[id] ?? (state as any)[id];
+                  if (v === null || v === undefined || v === "") return false;
+                  if (Array.isArray(v)) return v.length > 0;
+                  if (typeof v === "object") return Object.keys(v).length > 0;
+                  return true;
+                };
+
+                const CATEGORY_SECTION_GATE: Record<string, PropertyCategory> = {
+                  coworking: "coworking",
+                  plot_details: "plots",
+                  agriculture_details: "agriculture",
+                  commercial_details: "commercial",
+                };
+
+                const visibleSections = EDIT_FIELD_CONFIG
+                  .filter((section) => {
+                    const gated = CATEGORY_SECTION_GATE[section.id];
+                    if (gated && activeCategory && gated !== activeCategory) return false;
                     return true;
-                  }),
-                })).filter((s) => s.fields.length > 0);
+                  })
+                  .map((section) => ({
+                    ...section,
+                    fields: section.fields.filter((f) => {
+                      if (activeCategory) {
+                        if (f.onlyFor && !f.onlyFor.includes(activeCategory)) return false;
+                        if (f.hideFor && f.hideFor.includes(activeCategory)) return false;
+                      }
+                      // Universal fields → only render if AI collected a value
+                      if (!f.onlyFor && !f.hideFor && !hasValue(f.id)) return false;
+                      return true;
+                    }),
+                  }))
+                  .filter((s) => s.fields.length > 0);
 
                 return (
                   <motion.div
@@ -3922,14 +3961,25 @@ export default function SellProperty() {
                                   const rawVal = (editForm as any)[f.id];
                                   const isArr = Array.isArray(rawVal);
                                   const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
-                                  // Display value: arrays -> "a, b, c", objects -> "k: v, k: v"
+                                  // Format a {value, unit} measurement object → "20 Ft"
+                                  const fmtMeasure = (m: any): string => {
+                                    if (m == null) return "";
+                                    if (typeof m !== "object") return String(m);
+                                    if ("value" in m || "unit" in m) {
+                                      const v = m.value ?? "";
+                                      const u = m.unit ?? "";
+                                      return [v, u].filter(Boolean).join(" ").trim();
+                                    }
+                                    return Object.entries(m)
+                                      .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                                      .map(([k, v]) => `${k}: ${fmtMeasure(v)}`)
+                                      .join(", ");
+                                  };
+                                  // Display value: arrays -> "a, b, c", objects -> formatted
                                   const val = isArr
-                                    ? (rawVal as any[]).join(", ")
+                                    ? (rawVal as any[]).map((x) => (typeof x === "object" ? fmtMeasure(x) : x)).join(", ")
                                     : isObj
-                                      ? Object.entries(rawVal as Record<string, any>)
-                                          .filter(([, v]) => v !== null && v !== undefined && v !== "")
-                                          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("/") : v}`)
-                                          .join(", ")
+                                      ? fmtMeasure(rawVal)
                                       : (rawVal ?? "");
                                   const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
                                   const onTextChange = (raw: string) => {
