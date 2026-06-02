@@ -3961,14 +3961,25 @@ export default function SellProperty() {
                                   const rawVal = (editForm as any)[f.id];
                                   const isArr = Array.isArray(rawVal);
                                   const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
-                                  // Display value: arrays -> "a, b, c", objects -> "k: v, k: v"
+                                  // Format a {value, unit} measurement object → "20 Ft"
+                                  const fmtMeasure = (m: any): string => {
+                                    if (m == null) return "";
+                                    if (typeof m !== "object") return String(m);
+                                    if ("value" in m || "unit" in m) {
+                                      const v = m.value ?? "";
+                                      const u = m.unit ?? "";
+                                      return [v, u].filter(Boolean).join(" ").trim();
+                                    }
+                                    return Object.entries(m)
+                                      .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                                      .map(([k, v]) => `${k}: ${fmtMeasure(v)}`)
+                                      .join(", ");
+                                  };
+                                  // Display value: arrays -> "a, b, c", objects -> formatted
                                   const val = isArr
-                                    ? (rawVal as any[]).join(", ")
+                                    ? (rawVal as any[]).map((x) => (typeof x === "object" ? fmtMeasure(x) : x)).join(", ")
                                     : isObj
-                                      ? Object.entries(rawVal as Record<string, any>)
-                                          .filter(([, v]) => v !== null && v !== undefined && v !== "")
-                                          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join("/") : v}`)
-                                          .join(", ")
+                                      ? fmtMeasure(rawVal)
                                       : (rawVal ?? "");
                                   const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
                                   const onTextChange = (raw: string) => {
