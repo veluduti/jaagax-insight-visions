@@ -747,6 +747,14 @@ const getPlotSuggestions = (input: string) => {
   return [`${input} Plots`];
 };
 
+const getCountSuggestions = (input: string, singular: string) => {
+  if (!/^\d+$/.test(input)) return [];
+
+  const num = Number(input);
+
+  return [`${input} ${num === 1 ? singular : singular + "s"}`];
+};
+
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
