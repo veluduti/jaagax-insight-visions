@@ -9,269 +9,180 @@
 // Lightweight + scalable.
 // ============================================================
 
-export type PriceUnit =
-| "Sq Ft"
-| "Sq Yard"
-| "Cent"
-| "Gunta"
-| "Acre"
-| "Bigha"
-| "Hectare"
-| "Sq M"
-| "Katha";
+export type PriceUnit = "Sq Ft" | "Sq Yard" | "Cent" | "Gunta" | "Acre" | "Bigha" | "Hectare" | "Sq M" | "Katha";
 
 // ============================================================
 // TYPES
 // ============================================================
 
 export interface PriceSuggestion {
-label: string;
+  label: string;
 
-value: number;
+  value: number;
 }
 
 export interface RentSuggestion {
-label: string;
+  label: string;
 
-value: number;
+  value: number;
 
-duration: string;
+  duration: string;
 }
 
 export interface UnitSuggestion {
-label: string;
+  label: string;
 
-value: number;
+  value: number;
 
-unit: PriceUnit;
+  unit: PriceUnit;
 }
 
 // ============================================================
 // HELPERS
 // ============================================================
 
-function cleanNumericInput(
-input: string | number,
-): number {
-if (
-typeof input === "number"
-) {
-return input;
-}
+function cleanNumericInput(input: string | number): number {
+  if (typeof input === "number") {
+    return input;
+  }
 
-const lower =
-input.toLowerCase();
+  const lower = input.toLowerCase();
 
-// ==========================================================
-// 25K
-// ==========================================================
+  // ==========================================================
+  // 25K
+  // ==========================================================
 
-if (
-lower.endsWith("k")
-) {
-return (
-parseFloat(lower) *
-1000
-);
-}
+  if (lower.endsWith("k")) {
+    return parseFloat(lower) * 1000;
+  }
 
-// ==========================================================
-// 50L
-// ==========================================================
+  // ==========================================================
+  // 50L
+  // ==========================================================
 
-if (
-lower.endsWith("l")
-) {
-return (
-parseFloat(lower) *
-100000
-);
-}
+  if (lower.endsWith("l")) {
+    return parseFloat(lower) * 100000;
+  }
 
-// ==========================================================
-// 2CR
-// ==========================================================
+  // ==========================================================
+  // 2CR
+  // ==========================================================
 
-if (
-lower.endsWith("cr")
-) {
-return (
-parseFloat(lower) *
-10000000
-);
-}
+  if (lower.endsWith("cr")) {
+    return parseFloat(lower) * 10000000;
+  }
 
-const cleaned =
-input.replace(
-/[^0-9.]/g,
-"",
-);
+  const cleaned = input.replace(/[^0-9.]/g, "");
 
-return parseFloat(cleaned);
+  return parseFloat(cleaned);
 }
 
 // ============================================================
 // FORMAT INDIAN NUMBER
 // ============================================================
 
-export function formatIndianNumber(
-value: number,
-): string {
-if (
-!Number.isFinite(value) ||
-value <= 0
-) {
-return "";
-}
+export function formatIndianNumber(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "";
+  }
 
-const trim = (
-n: number,
-) => {
-const s =
-n.toFixed(2);
+  const trim = (n: number) => {
+    const s = n.toFixed(2);
 
-return s
-  .replace(/\.00$/, "")
-  .replace(
-    /(\.\d*[1-9])0+$/,
-    "$1",
-  );
+    return s.replace(/\.00$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+  };
 
-};
+  // ==========================================================
+  // CRORE
+  // ==========================================================
 
-// ==========================================================
-// CRORE
-// ==========================================================
+  if (value >= 10000000) {
+    return `${trim(value / 10000000)} Crore`;
+  }
 
-if (
-value >= 10000000
-) {
-return `${trim(
-      value / 10000000,
-    )} Crore`;
-}
+  // ==========================================================
+  // LAKH
+  // ==========================================================
 
-// ==========================================================
-// LAKH
-// ==========================================================
+  if (value >= 100000) {
+    return `${trim(value / 100000)} Lakh`;
+  }
 
-if (
-value >= 100000
-) {
-return `${trim(
-      value / 100000,
-    )} Lakh`;
-}
+  // ==========================================================
+  // THOUSAND
+  // ==========================================================
 
-// ==========================================================
-// THOUSAND
-// ==========================================================
+  if (value >= 1000) {
+    return `${trim(value / 1000)} Thousand`;
+  }
 
-if (
-value >= 1000
-) {
-return `${trim(
-      value / 1000,
-    )} Thousand`;
-}
-
-return new Intl.NumberFormat(
-"en-IN",
-).format(value);
+  return new Intl.NumberFormat("en-IN").format(value);
 }
 
 // ============================================================
 // PRICE SUGGESTIONS
 // ============================================================
 
-export function getPriceSuggestions(
-input: string | number,
-): PriceSuggestion[] {
-const raw =
-cleanNumericInput(input);
+export function getPriceSuggestions(input: string | number): PriceSuggestion[] {
+  const raw = cleanNumericInput(input);
 
-if (
-!Number.isFinite(raw) ||
-raw <= 0
-) {
-return [];
-}
+  if (!Number.isFinite(raw) || raw <= 0) {
+    return [];
+  }
 
-const suggestions: PriceSuggestion[] =
-[];
+  const suggestions: PriceSuggestion[] = [];
 
-const seen =
-new Set<number>();
+  const seen = new Set<number>();
 
-const push = (
-value: number,
-) => {
-if (
-!Number.isFinite(
-value,
-) ||
-value <= 0 ||
-seen.has(value)
-) {
-return;
-}
+  const push = (value: number) => {
+    if (!Number.isFinite(value) || value <= 0 || seen.has(value)) {
+      return;
+    }
 
-seen.add(value);
+    seen.add(value);
 
-suggestions.push({
-  label: `₹ ${formatIndianNumber(
-    value,
-  )}`,
+    suggestions.push({
+      label: `₹ ${formatIndianNumber(value)}`,
 
-  value,
-});
+      value,
+    });
+  };
 
-};
+  // ==========================================================
+  // RAW VALUE
+  // ==========================================================
 
-// ==========================================================
-// RAW VALUE
-// ==========================================================
+  push(raw);
 
-push(raw);
+  // ==========================================================
+  // SMALL NUMBERS
+  // ==========================================================
 
-// ==========================================================
-// SMALL NUMBERS
-// ==========================================================
+  if (raw < 100) {
+    push(raw * 1000);
 
-if (raw < 100) {
-push(raw * 1000);
+    push(raw * 100000);
 
-push(raw * 100000);
+    push(raw * 10000000);
+  }
 
-push(raw * 10000000);
+  // ==========================================================
+  // MEDIUM NUMBERS
+  // ==========================================================
+  else if (raw < 1000) {
+    push(raw * 1000);
 
-}
+    push(raw * 100000);
+  }
 
-// ==========================================================
-// MEDIUM NUMBERS
-// ==========================================================
+  // ==========================================================
+  // LARGE NUMBERS
+  // ==========================================================
+  else if (raw < 100000) {
+    push(raw * 100);
+  }
 
-else if (raw < 1000) {
-push(raw * 1000);
-
-push(raw * 100000);
-
-}
-
-// ==========================================================
-// LARGE NUMBERS
-// ==========================================================
-
-else if (
-raw < 100000
-) {
-push(raw * 100);
-}
-
-return suggestions.slice(
-0,
-6,
-);
+  return suggestions.slice(0, 6);
 }
 
 // ============================================================
@@ -279,41 +190,25 @@ return suggestions.slice(
 // ============================================================
 
 export function getRentSuggestions(
-input: string | number,
+  input: string | number,
 
-durations: string[] = [
-"Monthly",
-"Weekly",
-"Daily",
-"3 Months",
-"Yearly",
-],
+  durations: string[] = ["Monthly", "Weekly", "Daily", "3 Months", "Yearly"],
 ): RentSuggestion[] {
-const raw =
-cleanNumericInput(input);
+  const raw = cleanNumericInput(input);
 
-if (
-!Number.isFinite(raw) ||
-raw <= 0
-) {
-return [];
-}
+  if (!Number.isFinite(raw) || raw <= 0) {
+    return [];
+  }
 
-const formatted =
-new Intl.NumberFormat(
-"en-IN",
-).format(raw);
+  const formatted = new Intl.NumberFormat("en-IN").format(raw);
 
-return durations.map(
-(duration) => ({
-label: `₹${formatted} / ${duration}`,
+  return durations.map((duration) => ({
+    label: `₹${formatted} / ${duration}`,
 
-  value: raw,
+    value: raw,
 
-  duration,
-}),
-
-);
+    duration,
+  }));
 }
 
 // ============================================================
@@ -321,37 +216,23 @@ label: `₹${formatted} / ${duration}`,
 // ============================================================
 
 export function getUnitSuggestions(
-input: string | number,
+  input: string | number,
 
-units: PriceUnit[] = [
-"Sq Ft",
-"Sq Yard",
-"Cent",
-"Gunta",
-"Acre",
-"Bigha",
-],
+  units: PriceUnit[] = ["Sq Ft", "Sq Yard", "Cent", "Gunta", "Acre", "Bigha"],
 ): UnitSuggestion[] {
-const raw =
-cleanNumericInput(input);
+  const raw = cleanNumericInput(input);
 
-if (
-!Number.isFinite(raw) ||
-raw <= 0
-) {
-return [];
-}
+  if (!Number.isFinite(raw) || raw <= 0) {
+    return [];
+  }
 
-return units.map(
-(unit) => ({
-label: `${raw} ${unit}`,
+  return units.map((unit) => ({
+    label: `${raw} ${unit}`,
 
-  value: raw,
+    value: raw,
 
-  unit,
-}),
-
-);
+    unit,
+  }));
 }
 
 // ============================================================
@@ -370,10 +251,7 @@ export interface FieldSuggestionResult {
   searchable: boolean;
 }
 
-export function getSuggestionsForField(
-  field: any,
-  input: string | number,
-): FieldSuggestionResult {
+export function getSuggestionsForField(field: any, input: string | number): FieldSuggestionResult {
   const ss = field?.smartSuggestions || {};
   const realtime = ss.realtime === true;
   const searchable = ss.searchable === true;
@@ -383,7 +261,7 @@ export function getSuggestionsForField(
   let chips: UnifiedSuggestion[] = [];
 
   // ---- price family ----
-  if (kind === "price" || kind === "price_per_unit" || ss.type === "indian_price_format") {
+  if (kind === "price" || ss.type === "indian_price_format") {
     if (inputStr) {
       chips = getPriceSuggestions(inputStr).map((s) => ({
         label: s.label,
@@ -396,9 +274,10 @@ export function getSuggestionsForField(
   // ---- rental ----
   else if (kind === "rental_price" || ss.type === "rental_duration") {
     if (inputStr) {
-      const durations = Array.isArray(ss.durations) && ss.durations.length
-        ? ss.durations
-        : ["Monthly", "Weekly", "Daily", "3 Months", "Yearly"];
+      const durations =
+        Array.isArray(ss.durations) && ss.durations.length
+          ? ss.durations
+          : ["Monthly", "Weekly", "Daily", "3 Months", "Yearly"];
       chips = getRentSuggestions(inputStr, durations).map((s) => ({
         label: s.label,
         commit: { amount: s.value, duration: s.duration },
@@ -415,11 +294,13 @@ export function getSuggestionsForField(
     ss.type === "dynamic_measurement_units" ||
     ss.type === "dynamic_price_per_unit"
   ) {
-    const units = (Array.isArray(ss.units) && ss.units.length
-      ? ss.units
-      : Array.isArray(field?.units) && field.units.length
-        ? field.units
-        : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha"]) as PriceUnit[];
+    const units = (
+      Array.isArray(ss.units) && ss.units.length
+        ? ss.units
+        : Array.isArray(field?.units) && field.units.length
+          ? field.units
+          : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent", "Bigha"]
+    ) as PriceUnit[];
 
     if (inputStr) {
       chips = getUnitSuggestions(inputStr, units).map((s) => ({
