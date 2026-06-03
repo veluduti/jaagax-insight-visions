@@ -3534,28 +3534,56 @@ export default function SellProperty() {
                   </button>
                 );
 
-                /* ------ Edit drawer: config-driven sections (Phase 2) ------
-                 * Resolve active category from the React state set during
-                 * category pick (state stores `property_category`, not
-                 * `category`). Then apply STRICT filtering:
-                 *  - If field has onlyFor → must include activeCategory.
-                 *  - If field has hideFor → must NOT include activeCategory.
-                 *  - If field has neither (universal) → only show when the AI
-                 *    actually collected a value for it.
-                 * Category-specific sections (Coworking/Plot/Agriculture/
-                 * Commercial) are hard-gated to their matching category.
+                /* ------ Edit drawer: REVIEW + CORRECTION (answered-only) ------
+                 * Rule: render a field ONLY IF the AI actually collected a value
+                 * for it (or the user typed one). Category onlyFor/hideFor still
+                 * gate visibility, but the primary filter is `answered === true`.
+                 * Aliases handle the AI mapping bug where the same logical field
+                 * lives under different keys (e.g. built_area vs built_up_area).
                  */
                 const activeCategory = (category ||
                   (state as any).property_category ||
                   (state as any).category) as PropertyCategory | undefined;
 
-                const hasValue = (id: string) => {
-                  const v = (editForm as any)[id] ?? (state as any)[id];
-                  if (v === null || v === undefined || v === "") return false;
-                  if (Array.isArray(v)) return v.length > 0;
-                  if (typeof v === "object") return Object.keys(v).length > 0;
-                  return true;
+                const FIELD_ALIASES: Record<string, string[]> = {
+                  built_area: ["built_area", "built_up_area", "builtup_area", "building_area_sqft", "flat_size"],
+                  built_up_area: ["built_up_area", "built_area", "builtup_area", "building_area_sqft", "flat_size"],
+                  area: ["area", "area_sqft", "total_area"],
+                  bhk: ["bhk", "configuration"],
+                  bathrooms: ["bathrooms", "bathroom_count"],
+                  bedrooms: ["bedrooms"],
+                  floor_number: ["floor_number", "floor"],
+                  total_floors: ["total_floors"],
+                  property_type: ["property_type", "residential_type", "type"],
+                  listing_type: ["listing_type"],
+                  listed_by: ["listed_by", "owner_type"],
+                  project_name: ["project_name", "society_name", "building_name"],
+                  total_price: ["total_price", "price"],
+                  price_per_unit: ["price_per_unit", "price_per_sqft"],
+                  monthly_rent: ["monthly_rent", "rent"],
+                  furnishing: ["furnishing", "furnishing_status"],
+                  facing: ["facing"],
+                  amenities: ["amenities"],
+                  approvals: ["approvals"],
+                  payment_options: ["payment_options"],
+                  highlights: ["highlights"],
+                  gated_community: ["gated_community"],
+                  property_age: ["property_age"],
                 };
+
+                const readValue = (id: string): any => {
+                  const keys = FIELD_ALIASES[id] || [id];
+                  for (const k of keys) {
+                    const v = (editForm as any)[k] ?? (state as any)[k];
+                    if (v === null || v === undefined || v === "") continue;
+                    if (Array.isArray(v) && v.length === 0) continue;
+                    if (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0) continue;
+                    return v;
+                  }
+                  return undefined;
+                };
+
+                const isAnswered = (id: string) => readValue(id) !== undefined;
 
                 const CATEGORY_SECTION_GATE: Record<string, PropertyCategory> = {
                   coworking: "coworking",
@@ -3563,6 +3591,9 @@ export default function SellProperty() {
                   agriculture_details: "agriculture",
                   commercial_details: "commercial",
                 };
+
+                // Always-editable scaffolding fields a review screen needs.
+                const ALWAYS_SHOW = new Set<string>(["title", "description", "city", "locality"]);
 
                 const visibleSections = EDIT_FIELD_CONFIG
                   .filter((section) => {
@@ -3577,12 +3608,27 @@ export default function SellProperty() {
                         if (f.onlyFor && !f.onlyFor.includes(activeCategory)) return false;
                         if (f.hideFor && f.hideFor.includes(activeCategory)) return false;
                       }
-                      // Universal fields → only render if AI collected a value
-                      if (!f.onlyFor && !f.hideFor && !hasValue(f.id)) return false;
-                      return true;
+                      // Primary rule: render only if answered (or always-show).
+                      if (ALWAYS_SHOW.has(f.id)) return true;
+                      return isAnswered(f.id);
                     }),
                   }))
                   .filter((s) => s.fields.length > 0);
+
+                // Backfill editForm aliases so the input shows the AI value
+                // (e.g. AI stored `built_up_area` but field id is `built_area`).
+                for (const section of visibleSections) {
+                  for (const f of section.fields) {
+                    if (
+                      (editForm as any)[f.id] === undefined ||
+                      (editForm as any)[f.id] === null ||
+                      (editForm as any)[f.id] === ""
+                    ) {
+                      const v = readValue(f.id);
+                      if (v !== undefined) (editForm as any)[f.id] = v;
+                    }
+                  }
+                }
 
                 return (
                   <motion.div
