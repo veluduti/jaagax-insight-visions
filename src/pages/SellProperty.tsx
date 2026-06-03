@@ -2783,6 +2783,12 @@ export default function SellProperty() {
 
   /* ----- Final submit ----- */
   const onSubmit = async () => {
+    // Block Publish when business rules fail (floor/total_floors, dates).
+    const ruleError = validateBusinessRules({ ...state, ...editForm });
+    if (ruleError) {
+      toast.error(ruleError);
+      return;
+    }
     setSubmitting(true);
     try {
       const {
