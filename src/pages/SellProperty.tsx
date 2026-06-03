@@ -1034,6 +1034,13 @@ export default function SellProperty() {
       return;
     }
 
+    const countLabel = COUNT_FIELD_LABELS[fid];
+
+    if (countLabel && typeof value === "string") {
+      setSuggestions(getCountSuggestions(value, countLabel));
+      return;
+    }
+
     if (fid === "bathrooms" && typeof value === "string") {
       setSuggestions(getBathroomSuggestions(value));
 
