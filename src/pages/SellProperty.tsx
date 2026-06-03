@@ -1125,12 +1125,20 @@ export default function SellProperty() {
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
+    // Coerce count fields so <input type="number"> shows the value.
+    const coerced: Record<string, any> = { ...canonical };
+    for (const id of COUNT_FIELD_IDS) {
+      if (coerced[id] !== undefined && coerced[id] !== null && coerced[id] !== "") {
+        const n = toIntCount(coerced[id]);
+        if (n !== "") coerced[id] = n;
+      }
+    }
     setEditForm({
-      ...canonical,
+      ...coerced,
 
-      title: aiTitles[selectedTitleIdx || 0]?.title || canonical.title || "",
+      title: aiTitles[selectedTitleIdx || 0]?.title || coerced.title || "",
 
-      description: canonical.description || buildPropertyDescription(canonical),
+      description: coerced.description || buildPropertyDescription(coerced),
     });
 
     setShowEditSheet(true);
