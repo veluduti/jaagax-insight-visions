@@ -4596,12 +4596,7 @@ export default function SellProperty() {
 
                       if (sType === "rental_duration") {
                         chips = getRentSuggestions(value, field.durations);
-                      } else if (canonId(field?.id) === "price_per_unit") {
-                        chips = getPriceUnitSuggestions(String(value)).map((v) => ({
-                          label: v,
-                          value: v,
-                        }));
-                      } else if (sType === "price") {
+                      } else if (sType === "price" || sType === "price_per_unit") {
                         chips = getPriceSuggestions(value);
                       } else if (sType === "measurement_units") {
                         chips = getUnitSuggestions(
