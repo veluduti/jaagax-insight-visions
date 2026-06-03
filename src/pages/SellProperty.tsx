@@ -166,8 +166,8 @@ const COUNT_FIELD_IDS = new Set<string>([
 
 const COUNT_FIELD_LABELS: Record<string, string> = {
   total_towers: "Tower",
+  floors_per_tower: "Floor",
   total_units: "Unit",
-  total_floors: "Floor",
 };
 
 function toIntCount(v: any): number | "" {
