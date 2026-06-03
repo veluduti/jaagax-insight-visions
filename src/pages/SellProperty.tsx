@@ -164,12 +164,6 @@ const COUNT_FIELD_IDS = new Set<string>([
   "total_rooms",
 ]);
 
-const COUNT_FIELD_LABELS: Record<string, string> = {
-  total_towers: "Tower",
-  floors_per_tower: "Floor",
-  total_units: "Unit",
-};
-
 function toIntCount(v: any): number | "" {
   if (v === null || v === undefined || v === "") return "";
   if (typeof v === "number" && Number.isFinite(v)) return Math.trunc(v);
@@ -753,14 +747,6 @@ const getPlotSuggestions = (input: string) => {
   return [`${input} Plots`];
 };
 
-const getCountSuggestions = (input: string, singular: string) => {
-  if (!/^\d+$/.test(input)) return [];
-
-  const num = Number(input);
-
-  return [`${input} ${num === 1 ? singular : singular + "s"}`];
-};
-
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
@@ -1031,13 +1017,6 @@ export default function SellProperty() {
 
     if (fid === "price_per_unit" && typeof value === "string") {
       setSuggestions(getPriceUnitSuggestions(value));
-      return;
-    }
-
-    const countLabel = COUNT_FIELD_LABELS[fid];
-
-    if (countLabel && typeof value === "string") {
-      setSuggestions(getCountSuggestions(value, countLabel));
       return;
     }
 
