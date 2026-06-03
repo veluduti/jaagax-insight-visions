@@ -261,7 +261,7 @@ export function getSuggestionsForField(field: any, input: string | number): Fiel
   let chips: UnifiedSuggestion[] = [];
 
   // ---- price family ----
-  if (kind === "price" || ss.type === "indian_price_format") {
+  if (kind === "price" || kind === "price_per_unit" || ss.type === "indian_price_format") {
     if (inputStr) {
       chips = getPriceSuggestions(inputStr).map((s) => ({
         label: s.label,
