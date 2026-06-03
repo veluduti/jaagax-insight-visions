@@ -4594,7 +4594,12 @@ export default function SellProperty() {
 
                       if (sType === "rental_duration") {
                         chips = getRentSuggestions(value, field.durations);
-                      } else if (sType === "price" || sType === "price_per_unit") {
+                      } else if (sType === "price_per_unit") {
+                        chips = getPriceUnitSuggestions(value).map((v) => ({
+                          label: v,
+                          value: v,
+                        }));
+                      } else if (sType === "price") {
                         chips = getPriceSuggestions(value);
                       } else if (sType === "measurement_units") {
                         chips = getUnitSuggestions(
