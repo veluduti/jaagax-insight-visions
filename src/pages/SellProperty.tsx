@@ -1656,11 +1656,11 @@ export default function SellProperty() {
 
           bhk: canonicalState.bhk || "",
 
-          bedrooms: canonicalState.bedrooms || "",
+          bedrooms: toIntCount(canonicalState.bedrooms) || "",
 
-          bathrooms: canonicalState.bathrooms || "",
+          bathrooms: toIntCount(canonicalState.bathrooms ?? canonicalState.bathroom_count) || "",
 
-          balconies: canonicalState.balconies || "",
+          balconies: toIntCount(canonicalState.balconies) || "",
 
           furnishing: canonicalState.furnishing || "",
 
@@ -1674,9 +1674,9 @@ export default function SellProperty() {
           // AREA
           // ============================================
 
-          floor_number: canonicalState.floor_number || canonicalState.floor || "",
+          floor_number: toIntCount(canonicalState.floor_number ?? canonicalState.floor) || "",
 
-          total_floors: canonicalState.total_floors || canonicalState.floors || "",
+          total_floors: toIntCount(canonicalState.total_floors ?? canonicalState.floors) || "",
 
           land_size: canonicalState.land_size || canonicalState.plot_area || "",
 
