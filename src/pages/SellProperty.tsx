@@ -1150,6 +1150,13 @@ export default function SellProperty() {
       ...editForm,
     };
 
+    // Block Save when business rules fail (floor/total_floors, dates).
+    const ruleError = validateBusinessRules(updated);
+    if (ruleError) {
+      toast.error(ruleError);
+      return;
+    }
+
     setState(updated);
 
     try {
