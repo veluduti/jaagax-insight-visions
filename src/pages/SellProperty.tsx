@@ -1015,8 +1015,13 @@ export default function SellProperty() {
     // PRICE UNIT Suggestions
     // ============================================
 
-    if (fid === "price_per_unit") {
-      setSuggestions([]);
+    if (fid === "price_per_unit" && typeof value === "string") {
+      setSuggestions(
+        getPriceUnitSuggestions(value).map((v) => ({
+          label: v,
+          value: v,
+        })),
+      );
       return;
     }
 
