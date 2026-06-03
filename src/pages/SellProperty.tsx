@@ -136,6 +136,84 @@ function canonId(id?: string | null): string {
 }
 
 /**
+ * Numeric "count" fields that must be stored as integers across the entire
+ * flow (AI answer -> canonical state -> editForm -> DB payload). The AI
+ * suggestion chips append display suffixes like "3 Bathrooms" / "10 Floor" /
+ * "15 Floors" — those strings break `<input type="number">` in the Edit
+ * drawer, leaving the field visually empty. We coerce to plain integers at
+ * every write boundary so the same key holds the same shape everywhere.
+ */
+const COUNT_FIELD_IDS = new Set<string>([
+  "bathrooms",
+  "bedrooms",
+  "balconies",
+  "floor_number",
+  "total_floors",
+  "parking_count",
+  "total_parking",
+  "seats",
+  "cabins",
+  "meeting_rooms",
+  "conference_rooms",
+  "total_plots",
+  "total_units",
+  "total_towers",
+  "total_flats",
+  "total_villas",
+  "total_shops",
+  "total_rooms",
+]);
+
+function toIntCount(v: any): number | "" {
+  if (v === null || v === undefined || v === "") return "";
+  if (typeof v === "number" && Number.isFinite(v)) return Math.trunc(v);
+  const m = String(v).match(/\d+/);
+  return m ? parseInt(m[0], 10) : "";
+}
+
+function coerceCountValue(fieldId: string, value: any): any {
+  if (!COUNT_FIELD_IDS.has(canonId(fieldId))) return value;
+  const n = toIntCount(value);
+  return n === "" ? value : n;
+}
+
+/** Today (local) as YYYY-MM-DD for date comparison. */
+function todayIsoDate(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function isPastDate(input: any): boolean {
+  if (!input) return false;
+  const s = String(input).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  return s < todayIsoDate();
+}
+
+/**
+ * Cross-field business validation shared by the AI flow, the Edit drawer
+ * Save action, and the final Submit. Returns the first error message or
+ * `null` when the payload is valid.
+ */
+export function validateBusinessRules(data: Record<string, any>): string | null {
+  const f = toIntCount(data.floor_number ?? data.floor);
+  const t = toIntCount(data.total_floors ?? data.floors);
+  if (typeof f === "number" && typeof t === "number" && f > t) {
+    return "Floor number cannot be greater than total floors.";
+  }
+  if (isPastDate(data.possession_date)) {
+    return "Please provide a valid future possession date.";
+  }
+  if (isPastDate(data.available_from) || isPastDate(data.available_from_date)) {
+    return "Please provide a valid future availability date.";
+  }
+  return null;
+}
+
+/**
  * EDIT_FIELD_CONFIG (Phase 2)
  * ---------------------------------------------------------------
  * Single source of truth for the Edit Drawer. Each section renders
@@ -1047,12 +1125,20 @@ export default function SellProperty() {
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
+    // Coerce count fields so <input type="number"> shows the value.
+    const coerced: Record<string, any> = { ...canonical };
+    for (const id of COUNT_FIELD_IDS) {
+      if (coerced[id] !== undefined && coerced[id] !== null && coerced[id] !== "") {
+        const n = toIntCount(coerced[id]);
+        if (n !== "") coerced[id] = n;
+      }
+    }
     setEditForm({
-      ...canonical,
+      ...coerced,
 
-      title: aiTitles[selectedTitleIdx || 0]?.title || canonical.title || "",
+      title: aiTitles[selectedTitleIdx || 0]?.title || coerced.title || "",
 
-      description: canonical.description || buildPropertyDescription(canonical),
+      description: coerced.description || buildPropertyDescription(coerced),
     });
 
     setShowEditSheet(true);
@@ -1063,6 +1149,13 @@ export default function SellProperty() {
       ...state,
       ...editForm,
     };
+
+    // Block Save when business rules fail (floor/total_floors, dates).
+    const ruleError = validateBusinessRules(updated);
+    if (ruleError) {
+      toast.error(ruleError);
+      return;
+    }
 
     setState(updated);
 
@@ -1578,11 +1671,11 @@ export default function SellProperty() {
 
           bhk: canonicalState.bhk || "",
 
-          bedrooms: canonicalState.bedrooms || "",
+          bedrooms: toIntCount(canonicalState.bedrooms) || "",
 
-          bathrooms: canonicalState.bathrooms || "",
+          bathrooms: toIntCount(canonicalState.bathrooms ?? canonicalState.bathroom_count) || "",
 
-          balconies: canonicalState.balconies || "",
+          balconies: toIntCount(canonicalState.balconies) || "",
 
           furnishing: canonicalState.furnishing || "",
 
@@ -1596,9 +1689,9 @@ export default function SellProperty() {
           // AREA
           // ============================================
 
-          floor_number: canonicalState.floor_number || canonicalState.floor || "",
+          floor_number: toIntCount(canonicalState.floor_number ?? canonicalState.floor) || "",
 
-          total_floors: canonicalState.total_floors || canonicalState.floors || "",
+          total_floors: toIntCount(canonicalState.total_floors ?? canonicalState.floors) || "",
 
           land_size: canonicalState.land_size || canonicalState.plot_area || "",
 
@@ -1976,6 +2069,39 @@ export default function SellProperty() {
     }
 
     const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
+
+    // ============================================
+    // FIELD-NAME STANDARDIZATION
+    // Coerce count-style fields (bathrooms, floor_number, total_floors, …)
+    // to plain integers so the same key holds the same shape in chat
+    // state, editForm, and the DB payload. Prevents the "empty Edit
+    // input" bug where "3 Bathrooms" / "10 Floor" string suffixes break
+    // <input type="number">.
+    // ============================================
+    normalized = coerceCountValue(canonicalFieldId, normalized);
+
+    // ============================================
+    // BUSINESS-RULE VALIDATION (AI flow)
+    // ============================================
+    if (canonicalFieldId === "floor_number" || canonicalFieldId === "total_floors") {
+      const merged = { ...state, [canonicalFieldId]: normalized };
+      const err = validateBusinessRules(merged);
+      if (err) {
+        toast.error(err);
+        return;
+      }
+    }
+    if (canonicalFieldId === "possession_date" && isPastDate(normalized)) {
+      toast.error("Please provide a valid future possession date.");
+      return;
+    }
+    if (
+      (canonicalFieldId === "available_from" || canonicalFieldId === "available_from_date") &&
+      isPastDate(normalized)
+    ) {
+      toast.error("Please provide a valid future availability date.");
+      return;
+    }
 
     const newState = {
       ...state,
@@ -2657,6 +2783,12 @@ export default function SellProperty() {
 
   /* ----- Final submit ----- */
   const onSubmit = async () => {
+    // Block Publish when business rules fail (floor/total_floors, dates).
+    const ruleError = validateBusinessRules({ ...state, ...editForm });
+    if (ruleError) {
+      toast.error(ruleError);
+      return;
+    }
     setSubmitting(true);
     try {
       const {
