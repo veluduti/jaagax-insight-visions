@@ -1088,7 +1088,7 @@ export default function SellProperty() {
 
   const disableSendForArea = isAreaField && typeof value === "string" && value.trim().length > 0 && !hasValidAreaUnit;
 
-  const PRICE_FIELDS = ["monthly_rent", "rent", "total_price", "price_per_unit"];
+  const PRICE_FIELDS = ["monthly_rent", "rent", "total_price"];
 
   const isPriceField = PRICE_FIELDS.includes(currentFieldId);
 
