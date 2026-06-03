@@ -1015,8 +1015,8 @@ export default function SellProperty() {
     // PRICE UNIT Suggestions
     // ============================================
 
-    if (fid === "price_per_unit" && typeof value === "string") {
-      setSuggestions(getPriceUnitSuggestions(value));
+    if (fid === "price_per_unit") {
+      setSuggestions([]);
       return;
     }
 
