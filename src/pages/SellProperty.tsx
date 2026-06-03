@@ -2055,6 +2055,39 @@ export default function SellProperty() {
 
     const finalFieldId = f.type === "plot_measurement_widget" ? "plot_measurements" : canonicalFieldId;
 
+    // ============================================
+    // FIELD-NAME STANDARDIZATION
+    // Coerce count-style fields (bathrooms, floor_number, total_floors, …)
+    // to plain integers so the same key holds the same shape in chat
+    // state, editForm, and the DB payload. Prevents the "empty Edit
+    // input" bug where "3 Bathrooms" / "10 Floor" string suffixes break
+    // <input type="number">.
+    // ============================================
+    normalized = coerceCountValue(canonicalFieldId, normalized);
+
+    // ============================================
+    // BUSINESS-RULE VALIDATION (AI flow)
+    // ============================================
+    if (canonicalFieldId === "floor_number" || canonicalFieldId === "total_floors") {
+      const merged = { ...state, [canonicalFieldId]: normalized };
+      const err = validateBusinessRules(merged);
+      if (err) {
+        toast.error(err);
+        return;
+      }
+    }
+    if (canonicalFieldId === "possession_date" && isPastDate(normalized)) {
+      toast.error("Please provide a valid future possession date.");
+      return;
+    }
+    if (
+      (canonicalFieldId === "available_from" || canonicalFieldId === "available_from_date") &&
+      isPastDate(normalized)
+    ) {
+      toast.error("Please provide a valid future availability date.");
+      return;
+    }
+
     const newState = {
       ...state,
 
