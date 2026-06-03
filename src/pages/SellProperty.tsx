@@ -1015,8 +1015,8 @@ export default function SellProperty() {
     // PRICE UNIT Suggestions
     // ============================================
 
-    if (fid === "price_per_unit" && typeof value === "string") {
-      setSuggestions(getPriceUnitSuggestions(value));
+    if (fid === "price_per_unit") {
+      setSuggestions([]);
       return;
     }
 
@@ -1783,8 +1783,7 @@ export default function SellProperty() {
       const fieldId = (result.field as any).id || (result.question as any)?.fieldId;
 
       // Debug: track how many times fetchNext resolves to the same field.
-      fetchNextCallCountRef.current[fieldId] =
-        (fetchNextCallCountRef.current[fieldId] || 0) + 1;
+      fetchNextCallCountRef.current[fieldId] = (fetchNextCallCountRef.current[fieldId] || 0) + 1;
       console.log("[fetchNext] resolved field", {
         fieldId,
         callCountForField: fetchNextCallCountRef.current[fieldId],
@@ -1963,9 +1962,9 @@ export default function SellProperty() {
     setMessages((m) => {
       // When editing, replace the prior user message for this field instead of appending a duplicate
       if (isEditing) {
-        const idx = [...m].reverse().findIndex(
-          (msg: any) => msg.role === "user" && msg.fieldId && canonId(msg.fieldId) === canonId(f.id),
-        );
+        const idx = [...m]
+          .reverse()
+          .findIndex((msg: any) => msg.role === "user" && msg.fieldId && canonId(msg.fieldId) === canonId(f.id));
         if (idx !== -1) {
           const realIdx = m.length - 1 - idx;
           const copy = [...m];
@@ -2408,7 +2407,6 @@ export default function SellProperty() {
     // Reset duplicate-question guard on conversation restart.
     lastAskedFieldIdRef.current = null;
     fetchNextCallCountRef.current = {};
-
 
     engineRef.current.applyExtractedFields(cleared, {
       overwrite: true,
@@ -2984,18 +2982,62 @@ export default function SellProperty() {
       // Any unknown keys (from AI extraction or future schema drift) are dropped
       // here and still preserved inside `document_urls` / `property_details`.
       const PROPERTIES_COLUMNS = new Set([
-        "submitted_by","title","description","type","listing_type","listed_by",
-        "price","price_negotiable","maintenance_charges","booking_amount",
-        "area_sqft","building_area_sqft","bhk","bedrooms","bathrooms","balconies",
-        "floor_number","total_floors","total_parking","elevators",
-        "furnishing","completion_stage","property_age","building_name",
-        "city","locality","address","pincode","latitude","longitude",
-        "amenities","retail_centres","rera_id","rera_document_url",
-        "images","video_urls","is_draft","is_featured","is_live","verified",
-        "verification_status","listing_status","assigned_agent_id",
-        "agent_submitted_at","agent_data","agent_notes","field_verification",
-        "document_urls","original_snapshot","final_data","slug","trust_score",
-        "rejection_reason","expiry_date","featured_until","boost_payment_ref",
+        "submitted_by",
+        "title",
+        "description",
+        "type",
+        "listing_type",
+        "listed_by",
+        "price",
+        "price_negotiable",
+        "maintenance_charges",
+        "booking_amount",
+        "area_sqft",
+        "building_area_sqft",
+        "bhk",
+        "bedrooms",
+        "bathrooms",
+        "balconies",
+        "floor_number",
+        "total_floors",
+        "total_parking",
+        "elevators",
+        "furnishing",
+        "completion_stage",
+        "property_age",
+        "building_name",
+        "city",
+        "locality",
+        "address",
+        "pincode",
+        "latitude",
+        "longitude",
+        "amenities",
+        "retail_centres",
+        "rera_id",
+        "rera_document_url",
+        "images",
+        "video_urls",
+        "is_draft",
+        "is_featured",
+        "is_live",
+        "verified",
+        "verification_status",
+        "listing_status",
+        "assigned_agent_id",
+        "agent_submitted_at",
+        "agent_data",
+        "agent_notes",
+        "field_verification",
+        "document_urls",
+        "original_snapshot",
+        "final_data",
+        "slug",
+        "trust_score",
+        "rejection_reason",
+        "expiry_date",
+        "featured_until",
+        "boost_payment_ref",
         "builder_id",
       ]);
       const cleanPayload: any = {};
@@ -3105,9 +3147,6 @@ export default function SellProperty() {
     // NOTE: Keep lastAskedFieldIdRef intact. After the edit is committed,
     // if the engine resumes at the same already-displayed question, the
     // fetchNext guard will skip re-appending it.
-
-
-
 
     setField(target.field);
 
@@ -3673,9 +3712,9 @@ export default function SellProperty() {
                  * Aliases handle the AI mapping bug where the same logical field
                  * lives under different keys (e.g. built_area vs built_up_area).
                  */
-                const activeCategory = (category ||
-                  (state as any).property_category ||
-                  (state as any).category) as PropertyCategory | undefined;
+                const activeCategory = (category || (state as any).property_category || (state as any).category) as
+                  | PropertyCategory
+                  | undefined;
 
                 const FIELD_ALIASES: Record<string, string[]> = {
                   built_area: ["built_area", "built_up_area", "builtup_area", "building_area_sqft", "flat_size"],
@@ -3727,12 +3766,11 @@ export default function SellProperty() {
                 // Always-editable scaffolding fields a review screen needs.
                 const ALWAYS_SHOW = new Set<string>(["title", "description", "city", "locality"]);
 
-                const visibleSections = EDIT_FIELD_CONFIG
-                  .filter((section) => {
-                    const gated = CATEGORY_SECTION_GATE[section.id];
-                    if (gated && activeCategory && gated !== activeCategory) return false;
-                    return true;
-                  })
+                const visibleSections = EDIT_FIELD_CONFIG.filter((section) => {
+                  const gated = CATEGORY_SECTION_GATE[section.id];
+                  if (gated && activeCategory && gated !== activeCategory) return false;
+                  return true;
+                })
                   .map((section) => ({
                     ...section,
                     fields: section.fields.filter((f) => {
@@ -4155,7 +4193,9 @@ export default function SellProperty() {
                                   };
                                   // Display value: arrays -> "a, b, c", objects -> formatted
                                   const val = isArr
-                                    ? (rawVal as any[]).map((x) => (typeof x === "object" ? fmtMeasure(x) : x)).join(", ")
+                                    ? (rawVal as any[])
+                                        .map((x) => (typeof x === "object" ? fmtMeasure(x) : x))
+                                        .join(", ")
                                     : isObj
                                       ? fmtMeasure(rawVal)
                                       : (rawVal ?? "");
