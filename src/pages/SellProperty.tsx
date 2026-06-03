@@ -651,15 +651,17 @@ function adaptEngineField(fieldId: string, raw: any): FieldDef {
         ? "rental_duration"
         : t === "measurement" || t === "measurement_unit"
           ? "measurement_units"
-          : t === "price" || t === "price_per_unit"
+          : t === "price"
             ? "price"
-            : ss.type === "indian_price_format" || ss.type === "price" || ss.type === "dynamic_price_per_unit"
-              ? "price"
-              : ss.type === "rental_duration" || ss.type === "rental_duration_suggestions"
-                ? "rental_duration"
-                : ss.type === "measurement_units" || ss.type === "dynamic_measurement_units"
-                  ? "measurement_units"
-                  : ss.type,
+            : t === "price_per_unit"
+              ? "price_per_unit"
+              : ss.type === "indian_price_format" || ss.type === "price" || ss.type === "dynamic_price_per_unit"
+                ? "price"
+                : ss.type === "rental_duration" || ss.type === "rental_duration_suggestions"
+                  ? "rental_duration"
+                  : ss.type === "measurement_units" || ss.type === "dynamic_measurement_units"
+                    ? "measurement_units"
+                    : ss.type,
     raw,
   };
 }
