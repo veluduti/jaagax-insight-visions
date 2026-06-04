@@ -3169,13 +3169,28 @@ export default function SellProperty() {
 
     setEditingFieldId(target.field.id);
 
-    // NOTE: Keep lastAskedFieldIdRef intact. After the edit is committed,
-    // if the engine resumes at the same already-displayed question, the
-    // fetchNext guard will skip re-appending it.
-
     setField(target.field);
 
     setValue(target.value ?? "");
+
+    // Reset suggestions for the edited field; the resumed question's
+    // smartSuggestions will be re-fetched on commit via fetchNext.
+    setSuggestions([]);
+
+    // Append an AI bubble so the question shown on screen matches the
+    // field being edited (not the currently active downstream question).
+    // Set lastAskedFieldIdRef to the edited field so that after commit,
+    // fetchNext will re-append the resumed question cleanly.
+    lastAskedFieldIdRef.current = target.field.id;
+    setMessages((m) => [
+      ...m,
+      {
+        id: uid(),
+        role: "ai",
+        kind: "text",
+        text: target.field.question,
+      },
+    ]);
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
@@ -3185,9 +3200,6 @@ export default function SellProperty() {
     });
 
     // Re-sync engine with the full current answer set (non-destructive).
-    // Using overwrite:false keeps any engine-internal progress, while
-    // still ensuring previously answered fields are marked answered so
-    // engine.next() resumes at the first unanswered field after commit.
     try {
       engineRef.current?.applyExtractedFields(state, { overwrite: false });
     } catch {}
