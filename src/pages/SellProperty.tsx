@@ -2183,32 +2183,26 @@ export default function SellProperty() {
     } catch {}
 
     // =========================================================
-    // EDIT MODE: stop here. Do NOT call fetchNext (which would
-    // re-append the next question and corrupt history). Just
-    // clear edit mode and restore the previously active question.
+    // Clear edit mode AFTER applying the answer so fetchNext
+    // resumes from the first unanswered field (preserves Q4..Qn).
     // =========================================================
+
     if (isEditing) {
       setEditingFieldId(null);
-      setValue("");
-      // Restore the active question that was on-screen before the edit
-      const activeId = lastAskedFieldIdRef.current;
-      if (activeId && canonId(activeId) !== canonId(f.id)) {
-        const activeEntry = history.find((x) => canonId(x.field.id) === canonId(activeId));
-        if (activeEntry?.field) setField(activeEntry.field);
-      }
-
-      return;
     }
 
     setValue("");
 
+    // NOTE: Do NOT reset lastAskedFieldIdRef here. If the resolver returns
+    // the same active question (common after editing an earlier answer
+    // while a later question is already on-screen), the guard inside
+    // fetchNext must suppress re-appending it.
     console.log("[commitAnswer] before fetchNext", {
       isEditing,
       lastAskedFieldId: lastAskedFieldIdRef.current,
     });
 
     await fetchNext(newState);
-
   };
 
   /* ===========================================================
@@ -3183,10 +3177,20 @@ export default function SellProperty() {
     // smartSuggestions will be re-fetched on commit via fetchNext.
     setSuggestions([]);
 
-    // Do NOT append a new AI question bubble or mutate lastAskedFieldIdRef.
-    // The conversation history must remain unchanged during inline edits;
-    // commitAnswer will replace the existing user-answer bubble in place.
-
+    // Append an AI bubble so the question shown on screen matches the
+    // field being edited (not the currently active downstream question).
+    // Set lastAskedFieldIdRef to the edited field so that after commit,
+    // fetchNext will re-append the resumed question cleanly.
+    lastAskedFieldIdRef.current = target.field.id;
+    setMessages((m) => [
+      ...m,
+      {
+        id: uid(),
+        role: "ai",
+        kind: "text",
+        text: target.field.question,
+      },
+    ]);
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
