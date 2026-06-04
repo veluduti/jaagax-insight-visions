@@ -747,6 +747,31 @@ const getPlotSuggestions = (input: string) => {
   return [`${input} Plots`];
 };
 
+const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> = {
+  total_towers: { singular: "Tower", plural: "Towers" },
+  towers: { singular: "Tower", plural: "Towers" },
+  floors_per_tower: { singular: "Floor", plural: "Floors" },
+  total_units: { singular: "Unit", plural: "Units" },
+  units: { singular: "Unit", plural: "Units" },
+  total_flats: { singular: "Flat", plural: "Flats" },
+  total_villas: { singular: "Villa", plural: "Villas" },
+  total_shops: { singular: "Shop", plural: "Shops" },
+  total_blocks: { singular: "Block", plural: "Blocks" },
+  total_buildings: { singular: "Building", plural: "Buildings" },
+  total_rooms: { singular: "Room", plural: "Rooms" },
+  total_cabins: { singular: "Cabin", plural: "Cabins" },
+  total_seats: { singular: "Seat", plural: "Seats" },
+  total_desks: { singular: "Desk", plural: "Desks" },
+};
+
+const getCountSuggestions = (input: string, fieldId: string): string[] => {
+  if (!/^\d+$/.test(input)) return [];
+  const cfg = COUNT_FIELD_LABELS[fieldId];
+  if (!cfg) return [];
+  const n = Number(input);
+  return [`${input} ${n === 1 ? cfg.singular : cfg.plural}`];
+};
+
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
@@ -4580,6 +4605,19 @@ export default function SellProperty() {
                         /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
                           field.id,
                         );
+                      const fidCanon = canonId(field.id);
+                      // Fields that handle their own suggestions via `suggestions` state — skip generic chips.
+                      const HANDLED_BY_CUSTOM = new Set([
+                        "price_per_unit",
+                        "bhk",
+                        "bathrooms",
+                        "floor_number",
+                        "total_plots",
+                        ...Object.keys(COUNT_FIELD_LABELS),
+                      ]);
+                      if (HANDLED_BY_CUSTOM.has(fidCanon)) {
+                        return null;
+                      }
                       const sType =
                         field.suggestionType ||
                         (/rent/i.test(field.id)
@@ -4702,6 +4740,16 @@ export default function SellProperty() {
                               if (fid === "floor_number") {
                                 setSuggestions(getFloorSuggestions(val));
 
+                                return;
+                              }
+
+                              // ============================================
+                              // COUNT FIELDS (towers, floors_per_tower, units, etc.)
+                              // ============================================
+
+                              const countChips = getCountSuggestions(val, fid);
+                              if (countChips.length) {
+                                setSuggestions(countChips);
                                 return;
                               }
 
