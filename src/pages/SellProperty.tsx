@@ -747,6 +747,31 @@ const getPlotSuggestions = (input: string) => {
   return [`${input} Plots`];
 };
 
+const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> = {
+  total_towers: { singular: "Tower", plural: "Towers" },
+  towers: { singular: "Tower", plural: "Towers" },
+  floors_per_tower: { singular: "Floor", plural: "Floors" },
+  total_units: { singular: "Unit", plural: "Units" },
+  units: { singular: "Unit", plural: "Units" },
+  total_flats: { singular: "Flat", plural: "Flats" },
+  total_villas: { singular: "Villa", plural: "Villas" },
+  total_shops: { singular: "Shop", plural: "Shops" },
+  total_blocks: { singular: "Block", plural: "Blocks" },
+  total_buildings: { singular: "Building", plural: "Buildings" },
+  total_rooms: { singular: "Room", plural: "Rooms" },
+  total_cabins: { singular: "Cabin", plural: "Cabins" },
+  total_seats: { singular: "Seat", plural: "Seats" },
+  total_desks: { singular: "Desk", plural: "Desks" },
+};
+
+const getCountSuggestions = (input: string, fieldId: string): string[] => {
+  if (!/^\d+$/.test(input)) return [];
+  const cfg = COUNT_FIELD_LABELS[fieldId];
+  if (!cfg) return [];
+  const n = Number(input);
+  return [`${input} ${n === 1 ? cfg.singular : cfg.plural}`];
+};
+
 const getPriceUnitSuggestions = (input: string) => {
   if (!/^\d+$/.test(input)) return [];
 
