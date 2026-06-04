@@ -4731,6 +4731,16 @@ export default function SellProperty() {
                               }
 
                               // ============================================
+                              // COUNT FIELDS (towers, floors_per_tower, units, etc.)
+                              // ============================================
+
+                              const countChips = getCountSuggestions(val, fid);
+                              if (countChips.length) {
+                                setSuggestions(countChips);
+                                return;
+                              }
+
+                              // ============================================
                               // CLEAR SUGGESTIONS
                               // ============================================
 
