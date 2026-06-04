@@ -3177,20 +3177,10 @@ export default function SellProperty() {
     // smartSuggestions will be re-fetched on commit via fetchNext.
     setSuggestions([]);
 
-    // Append an AI bubble so the question shown on screen matches the
-    // field being edited (not the currently active downstream question).
-    // Set lastAskedFieldIdRef to the edited field so that after commit,
-    // fetchNext will re-append the resumed question cleanly.
-    lastAskedFieldIdRef.current = target.field.id;
-    setMessages((m) => [
-      ...m,
-      {
-        id: uid(),
-        role: "ai",
-        kind: "text",
-        text: target.field.question,
-      },
-    ]);
+    // Do NOT append a new AI question bubble or mutate lastAskedFieldIdRef.
+    // The conversation history must remain unchanged during inline edits;
+    // commitAnswer will replace the existing user-answer bubble in place.
+
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
