@@ -4605,6 +4605,19 @@ export default function SellProperty() {
                         /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
                           field.id,
                         );
+                      const fidCanon = canonId(field.id);
+                      // Fields that handle their own suggestions via `suggestions` state — skip generic chips.
+                      const HANDLED_BY_CUSTOM = new Set([
+                        "price_per_unit",
+                        "bhk",
+                        "bathrooms",
+                        "floor_number",
+                        "total_plots",
+                        ...Object.keys(COUNT_FIELD_LABELS),
+                      ]);
+                      if (HANDLED_BY_CUSTOM.has(fidCanon)) {
+                        return null;
+                      }
                       const sType =
                         field.suggestionType ||
                         (/rent/i.test(field.id)
