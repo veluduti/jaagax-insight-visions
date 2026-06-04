@@ -2193,9 +2193,10 @@ export default function SellProperty() {
       // Restore the active question that was on-screen before the edit
       const activeId = lastAskedFieldIdRef.current;
       if (activeId && canonId(activeId) !== canonId(f.id)) {
-        const activeField = (flow?.fields || []).find((x: any) => canonId(x.id) === canonId(activeId));
-        if (activeField) setField(activeField);
+        const activeEntry = history.find((x) => canonId(x.field.id) === canonId(activeId));
+        if (activeEntry?.field) setField(activeEntry.field);
       }
+
       return;
     }
 
