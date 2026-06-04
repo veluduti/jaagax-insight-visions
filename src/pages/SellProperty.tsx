@@ -2183,26 +2183,31 @@ export default function SellProperty() {
     } catch {}
 
     // =========================================================
-    // Clear edit mode AFTER applying the answer so fetchNext
-    // resumes from the first unanswered field (preserves Q4..Qn).
+    // EDIT MODE: stop here. Do NOT call fetchNext (which would
+    // re-append the next question and corrupt history). Just
+    // clear edit mode and restore the previously active question.
     // =========================================================
-
     if (isEditing) {
       setEditingFieldId(null);
+      setValue("");
+      // Restore the active question that was on-screen before the edit
+      const activeId = lastAskedFieldIdRef.current;
+      if (activeId && canonId(activeId) !== canonId(f.id)) {
+        const activeField = (flow?.fields || []).find((x: any) => canonId(x.id) === canonId(activeId));
+        if (activeField) setField(activeField);
+      }
+      return;
     }
 
     setValue("");
 
-    // NOTE: Do NOT reset lastAskedFieldIdRef here. If the resolver returns
-    // the same active question (common after editing an earlier answer
-    // while a later question is already on-screen), the guard inside
-    // fetchNext must suppress re-appending it.
     console.log("[commitAnswer] before fetchNext", {
       isEditing,
       lastAskedFieldId: lastAskedFieldIdRef.current,
     });
 
     await fetchNext(newState);
+
   };
 
   /* ===========================================================
