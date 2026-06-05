@@ -184,18 +184,18 @@ const Navigation = () => {
                 {/* Seller top-level Sell Your Property link */}
                 {role === "seller" && (
                   <NavigationMenuItem>
-                    <Link to="/sell-property">
-                      <Button
-                        variant="ghost"
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to="/sell-property"
                         className={cn(
-                          "px-3 py-2 text-sm font-medium h-auto",
-                          isActive("/sell-property") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                          "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
+                          isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
                         <DollarSign className="h-4 w-4 mr-1.5" />
                         Sell Your Property
-                      </Button>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                 )}
 
