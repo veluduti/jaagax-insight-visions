@@ -2883,8 +2883,10 @@ export default function SellProperty() {
 
       // Use review-screen edits as the source of truth
       const area = parseFloat(String(editForm.area).replace(/[^\d.]/g, "")) || null;
-      const ppu = parseFloat(String(editForm.price_per_unit).replace(/[^\d.]/g, "")) || null;
-      const totalPrice = area && ppu ? area * ppu : null;
+      const totalPrice =
+        parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
+        parseFloat(String(editForm.monthly_rent || "").replace(/[^\d.]/g, "")) ||
+        null;
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1,
         "sq m": 10.7639,
