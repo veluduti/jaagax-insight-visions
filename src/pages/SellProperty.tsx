@@ -2091,7 +2091,7 @@ export default function SellProperty() {
       "rent",
       "monthly_rent",
 
-      // NUMERIC PROPERTY FIELDS (count fields)
+      // NUMERIC PROPERTY FIELDS
       "seats",
       "cabins",
       "meeting_rooms",
@@ -2113,20 +2113,29 @@ export default function SellProperty() {
       "total_desks",
     ];
 
-    const SHOULD_VALIDATE_TEXT = f.input === "text" || f.input === "textarea";
+    // CRITICAL FIX: Determine if we should run text validation
+    // We only validate if:
+    // 1. The input is a string
+    // 2. The field's input type is "text" or "textarea" (not number, date, etc.)
+    // 3. The field is NOT in our skip list
+    const isTextLikeField = f.input === "text" || f.input === "textarea";
+    const shouldSkipValidation = SKIP_VALIDATION_FIELDS.includes(canonicalFieldId);
+    const shouldValidate =
+      typeof normalized === "string" && normalized.trim().length > 2 && isTextLikeField && !shouldSkipValidation;
 
-    // Only run property text validation if:
-    // 1. The input is a text/textarea field
-    // 2. The field is NOT in SKIP_VALIDATION_FIELDS
-    if (
-      typeof normalized === "string" &&
-      normalized.trim().length > 2 &&
-      SHOULD_VALIDATE_TEXT &&
-      !SKIP_VALIDATION_FIELDS.includes(canonicalFieldId)
-    ) {
+    console.log("[commitAnswer] validation check", {
+      normalized,
+      isTextLikeField,
+      shouldSkipValidation,
+      shouldValidate,
+      canonicalFieldId,
+    });
+
+    if (shouldValidate) {
       const validation = validatePropertyText(normalized);
 
       if (!validation.valid) {
+        console.log("[commitAnswer] validation failed", validation);
         setMessages((m) => [
           ...m,
           {
