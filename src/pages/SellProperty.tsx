@@ -4363,26 +4363,18 @@ export default function SellProperty() {
                           ))}
 
                           {/* Area & Pricing */}
-                          {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
+                          {(areaN > 0 || totalPrice > 0) && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Area & Pricing
                               </h4>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Area</label>
                                   <Input
                                     type="number"
                                     value={editForm.area ?? ""}
                                     onChange={(e) => setEditForm((p) => ({ ...p, area: e.target.value }))}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
-                                  <Input
-                                    type="number"
-                                    value={editForm.price_per_unit ?? ""}
-                                    onChange={(e) => setEditForm((p) => ({ ...p, price_per_unit: e.target.value }))}
                                   />
                                 </div>
                                 <div>
