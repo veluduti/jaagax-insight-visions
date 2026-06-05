@@ -3295,6 +3295,24 @@ export default function SellProperty() {
               ))}
             </AnimatePresence>
 
+            {/* Edit mode banner — shows the edited field's question so the displayed
+                question, suggestions, and input value always refer to the same field.
+                Restored automatically on save (editingFieldId cleared in commitAnswer). */}
+            {editingFieldId && field && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex w-full justify-start"
+              >
+                <div className="max-w-[85%] rounded-2xl border border-primary/30 bg-primary/5 px-3.5 py-2.5 shadow-sm">
+                  <div className="text-[10px] uppercase tracking-wide text-primary/80 font-semibold mb-0.5">
+                    Editing answer
+                  </div>
+                  <div className="text-sm text-foreground">{field.question}</div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Quick-reply chips for the current field (single / multi / yesno) */}
             {field &&
               !loadingNext &&
