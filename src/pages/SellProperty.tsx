@@ -755,8 +755,8 @@ const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> =
   total_towers: { singular: "Tower", plural: "Towers" },
   towers: { singular: "Tower", plural: "Towers" },
   floors_per_tower: { singular: "Floor", plural: "Floors" },
-  total_units: { singular: "Unit", plural: "Units" },
-  units: { singular: "Unit", plural: "Units" },
+  total_units: { singular: "Unit", plural: "Units" }, // ← ADD THIS
+  units: { singular: "Unit", plural: "Units" }, // ← ADD THIS
   total_flats: { singular: "Flat", plural: "Flats" },
   total_villas: { singular: "Villa", plural: "Villas" },
   total_shops: { singular: "Shop", plural: "Shops" },
