@@ -2045,9 +2045,11 @@ export default function SellProperty() {
     const canonicalFieldId = canonId(f.id);
 
     // ============================================
-    // VALIDATE USER TEXT INPUT
+    // FIELDS THAT SHOULD SKIP TEXT VALIDATION
+    // These are count fields (towers, floors, units, etc.) that
+    // contain numbers + words (e.g. "3 Towers", "10 Floors")
+    // which would otherwise fail validatePropertyText().
     // ============================================
-
     const SKIP_VALIDATION_FIELDS = [
       "city",
       "locality",
@@ -2089,15 +2091,33 @@ export default function SellProperty() {
       "rent",
       "monthly_rent",
 
-      // NUMERIC PROPERTY FIELDS
+      // NUMERIC PROPERTY FIELDS (count fields)
       "seats",
       "cabins",
       "meeting_rooms",
       "conference_rooms",
+
+      // TOWER AND COUNT FIELDS - FIX FOR THE ERROR
+      "total_towers",
+      "towers",
+      "floors_per_tower",
+      "total_units",
+      "total_flats",
+      "total_villas",
+      "total_shops",
+      "total_blocks",
+      "total_buildings",
+      "total_rooms",
+      "total_cabins",
+      "total_seats",
+      "total_desks",
     ];
 
     const SHOULD_VALIDATE_TEXT = f.input === "text" || f.input === "textarea";
 
+    // Only run property text validation if:
+    // 1. The input is a text/textarea field
+    // 2. The field is NOT in SKIP_VALIDATION_FIELDS
     if (
       typeof normalized === "string" &&
       normalized.trim().length > 2 &&
