@@ -3177,20 +3177,19 @@ export default function SellProperty() {
     // smartSuggestions will be re-fetched on commit via fetchNext.
     setSuggestions([]);
 
-    // Append an AI bubble so the question shown on screen matches the
-    // field being edited (not the currently active downstream question).
-    // Set lastAskedFieldIdRef to the edited field so that after commit,
-    // fetchNext will re-append the resumed question cleanly.
-    lastAskedFieldIdRef.current = target.field.id;
-    setMessages((m) => [
-      ...m,
-      {
-        id: uid(),
-        role: "ai",
-        kind: "text",
-        text: target.field.question,
-      },
-    ]);
+    // ============================================
+    // IN-PLACE EDIT — DO NOT MUTATE CONVERSATION HISTORY
+    // Editing is an update operation only:
+    // - Do NOT append a new AI question bubble for the edited field.
+    //   The edit UI is rendered via the active input + suggestions area
+    //   (driven by `field`), not by inserting new chat messages.
+    // - Do NOT touch `lastAskedFieldIdRef`. It still points at the
+    //   currently pending downstream question (e.g. Q8). When
+    //   commitAnswer -> fetchNext resolves back to that same field,
+    //   the duplicate-question guard inside fetchNext will suppress
+    //   re-appending it, preserving the original chat order and
+    //   leaving exactly one active question on screen.
+    // ============================================
 
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
