@@ -3653,11 +3653,10 @@ export default function SellProperty() {
                   return `₹ ${fmtINR(n)}`;
                 };
                 const areaN = Number(editForm.area) || 0;
-                const ppuN = Number(editForm.price_per_unit) || 0;
                 const totalPrice =
-                  areaN > 0 && ppuN > 0
-                    ? Math.round(areaN * ppuN)
-                    : Number(editForm.total_price) || Number(editForm.monthly_rent) || 0;
+                  Number(String(editForm.total_price ?? "").toString().replace(/[^\d.]/g, "")) ||
+                  Number(String(editForm.monthly_rent ?? "").toString().replace(/[^\d.]/g, "")) ||
+                  0;
 
                 const sub =
                   (Array.isArray(editForm.property_type) ? editForm.property_type[0] : editForm.property_type) ||
