@@ -3761,11 +3761,7 @@ export default function SellProperty() {
                     label: "Security Deposit",
                     value: has(editForm.security_deposit) ? `₹ ${fmtINR(Number(editForm.security_deposit))}` : "",
                   },
-                  {
-                    key: "price_per_unit",
-                    label: `Price / ${unit}`,
-                    value: ppuN ? `₹ ${fmtINR(ppuN)}` : "",
-                  },
+                  { key: "project_name_placeholder", label: "", value: "" },
                   { key: "project_name", label: "Project", value: asStr(editForm.project_name) },
                 ].filter((r) => has(r.value));
 
