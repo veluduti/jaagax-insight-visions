@@ -2883,8 +2883,10 @@ export default function SellProperty() {
 
       // Use review-screen edits as the source of truth
       const area = parseFloat(String(editForm.area).replace(/[^\d.]/g, "")) || null;
-      const ppu = parseFloat(String(editForm.price_per_unit).replace(/[^\d.]/g, "")) || null;
-      const totalPrice = area && ppu ? area * ppu : null;
+      const totalPrice =
+        parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
+        parseFloat(String(editForm.monthly_rent || "").replace(/[^\d.]/g, "")) ||
+        null;
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1,
         "sq m": 10.7639,
@@ -2952,10 +2954,7 @@ export default function SellProperty() {
         // PRICE
         // ============================================
 
-        price:
-          totalPrice ||
-          parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
-          null,
+        price: totalPrice,
 
         area_sqft: areaSqft,
 
@@ -3653,11 +3652,10 @@ export default function SellProperty() {
                   return `₹ ${fmtINR(n)}`;
                 };
                 const areaN = Number(editForm.area) || 0;
-                const ppuN = Number(editForm.price_per_unit) || 0;
                 const totalPrice =
-                  areaN > 0 && ppuN > 0
-                    ? Math.round(areaN * ppuN)
-                    : Number(editForm.total_price) || Number(editForm.monthly_rent) || 0;
+                  Number(String(editForm.total_price ?? "").toString().replace(/[^\d.]/g, "")) ||
+                  Number(String(editForm.monthly_rent ?? "").toString().replace(/[^\d.]/g, "")) ||
+                  0;
 
                 const sub =
                   (Array.isArray(editForm.property_type) ? editForm.property_type[0] : editForm.property_type) ||
@@ -3762,11 +3760,7 @@ export default function SellProperty() {
                     label: "Security Deposit",
                     value: has(editForm.security_deposit) ? `₹ ${fmtINR(Number(editForm.security_deposit))}` : "",
                   },
-                  {
-                    key: "price_per_unit",
-                    label: `Price / ${unit}`,
-                    value: ppuN ? `₹ ${fmtINR(ppuN)}` : "",
-                  },
+                  { key: "project_name_placeholder", label: "", value: "" },
                   { key: "project_name", label: "Project", value: asStr(editForm.project_name) },
                 ].filter((r) => has(r.value));
 
@@ -4363,26 +4357,18 @@ export default function SellProperty() {
                           ))}
 
                           {/* Area & Pricing */}
-                          {(areaN > 0 || ppuN > 0 || totalPrice > 0) && (
+                          {(areaN > 0 || totalPrice > 0) && (
                             <div className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 Area & Pricing
                               </h4>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">Area</label>
                                   <Input
                                     type="number"
                                     value={editForm.area ?? ""}
                                     onChange={(e) => setEditForm((p) => ({ ...p, area: e.target.value }))}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="text-xs text-muted-foreground mb-1 block">₹ / unit</label>
-                                  <Input
-                                    type="number"
-                                    value={editForm.price_per_unit ?? ""}
-                                    onChange={(e) => setEditForm((p) => ({ ...p, price_per_unit: e.target.value }))}
                                   />
                                 </div>
                                 <div>
