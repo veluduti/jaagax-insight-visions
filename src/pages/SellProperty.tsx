@@ -158,10 +158,14 @@ const COUNT_FIELD_IDS = new Set<string>([
   "total_plots",
   "total_units",
   "total_towers",
+  "towers",
   "total_flats",
   "total_villas",
   "total_shops",
   "total_rooms",
+  "total_blocks",
+  "total_buildings",
+  "floors_per_tower",
 ]);
 
 function toIntCount(v: any): number | "" {
@@ -1059,6 +1063,31 @@ export default function SellProperty() {
     if (fid === "total_floors" && typeof value === "string") {
       setSuggestions(getFloorSuggestions(value, "total"));
 
+      return;
+    }
+
+    // ============================================
+    // TOWER FIELDS Suggestions - ADDED FIX
+    // ============================================
+    if ((fid === "total_towers" || fid === "towers") && typeof value === "string") {
+      const num = value.replace(/[^\d]/g, "");
+      if (num && /^\d+$/.test(num)) {
+        const n = parseInt(num, 10);
+        setSuggestions([`${num} ${n === 1 ? "Tower" : "Towers"}`]);
+      } else {
+        setSuggestions([]);
+      }
+      return;
+    }
+
+    if (fid === "floors_per_tower" && typeof value === "string") {
+      const num = value.replace(/[^\d]/g, "");
+      if (num && /^\d+$/.test(num)) {
+        const n = parseInt(num, 10);
+        setSuggestions([`${num} ${n === 1 ? "Floor" : "Floors"}`]);
+      } else {
+        setSuggestions([]);
+      }
       return;
     }
 
@@ -4642,6 +4671,9 @@ export default function SellProperty() {
                         "bathrooms",
                         "floor_number",
                         "total_plots",
+                        "total_towers",
+                        "towers",
+                        "floors_per_tower",
                         ...Object.keys(COUNT_FIELD_LABELS),
                       ]);
                       if (HANDLED_BY_CUSTOM.has(fidCanon)) {
@@ -4672,6 +4704,28 @@ export default function SellProperty() {
                         );
                       } else if (canonId(field?.id) === "total_plots") {
                         chips = getPlotSuggestions(String(value));
+                      } else if (canonId(field?.id) === "total_towers" || canonId(field?.id) === "towers") {
+                        const num = String(value).replace(/[^\d]/g, "");
+                        if (num && /^\d+$/.test(num)) {
+                          const n = parseInt(num, 10);
+                          chips = [
+                            {
+                              value: `${num} ${n === 1 ? "Tower" : "Towers"}`,
+                              label: `${num} ${n === 1 ? "Tower" : "Towers"}`,
+                            },
+                          ];
+                        }
+                      } else if (canonId(field?.id) === "floors_per_tower") {
+                        const num = String(value).replace(/[^\d]/g, "");
+                        if (num && /^\d+$/.test(num)) {
+                          const n = parseInt(num, 10);
+                          chips = [
+                            {
+                              value: `${num} ${n === 1 ? "Floor" : "Floors"}`,
+                              label: `${num} ${n === 1 ? "Floor" : "Floors"}`,
+                            },
+                          ];
+                        }
                       }
 
                       return chips.map((c: any, i: number) => (
@@ -4769,6 +4823,31 @@ export default function SellProperty() {
                               if (fid === "floor_number") {
                                 setSuggestions(getFloorSuggestions(val));
 
+                                return;
+                              }
+
+                              // ============================================
+                              // TOWER FIELDS Suggestions
+                              // ============================================
+                              if (fid === "total_towers" || fid === "towers") {
+                                const num = val.replace(/[^\d]/g, "");
+                                if (num && /^\d+$/.test(num)) {
+                                  const n = parseInt(num, 10);
+                                  setSuggestions([`${num} ${n === 1 ? "Tower" : "Towers"}`]);
+                                } else {
+                                  setSuggestions([]);
+                                }
+                                return;
+                              }
+
+                              if (fid === "floors_per_tower") {
+                                const num = val.replace(/[^\d]/g, "");
+                                if (num && /^\d+$/.test(num)) {
+                                  const n = parseInt(num, 10);
+                                  setSuggestions([`${num} ${n === 1 ? "Floor" : "Floors"}`]);
+                                } else {
+                                  setSuggestions([]);
+                                }
                                 return;
                               }
 
@@ -4888,7 +4967,12 @@ export default function SellProperty() {
                           canonId(field?.id) === "price_per_unit") &&
                           /^\d+$/.test(String(value).trim())) ||
                         // Total Plots
-                        (canonId(field?.id) === "total_plots" && !/^\d+\s?plots?$/i.test(String(value).trim()))
+                        (canonId(field?.id) === "total_plots" && !/^\d+\s?plots?$/i.test(String(value).trim())) ||
+                        // Total Towers
+                        (canonId(field?.id) === "total_towers" && !/^\d+\s?towers?$/i.test(String(value).trim())) ||
+                        (canonId(field?.id) === "towers" && !/^\d+\s?towers?$/i.test(String(value).trim())) ||
+                        // Floors per Tower
+                        (canonId(field?.id) === "floors_per_tower" && !/^\d+\s?floors?$/i.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
