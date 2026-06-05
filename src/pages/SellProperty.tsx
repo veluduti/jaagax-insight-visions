@@ -2954,10 +2954,7 @@ export default function SellProperty() {
         // PRICE
         // ============================================
 
-        price:
-          totalPrice ||
-          parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
-          null,
+        price: totalPrice,
 
         area_sqft: areaSqft,
 
