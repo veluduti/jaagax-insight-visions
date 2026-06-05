@@ -157,6 +157,7 @@ const COUNT_FIELD_IDS = new Set<string>([
   "conference_rooms",
   "total_plots",
   "total_units",
+  "units",
   "total_towers",
   "towers",
   "total_flats",
@@ -755,8 +756,8 @@ const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> =
   total_towers: { singular: "Tower", plural: "Towers" },
   towers: { singular: "Tower", plural: "Towers" },
   floors_per_tower: { singular: "Floor", plural: "Floors" },
-  total_units: { singular: "Unit", plural: "Units" }, // ← ADD THIS
-  units: { singular: "Unit", plural: "Units" }, // ← ADD THIS
+  total_units: { singular: "Unit", plural: "Units" },
+  units: { singular: "Unit", plural: "Units" },
   total_flats: { singular: "Flat", plural: "Flats" },
   total_villas: { singular: "Villa", plural: "Villas" },
   total_shops: { singular: "Shop", plural: "Shops" },
@@ -1095,6 +1096,15 @@ export default function SellProperty() {
       } else {
         setSuggestions([]);
       }
+      return;
+    }
+
+    // ============================================
+    // COUNT FIELDS Suggestions (total_units, units, total_flats, etc.)
+    // ============================================
+    const countChips = getCountSuggestions(value, fid);
+    if (countChips.length) {
+      setSuggestions(countChips);
       return;
     }
 
@@ -2109,6 +2119,7 @@ export default function SellProperty() {
       "towers",
       "floors_per_tower",
       "total_units",
+      "units",
       "total_flats",
       "total_villas",
       "total_shops",
@@ -4704,6 +4715,8 @@ export default function SellProperty() {
                         "total_towers",
                         "towers",
                         "floors_per_tower",
+                        "total_units",
+                        "units",
                         ...Object.keys(COUNT_FIELD_LABELS),
                       ]);
                       if (HANDLED_BY_CUSTOM.has(fidCanon)) {
@@ -4753,6 +4766,17 @@ export default function SellProperty() {
                             {
                               value: `${num} ${n === 1 ? "Floor" : "Floors"}`,
                               label: `${num} ${n === 1 ? "Floor" : "Floors"}`,
+                            },
+                          ];
+                        }
+                      } else if (canonId(field?.id) === "total_units" || canonId(field?.id) === "units") {
+                        const num = String(value).replace(/[^\d]/g, "");
+                        if (num && /^\d+$/.test(num)) {
+                          const n = parseInt(num, 10);
+                          chips = [
+                            {
+                              value: `${num} ${n === 1 ? "Unit" : "Units"}`,
+                              label: `${num} ${n === 1 ? "Unit" : "Units"}`,
                             },
                           ];
                         }
@@ -4882,8 +4906,18 @@ export default function SellProperty() {
                               }
 
                               // ============================================
-                              // COUNT FIELDS (towers, floors_per_tower, units, etc.)
+                              // COUNT FIELDS (total_units, units, etc.)
                               // ============================================
+                              if (fid === "total_units" || fid === "units") {
+                                const num = val.replace(/[^\d]/g, "");
+                                if (num && /^\d+$/.test(num)) {
+                                  const n = parseInt(num, 10);
+                                  setSuggestions([`${num} ${n === 1 ? "Unit" : "Units"}`]);
+                                } else {
+                                  setSuggestions([]);
+                                }
+                                return;
+                              }
 
                               const countChips = getCountSuggestions(val, fid);
                               if (countChips.length) {
@@ -5002,7 +5036,10 @@ export default function SellProperty() {
                         (canonId(field?.id) === "total_towers" && !/^\d+\s?towers?$/i.test(String(value).trim())) ||
                         (canonId(field?.id) === "towers" && !/^\d+\s?towers?$/i.test(String(value).trim())) ||
                         // Floors per Tower
-                        (canonId(field?.id) === "floors_per_tower" && !/^\d+\s?floors?$/i.test(String(value).trim()))
+                        (canonId(field?.id) === "floors_per_tower" && !/^\d+\s?floors?$/i.test(String(value).trim())) ||
+                        // Total Units
+                        ((canonId(field?.id) === "total_units" || canonId(field?.id) === "units") &&
+                          !/^\d+\s?units?$/i.test(String(value).trim()))
                       }
                       className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
                     >
