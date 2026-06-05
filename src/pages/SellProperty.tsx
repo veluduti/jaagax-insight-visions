@@ -769,11 +769,18 @@ const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> =
 };
 
 const getCountSuggestions = (input: string, fieldId: string): string[] => {
-  if (!/^\d+$/.test(input)) return [];
+  // Extract only the number from input
+  const match = input.match(/^\d+/);
+  if (!match) return [];
+
+  const num = match[0];
   const cfg = COUNT_FIELD_LABELS[fieldId];
+
+  // If no config for this field, return empty (no suggestions)
   if (!cfg) return [];
-  const n = Number(input);
-  return [`${input} ${n === 1 ? cfg.singular : cfg.plural}`];
+
+  const n = parseInt(num, 10);
+  return [`${num} ${n === 1 ? cfg.singular : cfg.plural}`];
 };
 
 const getPriceUnitSuggestions = (input: string) => {
@@ -3653,8 +3660,16 @@ export default function SellProperty() {
                 };
                 const areaN = Number(editForm.area) || 0;
                 const totalPrice =
-                  Number(String(editForm.total_price ?? "").toString().replace(/[^\d.]/g, "")) ||
-                  Number(String(editForm.monthly_rent ?? "").toString().replace(/[^\d.]/g, "")) ||
+                  Number(
+                    String(editForm.total_price ?? "")
+                      .toString()
+                      .replace(/[^\d.]/g, ""),
+                  ) ||
+                  Number(
+                    String(editForm.monthly_rent ?? "")
+                      .toString()
+                      .replace(/[^\d.]/g, ""),
+                  ) ||
                   0;
 
                 const sub =
