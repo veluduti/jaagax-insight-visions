@@ -19,7 +19,7 @@ export const roleAccess: Record<AccessRole, Record<FeatureKey, AccessValue>> = {
   buyer: {
     buyRent: true,
     newProjects: true,
-    sellProperty: false,
+    sellProperty: true,
     searchFilters: true,
     transactions: false,
     agents: "optional",
@@ -49,7 +49,7 @@ export const roleAccess: Record<AccessRole, Record<FeatureKey, AccessValue>> = {
   builder: {
     buyRent: false,
     newProjects: true,
-    sellProperty: false,
+    sellProperty: true,
     searchFilters: false,
     transactions: true,
     agents: false,
