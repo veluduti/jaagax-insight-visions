@@ -769,9 +769,13 @@ const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> =
   total_desks: { singular: "Desk", plural: "Desks" },
 };
 
-const getCountSuggestions = (input: string, fieldId: string): string[] => {
-  // Extract only the number from input
-  const match = input.match(/^\d+/);
+const getCountSuggestions = (input: unknown, fieldId: string): string[] => {
+  // Defensive: input may arrive as number/null/undefined when an answered
+  // count field (e.g. total_towers stored as integer) is re-loaded into the
+  // input via setValue(existing). Coerce to string before regex.
+  if (input === null || input === undefined) return [];
+  const str = typeof input === "string" ? input : String(input);
+  const match = str.match(/^\d+/);
   if (!match) return [];
 
   const num = match[0];
@@ -2179,6 +2183,24 @@ export default function SellProperty() {
     // <input type="number">.
     // ============================================
     normalized = coerceCountValue(canonicalFieldId, normalized);
+
+    // Diagnostic: log tower/units pipeline so we can trace any future crash.
+    if (
+      canonicalFieldId === "total_towers" ||
+      canonicalFieldId === "towers" ||
+      canonicalFieldId === "floors_per_tower" ||
+      canonicalFieldId === "total_units" ||
+      canonicalFieldId === "units"
+    ) {
+      console.log("[commitAnswer] tower/units processed", {
+        fieldId: f.id,
+        canonicalFieldId,
+        rawValue: val,
+        displayText,
+        normalized,
+        typeofNormalized: typeof normalized,
+      });
+    }
 
     // ============================================
     // BUSINESS-RULE VALIDATION (AI flow)
@@ -5081,6 +5103,14 @@ export default function SellProperty() {
    Bubble — WhatsApp style
    ============================================================ */
 function Bubble({ msg }: { msg: ChatMsg }) {
+  // Defensive: never render an invalid message — guard against undefined/null
+  // shapes that could otherwise crash the entire chat and trigger the global
+  // error boundary.
+  if (!msg || typeof msg !== "object") {
+    console.warn("[Bubble] skipped invalid msg", msg);
+    return null;
+  }
+
   if (msg.kind === "typing") {
     return (
       <div className="max-w-[75%] rounded-2xl rounded-bl-sm bg-card border border-border px-4 py-3 shadow-sm">
@@ -5104,13 +5134,28 @@ function Bubble({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "image") {
     return (
       <div className={cn(base, "p-1.5")}>
-        <img src={msg.url} alt="" className="rounded-xl max-h-64 object-cover" loading="lazy" decoding="async" />
-        {msg.caption && <div className="px-2 py-1 text-xs opacity-90">{msg.caption}</div>}
+        <img src={(msg as any).url} alt="" className="rounded-xl max-h-64 object-cover" loading="lazy" decoding="async" />
+        {(msg as any).caption && <div className="px-2 py-1 text-xs opacity-90">{(msg as any).caption}</div>}
       </div>
     );
   }
 
-  return <div className={base}>{msg.text}</div>;
+  // Coerce non-string text safely; React cannot render objects directly.
+  const text = (msg as any).text;
+  const safeText =
+    text === null || text === undefined
+      ? ""
+      : typeof text === "string" || typeof text === "number"
+        ? String(text)
+        : (() => {
+            try {
+              return JSON.stringify(text);
+            } catch {
+              return "";
+            }
+          })();
+
+  return <div className={base}>{safeText}</div>;
 }
 
 function Dot({ delay }: { delay: number }) {
