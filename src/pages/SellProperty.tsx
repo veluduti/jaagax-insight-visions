@@ -2195,7 +2195,8 @@ export default function SellProperty() {
       console.log("[commitAnswer] tower/units processed", {
         fieldId: f.id,
         canonicalFieldId,
-        rawValue: value,
+        rawValue: val,
+        displayText,
         normalized,
         typeofNormalized: typeof normalized,
       });
