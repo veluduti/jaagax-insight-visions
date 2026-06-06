@@ -2184,6 +2184,23 @@ export default function SellProperty() {
     // ============================================
     normalized = coerceCountValue(canonicalFieldId, normalized);
 
+    // Diagnostic: log tower/units pipeline so we can trace any future crash.
+    if (
+      canonicalFieldId === "total_towers" ||
+      canonicalFieldId === "towers" ||
+      canonicalFieldId === "floors_per_tower" ||
+      canonicalFieldId === "total_units" ||
+      canonicalFieldId === "units"
+    ) {
+      console.log("[commitAnswer] tower/units processed", {
+        fieldId: f.id,
+        canonicalFieldId,
+        rawDisplayValue: display,
+        normalized,
+        typeofNormalized: typeof normalized,
+      });
+    }
+
     // ============================================
     // BUSINESS-RULE VALIDATION (AI flow)
     // ============================================
