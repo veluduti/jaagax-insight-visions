@@ -36,6 +36,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
 
   render() {
     if (!this.state.error) return this.props.children;
+    const isDev = import.meta.env?.DEV;
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="max-w-md w-full glass-panel rounded-2xl p-8 text-center space-y-4">
@@ -46,6 +47,11 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
           <p className="text-sm text-muted-foreground">
             We hit an unexpected error rendering this page. Try again, or reload the app.
           </p>
+          {isDev && this.state.error?.message && (
+            <pre className="text-left text-[11px] bg-muted/50 rounded-md p-2 overflow-auto max-h-40 whitespace-pre-wrap">
+              {this.state.error.message}
+            </pre>
+          )}
           <div className="flex gap-2 justify-center pt-2">
             <Button variant="outline" onClick={this.handleReset}>Try again</Button>
             <Button onClick={this.handleReload}>Reload</Button>
