@@ -769,9 +769,13 @@ const COUNT_FIELD_LABELS: Record<string, { singular: string; plural: string }> =
   total_desks: { singular: "Desk", plural: "Desks" },
 };
 
-const getCountSuggestions = (input: string, fieldId: string): string[] => {
-  // Extract only the number from input
-  const match = input.match(/^\d+/);
+const getCountSuggestions = (input: unknown, fieldId: string): string[] => {
+  // Defensive: input may arrive as number/null/undefined when an answered
+  // count field (e.g. total_towers stored as integer) is re-loaded into the
+  // input via setValue(existing). Coerce to string before regex.
+  if (input === null || input === undefined) return [];
+  const str = typeof input === "string" ? input : String(input);
+  const match = str.match(/^\d+/);
   if (!match) return [];
 
   const num = match[0];
