@@ -113,7 +113,7 @@ export default function AssignAgentPanel() {
     const { data } = await supabase
       .from("properties")
       .select(
-        "id, title, description, city, locality, address, type, listing_type, price, area_sqft, bedrooms, bathrooms, bhk, furnishing, images, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls"
+        "id, title, description, city, locality, address, pincode, latitude, longitude, type, listing_type, price, price_negotiable, maintenance_charges, booking_amount, area_sqft, building_area_sqft, bedrooms, bathrooms, balconies, bhk, furnishing, completion_stage, property_age, floor_number, total_floors, total_parking, building_name, amenities, rera_id, rera_document_url, images, video_urls, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls"
       )
       .eq("verification_status", "pending")
       .order("created_at", { ascending: false });
