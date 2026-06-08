@@ -236,8 +236,9 @@ const previewValue = (value: any) => {
 };
 
 export default function AgentEditPropertyDialog({
-  open, onOpenChange, property, agentName, agentId, agentUserId, onSubmitted,
+  open, onOpenChange, property, agentName, agentId, agentUserId, onSubmitted, mode = "agent", adminFooter,
 }: Props) {
+  const isAdmin = mode === "admin";
   const safeProperty = safeObject(property);
   const [agentData, setAgentData] = useState<any>({});
   const [verification, setVerification] = useState<Record<string, FieldEntry>>({});
