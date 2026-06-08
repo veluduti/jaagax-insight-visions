@@ -554,15 +554,3 @@ export default function AssignAgentPanel() {
   );
 }
 
-function Stat({
-  icon: Icon, label, value, highlight, className,
-}: { icon: any; label: string; value: string; highlight?: boolean; className?: string }) {
-  return (
-    <div className="rounded-lg border p-2.5 bg-card">
-      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
-        <Icon className="h-3 w-3" />{label}
-      </div>
-      <div className={`font-semibold text-sm ${highlight ? "text-emerald-600" : ""} ${className || ""}`}>{value}</div>
-    </div>
-  );
-}
