@@ -13,6 +13,7 @@ import {
   Home, IndianRupee, User, Eye, Mail, Calendar, Bed, Maximize2, Tag,
 } from "lucide-react";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
+import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 
 interface PendingProperty {
   id: string;
