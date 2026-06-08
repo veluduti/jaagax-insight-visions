@@ -13,6 +13,7 @@ import {
   Home, IndianRupee, User, Eye, Mail, Calendar, Bed, Maximize2, Tag,
 } from "lucide-react";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
+import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 
 interface PendingProperty {
   id: string;
@@ -461,274 +462,95 @@ export default function AssignAgentPanel() {
         })}
       </div>
 
-      {/* Details modal */}
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0">
-          {selected && (() => {
-            const seller = (selected.submitted_by && sellers[selected.submitted_by]) || null;
-            const imgs = Array.isArray(selected.images) ? selected.images : [];
-            const vids = Array.isArray(selected.video_urls) ? selected.video_urls : [];
-            const amenities: string[] = Array.isArray(selected.amenities) ? selected.amenities : [];
-            const doc = (selected.document_urls && typeof selected.document_urls === "object") ? selected.document_urls : {};
+      {/* Editable details modal — same form as the Sell Your Property flow / agent verification */}
+      {selected && (
+        <AgentEditPropertyDialog
+          open={!!selected}
+          onOpenChange={(o) => { if (!o) { setSelected(null); setShowAgents(false); setSuggestions([]); } }}
+          property={selected}
+          mode="admin"
+          onSubmitted={() => fetchPending()}
+          adminFooter={
+            <>
+              <Button variant="destructive" onClick={rejectProperty} disabled={working}>
+                <XCircle className="h-4 w-4 mr-1.5" />Reject
+              </Button>
+              {!selfListedByVerifiedAgent && (
+                <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                  <UserCheck className="h-4 w-4 mr-1.5" />
+                  {showAgents ? "Refresh Agents" : "Assign Agent"}
+                </Button>
+              )}
+              <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
+                {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                Approve
+              </Button>
+            </>
+          }
+        />
+      )}
 
-            // Build extra-fields list from document_urls so admin sees EVERYTHING the seller submitted.
-            const HIDE_KEYS = new Set([
-              "title", "description", "type", "listing_type", "price", "price_negotiable",
-              "maintenance_charges", "booking_amount", "area_sqft", "building_area_sqft",
-              "bhk", "bedrooms", "bathrooms", "balconies", "furnishing", "completion_stage",
-              "property_age", "floor_number", "total_floors", "total_parking", "elevators",
-              "building_name", "city", "locality", "address", "pincode", "latitude", "longitude",
-              "amenities", "retail_centres", "rera_id", "rera_document_url", "images", "video_urls",
-              "media_urls", "listed_by", "created_by_role", "created_by_id", "submitted_by",
-              "agent_data", "document_urls", "original_snapshot", "final_data",
-            ]);
-            const prettyKey = (k: string) =>
-              k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-            const prettyVal = (v: any): string => {
-              if (v == null || v === "") return "—";
-              if (Array.isArray(v)) return v.length ? v.map(prettyVal).join(", ") : "—";
-              if (typeof v === "object") {
-                try { return JSON.stringify(v); } catch { return String(v); }
-              }
-              if (typeof v === "boolean") return v ? "Yes" : "No";
-              return String(v);
-            };
-            const extraEntries = Object.entries(doc).filter(
-              ([k, v]) => !HIDE_KEYS.has(k) && v !== null && v !== undefined && v !== ""
-            );
-
-            return (
-              <>
-                <DialogHeader className="px-6 pt-6 pb-3 shrink-0 border-b">
-                  <DialogTitle className="text-xl">{selected.title}</DialogTitle>
-                  <DialogDescription className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {selected.locality || "—"}, {selected.city || "—"}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <ScrollArea className="flex-1 min-h-0 px-6">
-                  <div className="space-y-5 py-4">
-                    {imgs.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2">
-                        {imgs.slice(0, 6).map((src: string, i: number) => (
-                          <img key={i} src={src} alt="" className="rounded-lg aspect-video object-cover" loading="lazy" decoding="async" />
-                        ))}
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Property Details</h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                        <Stat icon={IndianRupee} label="Price" value={formatPrice(selected.price)} highlight />
-                        <Stat icon={Tag} label="Type" value={selected.type || "—"} />
-                        <Stat icon={Tag} label="Listing" value={selected.listing_type || "—"} className="capitalize" />
-                        <Stat icon={Maximize2} label="Area" value={selected.area_sqft ? `${selected.area_sqft} sqft` : "—"} />
-                        {selected.building_area_sqft && (
-                          <Stat icon={Maximize2} label="Built-up Area" value={`${selected.building_area_sqft} sqft`} />
-                        )}
-                        <Stat icon={Bed} label="BHK" value={selected.bhk ? `${selected.bhk} BHK` : selected.bedrooms ? `${selected.bedrooms} BR` : "—"} />
-                        {selected.bathrooms != null && <Stat icon={Home} label="Bathrooms" value={`${selected.bathrooms}`} />}
-                        {selected.balconies != null && <Stat icon={Home} label="Balconies" value={`${selected.balconies}`} />}
-                        <Stat icon={Home} label="Furnishing" value={selected.furnishing || "—"} />
-                        {selected.completion_stage && <Stat icon={Tag} label="Stage" value={selected.completion_stage} />}
-                        {selected.property_age && <Stat icon={Calendar} label="Age" value={selected.property_age} />}
-                        {(selected.floor_number != null || selected.total_floors != null) && (
-                          <Stat icon={Home} label="Floor" value={`${selected.floor_number ?? "—"} / ${selected.total_floors ?? "—"}`} />
-                        )}
-                        {selected.total_parking != null && <Stat icon={Home} label="Parking" value={`${selected.total_parking}`} />}
-                        {selected.price_negotiable != null && (
-                          <Stat icon={IndianRupee} label="Negotiable" value={selected.price_negotiable ? "Yes" : "No"} />
-                        )}
-                        {selected.maintenance_charges != null && (
-                          <Stat icon={IndianRupee} label="Maintenance" value={formatPrice(selected.maintenance_charges)} />
-                        )}
-                        {selected.booking_amount != null && (
-                          <Stat icon={IndianRupee} label="Booking Amount" value={formatPrice(selected.booking_amount)} />
-                        )}
-                        {selected.building_name && <Stat icon={Home} label="Building" value={selected.building_name} />}
-                        {selected.rera_id && <Stat icon={Tag} label="RERA ID" value={selected.rera_id} />}
-                      </div>
+      {/* Agent suggestions sub-dialog */}
+      <Dialog open={showAgents} onOpenChange={(o) => { if (!o) { setShowAgents(false); setSuggestions([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Suggested Agents</DialogTitle>
+            <DialogDescription>
+              Top 3 by locality match and lowest active workload.
+            </DialogDescription>
+          </DialogHeader>
+          {submitterAgent && (
+            <div className={`rounded-lg border p-3 text-sm ${selfListedByVerifiedAgent ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
+              {selfListedByVerifiedAgent ? (
+                <>
+                  <p className="font-semibold text-emerald-700 dark:text-emerald-400">Listed by verified agent — {submitterAgent.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">No agent assignment needed.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-amber-700 dark:text-amber-400">Listed by unverified agent — {submitterAgent.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Treat like a seller submission.</p>
+                </>
+              )}
+            </div>
+          )}
+          {loadingAgents ? (
+            <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
+          ) : suggestions.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-3">No matching agents found.</p>
+          ) : (
+            <div className="space-y-2">
+              {suggestions.map((a, idx) => (
+                <div key={a.id} className="rounded-lg border p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={a.photo_url || undefined} />
+                    <AvatarFallback>{a.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm">{a.name}</p>
+                      {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
+                      <Badge variant="outline" className="text-[10px]">{a.activeTasks} active task{a.activeTasks === 1 ? "" : "s"}</Badge>
                     </div>
-
-                    {selected.description && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Description</h4>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{selected.description}</p>
-                      </div>
-                    )}
-
-                    {(selected.address || selected.pincode) && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Address</h4>
-                        <p className="text-sm">
-                          {[selected.address, selected.locality, selected.city, selected.pincode].filter(Boolean).join(", ") || "—"}
-                        </p>
-                        {(selected.latitude != null && selected.longitude != null) && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            GPS: {selected.latitude}, {selected.longitude}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {amenities.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Amenities</h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {amenities.map((a, i) => (
-                            <Badge key={i} variant="secondary" className="font-normal">{a}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {selected.rera_document_url && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">RERA Document</h4>
-                        <a href={selected.rera_document_url} target="_blank" rel="noreferrer" className="text-sm text-primary underline break-all">
-                          {selected.rera_document_url}
-                        </a>
-                      </div>
-                    )}
-
-                    {vids.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Videos</h4>
-                        <ul className="list-disc list-inside text-sm space-y-1">
-                          {vids.map((v: string, i: number) => (
-                            <li key={i}><a href={v} target="_blank" rel="noreferrer" className="text-primary underline break-all">{v}</a></li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {extraEntries.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">All Submitted Details</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm rounded-lg border bg-muted/20 p-3">
-                          {extraEntries.map(([k, v]) => (
-                            <div key={k} className="flex flex-col gap-0.5 border-b last:border-0 pb-1.5 last:pb-0">
-                              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{prettyKey(k)}</span>
-                              <span className="text-sm font-medium break-words">{prettyVal(v)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <Separator />
-
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Seller Information</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                        <Stat icon={User} label="Name" value={seller?.name || "—"} />
-                        <Stat icon={Phone} label="Phone" value={seller?.phone || "—"} />
-                        <Stat icon={Mail} label="Email" value={seller?.email || "—"} />
-                      </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {a.agency_name || "Independent"} · {a.cities_served || "—"}
+                    </p>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
+                      <span className="flex items-center gap-0.5"><Briefcase className="h-3 w-3" />{a.experience_years || 0}y</span>
+                      <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-500" />{a.avg_rating || 0}</span>
+                      <span className="flex items-center gap-0.5"><Phone className="h-3 w-3" />{a.phone}</span>
                     </div>
-
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      Submitted {new Date(selected.created_at).toLocaleString()}
-                    </div>
-
-                    {submitterAgent && (
-                      <div className={`rounded-lg border p-3 text-sm ${selfListedByVerifiedAgent ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
-                        {selfListedByVerifiedAgent ? (
-                          <>
-                            <p className="font-semibold text-emerald-700 dark:text-emerald-400">Listed by verified agent — {submitterAgent.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">No agent assignment needed. Just approve or reject.</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-semibold text-amber-700 dark:text-amber-400">Listed by unverified agent — {submitterAgent.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Treat like a seller submission — assign a nearby verified agent.</p>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {showAgents && (
-                      <div>
-                        <Separator className="mb-4" />
-                        <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-                          Top 3 Suggested Agents (locality match · least busy)
-                        </h4>
-                        {loadingAgents ? (
-                          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin" /></div>
-                        ) : suggestions.length === 0 ? (
-                          <p className="text-sm text-muted-foreground py-3">No matching agents found.</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {suggestions.map((a, idx) => (
-                              <div key={a.id} className="rounded-lg border p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={a.photo_url || undefined} />
-                                  <AvatarFallback>{a.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <p className="font-semibold text-sm">{a.name}</p>
-                                    {idx === 0 && <Badge className="bg-emerald-500 text-white text-[10px]">Best match</Badge>}
-                                    <Badge variant="outline" className="text-[10px]">{a.activeTasks} active task{a.activeTasks === 1 ? "" : "s"}</Badge>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {a.agency_name || "Independent"} · {a.cities_served || "—"}
-                                  </p>
-                                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5">
-                                    <span className="flex items-center gap-0.5"><Briefcase className="h-3 w-3" />{a.experience_years || 0}y</span>
-                                    <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-500" />{a.avg_rating || 0}</span>
-                                    <span className="flex items-center gap-0.5"><Phone className="h-3 w-3" />{a.phone}</span>
-                                  </div>
-                                </div>
-                                <Button size="sm" onClick={() => assignAndApprove(a)} disabled={working}>
-                                  {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign Agent"}
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
-                </ScrollArea>
-
-                <DialogFooter className="shrink-0 px-6 py-4 border-t bg-background flex-row flex-wrap gap-2 sm:justify-between">
-                  <Button variant="destructive" onClick={rejectProperty} disabled={working}>
-                    <XCircle className="h-4 w-4 mr-1.5" />Reject
+                  <Button size="sm" onClick={() => assignAndApprove(a)} disabled={working}>
+                    {working ? <Loader2 className="h-3 w-3 animate-spin" /> : "Assign"}
                   </Button>
-                  <div className="flex gap-2 flex-wrap">
-                    {!selfListedByVerifiedAgent && (
-                      <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
-                        <UserCheck className="h-4 w-4 mr-1.5" />
-                        {showAgents ? "Refresh Agents" : "Assign Agent"}
-                      </Button>
-                    )}
-                    <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
-                      {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                      Approve
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </>
-            );
-          })()}
+                </div>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
   );
 }
 
-function Stat({
-  icon: Icon, label, value, highlight, className,
-}: { icon: any; label: string; value: string; highlight?: boolean; className?: string }) {
-  return (
-    <div className="rounded-lg border p-2.5 bg-card">
-      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">
-        <Icon className="h-3 w-3" />{label}
-      </div>
-      <div className={`font-semibold text-sm ${highlight ? "text-emerald-600" : ""} ${className || ""}`}>{value}</div>
-    </div>
-  );
-}

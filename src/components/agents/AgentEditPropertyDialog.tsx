@@ -25,10 +25,14 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   property: any;
-  agentName: string;
-  agentId: string;
-  agentUserId: string;
+  agentName?: string;
+  agentId?: string;
+  agentUserId?: string;
   onSubmitted?: () => void;
+  /** 'agent' (default) submits for admin approval; 'admin' saves edits in place and shows custom footer actions. */
+  mode?: "agent" | "admin";
+  /** Extra footer actions shown in admin mode (e.g. Reject / Assign Agent / Approve). */
+  adminFooter?: React.ReactNode;
 }
 
 // ---------- Section / field definitions ----------
@@ -232,8 +236,9 @@ const previewValue = (value: any) => {
 };
 
 export default function AgentEditPropertyDialog({
-  open, onOpenChange, property, agentName, agentId, agentUserId, onSubmitted,
+  open, onOpenChange, property, agentName, agentId, agentUserId, onSubmitted, mode = "agent", adminFooter,
 }: Props) {
+  const isAdmin = mode === "admin";
   const safeProperty = safeObject(property);
   const [agentData, setAgentData] = useState<any>({});
   const [verification, setVerification] = useState<Record<string, FieldEntry>>({});
@@ -435,7 +440,7 @@ export default function AgentEditPropertyDialog({
   }, [agentData, verification]);
 
   const handleSubmit = async () => {
-    if (!agentNotes.trim()) {
+    if (!isAdmin && !agentNotes.trim()) {
       toast.error("Please add agent notes from the visit");
       return;
     }
@@ -478,27 +483,34 @@ export default function AgentEditPropertyDialog({
       snapshot_at: new Date().toISOString(),
     };
 
+    const baseUpdate: any = {
+      title: mirrorTitle,
+      price: mirrorPrice,
+      area_sqft: mirrorArea,
+      bhk: mirrorBhk,
+      bedrooms: mirrorBedrooms,
+      bathrooms: mirrorBathrooms,
+      city: mirrorCity,
+      locality: mirrorLocality,
+      address: mirrorAddress,
+      images: mirrorImages.length ? mirrorImages : property.images,
+      agent_data: agentData,
+      field_verification: fullVerification,
+      original_snapshot,
+    };
+
+    if (!isAdmin) {
+      baseUpdate.agent_notes = agentNotes.trim();
+      baseUpdate.verification_status = "agent_verified_pending";
+      baseUpdate.verified = false;
+      baseUpdate.agent_submitted_at = new Date().toISOString();
+    } else if (agentNotes.trim()) {
+      baseUpdate.agent_notes = agentNotes.trim();
+    }
+
     const { error } = await supabase
       .from("properties")
-      .update({
-        title: mirrorTitle,
-        price: mirrorPrice,
-        area_sqft: mirrorArea,
-        bhk: mirrorBhk,
-        bedrooms: mirrorBedrooms,
-        bathrooms: mirrorBathrooms,
-        city: mirrorCity,
-        locality: mirrorLocality,
-        address: mirrorAddress,
-        images: mirrorImages.length ? mirrorImages : property.images,
-        agent_notes: agentNotes.trim(),
-        agent_data: agentData,
-        field_verification: fullVerification,
-        original_snapshot,
-        verification_status: "agent_verified_pending",
-        verified: false,
-        agent_submitted_at: new Date().toISOString(),
-      } as any)
+      .update(baseUpdate as any)
       .eq("id", property.id);
 
     if (error) {
@@ -507,37 +519,39 @@ export default function AgentEditPropertyDialog({
       return;
     }
 
-    // Mark task completed
-    await supabase.from("agent_tasks" as any)
-      .update({ status: "completed", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq("agent_id", agentId).eq("property_id", property.id);
+    if (!isAdmin && agentId) {
+      // Mark task completed
+      await supabase.from("agent_tasks" as any)
+        .update({ status: "completed", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("agent_id", agentId).eq("property_id", property.id);
 
-    // Notify admins
-    const { data: admins } = await supabase.from("user_roles" as any).select("user_id").eq("role", "admin");
-    if (admins?.length) {
-      await supabase.from("notifications").insert(admins.map((a: any) => ({
-        user_id: a.user_id,
-        type: "agent_verified",
-        title: "Agent submitted property for final approval",
-        message: `${agentName} verified "${mirrorTitle}" with ${counters.v} verified, ${counters.c} corrected, ${counters.a} added fields.`,
-        link: `/admin`,
-      })));
-    }
-    if (property.submitted_by) {
-      await supabase.from("notifications").insert({
-        user_id: property.submitted_by,
-        type: "agent_verified",
-        title: "Property submitted for final approval",
-        message: `${agentName} completed verification of "${mirrorTitle}" and submitted it for admin approval.`,
-        link: `/property/${property.id}`,
-      });
+      // Notify admins
+      const { data: admins } = await supabase.from("user_roles" as any).select("user_id").eq("role", "admin");
+      if (admins?.length) {
+        await supabase.from("notifications").insert(admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "agent_verified",
+          title: "Agent submitted property for final approval",
+          message: `${agentName || "Agent"} verified "${mirrorTitle}" with ${counters.v} verified, ${counters.c} corrected, ${counters.a} added fields.`,
+          link: `/admin`,
+        })));
+      }
+      if (property.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: property.submitted_by,
+          type: "agent_verified",
+          title: "Property submitted for final approval",
+          message: `${agentName || "Agent"} completed verification of "${mirrorTitle}" and submitted it for admin approval.`,
+          link: `/property/${property.id}`,
+        });
+      }
     }
 
     setSubmitting(false);
-    toast.success("Submitted for admin approval", {
+    toast.success(isAdmin ? "Changes saved" : "Submitted for admin approval", {
       description: `${counters.v} verified • ${counters.c} corrected • ${counters.a} added`,
     });
-    onOpenChange(false);
+    if (!isAdmin) onOpenChange(false);
     onSubmitted?.();
   };
 
@@ -547,10 +561,12 @@ export default function AgentEditPropertyDialog({
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <FileCheck2 className="h-5 w-5 text-blue-500" />
-            Edit & Verify Property
+            {isAdmin ? "Review & Edit Property" : "Edit & Verify Property"}
           </DialogTitle>
           <DialogDescription>
-            Pre-filled from seller. Highlighted fields = seller-provided. Verify, correct, or add for each.
+            {isAdmin
+              ? "All seller-submitted details. Edit any field, then approve, reject, or assign an agent."
+              : "Pre-filled from seller. Highlighted fields = seller-provided. Verify, correct, or add for each."}
           </DialogDescription>
           <div className="flex flex-wrap gap-1.5 mt-2">
             <Badge className="bg-emerald-500 text-white text-[10px]"><CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />{counters.v} Verified</Badge>
@@ -593,31 +609,46 @@ export default function AgentEditPropertyDialog({
           <div className="mt-4 rounded-lg border border-blue-500/40 bg-blue-500/5 p-3">
             <Label className="text-xs font-semibold flex items-center gap-1.5 mb-2">
               <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-              Agent Notes <span className="text-red-500">*</span>
+              {isAdmin ? "Admin / Agent Notes" : <>Agent Notes <span className="text-red-500">*</span></>}
             </Label>
             <Textarea
               rows={3}
               value={agentNotes}
               onChange={(e) => setAgentNotes(e.target.value)}
-              placeholder="On-site observations, condition, accuracy of seller's claims, etc."
+              placeholder={isAdmin
+                ? "Internal notes for this listing (optional)…"
+                : "On-site observations, condition, accuracy of seller's claims, etc."}
             />
           </div>
 
-          <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-2">
-            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span>
-              On submit: full <code>agent_data</code> + per-field <code>field_verification</code> log saved.
-              Status becomes <strong>AGENT_VERIFIED_PENDING_ADMIN_APPROVAL</strong>.
-            </span>
-          </div>
+          {!isAdmin && (
+            <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-2">
+              <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              <span>
+                On submit: full <code>agent_data</code> + per-field <code>field_verification</code> log saved.
+                Status becomes <strong>AGENT_VERIFIED_PENDING_ADMIN_APPROVAL</strong>.
+              </span>
+            </div>
+          )}
         </div>
 
-        <DialogFooter className="p-4 border-t bg-muted/30">
-          <Button variant="outline" disabled={submitting} onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-white">
-            <FileCheck2 className="h-4 w-4 mr-1" />
-            {submitting ? "Submitting…" : "Submit for Admin Approval"}
-          </Button>
+        <DialogFooter className="p-4 border-t bg-muted/30 flex-row flex-wrap gap-2 sm:justify-between">
+          {isAdmin ? (
+            <>
+              <Button variant="outline" disabled={submitting} onClick={handleSubmit}>
+                {submitting ? "Saving…" : "Save Edits"}
+              </Button>
+              <div className="flex flex-wrap gap-2">{adminFooter}</div>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" disabled={submitting} onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button onClick={handleSubmit} disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <FileCheck2 className="h-4 w-4 mr-1" />
+                {submitting ? "Submitting…" : "Submit for Admin Approval"}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
