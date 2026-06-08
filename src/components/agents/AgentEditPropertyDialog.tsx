@@ -440,7 +440,7 @@ export default function AgentEditPropertyDialog({
   }, [agentData, verification]);
 
   const handleSubmit = async () => {
-    if (!agentNotes.trim()) {
+    if (!isAdmin && !agentNotes.trim()) {
       toast.error("Please add agent notes from the visit");
       return;
     }
@@ -483,27 +483,34 @@ export default function AgentEditPropertyDialog({
       snapshot_at: new Date().toISOString(),
     };
 
+    const baseUpdate: any = {
+      title: mirrorTitle,
+      price: mirrorPrice,
+      area_sqft: mirrorArea,
+      bhk: mirrorBhk,
+      bedrooms: mirrorBedrooms,
+      bathrooms: mirrorBathrooms,
+      city: mirrorCity,
+      locality: mirrorLocality,
+      address: mirrorAddress,
+      images: mirrorImages.length ? mirrorImages : property.images,
+      agent_data: agentData,
+      field_verification: fullVerification,
+      original_snapshot,
+    };
+
+    if (!isAdmin) {
+      baseUpdate.agent_notes = agentNotes.trim();
+      baseUpdate.verification_status = "agent_verified_pending";
+      baseUpdate.verified = false;
+      baseUpdate.agent_submitted_at = new Date().toISOString();
+    } else if (agentNotes.trim()) {
+      baseUpdate.agent_notes = agentNotes.trim();
+    }
+
     const { error } = await supabase
       .from("properties")
-      .update({
-        title: mirrorTitle,
-        price: mirrorPrice,
-        area_sqft: mirrorArea,
-        bhk: mirrorBhk,
-        bedrooms: mirrorBedrooms,
-        bathrooms: mirrorBathrooms,
-        city: mirrorCity,
-        locality: mirrorLocality,
-        address: mirrorAddress,
-        images: mirrorImages.length ? mirrorImages : property.images,
-        agent_notes: agentNotes.trim(),
-        agent_data: agentData,
-        field_verification: fullVerification,
-        original_snapshot,
-        verification_status: "agent_verified_pending",
-        verified: false,
-        agent_submitted_at: new Date().toISOString(),
-      } as any)
+      .update(baseUpdate as any)
       .eq("id", property.id);
 
     if (error) {
@@ -512,37 +519,39 @@ export default function AgentEditPropertyDialog({
       return;
     }
 
-    // Mark task completed
-    await supabase.from("agent_tasks" as any)
-      .update({ status: "completed", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq("agent_id", agentId).eq("property_id", property.id);
+    if (!isAdmin && agentId) {
+      // Mark task completed
+      await supabase.from("agent_tasks" as any)
+        .update({ status: "completed", completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("agent_id", agentId).eq("property_id", property.id);
 
-    // Notify admins
-    const { data: admins } = await supabase.from("user_roles" as any).select("user_id").eq("role", "admin");
-    if (admins?.length) {
-      await supabase.from("notifications").insert(admins.map((a: any) => ({
-        user_id: a.user_id,
-        type: "agent_verified",
-        title: "Agent submitted property for final approval",
-        message: `${agentName} verified "${mirrorTitle}" with ${counters.v} verified, ${counters.c} corrected, ${counters.a} added fields.`,
-        link: `/admin`,
-      })));
-    }
-    if (property.submitted_by) {
-      await supabase.from("notifications").insert({
-        user_id: property.submitted_by,
-        type: "agent_verified",
-        title: "Property submitted for final approval",
-        message: `${agentName} completed verification of "${mirrorTitle}" and submitted it for admin approval.`,
-        link: `/property/${property.id}`,
-      });
+      // Notify admins
+      const { data: admins } = await supabase.from("user_roles" as any).select("user_id").eq("role", "admin");
+      if (admins?.length) {
+        await supabase.from("notifications").insert(admins.map((a: any) => ({
+          user_id: a.user_id,
+          type: "agent_verified",
+          title: "Agent submitted property for final approval",
+          message: `${agentName || "Agent"} verified "${mirrorTitle}" with ${counters.v} verified, ${counters.c} corrected, ${counters.a} added fields.`,
+          link: `/admin`,
+        })));
+      }
+      if (property.submitted_by) {
+        await supabase.from("notifications").insert({
+          user_id: property.submitted_by,
+          type: "agent_verified",
+          title: "Property submitted for final approval",
+          message: `${agentName || "Agent"} completed verification of "${mirrorTitle}" and submitted it for admin approval.`,
+          link: `/property/${property.id}`,
+        });
+      }
     }
 
     setSubmitting(false);
-    toast.success("Submitted for admin approval", {
+    toast.success(isAdmin ? "Changes saved" : "Submitted for admin approval", {
       description: `${counters.v} verified • ${counters.c} corrected • ${counters.a} added`,
     });
-    onOpenChange(false);
+    if (!isAdmin) onOpenChange(false);
     onSubmitted?.();
   };
 
