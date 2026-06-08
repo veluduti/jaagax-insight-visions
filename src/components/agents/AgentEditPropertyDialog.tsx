@@ -25,10 +25,14 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   property: any;
-  agentName: string;
-  agentId: string;
-  agentUserId: string;
+  agentName?: string;
+  agentId?: string;
+  agentUserId?: string;
   onSubmitted?: () => void;
+  /** 'agent' (default) submits for admin approval; 'admin' saves edits in place and shows custom footer actions. */
+  mode?: "agent" | "admin";
+  /** Extra footer actions shown in admin mode (e.g. Reject / Assign Agent / Approve). */
+  adminFooter?: React.ReactNode;
 }
 
 // ---------- Section / field definitions ----------
