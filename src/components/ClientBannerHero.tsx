@@ -20,6 +20,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
+import bannerBg from "@/assets/client-hero-banner.png.asset.json";
 
 interface ClientBannerHeroProps {
   activeTab: string;
