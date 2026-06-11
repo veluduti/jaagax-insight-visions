@@ -120,7 +120,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Clie
                   className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card/80 backdrop-blur border border-border/50 hover:border-primary/40 hover:shadow-lg transition-all"
                 >
                   <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <f.icon className="h-4.5 w-4.5 text-primary" />
+                    <f.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-foreground leading-tight">{f.title}</div>
@@ -228,7 +228,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Clie
             {stats.map((s) => (
               <div key={s.label} className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon className="h-4.5 w-4.5 text-primary" />
+                  <s.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm md:text-base font-bold leading-tight">{s.value}</div>
