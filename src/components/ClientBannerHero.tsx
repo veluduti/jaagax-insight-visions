@@ -18,21 +18,21 @@ import {
   Lock,
   Star,
   ArrowRight,
+  MapPin,
 } from "lucide-react";
 import skylineImg from "@/assets/hero-skyline.jpg";
 
 interface Props {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
-  showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearchBar = false }: Props) => {
+const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Features for the left column
+  // Features for the left column (from second image)
   const features = [
     {
       icon: Brain,
@@ -54,14 +54,13 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
     },
   ];
 
-  // Right side action buttons
+  // Right side circular action buttons
   const rightActions = [
-    { icon: Search, label: "Search", onClick: () => navigate("/search") },
     { icon: Heart, label: "Shortlist", onClick: () => navigate("/dashboard/buyer") },
     { icon: Headphones, label: "Expert Support", onClick: goComingSoon("Expert Support") },
   ];
 
-  // Right side cards
+  // Right side cards (from second image)
   const rightCards = [
     {
       icon: Wallet,
@@ -83,7 +82,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
     },
   ];
 
-  // Stats for the bottom bar
+  // Stats for the bottom bar (from second image)
   const stats = [
     { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
     { icon: Users, value: "100K+", label: "Happy Customers" },
@@ -93,23 +92,8 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
     { icon: Star, value: "4.8/5", label: "User Rating" },
   ];
 
-  // What's on mind items
-  const mindItems = [
-    { icon: TrendingUp, label: "Price may fall", action: () => navigate("/ai-advisor") },
-    { icon: Activity, label: "Project delay worry", action: () => navigate("/ai-advisor") },
-    { icon: ShieldCheck, label: "Job insecurity", action: () => navigate("/ai-advisor") },
-    { icon: Search, label: "Just exploring", action: () => navigate("/search") },
-  ];
-
-  // Category items
-  const categories = [
-    { label: "Properties", onClick: () => navigate("/properties") },
-    { label: "New Projects", onClick: () => navigate("/new-projects") },
-    { label: "Agents", onClick: () => navigate("/agents") },
-  ];
-
   return (
-    <section className="relative w-full bg-background overflow-hidden">
+    <section className="relative w-full bg-background overflow-hidden min-h-screen">
       {/* Background Image Container */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${skylineImg})` }} />
@@ -117,25 +101,12 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/60" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-8 lg:pt-8 lg:pb-12">
-        {/* Main grid layout - Desktop optimized */}
-        <div className="grid grid-cols-12 gap-4 lg:gap-6 min-h-[580px] lg:min-h-[620px]">
-          {/* ============ LEFT COLUMN (4 cols on desktop) ============ */}
+      <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
+        {/* Main grid layout - Matching second image exactly */}
+        <div className="grid grid-cols-12 gap-6 lg:gap-8 min-h-[580px] lg:min-h-[620px]">
+          {/* ============ LEFT COLUMN (4 cols) ============ */}
           <div className="col-span-12 lg:col-span-4 relative z-20">
-            <h1 className="font-serif leading-[1.02] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl xl:text-6xl">
-              Your Dream
-              <br />
-              <span className="text-primary">Place Awaits</span>
-            </h1>
-            <div className="mt-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-white/80">
-              <span>FIND</span>
-              <span className="h-1 w-1 rounded-full bg-primary" />
-              <span>CONNECT</span>
-              <span className="h-1 w-1 rounded-full bg-primary" />
-              <span>GROW</span>
-            </div>
-
-            <div className="mt-5 space-y-2.5">
+            <div className="space-y-4">
               {features.map((f) => (
                 <motion.button
                   key={f.title}
@@ -153,7 +124,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                 </motion.button>
               ))}
 
-              {/* India's most trusted section */}
+              {/* India's most trusted platform */}
               <motion.button
                 whileHover={{ x: 5 }}
                 onClick={() => navigate("/trust-score")}
@@ -162,23 +133,41 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                 <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
                   <ShieldCheck className="h-5 w-5 text-primary" />
                 </div>
-                <div className="text-sm font-bold text-white leading-tight">
-                  India's most trusted
-                  <div className="font-medium text-white/70 text-xs mt-0.5">intelligent property platform</div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">
+                    India's most trusted
+                    <div className="font-medium text-white/70 text-xs mt-0.5">intelligent property platform</div>
+                  </div>
                 </div>
               </motion.button>
             </div>
           </div>
 
-          {/* ============ CENTER COLUMN (5 cols on desktop) ============ */}
-          <div className="col-span-12 lg:col-span-5 relative min-h-[500px] lg:min-h-[580px]">
-            {/* New Property Posted Banner - Top Center */}
+          {/* ============ CENTER COLUMN (5 cols) - Main hero area ============ */}
+          <div className="col-span-12 lg:col-span-5 relative z-20">
+            {/* Main Title */}
+            <div className="text-center mb-6">
+              <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl xl:text-6xl">
+                Your Dream
+                <br />
+                <span className="text-primary">Place Awaits</span>
+              </h1>
+              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] font-bold tracking-[0.3em] text-white/80">
+                <span>FIND</span>
+                <span className="h-1 w-1 rounded-full bg-primary" />
+                <span>CONNECT</span>
+                <span className="h-1 w-1 rounded-full bg-primary" />
+                <span>GROW</span>
+              </div>
+            </div>
+
+            {/* New Property Posted Banner */}
             <motion.button
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/search?posted=24h")}
-              className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-sm flex items-center gap-3 p-3 rounded-2xl bg-white/95 backdrop-blur border border-gray-200 shadow-2xl hover:shadow-glow transition z-20"
+              className="w-full max-w-md mx-auto flex items-center gap-3 p-3 rounded-2xl bg-white/95 backdrop-blur border border-gray-200 shadow-2xl hover:shadow-glow transition mb-6"
             >
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -196,94 +185,116 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               </div>
             </motion.button>
 
-            {/* Category Chips - Properties, New Projects, Agents */}
-            <div className="absolute top-24 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-              {categories.map((cat) => (
+            {/* Smart Insights & Verified Properties Pills */}
+            <div className="flex justify-center gap-3 mb-6">
+              <button
+                onClick={() => navigate("/ai-advisor")}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-lg hover:bg-white transition"
+              >
+                <TrendingUp className="h-3.5 w-3.5 text-primary" /> Smart Insights
+              </button>
+              <button
+                onClick={() => navigate("/search?verified=1")}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-lg hover:bg-white transition"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Verified Properties
+              </button>
+            </div>
+
+            {/* Center X Logo */}
+            <div className="flex justify-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl ring-4 ring-primary/30">
+                <span className="text-primary font-black text-2xl">X</span>
+              </div>
+            </div>
+
+            {/* Buy/Rent Tabs and Search */}
+            <div className="max-w-md mx-auto">
+              <div className="flex gap-2 mb-3">
                 <button
-                  key={cat.label}
-                  onClick={cat.onClick}
-                  className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white text-sm font-medium hover:bg-white/30 transition"
+                  onClick={() => navigate("/buy")}
+                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                    activeTab === "buy"
+                      ? "bg-primary text-white"
+                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                  }`}
                 >
-                  {cat.label}
+                  Buy
                 </button>
-              ))}
-            </div>
+                <button
+                  onClick={() => navigate("/rent")}
+                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                    activeTab === "rent"
+                      ? "bg-primary text-white"
+                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                  }`}
+                >
+                  Rent
+                </button>
+                <button
+                  onClick={() => navigate("/new-projects")}
+                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                    activeTab === "new-projects"
+                      ? "bg-primary text-white"
+                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                  }`}
+                >
+                  New Projects
+                </button>
+                <button
+                  onClick={() => navigate("/commercial")}
+                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
+                    activeTab === "commercial"
+                      ? "bg-primary text-white"
+                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                  }`}
+                >
+                  Commercial
+                </button>
+              </div>
 
-            {/* Buy/Rent Tabs */}
-            <div className="absolute top-36 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-              <button
-                onClick={() => navigate("/buy")}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                  activeTab === "buy"
-                    ? "bg-primary text-white"
-                    : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
-                }`}
-              >
-                Buy
-              </button>
-              <button
-                onClick={() => navigate("/rent")}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                  activeTab === "rent"
-                    ? "bg-primary text-white"
-                    : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
-                }`}
-              >
-                Rent
-              </button>
-            </div>
-
-            {/* Location Input + Search */}
-            <div className="absolute top-48 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
-              <div className="flex gap-2 bg-white/95 backdrop-blur rounded-full p-1 shadow-lg">
+              {/* Search Bar */}
+              <div className="flex gap-2 bg-white rounded-full p-1 shadow-lg">
                 <div className="flex-1 flex items-center gap-2 px-4">
-                  <Search className="h-4 w-4 text-gray-400" />
+                  <MapPin className="h-4 w-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Enter location"
+                    placeholder="Enter location, city or landmark"
                     className="flex-1 py-2 outline-none bg-transparent text-gray-700 text-sm"
                     defaultValue="Hyderabad"
                   />
                 </div>
                 <button
                   onClick={() => navigate("/search")}
-                  className="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition"
+                  className="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition flex items-center gap-2"
                 >
-                  Search
+                  <Search className="h-4 w-4" /> Search
                 </button>
               </div>
               <button className="text-white/80 text-xs mt-2 ml-4 hover:text-white transition">+ More Filters</button>
             </div>
 
-            {/* Try AI Advisor Button */}
-            <button
-              onClick={() => navigate("/ai-advisor")}
-              className="absolute bottom-32 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold shadow-xl hover:bg-primary/90 transition flex items-center gap-2 z-20 whitespace-nowrap"
-            >
-              <Brain className="h-4 w-4" /> Try AI Advisor
-            </button>
-
-            {/* Bottom Left: Book Hotel */}
-            <button
-              onClick={() => navigate("/hotels")}
-              className="absolute bottom-4 left-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl hover:bg-blue-700 transition z-20"
-            >
-              <Hotel className="h-3.5 w-3.5" /> Book Hotel
-            </button>
-
-            {/* Bottom Right: Smart Financing */}
-            <button
-              onClick={goComingSoon("Smart Financing")}
-              className="absolute bottom-4 right-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-xl hover:bg-purple-700 transition z-20"
-            >
-              <Building2 className="h-3.5 w-3.5" /> Smart Financing
-            </button>
+            {/* Bottom Buttons */}
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={() => navigate("/hotels")}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-lg hover:bg-blue-700 transition"
+              >
+                <Hotel className="h-3.5 w-3.5" /> Book Hotel
+              </button>
+              <button
+                onClick={goComingSoon("Smart Financing")}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-lg hover:bg-purple-700 transition"
+              >
+                <Building2 className="h-3.5 w-3.5" /> Smart Financing
+              </button>
+            </div>
           </div>
 
-          {/* ============ RIGHT COLUMN (3 cols on desktop) ============ */}
-          <div className="col-span-12 lg:col-span-3 relative z-20 space-y-3">
-            {/* Circular action buttons */}
-            <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
+          {/* ============ RIGHT COLUMN (3 cols) ============ */}
+          <div className="col-span-12 lg:col-span-3 relative z-20 space-y-4">
+            {/* Circular action buttons - Shortlist & Expert Support */}
+            <div className="grid grid-cols-2 gap-3">
               {rightActions.map((a) => (
                 <motion.button
                   key={a.label}
@@ -299,8 +310,8 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               ))}
             </div>
 
-            {/* Feature cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 pt-1">
+            {/* Feature cards - Smart Financing, Instant Match, Real-time Updates */}
+            <div className="space-y-2.5">
               {rightCards.map((c) => (
                 <motion.button
                   key={c.title}
@@ -322,7 +333,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
         </div>
 
         {/* ============ STATS BAR ============ */}
-        <div className="mt-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
+        <div className="mt-8 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {stats.map((s) => (
               <div key={s.label} className="flex items-center gap-3">
@@ -334,27 +345,6 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                   <div className="text-[11px] text-gray-600 leading-tight">{s.label}</div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ============ "What's on your mind?" Section ============ */}
-        <div className="mt-4 p-4 rounded-2xl bg-white/95 backdrop-blur border border-gray-100">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-gray-900">What's on your mind?</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {mindItems.map((item) => (
-              <motion.button
-                key={item.label}
-                whileHover={{ scale: 1.02 }}
-                onClick={item.action}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-primary/10 transition text-xs font-medium text-gray-700"
-              >
-                <item.icon className="h-3 w-3 text-primary" />
-                {item.label}
-              </motion.button>
             ))}
           </div>
         </div>
