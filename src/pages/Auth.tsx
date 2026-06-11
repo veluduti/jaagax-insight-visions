@@ -249,6 +249,13 @@ export default function Auth() {
         sessionStorage.setItem("jaagax.pendingEmail", email);
         sessionStorage.setItem("jaagax.pendingPhone", phone);
         sessionStorage.setItem("jaagax.pendingSignupPassword", password);
+        if (locationMeta) {
+          // Cache the full Google Places result so onboarding / profile pages
+          // can read placeId, lat/lng, state, country, locality after verify.
+          try {
+            localStorage.setItem("jaagax.pendingSignupLocation", JSON.stringify(locationMeta));
+          } catch {}
+        }
         toast.success(`We sent a 6-digit code to ${phone} via SMS. It expires in 5 minutes.`, { duration: 5000 });
         navigate("/verify-otp", { state: { email, phone } });
         return;
