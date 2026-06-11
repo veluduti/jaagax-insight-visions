@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
-import CityAutocomplete from "@/components/auth/CityAutocomplete";
+import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
+import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
@@ -59,6 +60,7 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
+  const [locationMeta, setLocationMeta] = useState<NormalizedLocation | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -247,6 +249,13 @@ export default function Auth() {
         sessionStorage.setItem("jaagax.pendingEmail", email);
         sessionStorage.setItem("jaagax.pendingPhone", phone);
         sessionStorage.setItem("jaagax.pendingSignupPassword", password);
+        if (locationMeta) {
+          // Cache the full Google Places result so onboarding / profile pages
+          // can read placeId, lat/lng, state, country, locality after verify.
+          try {
+            localStorage.setItem("jaagax.pendingSignupLocation", JSON.stringify(locationMeta));
+          } catch {}
+        }
         toast.success(`We sent a 6-digit code to ${phone} via SMS. It expires in 5 minutes.`, { duration: 5000 });
         navigate("/verify-otp", { state: { email, phone } });
         return;
@@ -380,7 +389,17 @@ export default function Auth() {
                     {/* 5. City (autocomplete) */}
                     <div className="space-y-2">
                       <Label htmlFor="city">City</Label>
-                      <CityAutocomplete value={city} onChange={setCity} placeholder="Search your city..." />
+                      <PlacesAutocompleteInput
+                        id="city"
+                        value={city}
+                        onChange={setCity}
+                        onSelect={(loc) => {
+                          setLocationMeta(loc);
+                          setCity(loc.city || loc.locality || loc.formattedAddress);
+                        }}
+                        placeholder="Search your city, area, or address…"
+                        country="IN"
+                      />
                     </div>
 
                     {/* 6. Email (used for verification — required, not optional) */}
