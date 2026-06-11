@@ -27,10 +27,74 @@ interface Props {
   showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) => {
+const ClientBannerHero = ({
+  activeTab = "buy",
+  onTabChange = () => {},
+  showSearchBar: _showSearchBar = true,
+}: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
+
+  // Left column features
+  const features = [
+    {
+      icon: Brain,
+      title: "AI-Powered Insights",
+      desc: "Smart recommendations just for you.",
+      onClick: () => navigate("/ai-advisor"),
+    },
+    {
+      icon: ShieldCheck,
+      title: "100% Verified Properties",
+      desc: "Ensuring trust and transparency.",
+      onClick: () => navigate("/search?verified=1"),
+    },
+    {
+      icon: IndianRupee,
+      title: "Zero Hidden Costs",
+      desc: "What you see is what you get.",
+      onClick: () => navigate("/valuation"),
+    },
+  ];
+
+  // Right column circular buttons
+  const rightActions = [
+    { icon: Heart, label: "Shortlist", onClick: () => navigate("/dashboard/buyer") },
+    { icon: Headphones, label: "Expert Support", onClick: goComingSoon("Expert Support") },
+  ];
+
+  // Right column cards
+  const rightCards = [
+    {
+      icon: Wallet,
+      title: "Smart Financing",
+      desc: "Pre-Approved Up to ₹5 Cr",
+      onClick: goComingSoon("Smart Financing"),
+    },
+    {
+      icon: Users,
+      title: "Instant Match",
+      desc: "Connect with right buyers & sellers",
+      onClick: () => navigate("/ai-advisor"),
+    },
+    {
+      icon: Activity,
+      title: "Real-time Updates",
+      desc: "on new properties",
+      onClick: goComingSoon("Real-time Updates"),
+    },
+  ];
+
+  // Bottom stats
+  const stats = [
+    { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
+    { icon: Users, value: "100K+", label: "Happy Customers" },
+    { icon: TrendingUp, value: "AI Powered", label: "Smart Insights" },
+    { icon: Lock, value: "100%", label: "Secure & Transparent" },
+    { icon: Headphones, value: "24/7", label: "Expert Support" },
+    { icon: Star, value: "4.8/5", label: "User Rating" },
+  ];
 
   return (
     <section className="relative w-full bg-background overflow-hidden min-h-screen">
@@ -41,55 +105,47 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) 
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main Grid */}
-        <div className="grid grid-cols-12 gap-6">
-          {/* LEFT COLUMN - 4 cols */}
-          <div className="col-span-12 lg:col-span-4 space-y-4">
-            {/* Card 1 */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Brain className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">AI-Powered Insights</div>
-                <div className="text-[11px] text-white/70">Smart recommendations just for you.</div>
-              </div>
-            </div>
+        {/* Main Grid - 12 columns exactly like second image */}
+        <div className="grid grid-cols-12 gap-5 lg:gap-6">
+          {/* ============ LEFT COLUMN (4 cols) ============ */}
+          <div className="col-span-12 lg:col-span-4 space-y-3">
+            {/* 3 Feature Cards */}
+            {features.map((f) => (
+              <motion.button
+                key={f.title}
+                whileHover={{ x: 5 }}
+                onClick={f.onClick}
+                className="group w-full text-left flex items-start gap-3 p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                  <f.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">{f.desc}</div>
+                </div>
+              </motion.button>
+            ))}
 
-            {/* Card 2 */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+            {/* India's most trusted platform - as text block in second image */}
+            <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <ShieldCheck className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">India's most trusted</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">intelligent property platform</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold text-white">100% Verified Properties</div>
-                <div className="text-[11px] text-white/70">Ensuring trust and transparency.</div>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <IndianRupee className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">Zero Hidden Costs</div>
-                <div className="text-[11px] text-white/70">What you see is what you get.</div>
-              </div>
-            </div>
-
-            {/* India's most trusted - plain text block */}
-            <div className="p-3">
-              <div className="text-sm font-bold text-white">India's most trusted</div>
-              <div className="text-[11px] text-white/70">intelligent property platform</div>
             </div>
           </div>
 
-          {/* CENTER COLUMN - 5 cols */}
+          {/* ============ CENTER COLUMN (5 cols) ============ */}
           <div className="col-span-12 lg:col-span-5">
-            {/* Title */}
+            {/* Main Title */}
             <div className="text-center">
-              <h1 className="font-serif leading-[1.1] text-white text-4xl md:text-5xl lg:text-5xl">
+              <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl">
                 Your Dream
                 <br />
                 <span className="text-primary">Place Awaits</span>
@@ -104,31 +160,43 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) 
             </div>
 
             {/* New Property Posted Card */}
-            <div className="w-full mt-5 flex items-center gap-3 p-3 rounded-xl bg-white/95 border border-gray-200 shadow-xl">
-              <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
+            <motion.button
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+              onClick={() => navigate("/search?posted=24h")}
+              className="w-full mt-5 flex items-center gap-3 p-3 rounded-xl bg-white/95 backdrop-blur border border-gray-200 shadow-xl hover:shadow-glow transition"
+            >
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-4.5 w-4.5 text-primary" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-left">
                 <div className="text-sm font-bold text-gray-900">New Property Posted!</div>
                 <div className="mt-1 flex items-center gap-2">
                   <div className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden">
                     <div className="h-full w-2/3 bg-primary rounded-full" />
                   </div>
-                  <span className="text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded-full">
                     Property Live <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.button>
 
-            {/* Pills */}
+            {/* Smart Insights & Verified Properties Pills */}
             <div className="flex justify-center gap-3 mt-4">
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md">
+              <button
+                onClick={() => navigate("/ai-advisor")}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
+              >
                 <TrendingUp className="h-3 w-3 text-primary" /> Smart Insights
-              </div>
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md">
+              </button>
+              <button
+                onClick={() => navigate("/search?verified=1")}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
+              >
                 <ShieldCheck className="h-3 w-3 text-primary" /> Verified Properties
-              </div>
+              </button>
             </div>
 
             {/* Logo */}
@@ -146,6 +214,9 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) 
                   onClick={() => {
                     const tabKey = tab.toLowerCase().replace(" ", "-");
                     onTabChange(tabKey);
+                    navigate(
+                      `/${tabKey === "new-projects" ? "new-projects" : tabKey === "commercial" ? "commercial" : tabKey}`,
+                    );
                   }}
                   className={`flex-1 py-1.5 rounded-full text-[11px] font-medium transition ${
                     activeTab === tab.toLowerCase().replace(" ", "-")
@@ -169,141 +240,89 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) 
                   defaultValue="Hyderabad"
                 />
               </div>
-              <button className="px-4 py-1.5 bg-primary text-white rounded-full text-[11px] font-medium flex items-center gap-1">
+              <button
+                onClick={() => navigate("/search")}
+                className="px-4 py-1.5 bg-primary text-white rounded-full text-[11px] font-medium hover:bg-primary/90 transition flex items-center gap-1"
+              >
                 <Search className="h-3 w-3" /> Search
               </button>
             </div>
-            <button className="text-white/70 text-[10px] mt-1.5 ml-4">+ More Filters</button>
+            <button className="text-white/70 text-[10px] mt-1.5 ml-4 hover:text-white transition">
+              + More Filters
+            </button>
 
             {/* Bottom Buttons */}
             <div className="flex justify-center gap-3 mt-4">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold shadow-md">
+              <button
+                onClick={() => navigate("/hotels")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold shadow-md hover:bg-blue-700 transition"
+              >
                 <Hotel className="h-3 w-3" /> Book Hotel
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-[10px] font-semibold shadow-md">
+              <button
+                onClick={goComingSoon("Smart Financing")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-[10px] font-semibold shadow-md hover:bg-purple-700 transition"
+              >
                 <Building2 className="h-3 w-3" /> Smart Financing
               </button>
             </div>
           </div>
 
-          {/* RIGHT COLUMN - 3 cols */}
-          <div className="col-span-12 lg:col-span-3 space-y-4">
+          {/* ============ RIGHT COLUMN (3 cols) ============ */}
+          <div className="col-span-12 lg:col-span-3 space-y-3">
             {/* Circular Buttons Row */}
-            <div className="flex gap-6">
-              {/* Shortlist */}
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md">
-                  <Heart className="h-4.5 w-4.5 text-white" />
-                </div>
-                <span className="text-[10px] font-semibold text-white">Shortlist</span>
-              </div>
-              {/* Expert Support */}
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md">
-                  <Headphones className="h-4.5 w-4.5 text-white" />
-                </div>
-                <span className="text-[10px] font-semibold text-white">Expert Support</span>
-              </div>
+            <div className="flex gap-4 justify-start">
+              {rightActions.map((a) => (
+                <motion.button
+                  key={a.label}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={a.onClick}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md hover:bg-white/30 transition">
+                    <a.icon className="h-4.5 w-4.5 text-white" strokeWidth={1.75} />
+                  </div>
+                  <span className="text-[10px] font-semibold text-white">{a.label}</span>
+                </motion.button>
+              ))}
             </div>
 
-            {/* Smart Financing Card */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Wallet className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">Smart Financing</div>
-                <div className="text-[11px] text-white/70">Pre-Approved Up to ₹5 Cr</div>
-              </div>
-            </div>
-
-            {/* Instant Match Card */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Users className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">Instant Match</div>
-                <div className="text-[11px] text-white/70">Connect with right buyers & sellers</div>
-              </div>
-            </div>
-
-            {/* Real-time Updates Card */}
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Activity className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">Real-time Updates</div>
-                <div className="text-[11px] text-white/70">on new properties</div>
-              </div>
+            {/* Right Column Cards */}
+            <div className="space-y-2.5">
+              {rightCards.map((c) => (
+                <motion.button
+                  key={c.title}
+                  whileHover={{ x: -3 }}
+                  onClick={c.onClick}
+                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+                >
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                    <c.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-white leading-tight">{c.title}</div>
+                    <div className="text-[11px] text-white/70 mt-0.5">{c.desc}</div>
+                  </div>
+                </motion.button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* BOTTOM STATS BAR */}
+        {/* ============ STATS BAR ============ */}
         <div className="mt-8 rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* 50K+ Verified Properties */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <ShieldCheck className="h-4 w-4 text-primary" />
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <s.icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-gray-900 leading-tight">{s.value}</div>
+                  <div className="text-[10px] text-gray-600 leading-tight whitespace-nowrap">{s.label}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">50K+</div>
-                <div className="text-[10px] text-gray-600">Verified Properties</div>
-              </div>
-            </div>
-            {/* 100K+ Happy Customers */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">100K+</div>
-                <div className="text-[10px] text-gray-600">Happy Customers</div>
-              </div>
-            </div>
-            {/* AI Powered Smart Insights */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">AI Powered</div>
-                <div className="text-[10px] text-gray-600">Smart Insights</div>
-              </div>
-            </div>
-            {/* 100% Secure & Transparent */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Lock className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">100%</div>
-                <div className="text-[10px] text-gray-600">Secure & Transparent</div>
-              </div>
-            </div>
-            {/* 24/7 Expert Support */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Headphones className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">24/7</div>
-                <div className="text-[10px] text-gray-600">Expert Support</div>
-              </div>
-            </div>
-            {/* 4.8/5 User Rating */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Star className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-gray-900">4.8/5</div>
-                <div className="text-[10px] text-gray-600">User Rating</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
