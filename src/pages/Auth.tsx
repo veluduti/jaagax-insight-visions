@@ -60,6 +60,7 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
+  const [locationMeta, setLocationMeta] = useState<NormalizedLocation | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
