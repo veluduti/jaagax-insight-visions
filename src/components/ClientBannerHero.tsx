@@ -18,18 +18,16 @@ import {
   Lock,
   Star,
   ArrowRight,
-  MapPin,
 } from "lucide-react";
-import PropertySearchBar from "./PropertySearchBar";
 import skylineImg from "@/assets/hero-skyline.jpg";
 
 interface Props {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
   showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Props) => {
+const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearchBar = false }: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
@@ -95,6 +93,21 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     { icon: Star, value: "4.8/5", label: "User Rating" },
   ];
 
+  // What's on mind items
+  const mindItems = [
+    { icon: TrendingUp, label: "Price may fall", action: () => navigate("/ai-advisor") },
+    { icon: Activity, label: "Project delay worry", action: () => navigate("/ai-advisor") },
+    { icon: ShieldCheck, label: "Job insecurity", action: () => navigate("/ai-advisor") },
+    { icon: Search, label: "Just exploring", action: () => navigate("/search") },
+  ];
+
+  // Category items
+  const categories = [
+    { label: "Properties", onClick: () => navigate("/properties") },
+    { label: "New Projects", onClick: () => navigate("/new-projects") },
+    { label: "Agents", onClick: () => navigate("/agents") },
+  ];
+
   return (
     <section className="relative w-full bg-background overflow-hidden">
       {/* Background Image Container */}
@@ -104,12 +117,12 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/60" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-3 md:px-4 pt-4 pb-4 lg:pt-6">
-        {/* Main 12-col canvas */}
-        <div className="relative grid grid-cols-12 gap-3 lg:gap-4 min-h-[560px] lg:min-h-[640px]">
-          {/* ============ LEFT TEXT COLUMN ============ */}
-          <div className="col-span-12 lg:col-span-3 relative z-20 rounded-2xl p-4 lg:p-2">
-            <h1 className="font-serif leading-[1.02] tracking-tight text-white text-4xl md:text-5xl lg:text-[3.1rem]">
+      <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-8 lg:pt-8 lg:pb-12">
+        {/* Main grid layout - Desktop optimized */}
+        <div className="grid grid-cols-12 gap-4 lg:gap-6 min-h-[580px] lg:min-h-[620px]">
+          {/* ============ LEFT COLUMN (4 cols on desktop) ============ */}
+          <div className="col-span-12 lg:col-span-4 relative z-20">
+            <h1 className="font-serif leading-[1.02] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl xl:text-6xl">
               Your Dream
               <br />
               <span className="text-primary">Place Awaits</span>
@@ -126,7 +139,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               {features.map((f) => (
                 <motion.button
                   key={f.title}
-                  whileHover={{ x: 3 }}
+                  whileHover={{ x: 5 }}
                   onClick={f.onClick}
                   className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
                 >
@@ -142,7 +155,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
 
               {/* India's most trusted section */}
               <motion.button
-                whileHover={{ x: 3 }}
+                whileHover={{ x: 5 }}
                 onClick={() => navigate("/trust-score")}
                 className="w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
               >
@@ -157,15 +170,15 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             </div>
           </div>
 
-          {/* ============ CENTER SECTION ============ */}
-          <div className="col-span-12 lg:col-span-6 relative min-h-[460px] lg:min-h-[640px]">
+          {/* ============ CENTER COLUMN (5 cols on desktop) ============ */}
+          <div className="col-span-12 lg:col-span-5 relative min-h-[500px] lg:min-h-[580px]">
             {/* New Property Posted Banner - Top Center */}
             <motion.button
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/search?posted=24h")}
-              className="absolute top-4 left-1/2 -translate-x-1/2 w-[88%] max-w-sm flex items-center gap-3 p-3 rounded-2xl bg-white/95 backdrop-blur border border-gray-200 shadow-2xl hover:shadow-glow transition z-20"
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-sm flex items-center gap-3 p-3 rounded-2xl bg-white/95 backdrop-blur border border-gray-200 shadow-2xl hover:shadow-glow transition z-20"
             >
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -183,38 +196,77 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               </div>
             </motion.button>
 
-            {/* Floating Pill: Smart Insights - Left */}
-            <button
-              onClick={() => navigate("/ai-advisor")}
-              className="absolute top-[38%] left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-xl hover:bg-white transition z-20"
-            >
-              <TrendingUp className="h-3.5 w-3.5 text-primary" /> Smart Insights
-            </button>
-
-            {/* Floating Pill: Verified Properties - Right */}
-            <button
-              onClick={() => navigate("/search?verified=1")}
-              className="absolute top-[38%] right-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-xl hover:bg-white transition z-20"
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Verified Properties
-            </button>
-
-            {/* Center Logo Badge */}
-            <div className="absolute top-[44%] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl ring-4 ring-primary/30 z-20">
-              <span className="text-primary font-black text-2xl">X</span>
+            {/* Category Chips - Properties, New Projects, Agents */}
+            <div className="absolute top-24 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              {categories.map((cat) => (
+                <button
+                  key={cat.label}
+                  onClick={cat.onClick}
+                  className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur border border-white/30 text-white text-sm font-medium hover:bg-white/30 transition"
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
 
-            {/* Search Widget - Center Bottom */}
-            {showSearchBar && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-[20%] w-[94%] max-w-2xl z-20">
-                <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
+            {/* Buy/Rent Tabs */}
+            <div className="absolute top-36 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              <button
+                onClick={() => navigate("/buy")}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition ${
+                  activeTab === "buy"
+                    ? "bg-primary text-white"
+                    : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                }`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => navigate("/rent")}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition ${
+                  activeTab === "rent"
+                    ? "bg-primary text-white"
+                    : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                }`}
+              >
+                Rent
+              </button>
+            </div>
+
+            {/* Location Input + Search */}
+            <div className="absolute top-48 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
+              <div className="flex gap-2 bg-white/95 backdrop-blur rounded-full p-1 shadow-lg">
+                <div className="flex-1 flex items-center gap-2 px-4">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Enter location"
+                    className="flex-1 py-2 outline-none bg-transparent text-gray-700 text-sm"
+                    defaultValue="Hyderabad"
+                  />
+                </div>
+                <button
+                  onClick={() => navigate("/search")}
+                  className="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition"
+                >
+                  Search
+                </button>
               </div>
-            )}
+              <button className="text-white/80 text-xs mt-2 ml-4 hover:text-white transition">+ More Filters</button>
+            </div>
+
+            {/* Try AI Advisor Button */}
+            <button
+              onClick={() => navigate("/ai-advisor")}
+              className="absolute bottom-32 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold shadow-xl hover:bg-primary/90 transition flex items-center gap-2 z-20 whitespace-nowrap"
+            >
+              <Brain className="h-4 w-4" /> Try AI Advisor
+            </button>
 
             {/* Bottom Left: Book Hotel */}
             <button
               onClick={() => navigate("/hotels")}
-              className="absolute bottom-4 left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl hover:bg-blue-700 transition z-20"
+              className="absolute bottom-4 left-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl hover:bg-blue-700 transition z-20"
             >
               <Hotel className="h-3.5 w-3.5" /> Book Hotel
             </button>
@@ -222,13 +274,13 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             {/* Bottom Right: Smart Financing */}
             <button
               onClick={goComingSoon("Smart Financing")}
-              className="absolute bottom-4 right-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-xl hover:bg-purple-700 transition z-20"
+              className="absolute bottom-4 right-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-xl hover:bg-purple-700 transition z-20"
             >
               <Building2 className="h-3.5 w-3.5" /> Smart Financing
             </button>
           </div>
 
-          {/* ============ RIGHT COLUMN ============ */}
+          {/* ============ RIGHT COLUMN (3 cols on desktop) ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-20 space-y-3">
             {/* Circular action buttons */}
             <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
@@ -270,7 +322,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
         </div>
 
         {/* ============ STATS BAR ============ */}
-        <div className="mt-4 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
+        <div className="mt-6 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {stats.map((s) => (
               <div key={s.label} className="flex items-center gap-3">
@@ -282,6 +334,27 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
                   <div className="text-[11px] text-gray-600 leading-tight">{s.label}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ============ "What's on your mind?" Section ============ */}
+        <div className="mt-4 p-4 rounded-2xl bg-white/95 backdrop-blur border border-gray-100">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-gray-900">What's on your mind?</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {mindItems.map((item) => (
+              <motion.button
+                key={item.label}
+                whileHover={{ scale: 1.02 }}
+                onClick={item.action}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-primary/10 transition text-xs font-medium text-gray-700"
+              >
+                <item.icon className="h-3 w-3 text-primary" />
+                {item.label}
+              </motion.button>
             ))}
           </div>
         </div>
