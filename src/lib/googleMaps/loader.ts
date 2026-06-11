@@ -15,7 +15,7 @@
 const CALLBACK_NAME = "__lovableGmapsInit";
 const SCRIPT_ID = "lovable-google-maps-js";
 
-let loaderPromise: Promise<typeof google> | null = null;
+let loaderPromise: Promise<any> | null = null;
 
 export function loadGoogleMaps(): Promise<any> {
   if (typeof window === "undefined") {
