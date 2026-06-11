@@ -18,8 +18,6 @@ import {
   Lock,
   Star,
   ArrowRight,
-  AlertTriangle,
-  Clock,
   MapPin,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
@@ -95,14 +93,6 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     { icon: Lock, value: "100%", label: "Secure & Transparent" },
     { icon: Headphones, value: "24/7", label: "Expert Support" },
     { icon: Star, value: "4.8/5", label: "User Rating" },
-  ];
-
-  // What's on mind items
-  const mindItems = [
-    { icon: TrendingUp, label: "Price may fall", action: () => navigate("/ai-advisor") },
-    { icon: Clock, label: "Project delay worry", action: () => navigate("/ai-advisor") },
-    { icon: AlertTriangle, label: "Job insecurity", action: () => navigate("/ai-advisor") },
-    { icon: Search, label: "Just exploring", action: () => navigate("/search") },
   ];
 
   return (
@@ -292,27 +282,6 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
                   <div className="text-[11px] text-gray-600 leading-tight">{s.label}</div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ============ "What's on your mind?" Section ============ */}
-        <div className="mt-4 p-4 rounded-2xl bg-white/95 backdrop-blur border border-gray-100">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-gray-900">What's on your mind?</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {mindItems.map((item) => (
-              <motion.button
-                key={item.label}
-                whileHover={{ scale: 1.02 }}
-                onClick={item.action}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-primary/10 transition text-xs font-medium text-gray-700"
-              >
-                <item.icon className="h-3 w-3 text-primary" />
-                {item.label}
-              </motion.button>
             ))}
           </div>
         </div>
