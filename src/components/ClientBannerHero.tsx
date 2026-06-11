@@ -20,6 +20,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
+import bannerBg from "@/assets/client-hero-banner.png.asset.json";
 
 interface ClientBannerHeroProps {
   activeTab: string;
@@ -84,13 +85,15 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Clie
   ];
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Decorative glow */}
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute top-1/3 right-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-32 left-1/3 h-96 w-96 rounded-full bg-accent/10 blur-3xl" />
-      </div>
+    <section className="relative w-full overflow-hidden">
+      {/* Client-approved banner background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bannerBg.url})` }}
+        aria-hidden
+      />
+      {/* Subtle dim for readability on overlaid UI */}
+      <div className="absolute inset-0 bg-background/30 dark:bg-background/55 backdrop-blur-[1px]" aria-hidden />
 
       <div className="relative container mx-auto px-4 pt-8 pb-6 lg:pt-12 lg:pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
