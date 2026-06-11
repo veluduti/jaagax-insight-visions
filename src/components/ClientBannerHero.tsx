@@ -25,9 +25,10 @@ import skylineImg from "@/assets/hero-skyline.jpg";
 interface Props {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) => {
+const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearchBar: _showSearchBar = true }: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
