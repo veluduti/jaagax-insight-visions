@@ -24,6 +24,7 @@ import skylineImg from "@/assets/hero-skyline.jpg";
 interface Props {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  showSearchBar?: boolean;
 }
 
 const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) => {
