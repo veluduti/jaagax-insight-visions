@@ -17,7 +17,7 @@ const SCRIPT_ID = "lovable-google-maps-js";
 
 let loaderPromise: Promise<typeof google> | null = null;
 
-export function loadGoogleMaps(): Promise<typeof google> {
+export function loadGoogleMaps(): Promise<any> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps loader requires a browser environment"));
   }
