@@ -23,6 +23,12 @@ import {
   ChevronRight,
   AlertTriangle,
   Clock,
+  MapPin,
+  Home,
+  Key,
+  Building,
+  Store,
+  ChevronDown,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
 import skylineImg from "@/assets/hero-skyline.jpg";
@@ -36,9 +42,10 @@ interface Props {
   showSearchBar?: boolean;
 }
 
-// Slide data for carousel
+// Slide data for carousel - Now includes BOTH banner designs
 interface SlideData {
   id: number;
+  type: "original" | "new";
   mainTitle: string;
   subTitle: string;
   tagline: string;
@@ -46,6 +53,11 @@ interface SlideData {
   buttonText: string;
   buttonAction: () => void;
   backgroundImage?: string;
+  gradient?: string;
+  // New banner specific fields
+  showFeatures?: boolean;
+  showStats?: boolean;
+  showRightCards?: boolean;
 }
 
 const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Props) => {
@@ -55,10 +67,11 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Carousel slides based on your banner requirements
+  // Carousel slides - Mix of original and new banner designs
   const slides: SlideData[] = [
     {
       id: 0,
+      type: "original",
       mainTitle: "Your Dream",
       subTitle: "Place Awaits",
       tagline: "FIND · CONNECT · GROW",
@@ -69,16 +82,21 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     },
     {
       id: 1,
-      mainTitle: "India's Most Trusted",
-      subTitle: "Intelligent Property Platform",
-      tagline: "50K+ Properties • 2.5L Cr Value",
+      type: "new",
+      mainTitle: "India's First AI-Powered",
+      subTitle: "Real Estate Platform",
+      tagline: "Properties • New Projects • Agents",
       description: "AI-Powered Insights • Verified Properties • Zero Hidden Costs",
       buttonText: "Try AI Advisor",
       buttonAction: () => navigate("/ai-advisor"),
       backgroundImage: villaImg,
+      showFeatures: true,
+      showStats: true,
+      showRightCards: true,
     },
     {
       id: 2,
+      type: "original",
       mainTitle: "Smart Financing",
       subTitle: "Up to ₹5 Cr Pre-Approved",
       tagline: "Instant Match • Real-time Updates",
@@ -89,16 +107,21 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     },
     {
       id: 3,
-      mainTitle: "New Property",
-      subTitle: "Posted Daily",
-      tagline: "Real-time Updates on new properties",
-      description: "Get instant alerts • Book site visits • Virtual tours available",
-      buttonText: "View New Listings",
-      buttonAction: () => navigate("/search?posted=24h"),
+      type: "new",
+      mainTitle: "Your Dream",
+      subTitle: "Place Awaits",
+      tagline: "FIND · CONNECT · GROW",
+      description: "AI-Powered Insights • 100% Verified Properties • Zero Hidden Costs",
+      buttonText: "Explore Now",
+      buttonAction: () => navigate("/search"),
       backgroundImage: familyImg,
+      showFeatures: true,
+      showStats: true,
+      showRightCards: true,
     },
   ];
 
+  // Original features (left column)
   const features = [
     {
       icon: Brain,
@@ -118,6 +141,13 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
       desc: "What you see is what you get.",
       onClick: () => navigate("/valuation"),
     },
+  ];
+
+  // New banner features (grid layout)
+  const newBannerFeatures = [
+    { icon: Brain, title: "AI-Powered Insights", desc: "Smart recommendations just for you." },
+    { icon: ShieldCheck, title: "100% Verified Properties", desc: "Ensuring trust and transparency." },
+    { icon: IndianRupee, title: "Zero Hidden Costs", desc: "What you see is what you get." },
   ];
 
   const rightActions = [
@@ -156,6 +186,14 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     { icon: Star, value: "4.8/5", label: "User Rating" },
   ];
 
+  // New banner stats (simplified)
+  const newBannerStats = [
+    { value: "50K+", label: "Verified Properties" },
+    { value: "2.5L Cr", label: "Property Value" },
+    { value: "100%", label: "Trust Score" },
+    { value: "AI", label: "Powered Insights" },
+  ];
+
   // Carousel navigation
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -186,57 +224,102 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
   const handleMouseEnter = () => setIsAutoPlaying(false);
   const handleMouseLeave = () => setIsAutoPlaying(true);
 
+  const currentSlideData = slides[currentSlide];
+  const isNewBanner = currentSlideData.type === "new";
+
   return (
     <section className="relative w-full bg-background overflow-hidden">
       <div className="container mx-auto px-3 md:px-4 pt-4 pb-4 lg:pt-6">
         {/* Main 12-col canvas */}
         <div className="relative grid grid-cols-12 gap-3 lg:gap-4 min-h-[560px] lg:min-h-[640px]">
-          {/* ============ LEFT TEXT COLUMN ============ */}
+          {/* ============ LEFT TEXT COLUMN (Changes based on banner type) ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-20 bg-card lg:bg-transparent rounded-2xl p-4 lg:p-2">
-            <h1 className="font-serif leading-[1.02] tracking-tight text-4xl md:text-5xl lg:text-[3.1rem]">
-              <span className="text-foreground">Your Dream</span>
-              <br />
-              <span className="text-primary">Place Awaits</span>
-            </h1>
-            <div className="mt-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-foreground/80">
-              <span>FIND</span>
-              <span className="h-1 w-1 rounded-full bg-primary" />
-              <span>CONNECT</span>
-              <span className="h-1 w-1 rounded-full bg-primary" />
-              <span>GROW</span>
-            </div>
+            {!isNewBanner ? (
+              // Original Left Column Content
+              <>
+                <h1 className="font-serif leading-[1.02] tracking-tight text-4xl md:text-5xl lg:text-[3.1rem]">
+                  <span className="text-foreground">Your Dream</span>
+                  <br />
+                  <span className="text-primary">Place Awaits</span>
+                </h1>
+                <div className="mt-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-foreground/80">
+                  <span>FIND</span>
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>CONNECT</span>
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>GROW</span>
+                </div>
 
-            <div className="mt-5 space-y-2.5">
-              {features.map((f) => (
-                <motion.button
-                  key={f.title}
-                  whileHover={{ x: 3 }}
-                  onClick={f.onClick}
-                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
-                >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition">
-                    <f.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-foreground leading-tight">{f.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{f.desc}</div>
-                  </div>
-                </motion.button>
-              ))}
-              <motion.button
-                whileHover={{ x: 3 }}
-                onClick={() => navigate("/trust-score")}
-                className="w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
-              >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
+                <div className="mt-5 space-y-2.5">
+                  {features.map((f) => (
+                    <motion.button
+                      key={f.title}
+                      whileHover={{ x: 3 }}
+                      onClick={f.onClick}
+                      className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
+                    >
+                      <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition">
+                        <f.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-foreground leading-tight">{f.title}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{f.desc}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                  <motion.button
+                    whileHover={{ x: 3 }}
+                    onClick={() => navigate("/trust-score")}
+                    className="w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
+                  >
+                    <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <ShieldCheck className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-sm font-bold text-foreground leading-tight">
+                      India's most trusted
+                      <div className="font-medium text-muted-foreground text-xs mt-0.5">
+                        intelligent property platform
+                      </div>
+                    </div>
+                  </motion.button>
                 </div>
-                <div className="text-sm font-bold text-foreground leading-tight">
-                  India's most trusted
-                  <div className="font-medium text-muted-foreground text-xs mt-0.5">intelligent property platform</div>
+              </>
+            ) : (
+              // New Banner Left Column Content (from second image)
+              <div className="text-white">
+                <h1 className="font-serif leading-[1.02] tracking-tight text-4xl md:text-5xl lg:text-[3.1rem]">
+                  <span className="text-white">Your Dream</span>
+                  <br />
+                  <span className="text-primary">Place Awaits</span>
+                </h1>
+                <div className="mt-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-white/80">
+                  <span>FIND</span>
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>CONNECT</span>
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  <span>GROW</span>
                 </div>
-              </motion.button>
-            </div>
+
+                <div className="mt-5 space-y-2.5">
+                  {newBannerFeatures.map((f) => (
+                    <motion.button
+                      key={f.title}
+                      whileHover={{ x: 3 }}
+                      onClick={() => navigate(f.title === "AI-Powered Insights" ? "/ai-advisor" : "/search")}
+                      className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
+                    >
+                      <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <f.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
+                        <div className="text-xs text-white/70 mt-0.5">{f.desc}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ============ CENTER CAROUSEL SECTION ============ */}
@@ -245,7 +328,6 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {/* Carousel Slides with Animation */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}
@@ -258,41 +340,89 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
                 {/* Background Image with Overlay */}
                 <div
                   className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${slides[currentSlide].backgroundImage})` }}
+                  style={{ backgroundImage: `url(${currentSlideData.backgroundImage})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/50" />
+                <div
+                  className={`absolute inset-0 ${isNewBanner ? "bg-gradient-to-br from-black/70 via-black/50 to-black/60" : "bg-gradient-to-br from-black/60 via-black/40 to-black/50"}`}
+                />
 
                 {/* Decorative Elements */}
                 <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/5 blur-3xl" />
                 <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-white/5 blur-3xl" />
 
-                {/* Slide Content */}
+                {/* Slide Content - Different layout for new banner */}
                 <div className="relative z-10 h-full flex flex-col justify-center px-6 md:px-10 text-white">
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
+                    className="w-full"
                   >
-                    <div className="text-sm font-bold tracking-[0.3em] text-primary/90 mb-3">
-                      {slides[currentSlide].tagline}
-                    </div>
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                      {slides[currentSlide].mainTitle}
-                      <br />
-                      <span className="text-primary">{slides[currentSlide].subTitle}</span>
-                    </h2>
-                    <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
-                      {slides[currentSlide].description}
-                    </p>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={slides[currentSlide].buttonAction}
-                      className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition shadow-lg"
-                    >
-                      {slides[currentSlide].buttonText}
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
+                    {!isNewBanner ? (
+                      // Original slide content
+                      <>
+                        <div className="text-sm font-bold tracking-[0.3em] text-primary/90 mb-3">
+                          {currentSlideData.tagline}
+                        </div>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                          {currentSlideData.mainTitle}
+                          <br />
+                          <span className="text-primary">{currentSlideData.subTitle}</span>
+                        </h2>
+                        <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
+                          {currentSlideData.description}
+                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={currentSlideData.buttonAction}
+                          className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition shadow-lg"
+                        >
+                          {currentSlideData.buttonText}
+                          <ArrowRight className="h-4 w-4" />
+                        </motion.button>
+                      </>
+                    ) : (
+                      // New banner content with stats and cards
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-sm font-bold tracking-[0.3em] text-primary/90 mb-3">
+                            {currentSlideData.tagline}
+                          </div>
+                          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                            {currentSlideData.mainTitle}
+                            <br />
+                            <span className="text-primary">{currentSlideData.subTitle}</span>
+                          </h2>
+                          <p className="mt-3 text-sm md:text-base text-white/80">{currentSlideData.description}</p>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={currentSlideData.buttonAction}
+                            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition shadow-lg"
+                          >
+                            {currentSlideData.buttonText}
+                            <ArrowRight className="h-4 w-4" />
+                          </motion.button>
+                        </div>
+                        <div className="space-y-2">
+                          {rightCards.map((card, idx) => (
+                            <motion.button
+                              key={idx}
+                              whileHover={{ x: 5 }}
+                              onClick={card.onClick}
+                              className="w-full text-left flex items-start gap-3 p-2 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
+                            >
+                              <card.icon className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                              <div>
+                                <div className="font-bold text-xs text-white">{card.title}</div>
+                                <div className="text-[10px] text-white/70">{card.desc}</div>
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               </motion.div>
@@ -328,7 +458,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               ))}
             </div>
 
-            {/* Floating Elements (Preserved from original) */}
+            {/* Floating Elements */}
             <button
               onClick={() => navigate("/ai-advisor")}
               className="absolute top-[15%] left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
@@ -395,55 +525,81 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             </div>
           </div>
 
-          {/* ============ RIGHT COLUMN ============ */}
+          {/* ============ RIGHT COLUMN (Changes based on banner type) ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-20 space-y-3">
-            {/* Circular action buttons */}
-            <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
-              {rightActions.map((a) => (
-                <motion.button
-                  key={a.label}
-                  whileHover={{ scale: 1.04 }}
-                  onClick={a.onClick}
-                  className="flex flex-col items-center gap-1.5"
-                >
-                  <div className="w-12 h-12 rounded-full bg-foreground flex items-center justify-center ring-2 ring-primary shadow-lg">
-                    <a.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-xs font-semibold text-foreground">{a.label}</span>
-                </motion.button>
-              ))}
-            </div>
+            {!isNewBanner ? (
+              // Original Right Column
+              <>
+                <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
+                  {rightActions.map((a) => (
+                    <motion.button
+                      key={a.label}
+                      whileHover={{ scale: 1.04 }}
+                      onClick={a.onClick}
+                      className="flex flex-col items-center gap-1.5"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-foreground flex items-center justify-center ring-2 ring-primary shadow-lg">
+                        <a.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-xs font-semibold text-foreground">{a.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
 
-            {/* Feature cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 pt-1">
-              {rightCards.map((c) => (
-                <motion.button
-                  key={c.title}
-                  whileHover={{ x: -3 }}
-                  onClick={c.onClick}
-                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
-                >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition">
-                    <c.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-foreground leading-tight">{c.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{c.desc}</div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 pt-1">
+                  {rightCards.map((c) => (
+                    <motion.button
+                      key={c.title}
+                      whileHover={{ x: -3 }}
+                      onClick={c.onClick}
+                      className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-card border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition"
+                    >
+                      <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition">
+                        <c.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-foreground leading-tight">{c.title}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{c.desc}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              // New Banner Right Column (simplified for new design)
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {rightActions.slice(0, 3).map((a) => (
+                    <motion.button
+                      key={a.label}
+                      whileHover={{ scale: 1.04 }}
+                      onClick={a.onClick}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                        <a.icon className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="text-[10px] font-medium text-white">{a.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ============ STATS BAR ============ */}
+        {/* ============ STATS BAR (Changes based on banner type) ============ */}
         <div className="mt-4 rounded-2xl bg-foreground text-background px-4 py-4 shadow-2xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {stats.map((s) => (
-              <div key={s.label} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon className="h-5 w-5 text-primary" />
-                </div>
+          <div
+            className={`grid ${isNewBanner ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"} gap-4`}
+          >
+            {(isNewBanner ? newBannerStats : stats).map((s, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                {!isNewBanner && s.icon && (
+                  <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                    <s.icon className="h-5 w-5 text-primary" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <div className="text-sm md:text-base font-bold leading-tight">{s.value}</div>
                   <div className="text-[11px] text-background/70 leading-tight">{s.label}</div>
