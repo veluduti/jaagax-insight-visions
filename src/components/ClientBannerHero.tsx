@@ -1,5 +1,6 @@
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
   ShieldCheck,
@@ -18,6 +19,11 @@ import {
   Lock,
   Star,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Robot,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
 import skylineImg from "@/assets/hero-skyline.jpg";
@@ -31,21 +37,74 @@ interface Props {
   showSearchBar?: boolean;
 }
 
-/**
- * Slide 1 — client-approved hero, fully rebuilt with code.
- * Diagonal photo collage (skyline TL, villa TR, hotel BL, family BC) sits behind
- * a left content column, floating cards, and a real working search widget.
- * No uploaded mockup image is rendered.
- */
+// Slide data for the carousel
+interface SlideData {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  buttonText: string;
+  buttonAction: () => void;
+  gradient: string;
+}
+
 const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Props) => {
   const navigate = useNavigate();
-  const goComingSoon = (featureName: string) => () =>
-    navigate("/coming-soon", { state: { featureName } });
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
+
+  // Define slides based on the images you provided
+  const slides: SlideData[] = [
+    {
+      id: 0,
+      title: "Your Dream",
+      subtitle: "Place Awaits",
+      description: "AI-Powered Insights • 100% Verified Properties • Zero Hidden Costs",
+      buttonText: "Explore Properties",
+      buttonAction: () => navigate("/search"),
+      gradient: "from-blue-900/80 via-blue-800/70 to-indigo-900/80",
+    },
+    {
+      id: 1,
+      title: "India's Most Trusted",
+      subtitle: "Intelligent Property Platform",
+      description: "50K+ Verified Properties • 2.5L Cr Property Value • 100% Trust Score",
+      buttonText: "Try AI Advisor",
+      buttonAction: () => navigate("/ai-advisor"),
+      gradient: "from-emerald-900/80 via-teal-800/70 to-cyan-900/80",
+    },
+    {
+      id: 2,
+      title: "Smart Financing",
+      subtitle: "Up to ₹5 Cr Pre-Approved",
+      description: "Instant Match • Real-time Updates • Zero Hidden Costs",
+      buttonText: "Get Pre-Approved",
+      buttonAction: goComingSoon("Smart Financing"),
+      gradient: "from-purple-900/80 via-violet-800/70 to-pink-900/80",
+    },
+  ];
 
   const features = [
-    { icon: Brain, title: "AI-Powered Insights", desc: "Smart recommendations just for you.", onClick: () => navigate("/ai-advisor") },
-    { icon: ShieldCheck, title: "100% Verified Properties", desc: "Ensuring trust and transparency.", onClick: () => navigate("/search?verified=1") },
-    { icon: IndianRupee, title: "Zero Hidden Costs", desc: "What you see is what you get.", onClick: () => navigate("/valuation") },
+    {
+      icon: Brain,
+      title: "AI-Powered Insights",
+      desc: "Smart recommendations just for you.",
+      onClick: () => navigate("/ai-advisor"),
+    },
+    {
+      icon: ShieldCheck,
+      title: "100% Verified Properties",
+      desc: "Ensuring trust and transparency.",
+      onClick: () => navigate("/search?verified=1"),
+    },
+    {
+      icon: IndianRupee,
+      title: "Zero Hidden Costs",
+      desc: "What you see is what you get.",
+      onClick: () => navigate("/valuation"),
+    },
   ];
 
   const rightActions = [
@@ -55,9 +114,24 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
   ];
 
   const rightCards = [
-    { icon: Wallet, title: "Smart Financing", desc: "Pre-Approved Up to ₹5 Cr", onClick: goComingSoon("Smart Financing") },
-    { icon: Users, title: "Instant Match", desc: "Connect with right buyers & sellers", onClick: () => navigate("/ai-advisor") },
-    { icon: Activity, title: "Real-time Updates", desc: "on new properties", onClick: goComingSoon("Real-time Updates") },
+    {
+      icon: Wallet,
+      title: "Smart Financing",
+      desc: "Pre-Approved Up to ₹5 Cr",
+      onClick: goComingSoon("Smart Financing"),
+    },
+    {
+      icon: Users,
+      title: "Instant Match",
+      desc: "Connect with right buyers & sellers",
+      onClick: () => navigate("/ai-advisor"),
+    },
+    {
+      icon: Activity,
+      title: "Real-time Updates",
+      desc: "on new properties",
+      onClick: goComingSoon("Real-time Updates"),
+    },
   ];
 
   const stats = [
@@ -69,12 +143,42 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     { icon: Star, value: "4.8/5", label: "User Rating" },
   ];
 
+  // Carousel navigation functions
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setIsAutoPlaying(true);
+  }, [slides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setIsAutoPlaying(true);
+  }, [slides.length]);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(true);
+  };
+
+  // Auto-slide every 5 seconds
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [nextSlide, isAutoPlaying]);
+
+  // Pause auto-play on hover (optional - adds better UX)
+  const handleMouseEnter = () => setIsAutoPlaying(false);
+  const handleMouseLeave = () => setIsAutoPlaying(true);
+
   return (
     <section className="relative w-full bg-background overflow-hidden">
       <div className="container mx-auto px-3 md:px-4 pt-4 pb-4 lg:pt-6">
         {/* Main 12-col canvas */}
         <div className="relative grid grid-cols-12 gap-3 lg:gap-4 min-h-[560px] lg:min-h-[640px]">
-
           {/* ============ LEFT TEXT COLUMN (white wedge) ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-10 bg-card lg:bg-transparent rounded-2xl p-4 lg:p-2">
             <h1 className="font-serif leading-[1.02] tracking-tight text-4xl md:text-5xl lg:text-[3.1rem]">
@@ -83,8 +187,10 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               <span className="text-primary">Place Awaits</span>
             </h1>
             <div className="mt-3 flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-foreground/80">
-              <span>FIND</span><span className="h-1 w-1 rounded-full bg-primary" />
-              <span>CONNECT</span><span className="h-1 w-1 rounded-full bg-primary" />
+              <span>FIND</span>
+              <span className="h-1 w-1 rounded-full bg-primary" />
+              <span>CONNECT</span>
+              <span className="h-1 w-1 rounded-full bg-primary" />
               <span>GROW</span>
             </div>
 
@@ -121,114 +227,111 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             </div>
           </div>
 
-          {/* ============ CENTER PHOTO COLLAGE + WIDGETS ============ */}
-          <div className="col-span-12 lg:col-span-6 relative min-h-[460px] lg:min-h-[640px]">
-            {/* Diagonal collage — 4 photos arranged with clipped tiles + neon edge */}
-            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-foreground/95">
-              {/* TOP-LEFT: skyline */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${skylineImg})`,
-                  clipPath: "polygon(0 0, 100% 0, 60% 55%, 0 60%)",
-                }}
-              />
-              {/* TOP-RIGHT: villa */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${villaImg})`,
-                  clipPath: "polygon(60% 0, 100% 0, 100% 60%, 50% 50%)",
-                }}
-              />
-              {/* BOTTOM-LEFT: hotel */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${hotelImg})`,
-                  clipPath: "polygon(0 60%, 45% 55%, 35% 100%, 0 100%)",
-                }}
-              />
-              {/* BOTTOM-CENTER+RIGHT: family */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${familyImg})`,
-                  clipPath: "polygon(35% 100%, 45% 55%, 60% 50%, 100% 60%, 100% 100%)",
-                }}
-              />
-              {/* Neon diagonal edges */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="edge" x1="0" x2="1">
-                    <stop offset="0" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
-                    <stop offset="1" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
-                  </linearGradient>
-                </defs>
-                <g stroke="url(#edge)" strokeWidth="0.35" fill="none">
-                  <line x1="0" y1="60" x2="60" y2="55" />
-                  <line x1="60" y1="55" x2="100" y2="60" />
-                  <line x1="50" y1="50" x2="35" y2="100" />
-                  <line x1="50" y1="50" x2="45" y2="100" />
-                </g>
-              </svg>
-              {/* subtle vignette for legibility of overlaid widgets */}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30" />
+          {/* ============ CENTER CAROUSEL SECTION (Replaces static collage) ============ */}
+          <div
+            className="col-span-12 lg:col-span-6 relative min-h-[460px] lg:min-h-[640px] rounded-2xl overflow-hidden"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Carousel Slides */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className={`absolute inset-0 bg-gradient-to-br ${slides[currentSlide].gradient}`}
+              >
+                {/* Background pattern overlay */}
+                <div className="absolute inset-0 bg-black/30" />
+
+                {/* Decorative elements */}
+                <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/5 blur-3xl" />
+                <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-white/5 blur-3xl" />
+
+                {/* Slide Content */}
+                <div className="relative z-10 h-full flex flex-col justify-center px-6 md:px-10 text-white">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                      {slides[currentSlide].title}
+                      <br />
+                      <span className="text-primary">{slides[currentSlide].subtitle}</span>
+                    </h2>
+                    <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
+                      {slides[currentSlide].description}
+                    </p>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={slides[currentSlide].buttonAction}
+                      className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition shadow-lg"
+                    >
+                      {slides[currentSlide].buttonText}
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white hover:bg-black/70 transition z-20"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white hover:bg-black/70 transition z-20"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => goToSlide(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    currentSlide === idx ? "w-8 bg-primary" : "w-1.5 bg-white/60 hover:bg-white/80"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
             </div>
 
-            {/* Floating: New Property Posted (top center) */}
-            <motion.button
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -2 }}
-              onClick={() => navigate("/search?posted=24h")}
-              className="absolute top-4 left-1/2 -translate-x-1/2 w-[88%] max-w-sm flex items-center gap-3 p-3 rounded-2xl bg-card/95 backdrop-blur border border-border shadow-2xl hover:shadow-glow transition z-20"
-            >
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <div className="text-sm font-bold">New Property Posted!</div>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full w-2/3 bg-primary rounded-full" />
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-foreground bg-primary px-2 py-0.5 rounded-full">
-                    Property Live <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
-              </div>
-            </motion.button>
-
-            {/* Floating pill: Smart Insights (mid-left) */}
+            {/* Floating elements overlay (kept from original design) */}
             <button
               onClick={() => navigate("/ai-advisor")}
-              className="absolute top-[38%] left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
+              className="absolute top-[15%] left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
             >
               <TrendingUp className="h-3.5 w-3.5 text-primary" /> Smart Insights
             </button>
 
-            {/* Floating pill: Verified Properties (mid-right) */}
             <button
               onClick={() => navigate("/search?verified=1")}
-              className="absolute top-[38%] right-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
+              className="absolute top-[15%] right-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Verified Properties
             </button>
 
-            {/* Center X logo badge */}
-            <div className="absolute top-[44%] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-foreground flex items-center justify-center shadow-2xl ring-4 ring-primary/30 z-20">
-              <span className="text-primary font-black text-2xl">X</span>
-            </div>
-
-            {/* REAL search widget (center-bottom) */}
+            {/* Search Widget */}
             {showSearchBar && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-[14%] w-[94%] max-w-2xl z-20">
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-[20%] w-[94%] max-w-2xl z-20">
                 <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
               </div>
             )}
 
-            {/* Book Hotel (bottom-left) */}
+            {/* Book Hotel & Smart Financing Buttons */}
             <button
               onClick={() => navigate("/hotels")}
               className="absolute bottom-4 left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl hover:bg-blue-700 transition z-20"
@@ -236,18 +339,22 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               <Hotel className="h-3.5 w-3.5" /> Book Hotel
             </button>
 
-            {/* Smart Financing (bottom-right) */}
             <button
               onClick={goComingSoon("Smart Financing")}
               className="absolute bottom-4 right-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-xl hover:bg-purple-700 transition z-20"
             >
               <Building2 className="h-3.5 w-3.5" /> Smart Financing
             </button>
+
+            {/* Slide counter indicator */}
+            <div className="absolute top-4 right-4 bg-black/50 backdrop-blur rounded-full px-3 py-1 text-xs text-white z-20">
+              {currentSlide + 1} / {slides.length}
+            </div>
           </div>
 
           {/* ============ RIGHT COLUMN: actions + cards ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-10 space-y-3">
-            {/* Circular action buttons (Search / Shortlist / Expert Support) */}
+            {/* Circular action buttons */}
             <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
               {rightActions.map((a) => (
                 <motion.button
@@ -299,6 +406,32 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
                   <div className="text-[11px] text-background/70 leading-tight">{s.label}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ============ "What's on your mind?" Section from the image ============ */}
+        <div className="mt-4 p-4 rounded-2xl bg-card border border-border/60">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">What's on your mind?</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { icon: TrendingUp, label: "Price may fall", action: () => navigate("/ai-advisor") },
+              { icon: Clock, label: "Project delay worry", action: () => navigate("/ai-advisor") },
+              { icon: AlertTriangle, label: "Job insecurity", action: () => navigate("/ai-advisor") },
+              { icon: Search, label: "Just exploring", action: () => navigate("/search") },
+            ].map((item) => (
+              <motion.button
+                key={item.label}
+                whileHover={{ scale: 1.02 }}
+                onClick={item.action}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-primary/10 transition text-xs font-medium text-foreground"
+              >
+                <item.icon className="h-3 w-3 text-primary" />
+                {item.label}
+              </motion.button>
             ))}
           </div>
         </div>
