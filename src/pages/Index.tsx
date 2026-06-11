@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
-import Hero from "@/components/Hero";
+import HeroCarousel from "@/components/HeroCarousel";
 import FeaturedProperties from "@/components/FeaturedProperties";
 
 import NewProjects from "@/components/NewProjects";
