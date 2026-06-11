@@ -382,7 +382,17 @@ export default function Auth() {
                     {/* 5. City (autocomplete) */}
                     <div className="space-y-2">
                       <Label htmlFor="city">City</Label>
-                      <CityAutocomplete value={city} onChange={setCity} placeholder="Search your city..." />
+                      <PlacesAutocompleteInput
+                        id="city"
+                        value={city}
+                        onChange={setCity}
+                        onSelect={(loc) => {
+                          setLocationMeta(loc);
+                          setCity(loc.city || loc.locality || loc.formattedAddress);
+                        }}
+                        placeholder="Search your city, area, or address…"
+                        country="IN"
+                      />
                     </div>
 
                     {/* 6. Email (used for verification — required, not optional) */}
