@@ -21,9 +21,8 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  Bot,
-  Clock,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import PropertySearchBar from "./PropertySearchBar";
 import skylineImg from "@/assets/hero-skyline.jpg";
@@ -37,15 +36,16 @@ interface Props {
   showSearchBar?: boolean;
 }
 
-// Slide data for the carousel
+// Slide data for carousel
 interface SlideData {
   id: number;
-  title: string;
-  subtitle: string;
+  mainTitle: string;
+  subTitle: string;
+  tagline: string;
   description: string;
   buttonText: string;
   buttonAction: () => void;
-  gradient: string;
+  backgroundImage?: string;
 }
 
 const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Props) => {
@@ -55,34 +55,47 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Define slides based on the images you provided
+  // Carousel slides based on your banner requirements
   const slides: SlideData[] = [
     {
       id: 0,
-      title: "Your Dream",
-      subtitle: "Place Awaits",
+      mainTitle: "Your Dream",
+      subTitle: "Place Awaits",
+      tagline: "FIND · CONNECT · GROW",
       description: "AI-Powered Insights • 100% Verified Properties • Zero Hidden Costs",
       buttonText: "Explore Properties",
       buttonAction: () => navigate("/search"),
-      gradient: "from-blue-900/80 via-blue-800/70 to-indigo-900/80",
+      backgroundImage: skylineImg,
     },
     {
       id: 1,
-      title: "India's Most Trusted",
-      subtitle: "Intelligent Property Platform",
-      description: "50K+ Verified Properties • 2.5L Cr Property Value • 100% Trust Score",
+      mainTitle: "India's Most Trusted",
+      subTitle: "Intelligent Property Platform",
+      tagline: "50K+ Properties • 2.5L Cr Value",
+      description: "AI-Powered Insights • Verified Properties • Zero Hidden Costs",
       buttonText: "Try AI Advisor",
       buttonAction: () => navigate("/ai-advisor"),
-      gradient: "from-emerald-900/80 via-teal-800/70 to-cyan-900/80",
+      backgroundImage: villaImg,
     },
     {
       id: 2,
-      title: "Smart Financing",
-      subtitle: "Up to ₹5 Cr Pre-Approved",
-      description: "Instant Match • Real-time Updates • Zero Hidden Costs",
+      mainTitle: "Smart Financing",
+      subTitle: "Up to ₹5 Cr Pre-Approved",
+      tagline: "Instant Match • Real-time Updates",
+      description: "Connect with right buyers & sellers • Zero Hidden Costs",
       buttonText: "Get Pre-Approved",
       buttonAction: goComingSoon("Smart Financing"),
-      gradient: "from-purple-900/80 via-violet-800/70 to-pink-900/80",
+      backgroundImage: hotelImg,
+    },
+    {
+      id: 3,
+      mainTitle: "New Property",
+      subTitle: "Posted Daily",
+      tagline: "Real-time Updates on new properties",
+      description: "Get instant alerts • Book site visits • Virtual tours available",
+      buttonText: "View New Listings",
+      buttonAction: () => navigate("/search?posted=24h"),
+      backgroundImage: familyImg,
     },
   ];
 
@@ -143,7 +156,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     { icon: Star, value: "4.8/5", label: "User Rating" },
   ];
 
-  // Carousel navigation functions
+  // Carousel navigation
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
     setIsAutoPlaying(true);
@@ -170,7 +183,6 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
     return () => clearInterval(interval);
   }, [nextSlide, isAutoPlaying]);
 
-  // Pause auto-play on hover (optional - adds better UX)
   const handleMouseEnter = () => setIsAutoPlaying(false);
   const handleMouseLeave = () => setIsAutoPlaying(true);
 
@@ -179,8 +191,8 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
       <div className="container mx-auto px-3 md:px-4 pt-4 pb-4 lg:pt-6">
         {/* Main 12-col canvas */}
         <div className="relative grid grid-cols-12 gap-3 lg:gap-4 min-h-[560px] lg:min-h-[640px]">
-          {/* ============ LEFT TEXT COLUMN (white wedge) ============ */}
-          <div className="col-span-12 lg:col-span-3 relative z-10 bg-card lg:bg-transparent rounded-2xl p-4 lg:p-2">
+          {/* ============ LEFT TEXT COLUMN ============ */}
+          <div className="col-span-12 lg:col-span-3 relative z-20 bg-card lg:bg-transparent rounded-2xl p-4 lg:p-2">
             <h1 className="font-serif leading-[1.02] tracking-tight text-4xl md:text-5xl lg:text-[3.1rem]">
               <span className="text-foreground">Your Dream</span>
               <br />
@@ -227,40 +239,47 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
             </div>
           </div>
 
-          {/* ============ CENTER CAROUSEL SECTION (Replaces static collage) ============ */}
+          {/* ============ CENTER CAROUSEL SECTION ============ */}
           <div
             className="col-span-12 lg:col-span-6 relative min-h-[460px] lg:min-h-[640px] rounded-2xl overflow-hidden"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {/* Carousel Slides */}
+            {/* Carousel Slides with Animation */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                className={`absolute inset-0 bg-gradient-to-br ${slides[currentSlide].gradient}`}
+                className="absolute inset-0"
               >
-                {/* Background pattern overlay */}
-                <div className="absolute inset-0 bg-black/30" />
+                {/* Background Image with Overlay */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slides[currentSlide].backgroundImage})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/50" />
 
-                {/* Decorative elements */}
+                {/* Decorative Elements */}
                 <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/5 blur-3xl" />
                 <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-white/5 blur-3xl" />
 
                 {/* Slide Content */}
                 <div className="relative z-10 h-full flex flex-col justify-center px-6 md:px-10 text-white">
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
                   >
+                    <div className="text-sm font-bold tracking-[0.3em] text-primary/90 mb-3">
+                      {slides[currentSlide].tagline}
+                    </div>
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                      {slides[currentSlide].title}
+                      {slides[currentSlide].mainTitle}
                       <br />
-                      <span className="text-primary">{slides[currentSlide].subtitle}</span>
+                      <span className="text-primary">{slides[currentSlide].subTitle}</span>
                     </h2>
                     <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
                       {slides[currentSlide].description}
@@ -301,15 +320,15 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
                 <button
                   key={idx}
                   onClick={() => goToSlide(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    currentSlide === idx ? "w-8 bg-primary" : "w-1.5 bg-white/60 hover:bg-white/80"
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    currentSlide === idx ? "w-8 bg-primary" : "w-2 bg-white/60 hover:bg-white/80"
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
             </div>
 
-            {/* Floating elements overlay (kept from original design) */}
+            {/* Floating Elements (Preserved from original) */}
             <button
               onClick={() => navigate("/ai-advisor")}
               className="absolute top-[15%] left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-foreground text-background text-xs font-semibold shadow-xl hover:bg-foreground/90 transition z-20"
@@ -324,6 +343,30 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Verified Properties
             </button>
 
+            {/* New Property Posted Banner */}
+            <motion.button
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+              onClick={() => navigate("/search?posted=24h")}
+              className="absolute top-4 left-1/2 -translate-x-1/2 w-[88%] max-w-sm flex items-center gap-3 p-3 rounded-2xl bg-card/95 backdrop-blur border border-border shadow-2xl hover:shadow-glow transition z-20"
+            >
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="text-sm font-bold">New Property Posted!</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full w-2/3 bg-primary rounded-full" />
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-foreground bg-primary px-2 py-0.5 rounded-full">
+                    Property Live <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </div>
+            </motion.button>
+
             {/* Search Widget */}
             {showSearchBar && (
               <div className="absolute left-1/2 -translate-x-1/2 bottom-[20%] w-[94%] max-w-2xl z-20">
@@ -331,7 +374,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               </div>
             )}
 
-            {/* Book Hotel & Smart Financing Buttons */}
+            {/* Bottom Action Buttons */}
             <button
               onClick={() => navigate("/hotels")}
               className="absolute bottom-4 left-[6%] inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl hover:bg-blue-700 transition z-20"
@@ -346,14 +389,14 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
               <Building2 className="h-3.5 w-3.5" /> Smart Financing
             </button>
 
-            {/* Slide counter indicator */}
+            {/* Slide Counter */}
             <div className="absolute top-4 right-4 bg-black/50 backdrop-blur rounded-full px-3 py-1 text-xs text-white z-20">
               {currentSlide + 1} / {slides.length}
             </div>
           </div>
 
-          {/* ============ RIGHT COLUMN: actions + cards ============ */}
-          <div className="col-span-12 lg:col-span-3 relative z-10 space-y-3">
+          {/* ============ RIGHT COLUMN ============ */}
+          <div className="col-span-12 lg:col-span-3 relative z-20 space-y-3">
             {/* Circular action buttons */}
             <div className="grid grid-cols-3 lg:grid-cols-1 gap-3">
               {rightActions.map((a) => (
@@ -410,7 +453,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
           </div>
         </div>
 
-        {/* ============ "What's on your mind?" Section from the image ============ */}
+        {/* ============ "What's on your mind?" Section ============ */}
         <div className="mt-4 p-4 rounded-2xl bg-card border border-border/60">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-primary" />
