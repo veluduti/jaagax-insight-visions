@@ -78,6 +78,7 @@ const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
 const Promotions = lazy(() => import("./pages/Promotions"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
+const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const HotelManagerDashboard = lazy(() => import("./pages/HotelManagerDashboard"));
 const CompareProperties = lazy(() => import("./pages/CompareProperties"));
 const AddBuilderProfile = lazy(() => import("./pages/AddBuilderProfile"));
@@ -278,6 +279,7 @@ const App = () => (
             </ProtectedRoute>
           } />
 
+          <Route path="/coming-soon" element={<ComingSoon />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
