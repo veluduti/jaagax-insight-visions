@@ -4472,8 +4472,22 @@ export default function SellProperty() {
                                       }))
                                     }
                                     placeholder="Start typing — e.g. Whitefield, Bengaluru"
-                                  />
-                                </div>
+                                   />
+                                 </div>
+                                 <div className="col-span-2">
+                                   <label className="text-xs text-muted-foreground mb-1 block">
+                                     Pin exact location on map
+                                   </label>
+                                   <GoogleMapPicker
+                                     lat={editForm.latitude ?? null}
+                                     lng={editForm.longitude ?? null}
+                                     onChange={(la, ln) =>
+                                       setEditForm((p) => ({ ...p, latitude: la, longitude: ln }))
+                                     }
+                                     label=""
+                                     height="280px"
+                                   />
+                                 </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
                                   <Input
