@@ -69,7 +69,8 @@ const ClientBannerHero = ({
     {
       icon: Wallet,
       title: "Smart Financing",
-      desc: "Pre-Approved Up to ₹5 Cr",
+      descLine1: "Pre-Approved",
+      descLine2: "Up to ₹5 Cr",
       onClick: goComingSoon("Smart Financing"),
     },
     {
@@ -105,7 +106,7 @@ const ClientBannerHero = ({
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main Grid - 12 columns exactly like second image */}
+        {/* Main Grid - 12 columns */}
         <div className="grid grid-cols-12 gap-5 lg:gap-6">
           {/* ============ LEFT COLUMN (4 cols) ============ */}
           <div className="col-span-12 lg:col-span-4 space-y-3">
@@ -127,17 +128,10 @@ const ClientBannerHero = ({
               </motion.button>
             ))}
 
-            {/* India's most trusted platform - as text block in second image */}
-            <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <ShieldCheck className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white leading-tight">India's most trusted</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">intelligent property platform</div>
-                </div>
-              </div>
+            {/* India's most trusted platform - plain text WITHOUT icon as shown in image */}
+            <div className="px-3 py-2">
+              <div className="text-sm font-bold text-white leading-tight">India's most trusted</div>
+              <div className="text-[11px] text-white/70 mt-0.5">intelligent property platform</div>
             </div>
           </div>
 
@@ -287,24 +281,53 @@ const ClientBannerHero = ({
               ))}
             </div>
 
-            {/* Right Column Cards */}
+            {/* Right Column Cards - with multi-line text for Smart Financing */}
             <div className="space-y-2.5">
-              {rightCards.map((c) => (
-                <motion.button
-                  key={c.title}
-                  whileHover={{ x: -3 }}
-                  onClick={c.onClick}
-                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
-                >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                    <c.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white leading-tight">{c.title}</div>
-                    <div className="text-[11px] text-white/70 mt-0.5">{c.desc}</div>
-                  </div>
-                </motion.button>
-              ))}
+              {/* Smart Financing Card - with two line description */}
+              <motion.button
+                whileHover={{ x: -3 }}
+                onClick={rightCards[0].onClick}
+                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                  <Wallet className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">Smart Financing</div>
+                  <div className="text-[11px] text-white/70 mt-0.5 leading-tight">Pre-Approved</div>
+                  <div className="text-[11px] text-white/70 leading-tight">Up to ₹5 Cr</div>
+                </div>
+              </motion.button>
+
+              {/* Instant Match Card */}
+              <motion.button
+                whileHover={{ x: -3 }}
+                onClick={rightCards[1].onClick}
+                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                  <Users className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">Instant Match</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">Connect with right buyers & sellers</div>
+                </div>
+              </motion.button>
+
+              {/* Real-time Updates Card */}
+              <motion.button
+                whileHover={{ x: -3 }}
+                onClick={rightCards[2].onClick}
+                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                  <Activity className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">Real-time Updates</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">on new properties</div>
+                </div>
+              </motion.button>
             </div>
           </div>
         </div>
