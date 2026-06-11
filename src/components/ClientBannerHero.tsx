@@ -24,20 +24,15 @@ import skylineImg from "@/assets/hero-skyline.jpg";
 interface Props {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
-  showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({
-  activeTab = "buy",
-  onTabChange = () => {},
-  showSearchBar: _showSearchBar = true,
-}: Props) => {
+const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {} }: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Left column features
-  const features = [
+  // Left column cards
+  const leftCards = [
     {
       icon: Brain,
       title: "AI-Powered Insights",
@@ -58,8 +53,8 @@ const ClientBannerHero = ({
     },
   ];
 
-  // Right column circular buttons
-  const rightActions = [
+  // Right column top circular buttons
+  const circularButtons = [
     { icon: Heart, label: "Shortlist", onClick: () => navigate("/dashboard/buyer") },
     { icon: Headphones, label: "Expert Support", onClick: goComingSoon("Expert Support") },
   ];
@@ -105,29 +100,29 @@ const ClientBannerHero = ({
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main Grid - 12 columns exactly like second image */}
+        {/* Main Grid - 12 columns */}
         <div className="grid grid-cols-12 gap-5 lg:gap-6">
           {/* ============ LEFT COLUMN (4 cols) ============ */}
           <div className="col-span-12 lg:col-span-4 space-y-3">
             {/* 3 Feature Cards */}
-            {features.map((f) => (
+            {leftCards.map((card) => (
               <motion.button
-                key={f.title}
+                key={card.title}
                 whileHover={{ x: 5 }}
-                onClick={f.onClick}
+                onClick={card.onClick}
                 className="group w-full text-left flex items-start gap-3 p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
               >
                 <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                  <f.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                  <card.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">{f.desc}</div>
+                  <div className="text-sm font-bold text-white leading-tight">{card.title}</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">{card.desc}</div>
                 </div>
               </motion.button>
             ))}
 
-            {/* India's most trusted platform - as text block in second image */}
+            {/* India's most trusted intelligent property platform */}
             <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -199,14 +194,14 @@ const ClientBannerHero = ({
               </button>
             </div>
 
-            {/* Logo */}
+            {/* Logo X */}
             <div className="flex justify-center my-4">
               <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg ring-3 ring-primary/30">
                 <span className="text-primary font-black text-xl">X</span>
               </div>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs - Buy, Rent, New Projects, Commercial */}
             <div className="flex gap-1.5 bg-white/10 backdrop-blur-sm rounded-full p-1 max-w-md mx-auto">
               {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => (
                 <button
@@ -214,9 +209,8 @@ const ClientBannerHero = ({
                   onClick={() => {
                     const tabKey = tab.toLowerCase().replace(" ", "-");
                     onTabChange(tabKey);
-                    navigate(
-                      `/${tabKey === "new-projects" ? "new-projects" : tabKey === "commercial" ? "commercial" : tabKey}`,
-                    );
+                    const route = tabKey === "new-projects" ? "/new-projects" : `/${tabKey}`;
+                    navigate(route);
                   }}
                   className={`flex-1 py-1.5 rounded-full text-[11px] font-medium transition ${
                     activeTab === tab.toLowerCase().replace(" ", "-")
@@ -251,7 +245,7 @@ const ClientBannerHero = ({
               + More Filters
             </button>
 
-            {/* Bottom Buttons */}
+            {/* Bottom Buttons - Book Hotel & Smart Financing */}
             <div className="flex justify-center gap-3 mt-4">
               <button
                 onClick={() => navigate("/hotels")}
@@ -270,38 +264,38 @@ const ClientBannerHero = ({
 
           {/* ============ RIGHT COLUMN (3 cols) ============ */}
           <div className="col-span-12 lg:col-span-3 space-y-3">
-            {/* Circular Buttons Row */}
+            {/* Circular Buttons - Shortlist & Expert Support */}
             <div className="flex gap-4 justify-start">
-              {rightActions.map((a) => (
+              {circularButtons.map((btn) => (
                 <motion.button
-                  key={a.label}
+                  key={btn.label}
                   whileHover={{ scale: 1.05 }}
-                  onClick={a.onClick}
+                  onClick={btn.onClick}
                   className="flex flex-col items-center gap-1"
                 >
                   <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md hover:bg-white/30 transition">
-                    <a.icon className="h-4.5 w-4.5 text-white" strokeWidth={1.75} />
+                    <btn.icon className="h-4.5 w-4.5 text-white" strokeWidth={1.75} />
                   </div>
-                  <span className="text-[10px] font-semibold text-white">{a.label}</span>
+                  <span className="text-[10px] font-semibold text-white">{btn.label}</span>
                 </motion.button>
               ))}
             </div>
 
-            {/* Right Column Cards */}
+            {/* Right Column Cards - Smart Financing, Instant Match, Real-time Updates */}
             <div className="space-y-2.5">
-              {rightCards.map((c) => (
+              {rightCards.map((card) => (
                 <motion.button
-                  key={c.title}
+                  key={card.title}
                   whileHover={{ x: -3 }}
-                  onClick={c.onClick}
+                  onClick={card.onClick}
                   className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
                 >
                   <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                    <c.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                    <card.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white leading-tight">{c.title}</div>
-                    <div className="text-[11px] text-white/70 mt-0.5">{c.desc}</div>
+                    <div className="text-sm font-bold text-white leading-tight">{card.title}</div>
+                    <div className="text-[11px] text-white/70 mt-0.5">{card.desc}</div>
                   </div>
                 </motion.button>
               ))}
@@ -309,17 +303,17 @@ const ClientBannerHero = ({
           </div>
         </div>
 
-        {/* ============ STATS BAR ============ */}
+        {/* ============ BOTTOM STATS BAR ============ */}
         <div className="mt-8 rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {stats.map((s) => (
-              <div key={s.label} className="flex items-center gap-2.5">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
+                  <stat.icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm font-bold text-gray-900 leading-tight">{s.value}</div>
-                  <div className="text-[10px] text-gray-600 leading-tight whitespace-nowrap">{s.label}</div>
+                  <div className="text-sm font-bold text-gray-900 leading-tight">{stat.value}</div>
+                  <div className="text-[10px] text-gray-600 leading-tight whitespace-nowrap">{stat.label}</div>
                 </div>
               </div>
             ))}
