@@ -4,7 +4,6 @@ import {
   Brain,
   ShieldCheck,
   IndianRupee,
-  Sparkles,
   Search,
   Heart,
   Headphones,
@@ -19,6 +18,7 @@ import {
   Star,
   ArrowRight,
   MapPin,
+  Sparkles,
 } from "lucide-react";
 import skylineImg from "@/assets/hero-skyline.jpg";
 
@@ -28,7 +28,11 @@ interface Props {
   showSearchBar?: boolean;
 }
 
-const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearchBar: _showSearchBar = true }: Props) => {
+const ClientBannerHero = ({
+  activeTab = "buy",
+  onTabChange = () => {},
+  showSearchBar: _showSearchBar = true,
+}: Props) => {
   const navigate = useNavigate();
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
@@ -103,9 +107,9 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main grid layout - Matching second image exactly */}
+        {/* Main grid layout - Matching second image exactly with adjusted column spans */}
         <div className="grid grid-cols-12 gap-6 lg:gap-8 min-h-[580px] lg:min-h-[620px]">
-          {/* ============ LEFT COLUMN (4 cols) ============ */}
+          {/* ============ LEFT COLUMN (4 cols) - Features stacked vertically ============ */}
           <div className="col-span-12 lg:col-span-4 relative z-20">
             <div className="space-y-4">
               {features.map((f) => (
@@ -125,7 +129,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                 </motion.button>
               ))}
 
-              {/* India's most trusted platform */}
+              {/* India's most trusted platform - as shown in second image */}
               <motion.button
                 whileHover={{ x: 5 }}
                 onClick={() => navigate("/trust-score")}
@@ -146,7 +150,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
 
           {/* ============ CENTER COLUMN (5 cols) - Main hero area ============ */}
           <div className="col-span-12 lg:col-span-5 relative z-20">
-            {/* Main Title */}
+            {/* Main Title - Your Dream Place Awaits */}
             <div className="text-center mb-6">
               <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl xl:text-6xl">
                 Your Dream
@@ -162,7 +166,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               </div>
             </div>
 
-            {/* New Property Posted Banner */}
+            {/* New Property Posted Card - prominent as in second image */}
             <motion.button
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -186,7 +190,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               </div>
             </motion.button>
 
-            {/* Smart Insights & Verified Properties Pills */}
+            {/* Smart Insights & Verified Properties horizontal pills */}
             <div className="flex justify-center gap-3 mb-6">
               <button
                 onClick={() => navigate("/ai-advisor")}
@@ -202,18 +206,21 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               </button>
             </div>
 
-            {/* Center X Logo */}
+            {/* Center Logo - X mark */}
             <div className="flex justify-center mb-6">
               <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl ring-4 ring-primary/30">
                 <span className="text-primary font-black text-2xl">X</span>
               </div>
             </div>
 
-            {/* Buy/Rent Tabs and Search */}
+            {/* Buy/Rent/New Projects/Commercial Tabs and Search Bar - exactly as second image */}
             <div className="max-w-md mx-auto">
               <div className="flex gap-2 mb-3">
                 <button
-                  onClick={() => navigate("/buy")}
+                  onClick={() => {
+                    onTabChange("buy");
+                    navigate("/buy");
+                  }}
                   className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
                     activeTab === "buy"
                       ? "bg-primary text-white"
@@ -223,7 +230,10 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                   Buy
                 </button>
                 <button
-                  onClick={() => navigate("/rent")}
+                  onClick={() => {
+                    onTabChange("rent");
+                    navigate("/rent");
+                  }}
                   className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
                     activeTab === "rent"
                       ? "bg-primary text-white"
@@ -233,7 +243,10 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                   Rent
                 </button>
                 <button
-                  onClick={() => navigate("/new-projects")}
+                  onClick={() => {
+                    onTabChange("new-projects");
+                    navigate("/new-projects");
+                  }}
                   className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
                     activeTab === "new-projects"
                       ? "bg-primary text-white"
@@ -243,7 +256,10 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                   New Projects
                 </button>
                 <button
-                  onClick={() => navigate("/commercial")}
+                  onClick={() => {
+                    onTabChange("commercial");
+                    navigate("/commercial");
+                  }}
                   className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
                     activeTab === "commercial"
                       ? "bg-primary text-white"
@@ -254,7 +270,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
                 </button>
               </div>
 
-              {/* Search Bar */}
+              {/* Search Input with location placeholder */}
               <div className="flex gap-2 bg-white rounded-full p-1 shadow-lg">
                 <div className="flex-1 flex items-center gap-2 px-4">
                   <MapPin className="h-4 w-4 text-gray-400" />
@@ -275,8 +291,8 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
               <button className="text-white/80 text-xs mt-2 ml-4 hover:text-white transition">+ More Filters</button>
             </div>
 
-            {/* Bottom Buttons */}
-            <div className="flex justify-between mt-6">
+            {/* Bottom action buttons - Book Hotel and Smart Financing as in second image */}
+            <div className="flex justify-center gap-4 mt-6">
               <button
                 onClick={() => navigate("/hotels")}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-lg hover:bg-blue-700 transition"
@@ -294,7 +310,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
 
           {/* ============ RIGHT COLUMN (3 cols) ============ */}
           <div className="col-span-12 lg:col-span-3 relative z-20 space-y-4">
-            {/* Circular action buttons - Shortlist & Expert Support */}
+            {/* Circular action buttons - Shortlist & Expert Support at top right */}
             <div className="grid grid-cols-2 gap-3">
               {rightActions.map((a) => (
                 <motion.button
@@ -333,7 +349,7 @@ const ClientBannerHero = ({ activeTab = "buy", onTabChange = () => {}, showSearc
           </div>
         </div>
 
-        {/* ============ STATS BAR ============ */}
+        {/* ============ STATS BAR - 6 items exactly as second image ============ */}
         <div className="mt-8 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {stats.map((s) => (
