@@ -21,7 +21,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  Robot,
+  Bot,
   Clock,
   AlertTriangle,
 } from "lucide-react";
