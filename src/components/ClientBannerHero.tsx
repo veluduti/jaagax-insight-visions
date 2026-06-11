@@ -593,7 +593,7 @@ const ClientBannerHero = ({ activeTab, onTabChange, showSearchBar = true }: Prop
           <div
             className={`grid ${isNewBanner ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"} gap-4`}
           >
-            {(isNewBanner ? newBannerStats : stats).map((s, idx) => (
+            {(isNewBanner ? newBannerStats : stats).map((s: any, idx: number) => (
               <div key={idx} className="flex items-center gap-3">
                 {!isNewBanner && s.icon && (
                   <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
