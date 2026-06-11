@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
-import CityAutocomplete from "@/components/auth/CityAutocomplete";
+import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
+import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
