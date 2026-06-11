@@ -42,6 +42,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import CityAutocomplete from "@/components/auth/CityAutocomplete";
+import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
