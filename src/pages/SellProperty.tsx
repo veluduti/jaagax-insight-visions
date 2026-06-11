@@ -4448,6 +4448,32 @@ export default function SellProperty() {
                                 Location
                               </h4>
                               <div className="grid grid-cols-2 gap-3">
+                                <div className="col-span-2">
+                                  <label className="text-xs text-muted-foreground mb-1 block">
+                                    Search location (city, area, address)
+                                  </label>
+                                  <PlacesAutocompleteInput
+                                    value={editForm.city ?? ""}
+                                    country="IN"
+                                    onChange={(t) => setEditForm((p) => ({ ...p, city: t }))}
+                                    onSelect={(loc) =>
+                                      setEditForm((p) => ({
+                                        ...p,
+                                        city: loc.city || p.city || "",
+                                        locality: loc.locality || p.locality || "",
+                                        address: loc.formattedAddress || p.address || "",
+                                        state: loc.state || p.state || "",
+                                        country: loc.country || p.country || "",
+                                        pincode: loc.postalCode || p.pincode || "",
+                                        latitude: loc.latitude ?? p.latitude,
+                                        longitude: loc.longitude ?? p.longitude,
+                                        place_id: loc.placeId,
+                                        formatted_address: loc.formattedAddress,
+                                      }))
+                                    }
+                                    placeholder="Start typing — e.g. Whitefield, Bengaluru"
+                                  />
+                                </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
                                   <Input
