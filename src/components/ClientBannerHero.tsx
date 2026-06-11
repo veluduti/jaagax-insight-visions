@@ -18,7 +18,6 @@ import {
   Star,
   ArrowRight,
   MapPin,
-  Sparkles,
 } from "lucide-react";
 import skylineImg from "@/assets/hero-skyline.jpg";
 
@@ -37,7 +36,7 @@ const ClientBannerHero = ({
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Features for the left column (from second image)
+  // Left column features
   const features = [
     {
       icon: Brain,
@@ -59,13 +58,13 @@ const ClientBannerHero = ({
     },
   ];
 
-  // Right side circular action buttons
+  // Right column circular buttons
   const rightActions = [
     { icon: Heart, label: "Shortlist", onClick: () => navigate("/dashboard/buyer") },
     { icon: Headphones, label: "Expert Support", onClick: goComingSoon("Expert Support") },
   ];
 
-  // Right side cards (from second image)
+  // Right column cards
   const rightCards = [
     {
       icon: Wallet,
@@ -87,7 +86,7 @@ const ClientBannerHero = ({
     },
   ];
 
-  // Stats for the bottom bar (from second image)
+  // Bottom stats
   const stats = [
     { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
     { icon: Users, value: "100K+", label: "Happy Customers" },
@@ -99,65 +98,59 @@ const ClientBannerHero = ({
 
   return (
     <section className="relative w-full bg-background overflow-hidden min-h-screen">
-      {/* Background Image Container */}
+      {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${skylineImg})` }} />
-        {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/60" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main grid layout - Matching second image exactly with adjusted column spans */}
-        <div className="grid grid-cols-12 gap-6 lg:gap-8 min-h-[580px] lg:min-h-[620px]">
-          {/* ============ LEFT COLUMN (4 cols) - Features stacked vertically ============ */}
-          <div className="col-span-12 lg:col-span-4 relative z-20">
-            <div className="space-y-4">
-              {features.map((f) => (
-                <motion.button
-                  key={f.title}
-                  whileHover={{ x: 5 }}
-                  onClick={f.onClick}
-                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
-                >
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                    <f.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
-                    <div className="text-xs text-white/70 mt-0.5">{f.desc}</div>
-                  </div>
-                </motion.button>
-              ))}
-
-              {/* India's most trusted platform - as shown in second image */}
+        {/* Main Grid - 12 columns exactly like second image */}
+        <div className="grid grid-cols-12 gap-5 lg:gap-6">
+          {/* ============ LEFT COLUMN (4 cols) ============ */}
+          <div className="col-span-12 lg:col-span-4 space-y-3">
+            {/* 3 Feature Cards */}
+            {features.map((f) => (
               <motion.button
+                key={f.title}
                 whileHover={{ x: 5 }}
-                onClick={() => navigate("/trust-score")}
-                className="w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
+                onClick={f.onClick}
+                className="group w-full text-left flex items-start gap-3 p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
               >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
+                  <f.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white leading-tight">
-                    India's most trusted
-                    <div className="font-medium text-white/70 text-xs mt-0.5">intelligent property platform</div>
-                  </div>
+                  <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">{f.desc}</div>
                 </div>
               </motion.button>
+            ))}
+
+            {/* India's most trusted platform - as text block in second image */}
+            <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <ShieldCheck className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white leading-tight">India's most trusted</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">intelligent property platform</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ============ CENTER COLUMN (5 cols) - Main hero area ============ */}
-          <div className="col-span-12 lg:col-span-5 relative z-20">
-            {/* Main Title - Your Dream Place Awaits */}
-            <div className="text-center mb-6">
-              <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl xl:text-6xl">
+          {/* ============ CENTER COLUMN (5 cols) ============ */}
+          <div className="col-span-12 lg:col-span-5">
+            {/* Main Title */}
+            <div className="text-center">
+              <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl">
                 Your Dream
                 <br />
                 <span className="text-primary">Place Awaits</span>
               </h1>
-              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] font-bold tracking-[0.3em] text-white/80">
+              <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.3em] text-white/80">
                 <span>FIND</span>
                 <span className="h-1 w-1 rounded-full bg-primary" />
                 <span>CONNECT</span>
@@ -166,182 +159,149 @@ const ClientBannerHero = ({
               </div>
             </div>
 
-            {/* New Property Posted Card - prominent as in second image */}
+            {/* New Property Posted Card */}
             <motion.button
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/search?posted=24h")}
-              className="w-full max-w-md mx-auto flex items-center gap-3 p-3 rounded-2xl bg-white/95 backdrop-blur border border-gray-200 shadow-2xl hover:shadow-glow transition mb-6"
+              className="w-full mt-5 flex items-center gap-3 p-3 rounded-xl bg-white/95 backdrop-blur border border-gray-200 shadow-xl hover:shadow-glow transition"
             >
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <CheckCircle2 className="h-4.5 w-4.5 text-primary" />
               </div>
               <div className="flex-1 text-left">
                 <div className="text-sm font-bold text-gray-900">New Property Posted!</div>
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="h-1.5 flex-1 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden">
                     <div className="h-full w-2/3 bg-primary rounded-full" />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-white bg-primary px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded-full">
                     Property Live <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
               </div>
             </motion.button>
 
-            {/* Smart Insights & Verified Properties horizontal pills */}
-            <div className="flex justify-center gap-3 mb-6">
+            {/* Smart Insights & Verified Properties Pills */}
+            <div className="flex justify-center gap-3 mt-4">
               <button
                 onClick={() => navigate("/ai-advisor")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-lg hover:bg-white transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
               >
-                <TrendingUp className="h-3.5 w-3.5 text-primary" /> Smart Insights
+                <TrendingUp className="h-3 w-3 text-primary" /> Smart Insights
               </button>
               <button
                 onClick={() => navigate("/search?verified=1")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 text-gray-900 text-xs font-semibold shadow-lg hover:bg-white transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
               >
-                <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Verified Properties
+                <ShieldCheck className="h-3 w-3 text-primary" /> Verified Properties
               </button>
             </div>
 
-            {/* Center Logo - X mark */}
-            <div className="flex justify-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl ring-4 ring-primary/30">
-                <span className="text-primary font-black text-2xl">X</span>
+            {/* Logo */}
+            <div className="flex justify-center my-4">
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg ring-3 ring-primary/30">
+                <span className="text-primary font-black text-xl">X</span>
               </div>
             </div>
 
-            {/* Buy/Rent/New Projects/Commercial Tabs and Search Bar - exactly as second image */}
-            <div className="max-w-md mx-auto">
-              <div className="flex gap-2 mb-3">
+            {/* Tabs */}
+            <div className="flex gap-1.5 bg-white/10 backdrop-blur-sm rounded-full p-1 max-w-md mx-auto">
+              {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => (
                 <button
+                  key={tab}
                   onClick={() => {
-                    onTabChange("buy");
-                    navigate("/buy");
+                    const tabKey = tab.toLowerCase().replace(" ", "-");
+                    onTabChange(tabKey);
+                    navigate(
+                      `/${tabKey === "new-projects" ? "new-projects" : tabKey === "commercial" ? "commercial" : tabKey}`,
+                    );
                   }}
-                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                    activeTab === "buy"
-                      ? "bg-primary text-white"
-                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
+                  className={`flex-1 py-1.5 rounded-full text-[11px] font-medium transition ${
+                    activeTab === tab.toLowerCase().replace(" ", "-")
+                      ? "bg-primary text-white shadow-md"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  Buy
+                  {tab}
                 </button>
-                <button
-                  onClick={() => {
-                    onTabChange("rent");
-                    navigate("/rent");
-                  }}
-                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                    activeTab === "rent"
-                      ? "bg-primary text-white"
-                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
-                  }`}
-                >
-                  Rent
-                </button>
-                <button
-                  onClick={() => {
-                    onTabChange("new-projects");
-                    navigate("/new-projects");
-                  }}
-                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                    activeTab === "new-projects"
-                      ? "bg-primary text-white"
-                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
-                  }`}
-                >
-                  New Projects
-                </button>
-                <button
-                  onClick={() => {
-                    onTabChange("commercial");
-                    navigate("/commercial");
-                  }}
-                  className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-                    activeTab === "commercial"
-                      ? "bg-primary text-white"
-                      : "bg-white/20 backdrop-blur text-white hover:bg-white/30"
-                  }`}
-                >
-                  Commercial
-                </button>
-              </div>
-
-              {/* Search Input with location placeholder */}
-              <div className="flex gap-2 bg-white rounded-full p-1 shadow-lg">
-                <div className="flex-1 flex items-center gap-2 px-4">
-                  <MapPin className="h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Enter location, city or landmark"
-                    className="flex-1 py-2 outline-none bg-transparent text-gray-700 text-sm"
-                    defaultValue="Hyderabad"
-                  />
-                </div>
-                <button
-                  onClick={() => navigate("/search")}
-                  className="px-5 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition flex items-center gap-2"
-                >
-                  <Search className="h-4 w-4" /> Search
-                </button>
-              </div>
-              <button className="text-white/80 text-xs mt-2 ml-4 hover:text-white transition">+ More Filters</button>
+              ))}
             </div>
 
-            {/* Bottom action buttons - Book Hotel and Smart Financing as in second image */}
-            <div className="flex justify-center gap-4 mt-6">
+            {/* Search Bar */}
+            <div className="flex gap-2 bg-white rounded-full p-1 shadow-lg mt-3 max-w-md mx-auto">
+              <div className="flex-1 flex items-center gap-2 px-3">
+                <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Enter location, city or landmark"
+                  className="flex-1 py-1.5 outline-none bg-transparent text-gray-700 text-xs"
+                  defaultValue="Hyderabad"
+                />
+              </div>
+              <button
+                onClick={() => navigate("/search")}
+                className="px-4 py-1.5 bg-primary text-white rounded-full text-[11px] font-medium hover:bg-primary/90 transition flex items-center gap-1"
+              >
+                <Search className="h-3 w-3" /> Search
+              </button>
+            </div>
+            <button className="text-white/70 text-[10px] mt-1.5 ml-4 hover:text-white transition">
+              + More Filters
+            </button>
+
+            {/* Bottom Buttons */}
+            <div className="flex justify-center gap-3 mt-4">
               <button
                 onClick={() => navigate("/hotels")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-lg hover:bg-blue-700 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold shadow-md hover:bg-blue-700 transition"
               >
-                <Hotel className="h-3.5 w-3.5" /> Book Hotel
+                <Hotel className="h-3 w-3" /> Book Hotel
               </button>
               <button
                 onClick={goComingSoon("Smart Financing")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600 text-white text-xs font-semibold shadow-lg hover:bg-purple-700 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-[10px] font-semibold shadow-md hover:bg-purple-700 transition"
               >
-                <Building2 className="h-3.5 w-3.5" /> Smart Financing
+                <Building2 className="h-3 w-3" /> Smart Financing
               </button>
             </div>
           </div>
 
           {/* ============ RIGHT COLUMN (3 cols) ============ */}
-          <div className="col-span-12 lg:col-span-3 relative z-20 space-y-4">
-            {/* Circular action buttons - Shortlist & Expert Support at top right */}
-            <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-12 lg:col-span-3 space-y-3">
+            {/* Circular Buttons Row */}
+            <div className="flex gap-4 justify-start">
               {rightActions.map((a) => (
                 <motion.button
                   key={a.label}
-                  whileHover={{ scale: 1.04 }}
+                  whileHover={{ scale: 1.05 }}
                   onClick={a.onClick}
-                  className="flex flex-col items-center gap-1.5"
+                  className="flex flex-col items-center gap-1"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center ring-2 ring-primary shadow-lg hover:bg-white/30 transition">
-                    <a.icon className="h-5 w-5 text-white" />
+                  <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md hover:bg-white/30 transition">
+                    <a.icon className="h-4.5 w-4.5 text-white" strokeWidth={1.75} />
                   </div>
-                  <span className="text-xs font-semibold text-white">{a.label}</span>
+                  <span className="text-[10px] font-semibold text-white">{a.label}</span>
                 </motion.button>
               ))}
             </div>
 
-            {/* Feature cards - Smart Financing, Instant Match, Real-time Updates */}
+            {/* Right Column Cards */}
             <div className="space-y-2.5">
               {rightCards.map((c) => (
                 <motion.button
                   key={c.title}
                   whileHover={{ x: -3 }}
                   onClick={c.onClick}
-                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/20 transition"
+                  className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
                 >
                   <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                    <c.icon className="h-5 w-5 text-primary" />
+                    <c.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-white leading-tight">{c.title}</div>
-                    <div className="text-xs text-white/70 mt-0.5">{c.desc}</div>
+                    <div className="text-[11px] text-white/70 mt-0.5">{c.desc}</div>
                   </div>
                 </motion.button>
               ))}
@@ -349,17 +309,17 @@ const ClientBannerHero = ({
           </div>
         </div>
 
-        {/* ============ STATS BAR - 6 items exactly as second image ============ */}
-        <div className="mt-8 rounded-2xl bg-white/95 backdrop-blur px-4 py-4 shadow-2xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* ============ STATS BAR ============ */}
+        <div className="mt-8 rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-xl">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {stats.map((s) => (
-              <div key={s.label} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon className="h-5 w-5 text-primary" />
+              <div key={s.label} className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <s.icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm md:text-base font-bold text-gray-900 leading-tight">{s.value}</div>
-                  <div className="text-[11px] text-gray-600 leading-tight">{s.label}</div>
+                  <div className="text-sm font-bold text-gray-900 leading-tight">{s.value}</div>
+                  <div className="text-[10px] text-gray-600 leading-tight whitespace-nowrap">{s.label}</div>
                 </div>
               </div>
             ))}
