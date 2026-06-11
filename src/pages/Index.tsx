@@ -45,7 +45,7 @@ const Index = () => {
         type="website"
       />
       <Navigation />
-      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
+      <HeroCarousel activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
       
       {/* Intent Chips - Thin strip for user mindset */}
       <IntentChips />
