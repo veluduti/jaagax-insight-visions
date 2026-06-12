@@ -97,7 +97,7 @@ const ClientBannerHero = ({
           <div
             style={{
               marginBottom: "4px",
-              width: "560px",
+              width: "580px",
               maxWidth: "100%",
             }}
           >
