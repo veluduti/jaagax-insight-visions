@@ -86,7 +86,7 @@ const ClientBannerHero = ({
         {/* ════════════ LEFT COLUMN (width ~26%) ════════════ */}
         <div
           style={{
-            width: "32%",
+            width: "36%",
             padding: "0 24px 0 40px",
             display: "flex",
             flexDirection: "column",
