@@ -42,8 +42,8 @@ const ClientBannerHero = ({
         style={{
           position: "relative",
           width: "100%",
-          height: "calc(100vh - 126px)",
-          minHeight: "520px",
+          height: "calc(100vh - 150px)",
+          minHeight: "500px",
           maxHeight: "960px",
           overflow: "hidden",
           fontFamily: "sans-serif",
