@@ -116,6 +116,7 @@ export default function SellerDashboard() {
   const [editForm, setEditForm] = useState({ title: "", price: "", area_sqft: "", description: "", images: "" });
   const [resubmitting, setResubmitting] = useState(false);
   const navigate = useNavigate();
+  const { trigger: triggerSellFlow, dialog: postingQuotaDialog, loading: quotaChecking } = usePostingQuotaGate();
 
   useEffect(() => { init(); }, []);
 
