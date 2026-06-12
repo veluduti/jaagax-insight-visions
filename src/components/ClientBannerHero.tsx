@@ -81,6 +81,7 @@ const ClientBannerHero = ({
           flex: 1,
           display: "flex",
           padding: "36px 0 0 0",
+          minHeight: 0 /* allow flex child to shrink */,
         }}
       >
         {/* ════════════ LEFT COLUMN (width ~26%) ════════════ */}
@@ -548,17 +549,17 @@ const ClientBannerHero = ({
           </div>
         </div>
 
-        {/* ════════════ RIGHT COLUMN – feature cards (width ~20%) ════════════ */}
+        {/* ════════════ RIGHT COLUMN – feature cards (width ~17%) ════════════ */}
         <div
           style={{
-            width: "20%",
-            padding: "0 0 0 16px",
+            width: "17%",
+            paddingLeft: "16px",
+            paddingRight: "76px" /* clears the absolute circular buttons on far right */,
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "10px",
             justifyContent: "flex-start",
-            /* push down to roughly align with search bar area */
-            paddingTop: "135px",
+            paddingTop: "100px" /* aligns first card with pills row in center */,
           }}
         >
           {[
@@ -730,8 +731,8 @@ const ClientBannerHero = ({
           zIndex: 20,
           background: "rgba(8,12,18,0.93)",
           backdropFilter: "blur(12px)",
-          padding: "18px 48px",
-          marginTop: "-100px",
+          padding: "13px 48px",
+          marginTop: "auto" /* push stats bar to bottom of flex column naturally */,
         }}
       >
         <div
