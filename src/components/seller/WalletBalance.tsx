@@ -3,7 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -50,7 +55,9 @@ export default function WalletBalance({ userId }: { userId: string }) {
     setTxs((t || []) as Tx[]);
   };
 
-  useEffect(() => { if (userId) load(); }, [userId]);
+  useEffect(() => {
+    if (userId) load();
+  }, [userId]);
 
   const handleAdd = async () => {
     if (amount < 100) return toast.error("Minimum top-up is ₹100");
@@ -77,10 +84,10 @@ export default function WalletBalance({ userId }: { userId: string }) {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-background to-background">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="h-full">
+      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-background to-background h-full flex flex-col">
         <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
-        <CardContent className="p-5 relative">
+        <CardContent className="p-5 relative flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <Wallet className="h-4 w-4" /> Wallet Balance
@@ -89,11 +96,10 @@ export default function WalletBalance({ userId }: { userId: string }) {
               <Sparkles className="h-3 w-3 mr-1" /> Instant
             </Badge>
           </div>
+
           <div className="flex items-end justify-between mb-4">
             <div>
-              <p className="text-3xl font-bold tracking-tight">
-                ₹{balance.toLocaleString("en-IN")}
-              </p>
+              <p className="text-3xl font-bold tracking-tight text-foreground">₹{balance.toLocaleString("en-IN")}</p>
               <p className="text-xs text-muted-foreground mt-1">Available for boosts, postings, premium</p>
             </div>
             <Button
@@ -105,34 +111,39 @@ export default function WalletBalance({ userId }: { userId: string }) {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-background/50 border border-border/50 mb-3">
-            <div className="text-xs">
-              <p className="font-medium">Auto-recharge</p>
-              <p className="text-muted-foreground">Add ₹1,000 when balance drops below ₹500</p>
+          {/* Auto-recharge section - pushed to bottom with mt-auto */}
+          <div className="mt-auto">
+            <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-background/50 border border-border/50 mb-3">
+              <div className="text-xs">
+                <p className="font-medium text-foreground">Auto-recharge</p>
+                <p className="text-muted-foreground">Add ₹1,000 when balance drops below ₹500</p>
+              </div>
+              <Switch checked={autoRecharge} onCheckedChange={toggleAuto} />
             </div>
-            <Switch checked={autoRecharge} onCheckedChange={toggleAuto} />
-          </div>
 
-          {txs.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Recent</p>
-              {txs.map((t) => (
-                <div key={t.id} className="flex items-center justify-between text-xs py-1">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {t.type === "credit" ? (
-                      <ArrowDownRight className="h-3 w-3 text-emerald-500 shrink-0" />
-                    ) : (
-                      <ArrowUpRight className="h-3 w-3 text-rose-500 shrink-0" />
-                    )}
-                    <span className="truncate">{t.description || t.type}</span>
+            {txs.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Recent</p>
+                {txs.map((t) => (
+                  <div key={t.id} className="flex items-center justify-between text-xs py-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {t.type === "credit" ? (
+                        <ArrowDownRight className="h-3 w-3 text-emerald-500 shrink-0" />
+                      ) : (
+                        <ArrowUpRight className="h-3 w-3 text-rose-500 shrink-0" />
+                      )}
+                      <span className="truncate text-muted-foreground">{t.description || t.type}</span>
+                    </div>
+                    <span
+                      className={t.type === "credit" ? "text-emerald-500 font-medium" : "text-rose-500 font-medium"}
+                    >
+                      {t.type === "credit" ? "+" : "-"}₹{Number(t.amount).toLocaleString("en-IN")}
+                    </span>
                   </div>
-                  <span className={t.type === "credit" ? "text-emerald-500 font-medium" : "text-rose-500 font-medium"}>
-                    {t.type === "credit" ? "+" : "-"}₹{Number(t.amount).toLocaleString("en-IN")}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -165,7 +176,9 @@ export default function WalletBalance({ userId }: { userId: string }) {
             Demo mode: balance updates instantly. Razorpay/PhonePe will be wired in a later phase.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleAdd} disabled={loading} className="bg-emerald-500 hover:bg-emerald-600 text-white">
               {loading ? "Adding…" : `Add ₹${amount.toLocaleString("en-IN")}`}
             </Button>
