@@ -781,6 +781,22 @@ export default function SellerDashboard() {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Seller Hub: AI, Activity, Visits, Referral */}
+        {user?.id && (
+          <>
+            <AIRecommendations
+              propertyCount={properties.length}
+              topCity={properties[0]?.city || null}
+              avgPrice={properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VisitManagement sellerId={user.id} />
+              <ActivityTimeline userId={user.id} />
+            </div>
+            <ReferralLink userId={user.id} />
+          </>
+        )}
       </div>
 
       {chatProperty && chatProperty.assigned_agent?.user_id && user?.id && (
