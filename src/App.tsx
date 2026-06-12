@@ -90,6 +90,7 @@ const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
 const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
+const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
