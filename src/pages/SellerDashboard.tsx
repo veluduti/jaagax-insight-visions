@@ -32,6 +32,7 @@ import VisitManagement from "@/components/seller/VisitManagement";
 import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
 import PriceDropDialog from "@/components/seller/PriceDropDialog";
+import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 
 interface AssignedAgent {
   id: string;
@@ -115,6 +116,7 @@ export default function SellerDashboard() {
   const [editForm, setEditForm] = useState({ title: "", price: "", area_sqft: "", description: "", images: "" });
   const [resubmitting, setResubmitting] = useState(false);
   const navigate = useNavigate();
+  const { trigger: triggerSellFlow, dialog: postingQuotaDialog, loading: quotaChecking } = usePostingQuotaGate();
 
   useEffect(() => { init(); }, []);
 
@@ -611,7 +613,7 @@ export default function SellerDashboard() {
           <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
         </div>
         <div className="flex gap-2 items-center">
-          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
+          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
             <Plus className="h-4 w-4 mr-1" />Sell Your Property
           </Button>
           {user?.id && <NotificationCenter userId={user.id} />}
@@ -657,7 +659,7 @@ export default function SellerDashboard() {
         {/* Quick action cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg" onClick={() => navigate("/sell-property")}>
+            <Card className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg" onClick={triggerSellFlow}>
               <CardContent className="p-5 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-emerald-500/20"><Plus className="h-6 w-6 text-emerald-500" /></div>
                 <div>
@@ -765,7 +767,7 @@ export default function SellerDashboard() {
                         <p className="font-semibold mb-1">{meta.title}</p>
                         <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{meta.subtext}</p>
                         {meta.cta && (
-                          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white">
                             <Plus className="h-4 w-4 mr-1" />{meta.cta}
                           </Button>
                         )}
@@ -924,6 +926,7 @@ export default function SellerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {postingQuotaDialog}
     </div>
   );
 }
