@@ -139,7 +139,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until, is_sold, has_price_drop_ribbon, previous_price")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
