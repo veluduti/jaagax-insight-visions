@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Crown, Zap, Users, CheckCircle2 } from "lucide-react";
+import { Crown, Zap, Users, CheckCircle2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +35,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false);
   const [agentPrompt, setAgentPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [payPerPostLoading, setPayPerPostLoading] = useState(false);
   const navigate = useNavigate();
 
   const load = async () => {
@@ -46,16 +47,79 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
     if (userId) load();
   }, [userId]);
 
+  // ✅ NEW: Pay-per-post handler
+  const handlePayPerPost = async () => {
+    setPayPerPostLoading(true);
+    const sb: any = supabase;
+
+    // Check wallet balance first
+    const { data: wallet } = await sb.from("wallets").select("balance").eq("user_id", userId).single();
+
+    if (!wallet || wallet.balance < 500) {
+      toast.error("Insufficient wallet balance. Please add money first.");
+      setPayPerPostLoading(false);
+      // Close the dialog
+      setOpen(false);
+      return;
+    }
+
+    // Deduct ₹500 from wallet
+    const { error: deductError } = await sb.rpc("decrement_wallet_balance", {
+      _user_id: userId,
+      _amount: 500,
+      _description: "Pay-per-post for additional property listing",
+      _reference: `post:${Date.now()}`,
+    });
+
+    if (deductError) {
+      toast.error(deductError.message || "Payment failed");
+      setPayPerPostLoading(false);
+      return;
+    }
+
+    // Create transaction record
+    const { data: walletData } = await sb.from("wallets").select("id").eq("user_id", userId).single();
+
+    await sb.from("wallet_transactions").insert({
+      user_id: userId,
+      wallet_id: walletData.id,
+      amount: 500,
+      type: "debit",
+      category: "posting_fee",
+      description: "Pay-per-post for additional property",
+      status: "completed",
+    });
+
+    toast.success("₹500 deducted from wallet. You can now post your property!");
+    setOpen(false);
+    setPayPerPostLoading(false);
+
+    // Navigate to sell property page
+    navigate("/sell-property");
+  };
+
+  // ✅ Premium subscription handler (already exists, but ensuring it works)
   const subscribePremium = async () => {
     setLoading(true);
     const sb: any = supabase;
     const fee = 2000;
+
+    // Check wallet balance first
+    const { data: wallet } = await sb.from("wallets").select("balance").eq("user_id", userId).single();
+
+    if (!wallet || wallet.balance < fee) {
+      toast.error(`Insufficient wallet balance. Need ₹${fee} to subscribe.`);
+      setLoading(false);
+      return;
+    }
+
     const { error: payErr } = await sb.rpc("decrement_wallet_balance", {
       _user_id: userId,
       _amount: fee,
       _description: "Premium subscription (monthly)",
       _reference: `sub:premium:${Date.now()}`,
     });
+
     if (payErr) {
       setLoading(false);
       return toast.error(payErr.message || "Insufficient wallet balance");
@@ -71,6 +135,20 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
       is_active: true,
       expires_at: expires.toISOString(),
     });
+
+    // Create transaction record
+    const { data: walletData } = await sb.from("wallets").select("id").eq("user_id", userId).single();
+
+    await sb.from("wallet_transactions").insert({
+      user_id: userId,
+      wallet_id: walletData.id,
+      amount: fee,
+      type: "debit",
+      category: "subscription",
+      description: "Premium subscription - Unlimited posts",
+      status: "completed",
+    });
+
     setLoading(false);
     toast.success("Premium activated — unlimited posts this month");
     setOpen(false);
@@ -138,34 +216,64 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
+      {/* Upgrade Dialog - Fixed with working Pay-per-post */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Choose your plan</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Choose your plan</DialogTitle>
             <DialogDescription>Posting fees are auto-deducted from your wallet.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3">
-            <Card className="border-border/60">
+
+          <div className="grid gap-4 py-4">
+            {/* Pay-per-post Option - NOW CLICKABLE */}
+            <Card
+              className="border-border/60 hover:border-emerald-500/50 transition-all cursor-pointer hover:shadow-lg"
+              onClick={handlePayPerPost}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold text-foreground">Pay-per-post</p>
-                    <p className="text-xs text-muted-foreground mt-1">₹500 per additional listing after free quota</p>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/10">
+                      <Wallet className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-lg">Pay-per-post</p>
+                      <p className="text-xs text-muted-foreground mt-1">₹500 per additional listing after free quota</p>
+                    </div>
                   </div>
-                  <Badge variant="outline">₹500 / post</Badge>
+                  <Badge variant="outline" className="text-emerald-500 border-emerald-500">
+                    ₹500 / post
+                  </Badge>
                 </div>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePayPerPost();
+                  }}
+                  disabled={payPerPostLoading}
+                  variant="outline"
+                  className="w-full mt-3 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                  size="sm"
+                >
+                  {payPerPostLoading ? "Processing..." : "Pay ₹500 from Wallet"}
+                </Button>
               </CardContent>
             </Card>
-            <Card className="border-emerald-500/40 bg-emerald-500/5">
+
+            {/* Premium Subscription Option */}
+            <Card className="border-emerald-500/40 bg-emerald-500/5 hover:shadow-lg transition-all">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-semibold flex items-center gap-1 text-foreground">
-                      Premium <Crown className="h-4 w-4 text-emerald-400" />
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Unlimited posts, priority review, premium badge
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/20">
+                      <Crown className="h-5 w-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-lg">Premium</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Unlimited posts, priority review, premium badge
+                      </p>
+                    </div>
                   </div>
                   <Badge className="bg-emerald-500 text-white">₹2,000 / mo</Badge>
                 </div>
@@ -180,9 +288,15 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
               </CardContent>
             </Card>
           </div>
+
+          <div className="text-xs text-muted-foreground text-center pt-2 border-t border-border/50">
+            <Wallet className="h-3 w-3 inline mr-1" />
+            Wallet balance will be checked before any deduction
+          </div>
         </DialogContent>
       </Dialog>
 
+      {/* Agent Upgrade Prompt Dialog */}
       <Dialog open={agentPrompt} onOpenChange={setAgentPrompt}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
