@@ -107,7 +107,14 @@ const ClientBannerHero = ({
             >
               Your Dream
               <br />
-              <span style={{ color: "#22c55e" }}>Place Awaits</span>
+              <span
+                style={{
+                  color: "#22c55e",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Place Awaits
+              </span>
             </h1>
             {/* FIND • CONNECT • GROW */}
             <div
