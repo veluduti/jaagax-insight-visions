@@ -251,7 +251,7 @@ const ClientBannerHero = ({
           style={{
             width: "50%",
             display: "flex",
-            transform: "translateY(-20px)",
+            transform: "translateY(-11px)",
             flexDirection: "column",
             alignItems: "center",
             padding: "0 16px",
@@ -558,7 +558,7 @@ const ClientBannerHero = ({
             gap: "12px",
             justifyContent: "flex-start",
             /* push down to roughly align with search bar area */
-            paddingTop: "150px",
+            paddingTop: "135px",
           }}
         >
           {[
