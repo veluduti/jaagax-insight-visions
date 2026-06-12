@@ -36,313 +36,762 @@ const ClientBannerHero = ({
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
-  // Left column features
-  const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Insights",
-      desc: "Smart recommendations just for you.",
-      onClick: () => navigate("/ai-advisor"),
-    },
-    {
-      icon: ShieldCheck,
-      title: "100% Verified Properties",
-      desc: "Ensuring trust and transparency.",
-      onClick: () => navigate("/search?verified=1"),
-    },
-    {
-      icon: IndianRupee,
-      title: "Zero Hidden Costs",
-      desc: "What you see is what you get.",
-      onClick: () => navigate("/valuation"),
-    },
-  ];
-
-  // Right column circular buttons
-  const rightActions = [
-    { icon: Heart, label: "Shortlist", onClick: () => navigate("/dashboard/buyer") },
-    { icon: Headphones, label: "Expert Support", onClick: goComingSoon("Expert Support") },
-  ];
-
-  // Right column cards
-  const rightCards = [
-    {
-      icon: Wallet,
-      title: "Smart Financing",
-      descLine1: "Pre-Approved",
-      descLine2: "Up to ₹5 Cr",
-      onClick: goComingSoon("Smart Financing"),
-    },
-    {
-      icon: Users,
-      title: "Instant Match",
-      desc: "Connect with right buyers & sellers",
-      onClick: () => navigate("/ai-advisor"),
-    },
-    {
-      icon: Activity,
-      title: "Real-time Updates",
-      desc: "on new properties",
-      onClick: goComingSoon("Real-time Updates"),
-    },
-  ];
-
-  // Bottom stats
-  const stats = [
-    { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
-    { icon: Users, value: "100K+", label: "Happy Customers" },
-    { icon: TrendingUp, value: "AI Powered", label: "Smart Insights" },
-    { icon: Lock, value: "100%", label: "Secure & Transparent" },
-    { icon: Headphones, value: "24/7", label: "Expert Support" },
-    { icon: Star, value: "4.8/5", label: "User Rating" },
-  ];
-
   return (
-    <section className="relative w-full bg-background overflow-hidden min-h-screen">
-      {/* Background Image */}
-      <div className="absolute inset-0 w-full h-full">
+    <section className="relative w-full overflow-hidden" style={{ minHeight: "100vh", fontFamily: "sans-serif" }}>
+      {/* ── Background ── */}
+      <div className="absolute inset-0">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${skylineImg})` }} />
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/60" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Main Grid - 12 columns */}
-        <div className="grid grid-cols-12 gap-5 lg:gap-6">
-          {/* ============ LEFT COLUMN (4 cols) ============ */}
-          <div className="col-span-12 lg:col-span-4 space-y-3">
-            {/* 3 Feature Cards */}
-            {features.map((f) => (
-              <motion.button
-                key={f.title}
-                whileHover={{ x: 5 }}
-                onClick={f.onClick}
-                className="group w-full text-left flex items-start gap-3 p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+      {/* ── Main layout wrapper ── */}
+      <div className="relative z-10 flex flex-col" style={{ minHeight: "100vh" }}>
+        {/* ══════════════════════════════════════════════
+            TOP AREA  –  3 columns
+            LEFT (25%) | CENTER (50%) | RIGHT (25%)
+        ══════════════════════════════════════════════ */}
+        <div className="flex flex-1 gap-0" style={{ padding: "32px 40px 0 40px" }}>
+          {/* ── LEFT COLUMN ── */}
+          <div className="flex flex-col gap-3" style={{ width: "25%", paddingRight: "20px" }}>
+            {/* Headline */}
+            <div style={{ marginBottom: "8px" }}>
+              <h1
+                style={{
+                  fontFamily: "Georgia, serif",
+                  fontSize: "clamp(28px, 3.5vw, 52px)",
+                  fontWeight: 700,
+                  color: "#fff",
+                  lineHeight: 1.1,
+                  margin: 0,
+                }}
               >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                  <f.icon className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white leading-tight">{f.title}</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">{f.desc}</div>
-                </div>
-              </motion.button>
-            ))}
-
-            {/* India's most trusted platform - plain text WITHOUT icon as shown in image */}
-            <div className="px-3 py-2">
-              <div className="text-sm font-bold text-white leading-tight">India's most trusted</div>
-              <div className="text-[11px] text-white/70 mt-0.5">intelligent property platform</div>
-            </div>
-          </div>
-
-          {/* ============ CENTER COLUMN (5 cols) ============ */}
-          <div className="col-span-12 lg:col-span-5">
-            {/* Main Title */}
-            <div className="text-center">
-              <h1 className="font-serif leading-[1.1] tracking-tight text-white text-4xl md:text-5xl lg:text-5xl">
                 Your Dream
                 <br />
-                <span className="text-primary">Place Awaits</span>
+                <span style={{ color: "#22c55e" }}>Place Awaits</span>
               </h1>
-              <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.3em] text-white/80">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginTop: "10px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.3em",
+                  color: "rgba(255,255,255,0.85)",
+                }}
+              >
                 <span>FIND</span>
-                <span className="h-1 w-1 rounded-full bg-primary" />
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "inline-block",
+                  }}
+                />
                 <span>CONNECT</span>
-                <span className="h-1 w-1 rounded-full bg-primary" />
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "inline-block",
+                  }}
+                />
                 <span>GROW</span>
               </div>
             </div>
 
-            {/* New Property Posted Card */}
+            {/* Feature cards – left */}
+            {[
+              {
+                icon: Brain,
+                title: "AI-Powered Insights",
+                desc: "Smart recommendations just for you.",
+                onClick: () => navigate("/ai-advisor"),
+              },
+              {
+                icon: ShieldCheck,
+                title: "100% Verified Properties",
+                desc: "Ensuring trust and transparency.",
+                onClick: () => navigate("/search?verified=1"),
+              },
+              {
+                icon: IndianRupee,
+                title: "Zero Hidden Costs",
+                desc: "What you see is what you get.",
+                onClick: () => navigate("/valuation"),
+              },
+            ].map((f) => (
+              <motion.button
+                key={f.title}
+                whileHover={{ x: 4 }}
+                onClick={f.onClick}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  padding: "10px 12px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    flexShrink: 0,
+                    width: 36,
+                    height: 36,
+                    borderRadius: "8px",
+                    background: "rgba(34,197,94,0.18)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <f.icon size={16} color="#22c55e" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#fff",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {f.title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "rgba(255,255,255,0.65)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {f.desc}
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+
+            {/* India's most trusted */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+                padding: "10px 12px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.18)",
+              }}
+            >
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 36,
+                  height: 36,
+                  borderRadius: "8px",
+                  background: "rgba(34,197,94,0.18)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ShieldCheck size={16} color="#22c55e" strokeWidth={1.75} />
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#fff",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  India's most trusted
+                </div>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "rgba(255,255,255,0.65)",
+                    marginTop: "2px",
+                  }}
+                >
+                  intelligent property platform
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── CENTER COLUMN ── */}
+          <div
+            className="flex flex-col items-center"
+            style={{ width: "50%", paddingLeft: "10px", paddingRight: "10px" }}
+          >
+            {/* New Property Posted card */}
             <motion.button
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/search?posted=24h")}
-              className="w-full mt-5 flex items-center gap-3 p-3 rounded-xl bg-white/95 backdrop-blur border border-gray-200 shadow-xl hover:shadow-glow transition"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "10px 14px",
+                borderRadius: "14px",
+                background: "rgba(255,255,255,0.97)",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+                cursor: "pointer",
+                width: "100%",
+                maxWidth: "400px",
+                alignSelf: "center",
+                marginBottom: "14px",
+              }}
             >
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
-                <CheckCircle2 className="h-4.5 w-4.5 text-primary" />
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 38,
+                  height: 38,
+                  borderRadius: "50%",
+                  background: "rgba(34,197,94,0.12)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CheckCircle2 size={18} color="#22c55e" />
               </div>
-              <div className="flex-1 text-left">
-                <div className="text-sm font-bold text-gray-900">New Property Posted!</div>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden">
-                    <div className="h-full w-2/3 bg-primary rounded-full" />
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  New Property Posted!
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginTop: "5px",
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 4,
+                      borderRadius: "99px",
+                      background: "#e5e7eb",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: "66%",
+                        background: "#22c55e",
+                        borderRadius: "99px",
+                      }}
+                    />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-white bg-primary px-2 py-0.5 rounded-full">
-                    Property Live <ArrowRight className="h-3 w-3" />
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "3px",
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      color: "#fff",
+                      background: "#22c55e",
+                      padding: "2px 8px",
+                      borderRadius: "99px",
+                    }}
+                  >
+                    Property Live <ArrowRight size={11} />
                   </span>
                 </div>
               </div>
             </motion.button>
 
-            {/* Smart Insights & Verified Properties Pills */}
-            <div className="flex justify-center gap-3 mt-4">
+            {/* Smart Insights + Verified Properties pills */}
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginBottom: "14px",
+              }}
+            >
               <button
                 onClick={() => navigate("/ai-advisor")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "6px 14px",
+                  borderRadius: "99px",
+                  background: "rgba(255,255,255,0.97)",
+                  color: "#111827",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
-                <TrendingUp className="h-3 w-3 text-primary" /> Smart Insights
+                <TrendingUp size={12} color="#22c55e" /> Smart Insights
               </button>
               <button
                 onClick={() => navigate("/search?verified=1")}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 text-gray-900 text-[11px] font-semibold shadow-md hover:bg-white transition"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "6px 14px",
+                  borderRadius: "99px",
+                  background: "rgba(255,255,255,0.97)",
+                  color: "#111827",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
-                <ShieldCheck className="h-3 w-3 text-primary" /> Verified Properties
+                <ShieldCheck size={12} color="#22c55e" /> Verified Properties
               </button>
             </div>
 
             {/* Logo */}
-            <div className="flex justify-center my-4">
-              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg ring-3 ring-primary/30">
-                <span className="text-primary font-black text-xl">X</span>
-              </div>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+                border: "3px solid rgba(34,197,94,0.35)",
+                marginBottom: "14px",
+              }}
+            >
+              <span
+                style={{
+                  color: "#22c55e",
+                  fontWeight: 900,
+                  fontSize: "22px",
+                  lineHeight: 1,
+                }}
+              >
+                X
+              </span>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1.5 bg-white/10 backdrop-blur-sm rounded-full p-1 max-w-md mx-auto">
-              {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    const tabKey = tab.toLowerCase().replace(" ", "-");
-                    onTabChange(tabKey);
-                    navigate(
-                      `/${tabKey === "new-projects" ? "new-projects" : tabKey === "commercial" ? "commercial" : tabKey}`,
-                    );
-                  }}
-                  className={`flex-1 py-1.5 rounded-full text-[11px] font-medium transition ${
-                    activeTab === tab.toLowerCase().replace(" ", "-")
-                      ? "bg-primary text-white shadow-md"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+            <div
+              style={{
+                display: "flex",
+                gap: "4px",
+                background: "rgba(255,255,255,0.12)",
+                backdropFilter: "blur(8px)",
+                borderRadius: "99px",
+                padding: "4px",
+                width: "100%",
+                maxWidth: "420px",
+                marginBottom: "10px",
+              }}
+            >
+              {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => {
+                const key = tab.toLowerCase().replace(" ", "-");
+                const isActive = activeTab === key;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      onTabChange(key);
+                      navigate(
+                        `/${key === "new-projects" ? "new-projects" : key === "commercial" ? "commercial" : key}`,
+                      );
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "6px 0",
+                      borderRadius: "99px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive ? "#22c55e" : "transparent",
+                      color: isActive ? "#fff" : "rgba(255,255,255,0.8)",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Search Bar */}
-            <div className="flex gap-2 bg-white rounded-full p-1 shadow-lg mt-3 max-w-md mx-auto">
-              <div className="flex-1 flex items-center gap-2 px-3">
-                <MapPin className="h-3.5 w-3.5 text-gray-400" />
+            {/* Search bar */}
+            <div
+              style={{
+                display: "flex",
+                gap: 0,
+                background: "#fff",
+                borderRadius: "99px",
+                padding: "4px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
+                width: "100%",
+                maxWidth: "420px",
+                marginBottom: "4px",
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "0 12px",
+                }}
+              >
+                <MapPin size={13} color="#9ca3af" />
                 <input
                   type="text"
                   placeholder="Enter location, city or landmark"
-                  className="flex-1 py-1.5 outline-none bg-transparent text-gray-700 text-xs"
                   defaultValue="Hyderabad"
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    fontSize: "12px",
+                    color: "#374151",
+                    padding: "6px 0",
+                  }}
                 />
               </div>
               <button
                 onClick={() => navigate("/search")}
-                className="px-4 py-1.5 bg-primary text-white rounded-full text-[11px] font-medium hover:bg-primary/90 transition flex items-center gap-1"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "7px 18px",
+                  background: "#22c55e",
+                  color: "#fff",
+                  borderRadius: "99px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
-                <Search className="h-3 w-3" /> Search
+                <Search size={12} /> Search
               </button>
             </div>
-            <button className="text-white/70 text-[10px] mt-1.5 ml-4 hover:text-white transition">
+
+            <button
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.65)",
+                fontSize: "10px",
+                cursor: "pointer",
+                alignSelf: "flex-start",
+                paddingLeft: "14px",
+                marginBottom: "14px",
+              }}
+            >
               + More Filters
             </button>
 
-            {/* Bottom Buttons */}
-            <div className="flex justify-center gap-3 mt-4">
+            {/* Book Hotel + Smart Financing buttons */}
+            <div style={{ display: "flex", gap: "10px" }}>
               <button
                 onClick={() => navigate("/hotels")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold shadow-md hover:bg-blue-700 transition"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "7px 14px",
+                  borderRadius: "99px",
+                  background: "#2563eb",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 10px rgba(37,99,235,0.4)",
+                }}
               >
-                <Hotel className="h-3 w-3" /> Book Hotel
+                <Hotel size={13} /> Book Hotel
               </button>
               <button
                 onClick={goComingSoon("Smart Financing")}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-[10px] font-semibold shadow-md hover:bg-purple-700 transition"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "7px 14px",
+                  borderRadius: "99px",
+                  background: "#7c3aed",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 10px rgba(124,58,237,0.4)",
+                }}
               >
-                <Building2 className="h-3 w-3" /> Smart Financing
+                <Building2 size={13} /> Smart Financing
               </button>
             </div>
           </div>
 
-          {/* ============ RIGHT COLUMN (3 cols) ============ */}
-          <div className="col-span-12 lg:col-span-3 space-y-3">
-            {/* Circular Buttons Row */}
-            <div className="flex gap-4 justify-start">
-              {rightActions.map((a) => (
+          {/* ── RIGHT COLUMN ── */}
+          <div className="flex flex-col gap-3" style={{ width: "25%", paddingLeft: "20px" }}>
+            {/* Circular action buttons: Search, Shortlist, Expert Support */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+                alignItems: "flex-end",
+              }}
+            >
+              {[
+                {
+                  icon: Search,
+                  label: "Search",
+                  onClick: () => navigate("/search"),
+                },
+                {
+                  icon: Heart,
+                  label: "Shortlist",
+                  onClick: () => navigate("/dashboard/buyer"),
+                },
+                {
+                  icon: Headphones,
+                  label: "Expert Support",
+                  onClick: goComingSoon("Expert Support"),
+                },
+              ].map((a) => (
                 <motion.button
                   key={a.label}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.07 }}
                   onClick={a.onClick}
-                  className="flex flex-col items-center gap-1"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "4px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                 >
-                  <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-primary/50 shadow-md hover:bg-white/30 transition">
-                    <a.icon className="h-4.5 w-4.5 text-white" strokeWidth={1.75} />
+                  <div
+                    style={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,0.15)",
+                      backdropFilter: "blur(8px)",
+                      border: "2px solid rgba(34,197,94,0.55)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <a.icon size={18} color="#fff" strokeWidth={1.75} />
                   </div>
-                  <span className="text-[10px] font-semibold text-white">{a.label}</span>
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      color: "#fff",
+                    }}
+                  >
+                    {a.label}
+                  </span>
                 </motion.button>
               ))}
             </div>
 
-            {/* Right Column Cards - with multi-line text for Smart Financing */}
-            <div className="space-y-2.5">
-              {/* Smart Financing Card - with two line description */}
-              <motion.button
-                whileHover={{ x: -3 }}
-                onClick={rightCards[0].onClick}
-                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
-              >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                  <Wallet className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white leading-tight">Smart Financing</div>
-                  <div className="text-[11px] text-white/70 mt-0.5 leading-tight">Pre-Approved</div>
-                  <div className="text-[11px] text-white/70 leading-tight">Up to ₹5 Cr</div>
-                </div>
-              </motion.button>
-
-              {/* Instant Match Card */}
-              <motion.button
-                whileHover={{ x: -3 }}
-                onClick={rightCards[1].onClick}
-                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
-              >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                  <Users className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white leading-tight">Instant Match</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">Connect with right buyers & sellers</div>
-                </div>
-              </motion.button>
-
-              {/* Real-time Updates Card */}
-              <motion.button
-                whileHover={{ x: -3 }}
-                onClick={rightCards[2].onClick}
-                className="group w-full text-left flex items-start gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
-              >
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition">
-                  <Activity className="h-4.5 w-4.5 text-primary" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white leading-tight">Real-time Updates</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">on new properties</div>
-                </div>
-              </motion.button>
+            {/* Right feature cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[
+                {
+                  icon: Wallet,
+                  title: "Smart Financing",
+                  desc: (
+                    <>
+                      <div>Pre-Approved</div>
+                      <div>Up to ₹5 Cr</div>
+                    </>
+                  ),
+                  onClick: goComingSoon("Smart Financing"),
+                },
+                {
+                  icon: Users,
+                  title: "Instant Match",
+                  desc: <div>Connect with right buyers & sellers</div>,
+                  onClick: () => navigate("/ai-advisor"),
+                },
+                {
+                  icon: Activity,
+                  title: "Real-time Updates",
+                  desc: <div>on new properties</div>,
+                  onClick: goComingSoon("Real-time Updates"),
+                },
+              ].map((c) => (
+                <motion.button
+                  key={c.title}
+                  whileHover={{ x: -3 }}
+                  onClick={c.onClick}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    padding: "10px 12px",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: 36,
+                      height: 36,
+                      borderRadius: "8px",
+                      background: "rgba(34,197,94,0.18)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <c.icon size={16} color="#22c55e" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#fff",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {c.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "rgba(255,255,255,0.65)",
+                        marginTop: "2px",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {c.desc}
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* ============ STATS BAR ============ */}
-        <div className="mt-8 rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {stats.map((s) => (
-              <div key={s.label} className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                  <s.icon className="h-4 w-4 text-primary" strokeWidth={1.75} />
+        {/* ══════════════════════════════════════════
+            STATS BAR  –  dark strip at the bottom
+        ══════════════════════════════════════════ */}
+        <div
+          style={{
+            margin: "32px 0 0 0",
+            background: "rgba(10,14,20,0.92)",
+            backdropFilter: "blur(10px)",
+            padding: "16px 40px",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(6, 1fr)",
+              gap: "12px",
+            }}
+          >
+            {[
+              { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
+              { icon: Users, value: "100K+", label: "Happy Customers" },
+              { icon: TrendingUp, value: "AI Powered", label: "Smart Insights" },
+              { icon: Lock, value: "100%", label: "Secure & Transparent" },
+              { icon: Headphones, value: "24/7", label: "Expert Support" },
+              { icon: Star, value: "4.8/5", label: "User Rating" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    flexShrink: 0,
+                    width: 34,
+                    height: 34,
+                    borderRadius: "8px",
+                    background: "rgba(34,197,94,0.18)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <s.icon size={16} color="#22c55e" strokeWidth={1.75} />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-gray-900 leading-tight">{s.value}</div>
-                  <div className="text-[10px] text-gray-600 leading-tight whitespace-nowrap">{s.label}</div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "#fff",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {s.value}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "rgba(255,255,255,0.6)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {s.label}
+                  </div>
                 </div>
               </div>
             ))}
