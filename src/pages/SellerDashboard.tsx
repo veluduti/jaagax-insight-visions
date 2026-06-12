@@ -58,6 +58,7 @@ import VisitManagement from "@/components/seller/VisitManagement";
 import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
 import PriceDropDialog from "@/components/seller/PriceDropDialog";
+import RecentTransactions from "@/components/seller/RecentTransactions";
 import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 
 interface AssignedAgent {
@@ -769,7 +770,7 @@ export default function SellerDashboard() {
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
-        {/* Seller Hub upgrades — wallet, plan, KYC - Fixed equal height with min-height */}
+        {/* Seller Hub upgrades — wallet, plan, KYC */}
         {user?.id && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
             <div className="flex flex-col h-full">
@@ -781,6 +782,13 @@ export default function SellerDashboard() {
             <div className="flex flex-col h-full">
               <KYCVerification userId={user.id} />
             </div>
+          </div>
+        )}
+
+        {/* Recent Transactions - Full Width */}
+        {user?.id && (
+          <div className="grid grid-cols-1 gap-4">
+            <RecentTransactions userId={user.id} limit={5} showHeader={true} />
           </div>
         )}
 
