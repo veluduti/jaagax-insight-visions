@@ -4,7 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,12 +26,7 @@ const STATUS_META: Record<Status, { label: string; color: string; icon: any }> =
   rejected: { label: "Rejected", color: "bg-rose-500/20 text-rose-400 border-rose-500/40", icon: ShieldAlert },
 };
 
-const BENEFITS = [
-  "Verified badge on profile",
-  "Higher trust score",
-  "Faster approvals",
-  "Better visibility in search",
-];
+const BENEFITS = ["Verified badge on profile", "Higher trust score", "Faster approvals", "Better visibility in search"];
 
 export default function KYCVerification({ userId }: { userId: string }) {
   const [status, setStatus] = useState<Status>("not_started");
@@ -39,10 +39,19 @@ export default function KYCVerification({ userId }: { userId: string }) {
 
   const load = async () => {
     const sb: any = supabase;
-    const { data } = await sb.from("kyc_verifications").select("status, rejection_reason").eq("user_id", userId).maybeSingle();
-    if (data) { setStatus(data.status as Status); setReason(data.rejection_reason); }
+    const { data } = await sb
+      .from("kyc_verifications")
+      .select("status, rejection_reason")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data) {
+      setStatus(data.status as Status);
+      setReason(data.rejection_reason);
+    }
   };
-  useEffect(() => { if (userId) load(); }, [userId]);
+  useEffect(() => {
+    if (userId) load();
+  }, [userId]);
 
   const uploadOne = async (file: File, label: string) => {
     const path = `${userId}/${label}-${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
@@ -68,33 +77,44 @@ export default function KYCVerification({ userId }: { userId: string }) {
       load();
     } catch (e: any) {
       toast.error(e.message || "Could not submit KYC");
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   };
 
   const meta = STATUS_META[status];
   const Icon = meta.icon;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-background to-background">
-        <CardContent className="p-5">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="h-full"
+    >
+      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-background to-background h-full flex flex-col">
+        <CardContent className="p-5 flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <ShieldCheck className="h-4 w-4" /> KYC Verification
             </div>
-            <Badge variant="outline" className={meta.color}><Icon className="h-3 w-3 mr-1" /> {meta.label}</Badge>
+            <Badge variant="outline" className={meta.color}>
+              <Icon className="h-3 w-3 mr-1" /> {meta.label}
+            </Badge>
           </div>
 
           {status === "verified" ? (
             <div className="py-2">
-              <p className="text-sm">Your identity is verified — verified badge active across the platform.</p>
+              <p className="text-sm text-foreground">
+                Your identity is verified — verified badge active across the platform.
+              </p>
             </div>
           ) : (
-            <>
+            <div className="flex-1 flex flex-col">
               <ul className="space-y-1.5 mb-4">
                 {BENEFITS.map((b) => (
-                  <li key={b} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {b}
+                  <li key={b} className="flex items-center gap-2 text-xs text-foreground/80">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> {b}
                   </li>
                 ))}
               </ul>
@@ -103,16 +123,18 @@ export default function KYCVerification({ userId }: { userId: string }) {
                   Rejected: {reason}
                 </p>
               )}
-              <Button
-                onClick={() => setOpen(true)}
-                disabled={status === "pending"}
-                variant="outline"
-                size="sm"
-                className="w-full border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-              >
-                {status === "pending" ? "Awaiting review…" : status === "rejected" ? "Re-submit KYC" : "Complete KYC"}
-              </Button>
-            </>
+              <div className="mt-auto">
+                <Button
+                  onClick={() => setOpen(true)}
+                  disabled={status === "pending"}
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                >
+                  {status === "pending" ? "Awaiting review…" : status === "rejected" ? "Re-submit KYC" : "Complete KYC"}
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -121,7 +143,9 @@ export default function KYCVerification({ userId }: { userId: string }) {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Upload KYC documents</DialogTitle>
-            <DialogDescription>Aadhaar, PAN, and a selfie. Files are encrypted and visible only to admins.</DialogDescription>
+            <DialogDescription>
+              Aadhaar, PAN, and a selfie. Files are encrypted and visible only to admins.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3">
             {[
@@ -137,12 +161,18 @@ export default function KYCVerification({ userId }: { userId: string }) {
                   onChange={(e) => f.set(e.target.files?.[0] || null)}
                   className="mt-1"
                 />
-                {f.file && <p className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1"><Upload className="h-3 w-3" /> {f.file.name}</p>}
+                {f.file && (
+                  <p className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1">
+                    <Upload className="h-3 w-3" /> {f.file.name}
+                  </p>
+                )}
               </div>
             ))}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={submit} disabled={busy} className="bg-emerald-500 hover:bg-emerald-600 text-white">
               {busy ? "Submitting…" : "Submit for review"}
             </Button>
