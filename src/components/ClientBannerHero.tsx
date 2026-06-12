@@ -251,6 +251,7 @@ const ClientBannerHero = ({
           style={{
             width: "50%",
             display: "flex",
+            transform: "translateY(-20px)",
             flexDirection: "column",
             alignItems: "center",
             padding: "0 16px",
