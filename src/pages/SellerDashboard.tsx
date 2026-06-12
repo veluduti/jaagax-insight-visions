@@ -613,7 +613,7 @@ export default function SellerDashboard() {
           <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
         </div>
         <div className="flex gap-2 items-center">
-          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
+          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
             <Plus className="h-4 w-4 mr-1" />Sell Your Property
           </Button>
           {user?.id && <NotificationCenter userId={user.id} />}
