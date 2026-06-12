@@ -25,9 +25,9 @@ interface QuotaStatus {
 }
 
 const PLAN_META = {
-  free: { label: "Free", color: "bg-slate-500/20 text-slate-300 border-slate-500/40" },
-  premium: { label: "Premium", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" },
-  agent_pro: { label: "Agent Pro", color: "bg-amber-500/20 text-amber-400 border-amber-500/40" },
+  free: { label: "Free", color: "bg-emerald-500/15 border-emerald-500/30", textColor: "text-emerald-400" },
+  premium: { label: "Premium", color: "bg-purple-500/15 border-purple-500/30", textColor: "text-purple-400" },
+  agent_pro: { label: "Agent Pro", color: "bg-amber-500/15 border-amber-500/30", textColor: "text-amber-400" },
 };
 
 export default function SubscriptionManager({ userId }: { userId: string }) {
@@ -47,23 +47,19 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
     if (userId) load();
   }, [userId]);
 
-  // ✅ NEW: Pay-per-post handler
   const handlePayPerPost = async () => {
     setPayPerPostLoading(true);
     const sb: any = supabase;
 
-    // Check wallet balance first
     const { data: wallet } = await sb.from("wallets").select("balance").eq("user_id", userId).single();
 
     if (!wallet || wallet.balance < 500) {
       toast.error("Insufficient wallet balance. Please add money first.");
       setPayPerPostLoading(false);
-      // Close the dialog
       setOpen(false);
       return;
     }
 
-    // Deduct ₹500 from wallet
     const { error: deductError } = await sb.rpc("decrement_wallet_balance", {
       _user_id: userId,
       _amount: 500,
@@ -77,7 +73,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
       return;
     }
 
-    // Create transaction record
     const { data: walletData } = await sb.from("wallets").select("id").eq("user_id", userId).single();
 
     await sb.from("wallet_transactions").insert({
@@ -93,18 +88,14 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
     toast.success("₹500 deducted from wallet. You can now post your property!");
     setOpen(false);
     setPayPerPostLoading(false);
-
-    // Navigate to sell property page
     navigate("/sell-property");
   };
 
-  // ✅ Premium subscription handler (already exists, but ensuring it works)
   const subscribePremium = async () => {
     setLoading(true);
     const sb: any = supabase;
     const fee = 2000;
 
-    // Check wallet balance first
     const { data: wallet } = await sb.from("wallets").select("balance").eq("user_id", userId).single();
 
     if (!wallet || wallet.balance < fee) {
@@ -125,7 +116,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
       return toast.error(payErr.message || "Insufficient wallet balance");
     }
 
-    // expire previous active sub, insert new
     await sb.from("seller_subscriptions").update({ is_active: false }).eq("user_id", userId).eq("is_active", true);
     const expires = new Date();
     expires.setMonth(expires.getMonth() + 1);
@@ -136,7 +126,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
       expires_at: expires.toISOString(),
     });
 
-    // Create transaction record
     const { data: walletData } = await sb.from("wallets").select("id").eq("user_id", userId).single();
 
     await sb.from("wallet_transactions").insert({
@@ -175,7 +164,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <Crown className="h-4 w-4" /> Plan & Quota
             </div>
-            <Badge variant="outline" className={meta.color}>
+            <Badge variant="outline" className={`${meta.color} ${meta.textColor}`}>
               {meta.label}
             </Badge>
           </div>
@@ -216,7 +205,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
-      {/* Upgrade Dialog - Fixed with working Pay-per-post */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -225,7 +213,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            {/* Pay-per-post Option - NOW CLICKABLE */}
             <Card
               className="border-border/60 hover:border-emerald-500/50 transition-all cursor-pointer hover:shadow-lg"
               onClick={handlePayPerPost}
@@ -260,7 +247,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
               </CardContent>
             </Card>
 
-            {/* Premium Subscription Option */}
             <Card className="border-emerald-500/40 bg-emerald-500/5 hover:shadow-lg transition-all">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
@@ -296,7 +282,6 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
         </DialogContent>
       </Dialog>
 
-      {/* Agent Upgrade Prompt Dialog */}
       <Dialog open={agentPrompt} onOpenChange={setAgentPrompt}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
