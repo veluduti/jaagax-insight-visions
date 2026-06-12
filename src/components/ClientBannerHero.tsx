@@ -37,54 +37,732 @@ const ClientBannerHero = ({
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
   return (
-    <section
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "calc(100vh - 64px)",
-        minHeight: "620px",
-        maxHeight: "1020px",
-        overflow: "hidden",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* ── Background ── */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      <section
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "calc(100vh - 126px)",
+          minHeight: "520px",
+          maxHeight: "960px",
+          overflow: "hidden",
+          fontFamily: "sans-serif",
+        }}
+      >
+        {/* ── Background ── */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${skylineImg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.48) 50%, rgba(0,0,0,0.62) 100%)",
+            }}
+          />
+        </div>
+
+        {/* ══════════════════════════════════════════════════
+          MAIN BODY — fills full section
+          LEFT (26%) | CENTER (48%) | RIGHT (26%)
+      ══════════════════════════════════════════════════ */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            backgroundImage: `url(${skylineImg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10,
+            display: "flex",
+            alignItems: "flex-start",
+            padding: "24px 0 0 0",
           }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.48) 50%, rgba(0,0,0,0.62) 100%)",
-          }}
-        />
-      </div>
+        >
+          {/* ════════════ LEFT COLUMN ════════════ */}
+          <div
+            style={{
+              width: "26%",
+              padding: "0 20px 0 40px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              height: "100%",
+            }}
+          >
+            {/* Headline */}
+            <div style={{ marginBottom: "6px" }}>
+              <h1
+                style={{
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "clamp(36px, 3.6vw, 60px)",
+                  fontWeight: 700,
+                  color: "#fff",
+                  lineHeight: 1.05,
+                  margin: 0,
+                }}
+              >
+                <span style={{ whiteSpace: "nowrap" }}>Your Dream</span>
+                <br />
+                <span style={{ color: "#22c55e", whiteSpace: "nowrap" }}>Place Awaits</span>
+              </h1>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  marginTop: "12px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  letterSpacing: "0.28em",
+                  color: "rgba(255,255,255,0.82)",
+                }}
+              >
+                <span>FIND</span>
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "inline-block",
+                    flexShrink: 0,
+                  }}
+                />
+                <span>CONNECT</span>
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "inline-block",
+                    flexShrink: 0,
+                  }}
+                />
+                <span>GROW</span>
+              </div>
+            </div>
+
+            {/* Feature cards */}
+            {[
+              {
+                icon: Brain,
+                title: "AI-Powered Insights",
+                desc: "Smart recommendations just for you.",
+                onClick: () => navigate("/ai-advisor"),
+              },
+              {
+                icon: ShieldCheck,
+                title: "100% Verified Properties",
+                desc: "Ensuring trust and transparency.",
+                onClick: () => navigate("/search?verified=1"),
+              },
+              {
+                icon: IndianRupee,
+                title: "Zero Hidden Costs",
+                desc: "What you see is what you get.",
+                onClick: () => navigate("/valuation"),
+              },
+              {
+                icon: ShieldCheck,
+                title: "India's most trusted",
+                desc: "intelligent property platform",
+                onClick: () => {},
+              },
+            ].map((f) => (
+              <motion.button
+                key={f.title}
+                whileHover={{ x: 4 }}
+                onClick={f.onClick}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.09)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    flexShrink: 0,
+                    width: 36,
+                    height: 36,
+                    borderRadius: "9px",
+                    background: "rgba(34,197,94,0.18)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <f.icon size={16} color="#22c55e" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#fff",
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {f.title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "rgba(255,255,255,0.62)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {f.desc}
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* ════════════ CENTER COLUMN ════════════ */}
+          <div
+            style={{
+              width: "48%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "0 16px",
+            }}
+          >
+            {/* New Property Posted card */}
+            <motion.button
+              initial={{ opacity: 0, y: -14 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+              onClick={() => navigate("/search?posted=24h")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                padding: "12px 18px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.97)",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+                cursor: "pointer",
+                width: "100%",
+                maxWidth: "460px",
+                marginBottom: "14px",
+              }}
+            >
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "rgba(34,197,94,0.12)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CheckCircle2 size={20} color="#22c55e" />
+              </div>
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>New Property Posted!</div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginTop: "6px",
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 5,
+                      borderRadius: "99px",
+                      background: "#e5e7eb",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: "66%",
+                        background: "#22c55e",
+                        borderRadius: "99px",
+                      }}
+                    />
+                  </div>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: "#fff",
+                      background: "#22c55e",
+                      padding: "3px 10px",
+                      borderRadius: "99px",
+                    }}
+                  >
+                    Property Live <ArrowRight size={12} />
+                  </span>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* Smart Insights + Verified Properties pills */}
+            <div style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
+              {[
+                {
+                  icon: TrendingUp,
+                  label: "Smart Insights",
+                  onClick: () => navigate("/ai-advisor"),
+                },
+                {
+                  icon: ShieldCheck,
+                  label: "Verified Properties",
+                  onClick: () => navigate("/search?verified=1"),
+                },
+              ].map((p) => (
+                <button
+                  key={p.label}
+                  onClick={p.onClick}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "7px 16px",
+                    borderRadius: "99px",
+                    background: "rgba(255,255,255,0.97)",
+                    color: "#111827",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.14)",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <p.icon size={13} color="#22c55e" /> {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Logo circle */}
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: "50%",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.22)",
+                border: "3px solid rgba(34,197,94,0.4)",
+                marginBottom: "14px",
+              }}
+            >
+              <span
+                style={{
+                  color: "#22c55e",
+                  fontWeight: 900,
+                  fontSize: "24px",
+                  lineHeight: 1,
+                }}
+              >
+                X
+              </span>
+            </div>
+
+            {/* Tabs */}
+            <div
+              style={{
+                display: "flex",
+                gap: "2px",
+                background: "rgba(255,255,255,0.13)",
+                backdropFilter: "blur(8px)",
+                borderRadius: "99px",
+                padding: "4px",
+                width: "100%",
+                maxWidth: "460px",
+                marginBottom: "10px",
+              }}
+            >
+              {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => {
+                const key = tab.toLowerCase().replace(" ", "-");
+                const isActive = activeTab === key;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      onTabChange(key);
+                      navigate(
+                        `/${key === "new-projects" ? "new-projects" : key === "commercial" ? "commercial" : key}`,
+                      );
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: "99px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isActive ? "#22c55e" : "transparent",
+                      color: isActive ? "#fff" : "rgba(255,255,255,0.82)",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search bar */}
+            <div
+              style={{
+                display: "flex",
+                background: "#fff",
+                borderRadius: "99px",
+                padding: "5px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+                width: "100%",
+                maxWidth: "460px",
+                marginBottom: "6px",
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "0 14px",
+                }}
+              >
+                <MapPin size={14} color="#9ca3af" />
+                <input
+                  type="text"
+                  placeholder="Enter location, city or landmark"
+                  defaultValue="Hyderabad"
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    fontSize: "13px",
+                    color: "#374151",
+                    padding: "6px 0",
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => navigate("/search")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "9px 22px",
+                  background: "#22c55e",
+                  color: "#fff",
+                  borderRadius: "99px",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <Search size={13} /> Search
+              </button>
+            </div>
+
+            {/* + More Filters */}
+            <button
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.62)",
+                fontSize: "11px",
+                cursor: "pointer",
+                alignSelf: "flex-start",
+                paddingLeft: "18px",
+                marginBottom: "16px",
+              }}
+            >
+              + More Filters
+            </button>
+
+            {/* Book Hotel + Smart Financing */}
+            <div style={{ display: "flex", gap: "14px" }}>
+              <button
+                onClick={() => navigate("/hotels")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "13px 28px",
+                  borderRadius: "99px",
+                  background: "#2563eb",
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(37,99,235,0.45)",
+                }}
+              >
+                <Hotel size={16} /> Book Hotel
+              </button>
+              <button
+                onClick={goComingSoon("Smart Financing")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "13px 28px",
+                  borderRadius: "99px",
+                  background: "#7c3aed",
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(124,58,237,0.45)",
+                }}
+              >
+                <Building2 size={16} /> Smart Financing
+              </button>
+            </div>
+          </div>
+
+          {/* ════════════ RIGHT COLUMN ════════════
+            Split into two sub-columns:
+            [feature cards 18%] | [circular icons 58px fixed]
+        ════════════ */}
+          <div
+            style={{
+              width: "26%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "flex-start",
+            }}
+          >
+            {/* Feature cards — take all space except the icon strip */}
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                paddingTop: "95px",
+                paddingLeft: "8px",
+                paddingRight: "12px",
+              }}
+            >
+              {[
+                {
+                  icon: Wallet,
+                  title: "Smart Financing",
+                  badge: null,
+                  lines: ["Pre-Approved", "Up to ₹5 Cr"],
+                  accent: "#22c55e",
+                  onClick: goComingSoon("Smart Financing"),
+                },
+                {
+                  icon: Users,
+                  title: "Instant Match",
+                  badge: null,
+                  lines: ["Connect with right buyers & sellers"],
+                  accent: "#3b82f6",
+                  onClick: () => navigate("/ai-advisor"),
+                },
+                {
+                  icon: Activity,
+                  title: "Real-time Updates",
+                  badge: null,
+                  lines: ["on new properties"],
+                  accent: "#a855f7",
+                  onClick: goComingSoon("Real-time Updates"),
+                },
+              ].map((c) => (
+                <motion.button
+                  key={c.title}
+                  whileHover={{ x: -3, scale: 1.01 }}
+                  onClick={c.onClick}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "13px 16px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.10)",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    /* subtle left accent border */
+                    boxShadow: `inset 3px 0 0 ${c.accent}, 0 4px 16px rgba(0,0,0,0.15)`,
+                  }}
+                >
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: 40,
+                      height: 40,
+                      borderRadius: "10px",
+                      background: `${c.accent}22`,
+                      border: `1px solid ${c.accent}44`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <c.icon size={18} color={c.accent} strokeWidth={1.75} />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#fff",
+                        lineHeight: 1.25,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {c.title}
+                    </div>
+                    {c.lines.map((line, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.65)",
+                          marginTop: i === 0 ? "3px" : "1px",
+                          lineHeight: 1.4,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Circular icon buttons — fixed 68px wide strip on far right */}
+            <div
+              style={{
+                width: "68px",
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "18px",
+                paddingTop: "28px",
+                paddingRight: "8px",
+              }}
+            >
+              {[
+                {
+                  icon: Search,
+                  label: "Search",
+                  onClick: () => navigate("/search"),
+                },
+                {
+                  icon: Heart,
+                  label: "Shortlist",
+                  onClick: () => navigate("/dashboard/buyer"),
+                },
+                {
+                  icon: Headphones,
+                  label: "Expert\nSupport",
+                  onClick: goComingSoon("Expert Support"),
+                },
+              ].map((a) => (
+                <motion.button
+                  key={a.label}
+                  whileHover={{ scale: 1.08 }}
+                  onClick={a.onClick}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "5px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,0.12)",
+                      backdropFilter: "blur(10px)",
+                      border: "2px solid rgba(34,197,94,0.55)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 14px rgba(0,0,0,0.22)",
+                    }}
+                  >
+                    <a.icon size={18} color="#fff" strokeWidth={1.75} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      color: "#fff",
+                      textAlign: "center",
+                      lineHeight: 1.3,
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {a.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ══════════════════════════════════════════════════
-          STATS BAR — pinned absolutely to bottom
-      ══════════════════════════════════════════════════ */}
+        STATS BAR — outside hero, always visible below it
+    ══════════════════════════════════════════════════ */}
       <div
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 30,
-          background: "rgba(8,12,18,0.95)",
+          width: "100%",
+          background: "rgba(8,12,18,0.97)",
           backdropFilter: "blur(14px)",
-          padding: "12px 48px",
-          height: "68px",
+          padding: "0 48px",
+          height: "62px",
           boxSizing: "border-box",
           display: "flex",
           alignItems: "center",
+          flexShrink: 0,
         }}
       >
         <div
@@ -92,6 +770,7 @@ const ClientBannerHero = ({
             display: "grid",
             gridTemplateColumns: "repeat(6, 1fr)",
             gap: "16px",
+            width: "100%",
             maxWidth: "1400px",
             margin: "0 auto",
           }}
@@ -108,21 +787,21 @@ const ClientBannerHero = ({
               <div
                 style={{
                   flexShrink: 0,
-                  width: 36,
-                  height: 36,
-                  borderRadius: "9px",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "8px",
                   background: "rgba(34,197,94,0.18)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <s.icon size={17} color="#22c55e" strokeWidth={1.75} />
+                <s.icon size={15} color="#22c55e" strokeWidth={1.75} />
               </div>
               <div>
                 <div
                   style={{
-                    fontSize: "15px",
+                    fontSize: "14px",
                     fontWeight: 700,
                     color: "#fff",
                     lineHeight: 1.2,
@@ -144,685 +823,7 @@ const ClientBannerHero = ({
           ))}
         </div>
       </div>
-
-      {/* ══════════════════════════════════════════════════
-          MAIN BODY — above the stats bar
-          LEFT (26%) | CENTER (48%) | RIGHT (26%)
-      ══════════════════════════════════════════════════ */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          /* leave 68px at bottom for stats bar — matches exact height */
-          bottom: "68px",
-          zIndex: 10,
-          display: "flex",
-          alignItems: "flex-start",
-          padding: "24px 0 0 0",
-        }}
-      >
-        {/* ════════════ LEFT COLUMN ════════════ */}
-        <div
-          style={{
-            width: "26%",
-            padding: "0 20px 0 40px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            height: "100%",
-          }}
-        >
-          {/* Headline */}
-          <div style={{ marginBottom: "6px" }}>
-            <h1
-              style={{
-                fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(36px, 3.6vw, 60px)",
-                fontWeight: 700,
-                color: "#fff",
-                lineHeight: 1.05,
-                margin: 0,
-              }}
-            >
-              <span style={{ whiteSpace: "nowrap" }}>Your Dream</span>
-              <br />
-              <span style={{ color: "#22c55e", whiteSpace: "nowrap" }}>Place Awaits</span>
-            </h1>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "7px",
-                marginTop: "12px",
-                fontSize: "10px",
-                fontWeight: 700,
-                letterSpacing: "0.28em",
-                color: "rgba(255,255,255,0.82)",
-              }}
-            >
-              <span>FIND</span>
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: "#22c55e",
-                  display: "inline-block",
-                  flexShrink: 0,
-                }}
-              />
-              <span>CONNECT</span>
-              <span
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: "#22c55e",
-                  display: "inline-block",
-                  flexShrink: 0,
-                }}
-              />
-              <span>GROW</span>
-            </div>
-          </div>
-
-          {/* Feature cards */}
-          {[
-            {
-              icon: Brain,
-              title: "AI-Powered Insights",
-              desc: "Smart recommendations just for you.",
-              onClick: () => navigate("/ai-advisor"),
-            },
-            {
-              icon: ShieldCheck,
-              title: "100% Verified Properties",
-              desc: "Ensuring trust and transparency.",
-              onClick: () => navigate("/search?verified=1"),
-            },
-            {
-              icon: IndianRupee,
-              title: "Zero Hidden Costs",
-              desc: "What you see is what you get.",
-              onClick: () => navigate("/valuation"),
-            },
-            {
-              icon: ShieldCheck,
-              title: "India's most trusted",
-              desc: "intelligent property platform",
-              onClick: () => {},
-            },
-          ].map((f) => (
-            <motion.button
-              key={f.title}
-              whileHover={{ x: 4 }}
-              onClick={f.onClick}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "10px 14px",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.09)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.16)",
-                cursor: "pointer",
-                textAlign: "left",
-                width: "100%",
-              }}
-            >
-              <div
-                style={{
-                  flexShrink: 0,
-                  width: 36,
-                  height: 36,
-                  borderRadius: "9px",
-                  background: "rgba(34,197,94,0.18)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <f.icon size={16} color="#22c55e" strokeWidth={1.75} />
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#fff",
-                    lineHeight: 1.25,
-                  }}
-                >
-                  {f.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "rgba(255,255,255,0.62)",
-                    marginTop: "2px",
-                  }}
-                >
-                  {f.desc}
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* ════════════ CENTER COLUMN ════════════ */}
-        <div
-          style={{
-            width: "48%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "0 16px",
-          }}
-        >
-          {/* New Property Posted card */}
-          <motion.button
-            initial={{ opacity: 0, y: -14 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -2 }}
-            onClick={() => navigate("/search?posted=24h")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "14px",
-              padding: "12px 18px",
-              borderRadius: "16px",
-              background: "rgba(255,255,255,0.97)",
-              border: "1px solid #e5e7eb",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-              cursor: "pointer",
-              width: "100%",
-              maxWidth: "460px",
-              marginBottom: "14px",
-            }}
-          >
-            <div
-              style={{
-                flexShrink: 0,
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                background: "rgba(34,197,94,0.12)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <CheckCircle2 size={20} color="#22c55e" />
-            </div>
-            <div style={{ flex: 1, textAlign: "left" }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>New Property Posted!</div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  marginTop: "6px",
-                }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    height: 5,
-                    borderRadius: "99px",
-                    background: "#e5e7eb",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: "66%",
-                      background: "#22c55e",
-                      borderRadius: "99px",
-                    }}
-                  />
-                </div>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: "#fff",
-                    background: "#22c55e",
-                    padding: "3px 10px",
-                    borderRadius: "99px",
-                  }}
-                >
-                  Property Live <ArrowRight size={12} />
-                </span>
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Smart Insights + Verified Properties pills */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
-            {[
-              {
-                icon: TrendingUp,
-                label: "Smart Insights",
-                onClick: () => navigate("/ai-advisor"),
-              },
-              {
-                icon: ShieldCheck,
-                label: "Verified Properties",
-                onClick: () => navigate("/search?verified=1"),
-              },
-            ].map((p) => (
-              <button
-                key={p.label}
-                onClick={p.onClick}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "7px 16px",
-                  borderRadius: "99px",
-                  background: "rgba(255,255,255,0.97)",
-                  color: "#111827",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.14)",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <p.icon size={13} color="#22c55e" /> {p.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Logo circle */}
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.22)",
-              border: "3px solid rgba(34,197,94,0.4)",
-              marginBottom: "14px",
-            }}
-          >
-            <span
-              style={{
-                color: "#22c55e",
-                fontWeight: 900,
-                fontSize: "24px",
-                lineHeight: 1,
-              }}
-            >
-              X
-            </span>
-          </div>
-
-          {/* Tabs */}
-          <div
-            style={{
-              display: "flex",
-              gap: "2px",
-              background: "rgba(255,255,255,0.13)",
-              backdropFilter: "blur(8px)",
-              borderRadius: "99px",
-              padding: "4px",
-              width: "100%",
-              maxWidth: "460px",
-              marginBottom: "10px",
-            }}
-          >
-            {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => {
-              const key = tab.toLowerCase().replace(" ", "-");
-              const isActive = activeTab === key;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    onTabChange(key);
-                    navigate(`/${key === "new-projects" ? "new-projects" : key === "commercial" ? "commercial" : key}`);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "8px 0",
-                    borderRadius: "99px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    border: "none",
-                    cursor: "pointer",
-                    background: isActive ? "#22c55e" : "transparent",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.82)",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {tab}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search bar */}
-          <div
-            style={{
-              display: "flex",
-              background: "#fff",
-              borderRadius: "99px",
-              padding: "5px",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
-              width: "100%",
-              maxWidth: "460px",
-              marginBottom: "6px",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "0 14px",
-              }}
-            >
-              <MapPin size={14} color="#9ca3af" />
-              <input
-                type="text"
-                placeholder="Enter location, city or landmark"
-                defaultValue="Hyderabad"
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  fontSize: "13px",
-                  color: "#374151",
-                  padding: "6px 0",
-                }}
-              />
-            </div>
-            <button
-              onClick={() => navigate("/search")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "9px 22px",
-                background: "#22c55e",
-                color: "#fff",
-                borderRadius: "99px",
-                fontSize: "13px",
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <Search size={13} /> Search
-            </button>
-          </div>
-
-          {/* + More Filters */}
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.62)",
-              fontSize: "11px",
-              cursor: "pointer",
-              alignSelf: "flex-start",
-              paddingLeft: "18px",
-              marginBottom: "16px",
-            }}
-          >
-            + More Filters
-          </button>
-
-          {/* Book Hotel + Smart Financing */}
-          <div style={{ display: "flex", gap: "14px" }}>
-            <button
-              onClick={() => navigate("/hotels")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "13px 28px",
-                borderRadius: "99px",
-                background: "#2563eb",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(37,99,235,0.45)",
-              }}
-            >
-              <Hotel size={16} /> Book Hotel
-            </button>
-            <button
-              onClick={goComingSoon("Smart Financing")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "13px 28px",
-                borderRadius: "99px",
-                background: "#7c3aed",
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(124,58,237,0.45)",
-              }}
-            >
-              <Building2 size={16} /> Smart Financing
-            </button>
-          </div>
-        </div>
-
-        {/* ════════════ RIGHT COLUMN ════════════
-            Split into two sub-columns:
-            [feature cards 18%] | [circular icons 58px fixed]
-        ════════════ */}
-        <div
-          style={{
-            width: "26%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "flex-start",
-          }}
-        >
-          {/* Feature cards — take all space except the icon strip */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              paddingTop: "95px",
-              paddingLeft: "8px",
-              paddingRight: "12px",
-            }}
-          >
-            {[
-              {
-                icon: Wallet,
-                title: "Smart Financing",
-                badge: null,
-                lines: ["Pre-Approved", "Up to ₹5 Cr"],
-                accent: "#22c55e",
-                onClick: goComingSoon("Smart Financing"),
-              },
-              {
-                icon: Users,
-                title: "Instant Match",
-                badge: null,
-                lines: ["Connect with right buyers & sellers"],
-                accent: "#3b82f6",
-                onClick: () => navigate("/ai-advisor"),
-              },
-              {
-                icon: Activity,
-                title: "Real-time Updates",
-                badge: null,
-                lines: ["on new properties"],
-                accent: "#a855f7",
-                onClick: goComingSoon("Real-time Updates"),
-              },
-            ].map((c) => (
-              <motion.button
-                key={c.title}
-                whileHover={{ x: -3, scale: 1.01 }}
-                onClick={c.onClick}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "13px 16px",
-                  borderRadius: "14px",
-                  background: "rgba(255,255,255,0.10)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  width: "100%",
-                  /* subtle left accent border */
-                  boxShadow: `inset 3px 0 0 ${c.accent}, 0 4px 16px rgba(0,0,0,0.15)`,
-                }}
-              >
-                <div
-                  style={{
-                    flexShrink: 0,
-                    width: 40,
-                    height: 40,
-                    borderRadius: "10px",
-                    background: `${c.accent}22`,
-                    border: `1px solid ${c.accent}44`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <c.icon size={18} color={c.accent} strokeWidth={1.75} />
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "#fff",
-                      lineHeight: 1.25,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {c.title}
-                  </div>
-                  {c.lines.map((line, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        fontSize: "11px",
-                        color: "rgba(255,255,255,0.65)",
-                        marginTop: i === 0 ? "3px" : "1px",
-                        lineHeight: 1.4,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              </motion.button>
-            ))}
-          </div>
-
-          {/* Circular icon buttons — fixed 68px wide strip on far right */}
-          <div
-            style={{
-              width: "68px",
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "18px",
-              paddingTop: "28px",
-              paddingRight: "8px",
-            }}
-          >
-            {[
-              {
-                icon: Search,
-                label: "Search",
-                onClick: () => navigate("/search"),
-              },
-              {
-                icon: Heart,
-                label: "Shortlist",
-                onClick: () => navigate("/dashboard/buyer"),
-              },
-              {
-                icon: Headphones,
-                label: "Expert\nSupport",
-                onClick: goComingSoon("Expert Support"),
-              },
-            ].map((a) => (
-              <motion.button
-                key={a.label}
-                whileHover={{ scale: 1.08 }}
-                onClick={a.onClick}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <div
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: "50%",
-                    background: "rgba(255,255,255,0.12)",
-                    backdropFilter: "blur(10px)",
-                    border: "2px solid rgba(34,197,94,0.55)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 14px rgba(0,0,0,0.22)",
-                  }}
-                >
-                  <a.icon size={18} color="#fff" strokeWidth={1.75} />
-                </div>
-                <span
-                  style={{
-                    fontSize: "9px",
-                    fontWeight: 600,
-                    color: "#fff",
-                    textAlign: "center",
-                    lineHeight: 1.3,
-                    whiteSpace: "pre-line",
-                  }}
-                >
-                  {a.label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   );
 };
 
