@@ -19,11 +19,31 @@ import { motion } from "framer-motion";
 
 type Status = "not_started" | "pending" | "verified" | "rejected";
 
-const STATUS_META: Record<Status, { label: string; color: string; icon: any }> = {
-  not_started: { label: "Not started", color: "bg-slate-500/20 text-slate-300 border-slate-500/40", icon: ShieldAlert },
-  pending: { label: "In review", color: "bg-amber-500/20 text-amber-400 border-amber-500/40", icon: ShieldAlert },
-  verified: { label: "Verified", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40", icon: ShieldCheck },
-  rejected: { label: "Rejected", color: "bg-rose-500/20 text-rose-400 border-rose-500/40", icon: ShieldAlert },
+const STATUS_META: Record<Status, { label: string; color: string; icon: any; textColor: string }> = {
+  not_started: {
+    label: "Not started",
+    color: "bg-slate-500/15 border-slate-500/30",
+    icon: ShieldAlert,
+    textColor: "text-slate-300",
+  },
+  pending: {
+    label: "In review",
+    color: "bg-amber-500/15 border-amber-500/30",
+    icon: ShieldAlert,
+    textColor: "text-amber-400",
+  },
+  verified: {
+    label: "Verified",
+    color: "bg-emerald-500/15 border-emerald-500/30",
+    icon: ShieldCheck,
+    textColor: "text-emerald-400",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "bg-rose-500/15 border-rose-500/30",
+    icon: ShieldAlert,
+    textColor: "text-rose-400",
+  },
 };
 
 const BENEFITS = ["Verified badge on profile", "Higher trust score", "Faster approvals", "Better visibility in search"];
@@ -98,7 +118,7 @@ export default function KYCVerification({ userId }: { userId: string }) {
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <ShieldCheck className="h-4 w-4" /> KYC Verification
             </div>
-            <Badge variant="outline" className={meta.color}>
+            <Badge variant="outline" className={`${meta.color} ${meta.textColor}`}>
               <Icon className="h-3 w-3 mr-1" /> {meta.label}
             </Badge>
           </div>
