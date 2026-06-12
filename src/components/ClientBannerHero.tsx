@@ -742,11 +742,11 @@ const ClientBannerHero = ({
       <div
         style={{
           position: "relative",
-          zIndex: 10,
+          zIndex: 20,
           background: "rgba(8,12,18,0.93)",
           backdropFilter: "blur(12px)",
           padding: "18px 48px",
-          marginTop: "-60px",
+          marginTop: "-80px",
         }}
       >
         <div
