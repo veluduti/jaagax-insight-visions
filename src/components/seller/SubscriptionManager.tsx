@@ -25,9 +25,9 @@ interface QuotaStatus {
 }
 
 const PLAN_META = {
-  free: { label: "Free", color: "bg-emerald-500/15 border-emerald-500/30", textColor: "text-emerald-400" },
-  premium: { label: "Premium", color: "bg-purple-500/15 border-purple-500/30", textColor: "text-purple-400" },
-  agent_pro: { label: "Agent Pro", color: "bg-amber-500/15 border-amber-500/30", textColor: "text-amber-400" },
+  free: { label: "Free", bgColor: "bg-emerald-600", textColor: "text-white" },
+  premium: { label: "Premium", bgColor: "bg-purple-600", textColor: "text-white" },
+  agent_pro: { label: "Agent Pro", bgColor: "bg-amber-600", textColor: "text-white" },
 };
 
 export default function SubscriptionManager({ userId }: { userId: string }) {
@@ -164,9 +164,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <Crown className="h-4 w-4" /> Plan & Quota
             </div>
-            <Badge variant="outline" className={`${meta.color} ${meta.textColor}`}>
-              {meta.label}
-            </Badge>
+            <Badge className={`${meta.bgColor} ${meta.textColor} border-0 px-2 py-0.5`}>{meta.label}</Badge>
           </div>
 
           {isPremium ? (
@@ -179,7 +177,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
               <div className="flex items-baseline justify-between mb-2">
                 <p className="text-sm font-medium text-foreground">Free posting quota</p>
                 <p className="text-sm">
-                  <span className="font-bold text-foreground">{status.free_remaining}</span>
+                  <span className="font-bold text-emerald-400">{status.free_remaining}</span>
                   <span className="text-foreground/60"> / {status.free_limit} remaining</span>
                 </p>
               </div>
@@ -195,9 +193,8 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
           <div className="mt-auto pt-3">
             <Button
               onClick={() => setOpen(true)}
-              variant="outline"
-              className="w-full border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-              size="sm"
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-medium"
+              size="default"
             >
               <Zap className="h-4 w-4 mr-1" /> {isPremium ? "Manage plan" : "Upgrade plan"}
             </Button>
@@ -238,9 +235,8 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
                     handlePayPerPost();
                   }}
                   disabled={payPerPostLoading}
-                  variant="outline"
-                  className="w-full mt-3 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-                  size="sm"
+                  className="w-full mt-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-medium"
+                  size="default"
                 >
                   {payPerPostLoading ? "Processing..." : "Pay ₹500 from Wallet"}
                 </Button>
@@ -261,13 +257,13 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
                       </p>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-500 text-white">₹2,000 / mo</Badge>
+                  <Badge className="bg-emerald-600 text-white border-0">₹2,000 / mo</Badge>
                 </div>
                 <Button
                   onClick={subscribePremium}
                   disabled={loading}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
-                  size="sm"
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white font-medium"
+                  size="default"
                 >
                   {loading ? "Activating…" : "Subscribe — debit ₹2,000 from wallet"}
                 </Button>
@@ -307,7 +303,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
               Maybe later
             </Button>
             <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white"
               onClick={() => navigate("/select-profile")}
             >
               Switch to Agent
