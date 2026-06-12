@@ -534,11 +534,13 @@ export default function SellerDashboard() {
                   <Edit className="h-3 w-3 mr-1" />{status === "draft" ? "Continue" : "Edit & Resubmit"}
                 </Button>
               )}
-              {status === "approved" && (
+              {status === "approved" && !p.is_sold && (
                 <>
                   <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
                     <ArrowUpRight className="h-3 w-3 mr-1" />View Live
                   </Button>
+                  <MarkAsSoldButton propertyId={p.id} onDone={() => fetchProperties(user!.id)} />
+                  <PriceDropDialog propertyId={p.id} currentPrice={p.price} onDone={() => fetchProperties(user!.id)} />
                   {p.is_featured ? (
                     <Badge className="bg-amber-500 text-white gap-1 px-2 py-1">
                       <Sparkles className="h-3 w-3" /> Featured
