@@ -91,6 +91,7 @@ const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
 const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
 const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications"));
+const AdminPriceDrops = lazy(() => import("./pages/AdminPriceDrops"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -277,6 +278,11 @@ const App = () => (
           <Route path="/admin/kyc-verifications" element={
             <ProtectedRoute allowedRole="admin">
               <AdminKYCVerifications />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/price-drops" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminPriceDrops />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/hotel-manager" element={
