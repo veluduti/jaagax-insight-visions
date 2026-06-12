@@ -111,7 +111,7 @@ const ClientBannerHero = ({
                 margin: 0,
               }}
             >
-              Your Dream
+              <span style={{ whiteSpace: "nowrap" }}>Your Dream</span>
               <br />
               <span
                 style={{
