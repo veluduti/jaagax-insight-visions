@@ -46,7 +46,7 @@ const ClientBannerHero = ({
         position: "relative",
         width: "100%",
         height: "calc(100vh - 64px)" /* subtract navbar height */,
-        minHeight: "700px",
+        minHeight: "650px",
         overflow: "hidden",
         fontFamily: "sans-serif",
         display: "flex",
