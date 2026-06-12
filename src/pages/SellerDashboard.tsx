@@ -769,22 +769,22 @@ export default function SellerDashboard() {
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
-        {/* Seller Hub upgrades — wallet, plan, KYC - Fixed equal height */}
+        {/* Seller Hub upgrades — wallet, plan, KYC - Fixed equal height with min-height */}
         {user?.id && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-            <div className="h-full">
+            <div className="flex flex-col h-full">
               <WalletBalance userId={user.id} />
             </div>
-            <div className="h-full">
+            <div className="flex flex-col h-full">
               <SubscriptionManager userId={user.id} />
             </div>
-            <div className="h-full">
+            <div className="flex flex-col h-full">
               <KYCVerification userId={user.id} />
             </div>
           </div>
         )}
 
-        {/* Status overview cards - Fixed contrast */}
+        {/* Status overview cards */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {[
             {
