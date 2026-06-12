@@ -504,22 +504,6 @@ const ClientBannerHero = ({
             </button>
           </div>
 
-          {/* + More Filters */}
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.62)",
-              fontSize: "11px",
-              cursor: "pointer",
-              alignSelf: "flex-start",
-              paddingLeft: "18px",
-              marginBottom: "18px",
-            }}
-          >
-            + More Filters
-          </button>
-
           {/* Book Hotel + Smart Financing – bigger pills */}
           <div style={{ display: "flex", gap: "14px" }}>
             <button
