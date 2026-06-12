@@ -21,6 +21,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 const BoostListingDialog = lazy(() => import("@/components/property/BoostListingDialog"));
 
+// Phase 2-6 Seller Hub upgrades — additive, non-destructive
+import WalletBalance from "@/components/seller/WalletBalance";
+import SubscriptionManager from "@/components/seller/SubscriptionManager";
+import KYCVerification from "@/components/seller/KYCVerification";
+import NotificationCenter from "@/components/seller/NotificationCenter";
+import AIRecommendations from "@/components/seller/AIRecommendations";
+import ActivityTimeline from "@/components/seller/ActivityTimeline";
+import VisitManagement from "@/components/seller/VisitManagement";
+import ReferralLink from "@/components/seller/ReferralLink";
+import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
+import PriceDropDialog from "@/components/seller/PriceDropDialog";
+
 interface AssignedAgent {
   id: string;
   user_id: string | null;
@@ -61,6 +73,9 @@ interface Property {
   assigned_agent?: AssignedAgent | null;
   scheduled_visit_at?: string | null;
   task_status?: string | null;
+  is_sold?: boolean | null;
+  has_price_drop_ribbon?: boolean | null;
+  previous_price?: number | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
@@ -124,7 +139,7 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until")
+      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until, is_sold, has_price_drop_ribbon, previous_price")
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -392,6 +407,16 @@ export default function SellerDashboard() {
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
               </Badge>
             )}
+            {p.is_sold && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none">
+                <Badge className="bg-emerald-500 text-white text-lg px-4 py-1 border-0 rotate-[-8deg] shadow-2xl">SOLD</Badge>
+              </div>
+            )}
+            {p.has_price_drop_ribbon && !p.is_sold && (
+              <Badge className="absolute top-12 right-3 bg-orange-500 text-white border-0 gap-1 shadow-lg">
+                Price Reduced
+              </Badge>
+            )}
             {img && (
               <div className="absolute bottom-3 left-3 right-3">
                 <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
@@ -519,11 +544,13 @@ export default function SellerDashboard() {
                   <Edit className="h-3 w-3 mr-1" />{status === "draft" ? "Continue" : "Edit & Resubmit"}
                 </Button>
               )}
-              {status === "approved" && (
+              {status === "approved" && !p.is_sold && (
                 <>
                   <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
                     <ArrowUpRight className="h-3 w-3 mr-1" />View Live
                   </Button>
+                  <MarkAsSoldButton propertyId={p.id} onDone={() => fetchProperties(user!.id)} />
+                  <PriceDropDialog propertyId={p.id} currentPrice={p.price} onDone={() => fetchProperties(user!.id)} />
                   {p.is_featured ? (
                     <Badge className="bg-amber-500 text-white gap-1 px-2 py-1">
                       <Sparkles className="h-3 w-3" /> Featured
@@ -583,16 +610,25 @@ export default function SellerDashboard() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
             <Plus className="h-4 w-4 mr-1" />Sell Your Property
           </Button>
+          {user?.id && <NotificationCenter userId={user.id} />}
           <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
           <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
         </div>
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
+        {/* Seller Hub upgrades — wallet, plan, KYC */}
+        {user?.id && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <WalletBalance userId={user.id} />
+            <SubscriptionManager userId={user.id} />
+            <KYCVerification userId={user.id} />
+          </div>
+        )}
         {/* Status overview cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
@@ -745,6 +781,22 @@ export default function SellerDashboard() {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Seller Hub: AI, Activity, Visits, Referral */}
+        {user?.id && (
+          <>
+            <AIRecommendations
+              propertyCount={properties.length}
+              topCity={properties[0]?.city || null}
+              avgPrice={properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VisitManagement sellerId={user.id} />
+              <ActivityTimeline userId={user.id} />
+            </div>
+            <ReferralLink userId={user.id} />
+          </>
+        )}
       </div>
 
       {chatProperty && chatProperty.assigned_agent?.user_id && user?.id && (
