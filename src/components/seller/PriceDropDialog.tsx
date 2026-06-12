@@ -23,7 +23,7 @@ export default function PriceDropDialog({
     const { error } = await sb.rpc("drop_property_price", { _property_id: propertyId, _new_price: newPrice });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Price reduced — ribbon active");
+    toast.success("Price drop submitted for admin review");
     setOpen(false);
     onDone?.();
   };
@@ -37,9 +37,9 @@ export default function PriceDropDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Drop listing price</DialogTitle>
+          <DialogTitle>Request price drop</DialogTitle>
           <DialogDescription>
-            Current price: ₹{currentPrice.toLocaleString("en-IN")}. A "Price Reduced" ribbon will appear on your card.
+            Current price: ₹{currentPrice.toLocaleString("en-IN")}. Once an admin approves, your new price goes live and a "Price Reduced" ribbon appears on the card.
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -56,7 +56,7 @@ export default function PriceDropDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button disabled={busy} onClick={submit} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-            {busy ? "Updating…" : "Apply price drop"}
+            {busy ? "Submitting…" : "Submit for approval"}
           </Button>
         </DialogFooter>
       </DialogContent>

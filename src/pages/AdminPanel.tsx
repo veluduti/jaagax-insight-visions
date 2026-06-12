@@ -25,6 +25,7 @@ import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
 import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
+import PriceDropQueue from "@/components/admin/PriceDropQueue";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
@@ -362,10 +363,15 @@ export default function AdminPanel() {
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
             <TabsTrigger value="kyc">KYC</TabsTrigger>
+            <TabsTrigger value="price-drops">Price Drops</TabsTrigger>
           </TabsList>
 
           <TabsContent value="kyc" className="mt-4">
             <KYCReviewQueue />
+          </TabsContent>
+
+          <TabsContent value="price-drops" className="mt-4">
+            <PriceDropQueue />
           </TabsContent>
 
           <TabsContent value="agent-verified" className="mt-4">

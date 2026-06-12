@@ -1600,6 +1600,12 @@ export type Database = {
           pincode: string | null
           previous_price: number | null
           price: number
+          price_drop_rejection_reason: string | null
+          price_drop_requested_at: string | null
+          price_drop_requested_price: number | null
+          price_drop_reviewed_at: string | null
+          price_drop_reviewed_by: string | null
+          price_drop_status: string | null
           price_dropped_at: string | null
           price_negotiable: boolean | null
           property_age: string | null
@@ -1668,6 +1674,12 @@ export type Database = {
           pincode?: string | null
           previous_price?: number | null
           price?: number
+          price_drop_rejection_reason?: string | null
+          price_drop_requested_at?: string | null
+          price_drop_requested_price?: number | null
+          price_drop_reviewed_at?: string | null
+          price_drop_reviewed_by?: string | null
+          price_drop_status?: string | null
           price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
@@ -1736,6 +1748,12 @@ export type Database = {
           pincode?: string | null
           previous_price?: number | null
           price?: number
+          price_drop_rejection_reason?: string | null
+          price_drop_requested_at?: string | null
+          price_drop_requested_price?: number | null
+          price_drop_reviewed_at?: string | null
+          price_drop_reviewed_by?: string | null
+          price_drop_status?: string | null
           price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
@@ -2829,6 +2847,10 @@ export type Database = {
       }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
+        Returns: undefined
+      }
+      review_price_drop: {
+        Args: { _decision: string; _property_id: string; _reason?: string }
         Returns: undefined
       }
       review_signup_request: {
