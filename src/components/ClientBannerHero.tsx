@@ -98,7 +98,7 @@ const ClientBannerHero = ({
             <h1
               style={{
                 fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(40px, 4.2vw, 72px)",
+                fontSize: "clamp(34px, 3.5vw, 60px)",
                 fontWeight: 700,
                 color: "#fff",
                 lineHeight: 1.05,
