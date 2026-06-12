@@ -361,7 +361,12 @@ export default function AdminPanel() {
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
+            <TabsTrigger value="kyc">KYC</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="kyc" className="mt-4">
+            <KYCReviewQueue />
+          </TabsContent>
 
           <TabsContent value="agent-verified" className="mt-4">
             <AgentVerifiedReviewPanel />
