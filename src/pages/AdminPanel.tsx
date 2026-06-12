@@ -24,6 +24,7 @@ import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPane
 import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
+import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
@@ -360,7 +361,12 @@ export default function AdminPanel() {
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
+            <TabsTrigger value="kyc">KYC</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="kyc" className="mt-4">
+            <KYCReviewQueue />
+          </TabsContent>
 
           <TabsContent value="agent-verified" className="mt-4">
             <AgentVerifiedReviewPanel />

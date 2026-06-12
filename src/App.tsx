@@ -90,6 +90,7 @@ const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
 const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeline"));
+const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -271,6 +272,11 @@ const App = () => (
           <Route path="/admin/properties-pipeline" element={
             <ProtectedRoute allowedRole="admin">
               <AdminPropertiesPipeline />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/kyc-verifications" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminKYCVerifications />
             </ProtectedRoute>
           } />
           <Route path="/dashboard/hotel-manager" element={
