@@ -37,20 +37,14 @@ const ClientBannerHero = ({
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
   return (
-    /*
-     * Fixed 1920×1080 viewport fill.
-     * position:relative on the section; everything inside uses absolute or flex.
-     */
     <section
       style={{
         position: "relative",
         width: "100%",
-        height: "calc(100vh - 64px)" /* subtract navbar height */,
+        height: "calc(100vh - 64px)",
         minHeight: "650px",
         overflow: "hidden",
         fontFamily: "sans-serif",
-        display: "flex",
-        flexDirection: "column",
       }}
     >
       {/* ── Background ── */}
@@ -73,35 +67,110 @@ const ClientBannerHero = ({
         />
       </div>
 
-      {/* ── Body: left | center | right + right-edge icons ── */}
+      {/* ══════════════════════════════════════════════════
+          STATS BAR — pinned absolutely to bottom
+      ══════════════════════════════════════════════════ */}
       <div
         style={{
-          position: "relative",
-          zIndex: 10,
-          flex: 1,
-          display: "flex",
-          padding: "36px 0 0 0",
-          minHeight: 0 /* allow flex child to shrink */,
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 30,
+          background: "rgba(8,12,18,0.95)",
+          backdropFilter: "blur(14px)",
+          padding: "14px 48px",
         }}
       >
-        {/* ════════════ LEFT COLUMN (width ~26%) ════════════ */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            gap: "16px",
+            maxWidth: "1400px",
+            margin: "0 auto",
+          }}
+        >
+          {[
+            { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
+            { icon: Users, value: "100K+", label: "Happy Customers" },
+            { icon: TrendingUp, value: "AI Powered", label: "Smart Insights" },
+            { icon: Lock, value: "100%", label: "Secure & Transparent" },
+            { icon: Headphones, value: "24/7", label: "Expert Support" },
+            { icon: Star, value: "4.8/5", label: "User Rating" },
+          ].map((s) => (
+            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "11px" }}>
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 36,
+                  height: 36,
+                  borderRadius: "9px",
+                  background: "rgba(34,197,94,0.18)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <s.icon size={17} color="#22c55e" strokeWidth={1.75} />
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#fff",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {s.value}
+                </div>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "rgba(255,255,255,0.58)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.label}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          MAIN BODY — above the stats bar
+          LEFT (26%) | CENTER (48%) | RIGHT (26%)
+      ══════════════════════════════════════════════════ */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          /* leave 68px at bottom for stats bar */
+          bottom: "68px",
+          zIndex: 10,
+          display: "flex",
+          alignItems: "flex-start",
+          padding: "32px 0 0 0",
+        }}
+      >
+        {/* ════════════ LEFT COLUMN ════════════ */}
         <div
           style={{
             width: "26%",
-            padding: "0 24px 0 40px",
+            padding: "0 20px 0 40px",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "10px",
+            height: "100%",
           }}
         >
-          {/* Big headline */}
-          <div
-            style={{
-              marginBottom: "4px",
-              width: "440px",
-              maxWidth: "100%",
-            }}
-          >
+          {/* Headline */}
+          <div style={{ marginBottom: "6px" }}>
             <h1
               style={{
                 fontFamily: "Georgia, 'Times New Roman', serif",
@@ -114,17 +183,8 @@ const ClientBannerHero = ({
             >
               <span style={{ whiteSpace: "nowrap" }}>Your Dream</span>
               <br />
-              <span
-                style={{
-                  color: "#22c55e",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Place Awaits
-              </span>
+              <span style={{ color: "#22c55e", whiteSpace: "nowrap" }}>Place Awaits</span>
             </h1>
-
-            {/* FIND • CONNECT • GROW */}
             <div
               style={{
                 display: "flex",
@@ -198,7 +258,7 @@ const ClientBannerHero = ({
                 display: "flex",
                 alignItems: "center",
                 gap: "12px",
-                padding: "11px 14px",
+                padding: "10px 14px",
                 borderRadius: "12px",
                 background: "rgba(255,255,255,0.09)",
                 backdropFilter: "blur(10px)",
@@ -211,8 +271,8 @@ const ClientBannerHero = ({
               <div
                 style={{
                   flexShrink: 0,
-                  width: 38,
-                  height: 38,
+                  width: 36,
+                  height: 36,
                   borderRadius: "9px",
                   background: "rgba(34,197,94,0.18)",
                   display: "flex",
@@ -220,7 +280,7 @@ const ClientBannerHero = ({
                   justifyContent: "center",
                 }}
               >
-                <f.icon size={17} color="#22c55e" strokeWidth={1.75} />
+                <f.icon size={16} color="#22c55e" strokeWidth={1.75} />
               </div>
               <div>
                 <div
@@ -247,16 +307,14 @@ const ClientBannerHero = ({
           ))}
         </div>
 
-        {/* ════════════ CENTER COLUMN (width ~48%) ════════════ */}
+        {/* ════════════ CENTER COLUMN ════════════ */}
         <div
           style={{
-            width: "50%",
+            width: "48%",
             display: "flex",
-            transform: "translateY(-11px)",
             flexDirection: "column",
             alignItems: "center",
             padding: "0 16px",
-            gap: "0px",
           }}
         >
           {/* New Property Posted card */}
@@ -277,7 +335,7 @@ const ClientBannerHero = ({
               cursor: "pointer",
               width: "100%",
               maxWidth: "460px",
-              marginBottom: "16px",
+              marginBottom: "14px",
             }}
           >
             <div
@@ -342,7 +400,7 @@ const ClientBannerHero = ({
           </motion.button>
 
           {/* Smart Insights + Verified Properties pills */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", gap: "12px", marginBottom: "14px" }}>
             {[
               {
                 icon: TrendingUp,
@@ -390,7 +448,7 @@ const ClientBannerHero = ({
               justifyContent: "center",
               boxShadow: "0 4px 20px rgba(0,0,0,0.22)",
               border: "3px solid rgba(34,197,94,0.4)",
-              marginBottom: "16px",
+              marginBottom: "14px",
             }}
           >
             <span
@@ -405,7 +463,7 @@ const ClientBannerHero = ({
             </span>
           </div>
 
-          {/* Buy / Rent / New Projects / Commercial tabs */}
+          {/* Tabs */}
           <div
             style={{
               display: "flex",
@@ -416,7 +474,7 @@ const ClientBannerHero = ({
               padding: "4px",
               width: "100%",
               maxWidth: "460px",
-              marginBottom: "12px",
+              marginBottom: "10px",
             }}
           >
             {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => {
@@ -506,7 +564,23 @@ const ClientBannerHero = ({
             </button>
           </div>
 
-          {/* Book Hotel + Smart Financing – bigger pills */}
+          {/* + More Filters */}
+          <button
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.62)",
+              fontSize: "11px",
+              cursor: "pointer",
+              alignSelf: "flex-start",
+              paddingLeft: "18px",
+              marginBottom: "16px",
+            }}
+          >
+            + More Filters
+          </button>
+
+          {/* Book Hotel + Smart Financing */}
           <div style={{ display: "flex", gap: "14px" }}>
             <button
               onClick={() => navigate("/hotels")}
@@ -549,245 +623,198 @@ const ClientBannerHero = ({
           </div>
         </div>
 
-        {/* ════════════ RIGHT COLUMN – feature cards (width ~17%) ════════════ */}
-        <div
-          style={{
-            width: "17%",
-            paddingLeft: "16px",
-            paddingRight: "76px" /* clears the absolute circular buttons on far right */,
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            justifyContent: "flex-start",
-            paddingTop: "100px" /* aligns first card with pills row in center */,
-          }}
-        >
-          {[
-            {
-              icon: Wallet,
-              title: "Smart Financing",
-              desc: (
-                <>
-                  <div>Pre-Approved</div>
-                  <div>Up to ₹5 Cr</div>
-                </>
-              ),
-              onClick: goComingSoon("Smart Financing"),
-            },
-            {
-              icon: Users,
-              title: "Instant Match",
-              desc: <div>Connect with right buyers & sellers</div>,
-              onClick: () => navigate("/ai-advisor"),
-            },
-            {
-              icon: Activity,
-              title: "Real-time Updates",
-              desc: <div>on new properties</div>,
-              onClick: goComingSoon("Real-time Updates"),
-            },
-          ].map((c) => (
-            <motion.button
-              key={c.title}
-              whileHover={{ x: -3 }}
-              onClick={c.onClick}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "12px",
-                padding: "12px 14px",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.09)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.16)",
-                cursor: "pointer",
-                textAlign: "left",
-                width: "100%",
-              }}
-            >
-              <div
-                style={{
-                  flexShrink: 0,
-                  width: 38,
-                  height: 38,
-                  borderRadius: "9px",
-                  background: "rgba(34,197,94,0.18)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <c.icon size={17} color="#22c55e" strokeWidth={1.75} />
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#fff",
-                    lineHeight: 1.25,
-                  }}
-                >
-                  {c.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    color: "rgba(255,255,255,0.62)",
-                    marginTop: "3px",
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {c.desc}
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* ════════════ FAR-RIGHT EDGE – circular icon buttons ════════════
-            position:absolute so they always hug the right edge of the section
+        {/* ════════════ RIGHT COLUMN ════════════
+            Split into two sub-columns:
+            [feature cards 18%] | [circular icons 58px fixed]
         ════════════ */}
         <div
           style={{
-            position: "absolute",
-            right: "20px",
-            top: "36px",
+            width: "26%",
+            height: "100%",
             display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "20px",
-            zIndex: 20,
+            flexDirection: "row",
+            alignItems: "flex-start",
           }}
         >
-          {[
-            {
-              icon: Search,
-              label: "Search",
-              onClick: () => navigate("/search"),
-            },
-            {
-              icon: Heart,
-              label: "Shortlist",
-              onClick: () => navigate("/dashboard/buyer"),
-            },
-            {
-              icon: Headphones,
-              label: "Expert Support",
-              onClick: goComingSoon("Expert Support"),
-            },
-          ].map((a) => (
-            <motion.button
-              key={a.label}
-              whileHover={{ scale: 1.08 }}
-              onClick={a.onClick}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "5px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <div
+          {/* Feature cards — take all space except the icon strip */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              paddingTop: "95px",
+              paddingLeft: "8px",
+              paddingRight: "12px",
+            }}
+          >
+            {[
+              {
+                icon: Wallet,
+                title: "Smart Financing",
+                badge: null,
+                lines: ["Pre-Approved", "Up to ₹5 Cr"],
+                accent: "#22c55e",
+                onClick: goComingSoon("Smart Financing"),
+              },
+              {
+                icon: Users,
+                title: "Instant Match",
+                badge: null,
+                lines: ["Connect with right buyers & sellers"],
+                accent: "#3b82f6",
+                onClick: () => navigate("/ai-advisor"),
+              },
+              {
+                icon: Activity,
+                title: "Real-time Updates",
+                badge: null,
+                lines: ["on new properties"],
+                accent: "#a855f7",
+                onClick: goComingSoon("Real-time Updates"),
+              },
+            ].map((c) => (
+              <motion.button
+                key={c.title}
+                whileHover={{ x: -3, scale: 1.01 }}
+                onClick={c.onClick}
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.14)",
-                  backdropFilter: "blur(10px)",
-                  border: "2px solid rgba(34,197,94,0.55)",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 14px rgba(0,0,0,0.22)",
+                  gap: "12px",
+                  padding: "13px 16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.10)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                  /* subtle left accent border */
+                  boxShadow: `inset 3px 0 0 ${c.accent}, 0 4px 16px rgba(0,0,0,0.15)`,
                 }}
               >
-                <a.icon size={19} color="#fff" strokeWidth={1.75} />
-              </div>
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  color: "#fff",
-                  textAlign: "center",
-                  maxWidth: "56px",
-                  lineHeight: 1.3,
-                }}
-              >
-                {a.label}
-              </span>
-            </motion.button>
-          ))}
-        </div>
-      </div>
+                <div
+                  style={{
+                    flexShrink: 0,
+                    width: 40,
+                    height: 40,
+                    borderRadius: "10px",
+                    background: `${c.accent}22`,
+                    border: `1px solid ${c.accent}44`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <c.icon size={18} color={c.accent} strokeWidth={1.75} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#fff",
+                      lineHeight: 1.25,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {c.title}
+                  </div>
+                  {c.lines.map((line, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        fontSize: "11px",
+                        color: "rgba(255,255,255,0.65)",
+                        marginTop: i === 0 ? "3px" : "1px",
+                        lineHeight: 1.4,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              </motion.button>
+            ))}
+          </div>
 
-      {/* ════════════ STATS BAR ════════════ */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 20,
-          background: "rgba(8,12,18,0.93)",
-          backdropFilter: "blur(12px)",
-          padding: "13px 48px",
-          marginTop: "auto" /* push stats bar to bottom of flex column naturally */,
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(6, 1fr)",
-            gap: "16px",
-          }}
-        >
-          {[
-            { icon: ShieldCheck, value: "50K+", label: "Verified Properties" },
-            { icon: Users, value: "100K+", label: "Happy Customers" },
-            { icon: TrendingUp, value: "AI Powered", label: "Smart Insights" },
-            { icon: Lock, value: "100%", label: "Secure & Transparent" },
-            { icon: Headphones, value: "24/7", label: "Expert Support" },
-            { icon: Star, value: "4.8/5", label: "User Rating" },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "11px" }}>
-              <div
+          {/* Circular icon buttons — fixed 68px wide strip on far right */}
+          <div
+            style={{
+              width: "68px",
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "18px",
+              paddingTop: "28px",
+              paddingRight: "8px",
+            }}
+          >
+            {[
+              {
+                icon: Search,
+                label: "Search",
+                onClick: () => navigate("/search"),
+              },
+              {
+                icon: Heart,
+                label: "Shortlist",
+                onClick: () => navigate("/dashboard/buyer"),
+              },
+              {
+                icon: Headphones,
+                label: "Expert\nSupport",
+                onClick: goComingSoon("Expert Support"),
+              },
+            ].map((a) => (
+              <motion.button
+                key={a.label}
+                whileHover={{ scale: 1.08 }}
+                onClick={a.onClick}
                 style={{
-                  flexShrink: 0,
-                  width: 36,
-                  height: 36,
-                  borderRadius: "9px",
-                  background: "rgba(34,197,94,0.18)",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: "5px",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
                 }}
               >
-                <s.icon size={17} color="#22c55e" strokeWidth={1.75} />
-              </div>
-              <div>
                 <div
                   style={{
-                    fontSize: "15px",
-                    fontWeight: 700,
+                    width: 46,
+                    height: 46,
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.12)",
+                    backdropFilter: "blur(10px)",
+                    border: "2px solid rgba(34,197,94,0.55)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 14px rgba(0,0,0,0.22)",
+                  }}
+                >
+                  <a.icon size={18} color="#fff" strokeWidth={1.75} />
+                </div>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    fontWeight: 600,
                     color: "#fff",
-                    lineHeight: 1.2,
+                    textAlign: "center",
+                    lineHeight: 1.3,
+                    whiteSpace: "pre-line",
                   }}
                 >
-                  {s.value}
-                </div>
-                <div
-                  style={{
-                    fontSize: "10px",
-                    color: "rgba(255,255,255,0.58)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {s.label}
-                </div>
-              </div>
-            </div>
-          ))}
+                  {a.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
