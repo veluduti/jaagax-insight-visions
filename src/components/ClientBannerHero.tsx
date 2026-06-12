@@ -558,7 +558,7 @@ const ClientBannerHero = ({
             gap: "12px",
             justifyContent: "flex-start",
             /* push down to roughly align with search bar area */
-            paddingTop: "180px",
+            paddingTop: "150px",
           }}
         >
           {[
