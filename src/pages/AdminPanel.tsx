@@ -363,10 +363,15 @@ export default function AdminPanel() {
             <TabsTrigger value="reports">Reports</TabsTrigger>
             <TabsTrigger value="all-listings">All Listings</TabsTrigger>
             <TabsTrigger value="kyc">KYC</TabsTrigger>
+            <TabsTrigger value="price-drops">Price Drops</TabsTrigger>
           </TabsList>
 
           <TabsContent value="kyc" className="mt-4">
             <KYCReviewQueue />
+          </TabsContent>
+
+          <TabsContent value="price-drops" className="mt-4">
+            <PriceDropQueue />
           </TabsContent>
 
           <TabsContent value="agent-verified" className="mt-4">
