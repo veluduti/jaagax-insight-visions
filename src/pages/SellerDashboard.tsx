@@ -598,16 +598,25 @@ export default function SellerDashboard() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
             <Plus className="h-4 w-4 mr-1" />Sell Your Property
           </Button>
+          {user?.id && <NotificationCenter userId={user.id} />}
           <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
           <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
         </div>
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
+        {/* Seller Hub upgrades — wallet, plan, KYC */}
+        {user?.id && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <WalletBalance userId={user.id} />
+            <SubscriptionManager userId={user.id} />
+            <KYCVerification userId={user.id} />
+          </div>
+        )}
         {/* Status overview cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
