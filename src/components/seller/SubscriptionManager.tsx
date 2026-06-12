@@ -24,10 +24,11 @@ interface QuotaStatus {
   free_remaining: number;
 }
 
+// FIXED: Solid backgrounds with white text (matching KYC card style)
 const PLAN_META = {
-  free: { label: "Free", color: "bg-emerald-500/15 border-emerald-500/30", textColor: "text-emerald-400" },
-  premium: { label: "Premium", color: "bg-purple-500/15 border-purple-500/30", textColor: "text-purple-400" },
-  agent_pro: { label: "Agent Pro", color: "bg-amber-500/15 border-amber-500/30", textColor: "text-amber-400" },
+  free: { label: "Free", bgColor: "bg-emerald-600", textColor: "text-white" },
+  premium: { label: "Premium", bgColor: "bg-purple-600", textColor: "text-white" },
+  agent_pro: { label: "Agent Pro", bgColor: "bg-amber-600", textColor: "text-white" },
 };
 
 export default function SubscriptionManager({ userId }: { userId: string }) {
@@ -158,46 +159,48 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
       transition={{ delay: 0.05 }}
       className="h-full"
     >
-      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-background via-background to-emerald-500/5 h-full flex flex-col">
+      <Card className="relative overflow-hidden border-purple-500/20 bg-gradient-to-br from-background via-background to-purple-500/5 h-full flex flex-col">
         <CardContent className="p-5 flex-1 flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
+          {/* Header with consistent styling */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-xs text-purple-400 font-medium uppercase tracking-wider">
               <Crown className="h-4 w-4" /> Plan & Quota
             </div>
-            <Badge variant="outline" className={`${meta.color} ${meta.textColor}`}>
+            {/* FIXED: Solid background badge with white text (matching KYC) */}
+            <Badge className={`${meta.bgColor} ${meta.textColor} border-0 px-2 py-0.5 text-xs font-medium`}>
               {meta.label}
             </Badge>
           </div>
 
+          {/* Content */}
           {isPremium ? (
-            <div className="py-3">
-              <p className="text-2xl font-bold text-foreground">Unlimited postings</p>
+            <div className="py-2">
+              <p className="text-xl font-bold text-foreground">Unlimited postings</p>
               <p className="text-xs text-muted-foreground mt-1">Active until next billing cycle</p>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col">
-              <div className="flex items-baseline justify-between mb-2">
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
                 <p className="text-sm font-medium text-foreground">Free posting quota</p>
-                <p className="text-sm">
-                  <span className="font-bold text-foreground">{status.free_remaining}</span>
-                  <span className="text-foreground/60"> / {status.free_limit} remaining</span>
+                <p className="text-sm font-semibold">
+                  <span className="text-emerald-400">{status.free_remaining}</span>
+                  <span className="text-muted-foreground"> / {status.free_limit}</span>
                 </p>
               </div>
-              <Progress value={pct} className="h-2 mb-3" />
+              <Progress value={pct} className="h-2" />
               {exhausted && (
-                <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2 mb-3">
-                  Free quota used. Upgrade to Premium for unlimited posts, or pay ₹500 per post from wallet.
-                </div>
+                <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md px-2 py-1.5 text-center">
+                  Free quota used. Upgrade to continue.
+                </p>
               )}
             </div>
           )}
 
-          <div className="mt-auto pt-3">
+          {/* Button at bottom - FIXED: Gradient button matching KYC style */}
+          <div className="mt-auto pt-4">
             <Button
               onClick={() => setOpen(true)}
-              variant="outline"
-              className="w-full border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-              size="sm"
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white font-medium"
             >
               <Zap className="h-4 w-4 mr-1" /> {isPremium ? "Manage plan" : "Upgrade plan"}
             </Button>
@@ -205,6 +208,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
         </CardContent>
       </Card>
 
+      {/* Upgrade Dialog - FIXED: Consistent button styling */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -213,24 +217,23 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <Card
-              className="border-border/60 hover:border-emerald-500/50 transition-all cursor-pointer hover:shadow-lg"
+            {/* Pay-per-post Option */}
+            <div
+              className="relative rounded-xl border-2 border-border hover:border-emerald-500/50 transition-all cursor-pointer hover:shadow-lg overflow-hidden"
               onClick={handlePayPerPost}
             >
-              <CardContent className="p-4">
+              <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-emerald-500/10">
                       <Wallet className="h-5 w-5 text-emerald-500" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-lg">Pay-per-post</p>
-                      <p className="text-xs text-muted-foreground mt-1">₹500 per additional listing after free quota</p>
+                      <p className="font-semibold text-foreground text-base">Pay-per-post</p>
+                      <p className="text-xs text-muted-foreground">₹500 per additional listing after free quota</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="text-emerald-500 border-emerald-500">
-                    ₹500 / post
-                  </Badge>
+                  <Badge className="bg-emerald-600 text-white border-0">₹500</Badge>
                 </div>
                 <Button
                   onClick={(e) => {
@@ -238,41 +241,39 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
                     handlePayPerPost();
                   }}
                   disabled={payPerPostLoading}
-                  variant="outline"
-                  className="w-full mt-3 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-                  size="sm"
+                  className="w-full mt-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white"
                 >
                   {payPerPostLoading ? "Processing..." : "Pay ₹500 from Wallet"}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card className="border-emerald-500/40 bg-emerald-500/5 hover:shadow-lg transition-all">
-              <CardContent className="p-4">
+            {/* Premium Subscription Option */}
+            <div className="relative rounded-xl border-2 border-purple-500/40 bg-purple-500/5 hover:shadow-lg transition-all overflow-hidden">
+              <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/20">
-                      <Crown className="h-5 w-5 text-emerald-400" />
+                    <div className="p-2 rounded-lg bg-purple-500/20">
+                      <Crown className="h-5 w-5 text-purple-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-lg">Premium</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Unlimited posts, priority review, premium badge
-                      </p>
+                      <p className="font-semibold text-foreground text-base">Premium</p>
+                      <p className="text-xs text-muted-foreground">Unlimited posts, priority review, premium badge</p>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-500 text-white">₹2,000 / mo</Badge>
+                  <Badge className="bg-purple-600 text-white border-0">
+                    ₹2,000<span className="text-xs">/mo</span>
+                  </Badge>
                 </div>
                 <Button
                   onClick={subscribePremium}
                   disabled={loading}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
-                  size="sm"
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white"
                 >
-                  {loading ? "Activating…" : "Subscribe — debit ₹2,000 from wallet"}
+                  {loading ? "Activating..." : "Subscribe — debit ₹2,000 from wallet"}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           <div className="text-xs text-muted-foreground text-center pt-2 border-t border-border/50">
@@ -282,6 +283,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
         </DialogContent>
       </Dialog>
 
+      {/* Agent Upgrade Prompt */}
       <Dialog open={agentPrompt} onOpenChange={setAgentPrompt}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -302,12 +304,12 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
               ),
             )}
           </ul>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setAgentPrompt(false)}>
               Maybe later
             </Button>
             <Button
-              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white"
               onClick={() => navigate("/select-profile")}
             >
               Switch to Agent
