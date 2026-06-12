@@ -192,12 +192,8 @@ export default function RecentTransactions({
   };
 
   // Summary stats
-  const totalCredits = txs
-    .filter((t) => t.type === "credit")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-  const totalDebits = txs
-    .filter((t) => t.type === "debit")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalCredits = txs.filter((t) => t.type === "credit").reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalDebits = txs.filter((t) => t.type === "debit").reduce((sum, t) => sum + Number(t.amount), 0);
 
   const visibleTxs = filteredTxs.slice(0, displayLimit);
   const hasMore = filteredTxs.length > displayLimit;
@@ -266,16 +262,12 @@ export default function RecentTransactions({
                 <div className="flex items-center gap-1.5 text-xs">
                   <ArrowDownRight className="h-3 w-3 text-emerald-500" />
                   <span className="text-muted-foreground">In:</span>
-                  <span className="font-semibold text-emerald-500">
-                    ₹{totalCredits.toLocaleString("en-IN")}
-                  </span>
+                  <span className="font-semibold text-emerald-500">₹{totalCredits.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs">
                   <ArrowUpRight className="h-3 w-3 text-rose-500" />
                   <span className="text-muted-foreground">Out:</span>
-                  <span className="font-semibold text-rose-500">
-                    ₹{totalDebits.toLocaleString("en-IN")}
-                  </span>
+                  <span className="font-semibold text-rose-500">₹{totalDebits.toLocaleString("en-IN")}</span>
                 </div>
               </div>
             )}
@@ -311,18 +303,10 @@ export default function RecentTransactions({
           {/* Transaction list */}
           <AnimatePresence mode="popLayout">
             {visibleTxs.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-8"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
                 <Wallet className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  {filter === "all"
-                    ? "No transactions yet"
-                    : filter === "credit"
-                    ? "No credits yet"
-                    : "No debits yet"}
+                  {filter === "all" ? "No transactions yet" : filter === "credit" ? "No credits yet" : "No debits yet"}
                 </p>
                 <p className="text-[10px] text-muted-foreground/70 mt-1">
                   {filter === "all"
@@ -347,24 +331,16 @@ export default function RecentTransactions({
                         <p className="text-sm font-medium text-foreground truncate">
                           {tx.description || (tx.type === "credit" ? "Money Added" : "Payment Made")}
                         </p>
-                        {tx.category && (
-                          <span className="text-muted-foreground">
-                            {getCategoryIcon(tx.category)}
-                          </span>
-                        )}
+                        {tx.category && <span className="text-muted-foreground">{getCategoryIcon(tx.category)}</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-[10px] text-muted-foreground">
-                          {formatDate(tx.created_at)}
-                        </p>
+                        <p className="text-[10px] text-muted-foreground">{formatDate(tx.created_at)}</p>
                         {getStatusBadge(tx.status)}
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <p className={`text-sm font-semibold ${getAmountColor(tx)}`}>
-                        {formatAmount(tx)}
-                      </p>
+                      <p className={`text-sm font-semibold ${getAmountColor(tx)}`}>{formatAmount(tx)}</p>
                     </div>
                   </motion.div>
                 ))}
