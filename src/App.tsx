@@ -36,6 +36,7 @@ const Agents = lazy(() => import("./pages/Agents"));
 const AgentDetail = lazy(() => import("./pages/AgentDetail"));
 const AgentComparison = lazy(() => import("./pages/AgentComparison"));
 const PropertyValuation = lazy(() => import("./pages/PropertyValuation"));
+const ValuationPage = lazy(() => import("./pages/ValuationPage"));
 const Communities = lazy(() => import("./pages/Communities"));
 const CommunitiesCity = lazy(() => import("./pages/CommunitiesCity"));
 const CommunitiesLocality = lazy(() => import("./pages/CommunitiesLocality"));
@@ -153,7 +154,8 @@ const App = () => (
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/agents/compare" element={<AgentComparison />} />
           <Route path="/agents/leaderboard" element={<AgentLeaderboard />} />
-          <Route path="/valuation" element={<PropertyValuation />} />
+          <Route path="/valuation" element={<ValuationPage />} />
+          <Route path="/valuation/detailed" element={<PropertyValuation />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/communities/:city" element={<CommunitiesCity />} />
           <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
