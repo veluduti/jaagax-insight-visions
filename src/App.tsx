@@ -274,6 +274,11 @@ const App = () => (
               <AdminPropertiesPipeline />
             </ProtectedRoute>
           } />
+          <Route path="/admin/kyc-verifications" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminKYCVerifications />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/hotel-manager" element={
             <ProtectedRoute allowedRole="hotel_manager">
               <HotelManagerDashboard />
