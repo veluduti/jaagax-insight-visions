@@ -21,6 +21,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 const BoostListingDialog = lazy(() => import("@/components/property/BoostListingDialog"));
 
+// Phase 2-6 Seller Hub upgrades — additive, non-destructive
+import WalletBalance from "@/components/seller/WalletBalance";
+import SubscriptionManager from "@/components/seller/SubscriptionManager";
+import KYCVerification from "@/components/seller/KYCVerification";
+import NotificationCenter from "@/components/seller/NotificationCenter";
+import AIRecommendations from "@/components/seller/AIRecommendations";
+import ActivityTimeline from "@/components/seller/ActivityTimeline";
+import VisitManagement from "@/components/seller/VisitManagement";
+import ReferralLink from "@/components/seller/ReferralLink";
+import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
+import PriceDropDialog from "@/components/seller/PriceDropDialog";
+
 interface AssignedAgent {
   id: string;
   user_id: string | null;
