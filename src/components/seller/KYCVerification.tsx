@@ -19,30 +19,31 @@ import { motion } from "framer-motion";
 
 type Status = "not_started" | "pending" | "verified" | "rejected";
 
-const STATUS_META: Record<Status, { label: string; color: string; icon: any; textColor: string }> = {
+// FIXED: Using solid backgrounds with white text for better visibility
+const STATUS_META: Record<Status, { label: string; bgColor: string; textColor: string; icon: any }> = {
   not_started: {
     label: "Not started",
-    color: "bg-slate-500/15 border-slate-500/30",
+    bgColor: "bg-slate-600",
+    textColor: "text-white",
     icon: ShieldAlert,
-    textColor: "text-slate-300",
   },
   pending: {
     label: "In review",
-    color: "bg-amber-500/15 border-amber-500/30",
+    bgColor: "bg-amber-600",
+    textColor: "text-white",
     icon: ShieldAlert,
-    textColor: "text-amber-400",
   },
   verified: {
     label: "Verified",
-    color: "bg-emerald-500/15 border-emerald-500/30",
+    bgColor: "bg-emerald-600",
+    textColor: "text-white",
     icon: ShieldCheck,
-    textColor: "text-emerald-400",
   },
   rejected: {
     label: "Rejected",
-    color: "bg-rose-500/15 border-rose-500/30",
+    bgColor: "bg-rose-600",
+    textColor: "text-white",
     icon: ShieldAlert,
-    textColor: "text-rose-400",
   },
 };
 
@@ -118,7 +119,8 @@ export default function KYCVerification({ userId }: { userId: string }) {
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium uppercase tracking-wider">
               <ShieldCheck className="h-4 w-4" /> KYC Verification
             </div>
-            <Badge variant="outline" className={`${meta.color} ${meta.textColor}`}>
+            {/* FIXED: Solid background badge with white text */}
+            <Badge className={`${meta.bgColor} ${meta.textColor} border-0 px-2 py-0.5 text-xs font-medium`}>
               <Icon className="h-3 w-3 mr-1" /> {meta.label}
             </Badge>
           </div>
@@ -147,9 +149,7 @@ export default function KYCVerification({ userId }: { userId: string }) {
                 <Button
                   onClick={() => setOpen(true)}
                   disabled={status === "pending"}
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-medium"
                 >
                   {status === "pending" ? "Awaiting review…" : status === "rejected" ? "Re-submit KYC" : "Complete KYC"}
                 </Button>
@@ -193,7 +193,11 @@ export default function KYCVerification({ userId }: { userId: string }) {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={submit} disabled={busy} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+            <Button
+              onClick={submit}
+              disabled={busy}
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white"
+            >
               {busy ? "Submitting…" : "Submit for review"}
             </Button>
           </DialogFooter>
