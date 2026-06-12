@@ -73,6 +73,9 @@ interface Property {
   assigned_agent?: AssignedAgent | null;
   scheduled_visit_at?: string | null;
   task_status?: string | null;
+  is_sold?: boolean | null;
+  has_price_drop_ribbon?: boolean | null;
+  previous_price?: number | null;
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
