@@ -1,41 +1,93 @@
-# Remove "₹ / unit" From Area & Pricing Edit Block
+# Seller Dashboard Upgrade — Phased Plan
 
-## Scope
-The review/edit panel in `src/pages/SellProperty.tsx` currently shows three inputs in the **Area & Pricing** section: Area, ₹/unit (price_per_unit), Unit. The user wants only **Area + Unit**. The total price already flows in from the AI conversation via `editForm.total_price`, so the per-unit field is redundant.
+Goal: Add the requested features to the **existing** `SellerDashboard.tsx` (877 lines, fully wired) as a **non-destructive overlay**. Current listings, agent assignment, boost, chat, and visit flows stay intact. New features render in new sections above/within the page, behind a feature scope so nothing collides.
 
-## Database
-No DB migration needed. The `properties` table has only `price` and `area_sqft` — there is no `price_per_unit` or `area_unit` column. `price_per_unit` lives only in the in-memory conversation state. Removing it from the UI does not change the schema.
+Design: luxury emerald-glass — reuse existing `glass-panel`, emerald glow, dark background. No new color tokens, no purple/indigo. Framer-motion already in use.
 
-## Frontend changes (`src/pages/SellProperty.tsx`)
+---
 
-1. **Edit form UI (lines ~4365–4407)** — remove the middle `<div>` containing the `₹ / unit` Input. Change the grid from `grid-cols-3` to `grid-cols-2` so Area + Unit fill the row. Update the visibility guard from `(areaN > 0 || ppuN > 0 || totalPrice > 0)` to `(areaN > 0 || totalPrice > 0)`.
+## Phase 1 — Database foundations (one migration)
 
-2. **Review screen total computation (lines ~3655–3660)** — drop the `area × ppu` path. Use:
-   ```ts
-   const totalPrice = Number(editForm.total_price) || Number(editForm.monthly_rent) || 0;
-   ```
-   Remove the now-unused `ppuN` local.
+New tables (all in `public`, RLS on, GRANT to authenticated + service_role):
 
-3. **Submit handler (lines ~2884–2887, 2955–2958)** — stop deriving `price` from `area × ppu`. Compute:
-   ```ts
-   const totalPrice =
-     parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
-     parseFloat(String(editForm.monthly_rent || "").replace(/[^\d.]/g, "")) ||
-     null;
-   ```
-   and use `price: totalPrice`. Keep the `area_unit → area_sqft` conversion (it still drives `area_sqft`).
+- `wallets` — `user_id` (unique FK), `balance numeric default 0`, `auto_recharge bool default false`, `auto_recharge_threshold`, `auto_recharge_amount`
+- `wallet_transactions` — `user_id`, `amount`, `type` (`credit`/`debit`), `description`, `status`, `reference`, `created_at`
+- `seller_subscriptions` — `user_id`, `plan_type` (`free`/`premium`/`agent_pro`), `started_at`, `expires_at`, `is_active`
+- `monthly_posting_limits` — `user_id`, `month_year` (text YYYY-MM), `posts_used int`, `free_limit int default 1`, unique(user_id, month_year)
+- `kyc_verifications` — `user_id` unique, `status` (`not_started`/`pending`/`verified`/`rejected`), `aadhaar_url`, `pan_url`, `selfie_url`, `rejection_reason`, `reviewed_by`, `reviewed_at`
+- `seller_activity_logs` — `user_id`, `activity_type`, `metadata jsonb`, `created_at`
+- Add to existing `properties`: `is_sold bool default false`, `sold_at timestamptz`, `has_price_drop_ribbon bool default false`, `previous_price numeric`, `price_dropped_at timestamptz`
+- Reuse existing `notifications` table (already present).
 
-4. **Leave intact**: AI conversation collection of `price_per_unit` (it's still useful upstream as one input the AI uses to derive `total_price`), the `PRICE_FIELDS` list, and the canonical state mapping. Only the manual edit UI and submit calculation stop relying on it.
+RPCs (security-definer):
+- `increment_wallet_balance(_user_id, _amount, _description, _reference)`
+- `decrement_wallet_balance(_user_id, _amount, _description, _reference)` — raises if insufficient
+- `check_and_consume_posting_quota(_user_id)` — returns `{allowed, free_remaining, plan, charged}`; auto-debits ₹500 if free exhausted and plan ≠ premium/agent_pro
+- `mark_property_sold(_property_id)` — owner-only
+- `drop_property_price(_property_id, _new_price)` — owner-only, sets ribbon + previous_price
+- `submit_kyc(_aadhaar, _pan, _selfie)` and admin `review_kyc(_user_id, _decision, _reason)`
 
-## Submit error verification
-After the change, confirm a publish flow end-to-end:
-- AI captures `total_price` (or computes it from area × price_per_unit during conversation).
-- Edit panel shows Area + Unit only; user can adjust without breaking total.
-- `price` saved to `properties.price` is `total_price` (non-null when the AI captured pricing).
-- If `total_price` is missing, current required-field guard already blocks submit; surface a clear toast ("Enter total property price") via the existing `ruleError` path — no new validation needed since `total_price` is already required in the field config.
+Storage bucket: `kyc-documents` (private), RLS so user reads/writes own folder, admin reads all.
 
-## Acceptance
-- Edit panel Area & Pricing row contains only Area input + Unit select.
-- `Total: ₹…` line continues to render from `editForm.total_price`.
-- Publish succeeds without runtime/DB errors for both sale and rent flows.
-- No references to `editForm.price_per_unit` remain in the edit UI or submit math (the field can still exist in conversational state without affecting persistence).
+## Phase 2 — Wallet + Subscription + KYC widgets
+
+New components (all in `src/components/seller/`):
+- `WalletBalance.tsx` — balance card, Add Money dialog (₹500/1000/2000/5000, min ₹100, **mock** top-up that just calls `increment_wallet_balance`), auto-recharge toggle, last 5 transactions list with "View all" sheet.
+- `SubscriptionManager.tsx` — current plan badge, Free Quota progress ("X / Y posts used this month"), Upgrade dialog with two options (pay-per-post from wallet vs ₹2000/mo). On premium select, show "Switch to Agent profile to get leads?" CTA → `/select-profile`.
+- `KYCVerification.tsx` — status badge, benefits checklist when not verified, "Complete KYC" dialog with 3 file inputs uploading to `kyc-documents` then inserting a `pending` row. Read-only once submitted; shows rejection reason if any.
+
+Renders in a new "Seller Tools" section near the top of `SellerDashboard.tsx`, between Hero and existing Stats — additive only.
+
+## Phase 3 — Notification Center + Real-time
+
+- `NotificationCenter.tsx` — bell icon with unread badge in dashboard header, popover list, mark-all-read, click-to-navigate via `action_url`.
+- Realtime subscription on `notifications` filtered by `user_id` → sonner toast on insert.
+- Wired into the existing header row (next to existing Refresh/Logout — no removal).
+
+## Phase 4 — Listing card enhancements
+
+Inside the existing listing card render (without touching the loop structure):
+- New `MarkAsSoldButton.tsx` (AlertDialog → RPC, then refetch).
+- New `PriceDropDialog.tsx` (input new price → RPC, shows "Price Reduced" ribbon overlay when `has_price_drop_ribbon`).
+- "Edit & Resubmit" button on rejected (already exists in part — verify) and timeline progress bar (Submitted → Review → Agent → Approved) using shadcn `Progress`.
+
+The existing Boost / View / Chat buttons remain untouched.
+
+## Phase 5 — AI Recommendations + Activity Timeline
+
+- `AIRecommendations.tsx` — calls existing `ai-suggest-properties` / `ai-property-decision` edge function with seller's portfolio; renders Smart Match %, Price Prediction, "Upgrade to Agent" if listings ≥ 2, location insights. Falls back to static cards if AI unavailable.
+- `ActivityTimeline.tsx` — reads `seller_activity_logs` + `buyer_journey_events` for the user; chronological list with icons.
+- `ReferralLink.tsx` — generates `/?ref=<userId>` shareable link with copy button.
+
+## Phase 6 — Visit management section
+
+`VisitManagement.tsx` — pulls `visit_bookings` where property belongs to seller; shows scheduled/past with cancel/modify (cancel = status update). Renders below listings tabs.
+
+## Phase 7 — Posting flow gating
+
+Wrap the existing "Sell Property" CTA: before navigating to `/agent/add-property` (or seller add route), call `check_and_consume_posting_quota`. If quota exhausted and wallet insufficient → open upgrade dialog. Otherwise proceed. KYC verified is **encouraged**, not blocking (toast nudge).
+
+---
+
+## Non-collision guarantees
+
+- Zero deletions in existing `SellerDashboard.tsx`. Only **inserts** of new sections + light wrap of the Sell Property button.
+- All new tables are isolated; no FKs into existing tables except `auth.users` and `properties.id`.
+- New columns on `properties` are nullable / defaulted false.
+- Edge functions: reuse existing `create-notification`. Only RPCs are added (no new edge functions needed since payments are mocked).
+- Routing: no new routes required; everything dialog/sheet-based inside the dashboard.
+
+## Out of scope (will revisit)
+
+- Buyer Dashboard (per your reply — later).
+- Real Razorpay/Stripe wiring (mock now).
+- Admin KYC review UI (RPC + table ready; admin panel surfacing can be a small follow-up).
+
+## Suggested order of execution
+
+1. Phase 1 migration (single approval).
+2. Phases 2 + 3 in one code drop (wallet/sub/KYC widgets + notifications).
+3. Phases 4 + 7 (listing actions + posting gate).
+4. Phases 5 + 6 (AI + activity + visits).
+
+Approve and I'll start Phase 1 (the migration).

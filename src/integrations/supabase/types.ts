@@ -1011,6 +1011,81 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_verifications: {
+        Row: {
+          aadhaar_url: string | null
+          created_at: string
+          id: string
+          pan_url: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aadhaar_url?: string | null
+          created_at?: string
+          id?: string
+          pan_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aadhaar_url?: string | null
+          created_at?: string
+          id?: string
+          pan_url?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      monthly_posting_limits: {
+        Row: {
+          created_at: string
+          free_limit: number
+          id: string
+          month_year: string
+          posts_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          free_limit?: number
+          id?: string
+          month_year: string
+          posts_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          free_limit?: number
+          id?: string
+          month_year?: string
+          posts_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1507,11 +1582,13 @@ export type Database = {
           final_data: Json | null
           floor_number: number | null
           furnishing: string | null
+          has_price_drop_ribbon: boolean | null
           id: string
           images: string[] | null
           is_draft: boolean | null
           is_featured: boolean
           is_live: boolean
+          is_sold: boolean | null
           latitude: number | null
           listed_by: string | null
           listing_status: string
@@ -1521,7 +1598,9 @@ export type Database = {
           maintenance_charges: number | null
           original_snapshot: Json | null
           pincode: string | null
+          previous_price: number | null
           price: number
+          price_dropped_at: string | null
           price_negotiable: boolean | null
           property_age: string | null
           published_at: string | null
@@ -1530,6 +1609,7 @@ export type Database = {
           rera_id: string | null
           retail_centres: number | null
           slug: string | null
+          sold_at: string | null
           submitted_by: string | null
           title: string
           total_floors: number | null
@@ -1570,11 +1650,13 @@ export type Database = {
           final_data?: Json | null
           floor_number?: number | null
           furnishing?: string | null
+          has_price_drop_ribbon?: boolean | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_sold?: boolean | null
           latitude?: number | null
           listed_by?: string | null
           listing_status?: string
@@ -1584,7 +1666,9 @@ export type Database = {
           maintenance_charges?: number | null
           original_snapshot?: Json | null
           pincode?: string | null
+          previous_price?: number | null
           price?: number
+          price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
           published_at?: string | null
@@ -1593,6 +1677,7 @@ export type Database = {
           rera_id?: string | null
           retail_centres?: number | null
           slug?: string | null
+          sold_at?: string | null
           submitted_by?: string | null
           title: string
           total_floors?: number | null
@@ -1633,11 +1718,13 @@ export type Database = {
           final_data?: Json | null
           floor_number?: number | null
           furnishing?: string | null
+          has_price_drop_ribbon?: boolean | null
           id?: string
           images?: string[] | null
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_sold?: boolean | null
           latitude?: number | null
           listed_by?: string | null
           listing_status?: string
@@ -1647,7 +1734,9 @@ export type Database = {
           maintenance_charges?: number | null
           original_snapshot?: Json | null
           pincode?: string | null
+          previous_price?: number | null
           price?: number
+          price_dropped_at?: string | null
           price_negotiable?: boolean | null
           property_age?: string | null
           published_at?: string | null
@@ -1656,6 +1745,7 @@ export type Database = {
           rera_id?: string | null
           retail_centres?: number | null
           slug?: string | null
+          sold_at?: string | null
           submitted_by?: string | null
           title?: string
           total_floors?: number | null
@@ -1943,6 +2033,63 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_activity_logs: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      seller_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          plan_type: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          plan_type?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          plan_type?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       signup_email_otps: {
         Row: {
           attempt_count: number
@@ -2215,6 +2362,72 @@ export type Database = {
           includes_meals?: boolean | null
           is_active?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          auto_recharge: boolean
+          auto_recharge_amount: number | null
+          auto_recharge_threshold: number | null
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_recharge?: boolean
+          auto_recharge_amount?: number | null
+          auto_recharge_threshold?: number | null
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_recharge?: boolean
+          auto_recharge_amount?: number | null
+          auto_recharge_threshold?: number | null
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2504,9 +2717,26 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      check_and_consume_posting_quota: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
+      decrement_wallet_balance: {
+        Args: {
+          _amount: number
+          _description?: string
+          _reference?: string
+          _user_id: string
+        }
+        Returns: number
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      drop_property_price: {
+        Args: { _new_price: number; _property_id: string }
+        Returns: undefined
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -2547,6 +2777,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
       get_seller_contacts: {
         Args: { _user_ids: string[] }
         Returns: {
@@ -2556,11 +2787,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      increment_wallet_balance: {
+        Args: {
+          _amount: number
+          _description?: string
+          _reference?: string
+          _user_id: string
+        }
+        Returns: number
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       mark_property_featured: {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
         Returns: undefined
       }
+      mark_property_sold: { Args: { _property_id: string }; Returns: undefined }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2584,6 +2825,10 @@ export type Database = {
       }
       renew_property_listing: {
         Args: { _property_id: string }
+        Returns: undefined
+      }
+      review_kyc: {
+        Args: { _decision: string; _reason?: string; _user_id: string }
         Returns: undefined
       }
       review_signup_request: {
@@ -2654,6 +2899,10 @@ export type Database = {
         }[]
       }
       slugify: { Args: { _input: string }; Returns: string }
+      submit_kyc: {
+        Args: { _aadhaar: string; _pan: string; _selfie: string }
+        Returns: undefined
+      }
       submit_signup_request: {
         Args: {
           _city: string
