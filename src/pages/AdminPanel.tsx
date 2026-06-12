@@ -24,6 +24,7 @@ import AgentVerifiedReviewPanel from "@/components/admin/AgentVerifiedReviewPane
 import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
+import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 
