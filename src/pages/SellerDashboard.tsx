@@ -926,6 +926,7 @@ export default function SellerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {postingQuotaDialog}
     </div>
   );
 }
