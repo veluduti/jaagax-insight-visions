@@ -746,6 +746,7 @@ const ClientBannerHero = ({
           background: "rgba(8,12,18,0.93)",
           backdropFilter: "blur(12px)",
           padding: "18px 48px",
+          marginTop: "-60px",
         }}
       >
         <div
