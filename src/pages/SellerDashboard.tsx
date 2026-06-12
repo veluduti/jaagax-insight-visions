@@ -6,16 +6,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, Home, BarChart, LogOut, Eye, MessageSquare, TrendingUp, IndianRupee,
-  Edit, CheckCircle2, Clock, XCircle, AlertCircle, Sparkles, ArrowUpRight, MapPin, Bed, Bath, Maximize2, RefreshCw,
-  Phone, Mail, CalendarDays, UserCheck,
+  Plus,
+  Home,
+  BarChart,
+  LogOut,
+  Eye,
+  MessageSquare,
+  TrendingUp,
+  IndianRupee,
+  Edit,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  AlertCircle,
+  Sparkles,
+  ArrowUpRight,
+  MapPin,
+  Bed,
+  Bath,
+  Maximize2,
+  RefreshCw,
+  Phone,
+  Mail,
+  CalendarDays,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 const PropertyChat = lazy(() => import("@/components/chat/PropertyChat"));
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,7 +127,8 @@ const getDisplayStatus = (p: Property) => {
 
 const getTaskPriority = (task: any) => {
   const hasSchedule = typeof task?.metadata?.scheduled_visit_at === "string" ? 100 : 0;
-  const statusWeight = task?.status === "in_progress" ? 30 : task?.status === "completed" ? 20 : task?.status === "assigned" ? 10 : 0;
+  const statusWeight =
+    task?.status === "in_progress" ? 30 : task?.status === "completed" ? 20 : task?.status === "assigned" ? 10 : 0;
   const updatedWeight = task?.updated_at ? new Date(task.updated_at).getTime() / 1e13 : 0;
   return hasSchedule + statusWeight + updatedWeight;
 };
@@ -118,7 +145,9 @@ export default function SellerDashboard() {
   const navigate = useNavigate();
   const { trigger: triggerSellFlow, dialog: postingQuotaDialog, loading: quotaChecking } = usePostingQuotaGate();
 
-  useEffect(() => { init(); }, []);
+  useEffect(() => {
+    init();
+  }, []);
 
   // Realtime: refresh when agent_tasks or own properties change
   useEffect(() => {
@@ -126,13 +155,21 @@ export default function SellerDashboard() {
     const ch = supabase
       .channel(`seller-dash-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "agent_tasks" }, () => fetchProperties(user.id))
-      .on("postgres_changes", { event: "*", schema: "public", table: "properties", filter: `submitted_by=eq.${user.id}` }, () => fetchProperties(user.id))
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "properties", filter: `submitted_by=eq.${user.id}` },
+        () => fetchProperties(user.id),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [user?.id]);
 
   const init = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     setUser(user);
     if (user) await fetchProperties(user.id);
     setLoading(false);
@@ -141,7 +178,9 @@ export default function SellerDashboard() {
   const fetchProperties = async (uid: string) => {
     const { data } = await supabase
       .from("properties")
-      .select("id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until, is_sold, has_price_drop_ribbon, previous_price")
+      .select(
+        "id, title, city, locality, price, area_sqft, bedrooms, bathrooms, type, images, description, verified, verification_status, rejection_reason, is_draft, listing_type, created_at, assigned_agent_id, agent_submitted_at, is_live, published_at, expiry_date, is_featured, featured_until, is_sold, has_price_drop_ribbon, previous_price",
+      )
       .eq("submitted_by", uid)
       .order("created_at", { ascending: false });
 
@@ -154,7 +193,9 @@ export default function SellerDashboard() {
         .from("agents")
         .select("id, user_id, name, phone, email, photo_url, agency_name, experience_years, avg_rating")
         .in("id", agentIds);
-      (agents || []).forEach((a: any) => { agentMap[a.id] = a; });
+      (agents || []).forEach((a: any) => {
+        agentMap[a.id] = a;
+      });
     }
     // Fetch any agent_tasks scheduled for these properties
     const propIds = props.map((p) => p.id);
@@ -168,21 +209,31 @@ export default function SellerDashboard() {
       (tasks || []).forEach((t: any) => {
         if (!t?.property_id) return;
         const next = {
-          scheduled_visit_at: typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
+          scheduled_visit_at:
+            typeof t?.metadata?.scheduled_visit_at === "string" ? t.metadata.scheduled_visit_at : null,
           task_status: t?.status || null,
         };
         const existing = taskMap[t.property_id];
-        if (!existing || getTaskPriority(t) > getTaskPriority({ status: existing.task_status, metadata: { scheduled_visit_at: existing.scheduled_visit_at } })) {
+        if (
+          !existing ||
+          getTaskPriority(t) >
+            getTaskPriority({
+              status: existing.task_status,
+              metadata: { scheduled_visit_at: existing.scheduled_visit_at },
+            })
+        ) {
           taskMap[t.property_id] = next;
         }
       });
     }
-    setProperties(props.map((p) => ({
-      ...p,
-      assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
-      scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
-      task_status: taskMap[p.id]?.task_status || null,
-    })));
+    setProperties(
+      props.map((p) => ({
+        ...p,
+        assigned_agent: p.assigned_agent_id ? agentMap[p.assigned_agent_id] : null,
+        scheduled_visit_at: taskMap[p.id]?.scheduled_visit_at || null,
+        task_status: taskMap[p.id]?.task_status || null,
+      })),
+    );
   };
 
   const propertiesWithScheduledVisits = useMemo(
@@ -196,7 +247,8 @@ export default function SellerDashboard() {
     navigate("/");
   };
 
-  const formatPrice = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  const formatPrice = (n: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
   const openEdit = (p: Property) => {
     setEditTarget(p);
@@ -218,7 +270,10 @@ export default function SellerDashboard() {
       return;
     }
     setResubmitting(true);
-    const newImages = editForm.images.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    const newImages = editForm.images
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const { error } = await supabase
       .from("properties")
@@ -253,7 +308,7 @@ export default function SellerDashboard() {
           title: "Property resubmitted for review",
           message: `Seller resubmitted "${editForm.title.trim()}" after edits.`,
           link: `/admin`,
-        }))
+        })),
       );
     }
 
@@ -264,7 +319,6 @@ export default function SellerDashboard() {
   };
 
   // Anything that is not approved+live, rejected, expired, or a draft is treated as "pending review"
-  // (covers verification_status: pending, agent_assigned, agent_verified_pending, under_review, etc.)
   const isPending = (p: Property) =>
     !p.is_draft &&
     p.verification_status !== "rejected" &&
@@ -274,10 +328,11 @@ export default function SellerDashboard() {
   const counts = {
     all: properties.length,
     pending: properties.filter(isPending).length,
-    approved: properties.filter(p => p.verification_status === "approved" && p.is_live === true).length,
-    rejected: properties.filter(p => p.verification_status === "rejected").length,
-    draft: properties.filter(p => p.is_draft).length,
-    expired: properties.filter(p => p.verification_status === "expired").length,
+    approved: properties.filter((p) => p.verification_status === "approved" && p.is_live === true && !p.is_sold).length,
+    rejected: properties.filter((p) => p.verification_status === "rejected").length,
+    draft: properties.filter((p) => p.is_draft).length,
+    expired: properties.filter((p) => p.verification_status === "expired").length,
+    sold: properties.filter((p) => p.is_sold === true).length,
   };
 
   const handleRenew = async (propertyId: string, title: string) => {
@@ -293,17 +348,20 @@ export default function SellerDashboard() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500" />
+      </div>
+    );
   }
 
   const PropertyTimeline = ({ p }: { p: Property }) => {
     const status = p.verification_status || "pending";
     const isApproved = status === "approved";
     const isRejected = status === "rejected";
-    const isAgentVerified = status === "agent_verified_pending" || status === "approved" || status === "rejected" || !!p.agent_submitted_at;
+    const isAgentVerified =
+      status === "agent_verified_pending" || status === "approved" || status === "rejected" || !!p.agent_submitted_at;
     const hasAgent = !!p.assigned_agent_id || isAgentVerified;
-    // "Submitted" is always done once the row exists.
-    // "Under Review" = admin/system has the listing in pipeline (i.e. not draft) — true for any non-draft row.
     const isUnderReview = !p.is_draft;
     const isFinalRejected = isRejected;
 
@@ -358,7 +416,9 @@ export default function SellerDashboard() {
                   <span className="text-[9px] font-bold">{i + 1}</span>
                 )}
               </div>
-              <span className={`text-[9px] mt-1 leading-tight ${s.done ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+              <span
+                className={`text-[9px] mt-1 leading-tight ${s.done ? "text-foreground font-medium" : "text-muted-foreground"}`}
+              >
                 {s.label}
               </span>
             </div>
@@ -379,11 +439,22 @@ export default function SellerDashboard() {
       : null;
 
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} className="h-full">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -4 }}
+        className="h-full"
+      >
         <Card className="overflow-hidden border-2 hover:border-emerald-500/40 hover:shadow-xl transition-all group h-full flex flex-col">
           <div className="relative h-44 overflow-hidden">
             {img ? (
-              <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
+              <img
+                src={img}
+                alt={p.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                 <Home className="h-8 w-8 text-muted-foreground/60 mb-1" />
@@ -392,11 +463,12 @@ export default function SellerDashboard() {
               </div>
             )}
             {img && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />}
-            <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1`}>
-              <StatusIcon className="h-3 w-3" />{meta.label}
+            <Badge className={`absolute top-3 left-3 ${meta.color} text-white border-0 gap-1 z-10`}>
+              <StatusIcon className="h-3 w-3" />
+              {meta.label}
             </Badge>
             {p.is_live && p.verification_status === "approved" && (
-              <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg">
+              <Badge className="absolute top-12 left-3 bg-emerald-600 text-white border-0 gap-1 shadow-lg z-10">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
@@ -405,33 +477,37 @@ export default function SellerDashboard() {
               </Badge>
             )}
             {p.listing_type && (
-              <Badge variant="secondary" className="absolute top-3 right-3 bg-background/90">
+              <Badge variant="secondary" className="absolute top-3 right-3 bg-background/90 z-10">
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
               </Badge>
             )}
             {p.is_sold && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none">
-                <Badge className="bg-emerald-500 text-white text-lg px-4 py-1 border-0 rotate-[-8deg] shadow-2xl">SOLD</Badge>
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none z-20">
+                <Badge className="bg-emerald-500 text-white text-lg px-4 py-1 border-0 rotate-[-8deg] shadow-2xl">
+                  SOLD
+                </Badge>
               </div>
             )}
             {p.has_price_drop_ribbon && !p.is_sold && (
-              <Badge className="absolute top-12 right-3 bg-orange-500 text-white border-0 gap-1 shadow-lg">
+              <Badge className="absolute top-12 right-3 bg-orange-500 text-white border-0 gap-1 shadow-lg z-10">
                 Price Reduced
               </Badge>
             )}
             {img && (
-              <div className="absolute bottom-3 left-3 right-3">
+              <div className="absolute bottom-3 left-3 right-3 z-10">
                 <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
                 <p className="text-white/80 text-xs flex items-center gap-1 mt-0.5">
-                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                  <MapPin className="h-3 w-3" />
+                  {p.locality}, {p.city}
                 </p>
               </div>
             )}
             {!img && (
-              <div className="absolute bottom-3 left-3 right-3 bg-background/95 backdrop-blur rounded-md p-2 border">
+              <div className="absolute bottom-3 left-3 right-3 bg-background/95 backdrop-blur rounded-md p-2 border z-10">
                 <h3 className="font-semibold line-clamp-1 text-sm">{p.title}</h3>
                 <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
-                  <MapPin className="h-3 w-3" />{p.locality}, {p.city}
+                  <MapPin className="h-3 w-3" />
+                  {p.locality}, {p.city}
                 </p>
               </div>
             )}
@@ -442,19 +518,38 @@ export default function SellerDashboard() {
               <span className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              {p.bedrooms != null && <span className="flex items-center gap-1"><Bed className="h-3 w-3" />{p.bedrooms} BHK</span>}
-              {p.bathrooms != null && <span className="flex items-center gap-1"><Bath className="h-3 w-3" />{p.bathrooms}</span>}
-              {p.area_sqft != null && <span className="flex items-center gap-1"><Maximize2 className="h-3 w-3" />{p.area_sqft} sqft</span>}
+              {p.bedrooms != null && (
+                <span className="flex items-center gap-1">
+                  <Bed className="h-3 w-3" />
+                  {p.bedrooms} BHK
+                </span>
+              )}
+              {p.bathrooms != null && (
+                <span className="flex items-center gap-1">
+                  <Bath className="h-3 w-3" />
+                  {p.bathrooms}
+                </span>
+              )}
+              {p.area_sqft != null && (
+                <span className="flex items-center gap-1">
+                  <Maximize2 className="h-3 w-3" />
+                  {p.area_sqft} sqft
+                </span>
+              )}
             </div>
             {scheduledVisitLabel && (
               <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
                 <div className="flex items-start gap-2">
                   <CalendarDays className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400">Agent Visit Scheduled</p>
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400">
+                      Agent Visit Scheduled
+                    </p>
                     <p className="text-sm font-semibold text-foreground mt-0.5">{scheduledVisitLabel}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {p.task_status === "completed" ? "Visit completed by agent." : "Your assigned agent has scheduled the property visit."}
+                      {p.task_status === "completed"
+                        ? "Visit completed by agent."
+                        : "Your assigned agent has scheduled the property visit."}
                     </p>
                   </div>
                 </div>
@@ -465,7 +560,10 @@ export default function SellerDashboard() {
               <div className="p-2 rounded-md bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 space-y-2">
                 {p.rejection_reason && (
                   <div>
-                    <p className="font-semibold flex items-center gap-1"><AlertCircle className="h-3 w-3" />Reason</p>
+                    <p className="font-semibold flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Reason
+                    </p>
                     <p className="mt-0.5">{p.rejection_reason}</p>
                   </div>
                 )}
@@ -474,7 +572,8 @@ export default function SellerDashboard() {
                   className="w-full h-7 text-[11px] bg-rose-500 hover:bg-rose-600 text-white"
                   onClick={() => openEdit(p)}
                 >
-                  <RefreshCw className="h-3 w-3 mr-1" />Edit & Resubmit
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Edit & Resubmit
                 </Button>
               </div>
             )}
@@ -485,7 +584,13 @@ export default function SellerDashboard() {
                 </p>
                 <div className="flex items-center gap-2">
                   {p.assigned_agent.photo_url ? (
-                    <img src={p.assigned_agent.photo_url} alt={p.assigned_agent.name} className="h-8 w-8 rounded-full object-cover"  loading="lazy" decoding="async" />
+                    <img
+                      src={p.assigned_agent.photo_url}
+                      alt={p.assigned_agent.name}
+                      className="h-8 w-8 rounded-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-600">
                       {p.assigned_agent.name.charAt(0)}
@@ -505,7 +610,8 @@ export default function SellerDashboard() {
                     onClick={() => setChatProperty(p)}
                     disabled={!p.assigned_agent?.user_id}
                   >
-                    <MessageSquare className="h-3 w-3 mr-1" />Chat
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    Chat
                   </Button>
                   <a href={`tel:${p.assigned_agent.phone}`}>
                     <Button size="sm" variant="outline" className="h-7 text-[11px] px-2">
@@ -539,17 +645,29 @@ export default function SellerDashboard() {
             )}
             <div className="flex gap-2 pt-1 flex-wrap mt-auto">
               <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => setViewTarget(p)}>
-                <Eye className="h-3 w-3 mr-1" />View Details
+                <Eye className="h-3 w-3 mr-1" />
+                View Details
               </Button>
               {(status === "rejected" || status === "draft") && (
-                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate(`/sell-property?edit=${p.id}`)}>
-                  <Edit className="h-3 w-3 mr-1" />{status === "draft" ? "Continue" : "Edit & Resubmit"}
+                <Button
+                  size="sm"
+                  className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white"
+                  onClick={() => navigate(`/sell-property?edit=${p.id}`)}
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  {status === "draft" ? "Continue" : "Edit & Resubmit"}
                 </Button>
               )}
               {status === "approved" && !p.is_sold && (
                 <>
-                  <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" onClick={() => window.open(`/property/${p.id}`, "_blank")}>
-                    <ArrowUpRight className="h-3 w-3 mr-1" />View Live
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 min-w-[120px]"
+                    onClick={() => window.open(`/property/${p.id}`, "_blank")}
+                  >
+                    <ArrowUpRight className="h-3 w-3 mr-1" />
+                    View Live
                   </Button>
                   <MarkAsSoldButton propertyId={p.id} onDone={() => fetchProperties(user!.id)} />
                   <PriceDropDialog propertyId={p.id} currentPrice={p.price} onDone={() => fetchProperties(user!.id)} />
@@ -558,12 +676,23 @@ export default function SellerDashboard() {
                       <Sparkles className="h-3 w-3" /> Featured
                     </Badge>
                   ) : (
-                    <Suspense fallback={<Button size="sm" className="flex-1 min-w-[120px]" disabled>Boost</Button>}>
+                    <Suspense
+                      fallback={
+                        <Button size="sm" className="flex-1 min-w-[120px]" disabled>
+                          Boost
+                        </Button>
+                      }
+                    >
                       <BoostListingDialog
                         propertyId={p.id}
-                        onBoosted={() => { void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id)); }}
+                        onBoosted={() => {
+                          void supabase.auth.getUser().then(({ data }) => data.user && fetchProperties(data.user.id));
+                        }}
                         trigger={
-                          <Button size="sm" className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                          <Button
+                            size="sm"
+                            className="flex-1 min-w-[120px] gap-1 bg-amber-500 hover:bg-amber-600 text-white"
+                          >
                             <Sparkles className="h-3 w-3" /> Boost
                           </Button>
                         }
@@ -574,12 +703,18 @@ export default function SellerDashboard() {
               )}
               {status === "pending" && (
                 <Button size="sm" variant="outline" className="flex-1 min-w-[120px]" disabled>
-                  <Clock className="h-3 w-3 mr-1" />Awaiting Review
+                  <Clock className="h-3 w-3 mr-1" />
+                  Awaiting Review
                 </Button>
               )}
               {status === "expired" && (
-                <Button size="sm" className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => handleRenew(p.id, p.title)}>
-                  <RefreshCw className="h-3 w-3 mr-1" />Renew Listing
+                <Button
+                  size="sm"
+                  className="flex-1 min-w-[120px] bg-emerald-500 hover:bg-emerald-600 text-white"
+                  onClick={() => handleRenew(p.id, p.title)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Renew Listing
                 </Button>
               )}
             </div>
@@ -591,11 +726,13 @@ export default function SellerDashboard() {
 
   const filterProperties = (s: string) => {
     if (s === "all") return properties;
-    if (s === "approved") return properties.filter(p => p.verification_status === "approved" && p.is_live === true);
+    if (s === "approved")
+      return properties.filter((p) => p.verification_status === "approved" && p.is_live === true && !p.is_sold);
     if (s === "pending") return properties.filter(isPending);
-    if (s === "rejected") return properties.filter(p => p.verification_status === "rejected");
-    if (s === "draft") return properties.filter(p => p.is_draft);
-    if (s === "expired") return properties.filter(p => p.verification_status === "expired");
+    if (s === "rejected") return properties.filter((p) => p.verification_status === "rejected");
+    if (s === "draft") return properties.filter((p) => p.is_draft);
+    if (s === "expired") return properties.filter((p) => p.verification_status === "expired");
+    if (s === "sold") return properties.filter((p) => p.is_sold === true);
     return properties;
   };
 
@@ -613,42 +750,101 @@ export default function SellerDashboard() {
           <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
         </div>
         <div className="flex gap-2 items-center">
-          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30">
-            <Plus className="h-4 w-4 mr-1" />Sell Your Property
+          <Button
+            onClick={triggerSellFlow}
+            disabled={quotaChecking}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Sell Your Property
           </Button>
           {user?.id && <NotificationCenter userId={user.id} />}
-          <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}><RefreshCw className="h-4 w-4" /></Button>
-          <Button variant="outline" size="icon" onClick={handleSignOut}><LogOut className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
-        {/* Seller Hub upgrades — wallet, plan, KYC */}
+        {/* Seller Hub upgrades — wallet, plan, KYC - Fixed equal height */}
         {user?.id && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <WalletBalance userId={user.id} />
-            <SubscriptionManager userId={user.id} />
-            <KYCVerification userId={user.id} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            <div className="h-full">
+              <WalletBalance userId={user.id} />
+            </div>
+            <div className="h-full">
+              <SubscriptionManager userId={user.id} />
+            </div>
+            <div className="h-full">
+              <KYCVerification userId={user.id} />
+            </div>
           </div>
         )}
-        {/* Status overview cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+
+        {/* Status overview cards - Fixed contrast */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {[
-            { label: "Total", value: counts.all, icon: Home, color: "from-emerald-500/20 to-emerald-500/5", iconColor: "text-emerald-500" },
-            { label: "Live", value: counts.approved, icon: CheckCircle2, color: "from-green-500/20 to-green-500/5", iconColor: "text-green-500" },
-            { label: "Pending", value: counts.pending, icon: Clock, color: "from-amber-500/20 to-amber-500/5", iconColor: "text-amber-500" },
-            { label: "Rejected", value: counts.rejected, icon: XCircle, color: "from-rose-500/20 to-rose-500/5", iconColor: "text-rose-500" },
-            { label: "Drafts", value: counts.draft, icon: Edit, color: "from-slate-500/20 to-slate-500/5", iconColor: "text-slate-500" },
+            {
+              label: "Total",
+              value: counts.all,
+              icon: Home,
+              color: "from-emerald-500/20 to-emerald-500/5",
+              iconColor: "text-emerald-500",
+            },
+            {
+              label: "Live",
+              value: counts.approved,
+              icon: CheckCircle2,
+              color: "from-green-500/20 to-green-500/5",
+              iconColor: "text-green-500",
+            },
+            {
+              label: "Pending",
+              value: counts.pending,
+              icon: Clock,
+              color: "from-amber-500/20 to-amber-500/5",
+              iconColor: "text-amber-500",
+            },
+            {
+              label: "Rejected",
+              value: counts.rejected,
+              icon: XCircle,
+              color: "from-rose-500/20 to-rose-500/5",
+              iconColor: "text-rose-500",
+            },
+            {
+              label: "Drafts",
+              value: counts.draft,
+              icon: Edit,
+              color: "from-slate-500/20 to-slate-500/5",
+              iconColor: "text-slate-500",
+            },
+            {
+              label: "Sold",
+              value: counts.sold,
+              icon: CheckCircle2,
+              color: "from-blue-500/20 to-blue-500/5",
+              iconColor: "text-blue-500",
+            },
           ].map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className={`bg-gradient-to-br ${s.color} border-2 hover:shadow-lg transition-all`}>
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="h-full"
+            >
+              <Card className={`bg-gradient-to-br ${s.color} border-2 hover:shadow-lg transition-all h-full`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
-                      <p className="text-2xl font-bold mt-1">{s.value}</p>
+                      <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">{s.label}</p>
+                      <p className="text-3xl font-bold mt-1 text-foreground">{s.value}</p>
                     </div>
-                    <s.icon className={`h-8 w-8 ${s.iconColor}`} />
+                    <s.icon className={`h-8 w-8 ${s.iconColor} opacity-80`} />
                   </div>
                 </CardContent>
               </Card>
@@ -658,10 +854,15 @@ export default function SellerDashboard() {
 
         {/* Quick action cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg" onClick={triggerSellFlow}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
+            <Card
+              className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg h-full"
+              onClick={triggerSellFlow}
+            >
               <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-emerald-500/20"><Plus className="h-6 w-6 text-emerald-500" /></div>
+                <div className="p-3 rounded-xl bg-emerald-500/20">
+                  <Plus className="h-6 w-6 text-emerald-500" />
+                </div>
                 <div>
                   <h3 className="font-semibold">Sell Your Property</h3>
                   <p className="text-xs text-muted-foreground">List your home for sale</p>
@@ -669,10 +870,12 @@ export default function SellerDashboard() {
               </CardContent>
             </Card>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 hover:shadow-lg" onClick={() => navigate("/valuation")}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
+            <Card className="cursor-pointer border-2 hover:shadow-lg h-full" onClick={() => navigate("/valuation")}>
               <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-blue-500/15"><IndianRupee className="h-6 w-6 text-blue-500" /></div>
+                <div className="p-3 rounded-xl bg-blue-500/15">
+                  <IndianRupee className="h-6 w-6 text-blue-500" />
+                </div>
                 <div>
                   <h3 className="font-semibold">Get Valuation</h3>
                   <p className="text-xs text-muted-foreground">AI price estimate</p>
@@ -680,10 +883,12 @@ export default function SellerDashboard() {
               </CardContent>
             </Card>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 hover:shadow-lg" onClick={() => navigate("/agents")}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
+            <Card className="cursor-pointer border-2 hover:shadow-lg h-full" onClick={() => navigate("/agents")}>
               <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-purple-500/15"><MessageSquare className="h-6 w-6 text-purple-500" /></div>
+                <div className="p-3 rounded-xl bg-purple-500/15">
+                  <MessageSquare className="h-6 w-6 text-purple-500" />
+                </div>
                 <div>
                   <h3 className="font-semibold">Find Agent</h3>
                   <p className="text-xs text-muted-foreground">Get expert help</p>
@@ -691,10 +896,15 @@ export default function SellerDashboard() {
               </CardContent>
             </Card>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 hover:shadow-lg" onClick={() => navigate("/dashboard/seller/analytics")}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
+            <Card
+              className="cursor-pointer border-2 hover:shadow-lg h-full"
+              onClick={() => navigate("/dashboard/seller/analytics")}
+            >
               <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-orange-500/15"><BarChart className="h-6 w-6 text-orange-500" /></div>
+                <div className="p-3 rounded-xl bg-orange-500/15">
+                  <BarChart className="h-6 w-6 text-orange-500" />
+                </div>
                 <div>
                   <h3 className="font-semibold">Analytics</h3>
                   <p className="text-xs text-muted-foreground">Track performance</p>
@@ -711,17 +921,27 @@ export default function SellerDashboard() {
                 <Clock className="h-5 w-5 text-blue-500" />
                 Scheduled Visits
               </CardTitle>
-              <CardDescription>Your assigned agent visit times are shown here as soon as they are scheduled.</CardDescription>
+              <CardDescription>
+                Your assigned agent visit times are shown here as soon as they are scheduled.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {propertiesWithScheduledVisits.slice(0, 3).map((p) => (
-                <div key={p.id} className="flex flex-col gap-1 rounded-lg border border-blue-500/20 bg-background/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div
+                  key={p.id}
+                  className="flex flex-col gap-1 rounded-lg border border-blue-500/20 bg-background/80 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
                   <div>
                     <p className="font-medium">{p.title}</p>
-                    <p className="text-xs text-muted-foreground">{p.locality}, {p.city}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.locality}, {p.city}
+                    </p>
                   </div>
                   <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    {new Date(p.scheduled_visit_at as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                    {new Date(p.scheduled_visit_at as string).toLocaleString("en-IN", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </div>
                 </div>
               ))}
@@ -747,15 +967,53 @@ export default function SellerDashboard() {
                 <TabsTrigger value="approved">Live ({counts.approved})</TabsTrigger>
                 <TabsTrigger value="rejected">Rejected ({counts.rejected})</TabsTrigger>
                 <TabsTrigger value="draft">Drafts ({counts.draft})</TabsTrigger>
+                <TabsTrigger value="sold">Sold ({counts.sold})</TabsTrigger>
               </TabsList>
-              {(["all", "pending", "approved", "rejected", "draft"] as const).map((s) => {
+              {(["all", "pending", "approved", "rejected", "draft", "sold"] as const).map((s) => {
                 const list = filterProperties(s);
-                const emptyMeta: Record<string, { icon: any; iconColor: string; title: string; subtext: string; cta?: string }> = {
-                  all: { icon: Home, iconColor: "text-emerald-500", title: "No properties yet", subtext: "Start by listing your first property", cta: "Sell Your Property" },
-                  pending: { icon: Clock, iconColor: "text-amber-500", title: "No properties pending approval", subtext: "Once you submit a property, it will appear here for verification", cta: "Sell Your Property" },
-                  approved: { icon: CheckCircle2, iconColor: "text-emerald-500", title: "No live properties", subtext: "Your approved properties will appear here" },
-                  rejected: { icon: XCircle, iconColor: "text-rose-500", title: "No rejected properties", subtext: "All your listings are approved or pending" },
-                  draft: { icon: Edit, iconColor: "text-slate-500", title: "No drafts available", subtext: "Start creating a property and save it as draft", cta: "Sell Your Property" },
+                const emptyMeta: Record<
+                  string,
+                  { icon: any; iconColor: string; title: string; subtext: string; cta?: string }
+                > = {
+                  all: {
+                    icon: Home,
+                    iconColor: "text-emerald-500",
+                    title: "No properties yet",
+                    subtext: "Start by listing your first property",
+                    cta: "Sell Your Property",
+                  },
+                  pending: {
+                    icon: Clock,
+                    iconColor: "text-amber-500",
+                    title: "No properties pending approval",
+                    subtext: "Once you submit a property, it will appear here for verification",
+                    cta: "Sell Your Property",
+                  },
+                  approved: {
+                    icon: CheckCircle2,
+                    iconColor: "text-emerald-500",
+                    title: "No live properties",
+                    subtext: "Your approved properties will appear here",
+                  },
+                  rejected: {
+                    icon: XCircle,
+                    iconColor: "text-rose-500",
+                    title: "No rejected properties",
+                    subtext: "All your listings are approved or pending",
+                  },
+                  draft: {
+                    icon: Edit,
+                    iconColor: "text-slate-500",
+                    title: "No drafts available",
+                    subtext: "Start creating a property and save it as draft",
+                    cta: "Sell Your Property",
+                  },
+                  sold: {
+                    icon: CheckCircle2,
+                    iconColor: "text-blue-500",
+                    title: "No sold properties",
+                    subtext: "When you sell a property, it will appear here",
+                  },
                 };
                 const meta = emptyMeta[s];
                 const EmptyIcon = meta.icon;
@@ -767,14 +1025,21 @@ export default function SellerDashboard() {
                         <p className="font-semibold mb-1">{meta.title}</p>
                         <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{meta.subtext}</p>
                         {meta.cta && (
-                          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                            <Plus className="h-4 w-4 mr-1" />{meta.cta}
+                          <Button
+                            onClick={triggerSellFlow}
+                            disabled={quotaChecking}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            {meta.cta}
                           </Button>
                         )}
                       </div>
                     ) : (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {list.map((p) => <PropertyCard key={p.id} p={p} />)}
+                        {list.map((p) => (
+                          <PropertyCard key={p.id} p={p} />
+                        ))}
                       </div>
                     )}
                   </TabsContent>
@@ -790,7 +1055,9 @@ export default function SellerDashboard() {
             <AIRecommendations
               propertyCount={properties.length}
               topCity={properties[0]?.city || null}
-              avgPrice={properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined}
+              avgPrice={
+                properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined
+              }
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <VisitManagement sellerId={user.id} />
@@ -827,7 +1094,8 @@ export default function SellerDashboard() {
           <DialogHeader>
             <DialogTitle>Edit & Resubmit Property</DialogTitle>
             <DialogDescription>
-              Address the admin's feedback and update your details. Once resubmitted, your property will return to "Pending Approval".
+              Address the admin's feedback and update your details. Once resubmitted, your property will return to
+              "Pending Approval".
             </DialogDescription>
           </DialogHeader>
           {editTarget?.rejection_reason && (
@@ -839,30 +1107,53 @@ export default function SellerDashboard() {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium">Title</label>
-              <Input value={editForm.title} onChange={(e) => setEditForm(f => ({ ...f, title: e.target.value }))} />
+              <Input value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium">Price (₹)</label>
-                <Input type="number" value={editForm.price} onChange={(e) => setEditForm(f => ({ ...f, price: e.target.value }))} />
+                <Input
+                  type="number"
+                  value={editForm.price}
+                  onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+                />
               </div>
               <div>
                 <label className="text-xs font-medium">Area (sqft)</label>
-                <Input type="number" value={editForm.area_sqft} onChange={(e) => setEditForm(f => ({ ...f, area_sqft: e.target.value }))} />
+                <Input
+                  type="number"
+                  value={editForm.area_sqft}
+                  onChange={(e) => setEditForm((f) => ({ ...f, area_sqft: e.target.value }))}
+                />
               </div>
             </div>
             <div>
               <label className="text-xs font-medium">Description</label>
-              <Textarea rows={3} value={editForm.description} onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))} />
+              <Textarea
+                rows={3}
+                value={editForm.description}
+                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+              />
             </div>
             <div>
               <label className="text-xs font-medium">Image URLs (one per line)</label>
-              <Textarea rows={3} value={editForm.images} onChange={(e) => setEditForm(f => ({ ...f, images: e.target.value }))} placeholder="https://...jpg" />
+              <Textarea
+                rows={3}
+                value={editForm.images}
+                onChange={(e) => setEditForm((f) => ({ ...f, images: e.target.value }))}
+                placeholder="https://...jpg"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" disabled={resubmitting} onClick={() => setEditTarget(null)}>Cancel</Button>
-            <Button onClick={submitResubmit} disabled={resubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button variant="outline" disabled={resubmitting} onClick={() => setEditTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitResubmit}
+              disabled={resubmitting}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
               <RefreshCw className="h-4 w-4 mr-1" />
               {resubmitting ? "Resubmitting…" : "Resubmit for Review"}
             </Button>
@@ -870,59 +1161,74 @@ export default function SellerDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* View Details dialog — only filled fields, image or "no image" */}
+      {/* View Details dialog */}
       <Dialog open={!!viewTarget} onOpenChange={(o) => !o && setViewTarget(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewTarget?.title || "Property Details"}</DialogTitle>
-            <DialogDescription>
-              Showing only the details you provided.
-            </DialogDescription>
+            <DialogDescription>Showing only the details you provided.</DialogDescription>
           </DialogHeader>
-          {viewTarget && (() => {
-            const imgs = Array.isArray(viewTarget.images) ? viewTarget.images.filter(Boolean) : [];
-            const fields = ([
-              ["Type", viewTarget.type],
-              ["For", viewTarget.listing_type ? (viewTarget.listing_type === "rent" ? "Rent" : "Sale") : null],
-              ["City", viewTarget.city],
-              ["Locality", viewTarget.locality],
-              ["Price", viewTarget.price ? formatPrice(viewTarget.price) : null],
-              ["Area", viewTarget.area_sqft ? `${viewTarget.area_sqft} sqft` : null],
-              ["BHK", viewTarget.bedrooms],
-              ["Bathrooms", viewTarget.bathrooms],
-              ["Description", viewTarget.description],
-              ["Status", STATUS_META[viewTarget.is_draft ? "draft" : (viewTarget.verification_status || "pending")]?.label],
-              ["Submitted", new Date(viewTarget.created_at).toLocaleString()],
-            ] as Array<[string, any]>).filter(([, v]) => v !== null && v !== undefined && v !== "");
+          {viewTarget &&
+            (() => {
+              const imgs = Array.isArray(viewTarget.images) ? viewTarget.images.filter(Boolean) : [];
+              const fields = (
+                [
+                  ["Type", viewTarget.type],
+                  ["For", viewTarget.listing_type ? (viewTarget.listing_type === "rent" ? "Rent" : "Sale") : null],
+                  ["City", viewTarget.city],
+                  ["Locality", viewTarget.locality],
+                  ["Price", viewTarget.price ? formatPrice(viewTarget.price) : null],
+                  ["Area", viewTarget.area_sqft ? `${viewTarget.area_sqft} sqft` : null],
+                  ["BHK", viewTarget.bedrooms],
+                  ["Bathrooms", viewTarget.bathrooms],
+                  ["Description", viewTarget.description],
+                  [
+                    "Status",
+                    STATUS_META[viewTarget.is_draft ? "draft" : viewTarget.verification_status || "pending"]?.label,
+                  ],
+                  ["Submitted", new Date(viewTarget.created_at).toLocaleString()],
+                ] as Array<[string, any]>
+              ).filter(([, v]) => v !== null && v !== undefined && v !== "");
 
-            return (
-              <div className="space-y-4">
-                {imgs.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {imgs.map((u: string, i: number) => (
-                      <img key={i} src={u} alt="" className="h-32 w-full object-cover rounded border"  loading="lazy" decoding="async" />
+              return (
+                <div className="space-y-4">
+                  {imgs.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {imgs.map((u: string, i: number) => (
+                        <img
+                          key={i}
+                          src={u}
+                          alt=""
+                          className="h-32 w-full object-cover rounded border"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-40 rounded border-2 border-dashed flex flex-col items-center justify-center bg-muted/30">
+                      <Home className="h-10 w-10 text-muted-foreground/60 mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground">No image uploaded</p>
+                      <p className="text-xs text-muted-foreground/70">
+                        You haven't added any photos for this property.
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    {fields.map(([k, v]) => (
+                      <div key={k} className="border-b pb-1.5">
+                        <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">{k}</p>
+                        <p className="font-medium break-words">{String(v)}</p>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="h-40 rounded border-2 border-dashed flex flex-col items-center justify-center bg-muted/30">
-                    <Home className="h-10 w-10 text-muted-foreground/60 mb-2" />
-                    <p className="text-sm font-medium text-muted-foreground">No image uploaded</p>
-                    <p className="text-xs text-muted-foreground/70">You haven't added any photos for this property.</p>
-                  </div>
-                )}
-                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                  {fields.map(([k, v]) => (
-                    <div key={k} className="border-b pb-1.5">
-                      <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider">{k}</p>
-                      <p className="font-medium break-words">{String(v)}</p>
-                    </div>
-                  ))}
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setViewTarget(null)}>Close</Button>
+            <Button variant="outline" onClick={() => setViewTarget(null)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
