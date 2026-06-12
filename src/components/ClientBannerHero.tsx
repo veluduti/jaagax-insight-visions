@@ -42,7 +42,8 @@ const ClientBannerHero = ({
         position: "relative",
         width: "100%",
         height: "calc(100vh - 64px)",
-        minHeight: "650px",
+        minHeight: "620px",
+        maxHeight: "1020px",
         overflow: "hidden",
         fontFamily: "sans-serif",
       }}
@@ -79,7 +80,11 @@ const ClientBannerHero = ({
           zIndex: 30,
           background: "rgba(8,12,18,0.95)",
           backdropFilter: "blur(14px)",
-          padding: "14px 48px",
+          padding: "12px 48px",
+          height: "68px",
+          boxSizing: "border-box",
+          display: "flex",
+          alignItems: "center",
         }}
       >
         <div
@@ -150,12 +155,12 @@ const ClientBannerHero = ({
           top: 0,
           left: 0,
           right: 0,
-          /* leave 68px at bottom for stats bar */
+          /* leave 68px at bottom for stats bar — matches exact height */
           bottom: "68px",
           zIndex: 10,
           display: "flex",
           alignItems: "flex-start",
-          padding: "32px 0 0 0",
+          padding: "24px 0 0 0",
         }}
       >
         {/* ════════════ LEFT COLUMN ════════════ */}
