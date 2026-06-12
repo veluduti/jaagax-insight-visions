@@ -659,7 +659,7 @@ export default function SellerDashboard() {
         {/* Quick action cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Card className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg" onClick={() => navigate("/sell-property")}>
+            <Card className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg" onClick={triggerSellFlow}>
               <CardContent className="p-5 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-emerald-500/20"><Plus className="h-6 w-6 text-emerald-500" /></div>
                 <div>
