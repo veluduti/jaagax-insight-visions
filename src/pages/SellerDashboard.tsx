@@ -767,7 +767,7 @@ export default function SellerDashboard() {
                         <p className="font-semibold mb-1">{meta.title}</p>
                         <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{meta.subtext}</p>
                         {meta.cta && (
-                          <Button onClick={() => navigate("/sell-property")} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                          <Button onClick={triggerSellFlow} disabled={quotaChecking} className="bg-emerald-500 hover:bg-emerald-600 text-white">
                             <Plus className="h-4 w-4 mr-1" />{meta.cta}
                           </Button>
                         )}
