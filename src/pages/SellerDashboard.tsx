@@ -407,6 +407,16 @@ export default function SellerDashboard() {
                 {p.listing_type === "rent" ? "For Rent" : "For Sale"}
               </Badge>
             )}
+            {p.is_sold && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none">
+                <Badge className="bg-emerald-500 text-white text-lg px-4 py-1 border-0 rotate-[-8deg] shadow-2xl">SOLD</Badge>
+              </div>
+            )}
+            {p.has_price_drop_ribbon && !p.is_sold && (
+              <Badge className="absolute top-12 right-3 bg-orange-500 text-white border-0 gap-1 shadow-lg">
+                Price Reduced
+              </Badge>
+            )}
             {img && (
               <div className="absolute bottom-3 left-3 right-3">
                 <h3 className="text-white font-semibold line-clamp-1 drop-shadow">{p.title}</h3>
