@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
 import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
+import { usePendingPayment } from "@/hooks/usePendingPayment";
 import {
   Sparkles,
   ChevronLeft,
@@ -1041,6 +1042,10 @@ export default function SellProperty() {
   // same resolved field (e.g. after editing a previously answered question).
   const lastAskedFieldIdRef = useRef<string | null>(null);
   const fetchNextCallCountRef = useRef<Record<string, number>>({});
+
+  // Add the pending payment hook
+  const { processPendingPayment, hasPending } = usePendingPayment();
+
   useEffect(() => {
     if (!field) return;
     const fid = canonId(field.id);
@@ -3103,8 +3108,6 @@ export default function SellProperty() {
       };
 
       // Safety net: only send columns that exist on the `properties` table.
-      // Any unknown keys (from AI extraction or future schema drift) are dropped
-      // here and still preserved inside `document_urls` / `property_details`.
       const PROPERTIES_COLUMNS = new Set([
         "submitted_by",
         "title",
@@ -3169,14 +3172,26 @@ export default function SellProperty() {
         if (PROPERTIES_COLUMNS.has(k)) cleanPayload[k] = payload[k];
       }
 
+      // ✅ STEP 1: Save property FIRST (no payment yet)
       const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
         .insert(cleanPayload)
         .select("id")
         .single();
       if (insErr) throw insErr;
 
-      // Save granular field key/values to property_details (one row per field)
       const propertyId = inserted?.id;
+
+      // ✅ STEP 2: Process payment if there's a pending payment (pay-per-post or subscription)
+      if (hasPending && propertyId) {
+        const paymentSuccess = await processPendingPayment(propertyId);
+        if (!paymentSuccess) {
+          // Property already deleted in the function if payment failed
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // ✅ STEP 3: Save granular field key/values to property_details (one row per field)
       if (propertyId) {
         const detailRows = Object.entries(editForm)
           .filter(([_, v]) => v !== null && v !== undefined && v !== "")
@@ -3199,6 +3214,12 @@ export default function SellProperty() {
         }
       }
 
+      // ✅ STEP 4: Update posting count (if free post was used)
+      if (!hasPending) {
+        // Free post was used - increment count
+        await supabase.rpc("increment_posting_count", { _user_id: user.id });
+      }
+
       if (isAgentMode && isTrustedAgent) {
         toast.success("Property submitted ✅", {
           description: "As a trusted agent, your listing goes directly to admin for approval.",
@@ -3211,7 +3232,9 @@ export default function SellProperty() {
         navigate("/dashboard/agent");
       } else {
         toast.success("Your property is submitted ✅", {
-          description: "We're assigning a verification agent now. You'll be notified shortly.",
+          description: hasPending
+            ? "Payment processed. We're assigning a verification agent now."
+            : "We're assigning a verification agent now. You'll be notified shortly.",
         });
         navigate("/dashboard/seller");
       }
@@ -4473,22 +4496,20 @@ export default function SellProperty() {
                                       }))
                                     }
                                     placeholder="Start typing — e.g. Whitefield, Bengaluru"
-                                   />
-                                 </div>
-                                 <div className="col-span-2">
-                                   <label className="text-xs text-muted-foreground mb-1 block">
-                                     Pin exact location on map
-                                   </label>
-                                   <GoogleMapPicker
-                                     lat={editForm.latitude ?? null}
-                                     lng={editForm.longitude ?? null}
-                                     onChange={(la, ln) =>
-                                       setEditForm((p) => ({ ...p, latitude: la, longitude: ln }))
-                                     }
-                                     label=""
-                                     height="280px"
-                                   />
-                                 </div>
+                                  />
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="text-xs text-muted-foreground mb-1 block">
+                                    Pin exact location on map
+                                  </label>
+                                  <GoogleMapPicker
+                                    lat={editForm.latitude ?? null}
+                                    lng={editForm.longitude ?? null}
+                                    onChange={(la, ln) => setEditForm((p) => ({ ...p, latitude: la, longitude: ln }))}
+                                    label=""
+                                    height="280px"
+                                  />
+                                </div>
                                 <div>
                                   <label className="text-xs text-muted-foreground mb-1 block">City</label>
                                   <Input
@@ -5176,7 +5197,13 @@ function Bubble({ msg }: { msg: ChatMsg }) {
   if (msg.kind === "image") {
     return (
       <div className={cn(base, "p-1.5")}>
-        <img src={(msg as any).url} alt="" className="rounded-xl max-h-64 object-cover" loading="lazy" decoding="async" />
+        <img
+          src={(msg as any).url}
+          alt=""
+          className="rounded-xl max-h-64 object-cover"
+          loading="lazy"
+          decoding="async"
+        />
         {(msg as any).caption && <div className="px-2 py-1 text-xs opacity-90">{(msg as any).caption}</div>}
       </div>
     );
