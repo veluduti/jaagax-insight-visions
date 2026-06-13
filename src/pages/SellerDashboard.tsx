@@ -1248,7 +1248,14 @@ export default function SellerDashboard() {
 
       {/* Transaction History Modal */}
       {user?.id && (
-        <RecentTransactions open={transactionsOpen} onOpenChange={setTransactionsOpen} userId={user.id} limit={50} />
+        <Dialog open={transactionsOpen} onOpenChange={setTransactionsOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Transaction History</DialogTitle>
+            </DialogHeader>
+            <RecentTransactions userId={user.id} limit={50} showHeader={false} />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
