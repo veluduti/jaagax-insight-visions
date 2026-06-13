@@ -30,6 +30,7 @@ import {
   Mail,
   CalendarDays,
   UserCheck,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -143,6 +144,7 @@ export default function SellerDashboard() {
   const [viewTarget, setViewTarget] = useState<Property | null>(null);
   const [editForm, setEditForm] = useState({ title: "", price: "", area_sqft: "", description: "", images: "" });
   const [resubmitting, setResubmitting] = useState(false);
+  const [transactionsOpen, setTransactionsOpen] = useState(false);
   const navigate = useNavigate();
   const { trigger: triggerSellFlow, dialog: postingQuotaDialog, loading: quotaChecking } = usePostingQuotaGate();
 
@@ -752,6 +754,15 @@ export default function SellerDashboard() {
         </div>
         <div className="flex gap-2 items-center">
           <Button
+            onClick={() => setTransactionsOpen(true)}
+            variant="outline"
+            size="icon"
+            className="relative"
+            title="Transaction History"
+          >
+            <History className="h-4 w-4" />
+          </Button>
+          <Button
             onClick={triggerSellFlow}
             disabled={quotaChecking}
             className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
@@ -782,13 +793,6 @@ export default function SellerDashboard() {
             <div className="flex flex-col h-full">
               <KYCVerification userId={user.id} />
             </div>
-          </div>
-        )}
-
-        {/* Recent Transactions - Full Width */}
-        {user?.id && (
-          <div className="grid grid-cols-1 gap-4">
-            <RecentTransactions userId={user.id} limit={5} showHeader={true} />
           </div>
         )}
 
@@ -1241,6 +1245,11 @@ export default function SellerDashboard() {
         </DialogContent>
       </Dialog>
       {postingQuotaDialog}
+
+      {/* Transaction History Modal */}
+      {user?.id && (
+        <RecentTransactions open={transactionsOpen} onOpenChange={setTransactionsOpen} userId={user.id} limit={50} />
+      )}
     </div>
   );
 }
