@@ -13,15 +13,25 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Plus, Sparkles, RefreshCw } from "lucide-react";
+import { Wallet, Plus, ArrowDownRight, ArrowUpRight, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+
+interface Tx {
+  id: string;
+  amount: number;
+  type: "credit" | "debit";
+  description: string | null;
+  status: string;
+  created_at: string;
+}
 
 const PRESETS = [500, 1000, 2000, 5000];
 
 export default function WalletBalance({ userId }: { userId: string }) {
   const [balance, setBalance] = useState(0);
   const [autoRecharge, setAutoRecharge] = useState(false);
+  const [txs, setTxs] = useState<Tx[]>([]);
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(500);
   const [loading, setLoading] = useState(false);
@@ -37,6 +47,13 @@ export default function WalletBalance({ userId }: { userId: string }) {
       setBalance(Number(w.balance) || 0);
       setAutoRecharge(!!w.auto_recharge);
     }
+    const { data: t } = await sb
+      .from("wallet_transactions")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setTxs((t || []) as Tx[]);
   };
 
   useEffect(() => {
@@ -92,7 +109,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
     setLoading(false);
     await load();
 
-    // Trigger refresh for subscription manager and transactions
+    // Trigger refresh for subscription manager
     window.dispatchEvent(new Event("walletUpdated"));
   };
 
@@ -103,6 +120,23 @@ export default function WalletBalance({ userId }: { userId: string }) {
     toast.success(`Auto-recharge ${v ? "enabled" : "disabled"}`, {
       description: v ? "We'll add ₹1,000 when balance drops below ₹500" : "You'll need to add money manually",
     });
+  };
+
+  // Format transaction amount with proper sign
+  const formatTxAmount = (tx: Tx) => {
+    const amount = Number(tx.amount).toLocaleString("en-IN");
+    return tx.type === "credit" ? `+₹${amount}` : `-₹${amount}`;
+  };
+
+  const getTransactionIcon = (tx: Tx) => {
+    if (tx.type === "credit") {
+      return <ArrowDownRight className="h-3 w-3 text-emerald-500 shrink-0" />;
+    }
+    return <ArrowUpRight className="h-3 w-3 text-rose-500 shrink-0" />;
+  };
+
+  const getTransactionColor = (tx: Tx) => {
+    return tx.type === "credit" ? "text-emerald-500" : "text-rose-500";
   };
 
   return (
@@ -170,6 +204,52 @@ export default function WalletBalance({ userId }: { userId: string }) {
               />
             </div>
           </div>
+
+          {/* Recent Transactions */}
+          {txs.length > 0 && (
+            <div className="mt-auto pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  Recent Transactions
+                </p>
+                <span className="text-[10px] text-muted-foreground">{txs.length} entries</span>
+              </div>
+              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                {txs.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {getTransactionIcon(tx)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">
+                          {tx.description || (tx.type === "credit" ? "Money Added" : "Payment Made")}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(tx.created_at).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <p className={`text-xs font-semibold ${getTransactionColor(tx)}`}>{formatTxAmount(tx)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {txs.length === 0 && (
+            <div className="mt-auto text-center py-4">
+              <p className="text-xs text-muted-foreground">No transactions yet</p>
+              <p className="text-[10px] text-muted-foreground/70 mt-1">Add money to see your activity</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
