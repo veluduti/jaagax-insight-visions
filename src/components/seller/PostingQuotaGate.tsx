@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,11 +33,14 @@ export function usePostingQuotaGate() {
   const [quota, setQuota] = useState<QuotaStatus | null>(null);
   const [askAgent, setAskAgent] = useState(false);
 
-  const navigateToSell = useCallback((extra: string = "") => {
-    setOpen(false);
-    setAskAgent(false);
-    navigate("/sell-property" + extra);
-  }, [navigate]);
+  const navigateToSell = useCallback(
+    (extra: string = "") => {
+      setOpen(false);
+      setAskAgent(false);
+      navigate("/sell-property" + extra);
+    },
+    [navigate],
+  );
 
   const trigger = useCallback(async () => {
     setLoading(true);
@@ -54,11 +62,7 @@ export function usePostingQuotaGate() {
         return;
       }
       // Exhausted — load wallet & open dialog
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("user_id", u.user.id)
-        .maybeSingle();
+      const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", u.user.id).maybeSingle();
       setWalletBalance(Number(wallet?.balance ?? 0));
       setOpen(true);
     } catch (e: any) {
@@ -79,16 +83,19 @@ export function usePostingQuotaGate() {
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Not authenticated");
-      // @ts-ignore - RPC
-      const { error } = await supabase.rpc("decrement_wallet_balance", {
-        _user_id: u.user.id,
-        _amount: POSTING_FEE,
-        _description: "Property posting fee",
-        _reference: "posting_fee",
-      });
-      if (error) throw error;
-      toast.success(`₹${POSTING_FEE} debited. Continue to list your property.`);
-      navigateToSell();
+
+      // Store payment intent instead of deducting immediately
+      sessionStorage.setItem(
+        "pending_payment",
+        JSON.stringify({
+          type: "pay_per_post",
+          amount: POSTING_FEE,
+          userId: u.user.id,
+        }),
+      );
+
+      toast.info("Payment will be deducted after you successfully submit your property.");
+      navigateToSell("?pendingPayment=true");
     } catch (e: any) {
       toast.error(e.message || "Payment failed");
     } finally {
@@ -101,23 +108,20 @@ export function usePostingQuotaGate() {
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Not authenticated");
-      // Deactivate prior active subs
-      await supabase
-        .from("seller_subscriptions")
-        .update({ is_active: false })
-        .eq("user_id", u.user.id)
-        .eq("is_active", true);
-      const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await supabase.from("seller_subscriptions").insert({
-        user_id: u.user.id,
-        plan_type: "premium",
-        is_active: true,
-        expires_at: expires,
-      });
-      if (error) throw error;
-      toast.success("Premium activated — unlimited posts for 30 days");
+
+      // Store subscription intent instead of activating immediately
+      sessionStorage.setItem(
+        "pending_subscription",
+        JSON.stringify({
+          type: "subscription",
+          amount: PREMIUM_FEE,
+          userId: u.user.id,
+        }),
+      );
+
+      toast.info("Subscription will be activated after you successfully submit your property.");
       setOpen(false);
-      setAskAgent(true);
+      navigateToSell("?pendingSubscription=true");
     } catch (e: any) {
       toast.error(e.message || "Subscription failed");
     } finally {
@@ -135,8 +139,8 @@ export function usePostingQuotaGate() {
               Free quota used
             </DialogTitle>
             <DialogDescription>
-              You've used your {quota?.free_limit ?? 1} free posting{(quota?.free_limit ?? 1) > 1 ? "s" : ""} this month.
-              Choose how to continue.
+              You've used your {quota?.free_limit ?? 1} free posting{(quota?.free_limit ?? 1) > 1 ? "s" : ""} this
+              month. Choose how to continue.
             </DialogDescription>
           </DialogHeader>
 
@@ -148,7 +152,8 @@ export function usePostingQuotaGate() {
                     <Wallet className="h-4 w-4" /> Pay from Wallet
                   </div>
                   <div className="text-sm flex items-center">
-                    Balance: <IndianRupee className="h-3 w-3 ml-1" />{walletBalance.toFixed(0)}
+                    Balance: <IndianRupee className="h-3 w-3 ml-1" />
+                    {walletBalance.toFixed(0)}
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">One-time charge of ₹{POSTING_FEE} for this listing.</p>
@@ -191,7 +196,9 @@ export function usePostingQuotaGate() {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy !== null}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy !== null}>
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -200,9 +207,7 @@ export function usePostingQuotaGate() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Switch to Agent profile?</DialogTitle>
-            <DialogDescription>
-              Agents get qualified leads and a public profile. Want to upgrade now?
-            </DialogDescription>
+            <DialogDescription>Agents get qualified leads and a public profile. Want to upgrade now?</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => navigateToSell()}>
