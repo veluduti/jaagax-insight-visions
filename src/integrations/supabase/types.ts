@@ -2805,6 +2805,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      increment_posting_count: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       increment_wallet_balance: {
         Args: {
           _amount: number
