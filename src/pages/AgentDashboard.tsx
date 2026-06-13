@@ -701,16 +701,16 @@ export default function AgentDashboard() {
         {/* ===== PHASE 1: KYC & Subscription Row ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AgentKYCVerification agentId={agentProfile.id} userId={user.id} />
-            <AgentSubscriptionManager agentId={agentProfile.id} userId={user.id} />
+            <AgentKYCVerification />
+            <AgentSubscriptionManager />
           </div>
         )}
 
         {/* ===== PHASE 1: Badge & Success Score Row ===== */}
         {agentProfile.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} salesCount={agentProfile.sales_count || 0} />
-            <AgentSuccessScore agentId={agentProfile.id} />
+            <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} />
+            <AgentSuccessScore />
           </div>
         )}
 
@@ -999,30 +999,27 @@ export default function AgentDashboard() {
                 </TabsList>
 
                 <TabsContent value="team">
-                  <AgentTeamManagement agentId={agentProfile.id} />
+                  <AgentTeamManagement />
                 </TabsContent>
 
                 <TabsContent value="referral">
-                  <AgentReferralProgram agentId={agentProfile.id} userId={user.id} />
+                  <AgentReferralProgram />
                 </TabsContent>
 
                 <TabsContent value="promotion">
-                  <AgentPremiumPromotion agentId={agentProfile.id} userId={user.id} properties={properties} />
+                  <AgentPremiumPromotion />
                 </TabsContent>
 
                 <TabsContent value="ai">
-                  <AgentAIRecommendations
-                    agentId={agentProfile.id}
-                    city={Array.isArray(agentProfile.cities_served) ? agentProfile.cities_served[0] : "Hyderabad"}
-                  />
+                  <AgentAIRecommendations />
                 </TabsContent>
 
                 <TabsContent value="route">
-                  <AgentRouteOptimization agentId={agentProfile.id} />
+                  <AgentRouteOptimization />
                 </TabsContent>
 
                 <TabsContent value="analytics">
-                  <AgentAnalytics agentId={agentProfile.id} />
+                  <AgentAnalytics />
                 </TabsContent>
               </Tabs>
             </CardContent>
