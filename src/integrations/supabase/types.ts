@@ -132,6 +132,121 @@ export type Database = {
           },
         ]
       }
+      agent_badges: {
+        Row: {
+          achieved_at: string | null
+          agent_id: string | null
+          badge_color: string
+          badge_level: number
+          badge_name: string
+          created_at: string
+          id: string
+          is_current: boolean
+          sales_required: number
+          trust_score_required: number
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          agent_id?: string | null
+          badge_color?: string
+          badge_level?: number
+          badge_name?: string
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          sales_required?: number
+          trust_score_required?: number
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string | null
+          agent_id?: string | null
+          badge_color?: string
+          badge_level?: number
+          badge_name?: string
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          sales_required?: number
+          trust_score_required?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_badges_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_kyc_verifications: {
+        Row: {
+          aadhaar_back_url: string | null
+          aadhaar_front_url: string | null
+          agent_id: string | null
+          business_proof_url: string | null
+          created_at: string
+          id: string
+          pan_card_url: string | null
+          rejection_reason: string | null
+          rera_certificate_url: string | null
+          selfie_url: string | null
+          trust_score: number
+          updated_at: string
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+          verified_badge: boolean
+        }
+        Insert: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          agent_id?: string | null
+          business_proof_url?: string | null
+          created_at?: string
+          id?: string
+          pan_card_url?: string | null
+          rejection_reason?: string | null
+          rera_certificate_url?: string | null
+          selfie_url?: string | null
+          trust_score?: number
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_badge?: boolean
+        }
+        Update: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          agent_id?: string | null
+          business_proof_url?: string | null
+          created_at?: string
+          id?: string
+          pan_card_url?: string | null
+          rejection_reason?: string | null
+          rera_certificate_url?: string | null
+          selfie_url?: string | null
+          trust_score?: number
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_badge?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_kyc_verifications_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_profiles: {
         Row: {
           agency_name: string | null
@@ -176,6 +291,60 @@ export type Database = {
           },
         ]
       }
+      agent_promotions: {
+        Row: {
+          agent_id: string | null
+          amount: number
+          created_at: string
+          end_date: string | null
+          id: string
+          promotion_type: string
+          property_id: string | null
+          start_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          amount: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          promotion_type: string
+          property_id?: string | null
+          start_date?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          amount?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          promotion_type?: string
+          property_id?: string | null
+          start_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_promotions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_promotions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_ratings: {
         Row: {
           agent_id: string
@@ -211,6 +380,156 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      agent_referrals: {
+        Row: {
+          agent_id: string | null
+          converted_at: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string | null
+          referred_user_type: string | null
+          reward_amount: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id?: string | null
+          referred_user_type?: string | null
+          reward_amount?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string | null
+          referred_user_type?: string | null
+          reward_amount?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_referrals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_subscriptions: {
+        Row: {
+          agent_id: string | null
+          auto_renew: boolean
+          benefits: Json
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          plan_name: string | null
+          plan_type: string
+          price: number | null
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          auto_renew?: boolean
+          benefits?: Json
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          plan_name?: string | null
+          plan_type?: string
+          price?: number | null
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          auto_renew?: boolean
+          benefits?: Json
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          plan_name?: string | null
+          plan_type?: string
+          price?: number | null
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_subscriptions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_success_logs: {
+        Row: {
+          agent_id: string | null
+          avg_customer_rating: number | null
+          calculated_at: string
+          conversion_rate: number | null
+          id: string
+          response_time_avg: number | null
+          success_score: number | null
+          user_id: string
+          verified_listings: number | null
+          visit_success_rate: number | null
+        }
+        Insert: {
+          agent_id?: string | null
+          avg_customer_rating?: number | null
+          calculated_at?: string
+          conversion_rate?: number | null
+          id?: string
+          response_time_avg?: number | null
+          success_score?: number | null
+          user_id: string
+          verified_listings?: number | null
+          visit_success_rate?: number | null
+        }
+        Update: {
+          agent_id?: string | null
+          avg_customer_rating?: number | null
+          calculated_at?: string
+          conversion_rate?: number | null
+          id?: string
+          response_time_avg?: number | null
+          success_score?: number | null
+          user_id?: string
+          verified_listings?: number | null
+          visit_success_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_success_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_tasks: {
         Row: {
@@ -271,6 +590,59 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_team_members: {
+        Row: {
+          agent_id: string | null
+          assigned_leads: Json
+          created_at: string
+          id: string
+          member_email: string | null
+          member_id: string | null
+          member_name: string
+          member_phone: string | null
+          performance_score: number | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          assigned_leads?: Json
+          created_at?: string
+          id?: string
+          member_email?: string | null
+          member_id?: string | null
+          member_name: string
+          member_phone?: string | null
+          performance_score?: number | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          assigned_leads?: Json
+          created_at?: string
+          id?: string
+          member_email?: string | null
+          member_id?: string | null
+          member_name?: string
+          member_phone?: string | null
+          performance_score?: number | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_team_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
         ]
@@ -2804,6 +3176,10 @@ export type Database = {
           phone: string
           user_id: string
         }[]
+      }
+      increment_posting_count: {
+        Args: { _user_id: string }
+        Returns: undefined
       }
       increment_wallet_balance: {
         Args: {
