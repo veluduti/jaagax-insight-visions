@@ -701,8 +701,8 @@ export default function AgentDashboard() {
         {/* ===== PHASE 1: KYC & Subscription Row ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AgentKYCVerification agentId={agentProfile.id} userId={user.id} />
-            <AgentSubscriptionManager agentId={agentProfile.id} userId={user.id} />
+            <AgentKYCVerification />
+            <AgentSubscriptionManager />
           </div>
         )}
 
