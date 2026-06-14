@@ -14,6 +14,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import Navigation from "@/components/Navigation";
+
 import {
   Users,
   TrendingUp,
@@ -580,56 +582,8 @@ export default function AgentDashboard() {
      ============================================================ */
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/30 to-background">
-      {/* Top Nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b">
-        <div className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <Home className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold">Agent CRM</h1>
-              <p className="text-xs text-muted-foreground hidden md:block">Close more deals, faster</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate("/sell-property?as=agent")}
-              className="hidden md:inline-flex border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Sell Your Property
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => navigate("/dashboard/agent/add-property")}
-              className="hidden sm:inline-flex"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Add Property
-            </Button>
-            <Button
-              size="icon"
-              onClick={() => navigate("/sell-property?as=agent")}
-              className="sm:hidden bg-emerald-500 hover:bg-emerald-600 text-white"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              {notifications.filter((n) => !n.read).length > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
-              )}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
+
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-12 space-y-6">
         {/* ===== Profile Header ===== */}
