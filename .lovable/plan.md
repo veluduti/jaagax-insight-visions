@@ -1,93 +1,67 @@
-# Seller Dashboard Upgrade — Phased Plan
+# Financial Services Provider Module — Phase 1 Plan
 
-Goal: Add the requested features to the **existing** `SellerDashboard.tsx` (877 lines, fully wired) as a **non-destructive overlay**. Current listings, agent assignment, boost, chat, and visit flows stay intact. New features render in new sections above/within the page, behind a feature scope so nothing collides.
+A complete new role with luxury-themed dashboard. Scope is large (~15 components, 8 tables) so I'm splitting into clear phases. Confirm before I start.
 
-Design: luxury emerald-glass — reuse existing `glass-panel`, emerald glow, dark background. No new color tokens, no purple/indigo. Framer-motion already in use.
+## Phase A — Role + Auth Integration
+1. Add `financial` as a new selectable role (alongside Buyer/Seller/Agent/Builder) in:
+   - `SelectProfile.tsx` (role chooser after signup/login)
+   - `Auth.tsx` signup flow + `submit_signup_request` enum
+   - `authRoleResolver.ts` + `roleAccess.ts` mappings
+   - `ProtectedRoute.tsx` — new `/dashboard/financial` route
+2. Update DB: extend `signup_requests.requested_role` and `profiles.type` to accept `'financial'`. Add `assign_user_role` to allow `'financial'` and create matching `user_roles.role` enum value.
 
----
+## Phase B — Database Schema
+New tables (with GRANTs + RLS scoped to `auth.uid() = user_id` via `financial_providers.user_id`):
+- `financial_providers` (entity_type, services_offered[], pan_url, gst_url, rbi_registration, company_reg_cert_url, signatory_id_url, logo_url, kyc_status, subscription_status, subscription_expires_at)
+- `financial_branches` (provider_id, head_office, branch_locations jsonb, service_areas[], operating_states[], website)
+- `financial_loan_applications` (provider_id, buyer_id, property_id, loan_amount, property_value, tenure_months, status, assigned_rm_id, disbursed_amount, sanction_letter_url, rejection_reason)
+- `financial_loan_documents` (application_id, document_type, file_path, verified_status, verified_by, notes)
+- `financial_leads` (provider_id, lead_type, customer_name, requirement, budget, location, contact_json, price, is_purchased, purchased_at)
+- `financial_promotions` (provider_id, package_type, amount, start_date, end_date, is_active)
+- `financial_team_members` (provider_id, user_id, name, email, role: rm|verifier|admin, performance_json)
+- `financial_notifications` (provider_id, title, message, channel, is_read, link)
 
-## Phase 1 — Database foundations (one migration)
+Reuse existing `wallets` + `wallet_transactions` for wallet (no new table).
 
-New tables (all in `public`, RLS on, GRANT to authenticated + service_role):
+## Phase C — Pages & Components (luxury card UI)
 
-- `wallets` — `user_id` (unique FK), `balance numeric default 0`, `auto_recharge bool default false`, `auto_recharge_threshold`, `auto_recharge_amount`
-- `wallet_transactions` — `user_id`, `amount`, `type` (`credit`/`debit`), `description`, `status`, `reference`, `created_at`
-- `seller_subscriptions` — `user_id`, `plan_type` (`free`/`premium`/`agent_pro`), `started_at`, `expires_at`, `is_active`
-- `monthly_posting_limits` — `user_id`, `month_year` (text YYYY-MM), `posts_used int`, `free_limit int default 1`, unique(user_id, month_year)
-- `kyc_verifications` — `user_id` unique, `status` (`not_started`/`pending`/`verified`/`rejected`), `aadhaar_url`, `pan_url`, `selfie_url`, `rejection_reason`, `reviewed_by`, `reviewed_at`
-- `seller_activity_logs` — `user_id`, `activity_type`, `metadata jsonb`, `created_at`
-- Add to existing `properties`: `is_sold bool default false`, `sold_at timestamptz`, `has_price_drop_ribbon bool default false`, `previous_price numeric`, `price_dropped_at timestamptz`
-- Reuse existing `notifications` table (already present).
+**Pages** (all under `/dashboard/financial/*`):
+- `FinancialDashboard.tsx` — KPI cards + Recharts trend/pie
+- `FinancialRegistration.tsx` — 4-step wizard (Account → Professional → KYC → Branches)
+- `FinancialLeads.tsx` — tabbed lead marketplace with purchase
+- `FinancialApplications.tsx` — table + detail drawer (3 tabs: Details, Documents, Actions)
+- `FinancialDocuments.tsx` — cross-application document hub
+- `FinancialWallet.tsx` — balance, add funds, auto-recharge, history
+- `FinancialPromotions.tsx` — 4 packages with purchase
+- `FinancialSettings.tsx` — profile, KYC, team management, notification prefs
+- `FinancialNotifications.tsx` — center
 
-RPCs (security-definer):
-- `increment_wallet_balance(_user_id, _amount, _description, _reference)`
-- `decrement_wallet_balance(_user_id, _amount, _description, _reference)` — raises if insufficient
-- `check_and_consume_posting_quota(_user_id)` — returns `{allowed, free_remaining, plan, charged}`; auto-debits ₹500 if free exhausted and plan ≠ premium/agent_pro
-- `mark_property_sold(_property_id)` — owner-only
-- `drop_property_price(_property_id, _new_price)` — owner-only, sets ribbon + previous_price
-- `submit_kyc(_aadhaar, _pan, _selfie)` and admin `review_kyc(_user_id, _decision, _reason)`
+**Shared luxury components** (`src/components/financial/`):
+- `LuxuryKpiCard.tsx` — gold-accent glassmorphism card
+- `LuxuryStatTile.tsx`, `LeadCard.tsx`, `PromotionPackageCard.tsx`, `ApplicationDetailDrawer.tsx`, `RegistrationStepper.tsx`, `TeamMembersPanel.tsx`
 
-Storage bucket: `kyc-documents` (private), RLS so user reads/writes own folder, admin reads all.
+**Design language** (matches existing dark + emerald-glow + adds gold accents for "premium financial" feel):
+- Background: existing dark glass
+- Accent: gradient gold `from-amber-300 via-yellow-400 to-amber-600`
+- Numeric KPIs use tabular-nums + subtle glow
+- All cards use semantic tokens from `index.css`
 
-## Phase 2 — Wallet + Subscription + KYC widgets
+## Phase D — Integration touchpoints (stubs in Phase 1)
+- "Get Loan Assistance" button on `PropertyDetail.tsx` → opens dialog listing financial providers
+- Agent/Builder dashboards get a "Refer to Financial Partner" action (creates a `financial_leads` row, credits provider)
 
-New components (all in `src/components/seller/`):
-- `WalletBalance.tsx` — balance card, Add Money dialog (₹500/1000/2000/5000, min ₹100, **mock** top-up that just calls `increment_wallet_balance`), auto-recharge toggle, last 5 transactions list with "View all" sheet.
-- `SubscriptionManager.tsx` — current plan badge, Free Quota progress ("X / Y posts used this month"), Upgrade dialog with two options (pay-per-post from wallet vs ₹2000/mo). On premium select, show "Switch to Agent profile to get leads?" CTA → `/select-profile`.
-- `KYCVerification.tsx` — status badge, benefits checklist when not verified, "Complete KYC" dialog with 3 file inputs uploading to `kyc-documents` then inserting a `pending` row. Read-only once submitted; shows rejection reason if any.
+## Phase E — Backend logic
+- DB function `purchase_financial_lead(_lead_id)` — wallet debit + reveal contact
+- DB function `check_financial_kyc(_user_id)` — boolean used before lead purchase
+- Reuse `increment_wallet_balance` / `decrement_wallet_balance`
 
-Renders in a new "Seller Tools" section near the top of `SellerDashboard.tsx`, between Hero and existing Stats — additive only.
+## Out of scope (Phase 1)
+- Razorpay live integration (UI ready, will mock "Add Funds" against wallet RPC)
+- OTP for email/phone in registration (uses existing Supabase auth instead)
+- Real notification dispatch via WhatsApp/SMS (preferences saved, dispatch in Phase 2)
+- Encrypted-at-rest customer documents beyond standard Supabase Storage RLS
 
-## Phase 3 — Notification Center + Real-time
+## Approx surface area
+~9 pages + ~8 shared components + 1 migration (8 tables, 2 functions) + 4 file edits to wire role into auth.
 
-- `NotificationCenter.tsx` — bell icon with unread badge in dashboard header, popover list, mark-all-read, click-to-navigate via `action_url`.
-- Realtime subscription on `notifications` filtered by `user_id` → sonner toast on insert.
-- Wired into the existing header row (next to existing Refresh/Logout — no removal).
-
-## Phase 4 — Listing card enhancements
-
-Inside the existing listing card render (without touching the loop structure):
-- New `MarkAsSoldButton.tsx` (AlertDialog → RPC, then refetch).
-- New `PriceDropDialog.tsx` (input new price → RPC, shows "Price Reduced" ribbon overlay when `has_price_drop_ribbon`).
-- "Edit & Resubmit" button on rejected (already exists in part — verify) and timeline progress bar (Submitted → Review → Agent → Approved) using shadcn `Progress`.
-
-The existing Boost / View / Chat buttons remain untouched.
-
-## Phase 5 — AI Recommendations + Activity Timeline
-
-- `AIRecommendations.tsx` — calls existing `ai-suggest-properties` / `ai-property-decision` edge function with seller's portfolio; renders Smart Match %, Price Prediction, "Upgrade to Agent" if listings ≥ 2, location insights. Falls back to static cards if AI unavailable.
-- `ActivityTimeline.tsx` — reads `seller_activity_logs` + `buyer_journey_events` for the user; chronological list with icons.
-- `ReferralLink.tsx` — generates `/?ref=<userId>` shareable link with copy button.
-
-## Phase 6 — Visit management section
-
-`VisitManagement.tsx` — pulls `visit_bookings` where property belongs to seller; shows scheduled/past with cancel/modify (cancel = status update). Renders below listings tabs.
-
-## Phase 7 — Posting flow gating
-
-Wrap the existing "Sell Property" CTA: before navigating to `/agent/add-property` (or seller add route), call `check_and_consume_posting_quota`. If quota exhausted and wallet insufficient → open upgrade dialog. Otherwise proceed. KYC verified is **encouraged**, not blocking (toast nudge).
-
----
-
-## Non-collision guarantees
-
-- Zero deletions in existing `SellerDashboard.tsx`. Only **inserts** of new sections + light wrap of the Sell Property button.
-- All new tables are isolated; no FKs into existing tables except `auth.users` and `properties.id`.
-- New columns on `properties` are nullable / defaulted false.
-- Edge functions: reuse existing `create-notification`. Only RPCs are added (no new edge functions needed since payments are mocked).
-- Routing: no new routes required; everything dialog/sheet-based inside the dashboard.
-
-## Out of scope (will revisit)
-
-- Buyer Dashboard (per your reply — later).
-- Real Razorpay/Stripe wiring (mock now).
-- Admin KYC review UI (RPC + table ready; admin panel surfacing can be a small follow-up).
-
-## Suggested order of execution
-
-1. Phase 1 migration (single approval).
-2. Phases 2 + 3 in one code drop (wallet/sub/KYC widgets + notifications).
-3. Phases 4 + 7 (listing actions + posting gate).
-4. Phases 5 + 6 (AI + activity + visits).
-
-Approve and I'll start Phase 1 (the migration).
+Confirm to proceed and I'll ship it.
