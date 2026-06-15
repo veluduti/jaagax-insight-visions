@@ -716,6 +716,45 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_preferences: {
+        Row: {
+          created_at: string
+          email_address: string | null
+          email_enabled: boolean
+          id: string
+          sms_enabled: boolean
+          sms_phone: string | null
+          updated_at: string
+          user_id: string
+          whatsapp_enabled: boolean
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_address?: string | null
+          email_enabled?: boolean
+          id?: string
+          sms_enabled?: boolean
+          sms_phone?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp_enabled?: boolean
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_address?: string | null
+          email_enabled?: boolean
+          id?: string
+          sms_enabled?: boolean
+          sms_phone?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_enabled?: boolean
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
       builder_profiles: {
         Row: {
           about_features: string[] | null
@@ -1092,6 +1131,42 @@ export type Database = {
           },
         ]
       }
+      cashback_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          credited_at: string | null
+          id: string
+          reference_id: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          credited_at?: string | null
+          id?: string
+          reference_id?: string | null
+          source: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credited_at?: string | null
+          id?: string
+          reference_id?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1196,6 +1271,51 @@ export type Database = {
           created_at?: string
           id?: string
           property_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_enquiries: {
+        Row: {
+          advisor_id: string | null
+          amount_requested: number | null
+          created_at: string
+          deactivated_reason: string | null
+          documents: Json
+          id: string
+          loan_type: string
+          notes: string | null
+          property_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advisor_id?: string | null
+          amount_requested?: number | null
+          created_at?: string
+          deactivated_reason?: string | null
+          documents?: Json
+          id?: string
+          loan_type: string
+          notes?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advisor_id?: string | null
+          amount_requested?: number | null
+          created_at?: string
+          deactivated_reason?: string | null
+          documents?: Json
+          id?: string
+          loan_type?: string
+          notes?: string | null
+          property_id?: string | null
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1575,6 +1695,33 @@ export type Database = {
           star_rating?: number | null
           total_rooms?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      preferred_locations: {
+        Row: {
+          created_at: string
+          id: string
+          is_auto_suggested: boolean
+          location_name: string
+          location_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_auto_suggested?: boolean
+          location_name: string
+          location_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_auto_suggested?: boolean
+          location_name?: string
+          location_type?: string
+          user_id?: string
         }
         Relationships: []
       }
