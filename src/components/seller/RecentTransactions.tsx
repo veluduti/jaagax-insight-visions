@@ -237,15 +237,15 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
           <div className="flex items-center justify-center py-8">
             <div className="h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
           </div>
-        ) : transactions.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-8">
             <Wallet className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No transactions yet</p>
+            <p className="text-sm text-muted-foreground">No transactions match this filter</p>
           </div>
         ) : (
           <AnimatePresence>
             <div className="space-y-2">
-              {transactions.map((tx, index) => (
+              {filtered.map((tx, index) => (
                 <motion.div
                   key={tx.id}
                   initial={{ opacity: 0, y: 10 }}
