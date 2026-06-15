@@ -5,11 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -19,7 +27,6 @@ import Navigation from "@/components/Navigation";
 import {
   Users,
   TrendingUp,
-  LogOut,
   Building2,
   Home,
   Phone,
@@ -28,8 +35,6 @@ import {
   CheckCircle2,
   Eye,
   Calendar,
-  BarChart3,
-  Clock,
   Bell,
   Plus,
   PhoneCall,
@@ -38,17 +43,16 @@ import {
   Target,
   ListChecks,
   XCircle,
-  Share2,
   FileText,
   Sparkles,
   ArrowRight,
   IndianRupee,
   Crown,
-  Shield,
   Award,
-  Gift,
-  Route,
-  LineChart,
+  Copy,
+  RefreshCw,
+  Megaphone,
+  Rocket,
 } from "lucide-react";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
@@ -103,6 +107,8 @@ interface Property {
   bedrooms: number | null;
   images: any;
   verified: boolean | null;
+  status?: string;
+  auto_repost?: boolean;
 }
 
 interface VisitBooking {
@@ -208,6 +214,11 @@ export default function AgentDashboard() {
   });
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [newDeal, setNewDeal] = useState({ buyer_name: "", property_id: "", value: "", notes: "" });
+
+  // Property action states
+  const [promoteProperty, setPromoteProperty] = useState<Property | null>(null);
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const clearSectionError = (key: string) => {
     setSectionErrors((prev) => {
@@ -531,6 +542,127 @@ export default function AgentDashboard() {
   const updateDealStatus = (id: string, status: Deal["status"]) =>
     setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
 
+  // ========== Property Action Handlers (Excel Section 6.2) ==========
+
+  const formatPriceDisplay = (price: number) => {
+    if (price >= 10000000) {
+      return `₹${(price / 10000000).toFixed(2)} Cr`;
+    }
+    if (price >= 100000) {
+      return `₹${(price / 100000).toFixed(2)} L`;
+    }
+    return `₹${price.toLocaleString("en-IN")}`;
+  };
+
+  // 1. Mark as Sold
+  const handleMarkAsSold = async (propertyId: string) => {
+    const confirmed = window.confirm(
+      "Mark this property as sold? This will hide it from search results and show 'SOLD' badge.",
+    );
+    if (!confirmed) return;
+
+    setActionLoading(propertyId);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        status: "sold",
+        sold_at: new Date().toISOString(),
+        is_live: false,
+        verified: false,
+      })
+      .eq("id", propertyId);
+
+    setActionLoading(null);
+
+    if (error) {
+      console.error("Mark as sold error:", error);
+      toast.error("Failed to mark as sold");
+      return;
+    }
+
+    toast.success("Property marked as sold");
+    if (agentProfile?.id && user?.id) {
+      await fetchAgentProperties(user.id, agentProfile.id);
+    }
+  };
+
+  // 2. Promote Listing
+  const handlePromoteListing = (property: Property) => {
+    setPromoteProperty(property);
+    setShowPromoteDialog(true);
+  };
+
+  // 3. Duplicate Listing
+  const handleDuplicateListing = async (property: Property) => {
+    const confirmed = window.confirm(`Create a copy of "${property.title}"? You can edit it later.`);
+    if (!confirmed) return;
+
+    setActionLoading(property.id);
+
+    const { error } = await supabase.from("properties").insert({
+      title: `${property.title} (Copy)`,
+      description: (property as any).description,
+      price: property.price,
+      area_sqft: property.area_sqft,
+      bedrooms: property.bedrooms,
+      bathrooms: (property as any).bathrooms,
+      bhk: (property as any).bhk,
+      city: property.city,
+      locality: property.locality,
+      address: (property as any).address,
+      pincode: (property as any).pincode,
+      type: property.type,
+      listing_type: (property as any).listing_type,
+      furnishing: (property as any).furnishing,
+      images: property.images,
+      submitted_by: user?.id,
+      status: "draft",
+      is_live: false,
+      verified: false,
+      created_at: new Date().toISOString(),
+    });
+
+    setActionLoading(null);
+
+    if (error) {
+      console.error("Duplicate error:", error);
+      toast.error("Failed to duplicate property");
+      return;
+    }
+
+    toast.success("Property duplicated successfully! You can now edit it.");
+    if (agentProfile?.id && user?.id) {
+      await fetchAgentProperties(user.id, agentProfile.id);
+    }
+  };
+
+  // 4. Auto Repost Toggle
+  const handleAutoRepost = async (propertyId: string, currentValue: boolean) => {
+    setActionLoading(propertyId);
+
+    const { error } = await supabase
+      .from("properties")
+      .update({
+        auto_repost: !currentValue,
+        auto_repost_updated_at: new Date().toISOString(),
+      })
+      .eq("id", propertyId);
+
+    setActionLoading(null);
+
+    if (error) {
+      console.error("Auto repost error:", error);
+      toast.error("Failed to update auto-repost setting");
+      return;
+    }
+
+    toast.success(`Auto-repost ${!currentValue ? "enabled" : "disabled"}`);
+    if (agentProfile?.id && user?.id) {
+      await fetchAgentProperties(user.id, agentProfile.id);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -651,7 +783,7 @@ export default function AgentDashboard() {
           </Card>
         </motion.div>
 
-        {/* ===== PHASE 1: KYC & Subscription Row - WITH PROPS ===== */}
+        {/* ===== PHASE 1: KYC & Subscription Row ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentKYCVerification />
@@ -659,7 +791,7 @@ export default function AgentDashboard() {
           </div>
         )}
 
-        {/* ===== PHASE 1: Badge & Success Score Row - WITH PROPS ===== */}
+        {/* ===== PHASE 1: Badge & Success Score Row ===== */}
         {agentProfile.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} />
@@ -738,13 +870,13 @@ export default function AgentDashboard() {
           </SectionErrorBoundary>
         )}
 
-        {/* ===== Your Properties ===== */}
+        {/* ===== Your Properties WITH ACTIONS (Excel Section 6.2) ===== */}
         <SectionErrorBoundary
           title="Your properties unavailable"
           description={sectionErrors.properties || "Your properties could not be displayed right now."}
         >
           <Card className="border-primary/20">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Home className="h-5 w-5 text-primary" />
@@ -760,47 +892,154 @@ export default function AgentDashboard() {
             </CardHeader>
             <CardContent>
               {properties.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  You haven't added any properties yet. Click "Add Property" to list your first one.
-                </p>
+                <div className="text-center py-10 border-2 border-dashed rounded-xl">
+                  <Home className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-sm font-medium">No properties yet</p>
+                  <p className="text-xs text-muted-foreground mb-3">Click "Add Property" to list your first property</p>
+                  <Button size="sm" onClick={() => navigate("/agent/add-property")}>
+                    <Plus className="h-4 w-4 mr-1" /> Add Your First Property
+                  </Button>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {properties.slice(0, 6).map((p) => (
-                    <Card
-                      key={p.id}
-                      className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => window.open(`/property/${p.id}`, "_blank", "noopener,noreferrer")}
-                    >
-                      <div className="relative h-32 bg-muted overflow-hidden">
-                        <img
-                          src={
-                            Array.isArray(p.images) && p.images[0]
-                              ? p.images[0]
-                              : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600"
-                          }
-                          alt={p.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600";
-                          }}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <Badge variant={p.verified ? "default" : "secondary"} className="absolute top-2 right-2">
-                          {p.verified ? "Verified" : "Pending"}
-                        </Badge>
-                      </div>
-                      <CardContent className="p-3">
-                        <h4 className="font-medium text-sm line-clamp-1">{p.title}</h4>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {p.locality || "—"}, {p.city || "—"}
-                        </p>
-                        <p className="text-sm font-bold text-primary mt-1">
-                          {p.price ? `₹${(p.price / 10000000).toFixed(2)} Cr` : "Price on request"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {properties.slice(0, 9).map((p) => {
+                    const isSold = (p as any).status === "sold";
+                    const isLoading = actionLoading === p.id;
+                    const autoRepost = (p as any).auto_repost || false;
+
+                    return (
+                      <Card
+                        key={p.id}
+                        className={`overflow-hidden hover:shadow-md transition-all ${
+                          isSold ? "opacity-75 bg-muted/30" : ""
+                        }`}
+                      >
+                        {/* Image Section */}
+                        <div
+                          className="relative h-36 bg-muted overflow-hidden cursor-pointer group"
+                          onClick={() => window.open(`/property/${p.id}`, "_blank")}
+                        >
+                          <img
+                            src={
+                              Array.isArray(p.images) && p.images[0]
+                                ? p.images[0]
+                                : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600"
+                            }
+                            alt={p.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600";
+                            }}
+                            loading="lazy"
+                            decoding="async"
+                          />
+
+                          {/* SOLD Overlay */}
+                          {isSold && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <Badge className="bg-red-600 text-white px-3 py-1 text-sm font-bold">SOLD</Badge>
+                            </div>
+                          )}
+
+                          {/* Verified Badge */}
+                          <Badge
+                            variant={p.verified ? "default" : "secondary"}
+                            className="absolute top-2 right-2 text-[10px]"
+                          >
+                            {p.verified ? "✓ Verified" : "Pending"}
+                          </Badge>
+
+                          {/* Status Badge */}
+                          {(p as any).status === "draft" && (
+                            <Badge variant="outline" className="absolute bottom-2 left-2 text-[10px] bg-background/80">
+                              Draft
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Content Section */}
+                        <CardContent className="p-3">
+                          <h4 className="font-medium text-sm line-clamp-1">{p.title}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {p.locality || "—"}, {p.city || "—"}
+                          </p>
+                          <p className="text-sm font-bold text-primary mt-1">
+                            {p.price ? formatPriceDisplay(p.price) : "Price on request"}
+                          </p>
+
+                          {/* Action Buttons - Excel Section 6.2 */}
+                          <div className="flex flex-wrap items-center gap-1 mt-3 pt-2 border-t">
+                            {/* 1. Mark as Sold */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[10px]"
+                              onClick={() => handleMarkAsSold(p.id)}
+                              disabled={isSold || isLoading}
+                            >
+                              {isLoading ? (
+                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                              ) : (
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                              )}
+                              Mark Sold
+                            </Button>
+
+                            {/* 2. Promote Listing */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[10px]"
+                              onClick={() => handlePromoteListing(p)}
+                              disabled={isSold}
+                            >
+                              <Megaphone className="h-3 w-3 mr-1" />
+                              Promote
+                            </Button>
+
+                            {/* 3. Duplicate Listing */}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-[10px]"
+                              onClick={() => handleDuplicateListing(p)}
+                              disabled={isLoading}
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copy
+                            </Button>
+
+                            {/* 4. Auto Repost Toggle */}
+                            <div className="flex items-center gap-1 ml-auto">
+                              <RefreshCw
+                                className={`h-3 w-3 ${autoRepost ? "text-primary" : "text-muted-foreground"}`}
+                              />
+                              <Switch
+                                checked={autoRepost}
+                                onCheckedChange={() => handleAutoRepost(p.id, autoRepost)}
+                                disabled={isLoading || isSold}
+                                className="scale-75 data-[state=checked]:bg-primary"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Auto Repost Info */}
+                          {autoRepost && !isSold && (
+                            <p className="text-[9px] text-muted-foreground mt-2">🔄 Will auto-renew when expires</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* View All Link */}
+              {properties.length > 9 && (
+                <div className="text-center mt-4">
+                  <Button variant="link" onClick={() => navigate("/agent/properties")}>
+                    View all {properties.length} properties →
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -919,7 +1158,7 @@ export default function AgentDashboard() {
           </Card>
         </div>
 
-        {/* ===== PHASE 1: Advanced Features Tabs - WITH PROPS ===== */}
+        {/* ===== PHASE 1: Advanced Features Tabs ===== */}
         {agentProfile.id && user?.id && (
           <Card className="border-primary/20">
             <CardHeader>
@@ -1369,6 +1608,38 @@ export default function AgentDashboard() {
               Cancel
             </Button>
             <Button onClick={addDeal}>Add Deal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== Promote Listing Dialog ===== */}
+      <Dialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-primary" />
+              Promote Your Property
+            </DialogTitle>
+            <DialogDescription>Boost visibility of "{promoteProperty?.title}" to get more leads</DialogDescription>
+          </DialogHeader>
+
+          {promoteProperty && (
+            <div className="space-y-4">
+              <AgentPremiumPromotion />
+
+              <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-3">
+                <p className="text-xs text-blue-700 dark:text-blue-400">
+                  💡 <strong>Pro Tip:</strong> Sponsored listings appear at the top of search results. Featured
+                  properties get a special badge and higher visibility.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
