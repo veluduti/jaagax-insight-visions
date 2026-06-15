@@ -87,6 +87,7 @@ const EditBuilderProfile = lazy(() => import("./pages/EditBuilderProfile"));
 const BuilderProfileDetail = lazy(() => import("./pages/BuilderProfileDetail"));
 const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
 const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
+const FinancialDashboard = lazy(() => import("./pages/FinancialDashboard"));
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
@@ -290,6 +291,11 @@ const App = () => (
           <Route path="/dashboard/hotel-manager" element={
             <ProtectedRoute allowedRole="hotel_manager">
               <HotelManagerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial" element={
+            <ProtectedRoute allowedRole="financial">
+              <FinancialDashboard />
             </ProtectedRoute>
           } />
 

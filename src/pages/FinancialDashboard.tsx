@@ -8,7 +8,7 @@ import { Landmark, TrendingUp, FileCheck2, IndianRupee, Sparkles, ShieldCheck, W
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import Navbar from "@/components/layout/Navbar";
+import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
