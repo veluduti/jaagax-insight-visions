@@ -16,10 +16,11 @@ import AddRoleModal from "./AddRoleModal";
 import { cn } from "@/lib/utils";
 
 const roleMeta: Record<ProfileType, { icon: any; label: string; gradient: string; iconColor: string }> = {
-  buyer:   { icon: Home,       label: "Buyer",   gradient: "from-sky-500/20 to-cyan-400/10",     iconColor: "text-sky-300" },
-  seller:  { icon: Tag,        label: "Seller",  gradient: "from-emerald-500/20 to-teal-400/10", iconColor: "text-emerald-300" },
-  agent:   { icon: Users,      label: "Agent",   gradient: "from-violet-500/20 to-fuchsia-500/10", iconColor: "text-violet-300" },
-  builder: { icon: Building2,  label: "Builder", gradient: "from-amber-500/20 to-orange-500/10", iconColor: "text-amber-300" },
+  buyer:     { icon: Home,       label: "Buyer",     gradient: "from-sky-500/20 to-cyan-400/10",       iconColor: "text-sky-300" },
+  seller:    { icon: Tag,        label: "Seller",    gradient: "from-emerald-500/20 to-teal-400/10",   iconColor: "text-emerald-300" },
+  agent:     { icon: Users,      label: "Agent",     gradient: "from-violet-500/20 to-fuchsia-500/10", iconColor: "text-violet-300" },
+  builder:   { icon: Building2,  label: "Builder",   gradient: "from-amber-500/20 to-orange-500/10",   iconColor: "text-amber-300" },
+  financial: { icon: Building2,  label: "Financial", gradient: "from-yellow-500/20 to-amber-500/10",   iconColor: "text-amber-300" },
 };
 
 const dashboardRoute = (type: ProfileType) => `/dashboard/${type}`;

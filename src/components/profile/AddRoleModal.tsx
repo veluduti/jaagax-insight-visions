@@ -54,9 +54,16 @@ const roleMeta: Record<ProfileType, RoleMeta> = {
     iconBg: "bg-gradient-to-br from-amber-500/30 to-orange-500/20",
     iconColor: "text-amber-200", glow: "shadow-[0_0_40px_-10px_hsl(35_95%_60%/0.45)]", accent: "text-amber-300",
   },
+  financial: {
+    icon: ShieldCheck, title: "Financial Services", subtitle: "Loans, mortgages, legal & valuation",
+    perks: ["Verified loan leads", "Application tracker", "Premium partner badges"],
+    gradient: "from-yellow-500/30 via-amber-500/15 to-transparent",
+    iconBg: "bg-gradient-to-br from-yellow-500/30 to-amber-500/20",
+    iconColor: "text-amber-200", glow: "shadow-[0_0_40px_-10px_hsl(45_95%_60%/0.45)]", accent: "text-amber-300",
+  },
 };
 
-const ROLE_ORDER: ProfileType[] = ["buyer", "seller", "agent", "builder"];
+const ROLE_ORDER: ProfileType[] = ["buyer", "seller", "agent", "builder", "financial"];
 
 export default function AddRoleModal({ open, onOpenChange }: Props) {
   const { profiles, addProfile } = useProfile();
