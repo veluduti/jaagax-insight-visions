@@ -169,18 +169,51 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
             </div>
             <CardTitle className="text-base font-semibold">Recent Transactions</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
+              onClick={exportCSV}
+              title="Export CSV"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </CardHeader>
       )}
       <CardContent className="space-y-3">
+        {/* Category Filter */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="h-8 w-[180px] text-xs">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c.replace(/_/g, " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!showHeader && (
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-8">
+              <Download className="h-3 w-3 mr-1" /> Export CSV
+            </Button>
+          )}
+        </div>
+
         {transactions.length > 0 && (
           <div className="flex gap-4 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
