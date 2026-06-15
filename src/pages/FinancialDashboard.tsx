@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,10 +15,8 @@ import {
   Users,
   BellRing,
   Crown,
-  ArrowUpRight,
   Loader2,
   FilePlus2,
-  Building2,
   Search,
   CreditCard,
   Megaphone,
@@ -28,7 +26,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
-import { motion } from "framer-motion";
 import {
   PieChart,
   Pie,
@@ -42,30 +39,6 @@ import {
   CartesianGrid,
 } from "recharts";
 
-/* ---------- Luxury KPI Card ---------- */
-function LuxuryKpi({ icon: Icon, label, value, hint, accent = "amber" }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="group relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-zinc-950/80 via-zinc-900/60 to-amber-950/30 p-5 backdrop-blur shadow-[0_0_40px_-12px_rgba(245,158,11,0.35)]"
-    >
-      <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-amber-500/10 blur-3xl group-hover:bg-amber-400/20 transition-colors" />
-      <div className="relative flex items-start justify-between mb-3">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400/30 to-yellow-600/20 ring-1 ring-amber-400/40 flex items-center justify-center">
-          <Icon className="h-5 w-5 text-amber-200" />
-        </div>
-        <ArrowUpRight className="h-4 w-4 text-amber-300/60" />
-      </div>
-      <p className="relative text-[11px] uppercase tracking-widest text-amber-200/70 font-medium">{label}</p>
-      <p className="relative text-2xl font-bold tabular-nums bg-gradient-to-r from-amber-100 via-yellow-200 to-amber-300 bg-clip-text text-transparent mt-1">
-        {value}
-      </p>
-      {hint && <p className="relative text-xs text-muted-foreground mt-1">{hint}</p>}
-    </motion.div>
-  );
-}
-
 const SERVICES = [
   "Home Loan",
   "Mortgage",
@@ -75,7 +48,7 @@ const SERVICES = [
   "Investment Advisory",
   "Credit Score",
 ];
-const PIE_COLORS = ["#fbbf24", "#f59e0b", "#d97706", "#fde68a", "#fcd34d"];
+const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--secondary))", "hsl(var(--muted))", "hsl(var(--destructive))"];
 
 const monthlyTrend = [
   { m: "Jan", apps: 12 },
@@ -85,6 +58,37 @@ const monthlyTrend = [
   { m: "May", apps: 28 },
   { m: "Jun", apps: 41 },
 ];
+
+function StatCard({ icon: Icon, label, value, hint }: any) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+        <Icon className="h-4 w-4 text-primary" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickAction({ to, icon: Icon, label, sub }: any) {
+  return (
+    <Link to={to}>
+      <Card className="hover:shadow-md hover:border-primary/40 transition-all cursor-pointer h-full">
+        <CardContent className="p-4 text-center">
+          <div className="h-10 w-10 mx-auto mb-2 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Icon className="h-5 w-5 text-primary" />
+          </div>
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground">{sub}</p>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export default function FinancialDashboard() {
   const { user } = useAuth();
@@ -101,7 +105,6 @@ export default function FinancialDashboard() {
     wallet: 0,
   });
   const [leadsBreakdown, setLeadsBreakdown] = useState<any[]>([]);
-  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -115,7 +118,6 @@ export default function FinancialDashboard() {
           .maybeSingle();
         setProvider(prov);
         if (!prov) {
-          setShowRegister(true);
           setLoading(false);
           return;
         }
@@ -187,123 +189,106 @@ export default function FinancialDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-amber-950/20">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      {/* Decorative gold orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-32 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl" />
-      </div>
 
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Hero */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Header */}
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Landmark className="h-5 w-5 text-amber-300" />
-              <span className="text-xs uppercase tracking-[0.3em] text-amber-300/80">Financial Services Portal</span>
+            <div className="flex items-center gap-2 mb-1">
+              <Landmark className="h-5 w-5 text-primary" />
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                Financial Services Portal
+              </span>
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 bg-clip-text text-transparent">
-              {provider?.company_name || "Welcome"}
-            </h1>
+            <h1 className="text-3xl font-bold">{provider?.company_name || "Welcome"}</h1>
             <p className="text-muted-foreground mt-1">Manage loans, leads, and premium placements.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Link to="/dashboard/financial/notifications">
-              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-200">
-                <BellRing className="h-4 w-4 mr-1" />
-                Notifications
+              <Button variant="outline" size="sm">
+                <BellRing className="h-4 w-4 mr-1" /> Notifications
               </Button>
             </Link>
             <Link to="/dashboard/financial/settings">
-              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-200">
-                <Settings className="h-4 w-4 mr-1" />
-                Settings
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-1" /> Settings
               </Button>
             </Link>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-200 bg-amber-500/5">
+            <Badge variant="secondary">
               <ShieldCheck className="h-3.5 w-3.5 mr-1" />
               KYC: {provider?.kyc_status || "pending"}
             </Badge>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-200 bg-amber-500/5">
+            <Badge variant="secondary">
               <Crown className="h-3.5 w-3.5 mr-1" />
-              Subscription: {provider?.subscription_status || "inactive"}
+              {provider?.subscription_status || "inactive"}
             </Badge>
           </div>
         </div>
 
         {!provider && (
-          <Card className="border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-zinc-900/40 p-8 text-center">
-            <Landmark className="h-12 w-12 text-amber-300 mx-auto mb-3" />
-            <h2 className="text-2xl font-bold mb-2">Set up your Financial Provider profile</h2>
-            <p className="text-muted-foreground mb-4">Create your profile to start receiving loan enquiries.</p>
-            <Button
-              onClick={handleRegister}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-semibold"
-            >
-              <FilePlus2 className="h-4 w-4 mr-2" /> Create Provider Profile
-            </Button>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Landmark className="h-12 w-12 text-primary mx-auto mb-3" />
+              <h2 className="text-2xl font-bold mb-2">Set up your Financial Provider profile</h2>
+              <p className="text-muted-foreground mb-4">
+                Create your profile to start receiving loan enquiries.
+              </p>
+              <Button onClick={handleRegister}>
+                <FilePlus2 className="h-4 w-4 mr-2" /> Create Provider Profile
+              </Button>
+            </CardContent>
           </Card>
         )}
 
         {provider && (
           <>
-            {/* Navigation Cards - Quick Access */}
+            {/* Quick actions */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <Link to="/dashboard/financial/leads">
-                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
-                  <Search className="h-6 w-6 text-amber-300 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-amber-100">Leads</p>
-                  <p className="text-xs text-muted-foreground">Purchase & Manage</p>
-                </Card>
-              </Link>
-              <Link to="/dashboard/financial/applications">
-                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
-                  <FileCheck2 className="h-6 w-6 text-amber-300 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-amber-100">Applications</p>
-                  <p className="text-xs text-muted-foreground">Process Loans</p>
-                </Card>
-              </Link>
-              <Link to="/dashboard/financial/wallet">
-                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
-                  <CreditCard className="h-6 w-6 text-amber-300 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-amber-100">Wallet</p>
-                  <p className="text-xs text-muted-foreground">₹{stats.wallet.toLocaleString()}</p>
-                </Card>
-              </Link>
-              <Link to="/dashboard/financial/promotions">
-                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
-                  <Megaphone className="h-6 w-6 text-amber-300 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-amber-100">Promotions</p>
-                  <p className="text-xs text-muted-foreground">Premium Visibility</p>
-                </Card>
-              </Link>
-              <Link to="/dashboard/financial/team">
-                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
-                  <Users className="h-6 w-6 text-amber-300 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-amber-100">Team</p>
-                  <p className="text-xs text-muted-foreground">Manage RMs</p>
-                </Card>
-              </Link>
+              <QuickAction to="/dashboard/financial/leads" icon={Search} label="Leads" sub="Purchase & Manage" />
+              <QuickAction
+                to="/dashboard/financial/applications"
+                icon={FileCheck2}
+                label="Applications"
+                sub="Process Loans"
+              />
+              <QuickAction
+                to="/dashboard/financial/wallet"
+                icon={CreditCard}
+                label="Wallet"
+                sub={`₹${stats.wallet.toLocaleString()}`}
+              />
+              <QuickAction
+                to="/dashboard/financial/promotions"
+                icon={Megaphone}
+                label="Promotions"
+                sub="Premium Visibility"
+              />
+              <QuickAction to="/dashboard/financial/settings" icon={Users} label="Team" sub="Manage RMs" />
             </div>
 
             {/* KPI grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <LuxuryKpi icon={BellRing} label="New Enquiries" value={stats.enquiries} hint="this month" />
-              <LuxuryKpi icon={FileCheck2} label="Active Applications" value={stats.active} />
-              <LuxuryKpi icon={ShieldCheck} label="Approved Loans" value={stats.approved} />
-              <LuxuryKpi icon={IndianRupee} label="Disbursed" value={`₹${(stats.disbursed / 100000).toFixed(1)}L`} />
-              <LuxuryKpi icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
-              <LuxuryKpi icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
-              <LuxuryKpi icon={Wallet} label="Wallet Balance" value={`₹${stats.wallet.toLocaleString()}`} />
-              <LuxuryKpi
+              <StatCard icon={BellRing} label="New Enquiries" value={stats.enquiries} hint="this month" />
+              <StatCard icon={FileCheck2} label="Active Applications" value={stats.active} />
+              <StatCard icon={ShieldCheck} label="Approved Loans" value={stats.approved} />
+              <StatCard
+                icon={IndianRupee}
+                label="Disbursed"
+                value={`₹${(stats.disbursed / 100000).toFixed(1)}L`}
+              />
+              <StatCard icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
+              <StatCard icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
+              <StatCard icon={Wallet} label="Wallet Balance" value={`₹${stats.wallet.toLocaleString()}`} />
+              <StatCard
                 icon={Crown}
                 label="Subscription"
                 value={provider?.subscription_status === "active" ? "Active" : "Inactive"}
@@ -312,58 +297,86 @@ export default function FinancialDashboard() {
 
             {/* Charts */}
             <div className="grid lg:grid-cols-3 gap-4">
-              <Card className="lg:col-span-2 border-amber-500/20 bg-gradient-to-br from-zinc-950/80 to-zinc-900/40 p-6 backdrop-blur">
-                <h3 className="text-sm uppercase tracking-widest text-amber-200/80 mb-4">Monthly Loan Applications</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyTrend}>
-                      <defs>
-                        <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
-                      <XAxis dataKey="m" stroke="#a1a1aa" />
-                      <YAxis stroke="#a1a1aa" />
-                      <Tooltip contentStyle={{ background: "#18181b", border: "1px solid #fbbf24" }} />
-                      <Area type="monotone" dataKey="apps" stroke="#fbbf24" strokeWidth={2} fill="url(#goldFill)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-              <Card className="border-amber-500/20 bg-gradient-to-br from-zinc-950/80 to-zinc-900/40 p-6 backdrop-blur">
-                <h3 className="text-sm uppercase tracking-widest text-amber-200/80 mb-4">Lead Sources</h3>
-                {leadsBreakdown.length === 0 ? (
-                  <p className="text-muted-foreground text-sm text-center py-12">No leads yet</p>
-                ) : (
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base">Monthly Loan Applications</CardTitle>
+                  <CardDescription>Last 6 months</CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={leadsBreakdown}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          label
-                        >
-                          {leadsBreakdown.map((_, i) => (
-                            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: "#18181b", border: "1px solid #fbbf24" }} />
-                      </PieChart>
+                      <AreaChart data={monthlyTrend}>
+                        <defs>
+                          <linearGradient id="primaryFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="m" stroke="hsl(var(--muted-foreground))" />
+                        <YAxis stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: 8,
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="apps"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          fill="url(#primaryFill)"
+                        />
+                      </AreaChart>
                     </ResponsiveContainer>
                   </div>
-                )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Lead Sources</CardTitle>
+                  <CardDescription>Distribution by type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {leadsBreakdown.length === 0 ? (
+                    <p className="text-muted-foreground text-sm text-center py-12">No leads yet</p>
+                  ) : (
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={leadsBreakdown}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            label
+                          >
+                            {leadsBreakdown.map((_, i) => (
+                              <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: "hsl(var(--popover))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: 8,
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
               </Card>
             </div>
 
-            {/* Quick actions */}
+            {/* Tabs */}
             <Tabs defaultValue="services" className="w-full">
-              <TabsList className="bg-zinc-900/60 border border-amber-500/20">
+              <TabsList>
                 <TabsTrigger value="services">Services</TabsTrigger>
                 <TabsTrigger value="leads">Leads</TabsTrigger>
                 <TabsTrigger value="apps">Applications</TabsTrigger>
@@ -371,80 +384,71 @@ export default function FinancialDashboard() {
               </TabsList>
 
               <TabsContent value="services" className="mt-4">
-                <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-amber-100">Services Offered</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {SERVICES.map((s) => {
-                      const enabled = (provider?.services_offered || []).includes(s);
-                      return (
-                        <Badge
-                          key={s}
-                          variant="outline"
-                          className={
-                            enabled
-                              ? "border-amber-400/60 bg-amber-500/15 text-amber-100"
-                              : "border-zinc-700 text-muted-foreground"
-                          }
-                        >
-                          {s}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-amber-500/20">
-                    <Link to="/dashboard/financial/settings">
-                      <Button variant="outline" className="border-amber-500/40 text-amber-200">
-                        <Settings className="h-4 w-4 mr-2" /> Edit Services & Profile
-                      </Button>
-                    </Link>
-                  </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Services Offered</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {SERVICES.map((s) => {
+                        const enabled = (provider?.services_offered || []).includes(s);
+                        return (
+                          <Badge key={s} variant={enabled ? "default" : "outline"}>
+                            {s}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-6 pt-4 border-t">
+                      <Link to="/dashboard/financial/settings">
+                        <Button variant="outline">
+                          <Settings className="h-4 w-4 mr-2" /> Edit Services & Profile
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
                 </Card>
               </TabsContent>
 
               <TabsContent value="leads" className="mt-4">
-                <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-amber-100 flex items-center gap-2">
-                      <Users className="h-5 w-5" /> Lead Marketplace
-                    </h3>
-                    <Badge
-                      className={
-                        provider?.kyc_status === "verified"
-                          ? "bg-green-500/15 text-green-400 border-green-400/40"
-                          : "bg-amber-500/15 text-amber-200 border-amber-400/40"
-                      }
-                    >
-                      {provider?.kyc_status === "verified" ? "KYC Verified - Ready" : "Verify KYC First"}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Browse buyer/investor leads and unlock contact details by purchasing from your wallet.
-                  </p>
-                  <Link to="/dashboard/financial/leads">
-                    <Button
-                      className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500"
-                      disabled={provider?.kyc_status !== "verified"}
-                    >
-                      Browse Leads
-                    </Button>
-                  </Link>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="h-5 w-5" /> Lead Marketplace
+                      </CardTitle>
+                      <Badge variant={provider?.kyc_status === "verified" ? "default" : "secondary"}>
+                        {provider?.kyc_status === "verified" ? "KYC Verified - Ready" : "Verify KYC First"}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      Browse buyer/investor leads and unlock contact details by purchasing from your wallet.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Link to="/dashboard/financial/leads">
+                      <Button disabled={provider?.kyc_status !== "verified"}>Browse Leads</Button>
+                    </Link>
+                  </CardContent>
                 </Card>
               </TabsContent>
 
               <TabsContent value="apps" className="mt-4">
-                <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
-                  <h3 className="text-lg font-semibold mb-2 text-amber-100 flex items-center gap-2">
-                    <FileCheck2 className="h-5 w-5" /> Loan Applications
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Active: {stats.active} · Approved: {stats.approved} · Disbursed:{" "}
-                    {stats.disbursed > 0 ? `₹${(stats.disbursed / 100000).toFixed(1)}L` : "—"}
-                  </p>
-                  <Link to="/dashboard/financial/applications">
-                    <Button variant="outline" className="border-amber-500/40 text-amber-200">
-                      View All Applications
-                    </Button>
-                  </Link>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileCheck2 className="h-5 w-5" /> Loan Applications
+                    </CardTitle>
+                    <CardDescription>
+                      Active: {stats.active} · Approved: {stats.approved} · Disbursed:{" "}
+                      {stats.disbursed > 0 ? `₹${(stats.disbursed / 100000).toFixed(1)}L` : "—"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Link to="/dashboard/financial/applications">
+                      <Button variant="outline">View All Applications</Button>
+                    </Link>
+                  </CardContent>
                 </Card>
               </TabsContent>
 
@@ -456,25 +460,25 @@ export default function FinancialDashboard() {
                     { name: "Preferred Partner", price: 4999, days: 30, badge: "Preferred badge", icon: ShieldCheck },
                     { name: "Premium Verified", price: 7999, days: 30, badge: "Gold + Verified", icon: Sparkles },
                   ].map((p) => (
-                    <Card
-                      key={p.name}
-                      className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-zinc-950/80 to-zinc-900/40 p-5"
-                    >
-                      <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
-                      <div className="relative flex items-start justify-between mb-3">
-                        <p.icon className="h-6 w-6 text-amber-300" />
-                        <Badge className="bg-amber-500/15 text-amber-200 border-amber-400/40">{p.badge}</Badge>
-                      </div>
-                      <h4 className="relative text-lg font-semibold text-amber-100">{p.name}</h4>
-                      <p className="relative text-3xl font-bold tabular-nums bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent mt-2">
-                        ₹{p.price.toLocaleString()}
-                        <span className="text-xs font-normal text-muted-foreground"> / {p.days}d</span>
-                      </p>
-                      <Link to="/dashboard/financial/promotions">
-                        <Button className="relative w-full mt-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500">
-                          Purchase
-                        </Button>
-                      </Link>
+                    <Card key={p.name} className="hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <p.icon className="h-5 w-5 text-primary" />
+                          </div>
+                          <Badge variant="secondary">{p.badge}</Badge>
+                        </div>
+                        <CardTitle className="text-lg pt-2">{p.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-3xl font-bold tabular-nums">
+                          ₹{p.price.toLocaleString()}
+                          <span className="text-xs font-normal text-muted-foreground"> / {p.days}d</span>
+                        </p>
+                        <Link to="/dashboard/financial/promotions">
+                          <Button className="w-full mt-4">Purchase</Button>
+                        </Link>
+                      </CardContent>
                     </Card>
                   ))}
                 </div>
