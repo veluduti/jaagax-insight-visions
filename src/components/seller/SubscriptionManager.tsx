@@ -80,7 +80,7 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
           if (i === retries) {
             // Last retry failed - use fallback data
             if (mountedRef.current) {
-              const fallbackData = { plan: "free", posts_used: 0, free_limit: 1, free_remaining: 1 };
+              const fallbackData: QuotaStatus = { plan: "free", posts_used: 0, free_limit: 1, free_remaining: 1 };
               setStatus(fallbackData);
               setIsLoading(false);
               toast.error("Could not load plan details. Using default values.");
