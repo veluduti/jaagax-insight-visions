@@ -88,6 +88,12 @@ const BuilderProfileDetail = lazy(() => import("./pages/BuilderProfileDetail"));
 const PlanVisitStay = lazy(() => import("./pages/PlanVisitStay"));
 const FeaturedPropertiesPage = lazy(() => import("./pages/FeaturedPropertiesPage"));
 const FinancialDashboard = lazy(() => import("./pages/FinancialDashboard"));
+const FinancialRegistration = lazy(() => import("./pages/FinancialRegistration"));
+const FinancialLeads = lazy(() => import("./pages/financial/Leads"));
+const FinancialApplications = lazy(() => import("./pages/financial/Applications"));
+const FinancialWallet = lazy(() => import("./pages/financial/Wallet"));
+const FinancialPromotions = lazy(() => import("./pages/financial/Promotions"));
+const FinancialNotifications = lazy(() => import("./pages/financial/Notifications"));
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
@@ -293,10 +299,24 @@ const App = () => (
               <HotelManagerDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/financial/register" element={<FinancialRegistration />} />
           <Route path="/dashboard/financial" element={
-            <ProtectedRoute allowedRole="financial">
-              <FinancialDashboard />
-            </ProtectedRoute>
+            <ProtectedRoute allowedRole="financial"><FinancialDashboard /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/leads" element={
+            <ProtectedRoute allowedRole="financial"><FinancialLeads /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/applications" element={
+            <ProtectedRoute allowedRole="financial"><FinancialApplications /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/wallet" element={
+            <ProtectedRoute allowedRole="financial"><FinancialWallet /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/promotions" element={
+            <ProtectedRoute allowedRole="financial"><FinancialPromotions /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/notifications" element={
+            <ProtectedRoute allowedRole="financial"><FinancialNotifications /></ProtectedRoute>
           } />
 
           <Route path="/coming-soon" element={<ComingSoon />} />

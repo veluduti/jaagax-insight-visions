@@ -24,6 +24,8 @@ import PropertyInformation from "@/components/property/PropertyInformation";
 import BuildingInformation from "@/components/property/BuildingInformation";
 import PropertyTabs from "@/components/property/PropertyTabs";
 import EMICalculator from "@/components/property/EMICalculator";
+import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
+import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import PropertyActions from "@/components/property/PropertyActions";
 import PaymentPlans from "@/components/property/PaymentPlans";
@@ -598,6 +600,9 @@ const PropertyDetail = () => {
               />
             </AuthGate>
 
+            {/* Loan Assistance */}
+            <LoanAssistanceButtonWrapper property={property} />
+
             {/* EMI Calculator */}
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
               <EMICalculator propertyPrice={property.price} />
@@ -661,5 +666,26 @@ const PropertyDetail = () => {
     </div>
   );
 };
+
+function LoanAssistanceButtonWrapper({ property }: { property: any }) {
+  const [open, setOpen] = useLoanState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold shadow-lg hover:opacity-90 transition"
+      >
+        💰 Get Loan Assistance
+      </button>
+      <LoanAssistanceDialog
+        open={open}
+        onOpenChange={setOpen}
+        propertyId={property?.id}
+        propertyTitle={property?.title}
+        propertyValue={property?.price}
+      />
+    </>
+  );
+}
 
 export default PropertyDetail;

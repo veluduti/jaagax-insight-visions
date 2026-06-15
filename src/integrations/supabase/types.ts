@@ -1694,6 +1694,7 @@ export type Database = {
           kyc_rejection_reason: string | null
           kyc_status: string
           logo_url: string | null
+          notification_preferences: Json
           pan_url: string | null
           rating: number | null
           rbi_registration: string | null
@@ -1717,6 +1718,7 @@ export type Database = {
           kyc_rejection_reason?: string | null
           kyc_status?: string
           logo_url?: string | null
+          notification_preferences?: Json
           pan_url?: string | null
           rating?: number | null
           rbi_registration?: string | null
@@ -1740,6 +1742,7 @@ export type Database = {
           kyc_rejection_reason?: string | null
           kyc_status?: string
           logo_url?: string | null
+          notification_preferences?: Json
           pan_url?: string | null
           rating?: number | null
           rbi_registration?: string | null
@@ -3840,6 +3843,10 @@ export type Database = {
         Returns: number
       }
       purchase_financial_lead: { Args: { _lead_id: string }; Returns: Json }
+      purchase_financial_promotion: {
+        Args: { _amount: number; _duration_days: number; _package_type: string }
+        Returns: Json
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3944,6 +3951,10 @@ export type Database = {
           _requested_role: string
           _user_id: string
         }
+        Returns: undefined
+      }
+      update_financial_loan_document_status: {
+        Args: { _document_id: string; _notes?: string; _status: string }
         Returns: undefined
       }
       user_owns_profile: {
