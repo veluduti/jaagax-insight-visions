@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,33 +30,94 @@ const PLAN_META = {
   agent_pro: { label: "Agent Pro", bgColor: "bg-amber-600", textColor: "text-white", icon: Users },
 };
 
+// Cache outside component for persistence across re-renders
+let quotaCache: QuotaStatus | null = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 30000; // 30 seconds cache
+
 export default function SubscriptionManager({ userId }: { userId: string }) {
   const [status, setStatus] = useState<QuotaStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [agentPrompt, setAgentPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [payPerPostLoading, setPayPerPostLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const mountedRef = useRef(true);
   const navigate = useNavigate();
 
-  const load = async () => {
-    const sb: any = supabase;
-    const { data } = await sb.rpc("get_posting_quota_status", { _user_id: userId });
-    if (data) setStatus(data as QuotaStatus);
+  const load = async (skipCache = false) => {
+    // Check cache first (unless skipCache is true)
+    const now = Date.now();
+    if (!skipCache && quotaCache && now - lastFetchTime < CACHE_DURATION) {
+      if (mountedRef.current) {
+        setStatus(quotaCache);
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Retry logic with exponential backoff
+    const fetchWithRetry = async (retries = 2, delay = 500) => {
+      const sb: any = supabase;
+      for (let i = 0; i <= retries; i++) {
+        try {
+          const { data, error } = await sb.rpc("get_posting_quota_status", { _user_id: userId });
+
+          if (error) throw error;
+
+          if (data && mountedRef.current) {
+            quotaCache = data;
+            lastFetchTime = Date.now();
+            setStatus(data);
+            setIsLoading(false);
+            return data;
+          }
+        } catch (err) {
+          console.warn(`Attempt ${i + 1} failed:`, err);
+          if (i === retries) {
+            // Last retry failed - use fallback data
+            if (mountedRef.current) {
+              const fallbackData = { plan: "free", posts_used: 0, free_limit: 1, free_remaining: 1 };
+              setStatus(fallbackData);
+              setIsLoading(false);
+              toast.error("Could not load plan details. Using default values.");
+            }
+            return null;
+          }
+          // Wait before retry (exponential backoff)
+          await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+        }
+      }
+      return null;
+    };
+
+    await fetchWithRetry();
   };
 
   useEffect(() => {
+    mountedRef.current = true;
     if (userId) load();
 
-    // Listen for wallet updates
-    const handleWalletUpdate = () => load();
+    // Listen for wallet updates (refresh cache on wallet changes)
+    const handleWalletUpdate = () => {
+      quotaCache = null; // Clear cache on wallet update
+      load(true); // Force refresh
+    };
     window.addEventListener("walletUpdated", handleWalletUpdate);
-    return () => window.removeEventListener("walletUpdated", handleWalletUpdate);
+
+    return () => {
+      mountedRef.current = false;
+      window.removeEventListener("walletUpdated", handleWalletUpdate);
+    };
   }, [userId]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await load();
+    quotaCache = null; // Clear cache
+    await load(true); // Force refresh
     setRefreshing(false);
     toast.success("Plan details refreshed");
   };
@@ -102,7 +163,8 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
     setOpen(false);
     setPayPerPostLoading(false);
 
-    // Trigger refresh for wallet balance
+    // Clear cache and trigger refresh
+    quotaCache = null;
     window.dispatchEvent(new Event("walletUpdated"));
     navigate("/sell-property");
   };
@@ -159,10 +221,57 @@ export default function SubscriptionManager({ userId }: { userId: string }) {
     setOpen(false);
     setAgentPrompt(true);
 
-    // Trigger refresh for wallet and quota
+    // Clear cache and trigger refresh
+    quotaCache = null;
     window.dispatchEvent(new Event("walletUpdated"));
-    load();
+    load(true);
   };
+
+  // Show loading skeleton while fetching data
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="h-full"
+      >
+        <Card className="relative overflow-hidden border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-background to-background h-full flex flex-col shadow-lg">
+          <CardContent className="p-5 flex-1 flex flex-col gap-4">
+            {/* Header Skeleton */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-purple-500/20 animate-pulse" />
+                <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+              </div>
+              <div className="h-6 w-16 bg-muted rounded-full animate-pulse" />
+            </div>
+
+            {/* Content Skeleton */}
+            <div className="space-y-4">
+              <div className="p-3 rounded-xl bg-muted/30">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                  <div className="h-6 w-16 bg-muted rounded animate-pulse" />
+                </div>
+                <div className="h-2 bg-muted rounded-full animate-pulse" />
+                <div className="h-3 w-48 bg-muted rounded mt-2 animate-pulse" />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+              </div>
+            </div>
+
+            {/* Button Skeleton */}
+            <div className="mt-auto pt-2">
+              <div className="h-10 w-full bg-muted rounded-lg animate-pulse" />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   if (!status) return null;
   const isPremium = status.plan !== "free";
