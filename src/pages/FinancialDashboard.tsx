@@ -1,16 +1,46 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Landmark, TrendingUp, FileCheck2, IndianRupee, Sparkles, ShieldCheck, Wallet, Users, BellRing, Crown, ArrowUpRight, Loader2, FilePlus2, Building2 } from "lucide-react";
+import {
+  Landmark,
+  TrendingUp,
+  FileCheck2,
+  IndianRupee,
+  Sparkles,
+  ShieldCheck,
+  Wallet,
+  Users,
+  BellRing,
+  Crown,
+  ArrowUpRight,
+  Loader2,
+  FilePlus2,
+  Building2,
+  Search,
+  CreditCard,
+  Megaphone,
+  Settings,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 /* ---------- Luxury KPI Card ---------- */
 function LuxuryKpi({ icon: Icon, label, value, hint, accent = "amber" }: any) {
@@ -36,19 +66,40 @@ function LuxuryKpi({ icon: Icon, label, value, hint, accent = "amber" }: any) {
   );
 }
 
-const SERVICES = ["Home Loan", "Mortgage", "NBFC", "Legal Services", "Valuation", "Investment Advisory", "Credit Score"];
+const SERVICES = [
+  "Home Loan",
+  "Mortgage",
+  "NBFC",
+  "Legal Services",
+  "Valuation",
+  "Investment Advisory",
+  "Credit Score",
+];
 const PIE_COLORS = ["#fbbf24", "#f59e0b", "#d97706", "#fde68a", "#fcd34d"];
 
 const monthlyTrend = [
-  { m: "Jan", apps: 12 }, { m: "Feb", apps: 18 }, { m: "Mar", apps: 24 },
-  { m: "Apr", apps: 32 }, { m: "May", apps: 28 }, { m: "Jun", apps: 41 },
+  { m: "Jan", apps: 12 },
+  { m: "Feb", apps: 18 },
+  { m: "Mar", apps: 24 },
+  { m: "Apr", apps: 32 },
+  { m: "May", apps: 28 },
+  { m: "Jun", apps: 41 },
 ];
 
 export default function FinancialDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<any>(null);
-  const [stats, setStats] = useState({ enquiries: 0, active: 0, approved: 0, disbursed: 0, conversion: 0, revenue: 0, wallet: 0 });
+  const [stats, setStats] = useState({
+    enquiries: 0,
+    active: 0,
+    approved: 0,
+    disbursed: 0,
+    conversion: 0,
+    revenue: 0,
+    wallet: 0,
+  });
   const [leadsBreakdown, setLeadsBreakdown] = useState<any[]>([]);
   const [showRegister, setShowRegister] = useState(false);
 
@@ -57,30 +108,58 @@ export default function FinancialDashboard() {
     (async () => {
       setLoading(true);
       try {
-        const { data: prov } = await supabase.from("financial_providers" as any).select("*").eq("user_id", user.id).maybeSingle();
+        const { data: prov } = await supabase
+          .from("financial_providers" as any)
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
         setProvider(prov);
-        if (!prov) { setShowRegister(true); setLoading(false); return; }
+        if (!prov) {
+          setShowRegister(true);
+          setLoading(false);
+          return;
+        }
 
         const [{ data: apps }, { data: leads }, { data: wallet }] = await Promise.all([
-          supabase.from("financial_loan_applications" as any).select("status, loan_amount, disbursed_amount").eq("provider_id", (prov as any).id),
+          supabase
+            .from("financial_loan_applications" as any)
+            .select("status, loan_amount, disbursed_amount")
+            .eq("provider_id", (prov as any).id),
           supabase.from("financial_leads" as any).select("lead_type, is_purchased, purchased_by_provider_id"),
-          supabase.from("wallets" as any).select("balance").eq("user_id", user.id).maybeSingle(),
+          supabase
+            .from("wallets" as any)
+            .select("balance")
+            .eq("user_id", user.id)
+            .maybeSingle(),
         ]);
 
         const appsArr = (apps as any[]) || [];
-        const approved = appsArr.filter(a => a.status === "approved").length;
-        const active = appsArr.filter(a => ["new", "documents_pending", "under_review"].includes(a.status)).length;
-        const disbursed = appsArr.filter(a => a.status === "disbursed").reduce((s, a) => s + Number(a.disbursed_amount || 0), 0);
-        const revenue = disbursed * 0.01; // 1% commission illustrative
-        const enquiries = ((leads as any[]) || []).filter(l => l.purchased_by_provider_id === (prov as any).id).length;
+        const approved = appsArr.filter((a) => a.status === "approved").length;
+        const active = appsArr.filter((a) => ["new", "documents_pending", "under_review"].includes(a.status)).length;
+        const disbursed = appsArr
+          .filter((a) => a.status === "disbursed")
+          .reduce((s, a) => s + Number(a.disbursed_amount || 0), 0);
+        const revenue = disbursed * 0.01;
+        const enquiries = ((leads as any[]) || []).filter(
+          (l) => l.purchased_by_provider_id === (prov as any).id,
+        ).length;
         const conversion = appsArr.length ? Math.round((approved / appsArr.length) * 100) : 0;
 
-        // Lead breakdown by type
         const groups: Record<string, number> = {};
-        ((leads as any[]) || []).forEach(l => { groups[l.lead_type] = (groups[l.lead_type] || 0) + 1; });
+        ((leads as any[]) || []).forEach((l) => {
+          groups[l.lead_type] = (groups[l.lead_type] || 0) + 1;
+        });
         setLeadsBreakdown(Object.entries(groups).map(([name, value]) => ({ name: name.replace(/_/g, " "), value })));
 
-        setStats({ enquiries, active, approved, disbursed, conversion, revenue, wallet: Number((wallet as any)?.balance || 0) });
+        setStats({
+          enquiries,
+          active,
+          approved,
+          disbursed,
+          conversion,
+          revenue,
+          wallet: Number((wallet as any)?.balance || 0),
+        });
       } catch (e) {
         console.error(e);
       } finally {
@@ -98,7 +177,10 @@ export default function FinancialDashboard() {
       services_offered: ["Home Loan"],
       kyc_status: "pending",
     } as any);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Provider profile created — complete KYC to unlock leads");
     location.reload();
   };
@@ -134,6 +216,18 @@ export default function FinancialDashboard() {
             <p className="text-muted-foreground mt-1">Manage loans, leads, and premium placements.</p>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/dashboard/financial/notifications">
+              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-200">
+                <BellRing className="h-4 w-4 mr-1" />
+                Notifications
+              </Button>
+            </Link>
+            <Link to="/dashboard/financial/settings">
+              <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-200">
+                <Settings className="h-4 w-4 mr-1" />
+                Settings
+              </Button>
+            </Link>
             <Badge variant="outline" className="border-amber-500/40 text-amber-200 bg-amber-500/5">
               <ShieldCheck className="h-3.5 w-3.5 mr-1" />
               KYC: {provider?.kyc_status || "pending"}
@@ -150,7 +244,10 @@ export default function FinancialDashboard() {
             <Landmark className="h-12 w-12 text-amber-300 mx-auto mb-3" />
             <h2 className="text-2xl font-bold mb-2">Set up your Financial Provider profile</h2>
             <p className="text-muted-foreground mb-4">Create your profile to start receiving loan enquiries.</p>
-            <Button onClick={handleRegister} className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-semibold">
+            <Button
+              onClick={handleRegister}
+              className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-semibold"
+            >
               <FilePlus2 className="h-4 w-4 mr-2" /> Create Provider Profile
             </Button>
           </Card>
@@ -158,6 +255,45 @@ export default function FinancialDashboard() {
 
         {provider && (
           <>
+            {/* Navigation Cards - Quick Access */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <Link to="/dashboard/financial/leads">
+                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
+                  <Search className="h-6 w-6 text-amber-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-amber-100">Leads</p>
+                  <p className="text-xs text-muted-foreground">Purchase & Manage</p>
+                </Card>
+              </Link>
+              <Link to="/dashboard/financial/applications">
+                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
+                  <FileCheck2 className="h-6 w-6 text-amber-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-amber-100">Applications</p>
+                  <p className="text-xs text-muted-foreground">Process Loans</p>
+                </Card>
+              </Link>
+              <Link to="/dashboard/financial/wallet">
+                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
+                  <CreditCard className="h-6 w-6 text-amber-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-amber-100">Wallet</p>
+                  <p className="text-xs text-muted-foreground">₹{stats.wallet.toLocaleString()}</p>
+                </Card>
+              </Link>
+              <Link to="/dashboard/financial/promotions">
+                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
+                  <Megaphone className="h-6 w-6 text-amber-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-amber-100">Promotions</p>
+                  <p className="text-xs text-muted-foreground">Premium Visibility</p>
+                </Card>
+              </Link>
+              <Link to="/dashboard/financial/team">
+                <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-zinc-950/60 p-4 text-center hover:border-amber-400/60 transition-all cursor-pointer">
+                  <Users className="h-6 w-6 text-amber-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-amber-100">Team</p>
+                  <p className="text-xs text-muted-foreground">Manage RMs</p>
+                </Card>
+              </Link>
+            </div>
+
             {/* KPI grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <LuxuryKpi icon={BellRing} label="New Enquiries" value={stats.enquiries} hint="this month" />
@@ -167,7 +303,11 @@ export default function FinancialDashboard() {
               <LuxuryKpi icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
               <LuxuryKpi icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
               <LuxuryKpi icon={Wallet} label="Wallet Balance" value={`₹${stats.wallet.toLocaleString()}`} />
-              <LuxuryKpi icon={Crown} label="Subscription" value={provider?.subscription_status === "active" ? "Active" : "Inactive"} />
+              <LuxuryKpi
+                icon={Crown}
+                label="Subscription"
+                value={provider?.subscription_status === "active" ? "Active" : "Inactive"}
+              />
             </div>
 
             {/* Charts */}
@@ -200,8 +340,18 @@ export default function FinancialDashboard() {
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={leadsBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {leadsBreakdown.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                        <Pie
+                          data={leadsBreakdown}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label
+                        >
+                          {leadsBreakdown.map((_, i) => (
+                            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                          ))}
                         </Pie>
                         <Tooltip contentStyle={{ background: "#18181b", border: "1px solid #fbbf24" }} />
                       </PieChart>
@@ -224,15 +374,29 @@ export default function FinancialDashboard() {
                 <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
                   <h3 className="text-lg font-semibold mb-4 text-amber-100">Services Offered</h3>
                   <div className="flex flex-wrap gap-2">
-                    {SERVICES.map(s => {
+                    {SERVICES.map((s) => {
                       const enabled = (provider?.services_offered || []).includes(s);
                       return (
-                        <Badge key={s} variant="outline"
-                          className={enabled ? "border-amber-400/60 bg-amber-500/15 text-amber-100" : "border-zinc-700 text-muted-foreground"}>
+                        <Badge
+                          key={s}
+                          variant="outline"
+                          className={
+                            enabled
+                              ? "border-amber-400/60 bg-amber-500/15 text-amber-100"
+                              : "border-zinc-700 text-muted-foreground"
+                          }
+                        >
                           {s}
                         </Badge>
                       );
                     })}
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-amber-500/20">
+                    <Link to="/dashboard/financial/settings">
+                      <Button variant="outline" className="border-amber-500/40 text-amber-200">
+                        <Settings className="h-4 w-4 mr-2" /> Edit Services & Profile
+                      </Button>
+                    </Link>
                   </div>
                 </Card>
               </TabsContent>
@@ -240,35 +404,65 @@ export default function FinancialDashboard() {
               <TabsContent value="leads" className="mt-4">
                 <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-amber-100 flex items-center gap-2"><Users className="h-5 w-5" /> Lead Marketplace</h3>
-                    <Badge className="bg-amber-500/15 text-amber-200 border-amber-400/40">{provider?.kyc_status === "verified" ? "Ready" : "Verify KYC first"}</Badge>
+                    <h3 className="text-lg font-semibold text-amber-100 flex items-center gap-2">
+                      <Users className="h-5 w-5" /> Lead Marketplace
+                    </h3>
+                    <Badge
+                      className={
+                        provider?.kyc_status === "verified"
+                          ? "bg-green-500/15 text-green-400 border-green-400/40"
+                          : "bg-amber-500/15 text-amber-200 border-amber-400/40"
+                      }
+                    >
+                      {provider?.kyc_status === "verified" ? "KYC Verified - Ready" : "Verify KYC First"}
+                    </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">Browse buyer/investor leads and unlock contact details by purchasing from your wallet.</p>
-                  <Button className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500" disabled={provider?.kyc_status !== "verified"}>
-                    Browse Leads
-                  </Button>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Browse buyer/investor leads and unlock contact details by purchasing from your wallet.
+                  </p>
+                  <Link to="/dashboard/financial/leads">
+                    <Button
+                      className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500"
+                      disabled={provider?.kyc_status !== "verified"}
+                    >
+                      Browse Leads
+                    </Button>
+                  </Link>
                 </Card>
               </TabsContent>
 
               <TabsContent value="apps" className="mt-4">
                 <Card className="border-amber-500/20 bg-zinc-950/60 p-6">
-                  <h3 className="text-lg font-semibold mb-2 text-amber-100 flex items-center gap-2"><FileCheck2 className="h-5 w-5" /> Loan Applications</h3>
-                  <p className="text-sm text-muted-foreground">Active: {stats.active} · Approved: {stats.approved} · Disbursed: {stats.disbursed > 0 ? `₹${(stats.disbursed/100000).toFixed(1)}L` : "—"}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-amber-100 flex items-center gap-2">
+                    <FileCheck2 className="h-5 w-5" /> Loan Applications
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Active: {stats.active} · Approved: {stats.approved} · Disbursed:{" "}
+                    {stats.disbursed > 0 ? `₹${(stats.disbursed / 100000).toFixed(1)}L` : "—"}
+                  </p>
+                  <Link to="/dashboard/financial/applications">
+                    <Button variant="outline" className="border-amber-500/40 text-amber-200">
+                      View All Applications
+                    </Button>
+                  </Link>
                 </Card>
               </TabsContent>
 
               <TabsContent value="promo" className="mt-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   {[
-                    { name: "Homepage Featured", price: 499, days: 1, badge: "Logo on homepage" },
-                    { name: "Top Search Placement", price: 999, days: 7, badge: "First in search" },
-                    { name: "Preferred Partner", price: 4999, days: 30, badge: "Preferred badge" },
-                    { name: "Premium Verified", price: 7999, days: 30, badge: "Gold + Verified" },
-                  ].map(p => (
-                    <Card key={p.name} className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-zinc-950/80 to-zinc-900/40 p-5">
+                    { name: "Homepage Featured", price: 499, days: 1, badge: "Logo on homepage", icon: Crown },
+                    { name: "Top Search Placement", price: 999, days: 7, badge: "First in search", icon: TrendingUp },
+                    { name: "Preferred Partner", price: 4999, days: 30, badge: "Preferred badge", icon: ShieldCheck },
+                    { name: "Premium Verified", price: 7999, days: 30, badge: "Gold + Verified", icon: Sparkles },
+                  ].map((p) => (
+                    <Card
+                      key={p.name}
+                      className="relative overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-zinc-950/80 to-zinc-900/40 p-5"
+                    >
                       <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
                       <div className="relative flex items-start justify-between mb-3">
-                        <Crown className="h-6 w-6 text-amber-300" />
+                        <p.icon className="h-6 w-6 text-amber-300" />
                         <Badge className="bg-amber-500/15 text-amber-200 border-amber-400/40">{p.badge}</Badge>
                       </div>
                       <h4 className="relative text-lg font-semibold text-amber-100">{p.name}</h4>
@@ -276,9 +470,11 @@ export default function FinancialDashboard() {
                         ₹{p.price.toLocaleString()}
                         <span className="text-xs font-normal text-muted-foreground"> / {p.days}d</span>
                       </p>
-                      <Button className="relative w-full mt-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500">
-                        Purchase
-                      </Button>
+                      <Link to="/dashboard/financial/promotions">
+                        <Button className="relative w-full mt-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-black hover:from-amber-400 hover:to-yellow-500">
+                          Purchase
+                        </Button>
+                      </Link>
                     </Card>
                   ))}
                 </div>
