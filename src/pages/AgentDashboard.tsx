@@ -68,6 +68,7 @@ import AgentPremiumPromotion from "@/components/agent/AgentPremiumPromotion";
 import AgentAIRecommendations from "@/components/agent/AgentAIRecommendations";
 import AgentRouteOptimization from "@/components/agent/AgentRouteOptimization";
 import AgentAnalytics from "@/components/agent/AgentAnalytics";
+import AgentWallet from "@/components/agent/AgentWallet";
 
 // Lazy-load heavy panels
 const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
@@ -796,6 +797,13 @@ export default function AgentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} />
             <AgentSuccessScore />
+          </div>
+        )}
+
+        {/* ===== Wallet System (Excel Section 5) ===== */}
+        {agentProfile.id && user?.id && (
+          <div className="grid grid-cols-1 gap-6">
+            <AgentWallet userId={user.id} />
           </div>
         )}
 
