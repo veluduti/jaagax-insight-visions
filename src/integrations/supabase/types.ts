@@ -1305,6 +1305,50 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_branches: {
+        Row: {
+          branch_locations: Json | null
+          created_at: string
+          head_office: string
+          id: string
+          operating_states: string[] | null
+          provider_id: string
+          service_areas: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          branch_locations?: Json | null
+          created_at?: string
+          head_office: string
+          id?: string
+          operating_states?: string[] | null
+          provider_id: string
+          service_areas?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          branch_locations?: Json | null
+          created_at?: string
+          head_office?: string
+          id?: string
+          operating_states?: string[] | null
+          provider_id?: string
+          service_areas?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_branches_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_enquiries: {
         Row: {
           advisor_id: string | null
@@ -1349,6 +1393,415 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      financial_leads: {
+        Row: {
+          budget: number | null
+          city: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          customer_name: string
+          id: string
+          is_purchased: boolean
+          lead_type: string
+          location: string | null
+          price: number
+          purchased_at: string | null
+          purchased_by_provider_id: string | null
+          requirement: string | null
+          source_user_id: string | null
+        }
+        Insert: {
+          budget?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          customer_name: string
+          id?: string
+          is_purchased?: boolean
+          lead_type: string
+          location?: string | null
+          price?: number
+          purchased_at?: string | null
+          purchased_by_provider_id?: string | null
+          requirement?: string | null
+          source_user_id?: string | null
+        }
+        Update: {
+          budget?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          customer_name?: string
+          id?: string
+          is_purchased?: boolean
+          lead_type?: string
+          location?: string | null
+          price?: number
+          purchased_at?: string | null
+          purchased_by_provider_id?: string | null
+          requirement?: string | null
+          source_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_leads_purchased_by_provider_id_fkey"
+            columns: ["purchased_by_provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_loan_applications: {
+        Row: {
+          approved_at: string | null
+          assigned_rm_id: string | null
+          assigned_rm_name: string | null
+          buyer_email: string | null
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          disbursed_amount: number | null
+          disbursed_at: string | null
+          employment_type: string | null
+          id: string
+          loan_amount: number
+          monthly_income: number | null
+          property_id: string | null
+          property_title: string | null
+          property_value: number | null
+          provider_id: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          sanction_letter_url: string | null
+          status: string
+          tenure_months: number | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          assigned_rm_id?: string | null
+          assigned_rm_name?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          disbursed_amount?: number | null
+          disbursed_at?: string | null
+          employment_type?: string | null
+          id?: string
+          loan_amount: number
+          monthly_income?: number | null
+          property_id?: string | null
+          property_title?: string | null
+          property_value?: number | null
+          provider_id: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sanction_letter_url?: string | null
+          status?: string
+          tenure_months?: number | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          assigned_rm_id?: string | null
+          assigned_rm_name?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          disbursed_amount?: number | null
+          disbursed_at?: string | null
+          employment_type?: string | null
+          id?: string
+          loan_amount?: number
+          monthly_income?: number | null
+          property_id?: string | null
+          property_title?: string | null
+          property_value?: number | null
+          provider_id?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sanction_letter_url?: string | null
+          status?: string
+          tenure_months?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_loan_applications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_loan_applications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_loan_documents: {
+        Row: {
+          application_id: string
+          document_type: string
+          file_path: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+          uploaded_at: string
+          verified_by: string | null
+          verified_status: string
+        }
+        Insert: {
+          application_id: string
+          document_type: string
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          verified_by?: string | null
+          verified_status?: string
+        }
+        Update: {
+          application_id?: string
+          document_type?: string
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          verified_by?: string | null
+          verified_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_loan_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financial_loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_notifications: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string | null
+          provider_id: string
+          title: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          provider_id: string
+          title: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          provider_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_notifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_promotions: {
+        Row: {
+          amount: number
+          created_at: string
+          duration_days: number
+          end_date: string
+          id: string
+          is_active: boolean
+          package_type: string
+          provider_id: string
+          start_date: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          duration_days: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          package_type: string
+          provider_id: string
+          start_date?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          duration_days?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          package_type?: string
+          provider_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_promotions_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_providers: {
+        Row: {
+          company_name: string | null
+          company_reg_cert_url: string | null
+          created_at: string
+          entity_type: string | null
+          featured_until: string | null
+          gst_url: string | null
+          id: string
+          is_featured: boolean | null
+          kyc_rejection_reason: string | null
+          kyc_status: string
+          logo_url: string | null
+          pan_url: string | null
+          rating: number | null
+          rbi_registration: string | null
+          services_offered: string[] | null
+          signatory_id_url: string | null
+          subscription_expires_at: string | null
+          subscription_status: string
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          company_reg_cert_url?: string | null
+          created_at?: string
+          entity_type?: string | null
+          featured_until?: string | null
+          gst_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          kyc_rejection_reason?: string | null
+          kyc_status?: string
+          logo_url?: string | null
+          pan_url?: string | null
+          rating?: number | null
+          rbi_registration?: string | null
+          services_offered?: string[] | null
+          signatory_id_url?: string | null
+          subscription_expires_at?: string | null
+          subscription_status?: string
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          company_reg_cert_url?: string | null
+          created_at?: string
+          entity_type?: string | null
+          featured_until?: string | null
+          gst_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          kyc_rejection_reason?: string | null
+          kyc_status?: string
+          logo_url?: string | null
+          pan_url?: string | null
+          rating?: number | null
+          rbi_registration?: string | null
+          services_offered?: string[] | null
+          signatory_id_url?: string | null
+          subscription_expires_at?: string | null
+          subscription_status?: string
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_team_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          member_user_id: string | null
+          name: string
+          performance: Json | null
+          phone: string | null
+          provider_id: string
+          team_role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          member_user_id?: string | null
+          name: string
+          performance?: Json | null
+          phone?: string | null
+          provider_id: string
+          team_role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          member_user_id?: string | null
+          name?: string
+          performance?: Json | null
+          phone?: string | null
+          provider_id?: string
+          team_role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_team_members_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hotel_bookings: {
         Row: {
@@ -3291,6 +3744,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Json
       }
+      check_financial_kyc: { Args: { _user_id: string }; Returns: boolean }
       decrement_wallet_balance: {
         Args: {
           _amount: number
@@ -3385,6 +3839,7 @@ export type Database = {
         }
         Returns: number
       }
+      purchase_financial_lead: { Args: { _lead_id: string }; Returns: Json }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
