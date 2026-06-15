@@ -113,7 +113,7 @@ export default function FinancialDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-amber-950/20">
-      <Navbar />
+      <Navigation />,
       {/* Decorative gold orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-32 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
