@@ -1077,9 +1077,25 @@ export default function SellerDashboard() {
                 properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined
               }
             />
+
+            {/* Loan Offers Alert */}
+            <LoanOffersAlert />
+
+            {/* Hotel Bookings */}
+            <HotelBookings userId={user.id} />
+
+            {/* Financial Enquiries */}
+            <FinancialEnquiries userId={user.id} />
+
+            {/* Preferred Locations + Alert Channels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <PreferredLocations userId={user.id} />
+              <AlertChannelsSettings userId={user.id} />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <VisitManagement sellerId={user.id} />
-              <ActivityTimeline userId={user.id} />
+              <ActivityTimelineEnhanced userId={user.id} />
             </div>
             <ReferralLink userId={user.id} />
           </>
