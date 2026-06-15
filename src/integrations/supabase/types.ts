@@ -350,6 +350,7 @@ export type Database = {
           agent_id: string
           booking_id: string
           buyer_id: string
+          comment: string | null
           created_at: string
           id: string
           property_id: string | null
@@ -361,6 +362,7 @@ export type Database = {
           agent_id: string
           booking_id: string
           buyer_id: string
+          comment?: string | null
           created_at?: string
           id?: string
           property_id?: string | null
@@ -372,6 +374,7 @@ export type Database = {
           agent_id?: string
           booking_id?: string
           buyer_id?: string
+          comment?: string | null
           created_at?: string
           id?: string
           property_id?: string | null
@@ -1272,6 +1275,33 @@ export type Database = {
           id?: string
           property_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled: boolean | null
+          flag_name: string
+          id: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name: string
+          id?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name?: string
+          id?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2807,6 +2837,7 @@ export type Database = {
           locality: string | null
           notes: string | null
           property_id: string | null
+          scheduled_at: string | null
           status: string
           updated_at: string
           visit_date: string
@@ -2824,6 +2855,7 @@ export type Database = {
           locality?: string | null
           notes?: string | null
           property_id?: string | null
+          scheduled_at?: string | null
           status?: string
           updated_at?: string
           visit_date: string
@@ -2841,6 +2873,7 @@ export type Database = {
           locality?: string | null
           notes?: string | null
           property_id?: string | null
+          scheduled_at?: string | null
           status?: string
           updated_at?: string
           visit_date?: string
