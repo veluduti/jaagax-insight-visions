@@ -635,6 +635,21 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <AgentRating agentId={p.assigned_agent.id} compact />
+                  {user?.id && (
+                    <SwitchAgentDialog
+                      propertyId={p.id}
+                      currentAgentId={p.assigned_agent_id}
+                      userId={user.id}
+                      trigger={
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] text-muted-foreground">
+                          Switch agent
+                        </Button>
+                      }
+                    />
+                  )}
+                </div>
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
