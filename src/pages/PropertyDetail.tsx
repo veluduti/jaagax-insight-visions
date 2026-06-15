@@ -24,6 +24,8 @@ import PropertyInformation from "@/components/property/PropertyInformation";
 import BuildingInformation from "@/components/property/BuildingInformation";
 import PropertyTabs from "@/components/property/PropertyTabs";
 import EMICalculator from "@/components/property/EMICalculator";
+import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
+import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import PropertyActions from "@/components/property/PropertyActions";
 import PaymentPlans from "@/components/property/PaymentPlans";
@@ -597,6 +599,9 @@ const PropertyDetail = () => {
                 propertyId={property.id}
               />
             </AuthGate>
+
+            {/* Loan Assistance */}
+            <LoanAssistanceButtonWrapper property={property} />
 
             {/* EMI Calculator */}
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
