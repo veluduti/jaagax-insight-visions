@@ -160,6 +160,22 @@ export default function SellerDashboard() {
     init();
   }, []);
 
+  // ✅ ADDED: Pre-fetch quota data when dashboard loads (speeds up SubscriptionManager)
+  useEffect(() => {
+    const prefetchQuotaData = async () => {
+      if (user?.id) {
+        try {
+          const sb: any = supabase;
+          // This will cache the quota data in SubscriptionManager
+          await sb.rpc("get_posting_quota_status", { _user_id: user.id });
+        } catch (error) {
+          console.warn("Failed to prefetch quota data:", error);
+        }
+      }
+    };
+    prefetchQuotaData();
+  }, [user?.id]);
+
   // Realtime: refresh when agent_tasks or own properties change
   useEffect(() => {
     if (!user?.id) return;
