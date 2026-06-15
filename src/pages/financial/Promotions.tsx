@@ -56,7 +56,7 @@ export default function FinancialPromotions() {
 
   return (
     <FinancialLayout title="Promotion Packages" subtitle="Boost your visibility and lead flow">
-      <Card className="border-border bg-gradient-to-r from-amber-950/30 to-black backdrop-blur-md">
+      <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="py-4 flex justify-between items-center">
           <span className="text-sm text-foreground">Wallet Balance</span>
           <span className="text-2xl font-bold text-primary">₹{balance.toLocaleString()}</span>
@@ -72,7 +72,7 @@ export default function FinancialPromotions() {
             <Card key={pkg.key} className="border-border bg-card backdrop-blur-md hover:border-border transition-all">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
                     <Icon className="h-6 w-6 text-primary-foreground" />
                   </div>
                   <div>
@@ -119,7 +119,7 @@ export default function FinancialPromotions() {
                     <p className="text-xs text-muted-foreground">₹{Number(p.amount).toLocaleString()} · {p.duration_days} days · ends {new Date(p.end_date).toLocaleDateString()}</p>
                     <p className="text-xs text-muted-foreground mt-1">Impressions: {Math.floor(Math.random() * 2000)} · Clicks: {Math.floor(Math.random() * 200)}</p>
                   </div>
-                  <Badge className={active ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-zinc-700/50 text-muted-foreground"}>
+                  <Badge className={active ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : "bg-muted text-muted-foreground"}>
                     {active ? `Active · ${daysLeft}d left` : "Expired"}
                   </Badge>
                 </div>

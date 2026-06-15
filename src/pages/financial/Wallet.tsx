@@ -57,7 +57,7 @@ export default function FinancialWallet() {
 
   return (
     <FinancialLayout title="Wallet" subtitle="Top up to purchase leads & promotions">
-      <Card className="border-border bg-gradient-to-br from-amber-950/40 via-yellow-900/20 to-black backdrop-blur-md">
+      <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-wider text-primary/70">Current Balance</p>

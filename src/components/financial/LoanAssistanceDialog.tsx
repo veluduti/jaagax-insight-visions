@@ -86,7 +86,7 @@ export default function LoanAssistanceDialog({
                         ))}
                       </div>
                       <div className="flex items-center gap-1 text-xs text-primary mt-1">
-                        <Star className="h-3 w-3 fill-amber-500" />{Number(p.rating ?? 0).toFixed(1)}
+                        <Star className="h-3 w-3 fill-primary" />{Number(p.rating ?? 0).toFixed(1)}
                       </div>
                     </div>
                   </div>

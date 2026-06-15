@@ -93,7 +93,7 @@ export default function FinancialNotifications() {
           {filtered.length === 0 ? (
             <Card className="border-border bg-card"><CardContent className="py-12 text-center text-muted-foreground"><Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />No notifications</CardContent></Card>
           ) : filtered.map((n) => (
-            <Card key={n.id} className={`border-border bg-card backdrop-blur-md ${!n.is_read ? "border-l-4 border-l-amber-400" : ""}`}>
+            <Card key={n.id} className={`border-border bg-card backdrop-blur-md ${!n.is_read ? "border-l-4 border-l-primary" : ""}`}>
               <CardContent className="py-3 flex items-center justify-between gap-3">
                 <div className="flex-1">
                   <p className="font-semibold text-primary">{n.title}</p>

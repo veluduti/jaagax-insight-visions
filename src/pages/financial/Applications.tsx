@@ -174,7 +174,7 @@ export default function FinancialApplications() {
                         <div className="flex items-center gap-2 capitalize">
                           <FileText className="h-4 w-4 text-primary" />
                           <span>{dt.replace("_", " ")}</span>
-                          {d ? <Badge className={STATUS_COLOR[d.verified_status] || "bg-zinc-700"}>{d.verified_status}</Badge>
+                          {d ? <Badge className={STATUS_COLOR[d.verified_status] || "bg-muted"}>{d.verified_status}</Badge>
                             : <Badge variant="outline" className="border-border text-muted-foreground"><Clock className="h-3 w-3 mr-1" />Not requested</Badge>}
                         </div>
                         <div className="flex gap-1">
