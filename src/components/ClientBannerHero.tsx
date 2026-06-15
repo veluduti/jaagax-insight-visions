@@ -516,7 +516,7 @@ const ClientBannerHero = ({
                 <Hotel size={16} /> Book Hotel
               </button>
               <button
-                onClick={goComingSoon("Smart Financing")}
+                onClick={() => navigate("/smart-financing")}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
