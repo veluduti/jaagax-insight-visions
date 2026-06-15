@@ -94,6 +94,7 @@ const FinancialApplications = lazy(() => import("./pages/financial/Applications"
 const FinancialWallet = lazy(() => import("./pages/financial/Wallet"));
 const FinancialPromotions = lazy(() => import("./pages/financial/Promotions"));
 const FinancialNotifications = lazy(() => import("./pages/financial/Notifications"));
+const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
@@ -317,6 +318,9 @@ const App = () => (
           } />
           <Route path="/dashboard/financial/notifications" element={
             <ProtectedRoute allowedRole="financial"><FinancialNotifications /></ProtectedRoute>
+          } />
+          <Route path="/dashboard/financial/settings" element={
+            <ProtectedRoute allowedRole="financial"><FinancialSettings /></ProtectedRoute>
           } />
 
           <Route path="/coming-soon" element={<ComingSoon />} />
