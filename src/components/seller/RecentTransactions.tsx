@@ -70,6 +70,7 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
   const [transactions, setTransactions] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const loadTransactions = async () => {
     const sb: any = supabase;
@@ -94,6 +95,41 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
     setRefreshing(false);
     toast.success("Transactions refreshed");
   };
+
+  const filtered = useMemo(
+    () => (categoryFilter === "all" ? transactions : transactions.filter((t) => t.category === categoryFilter)),
+    [transactions, categoryFilter],
+  );
+
+  const categories = useMemo(() => {
+    const set = new Set(transactions.map((t) => t.category).filter(Boolean));
+    return Array.from(set);
+  }, [transactions]);
+
+  const exportCSV = () => {
+    if (!filtered.length) return toast.error("No transactions to export");
+    const rows = [
+      ["Date", "Type", "Category", "Description", "Amount (INR)", "Status"],
+      ...filtered.map((t) => [
+        new Date(t.created_at).toISOString(),
+        t.type,
+        t.category || "",
+        (t.description || "").replace(/"/g, '""'),
+        String(t.amount),
+        t.status || "",
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported CSV");
+  };
+
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
