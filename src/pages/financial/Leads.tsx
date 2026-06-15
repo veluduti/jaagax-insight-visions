@@ -104,15 +104,15 @@ export default function FinancialLeads() {
         </Card>
       )}
 
-      <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
+      <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="p-4 grid md:grid-cols-3 gap-4">
           <div className="relative">
-            <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+            <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search location"
-              className="pl-9 bg-black/40 border-amber-500/20" />
+              className="pl-9 bg-card border-border" />
           </div>
           <div className="md:col-span-2 space-y-2">
-            <div className="flex justify-between text-xs text-zinc-400">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>Max Budget</span><span>₹{(maxBudget / 100000).toFixed(1)} L</span>
             </div>
             <Slider value={[maxBudget]} max={20000000} step={100000}
@@ -122,9 +122,9 @@ export default function FinancialLeads() {
       </Card>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-black/40 border border-amber-500/20 flex-wrap h-auto">
+        <TabsList className="bg-card border border-border flex-wrap h-auto">
           {Object.keys(TAB_TYPES).map((k) => (
-            <TabsTrigger key={k} value={k} className="data-[state=active]:bg-amber-500 data-[state=active]:text-black capitalize">
+            <TabsTrigger key={k} value={k} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground capitalize">
               {k.replace("_", " ")}
             </TabsTrigger>
           ))}
@@ -133,37 +133,37 @@ export default function FinancialLeads() {
 
       {loading ? (
         <div className="grid md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-44 bg-zinc-900" />)}
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-44 bg-card" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="border-amber-500/20 bg-black/40"><CardContent className="py-12 text-center text-zinc-400">No leads match your filters.</CardContent></Card>
+        <Card className="border-border bg-card"><CardContent className="py-12 text-center text-muted-foreground">No leads match your filters.</CardContent></Card>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {filtered.map((l) => {
             const unlocked = l.is_purchased && l.purchased_by_provider_id === providerId;
             return (
-              <Card key={l.id} className="border-amber-500/20 bg-black/50 backdrop-blur-md hover:border-amber-400/50 transition-all">
+              <Card key={l.id} className="border-border bg-card backdrop-blur-md hover:border-border transition-all">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg text-amber-100">{l.customer_name}</CardTitle>
-                    <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 capitalize">{l.lead_type.replace("_", " ")}</Badge>
+                    <CardTitle className="text-lg text-primary">{l.customer_name}</CardTitle>
+                    <Badge className="bg-primary/10 text-primary border-border capitalize">{l.lead_type.replace("_", " ")}</Badge>
                   </div>
-                  <p className="text-xs text-zinc-500">{new Date(l.created_at).toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString()}</p>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <p className="text-zinc-300">{l.requirement || "—"}</p>
-                  <div className="flex flex-wrap gap-3 text-zinc-400 text-xs">
+                  <p className="text-foreground">{l.requirement || "—"}</p>
+                  <div className="flex flex-wrap gap-3 text-muted-foreground text-xs">
                     {l.budget && <span>💰 ₹{(Number(l.budget) / 100000).toFixed(1)}L</span>}
                     {l.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{l.location}</span>}
                   </div>
                   <div className={`space-y-1 ${unlocked ? "" : "blur-sm select-none"}`}>
-                    <p className="flex items-center gap-2 text-zinc-200"><Phone className="h-3 w-3" />{l.contact_phone || "—"}</p>
-                    <p className="flex items-center gap-2 text-zinc-200"><Mail className="h-3 w-3" />{l.contact_email || "—"}</p>
+                    <p className="flex items-center gap-2 text-foreground"><Phone className="h-3 w-3" />{l.contact_phone || "—"}</p>
+                    <p className="flex items-center gap-2 text-foreground"><Mail className="h-3 w-3" />{l.contact_email || "—"}</p>
                   </div>
                   {unlocked ? (
                     <div className="flex gap-2">
                       <Select onValueChange={(v) => assignRM(l.id, v)}>
-                        <SelectTrigger className="bg-black/40 border-amber-500/30"><SelectValue placeholder="Assign RM" /></SelectTrigger>
+                        <SelectTrigger className="bg-card border-border"><SelectValue placeholder="Assign RM" /></SelectTrigger>
                         <SelectContent>
                           {team.length === 0 ? <SelectItem value="none" disabled>No team members</SelectItem>
                             : team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
@@ -171,10 +171,10 @@ export default function FinancialLeads() {
                       </Select>
                     </div>
                   ) : l.is_purchased ? (
-                    <Badge variant="outline" className="border-zinc-700 text-zinc-500"><Lock className="h-3 w-3 mr-1" />Sold to another provider</Badge>
+                    <Badge variant="outline" className="border-border text-muted-foreground"><Lock className="h-3 w-3 mr-1" />Sold to another provider</Badge>
                   ) : (
                     <Button onClick={() => buy(l.id, Number(l.price))}
-                      className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold">
+                      className="w-full bg-primary text-primary-foreground font-semibold">
                       <Eye className="h-4 w-4 mr-2" />Purchase Lead for ₹{Number(l.price).toFixed(0)}
                     </Button>
                   )}

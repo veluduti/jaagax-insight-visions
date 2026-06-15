@@ -77,7 +77,7 @@ export default function LoanAssistanceDialog({
                 <CardContent className="flex items-center justify-between gap-3 py-4">
                   <div className="flex items-center gap-3">
                     {p.logo_url ? <img src={p.logo_url} className="h-12 w-12 rounded object-cover" alt="" />
-                      : <div className="h-12 w-12 rounded bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">{(p.company_name ?? "F")[0]}</div>}
+                      : <div className="h-12 w-12 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">{(p.company_name ?? "F")[0]}</div>}
                     <div>
                       <p className="font-semibold">{p.company_name ?? "Provider"}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
@@ -85,7 +85,7 @@ export default function LoanAssistanceDialog({
                           <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
                         ))}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-amber-500 mt-1">
+                      <div className="flex items-center gap-1 text-xs text-primary mt-1">
                         <Star className="h-3 w-3 fill-amber-500" />{Number(p.rating ?? 0).toFixed(1)}
                       </div>
                     </div>

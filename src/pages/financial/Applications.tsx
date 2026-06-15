@@ -17,11 +17,11 @@ import { CheckCircle2, Eye, FileText, XCircle, Clock } from "lucide-react";
 type App = any;
 const STATUS_COLOR: Record<string, string> = {
   new: "bg-blue-500/20 text-blue-300 border-blue-500/40",
-  documents_pending: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+  documents_pending: "bg-primary/10 text-primary border-border",
   under_review: "bg-purple-500/20 text-purple-300 border-purple-500/40",
   approved: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
   rejected: "bg-red-500/20 text-red-300 border-red-500/40",
-  disbursed: "bg-yellow-500/30 text-yellow-200 border-yellow-500/50",
+  disbursed: "bg-primary/10 text-primary border-border",
 };
 const DOC_TYPES = ["aadhaar", "pan", "salary_slips", "bank_statements", "itr", "property_documents"];
 
@@ -101,34 +101,34 @@ export default function FinancialApplications() {
 
   return (
     <FinancialLayout title="Loan Applications" subtitle="Manage active loan workflows">
-      <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
+      <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="p-0 overflow-x-auto">
-          {loading ? <Skeleton className="h-64 bg-zinc-900" /> : (
+          {loading ? <Skeleton className="h-64 bg-card" /> : (
             <Table>
               <TableHeader>
-                <TableRow className="border-amber-500/20 hover:bg-transparent">
-                  <TableHead className="text-amber-200">ID</TableHead>
-                  <TableHead className="text-amber-200">Customer</TableHead>
-                  <TableHead className="text-amber-200">Loan Amount</TableHead>
-                  <TableHead className="text-amber-200">Status</TableHead>
-                  <TableHead className="text-amber-200">Assigned RM</TableHead>
-                  <TableHead className="text-amber-200">Date</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-primary">ID</TableHead>
+                  <TableHead className="text-primary">Customer</TableHead>
+                  <TableHead className="text-primary">Loan Amount</TableHead>
+                  <TableHead className="text-primary">Status</TableHead>
+                  <TableHead className="text-primary">Assigned RM</TableHead>
+                  <TableHead className="text-primary">Date</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {apps.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-12 text-zinc-500">No applications yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">No applications yet</TableCell></TableRow>
                 ) : apps.map((a) => (
-                  <TableRow key={a.id} className="border-amber-500/10 hover:bg-amber-500/5">
+                  <TableRow key={a.id} className="border-border hover:bg-primary/10">
                     <TableCell className="font-mono text-xs">{a.id.slice(0, 8)}</TableCell>
                     <TableCell>{a.buyer_name ?? "—"}</TableCell>
                     <TableCell>₹{(Number(a.loan_amount) / 100000).toFixed(1)}L</TableCell>
                     <TableCell><Badge className={STATUS_COLOR[a.status]}>{a.status.replace("_", " ")}</Badge></TableCell>
-                    <TableCell className="text-zinc-300">{a.assigned_rm_name ?? "—"}</TableCell>
-                    <TableCell className="text-zinc-400 text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-foreground">{a.assigned_rm_name ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Button size="sm" variant="ghost" onClick={() => openApp(a)} className="text-amber-300 hover:bg-amber-500/10">
+                      <Button size="sm" variant="ghost" onClick={() => openApp(a)} className="text-primary hover:bg-primary/10">
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -141,14 +141,14 @@ export default function FinancialApplications() {
       </Card>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-3xl bg-zinc-950 border-amber-500/30 text-zinc-100 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl bg-card border-border text-foreground max-h-[90vh] overflow-y-auto">
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-amber-200">Application #{selected.id.slice(0, 8)}</DialogTitle>
+                <DialogTitle className="text-primary">Application #{selected.id.slice(0, 8)}</DialogTitle>
               </DialogHeader>
               <Tabs defaultValue="details">
-                <TabsList className="bg-black/40">
+                <TabsList className="bg-card">
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="docs">Documents</TabsTrigger>
                   <TabsTrigger value="actions">Actions</TabsTrigger>
@@ -170,15 +170,15 @@ export default function FinancialApplications() {
                   {DOC_TYPES.map((dt) => {
                     const d = docs.find((x) => x.document_type === dt);
                     return (
-                      <div key={dt} className="flex items-center justify-between gap-2 p-3 rounded-lg border border-amber-500/15 bg-black/40">
+                      <div key={dt} className="flex items-center justify-between gap-2 p-3 rounded-lg border border-border bg-card">
                         <div className="flex items-center gap-2 capitalize">
-                          <FileText className="h-4 w-4 text-amber-400" />
+                          <FileText className="h-4 w-4 text-primary" />
                           <span>{dt.replace("_", " ")}</span>
                           {d ? <Badge className={STATUS_COLOR[d.verified_status] || "bg-zinc-700"}>{d.verified_status}</Badge>
-                            : <Badge variant="outline" className="border-zinc-700 text-zinc-500"><Clock className="h-3 w-3 mr-1" />Not requested</Badge>}
+                            : <Badge variant="outline" className="border-border text-muted-foreground"><Clock className="h-3 w-3 mr-1" />Not requested</Badge>}
                         </div>
                         <div className="flex gap-1">
-                          {!d && <Button size="sm" variant="outline" className="border-amber-500/30" onClick={() => ensureDoc(dt)}>Request</Button>}
+                          {!d && <Button size="sm" variant="outline" className="border-border" onClick={() => ensureDoc(dt)}>Request</Button>}
                           {d && d.file_path && <Button size="sm" variant="outline" onClick={() => window.open(d.file_path, "_blank")}>Download</Button>}
                           {d && <>
                             <Button size="sm" className="bg-emerald-600" onClick={() => docStatus(d.id, "verified")}><CheckCircle2 className="h-4 w-4" /></Button>
@@ -191,9 +191,9 @@ export default function FinancialApplications() {
                 </TabsContent>
                 <TabsContent value="actions" className="space-y-4 pt-4">
                   <div>
-                    <p className="text-xs text-zinc-400 mb-1">Assign Relationship Manager</p>
+                    <p className="text-xs text-muted-foreground mb-1">Assign Relationship Manager</p>
                     <Select onValueChange={assignRM}>
-                      <SelectTrigger className="bg-black/40 border-amber-500/30"><SelectValue placeholder={selected.assigned_rm_name ?? "Select RM"} /></SelectTrigger>
+                      <SelectTrigger className="bg-card border-border"><SelectValue placeholder={selected.assigned_rm_name ?? "Select RM"} /></SelectTrigger>
                       <SelectContent>
                         {team.length === 0 ? <SelectItem value="none" disabled>No team members</SelectItem>
                           : team.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
@@ -207,14 +207,14 @@ export default function FinancialApplications() {
                   </div>
                   <div className="space-y-2">
                     <Textarea placeholder="Rejection reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
-                      className="bg-black/40 border-amber-500/20" />
+                      className="bg-card border-border" />
                     <Button variant="destructive" className="w-full" onClick={() => setStatus("rejected", { rejection_reason: rejectReason })}>Reject Application</Button>
                   </div>
                   {selected.status === "approved" && (
-                    <div className="space-y-2 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5">
+                    <div className="space-y-2 p-3 rounded-lg border border-border bg-primary/10">
                       <Input placeholder="Disbursed amount" type="number" value={disburseAmount}
-                        onChange={(e) => setDisburseAmount(e.target.value)} className="bg-black/40 border-amber-500/30" />
-                      <Button className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black"
+                        onChange={(e) => setDisburseAmount(e.target.value)} className="bg-card border-border" />
+                      <Button className="w-full bg-primary text-primary-foreground"
                         onClick={() => setStatus("disbursed", { disbursed_amount: Number(disburseAmount) })}>
                         Mark as Disbursed
                       </Button>
@@ -233,8 +233,8 @@ export default function FinancialApplications() {
 function Info({ label, value }: { label: string; value: any }) {
   return (
     <div>
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className="text-zinc-200">{value ?? "—"}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-foreground">{value ?? "—"}</p>
     </div>
   );
 }
