@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import {
-  LayoutDashboard, Users, FileText, Wallet, Megaphone, Bell,
+  LayoutDashboard, Users, FileText, Wallet, Megaphone, Bell, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const NAV = [
   { to: "/dashboard/financial/wallet", label: "Wallet", icon: Wallet },
   { to: "/dashboard/financial/promotions", label: "Promotions", icon: Megaphone },
   { to: "/dashboard/financial/notifications", label: "Notifications", icon: Bell },
+  { to: "/dashboard/financial/settings", label: "Settings", icon: Settings },
 ];
 
 export default function FinancialLayout({
