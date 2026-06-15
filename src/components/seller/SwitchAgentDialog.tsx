@@ -47,7 +47,7 @@ export default function SwitchAgentDialog({ propertyId, currentAgentId, userId, 
     // Log to seller activity (best-effort)
     await sb.from("seller_activity_logs").insert({
       user_id: userId,
-      action: "switch_agent_request",
+      activity_type: "switch_agent_request",
       metadata: { property_id: propertyId, current_agent_id: currentAgentId, reason },
     });
 
