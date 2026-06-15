@@ -667,4 +667,25 @@ const PropertyDetail = () => {
   );
 };
 
+function LoanAssistanceButtonWrapper({ property }: { property: any }) {
+  const [open, setOpen] = useLoanState(false);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold shadow-lg hover:opacity-90 transition"
+      >
+        💰 Get Loan Assistance
+      </button>
+      <LoanAssistanceDialog
+        open={open}
+        onOpenChange={setOpen}
+        propertyId={property?.id}
+        propertyTitle={property?.title}
+        propertyValue={property?.price}
+      />
+    </>
+  );
+}
+
 export default PropertyDetail;
