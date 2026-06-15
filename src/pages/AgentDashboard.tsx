@@ -584,7 +584,6 @@ export default function AgentDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/30 to-background">
       <Navigation />
 
-
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-12 space-y-6">
         {/* ===== Profile Header ===== */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -652,19 +651,19 @@ export default function AgentDashboard() {
           </Card>
         </motion.div>
 
-        {/* ===== PHASE 1: KYC & Subscription Row ===== */}
+        {/* ===== PHASE 1: KYC & Subscription Row - WITH PROPS ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AgentKYCVerification />
-            <AgentSubscriptionManager />
+            <AgentKYCVerification agentId={agentProfile.id} userId={user.id} />
+            <AgentSubscriptionManager agentId={agentProfile.id} userId={user.id} />
           </div>
         )}
 
-        {/* ===== PHASE 1: Badge & Success Score Row ===== */}
+        {/* ===== PHASE 1: Badge & Success Score Row - WITH PROPS ===== */}
         {agentProfile.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} />
-            <AgentSuccessScore />
+            <AgentBadgeLevel trustScore={agentProfile.trust_score || 0} salesCount={agentProfile.sales_count || 0} />
+            <AgentSuccessScore agentId={agentProfile.id} />
           </div>
         )}
 
@@ -920,7 +919,7 @@ export default function AgentDashboard() {
           </Card>
         </div>
 
-        {/* ===== PHASE 1: Advanced Features Tabs ===== */}
+        {/* ===== PHASE 1: Advanced Features Tabs - WITH PROPS ===== */}
         {agentProfile.id && user?.id && (
           <Card className="border-primary/20">
             <CardHeader>
@@ -953,27 +952,30 @@ export default function AgentDashboard() {
                 </TabsList>
 
                 <TabsContent value="team">
-                  <AgentTeamManagement />
+                  <AgentTeamManagement agentId={agentProfile.id} />
                 </TabsContent>
 
                 <TabsContent value="referral">
-                  <AgentReferralProgram />
+                  <AgentReferralProgram agentId={agentProfile.id} userId={user.id} />
                 </TabsContent>
 
                 <TabsContent value="promotion">
-                  <AgentPremiumPromotion />
+                  <AgentPremiumPromotion agentId={agentProfile.id} userId={user.id} properties={properties} />
                 </TabsContent>
 
                 <TabsContent value="ai">
-                  <AgentAIRecommendations />
+                  <AgentAIRecommendations
+                    agentId={agentProfile.id}
+                    city={Array.isArray(agentProfile.cities_served) ? agentProfile.cities_served[0] : "Hyderabad"}
+                  />
                 </TabsContent>
 
                 <TabsContent value="route">
-                  <AgentRouteOptimization />
+                  <AgentRouteOptimization agentId={agentProfile.id} />
                 </TabsContent>
 
                 <TabsContent value="analytics">
-                  <AgentAnalytics />
+                  <AgentAnalytics agentId={agentProfile.id} />
                 </TabsContent>
               </Tabs>
             </CardContent>
