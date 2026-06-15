@@ -60,6 +60,8 @@ import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
 import PriceDropDialog from "@/components/seller/PriceDropDialog";
 import RecentTransactions from "@/components/seller/RecentTransactions";
+import SwitchAgentDialog from "@/components/seller/SwitchAgentDialog";
+import AgentRating from "@/components/seller/AgentRating";
 import HotelBookings from "@/components/seller/HotelBookings";
 import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
 import PreferredLocations from "@/components/seller/PreferredLocations";
