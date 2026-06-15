@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag } from "lucide-react";
+import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
@@ -43,6 +43,13 @@ const roleConfig = {
     color: "from-orange-500/20 to-red-500/20",
     borderColor: "border-orange-500/50",
   },
+  financial: {
+    icon: Landmark,
+    title: "Financial",
+    description: "Loans, legal & valuation services",
+    color: "from-yellow-500/20 to-amber-500/20",
+    borderColor: "border-amber-500/50",
+  },
   admin: {
     icon: Shield,
     title: "Admin",
@@ -61,7 +68,7 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [locationMeta, setLocationMeta] = useState<NormalizedLocation | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder">>(["buyer"]);
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder" | "financial">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -72,14 +79,15 @@ export default function Auth() {
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
 
   const isPasswordReset = searchParams.get("reset") === "true";
-  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder"; label: string; desc: string }> = [
-    { key: "buyer",   label: "Buyer",   desc: "Browse & book" },
-    { key: "seller",  label: "Seller",  desc: "Sell property" },
-    { key: "agent",   label: "Agent",   desc: "List & earn" },
-    { key: "builder", label: "Builder", desc: "Showcase projects" },
+  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder" | "financial"; label: string; desc: string }> = [
+    { key: "buyer",     label: "Buyer",     desc: "Browse & book" },
+    { key: "seller",    label: "Seller",    desc: "Sell property" },
+    { key: "agent",     label: "Agent",     desc: "List & earn" },
+    { key: "builder",   label: "Builder",   desc: "Showcase projects" },
+    { key: "financial", label: "Financial", desc: "Loans & legal" },
   ];
 
-  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder") => {
+  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder" | "financial") => {
     setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   };
 
