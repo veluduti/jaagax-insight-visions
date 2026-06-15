@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, Users, Building2, Tag, Plus, Loader2, Clock, ArrowRight } from "lucide-react";
+import { Home, Users, Building2, Tag, Plus, Loader2, Clock, ArrowRight, Landmark } from "lucide-react";
 import { useProfile, ProfileType, Profile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
@@ -39,6 +39,13 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; subtitle: string
     gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
     iconColor: "text-amber-300",
     ring: "hover:ring-amber-500/50",
+  },
+  financial: {
+    icon: Landmark, label: "Financial",
+    subtitle: "Home loans, mortgages, legal & valuation services",
+    gradient: "from-yellow-500/25 via-amber-500/15 to-transparent",
+    iconColor: "text-amber-300",
+    ring: "hover:ring-amber-400/60",
   },
 };
 
@@ -144,7 +151,7 @@ export default function SelectProfile() {
             );
           })}
 
-          {profiles.length < 4 && (
+          {profiles.length < 5 && (
             <motion.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

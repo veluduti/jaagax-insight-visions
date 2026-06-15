@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-export type ProfileType = "buyer" | "seller" | "agent" | "builder";
+export type ProfileType = "buyer" | "seller" | "agent" | "builder" | "financial";
 export type ProfileStatus = "active" | "pending" | "rejected";
 
 export interface Profile {
@@ -125,7 +125,7 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
 
     // Insert role-specific data if provided
     if (extraData && Object.keys(extraData).length > 0) {
-      const tableMap = { buyer: "buyer_profiles", agent: "agent_profiles", builder: "builder_profiles_data" };
+      const tableMap: Record<string, string> = { buyer: "buyer_profiles", agent: "agent_profiles", builder: "builder_profiles_data", financial: "financial_providers" };
       const table = tableMap[type];
       const { error: extraError } = await supabase
         .from(table as any)
