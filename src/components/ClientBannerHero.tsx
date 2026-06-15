@@ -569,7 +569,7 @@ const ClientBannerHero = ({
                   badge: null,
                   lines: ["Pre-Approved", "Up to ₹5 Cr"],
                   accent: "#22c55e",
-                  onClick: goComingSoon("Smart Financing"),
+                  onClick: () => navigate("/smart-financing"),
                 },
                 {
                   icon: Users,
