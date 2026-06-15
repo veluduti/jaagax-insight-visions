@@ -60,6 +60,12 @@ import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
 import PriceDropDialog from "@/components/seller/PriceDropDialog";
 import RecentTransactions from "@/components/seller/RecentTransactions";
+import HotelBookings from "@/components/seller/HotelBookings";
+import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
+import PreferredLocations from "@/components/seller/PreferredLocations";
+import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
+import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
+import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
 import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 
 interface AssignedAgent {
