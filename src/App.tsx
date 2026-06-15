@@ -319,6 +319,9 @@ const App = () => (
           <Route path="/dashboard/financial/notifications" element={
             <ProtectedRoute allowedRole="financial"><FinancialNotifications /></ProtectedRoute>
           } />
+          <Route path="/dashboard/financial/settings" element={
+            <ProtectedRoute allowedRole="financial"><FinancialSettings /></ProtectedRoute>
+          } />
 
           <Route path="/coming-soon" element={<ComingSoon />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
