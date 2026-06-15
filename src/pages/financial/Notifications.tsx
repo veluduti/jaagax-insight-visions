@@ -73,7 +73,7 @@ export default function FinancialNotifications() {
   return (
     <FinancialLayout title="Notifications" subtitle="Stay on top of every customer interaction">
       <Tabs defaultValue="inbox">
-        <TabsList className="bg-black/40 border border-amber-500/20">
+        <TabsList className="bg-card border border-border">
           <TabsTrigger value="inbox">Inbox</TabsTrigger>
           <TabsTrigger value="settings">Channel Settings</TabsTrigger>
         </TabsList>
@@ -81,27 +81,27 @@ export default function FinancialNotifications() {
         <TabsContent value="inbox" className="space-y-3 pt-4">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-48 bg-black/40 border-amber-500/30"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48 bg-card border-border"><SelectValue /></SelectTrigger>
               <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={markAll} className="border-amber-500/30"><Check className="h-4 w-4 mr-1" />Mark all read</Button>
+              <Button variant="outline" onClick={markAll} className="border-border"><Check className="h-4 w-4 mr-1" />Mark all read</Button>
               <Button variant="outline" onClick={deleteOld} className="border-red-500/30 text-red-300"><Trash2 className="h-4 w-4 mr-1" />Delete &gt; 30d</Button>
             </div>
           </div>
 
           {filtered.length === 0 ? (
-            <Card className="border-amber-500/20 bg-black/40"><CardContent className="py-12 text-center text-zinc-500"><Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />No notifications</CardContent></Card>
+            <Card className="border-border bg-card"><CardContent className="py-12 text-center text-muted-foreground"><Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />No notifications</CardContent></Card>
           ) : filtered.map((n) => (
-            <Card key={n.id} className={`border-amber-500/20 bg-black/40 backdrop-blur-md ${!n.is_read ? "border-l-4 border-l-amber-400" : ""}`}>
+            <Card key={n.id} className={`border-border bg-card backdrop-blur-md ${!n.is_read ? "border-l-4 border-l-primary" : ""}`}>
               <CardContent className="py-3 flex items-center justify-between gap-3">
                 <div className="flex-1">
-                  <p className="font-semibold text-amber-100">{n.title}</p>
-                  <p className="text-sm text-zinc-300">{n.message}</p>
-                  <p className="text-xs text-zinc-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                  <p className="font-semibold text-primary">{n.title}</p>
+                  <p className="text-sm text-foreground">{n.message}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!n.is_read && <Badge className="bg-amber-500 text-black">New</Badge>}
+                  {!n.is_read && <Badge className="bg-primary text-primary-foreground">New</Badge>}
                   {!n.is_read && <Button size="sm" variant="ghost" onClick={() => markRead(n.id)}>Mark read</Button>}
                 </div>
               </CardContent>
@@ -110,15 +110,15 @@ export default function FinancialNotifications() {
         </TabsContent>
 
         <TabsContent value="settings" className="pt-4">
-          <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
-            <CardHeader><CardTitle className="text-amber-200 text-base">Channel Preferences</CardTitle></CardHeader>
+          <Card className="border-border bg-card backdrop-blur-md">
+            <CardHeader><CardTitle className="text-primary text-base">Channel Preferences</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-5 gap-2 pb-2 border-b border-amber-500/20 text-xs uppercase tracking-wider text-amber-300/70">
+              <div className="grid grid-cols-5 gap-2 pb-2 border-b border-border text-xs uppercase tracking-wider text-primary/70">
                 <span>Type</span>{CHANNELS.map((c) => <span key={c} className="text-center capitalize">{c}</span>)}
               </div>
               {NOTIF_KINDS.map((kind) => (
                 <div key={kind} className="grid grid-cols-5 gap-2 items-center">
-                  <span className="capitalize text-sm text-zinc-200">{kind.replace("_", " ")}</span>
+                  <span className="capitalize text-sm text-foreground">{kind.replace("_", " ")}</span>
                   {CHANNELS.map((c) => (
                     <div key={c} className="flex justify-center">
                       <Switch checked={!!prefs[kind]?.[c]} onCheckedChange={(v) => togglePref(kind, c, v)} />

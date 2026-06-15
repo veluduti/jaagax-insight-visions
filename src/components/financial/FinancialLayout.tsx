@@ -20,22 +20,16 @@ export default function FinancialLayout({
   title, subtitle, children,
 }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-amber-950/20 text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-32 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-600/10 rounded-full blur-3xl" />
-      </div>
 
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-            {title}
-          </h1>
-          {subtitle && <p className="text-sm text-zinc-400">{subtitle}</p>}
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </header>
 
-        <nav className="flex flex-wrap gap-2 border border-amber-500/20 bg-black/40 backdrop-blur-md rounded-xl p-2">
+        <nav className="flex flex-wrap gap-2 border border-border bg-card rounded-xl p-2 shadow-sm">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -45,8 +39,8 @@ export default function FinancialLayout({
                 cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all",
                   isActive
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold shadow-lg shadow-amber-500/30"
-                    : "text-zinc-300 hover:bg-amber-500/10 hover:text-amber-200"
+                    ? "bg-primary text-primary-foreground font-semibold shadow"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )
               }
             >

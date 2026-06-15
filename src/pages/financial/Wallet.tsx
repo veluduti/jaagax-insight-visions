@@ -57,42 +57,42 @@ export default function FinancialWallet() {
 
   return (
     <FinancialLayout title="Wallet" subtitle="Top up to purchase leads & promotions">
-      <Card className="border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-yellow-900/20 to-black backdrop-blur-md">
+      <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-wider text-amber-300/70">Current Balance</p>
-            <p className="text-5xl font-bold bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
+            <p className="text-xs uppercase tracking-wider text-primary/70">Current Balance</p>
+            <p className="text-5xl font-bold bg-gradient-to-r from-primary to-primary ">
               ₹{balance.toLocaleString("en-IN")}
             </p>
           </div>
-          <Button onClick={() => setAddOpen(true)} size="lg" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold">
+          <Button onClick={() => setAddOpen(true)} size="lg" className="bg-primary text-primary-foreground font-semibold">
             <Plus className="h-5 w-5 mr-2" />Add Funds
           </Button>
         </CardContent>
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
-          <CardHeader><CardTitle className="text-amber-200 text-base">Auto Recharge</CardTitle></CardHeader>
+        <Card className="border-border bg-card backdrop-blur-md">
+          <CardHeader><CardTitle className="text-primary text-base">Auto Recharge</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm">Enable auto recharge</span>
               <Switch checked={autoRecharge} onCheckedChange={setAutoRecharge} />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Low balance threshold (₹)</p>
-              <Input type="number" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className="bg-black/40 border-amber-500/20" />
+              <p className="text-xs text-muted-foreground mb-1">Low balance threshold (₹)</p>
+              <Input type="number" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className="bg-card border-border" />
             </div>
             <div>
-              <p className="text-xs text-zinc-400 mb-1">Recharge amount (₹)</p>
-              <Input type="number" value={rechargeAmt} onChange={(e) => setRechargeAmt(Number(e.target.value))} className="bg-black/40 border-amber-500/20" />
+              <p className="text-xs text-muted-foreground mb-1">Recharge amount (₹)</p>
+              <Input type="number" value={rechargeAmt} onChange={(e) => setRechargeAmt(Number(e.target.value))} className="bg-card border-border" />
             </div>
-            <Button onClick={saveAuto} className="w-full bg-amber-500 text-black">Save Settings</Button>
+            <Button onClick={saveAuto} className="w-full bg-primary text-primary-foreground">Save Settings</Button>
           </CardContent>
         </Card>
 
-        <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
-          <CardHeader><CardTitle className="text-amber-200 text-base">Lead & Promotion Pricing</CardTitle></CardHeader>
+        <Card className="border-border bg-card backdrop-blur-md">
+          <CardHeader><CardTitle className="text-primary text-base">Lead & Promotion Pricing</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
             {[
               ["Buyer Lead", "₹99"], ["Investor Lead", "₹199"],
@@ -100,31 +100,31 @@ export default function FinancialWallet() {
               ["Homepage Featured", "₹299/day"], ["Top Search Placement", "₹499/day"],
               ["Preferred Partner", "₹2,999/mo"], ["Premium Badge", "₹1,999/mo"],
             ].map(([k, v]) => (
-              <div key={k} className="flex justify-between border-b border-amber-500/10 py-1.5">
-                <span className="text-zinc-300">{k}</span><span className="text-amber-300 font-semibold">{v}</span>
+              <div key={k} className="flex justify-between border-b border-border py-1.5">
+                <span className="text-foreground">{k}</span><span className="text-primary font-semibold">{v}</span>
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-amber-500/20 bg-black/40 backdrop-blur-md">
-        <CardHeader><CardTitle className="text-amber-200 text-base flex items-center gap-2"><WalletIcon className="h-4 w-4" />Transaction History</CardTitle></CardHeader>
+      <Card className="border-border bg-card backdrop-blur-md">
+        <CardHeader><CardTitle className="text-primary text-base flex items-center gap-2"><WalletIcon className="h-4 w-4" />Transaction History</CardTitle></CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-amber-500/20 hover:bg-transparent">
-                <TableHead className="text-amber-200">Date</TableHead>
-                <TableHead className="text-amber-200">Description</TableHead>
-                <TableHead className="text-amber-200 text-right">Amount</TableHead>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-primary">Date</TableHead>
+                <TableHead className="text-primary">Description</TableHead>
+                <TableHead className="text-primary text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {txns.length === 0 ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-zinc-500 py-8">No transactions yet</TableCell></TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No transactions yet</TableCell></TableRow>
               ) : txns.map((t) => (
-                <TableRow key={t.id} className="border-amber-500/10">
-                  <TableCell className="text-xs text-zinc-400">{new Date(t.created_at).toLocaleString()}</TableCell>
+                <TableRow key={t.id} className="border-border">
+                  <TableCell className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</TableCell>
                   <TableCell>{t.description}</TableCell>
                   <TableCell className={`text-right font-semibold ${t.type === "credit" ? "text-emerald-400" : "text-red-400"}`}>
                     {t.type === "credit" ? "+" : "-"}₹{Number(t.amount).toLocaleString()}
@@ -137,19 +137,19 @@ export default function FinancialWallet() {
       </Card>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="bg-zinc-950 border-amber-500/30 text-zinc-100">
-          <DialogHeader><DialogTitle className="text-amber-200">Add Funds (Razorpay Test)</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-border text-foreground">
+          <DialogHeader><DialogTitle className="text-primary">Add Funds (Razorpay Test)</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-4 gap-2">
               {[500, 1000, 2000, 5000].map((v) => (
                 <Button key={v} variant={addAmt === v ? "default" : "outline"}
-                  className={addAmt === v ? "bg-amber-500 text-black" : "border-amber-500/30"}
+                  className={addAmt === v ? "bg-primary text-primary-foreground" : "border-border"}
                   onClick={() => setAddAmt(v)}>₹{v}</Button>
               ))}
             </div>
             <Input type="number" value={addAmt} onChange={(e) => setAddAmt(Number(e.target.value))}
-              className="bg-black/40 border-amber-500/30" placeholder="Custom amount" />
-            <Button onClick={addFunds} className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black">
+              className="bg-card border-border" placeholder="Custom amount" />
+            <Button onClick={addFunds} className="w-full bg-primary text-primary-foreground">
               <CreditCard className="h-4 w-4 mr-2" />Pay ₹{addAmt}
             </Button>
           </div>

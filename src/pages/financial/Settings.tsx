@@ -84,7 +84,7 @@ export default function FinancialSettings() {
     return (
       <FinancialLayout title="Settings">
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </FinancialLayout>
     );
@@ -93,8 +93,8 @@ export default function FinancialSettings() {
   if (!provider) {
     return (
       <FinancialLayout title="Settings">
-        <Card className="bg-black/40 border-amber-500/20">
-          <CardContent className="py-10 text-center text-zinc-400">
+        <Card className="bg-card border-border">
+          <CardContent className="py-10 text-center text-muted-foreground">
             No financial provider profile found. Please complete registration first.
           </CardContent>
         </Card>
@@ -105,16 +105,16 @@ export default function FinancialSettings() {
   return (
     <FinancialLayout title="Settings" subtitle="Manage company profile and team">
       {/* Company profile */}
-      <Card className="bg-black/40 border-amber-500/20 backdrop-blur-md">
+      <Card className="bg-card border-border backdrop-blur-md">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-amber-200">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <Building2 className="h-5 w-5" /> Company Profile
           </CardTitle>
           <div className="flex gap-2">
-            <Badge variant="outline" className="border-amber-500/40 text-amber-200">
+            <Badge variant="outline" className="border-border text-primary">
               KYC: {provider.kyc_status}
             </Badge>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-200">
+            <Badge variant="outline" className="border-border text-primary">
               Plan: {provider.subscription_status}
             </Badge>
           </div>
@@ -125,7 +125,7 @@ export default function FinancialSettings() {
             <Input
               value={provider.company_name || ""}
               onChange={(e) => setProvider({ ...provider, company_name: e.target.value })}
-              className="bg-black/40 border-amber-500/20"
+              className="bg-card border-border"
             />
           </div>
           <div className="space-y-2">
@@ -133,7 +133,7 @@ export default function FinancialSettings() {
             <select
               value={provider.entity_type || ""}
               onChange={(e) => setProvider({ ...provider, entity_type: e.target.value })}
-              className="w-full h-10 rounded-md bg-black/40 border border-amber-500/20 px-3 text-sm"
+              className="w-full h-10 rounded-md bg-card border border-border px-3 text-sm"
             >
               <option value="">Select…</option>
               {ENTITY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -144,7 +144,7 @@ export default function FinancialSettings() {
             <Input
               value={provider.rbi_registration || ""}
               onChange={(e) => setProvider({ ...provider, rbi_registration: e.target.value })}
-              className="bg-black/40 border-amber-500/20"
+              className="bg-card border-border"
             />
           </div>
           <div className="space-y-2">
@@ -152,14 +152,14 @@ export default function FinancialSettings() {
             <Input
               value={provider.logo_url || ""}
               onChange={(e) => setProvider({ ...provider, logo_url: e.target.value })}
-              className="bg-black/40 border-amber-500/20"
+              className="bg-card border-border"
             />
           </div>
           <div className="md:col-span-2 flex justify-end">
             <Button
               onClick={saveProfile}
               disabled={saving}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold"
+              className="bg-primary text-primary-foreground font-semibold"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Save Changes
@@ -169,9 +169,9 @@ export default function FinancialSettings() {
       </Card>
 
       {/* Team */}
-      <Card className="bg-black/40 border-amber-500/20 backdrop-blur-md">
+      <Card className="bg-card border-border backdrop-blur-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-200">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <Users className="h-5 w-5" /> Team Members
           </CardTitle>
         </CardHeader>
@@ -181,18 +181,18 @@ export default function FinancialSettings() {
               placeholder="Name"
               value={newMember.name}
               onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-              className="bg-black/40 border-amber-500/20"
+              className="bg-card border-border"
             />
             <Input
               placeholder="Email"
               value={newMember.email}
               onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-              className="bg-black/40 border-amber-500/20"
+              className="bg-card border-border"
             />
             <select
               value={newMember.role}
               onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-              className="h-10 rounded-md bg-black/40 border border-amber-500/20 px-3 text-sm"
+              className="h-10 rounded-md bg-card border border-border px-3 text-sm"
             >
               <option value="rm">Relationship Manager</option>
               <option value="verifier">Verifier</option>
@@ -200,7 +200,7 @@ export default function FinancialSettings() {
             </select>
             <Button
               onClick={addMember}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-semibold"
+              className="bg-primary text-primary-foreground font-semibold"
             >
               <Plus className="h-4 w-4 mr-1" /> Add
             </Button>
@@ -208,16 +208,16 @@ export default function FinancialSettings() {
 
           <div className="space-y-2">
             {team.length === 0 && (
-              <p className="text-sm text-zinc-500 text-center py-6">No team members yet.</p>
+              <p className="text-sm text-muted-foreground text-center py-6">No team members yet.</p>
             )}
             {team.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center justify-between p-3 rounded-lg border border-amber-500/10 bg-black/30"
+                className="flex items-center justify-between p-3 rounded-lg border border-border bg-card"
               >
                 <div>
-                  <div className="font-medium text-zinc-100">{m.name}</div>
-                  <div className="text-xs text-zinc-400">{m.email} · {m.role}</div>
+                  <div className="font-medium text-foreground">{m.name}</div>
+                  <div className="text-xs text-muted-foreground">{m.email} · {m.role}</div>
                 </div>
                 <Button
                   size="sm"
