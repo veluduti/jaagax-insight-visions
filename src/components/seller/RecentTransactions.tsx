@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -12,6 +19,7 @@ import {
   TrendingUp,
   Receipt,
   Crown,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -62,6 +70,7 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
   const [transactions, setTransactions] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const loadTransactions = async () => {
     const sb: any = supabase;
@@ -86,6 +95,41 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
     setRefreshing(false);
     toast.success("Transactions refreshed");
   };
+
+  const filtered = useMemo(
+    () => (categoryFilter === "all" ? transactions : transactions.filter((t) => t.category === categoryFilter)),
+    [transactions, categoryFilter],
+  );
+
+  const categories = useMemo(() => {
+    const set = new Set(transactions.map((t) => t.category).filter(Boolean));
+    return Array.from(set);
+  }, [transactions]);
+
+  const exportCSV = () => {
+    if (!filtered.length) return toast.error("No transactions to export");
+    const rows = [
+      ["Date", "Type", "Category", "Description", "Amount (INR)", "Status"],
+      ...filtered.map((t) => [
+        new Date(t.created_at).toISOString(),
+        t.type,
+        t.category || "",
+        (t.description || "").replace(/"/g, '""'),
+        String(t.amount),
+        t.status || "",
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported CSV");
+  };
+
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -125,18 +169,51 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
             </div>
             <CardTitle className="text-base font-semibold">Recent Transactions</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
+              onClick={exportCSV}
+              title="Export CSV"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </CardHeader>
       )}
       <CardContent className="space-y-3">
+        {/* Category Filter */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="h-8 w-[180px] text-xs">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c.replace(/_/g, " ")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!showHeader && (
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-8">
+              <Download className="h-3 w-3 mr-1" /> Export CSV
+            </Button>
+          )}
+        </div>
+
         {transactions.length > 0 && (
           <div className="flex gap-4 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
@@ -160,15 +237,15 @@ export default function RecentTransactions({ userId, limit = 10, showHeader = tr
           <div className="flex items-center justify-center py-8">
             <div className="h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
           </div>
-        ) : transactions.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-8">
             <Wallet className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No transactions yet</p>
+            <p className="text-sm text-muted-foreground">No transactions match this filter</p>
           </div>
         ) : (
           <AnimatePresence>
             <div className="space-y-2">
-              {transactions.map((tx, index) => (
+              {filtered.map((tx, index) => (
                 <motion.div
                   key={tx.id}
                   initial={{ opacity: 0, y: 10 }}

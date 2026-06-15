@@ -21,6 +21,7 @@ const PRESETS = [500, 1000, 2000, 5000];
 
 export default function WalletBalance({ userId }: { userId: string }) {
   const [balance, setBalance] = useState(0);
+  const [cashback, setCashback] = useState(0);
   const [autoRecharge, setAutoRecharge] = useState(false);
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(500);
@@ -37,12 +38,19 @@ export default function WalletBalance({ userId }: { userId: string }) {
       setBalance(Number(w.balance) || 0);
       setAutoRecharge(!!w.auto_recharge);
     }
+    const { data: cb } = await sb
+      .from("cashback_earnings")
+      .select("amount,status")
+      .eq("user_id", userId);
+    const total = (cb || []).reduce(
+      (s: number, r: any) => s + (r.status !== "redeemed" ? Number(r.amount) || 0 : 0),
+      0,
+    );
+    setCashback(total);
   };
 
   useEffect(() => {
     if (userId) load();
-
-    // Listen for wallet updates from subscription manager
     const handleWalletUpdate = () => load();
     window.addEventListener("walletUpdated", handleWalletUpdate);
     return () => window.removeEventListener("walletUpdated", handleWalletUpdate);
@@ -154,6 +162,18 @@ export default function WalletBalance({ userId }: { userId: string }) {
             >
               <Plus className="h-4 w-4 mr-1" /> Add Money
             </Button>
+          </div>
+
+          {/* Cash Back Section */}
+          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                Cash Back Earned
+              </p>
+              <p className="text-lg font-bold text-foreground">₹{cashback.toLocaleString("en-IN")}</p>
+              <p className="text-[10px] text-muted-foreground">From referrals, postings & promos</p>
+            </div>
+            <Sparkles className="h-6 w-6 text-amber-500 opacity-70" />
           </div>
 
           {/* Auto-recharge Section */}

@@ -60,6 +60,14 @@ import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
 import PriceDropDialog from "@/components/seller/PriceDropDialog";
 import RecentTransactions from "@/components/seller/RecentTransactions";
+import SwitchAgentDialog from "@/components/seller/SwitchAgentDialog";
+import AgentRating from "@/components/seller/AgentRating";
+import HotelBookings from "@/components/seller/HotelBookings";
+import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
+import PreferredLocations from "@/components/seller/PreferredLocations";
+import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
+import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
+import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
 import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 
 interface AssignedAgent {
@@ -629,6 +637,21 @@ export default function SellerDashboard() {
                     </a>
                   )}
                 </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <AgentRating agentId={p.assigned_agent.id} compact />
+                  {user?.id && (
+                    <SwitchAgentDialog
+                      propertyId={p.id}
+                      currentAgentId={p.assigned_agent_id}
+                      userId={user.id}
+                      trigger={
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] text-muted-foreground">
+                          Switch agent
+                        </Button>
+                      }
+                    />
+                  )}
+                </div>
               </div>
             )}
             {status === "approved" && !p.assigned_agent && (
@@ -1071,9 +1094,25 @@ export default function SellerDashboard() {
                 properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined
               }
             />
+
+            {/* Loan Offers Alert */}
+            <LoanOffersAlert />
+
+            {/* Hotel Bookings */}
+            <HotelBookings userId={user.id} />
+
+            {/* Financial Enquiries */}
+            <FinancialEnquiries userId={user.id} />
+
+            {/* Preferred Locations + Alert Channels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <PreferredLocations userId={user.id} />
+              <AlertChannelsSettings userId={user.id} />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <VisitManagement sellerId={user.id} />
-              <ActivityTimeline userId={user.id} />
+              <ActivityTimelineEnhanced userId={user.id} />
             </div>
             <ReferralLink userId={user.id} />
           </>
