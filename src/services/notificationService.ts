@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { fromTable as sb } from "@/lib/supabaseHelper";
 
 export type NotificationType =
   | "platform_announcement"
@@ -27,50 +26,76 @@ export interface Notification {
 const TABLE = "notifications";
 
 export const notificationService = {
+  // ---- Get notifications for current user ----
   async list(opts?: { onlyUnread?: boolean; includeArchived?: boolean; limit?: number }) {
-    let q = sb(TABLE).select("*").order("created_at", { ascending: false });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    let q = supabase.from(TABLE).select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+
     if (opts?.onlyUnread) q = q.eq("is_read", false);
     if (!opts?.includeArchived) q = q.eq("is_archived", false);
     if (opts?.limit) q = q.limit(opts.limit);
+
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as Notification[];
   },
 
-  async unreadCount() {
-    const { count, error } = await sb(TABLE)
+  // ---- Get unread count ----
+  async unreadCount(): Promise<number> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return 0;
+
+    const { count, error } = await supabase
+      .from(TABLE)
       .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
       .eq("is_read", false)
       .eq("is_archived", false);
+
     if (error) throw error;
     return count ?? 0;
   },
 
+  // ---- Mark single notification as read ----
   async markAsRead(id: string) {
-    const { error } = await sb(TABLE).update({ is_read: true }).eq("id", id);
+    const { error } = await supabase.from(TABLE).update({ is_read: true }).eq("id", id);
+
     if (error) throw error;
   },
 
+  // ---- Mark all notifications as read ----
   async markAllAsRead() {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return;
-    const { error } = await sb(TABLE)
-      .update({ is_read: true })
-      .eq("user_id", user.user.id)
-      .eq("is_read", false);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.from(TABLE).update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
+
     if (error) throw error;
   },
 
+  // ---- Archive notification ----
   async archive(id: string) {
-    const { error } = await sb(TABLE).update({ is_archived: true }).eq("id", id);
+    const { error } = await supabase.from(TABLE).update({ is_archived: true }).eq("id", id);
+
     if (error) throw error;
   },
 
+  // ---- Delete notification ----
   async remove(id: string) {
-    const { error } = await sb(TABLE).delete().eq("id", id);
+    const { error } = await supabase.from(TABLE).delete().eq("id", id);
+
     if (error) throw error;
   },
 
+  // ---- Create notification (for system use) ----
   async create(input: {
     user_id: string;
     type: NotificationType;
@@ -80,20 +105,38 @@ export const notificationService = {
     builder_profile_id?: string;
     metadata?: Record<string, any>;
   }) {
-    const { data, error } = await sb(TABLE).insert(input).select().single();
+    const { data, error } = await supabase.from(TABLE).insert(input).select().single();
+
     if (error) throw error;
     return data as Notification;
   },
 
+  // ---- Real-time subscription ----
   subscribe(userId: string, onChange: (n: Notification) => void) {
     const channel = supabase
       .channel(`notifications:${userId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: TABLE, filter: `user_id=eq.${userId}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: TABLE,
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => onChange(payload.new as Notification),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: TABLE,
+          filter: `user_id=eq.${userId}`,
+        },
         (payload) => onChange(payload.new as Notification),
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -101,8 +144,3 @@ export const notificationService = {
 };
 
 export default notificationService;
-
-// Legacy named exports for backward compatibility
-export const listNotifications = (_userId: string) => notificationService.list();
-export const markNotificationRead = (id: string) => notificationService.markAsRead(id);
-export const markAllNotificationsRead = (_userId: string) => notificationService.markAllAsRead();
