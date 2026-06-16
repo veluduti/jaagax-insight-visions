@@ -24,6 +24,7 @@ import {
   Wallet,
   Users,
   ClipboardList,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -81,6 +82,7 @@ export default function BuilderDashboard() {
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [stats, setStats] = useState({
     totalProjects: 0,
     verifiedProjects: 0,
@@ -103,6 +105,7 @@ export default function BuilderDashboard() {
     fetchPerformanceData();
     fetchPendingVisitsCount();
     fetchWalletBalance();
+    fetchUnreadCount();
   }, []);
 
   const fetchUser = async () => {
@@ -169,6 +172,27 @@ export default function BuilderDashboard() {
       }
     } catch (error) {
       console.error("Error fetching wallet balance:", error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false)
+        .eq("is_archived", false);
+
+      if (error) throw error;
+      setUnreadCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
     }
   };
 
@@ -358,7 +382,7 @@ export default function BuilderDashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {/* Visit Approvals */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -425,7 +449,7 @@ export default function BuilderDashboard() {
           </motion.div>
         </div>
 
-        {/* Quick Actions Row 2 - CRM & Team */}
+        {/* Quick Actions - Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {/* CRM */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -459,8 +483,30 @@ export default function BuilderDashboard() {
             </Card>
           </motion.div>
 
-          {/* Placeholder for future - empty cards to maintain grid */}
-          <div className="hidden md:block" />
+          {/* Notifications */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-amber-900/20 to-slate-900/40 border-amber-500/20 relative"
+              onClick={() => navigate("/builder/notifications")}
+            >
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground">
+                  {unreadCount}
+                </Badge>
+              )}
+              <CardContent className="p-6 text-center">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 mx-auto mb-2 flex items-center justify-center">
+                  <Bell className="h-5 w-5 text-amber-400" />
+                </div>
+                <h3 className="font-semibold">Notifications</h3>
+                <p className="text-xs text-amber-400 font-medium mt-1">
+                  {unreadCount > 0 ? `${unreadCount} unread` : "No new notifications"}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Placeholder for future */}
           <div className="hidden md:block" />
         </div>
 
