@@ -122,6 +122,11 @@ const BuilderWallet = lazy(() => import("@/components/builder/wallet/BuilderWall
 const BuilderCRM = lazy(() => import("@/components/builder/crm/BuilderCRM"));
 const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/BuilderTeamDashboard"));
 
+// ============================================
+// BUILDER NOTIFICATIONS COMPONENTS (PHASE 4) - NEW
+// ============================================
+const NotificationCenter = lazy(() => import("@/components/builder/notifications/NotificationCenter"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -192,6 +197,11 @@ const App = () => (
                       ============================================ */}
                   <Route path="/builder/crm" element={<BuilderCRM />} />
                   <Route path="/builder/team" element={<BuilderTeamDashboard />} />
+
+                  {/* ============================================
+                      BUILDER NOTIFICATIONS ROUTE (PHASE 4) - NEW
+                      ============================================ */}
+                  <Route path="/builder/notifications" element={<NotificationCenter />} />
 
                   {/* Existing Builder Routes */}
                   <Route path="/builder/add-project" element={<AddProject />} />
