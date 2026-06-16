@@ -264,7 +264,7 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
         </CardContent>
       </Card>
 
-      <AddTeamMemberModal open={showAdd} onOpenChange={setShowAdd} builderProfileId={builderProfileId} onAdded={load} />
+      {builderProfileId && <AddTeamMemberModal open={showAdd} onOpenChange={setShowAdd} builderProfileId={builderProfileId} onAdded={load} />}
 
       <AlertDialog open={!!removeId} onOpenChange={(o) => !o && setRemoveId(null)}>
         <AlertDialogContent>
