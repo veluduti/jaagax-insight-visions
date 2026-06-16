@@ -103,12 +103,18 @@ const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeli
 const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications"));
 const AdminPriceDrops = lazy(() => import("./pages/AdminPriceDrops"));
 
+// ============================================
+// BUILDER PROJECT COMPONENTS (NEW)
+// ============================================
+const BuilderProjectsDashboard = lazy(() => import("@/components/builder/projects/BuilderProjectsDashboard"));
+const AddProjectForm = lazy(() => import("@/components/builder/projects/AddProjectForm"));
+const ProjectDetailPage = lazy(() => import("@/components/builder/projects/ProjectDetail"));
+const AddConstructionUpdateWrapper = lazy(() => import("@/components/builder/projects/AddConstructionUpdateWrapper"));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Keep data "fresh" for 2 min so tab/page switches don't refetch.
       staleTime: 2 * 60_000,
-      // Hold cached data in memory for 10 min after last observer unmounts.
       gcTime: 10 * 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
@@ -130,214 +136,316 @@ const RouteFallback = () => (
 
 const App = () => (
   <AppErrorBoundary>
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ProfileBootProvider>
-        <LocationProvider>
-        <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
-          <Route path="/select-profile" element={<SelectProfile />} />
-          <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
-          <Route path="/search" element={
-            <BuyerOnboardingGuard>
-              <Search />
-            </BuyerOnboardingGuard>
-          } />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/project/:slug" element={<ProjectDetail />} />
-          <Route path="/builder/add-project" element={<AddProject />} />
-          <Route path="/builder/promotions" element={<BuilderPromotions />} />
-          <Route path="/property/:slug" element={<PropertyDetail />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/transactions/:city" element={<TransactionsCity />} />
-          <Route path="/transactions/:city/:locality" element={<TransactionsLocality />} />
-          <Route path="/trust-score" element={<TrustScore />} />
-          <Route path="/agents" element={<Agents />} />
-          <Route path="/agent/:id" element={<AgentDetail />} />
-          <Route path="/agents/compare" element={<AgentComparison />} />
-          <Route path="/agents/leaderboard" element={<AgentLeaderboard />} />
-          <Route path="/valuation" element={<ValuationPage />} />
-          <Route path="/valuation/detailed" element={<PropertyValuation />} />
-          <Route path="/communities" element={<Communities />} />
-          <Route path="/communities/:city" element={<CommunitiesCity />} />
-          <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
-          <Route path="/guides" element={<Guides />} />
-          <Route path="/events" element={<EventsNew />} />
-          <Route path="/events/create" element={<EventCreate />} />
-          <Route path="/events/:id" element={<EventDetail />} />
-          <Route path="/map" element={<Map />} />
-          <Route path="/sell-property" element={<SellProperty />} />
-          <Route path="/natural-living" element={<NaturalLiving />} />
-          <Route path="/hotels" element={<Hotels />} />
-          <Route path="/hotels/partner" element={<HotelPartnerOnboarding />} />
-          <Route path="/hotels/partner/status" element={<HotelPartnerStatus />} />
-          <Route path="/hotels/:id" element={<HotelDetail />} />
-          <Route path="/promotions" element={<Promotions />} />
-          <Route path="/reels" element={<PropertyReels />} />
-          <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
-          <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
-          <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
-          <Route path="/innovation" element={<InnovationHub />} />
-          <Route path="/compare" element={<CompareProperties />} />
-          <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
-          <Route path="/select-location" element={<SelectLocation />} />
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ProfileBootProvider>
+            <LocationProvider>
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/verify-otp" element={<VerifyOtp />} />
+                  <Route path="/select-profile" element={<SelectProfile />} />
+                  <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />
+                  <Route
+                    path="/search"
+                    element={
+                      <BuyerOnboardingGuard>
+                        <Search />
+                      </BuyerOnboardingGuard>
+                    }
+                  />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/project/:slug" element={<ProjectDetail />} />
 
-          {/* AI Advisor Routes */}
-          <Route path="/ai-advisor" element={<AIAdvisor />} />
-          <Route path="/ai-advisor/results" element={<AIAdvisorResults />} />
-          <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
+                  {/* ============================================
+              BUILDER PROJECT ROUTES (NEW)
+              ============================================ */}
+                  <Route path="/builder/projects" element={<BuilderProjectsDashboard />} />
+                  <Route path="/add-project" element={<AddProjectForm />} />
+                  <Route path="/edit-project/:id" element={<AddProjectForm />} />
+                  <Route path="/project/:id" element={<ProjectDetailPage />} />
+                  <Route path="/builder/projects/:id/update" element={<AddConstructionUpdateWrapper />} />
 
-          {/* Visit Scheduling Routes */}
-          <Route path="/plan-visit-stay" element={<PlanVisitStay />} />
-          <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
-          <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
-          <Route path="/visit/manage" element={<VisitManage />} />
-          <Route path="/visit/live/:bookingId" element={<LiveVisitTracking />} />
-          <Route path="/visit/story/:bookingId" element={<VisitStory />} />
-          <Route path="/visit/summary/:bookingId" element={<VisitSummary />} />
-          <Route path="/visit/verify" element={<VisitVerify />} />
-          <Route path="/visit/analytics" element={<VisitAnalytics />} />
-          <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
-          <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
+                  {/* Existing Builder Routes */}
+                  <Route path="/builder/add-project" element={<AddProject />} />
+                  <Route path="/builder/promotions" element={<BuilderPromotions />} />
+                  <Route path="/property/:slug" element={<PropertyDetail />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/transactions/:city" element={<TransactionsCity />} />
+                  <Route path="/transactions/:city/:locality" element={<TransactionsLocality />} />
+                  <Route path="/trust-score" element={<TrustScore />} />
+                  <Route path="/agents" element={<Agents />} />
+                  <Route path="/agent/:id" element={<AgentDetail />} />
+                  <Route path="/agents/compare" element={<AgentComparison />} />
+                  <Route path="/agents/leaderboard" element={<AgentLeaderboard />} />
+                  <Route path="/valuation" element={<ValuationPage />} />
+                  <Route path="/valuation/detailed" element={<PropertyValuation />} />
+                  <Route path="/communities" element={<Communities />} />
+                  <Route path="/communities/:city" element={<CommunitiesCity />} />
+                  <Route path="/communities/:city/:locality" element={<CommunitiesLocality />} />
+                  <Route path="/guides" element={<Guides />} />
+                  <Route path="/events" element={<EventsNew />} />
+                  <Route path="/events/create" element={<EventCreate />} />
+                  <Route path="/events/:id" element={<EventDetail />} />
+                  <Route path="/map" element={<Map />} />
+                  <Route path="/sell-property" element={<SellProperty />} />
+                  <Route path="/natural-living" element={<NaturalLiving />} />
+                  <Route path="/hotels" element={<Hotels />} />
+                  <Route path="/hotels/partner" element={<HotelPartnerOnboarding />} />
+                  <Route path="/hotels/partner/status" element={<HotelPartnerStatus />} />
+                  <Route path="/hotels/:id" element={<HotelDetail />} />
+                  <Route path="/promotions" element={<Promotions />} />
+                  <Route path="/reels" element={<PropertyReels />} />
+                  <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
+                  <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
+                  <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
+                  <Route path="/innovation" element={<InnovationHub />} />
+                  <Route path="/compare" element={<CompareProperties />} />
+                  <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
+                  <Route path="/select-location" element={<SelectLocation />} />
 
-          {/* Role-based Dashboards */}
-          <Route path="/dashboard/buyer" element={
-            <ProtectedRoute allowedRole="buyer">
-              <BuyerOnboardingGuard>
-                <BuyerDashboard />
-              </BuyerOnboardingGuard>
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/agent" element={
-            <ProtectedRoute allowedRole="agent">
-              <AgentDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/agent/add-property" element={
-            <ProtectedRoute allowedRole="agent">
-              <AgentAddProperty />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/agent/visits" element={
-            <ProtectedRoute allowedRole="agent">
-              <AgentVisitsDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/agent/verifications" element={
-            <ProtectedRoute allowedRole="agent">
-              <AgentVerificationDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/agent/assigned" element={
-            <ProtectedRoute allowedRole="agent">
-              <AgentAssignedProperties />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/builder" element={
-            <ProtectedRoute allowedRole="builder">
-              <BuilderDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/builder/visits" element={
-            <ProtectedRoute allowedRole="builder">
-              <BuilderVisitsDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/builder-visits" element={
-            <ProtectedRoute allowedRole="builder">
-              <BuilderVisitsDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/seller" element={
-            <ProtectedRoute allowedRole="seller">
-              <SellerDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/seller/analytics" element={
-            <ProtectedRoute allowedRole="seller">
-              <SellerAnalytics />
-            </ProtectedRoute>
-          } />
-          {/* Admin routes — require admin authentication */}
-          <Route path="/dashboard/admin" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/admin/frm" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminFRMDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/properties-pipeline" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPropertiesPipeline />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/kyc-verifications" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminKYCVerifications />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/price-drops" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminPriceDrops />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard/hotel-manager" element={
-            <ProtectedRoute allowedRole="hotel_manager">
-              <HotelManagerDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/smart-financing" element={<SmartFinancing />} />
-          <Route path="/financing" element={<SmartFinancing />} />
-          <Route path="/financial/register" element={<FinancialRegistration />} />
-          <Route path="/dashboard/financial" element={
-            <ProtectedRoute allowedRole="financial"><FinancialDashboard /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/leads" element={
-            <ProtectedRoute allowedRole="financial"><FinancialLeads /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/applications" element={
-            <ProtectedRoute allowedRole="financial"><FinancialApplications /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/wallet" element={
-            <ProtectedRoute allowedRole="financial"><FinancialWallet /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/promotions" element={
-            <ProtectedRoute allowedRole="financial"><FinancialPromotions /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/notifications" element={
-            <ProtectedRoute allowedRole="financial"><FinancialNotifications /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/financial/settings" element={
-            <ProtectedRoute allowedRole="financial"><FinancialSettings /></ProtectedRoute>
-          } />
+                  {/* AI Advisor Routes */}
+                  <Route path="/ai-advisor" element={<AIAdvisor />} />
+                  <Route path="/ai-advisor/results" element={<AIAdvisorResults />} />
+                  <Route path="/ai-advisor/:propertyId" element={<AIAdvisorProperty />} />
 
-          <Route path="/coming-soon" element={<ComingSoon />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        </Suspense>
-        <LocationPermissionDialog />
-        
-        </LocationProvider>
-        </ProfileBootProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                  {/* Visit Scheduling Routes */}
+                  <Route path="/plan-visit-stay" element={<PlanVisitStay />} />
+                  <Route path="/visit/schedule/:propertyId" element={<VisitSchedule />} />
+                  <Route path="/visit/confirm/:bookingId" element={<VisitConfirm />} />
+                  <Route path="/visit/manage" element={<VisitManage />} />
+                  <Route path="/visit/live/:bookingId" element={<LiveVisitTracking />} />
+                  <Route path="/visit/story/:bookingId" element={<VisitStory />} />
+                  <Route path="/visit/summary/:bookingId" element={<VisitSummary />} />
+                  <Route path="/visit/verify" element={<VisitVerify />} />
+                  <Route path="/visit/analytics" element={<VisitAnalytics />} />
+                  <Route path="/agent/location/:bookingId" element={<AgentLocationShare />} />
+                  <Route path="/agent/visit/story/:bookingId" element={<AgentStoryUpload />} />
+
+                  {/* Role-based Dashboards */}
+                  <Route
+                    path="/dashboard/buyer"
+                    element={
+                      <ProtectedRoute allowedRole="buyer">
+                        <BuyerOnboardingGuard>
+                          <BuyerDashboard />
+                        </BuyerOnboardingGuard>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/agent"
+                    element={
+                      <ProtectedRoute allowedRole="agent">
+                        <AgentDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/agent/add-property"
+                    element={
+                      <ProtectedRoute allowedRole="agent">
+                        <AgentAddProperty />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/agent/visits"
+                    element={
+                      <ProtectedRoute allowedRole="agent">
+                        <AgentVisitsDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/agent/verifications"
+                    element={
+                      <ProtectedRoute allowedRole="agent">
+                        <AgentVerificationDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/agent/assigned"
+                    element={
+                      <ProtectedRoute allowedRole="agent">
+                        <AgentAssignedProperties />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/builder"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/builder/visits"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderVisitsDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/builder-visits"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderVisitsDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/seller"
+                    element={
+                      <ProtectedRoute allowedRole="seller">
+                        <SellerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/seller/analytics"
+                    element={
+                      <ProtectedRoute allowedRole="seller">
+                        <SellerAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Admin routes — require admin authentication */}
+                  <Route
+                    path="/dashboard/admin"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/frm"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminFRMDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/properties-pipeline"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminPropertiesPipeline />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/kyc-verifications"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminKYCVerifications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/price-drops"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminPriceDrops />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/hotel-manager"
+                    element={
+                      <ProtectedRoute allowedRole="hotel_manager">
+                        <HotelManagerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/smart-financing" element={<SmartFinancing />} />
+                  <Route path="/financing" element={<SmartFinancing />} />
+                  <Route path="/financial/register" element={<FinancialRegistration />} />
+                  <Route
+                    path="/dashboard/financial"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/leads"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialLeads />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/applications"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialApplications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/wallet"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialWallet />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/promotions"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialPromotions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/notifications"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialNotifications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/settings"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route path="/coming-soon" element={<ComingSoon />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+              <LocationPermissionDialog />
+            </LocationProvider>
+          </ProfileBootProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </AppErrorBoundary>
 );
 
