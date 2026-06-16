@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
 import { crmService, type CRMNote, type CRMNoteStatus, type CRMStats } from "@/services/crmService";
 import AddNoteModal from "./AddNoteModal";
 
