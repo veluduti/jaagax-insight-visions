@@ -382,23 +382,27 @@ export default function BuilderDashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions - Row 1 */}
+        {/* Quick Actions - Consistent Card Sizes */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {/* Visit Approvals */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-500/50 bg-orange-500/5 relative"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-orange-500/40 group h-full"
               onClick={() => navigate("/builder-visits")}
             >
-              {stats.pendingVisits > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground">
-                  {stats.pendingVisits}
-                </Badge>
-              )}
-              <CardContent className="p-6 text-center">
-                <CalendarCheck className="h-8 w-8 mx-auto mb-2 text-orange-500" />
-                <h3 className="font-semibold">Visit Approvals</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
+                    <CalendarCheck className="h-6 w-6 text-orange-500" />
+                  </div>
+                  {stats.pendingVisits > 0 && (
+                    <Badge className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 min-w-5 h-5 flex items-center justify-center">
+                      {stats.pendingVisits}
+                    </Badge>
+                  )}
+                </div>
+                <h3 className="font-semibold text-sm">Visit Approvals</h3>
+                <p className="text-xs text-muted-foreground">
                   {stats.pendingVisits > 0 ? `${stats.pendingVisits} pending` : "Review pending visits"}
                 </p>
               </CardContent>
@@ -406,44 +410,51 @@ export default function BuilderDashboard() {
           </motion.div>
 
           {/* Add Property */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-primary/40 group h-full"
               onClick={() => setActiveTab("add-property")}
             >
-              <CardContent className="p-6 text-center">
-                <Plus className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Add Property</h3>
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Plus className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm">Add Property</h3>
+                <p className="text-xs text-muted-foreground">List a new property</p>
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Projects */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-primary/40 group h-full"
               onClick={() => navigate("/builder/projects")}
             >
-              <CardContent className="p-6 text-center">
-                <Building2 className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Projects</h3>
-                <p className="text-xs text-muted-foreground mt-1">Manage your projects</p>
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm">Projects</h3>
+                <p className="text-xs text-muted-foreground">Manage your projects</p>
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Wallet */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-emerald-900/20 to-slate-900/40 border-emerald-500/20"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-emerald-500/40 group h-full"
               onClick={() => navigate("/builder/wallet")}
             >
-              <CardContent className="p-6 text-center">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 mx-auto mb-2 flex items-center justify-center">
-                  <Wallet className="h-5 w-5 text-emerald-400" />
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                  <Wallet className="h-6 w-6 text-emerald-500" />
                 </div>
-                <h3 className="font-semibold">Wallet</h3>
-                <p className="text-xs text-emerald-400 font-medium mt-1">₹{walletBalance.toLocaleString("en-IN")}</p>
+                <h3 className="font-semibold text-sm">Wallet</h3>
+                <p className="text-xs text-emerald-600 font-medium dark:text-emerald-400">
+                  ₹{walletBalance.toLocaleString("en-IN")}
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -452,62 +463,75 @@ export default function BuilderDashboard() {
         {/* Quick Actions - Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {/* CRM */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-blue-900/20 to-slate-900/40 border-blue-500/20"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-blue-500/40 group h-full"
               onClick={() => navigate("/builder/crm")}
             >
-              <CardContent className="p-6 text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 mx-auto mb-2 flex items-center justify-center">
-                  <ClipboardList className="h-5 w-5 text-blue-400" />
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                  <ClipboardList className="h-6 w-6 text-blue-500" />
                 </div>
-                <h3 className="font-semibold">CRM</h3>
-                <p className="text-xs text-blue-400 font-medium mt-1">Manage notes & follow-ups</p>
+                <h3 className="font-semibold text-sm">CRM</h3>
+                <p className="text-xs text-muted-foreground">Manage notes & follow-ups</p>
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Team */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-purple-900/20 to-slate-900/40 border-purple-500/20"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-purple-500/40 group h-full"
               onClick={() => navigate("/builder/team")}
             >
-              <CardContent className="p-6 text-center">
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 mx-auto mb-2 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-purple-400" />
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+                  <Users className="h-6 w-6 text-purple-500" />
                 </div>
-                <h3 className="font-semibold">Team</h3>
-                <p className="text-xs text-purple-400 font-medium mt-1">Manage your team</p>
+                <h3 className="font-semibold text-sm">Team</h3>
+                <p className="text-xs text-muted-foreground">Manage your team</p>
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Notifications */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
-              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-amber-900/20 to-slate-900/40 border-amber-500/20 relative"
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-amber-500/40 group h-full relative"
               onClick={() => navigate("/builder/notifications")}
             >
               {unreadCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground">
+                <Badge className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 min-w-5 h-5 flex items-center justify-center">
                   {unreadCount}
                 </Badge>
               )}
-              <CardContent className="p-6 text-center">
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 mx-auto mb-2 flex items-center justify-center">
-                  <Bell className="h-5 w-5 text-amber-400" />
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <Bell className="h-6 w-6 text-amber-500" />
                 </div>
-                <h3 className="font-semibold">Notifications</h3>
-                <p className="text-xs text-amber-400 font-medium mt-1">
+                <h3 className="font-semibold text-sm">Notifications</h3>
+                <p className="text-xs text-muted-foreground">
                   {unreadCount > 0 ? `${unreadCount} unread` : "No new notifications"}
                 </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Placeholder for future */}
-          <div className="hidden md:block" />
+          {/* Builder Profile */}
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-primary/40 group h-full"
+              onClick={() => setActiveTab("profile")}
+            >
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm">My Profile</h3>
+                <p className="text-xs text-muted-foreground">View & edit profile</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Content Tabs */}
