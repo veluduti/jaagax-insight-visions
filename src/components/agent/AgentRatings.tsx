@@ -26,6 +26,7 @@ import {
   Clock,
   CheckCircle2,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +46,8 @@ interface RatingRow {
   comment: string | null;
   review: string | null;
   is_verified: boolean;
+  agent_reply?: string | null;
+  agent_replied_at?: string | null;
   created_at: string;
   buyer_name?: string;
 }
@@ -85,7 +88,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
       // Fetch ratings
       const { data, error } = await sb
         .from("agent_ratings")
-        .select("*, buyer:buyer_id(name)")
+        .select("*")
         .eq("agent_id", agentId)
         .order("created_at", { ascending: false });
 
@@ -93,10 +96,10 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
 
       const rows = (data || []) as RatingRow[];
 
-      // Add buyer name from nested data if available
+      // Add buyer name if available (or use fallback)
       const processedRows = rows.map((r: any) => ({
         ...r,
-        buyer_name: r.buyer?.name || "Verified Buyer",
+        buyer_name: r.buyer_name || "Verified Buyer",
       }));
 
       setRatings(processedRows);
