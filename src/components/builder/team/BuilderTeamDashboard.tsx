@@ -36,7 +36,7 @@ interface TeamMember {
 }
 
 interface BuilderTeamDashboardProps {
-  builderProfileId: string;
+  builderProfileId?: string;
 }
 
 // FIXED: Added viewer color
