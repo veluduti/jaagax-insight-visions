@@ -20,16 +20,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Upload, FileText, Trash2 } from "lucide-react";
+import { Loader2, Upload, FileText, Trash2, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-interface Props {
+interface DocumentUploadDialogProps {
   open: boolean;
   onClose: () => void;
   enquiryId: string | null;
+  onUploaded?: () => void;
 }
 
 interface Doc {
   id: string;
+  application_id: string;
   document_type: string;
   file_path: string;
   verified_status: string | null;
@@ -37,37 +40,47 @@ interface Doc {
 }
 
 const DOC_TYPES = [
-  "pan_card",
-  "aadhaar",
-  "salary_slip",
-  "bank_statement",
-  "itr",
-  "property_document",
-  "other",
+  { value: "pan_card", label: "PAN Card" },
+  { value: "aadhaar", label: "Aadhaar Card" },
+  { value: "salary_slip", label: "Salary Slip" },
+  { value: "bank_statement", label: "Bank Statement" },
+  { value: "itr", label: "Income Tax Return" },
+  { value: "property_document", label: "Property Document" },
+  { value: "other", label: "Other" },
 ];
 
-export default function DocumentUploadDialog({ open, onClose, enquiryId }: Props) {
+export default function DocumentUploadDialog({ 
+  open, 
+  onClose, 
+  enquiryId, 
+  onUploaded 
+}: DocumentUploadDialogProps) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [docType, setDocType] = useState("pan_card");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const load = async () => {
     if (!enquiryId) return;
     setListLoading(true);
-    const { data, error } = await supabase
-      .from("financial_loan_documents")
-      .select("*")
-      .eq("application_id", enquiryId)
-      .order("uploaded_at", { ascending: false });
+    
+    try {
+      const { data, error } = await supabase
+        .from("financial_loan_documents")
+        .select("*")
+        .eq("application_id", enquiryId)
+        .order("uploaded_at", { ascending: false });
 
-    if (error) {
-      toast.error("Failed to load documents");
-    } else {
+      if (error) throw error;
       setDocs((data || []) as Doc[]);
+    } catch (error: any) {
+      console.error("Error loading documents:", error);
+      toast.error("Failed to load documents");
+    } finally {
+      setListLoading(false);
     }
-    setListLoading(false);
   };
 
   useEffect(() => {
@@ -75,141 +88,157 @@ export default function DocumentUploadDialog({ open, onClose, enquiryId }: Props
   }, [open, enquiryId]);
 
   const upload = async () => {
-    if (!file || !enquiryId) return toast.error("Pick a file first");
+    if (!file || !enquiryId) {
+      toast.error("Please select a file first");
+      return;
+    }
+
     setLoading(true);
+    setUploadProgress(0);
 
     const ext = file.name.split(".").pop();
     const path = `${enquiryId}/${docType}_${Date.now()}.${ext}`;
 
-    const { error: upErr } = await supabase.storage
-      .from("loan-documents")
-      .upload(path, file, { upsert: false });
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
+      }, 200);
 
-    if (upErr) {
+      const { error: upErr } = await supabase.storage
+        .from("loan-documents")
+        .upload(path, file, { 
+          upsert: false,
+          cacheControl: "3600",
+        });
+
+      clearInterval(progressInterval);
+
+      if (upErr) throw upErr;
+
+      setUploadProgress(100);
+
+      const { error: insErr } = await supabase.from("financial_loan_documents").insert({
+        application_id: enquiryId,
+        document_type: docType,
+        file_path: path,
+        verified_status: "pending",
+      });
+
+      if (insErr) throw insErr;
+
+      toast.success("Document uploaded successfully");
+      setFile(null);
+      setUploadProgress(0);
+      load();
+      onUploaded?.();
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Upload failed");
+    } finally {
       setLoading(false);
-      console.error(upErr);
-      return toast.error(upErr.message || "Upload failed");
+      setUploadProgress(0);
     }
-
-    const { error: insErr } = await supabase.from("financial_loan_documents").insert({
-      application_id: enquiryId,
-      document_type: docType,
-      file_path: path,
-      verified_status: "pending",
-    });
-
-    setLoading(false);
-
-    if (insErr) {
-      console.error(insErr);
-      return toast.error("Failed to record document");
-    }
-    toast.success("Document uploaded");
-    setFile(null);
-    load();
   };
 
   const remove = async (doc: Doc) => {
-    await supabase.storage.from("loan-documents").remove([doc.file_path]);
-    const { error } = await supabase
-      .from("financial_loan_documents")
-      .delete()
-      .eq("id", doc.id);
-    if (error) return toast.error("Delete failed");
-    toast.success("Removed");
-    load();
+    if (!confirm("Are you sure you want to delete this document?")) return;
+
+    try {
+      await supabase.storage.from("loan-documents").remove([doc.file_path]);
+      
+      const { error } = await supabase
+        .from("financial_loan_documents")
+        .delete()
+        .eq("id", doc.id);
+        
+      if (error) throw error;
+      
+      toast.success("Document removed");
+      load();
+      onUploaded?.();
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete document");
+    }
+  };
+
+  const getStatusBadge = (status: string | null) => {
+    switch (status) {
+      case "verified":
+        return <Badge className="bg-green-600 text-white"><CheckCircle className="h-3 w-3 mr-0.5" /> Verified</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-600 text-white"><XCircle className="h-3 w-3 mr-0.5" /> Rejected</Badge>;
+      default:
+        return <Badge variant="outline" className="text-amber-600 border-amber-200"><Clock className="h-3 w-3 mr-0.5" /> Pending</Badge>;
+    }
+  };
+
+  const getDocumentIcon = (type: string) => {
+    switch (type) {
+      case "pan_card":
+        return <FileText className="h-4 w-4 text-orange-500" />;
+      case "aadhaar":
+        return <FileText className="h-4 w-4 text-blue-500" />;
+      case "salary_slip":
+        return <FileText className="h-4 w-4 text-green-500" />;
+      case "bank_statement":
+        return <FileText className="h-4 w-4 text-purple-500" />;
+      case "itr":
+        return <FileText className="h-4 w-4 text-red-500" />;
+      case "property_document":
+        return <FileText className="h-4 w-4 text-indigo-500" />;
+      default:
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Loan Documents</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Loan Documents
+          </DialogTitle>
           <DialogDescription>
             Upload KYC and supporting documents for this enquiry.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-2 items-end">
-            <div className="col-span-1">
-              <Label>Type</Label>
-              <Select value={docType} onValueChange={setDocType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOC_TYPES.map((t) => (
-                    <SelectItem key={t} value={t} className="capitalize">
-                      {t.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-2">
-              <Label>File</Label>
-              <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-            </div>
-          </div>
-
-          <Button onClick={upload} disabled={loading || !file} className="w-full">
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 mr-1" />
-            )}
-            Upload Document
-          </Button>
-
-          <div className="space-y-2 max-h-64 overflow-y-auto pt-2 border-t">
-            {listLoading ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Loading…</p>
-            ) : docs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No documents uploaded yet.
-              </p>
-            ) : (
-              docs.map((d) => (
-                <div
-                  key={d.id}
-                  className="flex items-center justify-between border rounded-md p-2"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="h-4 w-4 text-primary shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium capitalize truncate">
-                        {d.document_type.replace(/_/g, " ")}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {new Date(d.uploaded_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="capitalize">
-                      {d.verified_status || "pending"}
-                    </Badge>
-                    <Button size="icon" variant="ghost" onClick={() => remove(d)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+        <div className="flex-1 overflow-y-auto space-y-4 py-2">
+          {/* Upload Section */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 items-end">
+              <div className="col-span-1">
+                <Label className="text-xs">Document Type</Label>
+                <Select value={docType} onValueChange={setDocType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DOC_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Label className="text-xs">File</Label>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  disabled={loading}
+                  className="cursor-pointer"
+                />
+                {file && (
+                  <p className="text-[10
