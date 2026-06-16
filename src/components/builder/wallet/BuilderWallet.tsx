@@ -107,7 +107,7 @@ function TransactionRow({ txn }: { txn: WalletTransaction }) {
 
 export default function BuilderWallet() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [stats, setStats] = useState<WalletStats | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
