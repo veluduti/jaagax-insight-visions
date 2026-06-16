@@ -186,7 +186,7 @@ const ProjectCard = ({
 // ---------- Main Dashboard ----------
 const BuilderProjectsDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
 
   const [loading, setLoading] = useState(true);
   const [builderName, setBuilderName] = useState<string>("");
