@@ -71,13 +71,12 @@ async function requireUserId(): Promise<string> {
 export const crmService = {
   async listNotes(filters: CRMFilters = {}): Promise<CRMNote[]> {
     const userId = await requireUserId();
-    let q = supabase
-      .from("crm_notes")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+    let q = supabase.from("crm_notes").select("*").eq("user_id", userId).order("created_at", { ascending: false });
 
-    if (filters.builderProfileId) q = q.eq("builder_profile_id", filters.builderProfileId);
+    // FIXED: Use builder_profile_id filter when provided
+    if (filters.builderProfileId) {
+      q = q.eq("builder_profile_id", filters.builderProfileId);
+    }
     if (filters.type) q = q.eq("type", filters.type);
     if (filters.status) q = q.eq("status", filters.status);
     if (filters.priority) q = q.eq("priority", filters.priority);
@@ -117,12 +116,7 @@ export const crmService = {
   },
 
   async updateNote(id: string, patch: Partial<CRMNoteInput>): Promise<CRMNote> {
-    const { data, error } = await supabase
-      .from("crm_notes")
-      .update(patch)
-      .eq("id", id)
-      .select("*")
-      .single();
+    const { data, error } = await supabase.from("crm_notes").update(patch).eq("id", id).select("*").single();
     if (error) throw error;
     return data as CRMNote;
   },
@@ -146,8 +140,10 @@ export const crmService = {
   async getStats(builderProfileId?: string): Promise<CRMStats> {
     const notes = await this.listNotes(builderProfileId ? { builderProfileId } : {});
     const now = new Date();
-    const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(now); endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
 
     const stats: CRMStats = {
       total: notes.length,
