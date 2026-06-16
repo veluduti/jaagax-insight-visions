@@ -22,6 +22,8 @@ import {
   AlertCircle,
   CalendarCheck,
   Wallet,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -421,6 +423,45 @@ export default function BuilderDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+        </div>
+
+        {/* Quick Actions Row 2 - CRM & Team */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {/* CRM */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-blue-900/20 to-slate-900/40 border-blue-500/20"
+              onClick={() => navigate("/builder/crm")}
+            >
+              <CardContent className="p-6 text-center">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 mx-auto mb-2 flex items-center justify-center">
+                  <ClipboardList className="h-5 w-5 text-blue-400" />
+                </div>
+                <h3 className="font-semibold">CRM</h3>
+                <p className="text-xs text-blue-400 font-medium mt-1">Manage notes & follow-ups</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Team */}
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-purple-900/20 to-slate-900/40 border-purple-500/20"
+              onClick={() => navigate("/builder/team")}
+            >
+              <CardContent className="p-6 text-center">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 mx-auto mb-2 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="font-semibold">Team</h3>
+                <p className="text-xs text-purple-400 font-medium mt-1">Manage your team</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Placeholder for future - empty cards to maintain grid */}
+          <div className="hidden md:block" />
+          <div className="hidden md:block" />
         </div>
 
         {/* Main Content Tabs */}
