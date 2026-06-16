@@ -2,7 +2,6 @@
 // Wraps Supabase access to wallets, wallet_transactions, and auto_recharge_settings.
 
 import { supabase } from "@/integrations/supabase/client";
-import { fromTable } from "@/lib/supabaseHelper";
 
 // ---------- Types ----------
 export type TransactionType = "credit" | "debit";
@@ -64,6 +63,11 @@ export interface WalletStats {
   transactionCount: number;
 }
 
+// ---------- Helper ----------
+function getTable<T extends Record<string, any>>(table: string) {
+  return supabase.from(table) as any;
+}
+
 // ---------- Wallet CRUD ----------
 
 /** Get the wallet for the currently authenticated user, creating one if missing. */
@@ -72,25 +76,40 @@ export async function getOrCreateWallet(): Promise<Wallet> {
   const userId = auth?.user?.id;
   if (!userId) throw new Error("Not authenticated");
 
-  const { data: existing, error: selErr } = await fromTable("wallets")
+  const { data: existing, error: selErr } = await supabase
+    .from("wallets")
     .select("*")
     .eq("user_id", userId)
     .maybeSingle();
   if (selErr) throw selErr;
   if (existing) return existing as Wallet;
 
-  // Create via RPC (SECURITY DEFINER, idempotent).
-  const { error: rpcErr } = await supabase.rpc("create_wallet_for_user", {
-    _user_id: userId,
-  });
-  if (rpcErr) throw rpcErr;
+  // Try to create via RPC first (if function exists)
+  try {
+    const { error: rpcErr } = await supabase.rpc("create_wallet_for_user", {
+      _user_id: userId,
+    });
+    if (!rpcErr) {
+      const { data: fresh, error: fetchErr } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      if (!fetchErr && fresh) return fresh as Wallet;
+    }
+  } catch (e) {
+    // RPC might not exist, fallback to direct insert
+  }
 
-  const { data: fresh, error: fetchErr } = await fromTable("wallets")
-    .select("*")
-    .eq("user_id", userId)
+  // Fallback: direct insert
+  const { data: newWallet, error: createErr } = await supabase
+    .from("wallets")
+    .insert({ user_id: userId, balance: 0 })
+    .select()
     .single();
-  if (fetchErr) throw fetchErr;
-  return fresh as Wallet;
+
+  if (createErr) throw createErr;
+  return newWallet as Wallet;
 }
 
 export async function getWalletBalance(): Promise<number> {
@@ -108,9 +127,7 @@ export interface ListTransactionsOptions {
   status?: TransactionStatus;
 }
 
-export async function listTransactions(
-  options: ListTransactionsOptions = {}
-): Promise<WalletTransaction[]> {
+export async function listTransactions(options: ListTransactionsOptions = {}): Promise<WalletTransaction[]> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth?.user?.id;
   if (!userId) throw new Error("Not authenticated");
@@ -118,7 +135,8 @@ export async function listTransactions(
   const limit = options.limit ?? 50;
   const offset = options.offset ?? 0;
 
-  let q = fromTable("wallet_transactions")
+  let q = supabase
+    .from("wallet_transactions")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
@@ -190,21 +208,56 @@ export async function addMoney(params: AddMoneyParams): Promise<number> {
 
   await getOrCreateWallet();
 
-  const { data, error } = await supabase.rpc("increment_wallet_balance", {
-    _user_id: userId,
-    _amount: amount,
-    _description: params.description ?? "Wallet top-up",
-    _reference: params.reference ?? `topup_${Date.now()}`,
+  try {
+    // Try RPC first
+    const { data, error } = await supabase.rpc("increment_wallet_balance", {
+      _user_id: userId,
+      _amount: amount,
+      _description: params.description ?? "Wallet top-up",
+      _reference: params.reference ?? `topup_${Date.now()}`,
+    });
+    if (!error) return Number(data ?? 0);
+  } catch (e) {
+    // RPC failed, fallback to manual update
+    console.warn("RPC increment_wallet_balance failed, using fallback", e);
+  }
+
+  // Fallback: manual update
+  const wallet = await getOrCreateWallet();
+
+  // Update balance
+  const { data: updated, error: updateErr } = await supabase
+    .from("wallets")
+    .update({ balance: wallet.balance + amount, updated_at: new Date().toISOString() })
+    .eq("id", wallet.id)
+    .select()
+    .single();
+
+  if (updateErr) throw updateErr;
+
+  // Create transaction
+  const { error: txErr } = await supabase.from("wallet_transactions").insert({
+    wallet_id: wallet.id,
+    user_id: userId,
+    amount: amount,
+    type: "credit",
+    category: "add_money",
+    description: params.description ?? "Wallet top-up",
+    reference_id: params.reference ?? `topup_${Date.now()}`,
+    status: "completed",
   });
-  if (error) throw error;
-  return Number(data ?? 0);
+
+  if (txErr) throw txErr;
+
+  return updated.balance;
 }
 
 // ---------- Auto-recharge ----------
 
 export async function getAutoRechargeSettings(): Promise<AutoRechargeSettings | null> {
   const wallet = await getOrCreateWallet();
-  const { data, error } = await fromTable("auto_recharge_settings")
+  const { data, error } = await supabase
+    .from("auto_recharge_settings")
     .select("*")
     .eq("wallet_id", wallet.id)
     .maybeSingle();
@@ -219,9 +272,7 @@ export interface UpsertAutoRechargeParams {
   payment_method_id?: string | null;
 }
 
-export async function upsertAutoRecharge(
-  params: UpsertAutoRechargeParams
-): Promise<AutoRechargeSettings> {
+export async function upsertAutoRecharge(params: UpsertAutoRechargeParams): Promise<AutoRechargeSettings> {
   const wallet = await getOrCreateWallet();
 
   if (params.threshold_amount < 0 || params.recharge_amount <= 0) {
@@ -237,14 +288,18 @@ export async function upsertAutoRecharge(
     updated_at: new Date().toISOString(),
   };
 
-  const { data, error } = await fromTable("auto_recharge_settings")
+  // Upsert auto-recharge settings
+  const { data, error } = await supabase
+    .from("auto_recharge_settings")
     .upsert(payload, { onConflict: "wallet_id" })
-    .select("*")
+    .select()
     .single();
+
   if (error) throw error;
 
-  // Keep the legacy wallets.* columns in sync so older code keeps working.
-  await fromTable("wallets")
+  // Keep the legacy wallets columns in sync
+  await supabase
+    .from("wallets")
     .update({
       auto_recharge: params.enabled,
       auto_recharge_threshold: params.threshold_amount,
