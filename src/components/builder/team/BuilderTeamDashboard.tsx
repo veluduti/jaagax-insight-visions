@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Users, UserCheck, UserX, Trash2, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,13 +27,19 @@ interface TeamMember {
   status: string;
   joined_at: string;
   permissions: Record<string, unknown> | null;
-  profile?: { full_name: string | null; email: string | null; avatar_url: string | null } | null;
+  // FIXED: Use user metadata instead of profiles table
+  user_metadata?: {
+    full_name?: string;
+    email?: string;
+    avatar_url?: string;
+  } | null;
 }
 
 interface BuilderTeamDashboardProps {
   builderProfileId: string;
 }
 
+// FIXED: Added viewer color
 const roleColors: Record<string, string> = {
   admin: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   manager: "bg-blue-500/20 text-blue-300 border-blue-500/30",
@@ -41,7 +51,9 @@ const roleColors: Record<string, string> = {
 const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) => (
   <Card className="border-white/10 bg-slate-900/60 backdrop-blur">
     <CardContent className="p-4 flex items-center gap-3">
-      <div className={`p-2 rounded-lg ${color}`}><Icon className="h-5 w-5" /></div>
+      <div className={`p-2 rounded-lg ${color}`}>
+        <Icon className="h-5 w-5" />
+      </div>
       <div>
         <div className="text-2xl font-semibold text-white">{value}</div>
         <div className="text-xs text-slate-400">{label}</div>
@@ -68,17 +80,31 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
         .order("joined_at", { ascending: false });
       if (error) throw error;
 
+      // FIXED: Fetch user metadata directly from auth.users
       const userIds = (rows || []).map((r: any) => r.user_id);
-      let profilesMap = new Map<string, any>();
-      if (userIds.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, email, avatar_url")
-          .in("user_id", userIds);
-        (profs || []).forEach((p: any) => profilesMap.set(p.user_id, p));
+      const membersWithMeta: TeamMember[] = [];
+
+      for (const row of (rows || []) as any[]) {
+        const { data: userData } = await supabase
+          .from("auth.users")
+          .select("email, raw_user_meta_data")
+          .eq("id", row.user_id)
+          .maybeSingle();
+
+        membersWithMeta.push({
+          ...row,
+          user_metadata: userData
+            ? {
+                email: userData.email,
+                full_name:
+                  userData.raw_user_meta_data?.full_name || userData.raw_user_meta_data?.name || userData.email,
+                avatar_url: userData.raw_user_meta_data?.avatar_url,
+              }
+            : null,
+        });
       }
 
-      setMembers(((rows || []) as any[]).map((r) => ({ ...r, profile: profilesMap.get(r.user_id) || null })));
+      setMembers(membersWithMeta);
     } catch (e: any) {
       toast({ title: "Failed to load team", description: e.message, variant: "destructive" });
     } finally {
@@ -86,22 +112,27 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
     }
   };
 
-  useEffect(() => { if (builderProfileId) load(); /* eslint-disable-next-line */ }, [builderProfileId]);
+  useEffect(() => {
+    if (builderProfileId) load(); /* eslint-disable-next-line */
+  }, [builderProfileId]);
 
   const filtered = useMemo(() => {
     if (!search) return members;
     const s = search.toLowerCase();
     return members.filter((m) =>
-      `${m.profile?.full_name ?? ""} ${m.profile?.email ?? ""} ${m.role}`.toLowerCase().includes(s)
+      `${m.user_metadata?.full_name ?? ""} ${m.user_metadata?.email ?? ""} ${m.role}`.toLowerCase().includes(s),
     );
   }, [members, search]);
 
-  const stats = useMemo(() => ({
-    total: members.length,
-    active: members.filter((m) => m.status === "active").length,
-    inactive: members.filter((m) => m.status !== "active").length,
-    admins: members.filter((m) => m.role === "admin").length,
-  }), [members]);
+  const stats = useMemo(
+    () => ({
+      total: members.length,
+      active: members.filter((m) => m.status === "active").length,
+      inactive: members.filter((m) => m.status !== "active").length,
+      admins: members.filter((m) => m.role === "admin").length,
+    }),
+    [members],
+  );
 
   const updateRole = async (id: string, role: TeamRole) => {
     try {
@@ -147,7 +178,8 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
           <p className="text-sm text-slate-400">Manage your team members, roles, and access</p>
         </div>
         <Button onClick={() => setShowAdd(true)} className="bg-emerald-500 hover:bg-emerald-600">
-          <Plus className="h-4 w-4 mr-2" />Add Member
+          <Plus className="h-4 w-4 mr-2" />
+          Add Member
         </Button>
       </div>
 
@@ -163,7 +195,12 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
           <CardTitle className="text-white">Members</CardTitle>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search members..." className="pl-9 bg-slate-800/60 border-white/10 text-white" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search members..."
+              className="pl-9 bg-slate-800/60 border-white/10 text-white"
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -174,19 +211,31 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
           ) : (
             <div className="space-y-2">
               {filtered.map((m) => (
-                <div key={m.id} className="p-4 rounded-lg border border-white/10 bg-slate-800/40 flex items-center justify-between gap-3 flex-wrap">
+                <div
+                  key={m.id}
+                  className="p-4 rounded-lg border border-white/10 bg-slate-800/40 flex items-center justify-between gap-3 flex-wrap"
+                >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-semibold">
-                      {(m.profile?.full_name || m.profile?.email || "?").charAt(0).toUpperCase()}
+                      {(m.user_metadata?.full_name || m.user_metadata?.email || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-medium text-white truncate">{m.profile?.full_name || "Unnamed"}</div>
-                      <div className="text-xs text-slate-400 truncate">{m.profile?.email || m.user_id}</div>
+                      <div className="font-medium text-white truncate">{m.user_metadata?.full_name || "Unnamed"}</div>
+                      <div className="text-xs text-slate-400 truncate">{m.user_metadata?.email || m.user_id}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={roleColors[m.role] || roleColors.viewer}>{m.role}</Badge>
-                    <Badge variant="outline" className={m.status === "active" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" : "bg-slate-500/20 text-slate-300 border-slate-500/30"}>
+                    <Badge variant="outline" className={roleColors[m.role] || roleColors.viewer}>
+                      {m.role}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={
+                        m.status === "active"
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          : "bg-slate-500/20 text-slate-300 border-slate-500/30"
+                      }
+                    >
                       {m.status}
                     </Badge>
                     <Select value={m.role} onValueChange={(v) => updateRole(m.id, v as TeamRole)}>
@@ -195,7 +244,9 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
                       </SelectTrigger>
                       <SelectContent>
                         {["admin", "manager", "sales", "support", "viewer"].map((r) => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                          <SelectItem key={r} value={r}>
+                            {r}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -213,12 +264,7 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
         </CardContent>
       </Card>
 
-      <AddTeamMemberModal
-        open={showAdd}
-        onOpenChange={setShowAdd}
-        builderProfileId={builderProfileId}
-        onAdded={load}
-      />
+      <AddTeamMemberModal open={showAdd} onOpenChange={setShowAdd} builderProfileId={builderProfileId} onAdded={load} />
 
       <AlertDialog open={!!removeId} onOpenChange={(o) => !o && setRemoveId(null)}>
         <AlertDialogContent>
@@ -228,7 +274,9 @@ export const BuilderTeamDashboard = ({ builderProfileId }: BuilderTeamDashboardP
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemove} className="bg-red-500 hover:bg-red-600">Remove</AlertDialogAction>
+            <AlertDialogAction onClick={handleRemove} className="bg-red-500 hover:bg-red-600">
+              Remove
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
