@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { sb } from "@/lib/supabaseHelper";
+import { fromTable as sb } from "@/lib/supabaseHelper";
 
 export type NotificationType =
   | "platform_announcement"
