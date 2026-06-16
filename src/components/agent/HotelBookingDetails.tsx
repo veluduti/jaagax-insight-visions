@@ -10,10 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Download, X, RotateCcw, User, Phone, MapPin } from "lucide-react";
+import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -31,13 +33,13 @@ interface Booking {
   created_at?: string;
 }
 
-interface Props {
+interface HotelBookingDetailsProps {
   booking: Booking | null;
   onClose: () => void;
   onChanged?: () => void;
 }
 
-export default function HotelBookingDetails({ booking, onClose, onChanged }: Props) {
+export default function HotelBookingDetails({ booking, onClose, onChanged }: HotelBookingDetailsProps) {
   const [mode, setMode] = useState<"view" | "edit" | "cancel">("view");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -62,6 +64,18 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Pro
   if (!booking) return null;
 
   const submitEdit = async () => {
+    if (!form.check_in_date || !form.check_out_date) {
+      toast.error("Please select check-in and check-out dates");
+      return;
+    }
+
+    const checkIn = new Date(form.check_in_date);
+    const checkOut = new Date(form.check_out_date);
+    if (checkIn >= checkOut) {
+      toast.error("Check-out date must be after check-in date");
+      return;
+    }
+
     setSaving(true);
     const sb: any = supabase;
     const { error } = await sb
@@ -71,24 +85,40 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Pro
         check_out_date: form.check_out_date,
         guests: form.guests,
         room_type: form.room_type || null,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", booking.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Booking updated");
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success("Booking updated successfully");
+    setMode("view");
     onChanged?.();
   };
 
-  const cancel = async () => {
+  const cancelBooking = async () => {
     setSaving(true);
     const sb: any = supabase;
     const { error } = await sb
       .from("hotel_bookings")
-      .update({ booking_status: "cancelled" })
+      .update({
+        booking_status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+      })
       .eq("id", booking.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
     toast.success("Booking cancelled");
+    setMode("view");
     onChanged?.();
   };
 
@@ -97,17 +127,65 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Pro
     const gstRate = 0.12;
     const base = b.total_price / (1 + gstRate);
     const gst = b.total_price - base;
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${b.id.slice(0, 8)}</title>
-<style>body{font-family:-apple-system,Arial,sans-serif;padding:32px;max-width:720px;margin:auto;color:#111}
-h1{font-size:22px;margin:0 0 4px}.muted{color:#666;font-size:13px}table{width:100%;border-collapse:collapse;margin:20px 0}
-td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weight:700;font-size:18px}</style></head><body>
-<h1>JAAGAX — Tax Invoice</h1><p class="muted">Invoice #${b.id.slice(0, 8).toUpperCase()} • ${new Date().toLocaleDateString("en-IN")}</p>
-<table><tr><th>Guest</th><td>${b.guest_name || "Guest"}</td></tr>
-<tr><th>Hotel</th><td>${b.hotel_name || "Partner Hotel"}${b.hotel_city ? " — " + b.hotel_city : ""}</td></tr>
-<tr><th>Check-in</th><td>${b.check_in_date}</td></tr><tr><th>Check-out</th><td>${b.check_out_date}</td></tr>
-<tr><th>Room</th><td>${b.room_type || "Standard"}</td></tr><tr><th>Guests</th><td>${b.guests || 1}</td></tr>
-<tr><th>Base</th><td>₹${base.toFixed(2)}</td></tr><tr><th>GST (12%)</th><td>₹${gst.toFixed(2)}</td></tr>
-<tr class="total"><th>Total</th><td>₹${b.total_price.toFixed(2)}</td></tr></table></body></html>`;
+
+    const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Invoice ${b.id.slice(0, 8)}</title>
+  <style>
+    body { font-family: -apple-system, Arial, sans-serif; padding: 40px; max-width: 720px; margin: auto; color: #111; }
+    .header { border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 25px; }
+    .title { font-size: 28px; font-weight: bold; color: #2563eb; }
+    .subtitle { color: #666; font-size: 14px; }
+    .ref { font-size: 13px; color: #666; margin-top: 5px; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    td, th { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: left; }
+    .total { font-weight: 700; font-size: 20px; }
+    .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #ddd; padding-top: 15px; }
+    .status-badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-confirmed { background: #dcfce7; color: #166534; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">JAAGA HOTEL INVOICE</div>
+    <div class="ref">Booking Reference: #${b.id.slice(0, 8).toUpperCase()}</div>
+    <div class="subtitle">Generated: ${new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+  </div>
+  
+  <div style="margin-bottom: 20px;">
+    <span class="status-badge status-${b.booking_status}">${b.booking_status.toUpperCase()}</span>
+  </div>
+  
+  <table>
+    <tr><th style="width:120px;">Guest</th><td>${b.guest_name || "Guest"}</td></tr>
+    ${b.guest_phone ? `<tr><th>Phone</th><td>${b.guest_phone}</td></tr>` : ""}
+    <tr><th>Hotel</th><td>${b.hotel_name || "Partner Hotel"}${b.hotel_city ? " — " + b.hotel_city : ""}</td></tr>
+    <tr><th>Room Type</th><td>${b.room_type || "Standard"}</td></tr>
+    <tr><th>Guests</th><td>${b.guests || 1}</td></tr>
+    <tr><th>Check-in</th><td>${b.check_in_date}</td></tr>
+    <tr><th>Check-out</th><td>${b.check_out_date}</td></tr>
+    <tr><th>Nights</th><td>${Math.ceil((new Date(b.check_out_date).getTime() - new Date(b.check_in_date).getTime()) / (1000 * 60 * 60 * 24))}</td></tr>
+  </table>
+  
+  <div style="border-top: 2px solid #ddd; padding-top: 15px; margin-top: 10px;">
+    <table>
+      <tr><th style="width:70%;">Description</th><th style="text-align:right;">Amount</th></tr>
+      <tr><td>Room Charges (${b.room_type || "Standard"})</td><td style="text-align:right;">₹${base.toFixed(2)}</td></tr>
+      <tr><td>GST (12%)</td><td style="text-align:right;">₹${gst.toFixed(2)}</td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td style="text-align:right;"><strong>₹${b.total_price.toFixed(2)}</strong></td></tr>
+    </table>
+  </div>
+  
+  <div class="footer">
+    This is a system generated invoice. For any queries, contact support@jaaga.com
+  </div>
+</body>
+</html>`;
+
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -118,56 +196,85 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
     toast.success("Invoice downloaded");
   };
 
-  const badgeColor = (s: string) =>
-    s === "confirmed"
-      ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
-      : s === "cancelled"
-        ? "bg-rose-500/15 text-rose-600 border-rose-500/30"
-        : "bg-amber-500/15 text-amber-600 border-amber-500/30";
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return <Badge className="bg-emerald-500 text-white">Confirmed</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-500 text-white">Pending</Badge>;
+      case "cancelled":
+        return <Badge className="bg-red-500 text-white">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
+    }).format(amount || 0);
+  };
+
+  const calculateNights = () => {
+    const checkIn = new Date(booking.check_in_date);
+    const checkOut = new Date(booking.check_out_date);
+    return Math.ceil(Math.abs(checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+  };
 
   return (
     <Dialog open={!!booking} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between gap-2">
-            <span>{booking.hotel_name || "Partner Hotel"}</span>
-            <Badge variant="outline" className={badgeColor(booking.booking_status)}>
-              {booking.booking_status}
-            </Badge>
+            <span className="flex items-center gap-2">
+              <Hotel className="h-5 w-5 text-primary" />
+              {booking.hotel_name || "Partner Hotel"}
+            </span>
+            {getStatusBadge(booking.booking_status)}
           </DialogTitle>
-          <DialogDescription>
-            Booking #{booking.id.slice(0, 8).toUpperCase()}
-          </DialogDescription>
+          <DialogDescription>Booking #{booking.id.slice(0, 8).toUpperCase()}</DialogDescription>
         </DialogHeader>
 
         {mode === "view" && (
           <div className="space-y-4">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>{booking.guest_name || "Guest"}</span>
+            {/* Guest Info */}
+            <div className="p-3 rounded-lg bg-muted/30">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{booking.guest_name || "Guest"}</span>
+                </div>
+                {booking.guest_phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{booking.guest_phone}</span>
+                  </div>
+                )}
+                {booking.hotel_city && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{booking.hotel_city}</span>
+                  </div>
+                )}
               </div>
-              {booking.guest_phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{booking.guest_phone}</span>
-                </div>
-              )}
-              {booking.hotel_city && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{booking.hotel_city}</span>
-                </div>
-              )}
             </div>
+
             <Separator />
+
+            {/* Stay Details */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-muted-foreground text-xs">Check-in</p>
+                <p className="text-muted-foreground text-xs flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> Check-in
+                </p>
                 <p className="font-medium">{booking.check_in_date?.slice(0, 10)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs">Check-out</p>
+                <p className="text-muted-foreground text-xs flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> Check-out
+                </p>
                 <p className="font-medium">{booking.check_out_date?.slice(0, 10)}</p>
               </div>
               <div>
@@ -179,13 +286,34 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 <p className="font-medium">{booking.guests || 1}</p>
               </div>
             </div>
+
             <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Total paid</span>
-              <span className="text-lg font-semibold">
-                ₹{Number(booking.total_price || 0).toLocaleString("en-IN")}
-              </span>
+
+            {/* Payment */}
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total Amount</span>
+                <span className="text-xl font-bold text-primary">{formatCurrency(booking.total_price)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground text-right mt-1">
+                {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
+              </p>
             </div>
+
+            {/* Booking Date */}
+            {booking.created_at && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                Booked on:{" "}
+                {new Date(booking.created_at).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -193,23 +321,25 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs">Check-in</label>
+                <Label className="text-xs">Check-in</Label>
                 <Input
                   type="date"
                   value={form.check_in_date}
                   onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
               <div>
-                <label className="text-xs">Check-out</label>
+                <Label className="text-xs">Check-out</Label>
                 <Input
                   type="date"
                   value={form.check_out_date}
                   onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
+                  min={form.check_in_date || new Date().toISOString().split("T")[0]}
                 />
               </div>
               <div>
-                <label className="text-xs">Guests</label>
+                <Label className="text-xs">Guests</Label>
                 <Input
                   type="number"
                   min={1}
@@ -218,44 +348,54 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 />
               </div>
               <div>
-                <label className="text-xs">Room type</label>
+                <Label className="text-xs">Room type</Label>
                 <Input
                   value={form.room_type}
                   onChange={(e) => setForm({ ...form, room_type: e.target.value })}
+                  placeholder="Standard, Deluxe, Suite..."
                 />
               </div>
             </div>
+            <Alert>
+              <AlertDescription className="text-xs">
+                Modifying dates may change the total price based on hotel availability.
+              </AlertDescription>
+            </Alert>
           </div>
         )}
 
         {mode === "cancel" && (
-          <p className="text-sm text-muted-foreground">
-            Cancel this booking? Refunds follow the hotel's policy. Cancellations 48h+ before
-            check-in are usually fully refundable.
-          </p>
+          <div className="space-y-3">
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Cancelling this booking may incur charges based on the hotel's cancellation policy. This action cannot
+                be undone.
+              </AlertDescription>
+            </Alert>
+            <p className="text-sm text-muted-foreground">Are you sure you want to cancel this booking?</p>
+          </div>
         )}
 
         <DialogFooter className="flex-wrap gap-2">
           {mode === "view" && (
             <>
-              <Button variant="outline" onClick={downloadInvoice}>
+              <Button variant="outline" size="sm" onClick={downloadInvoice}>
                 <Download className="h-4 w-4 mr-1" /> Invoice
               </Button>
-              {booking.booking_status !== "cancelled" && (
+              {booking.booking_status !== "cancelled" && booking.booking_status !== "completed" && (
                 <>
-                  <Button variant="outline" onClick={() => setMode("edit")}>
+                  <Button variant="outline" size="sm" onClick={() => setMode("edit")}>
                     <Calendar className="h-4 w-4 mr-1" /> Modify
                   </Button>
-                  <Button variant="destructive" onClick={() => setMode("cancel")}>
+                  <Button variant="destructive" size="sm" onClick={() => setMode("cancel")}>
                     <X className="h-4 w-4 mr-1" /> Cancel
                   </Button>
                 </>
               )}
-              {booking.booking_status === "cancelled" && (
-                <Button onClick={onClose}>
-                  <RotateCcw className="h-4 w-4 mr-1" /> Close
-                </Button>
-              )}
+              <Button variant="outline" size="sm" onClick={onClose}>
+                Close
+              </Button>
             </>
           )}
           {mode === "edit" && (
@@ -264,17 +404,17 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 Back
               </Button>
               <Button onClick={submitEdit} disabled={saving}>
-                {saving ? "Saving…" : "Save changes"}
+                {saving ? "Saving…" : "Save Changes"}
               </Button>
             </>
           )}
           {mode === "cancel" && (
             <>
               <Button variant="outline" onClick={() => setMode("view")} disabled={saving}>
-                Keep booking
+                Keep Booking
               </Button>
-              <Button variant="destructive" onClick={cancel} disabled={saving}>
-                {saving ? "Cancelling…" : "Confirm cancel"}
+              <Button variant="destructive" onClick={cancelBooking} disabled={saving}>
+                {saving ? "Cancelling…" : "Confirm Cancel"}
               </Button>
             </>
           )}
