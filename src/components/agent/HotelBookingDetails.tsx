@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle } from "lucide-react";
+import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle, Hotel } from "lucide-react";
 
 interface Booking {
   id: string;
