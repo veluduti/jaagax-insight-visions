@@ -38,8 +38,7 @@ export const notificationService = {
   },
 
   async unreadCount() {
-    const { count, error } = await sb
-      .from(TABLE)
+    const { count, error } = await sb(TABLE)
       .select("id", { count: "exact", head: true })
       .eq("is_read", false)
       .eq("is_archived", false);
@@ -55,8 +54,7 @@ export const notificationService = {
   async markAllAsRead() {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) return;
-    const { error } = await sb
-      .from(TABLE)
+    const { error } = await sb(TABLE)
       .update({ is_read: true })
       .eq("user_id", user.user.id)
       .eq("is_read", false);
