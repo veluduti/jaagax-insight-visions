@@ -5,10 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { 
-  Building2, FileCheck, Shield, LogOut, Plus, 
-  Home, Eye, TrendingUp, CheckCircle, Clock,
-  MapPin, Upload, FileText, AlertCircle, CalendarCheck
+import {
+  Building2,
+  FileCheck,
+  Shield,
+  LogOut,
+  Plus,
+  Home,
+  Eye,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Upload,
+  FileText,
+  AlertCircle,
+  CalendarCheck,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -16,7 +29,7 @@ import { motion } from "framer-motion";
 import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
 
-// Lazy-loaded heavy widgets (Phase 4)
+// Lazy-loaded heavy widgets
 const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
 const RERAUploadModal = lazy(() => import("@/components/builder/RERAUploadModal"));
 const BuilderRERAStatus = lazy(() => import("@/components/builder/BuilderRERAStatus"));
@@ -65,6 +78,7 @@ export default function BuilderDashboard() {
   const [reraModalOpen, setReraModalOpen] = useState(false);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [stats, setStats] = useState({
     totalProjects: 0,
     verifiedProjects: 0,
@@ -86,10 +100,13 @@ export default function BuilderDashboard() {
     fetchProperties();
     fetchPerformanceData();
     fetchPendingVisitsCount();
+    fetchWalletBalance();
   }, []);
 
   const fetchUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       setUser({
         id: user.id,
@@ -101,55 +118,64 @@ export default function BuilderDashboard() {
   };
 
   const fetchPendingVisitsCount = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     try {
-      // Get properties submitted by this user to find builder_id
       const { data: submittedProperties } = await supabase
         .from("properties")
         .select("id, builder_id")
         .eq("submitted_by", user.id);
 
-      const builderIds = [...new Set(
-        (submittedProperties || [])
-          .map(p => p.builder_id)
-          .filter(Boolean)
-      )];
+      const builderIds = [...new Set((submittedProperties || []).map((p) => p.builder_id).filter(Boolean))];
 
-      let allPropertyIds = (submittedProperties || []).map(p => p.id);
-      
+      let allPropertyIds = (submittedProperties || []).map((p) => p.id);
+
       if (builderIds.length > 0) {
-        const { data: builderProperties } = await supabase
-          .from("properties")
-          .select("id")
-          .in("builder_id", builderIds);
-        
-        const builderPropIds = (builderProperties || []).map(p => p.id);
+        const { data: builderProperties } = await supabase.from("properties").select("id").in("builder_id", builderIds);
+
+        const builderPropIds = (builderProperties || []).map((p) => p.id);
         allPropertyIds = [...new Set([...allPropertyIds, ...builderPropIds])];
       }
 
-      // Count pending visits
       const { data: pendingVisits } = await supabase
         .from("visit_bookings")
         .select("id, property_id")
         .eq("status", "pending_builder");
 
-      const count = (pendingVisits || []).filter(visit => 
-        allPropertyIds.includes(visit.property_id || "")
-      ).length;
+      const count = (pendingVisits || []).filter((visit) => allPropertyIds.includes(visit.property_id || "")).length;
 
-      setStats(prev => ({ ...prev, pendingVisits: count }));
+      setStats((prev) => ({ ...prev, pendingVisits: count }));
     } catch (error) {
       console.error("Error fetching pending visits count:", error);
     }
   };
 
-  const fetchProjects = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+  const fetchWalletBalance = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Find this builder's profile to scope projects by builder name
+    try {
+      const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
+
+      if (wallet) {
+        setWalletBalance(wallet.balance);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet balance:", error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data: builderProfile } = await supabase
       .from("builder_profiles")
       .select("builder_name")
@@ -160,11 +186,7 @@ export default function BuilderDashboard() {
     const filter = builderProfile?.builder_name
       ? `submitted_by.eq.${user.id},builder_name.ilike.%${builderProfile.builder_name}%`
       : `submitted_by.eq.${user.id}`;
-    const { data } = await supabase
-      .from("projects")
-      .select("*")
-      .or(filter)
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("projects").select("*").or(filter).order("created_at", { ascending: false });
     projectData = data || [];
 
     setProjects(projectData as Project[]);
@@ -175,7 +197,9 @@ export default function BuilderDashboard() {
   };
 
   const fetchProperties = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data, error } = await supabase
@@ -192,7 +216,6 @@ export default function BuilderDashboard() {
     const list = (data || []) as Property[];
     setProperties(list);
 
-    // Stats derived from this builder's own properties
     const totalUnits = list.reduce((sum, p) => sum + (p.bhk || 0), 0);
     const verifiedCount = list.filter((p) => p.verified).length;
 
@@ -205,7 +228,6 @@ export default function BuilderDashboard() {
   };
 
   const fetchPerformanceData = async () => {
-    // Use mock performance data since analytics RPC doesn't exist
     setPerformance({
       totalViews: Math.floor(Math.random() * 10000) + 2000,
       unitsSold: Math.floor(Math.random() * 50) + 10,
@@ -243,9 +265,9 @@ export default function BuilderDashboard() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -261,7 +283,7 @@ export default function BuilderDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navigation />
-      
+
       {/* Header */}
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -334,11 +356,11 @@ export default function BuilderDashboard() {
           </Card>
         </div>
 
-
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {/* Visit Approvals */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card 
+            <Card
               className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-500/50 bg-orange-500/5 relative"
               onClick={() => navigate("/builder-visits")}
             >
@@ -351,14 +373,15 @@ export default function BuilderDashboard() {
                 <CalendarCheck className="h-8 w-8 mx-auto mb-2 text-orange-500" />
                 <h3 className="font-semibold">Visit Approvals</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {stats.pendingVisits > 0 ? `${stats.pendingVisits} pending` : 'Review pending visits'}
+                  {stats.pendingVisits > 0 ? `${stats.pendingVisits} pending` : "Review pending visits"}
                 </p>
               </CardContent>
             </Card>
           </motion.div>
 
+          {/* Add Property */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card 
+            <Card
               className="cursor-pointer hover:shadow-lg transition-all"
               onClick={() => setActiveTab("add-property")}
             >
@@ -369,50 +392,32 @@ export default function BuilderDashboard() {
             </Card>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => navigate("/add-builder-profile")}
-            >
-              <CardContent className="p-6 text-center">
-                <Building2 className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Add Builder Profile</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
+          {/* Projects */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setReraModalOpen(true)}
+              onClick={() => navigate("/builder/projects")}
             >
               <CardContent className="p-6 text-center">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Upload RERA</h3>
+                <Building2 className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Projects</h3>
+                <p className="text-xs text-muted-foreground mt-1">Manage your projects</p>
               </CardContent>
             </Card>
           </motion.div>
 
+          {/* Wallet */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setDocsModalOpen(true)}
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all bg-gradient-to-br from-emerald-900/20 to-slate-900/40 border-emerald-500/20"
+              onClick={() => navigate("/builder/wallet")}
             >
               <CardContent className="p-6 text-center">
-                <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Documentation</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setActiveTab("performance")}
-            >
-              <CardContent className="p-6 text-center">
-                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Analytics</h3>
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 mx-auto mb-2 flex items-center justify-center">
+                  <Wallet className="h-5 w-5 text-emerald-400" />
+                </div>
+                <h3 className="font-semibold">Wallet</h3>
+                <p className="text-xs text-emerald-400 font-medium mt-1">₹{walletBalance.toLocaleString("en-IN")}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -448,16 +453,15 @@ export default function BuilderDashboard() {
                   <div className="text-center py-12">
                     <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
-                    <p className="text-muted-foreground mb-4">Add your first property or preview sample listings to see the format</p>
+                    <p className="text-muted-foreground mb-4">
+                      Add your first property or preview sample listings to see the format
+                    </p>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       <Button onClick={() => setActiveTab("add-property")}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Property
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setSamplePreviewOpen(true)}
-                      >
+                      <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         View Sample Listings
                       </Button>
@@ -479,19 +483,21 @@ export default function BuilderDashboard() {
                                 src={property.images[0]}
                                 alt={property.title}
                                 className="w-full h-48 object-cover"
-                               loading="lazy" decoding="async" />
+                                loading="lazy"
+                                decoding="async"
+                              />
                             ) : (
                               <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                                 <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
                                 <p className="text-xs font-medium text-muted-foreground">No image uploaded</p>
                               </div>
                             )}
-                            {property.verification_status === 'approved' && property.verified ? (
+                            {property.verification_status === "approved" && property.verified ? (
                               <Badge className="absolute top-2 right-2 bg-green-600">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Approved
                               </Badge>
-                            ) : property.verification_status === 'rejected' ? (
+                            ) : property.verification_status === "rejected" ? (
                               <Badge className="absolute top-2 right-2 bg-red-600">
                                 <AlertCircle className="h-3 w-3 mr-1" />
                                 Rejected
@@ -504,9 +510,7 @@ export default function BuilderDashboard() {
                             )}
                           </div>
                           <CardContent className="p-4">
-                            <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-                              {property.title}
-                            </h3>
+                            <h3 className="font-semibold text-lg mb-1 line-clamp-1">{property.title}</h3>
                             <div className="flex items-center text-sm text-muted-foreground mb-2">
                               <MapPin className="h-3 w-3 mr-1" />
                               {property.locality}, {property.city}
@@ -514,9 +518,7 @@ export default function BuilderDashboard() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-xs text-muted-foreground">Price</p>
-                                <p className="font-bold text-primary">
-                                  ₹{(property.price / 10000000).toFixed(2)} Cr
-                                </p>
+                                <p className="font-bold text-primary">₹{(property.price / 10000000).toFixed(2)} Cr</p>
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Config</p>
@@ -541,10 +543,12 @@ export default function BuilderDashboard() {
           <TabsContent value="add-property" className="space-y-6">
             <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={500}>
               <Suspense fallback={<ListSkeleton rows={6} />}>
-                <PropertyUploadForm onSuccess={() => {
-                  fetchProjects();
-                  fetchProperties();
-                }} />
+                <PropertyUploadForm
+                  onSuccess={() => {
+                    fetchProjects();
+                    fetchProperties();
+                  }}
+                />
               </Suspense>
             </LazyMount>
           </TabsContent>
@@ -569,7 +573,10 @@ export default function BuilderDashboard() {
                   <div className="text-center py-12">
                     <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-                    <p className="text-muted-foreground mb-4">Launch your first real estate project — set name, location, units, pricing, RERA & media in one flow.</p>
+                    <p className="text-muted-foreground mb-4">
+                      Launch your first real estate project — set name, location, units, pricing, RERA & media in one
+                      flow.
+                    </p>
                     <Button onClick={() => navigate("/builder/add-project")}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Project
@@ -591,7 +598,9 @@ export default function BuilderDashboard() {
                                 src={project.image}
                                 alt={project.name}
                                 className="w-full h-48 object-cover"
-                               loading="lazy" decoding="async" />
+                                loading="lazy"
+                                decoding="async"
+                              />
                             ) : (
                               <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
                                 <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
@@ -619,9 +628,7 @@ export default function BuilderDashboard() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-xs text-muted-foreground">Avg. Price</p>
-                                <p className="font-semibold text-primary">
-                                  {formatPrice(project.avg_price)}
-                                </p>
+                                <p className="font-semibold text-primary">{formatPrice(project.avg_price)}</p>
                               </div>
                               {project.rera_id && (
                                 <div className="text-right">
@@ -682,16 +689,18 @@ export default function BuilderDashboard() {
                     <CardDescription>AI-powered growth predictions for {selectedProject?.name}</CardDescription>
                   </div>
                   {projects.length > 1 && (
-                    <select 
+                    <select
                       className="border rounded px-3 py-2"
                       onChange={(e) => {
-                        const proj = projects.find(p => p.id === e.target.value);
+                        const proj = projects.find((p) => p.id === e.target.value);
                         if (proj) fetchProjectForecast(proj);
                       }}
                       value={selectedProject?.id}
                     >
-                      {projects.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -708,10 +717,15 @@ export default function BuilderDashboard() {
                       <div className="p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">Demand Score</p>
                         <p className="text-3xl font-bold text-primary">{forecast.demandScore}/100</p>
-                        <Badge className={
-                          forecast.riskLevel === 'low' ? 'bg-green-600 mt-2' :
-                          forecast.riskLevel === 'medium' ? 'bg-orange-500 mt-2' : 'bg-red-500 mt-2'
-                        }>
+                        <Badge
+                          className={
+                            forecast.riskLevel === "low"
+                              ? "bg-green-600 mt-2"
+                              : forecast.riskLevel === "medium"
+                                ? "bg-orange-500 mt-2"
+                                : "bg-red-500 mt-2"
+                          }
+                        >
                           {forecast.riskLevel} risk
                         </Badge>
                       </div>
@@ -723,7 +737,9 @@ export default function BuilderDashboard() {
                       <div className="p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">3-Year Appreciation</p>
                         <p className="text-3xl font-bold text-green-600">{forecast.appreciation?.year3 || 0}%</p>
-                        <p className="text-sm text-muted-foreground mt-2">Y1: {forecast.appreciation?.year1}%, Y2: {forecast.appreciation?.year2}%</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Y1: {forecast.appreciation?.year1}%, Y2: {forecast.appreciation?.year2}%
+                        </p>
                       </div>
                     </div>
 
@@ -766,7 +782,7 @@ export default function BuilderDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Modals (lazy — only loaded when first opened) */}
+        {/* Modals */}
         {reraModalOpen && (
           <Suspense fallback={null}>
             <RERAUploadModal
@@ -783,19 +799,13 @@ export default function BuilderDashboard() {
 
         {docsModalOpen && (
           <Suspense fallback={null}>
-            <DocumentationModal
-              open={docsModalOpen}
-              onOpenChange={setDocsModalOpen}
-            />
+            <DocumentationModal open={docsModalOpen} onOpenChange={setDocsModalOpen} />
           </Suspense>
         )}
 
         {samplePreviewOpen && (
           <Suspense fallback={null}>
-            <SamplePropertiesPreviewDialog
-              open={samplePreviewOpen}
-              onOpenChange={setSamplePreviewOpen}
-            />
+            <SamplePropertiesPreviewDialog open={samplePreviewOpen} onOpenChange={setSamplePreviewOpen} />
           </Suspense>
         )}
       </div>
