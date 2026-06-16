@@ -119,7 +119,9 @@ const BuilderWallet = lazy(() => import("@/components/builder/wallet/BuilderWall
 // ============================================
 // BUILDER CRM & TEAM COMPONENTS
 // ============================================
-const BuilderCRM = lazy(() => import("@/components/builder/crm/BuilderCRM"));
+const BuilderCRM = lazy(() =>
+  import("@/components/builder/crm/BuilderCRM").catch(() => ({ default: () => <div>Failed to load CRM</div> })),
+);
 const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/BuilderTeamDashboard"));
 
 // ============================================
