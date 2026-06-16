@@ -758,6 +758,47 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_recharge_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          payment_method_id: string | null
+          recharge_amount: number
+          threshold_amount: number
+          updated_at: string
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          payment_method_id?: string | null
+          recharge_amount?: number
+          threshold_amount?: number
+          updated_at?: string
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          payment_method_id?: string | null
+          recharge_amount?: number
+          threshold_amount?: number
+          updated_at?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_recharge_settings_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: true
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builder_profiles: {
         Row: {
           about_features: string[] | null
@@ -3556,35 +3597,55 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          category: string | null
           created_at: string
           description: string | null
           id: string
+          metadata: Json | null
           reference: string | null
+          reference_id: string | null
           status: string
           type: string
           user_id: string
+          wallet_id: string | null
         }
         Insert: {
           amount: number
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          metadata?: Json | null
           reference?: string | null
+          reference_id?: string | null
           status?: string
           type: string
           user_id: string
+          wallet_id?: string | null
         }
         Update: {
           amount?: number
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          metadata?: Json | null
           reference?: string | null
+          reference_id?: string | null
           status?: string
           type?: string
           user_id?: string
+          wallet_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallets: {
         Row: {
@@ -3593,6 +3654,7 @@ export type Database = {
           auto_recharge_threshold: number | null
           balance: number
           created_at: string
+          currency: string
           id: string
           updated_at: string
           user_id: string
@@ -3603,6 +3665,7 @@ export type Database = {
           auto_recharge_threshold?: number | null
           balance?: number
           created_at?: string
+          currency?: string
           id?: string
           updated_at?: string
           user_id: string
@@ -3613,6 +3676,7 @@ export type Database = {
           auto_recharge_threshold?: number | null
           balance?: number
           created_at?: string
+          currency?: string
           id?: string
           updated_at?: string
           user_id?: string
@@ -3923,6 +3987,11 @@ export type Database = {
         Returns: Json
       }
       check_financial_kyc: { Args: { _user_id: string }; Returns: boolean }
+      create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
+      decrement_balance: {
+        Args: { _amount: number; _wallet_id: string }
+        Returns: number
+      }
       decrement_wallet_balance: {
         Args: {
           _amount: number
@@ -3988,6 +4057,10 @@ export type Database = {
           phone: string
           user_id: string
         }[]
+      }
+      increment_balance: {
+        Args: { _amount: number; _wallet_id: string }
+        Returns: number
       }
       increment_posting_count: {
         Args: { _user_id: string }
