@@ -101,3 +101,8 @@ export const notificationService = {
 };
 
 export default notificationService;
+
+// Legacy named exports for backward compatibility
+export const listNotifications = (_userId: string) => notificationService.list();
+export const markNotificationRead = (id: string) => notificationService.markAsRead(id);
+export const markAllNotificationsRead = (_userId: string) => notificationService.markAllAsRead();
