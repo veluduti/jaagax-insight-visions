@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { walletService, formatCurrency } from "@/services/walletService";
 
 interface AddMoneyModalProps {
@@ -22,12 +22,7 @@ interface AddMoneyModalProps {
 
 const QUICK_AMOUNTS = [500, 1000, 2500, 5000, 10000, 25000];
 
-export default function AddMoneyModal({
-  open,
-  onOpenChange,
-  onSuccess,
-}: AddMoneyModalProps) {
-  const { toast } = useToast();
+export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMoneyModalProps) {
   const [amount, setAmount] = useState<string>("1000");
   const [method, setMethod] = useState<"upi" | "card" | "netbanking">("upi");
   const [loading, setLoading] = useState(false);
@@ -37,25 +32,21 @@ export default function AddMoneyModal({
 
   const handleSubmit = async () => {
     if (!isValid) {
-      toast({
-        title: "Invalid amount",
+      toast.error("Invalid amount", {
         description: "Minimum top-up is ₹100.",
-        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: integrate a real payment gateway here. For now we credit directly.
       const newBalance = await walletService.addMoney({
         amount: numericAmount,
         description: `Wallet top-up via ${method.toUpperCase()}`,
         reference: `${method}_${Date.now()}`,
       });
 
-      toast({
-        title: "Money added",
+      toast.success("Money added", {
         description: `${formatCurrency(numericAmount)} credited. New balance: ${formatCurrency(newBalance)}.`,
       });
       onSuccess?.(newBalance);
@@ -63,7 +54,7 @@ export default function AddMoneyModal({
       setAmount("1000");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to add money";
-      toast({ title: "Top-up failed", description: message, variant: "destructive" });
+      toast.error("Top-up failed", { description: message });
     } finally {
       setLoading(false);
     }
