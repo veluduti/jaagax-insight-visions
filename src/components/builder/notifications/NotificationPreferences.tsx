@@ -3,16 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import {
-  Megaphone,
-  Users,
-  Calendar,
-  CreditCard,
-  Wallet,
-  Building2,
-  UserPlus,
-} from "lucide-react";
+import { toast } from "sonner"; // FIXED: Changed to sonner
+import { Megaphone, Users, Calendar, CreditCard, Wallet, Building2, UserPlus } from "lucide-react";
 import { NotificationType } from "@/services/notificationService";
 
 interface Pref {
@@ -23,12 +15,37 @@ interface Pref {
 }
 
 const TYPES: Pref[] = [
-  { key: "platform_announcement", label: "Platform Announcements", description: "Product updates, news, and tips", icon: Megaphone },
+  {
+    key: "platform_announcement",
+    label: "Platform Announcements",
+    description: "Product updates, news, and tips",
+    icon: Megaphone,
+  },
   { key: "lead_update", label: "Lead Updates", description: "New enquiries and lead activity", icon: Users },
-  { key: "visit_reminder", label: "Visit Reminders", description: "Upcoming site visits and confirmations", icon: Calendar },
-  { key: "subscription_expiry", label: "Subscription Expiry", description: "Plan renewals and expiry alerts", icon: CreditCard },
-  { key: "wallet_low_balance", label: "Wallet Low Balance", description: "Get notified when balance drops below ₹500", icon: Wallet },
-  { key: "project_update", label: "Project Updates", description: "Construction progress and approvals", icon: Building2 },
+  {
+    key: "visit_reminder",
+    label: "Visit Reminders",
+    description: "Upcoming site visits and confirmations",
+    icon: Calendar,
+  },
+  {
+    key: "subscription_expiry",
+    label: "Subscription Expiry",
+    description: "Plan renewals and expiry alerts",
+    icon: CreditCard,
+  },
+  {
+    key: "wallet_low_balance",
+    label: "Wallet Low Balance",
+    description: "Get notified when balance drops below ₹500",
+    icon: Wallet,
+  },
+  {
+    key: "project_update",
+    label: "Project Updates",
+    description: "Construction progress and approvals",
+    icon: Building2,
+  },
   { key: "team_assignment", label: "Team Assignments", description: "Tasks assigned to your team", icon: UserPlus },
 ];
 
@@ -60,7 +77,7 @@ export default function NotificationPreferences() {
     setSaving(true);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-      toast({ title: "Preferences saved" });
+      toast.success("Preferences saved"); // FIXED
     } finally {
       setSaving(false);
     }
@@ -82,10 +99,7 @@ export default function NotificationPreferences() {
         {TYPES.map((t) => {
           const Icon = t.icon;
           return (
-            <div
-              key={t.key}
-              className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px] gap-4 items-center py-2"
-            >
+            <div key={t.key} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px] gap-4 items-center py-2">
               <div className="flex items-start gap-3">
                 <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
                   <Icon className="h-4 w-4 text-emerald-500" />
@@ -97,17 +111,11 @@ export default function NotificationPreferences() {
               </div>
               <div className="flex sm:justify-center gap-2 items-center">
                 <span className="text-xs sm:hidden">Email</span>
-                <Switch
-                  checked={prefs[t.key].email}
-                  onCheckedChange={() => toggle(t.key, "email")}
-                />
+                <Switch checked={prefs[t.key].email} onCheckedChange={() => toggle(t.key, "email")} />
               </div>
               <div className="flex sm:justify-center gap-2 items-center">
                 <span className="text-xs sm:hidden">In-app</span>
-                <Switch
-                  checked={prefs[t.key].push}
-                  onCheckedChange={() => toggle(t.key, "push")}
-                />
+                <Switch checked={prefs[t.key].push} onCheckedChange={() => toggle(t.key, "push")} />
               </div>
             </div>
           );
