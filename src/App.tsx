@@ -16,7 +16,7 @@ import ProfileBootProvider from "./contexts/ProfileBootProvider";
 import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
-// Lazy-load all non-landing routes for fast initial paint + smaller chunks per page
+// Lazy-load all non-landing routes
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
 const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
@@ -112,18 +112,18 @@ const ProjectDetailPage = lazy(() => import("@/components/builder/projects/Proje
 const AddConstructionUpdateWrapper = lazy(() => import("@/components/builder/projects/AddConstructionUpdateWrapper"));
 
 // ============================================
-// BUILDER WALLET COMPONENTS (PHASE 2)
+// BUILDER WALLET COMPONENTS
 // ============================================
 const BuilderWallet = lazy(() => import("@/components/builder/wallet/BuilderWallet"));
 
 // ============================================
-// BUILDER CRM & TEAM COMPONENTS (PHASE 3)
+// BUILDER CRM & TEAM COMPONENTS
 // ============================================
 const BuilderCRM = lazy(() => import("@/components/builder/crm/BuilderCRM"));
 const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/BuilderTeamDashboard"));
 
 // ============================================
-// BUILDER NOTIFICATIONS COMPONENTS (PHASE 4) - NEW
+// BUILDER NOTIFICATIONS COMPONENTS
 // ============================================
 const NotificationCenter = lazy(() => import("@/components/builder/notifications/NotificationCenter"));
 
@@ -179,33 +179,146 @@ const App = () => (
                   <Route path="/project/:slug" element={<ProjectDetail />} />
 
                   {/* ============================================
-                      BUILDER PROJECT ROUTES
+                      BUILDER ROUTES (Protected)
                       ============================================ */}
-                  <Route path="/builder/projects" element={<BuilderProjectsDashboard />} />
-                  <Route path="/add-project" element={<AddProjectForm />} />
-                  <Route path="/edit-project/:id" element={<AddProjectForm />} />
-                  <Route path="/project/:id" element={<ProjectDetailPage />} />
-                  <Route path="/builder/projects/:id/update" element={<AddConstructionUpdateWrapper />} />
 
-                  {/* ============================================
-                      BUILDER WALLET ROUTES (PHASE 2)
-                      ============================================ */}
-                  <Route path="/builder/wallet" element={<BuilderWallet />} />
+                  {/* Builder Dashboard */}
+                  <Route
+                    path="/dashboard/builder"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                  {/* ============================================
-                      BUILDER CRM & TEAM ROUTES (PHASE 3)
-                      ============================================ */}
-                  <Route path="/builder/crm" element={<BuilderCRM />} />
-                  <Route path="/builder/team" element={<BuilderTeamDashboard />} />
+                  {/* Builder Profile */}
+                  <Route
+                    path="/add-builder-profile"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <AddBuilderProfile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/edit-builder-profile/:id"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <EditBuilderProfile />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                  {/* ============================================
-                      BUILDER NOTIFICATIONS ROUTE (PHASE 4) - NEW
-                      ============================================ */}
-                  <Route path="/builder/notifications" element={<NotificationCenter />} />
+                  {/* Builder Projects */}
+                  <Route
+                    path="/builder/projects"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderProjectsDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/add-project"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <AddProjectForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/edit-project/:id"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <AddProjectForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/project/:id"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <ProjectDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/builder/projects/:id/update"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <AddConstructionUpdateWrapper />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                  {/* Existing Builder Routes */}
+                  {/* Builder Wallet */}
+                  <Route
+                    path="/builder/wallet"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderWallet />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder CRM */}
+                  <Route
+                    path="/builder/crm"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderCRM />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Team */}
+                  <Route
+                    path="/builder/team"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderTeamDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Notifications */}
+                  <Route
+                    path="/builder/notifications"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <NotificationCenter />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Visits */}
+                  <Route
+                    path="/builder-visits"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderVisitsDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Promotions */}
+                  <Route
+                    path="/builder/promotions"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BuilderPromotions />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Legacy Builder Routes */}
                   <Route path="/builder/add-project" element={<AddProject />} />
-                  <Route path="/builder/promotions" element={<BuilderPromotions />} />
+                  <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
+
+                  {/* ============================================
+                      OTHER ROUTES
+                      ============================================ */}
                   <Route path="/property/:slug" element={<PropertyDetail />} />
                   <Route path="/transactions" element={<Transactions />} />
                   <Route path="/transactions/:city" element={<TransactionsCity />} />
@@ -233,9 +346,6 @@ const App = () => (
                   <Route path="/hotels/:id" element={<HotelDetail />} />
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
-                  <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
-                  <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
-                  <Route path="/builder-profile/:slug" element={<BuilderProfileDetail />} />
                   <Route path="/innovation" element={<InnovationHub />} />
                   <Route path="/compare" element={<CompareProperties />} />
                   <Route path="/featured-properties" element={<FeaturedPropertiesPage />} />
@@ -311,30 +421,6 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/dashboard/builder"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <BuilderDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/dashboard/builder/visits"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <BuilderVisitsDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/builder-visits"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <BuilderVisitsDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/dashboard/seller"
                     element={
                       <ProtectedRoute allowedRole="seller">
@@ -350,7 +436,7 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  {/* Admin routes — require admin authentication */}
+                  {/* Admin routes */}
                   <Route
                     path="/dashboard/admin"
                     element={
@@ -468,7 +554,6 @@ const App = () => (
                   />
 
                   <Route path="/coming-soon" element={<ComingSoon />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
