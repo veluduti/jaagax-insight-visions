@@ -4,11 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { crmService, type CRMNote, type CRMNoteInput, type CRMNotePriority, type CRMNoteType } from "@/services/crmService";
+  crmService,
+  type CRMNote,
+  type CRMNoteInput,
+  type CRMNotePriority,
+  type CRMNoteType,
+} from "@/services/crmService";
 
 interface AddNoteModalProps {
   open: boolean;
@@ -27,7 +31,6 @@ function toDateInput(iso: string | null | undefined) {
 }
 
 export const AddNoteModal = ({ open, onOpenChange, builderProfileId, editNote, onSaved }: AddNoteModalProps) => {
-  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<CRMNoteInput>({
     title: "",
@@ -54,30 +57,36 @@ export const AddNoteModal = ({ open, onOpenChange, builderProfileId, editNote, o
       });
     } else {
       setForm({
-        title: "", content: "", type: "note", priority: "medium", status: "open",
-        due_date: null, reminder_at: null, builder_profile_id: builderProfileId ?? null,
+        title: "",
+        content: "",
+        type: "note",
+        priority: "medium",
+        status: "open",
+        due_date: null,
+        reminder_at: null,
+        builder_profile_id: builderProfileId ?? null,
       });
     }
   }, [editNote, builderProfileId, open]);
 
   const handleSubmit = async () => {
     if (!form.title.trim()) {
-      toast({ title: "Title required", variant: "destructive" });
+      toast.error("Title is required");
       return;
     }
     setSaving(true);
     try {
       if (editNote) {
         await crmService.updateNote(editNote.id, form);
-        toast({ title: "Note updated" });
+        toast.success("Note updated");
       } else {
         await crmService.createNote(form);
-        toast({ title: "Note created" });
+        toast.success("Note created");
       }
       onSaved?.();
       onOpenChange(false);
     } catch (e: any) {
-      toast({ title: "Failed to save", description: e.message, variant: "destructive" });
+      toast.error("Failed to save", { description: e.message });
     } finally {
       setSaving(false);
     }
@@ -92,44 +101,84 @@ export const AddNoteModal = ({ open, onOpenChange, builderProfileId, editNote, o
         <div className="space-y-4">
           <div>
             <Label>Title *</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Follow up with lead..." />
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Follow up with lead..."
+            />
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea rows={3} value={form.content ?? ""} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+            <Textarea
+              rows={3}
+              value={form.content ?? ""}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as CRMNoteType })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace("_", " ")}</SelectItem>)}
+                  {TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t.replace("_", " ")}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Priority</Label>
               <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as CRMNotePriority })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  {PRIORITIES.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Due date</Label>
-              <Input type="datetime-local" value={toDateInput(form.due_date)} onChange={(e) => setForm({ ...form, due_date: e.target.value ? new Date(e.target.value).toISOString() : null })} />
+              <Input
+                type="datetime-local"
+                value={toDateInput(form.due_date)}
+                onChange={(e) =>
+                  setForm({ ...form, due_date: e.target.value ? new Date(e.target.value).toISOString() : null })
+                }
+              />
             </div>
             <div>
               <Label>Reminder</Label>
-              <Input type="datetime-local" value={toDateInput(form.reminder_at)} onChange={(e) => setForm({ ...form, reminder_at: e.target.value ? new Date(e.target.value).toISOString() : null })} />
+              <Input
+                type="datetime-local"
+                value={toDateInput(form.reminder_at)}
+                onChange={(e) =>
+                  setForm({ ...form, reminder_at: e.target.value ? new Date(e.target.value).toISOString() : null })
+                }
+              />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={saving}>{saving ? "Saving..." : editNote ? "Update" : "Create"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {saving ? "Saving..." : editNote ? "Update" : "Create"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
