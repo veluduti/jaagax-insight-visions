@@ -12,12 +12,13 @@ import {
   Wallet,
   Building2,
   UserPlus,
+  Loader2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner"; // FIXED: Changed to sonner
 import notificationService, { Notification, NotificationType } from "@/services/notificationService";
 
 const ICONS: Record<string, any> = {
@@ -50,7 +51,7 @@ export default function NotificationCenter({ onChanged, compact = false }: Props
       });
       setItems(data);
     } catch (e: any) {
-      toast({ title: "Failed to load notifications", description: e.message, variant: "destructive" });
+      toast.error("Failed to load notifications", { description: e.message }); // FIXED
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ export default function NotificationCenter({ onChanged, compact = false }: Props
     await notificationService.markAllAsRead();
     await load();
     onChanged?.();
-    toast({ title: "All notifications marked as read" });
+    toast.success("All notifications marked as read"); // FIXED
   };
 
   const handleArchive = async (id: string) => {
@@ -108,7 +109,10 @@ export default function NotificationCenter({ onChanged, compact = false }: Props
 
       <ScrollArea className={compact ? "h-[400px]" : "h-[600px]"}>
         {loading ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            Loading…
+          </div>
         ) : items.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">
             <Bell className="h-10 w-10 mx-auto mb-2 opacity-30" />
@@ -133,12 +137,8 @@ export default function NotificationCenter({ onChanged, compact = false }: Props
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"}`}>
-                        {n.title}
-                      </p>
-                      {!n.is_read && (
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
-                      )}
+                      <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"}`}>{n.title}</p>
+                      {!n.is_read && <span className="h-2 w-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
                     <div className="flex items-center justify-between mt-1.5">
