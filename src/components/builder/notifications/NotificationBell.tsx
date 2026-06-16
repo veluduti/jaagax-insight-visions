@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 import notificationService, { Notification } from "@/services/notificationService";
-import NotificationList from "./NotificationList";
+import NotificationCenter from "./NotificationCenter";
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -42,7 +42,7 @@ export default function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[400px] p-0">
-        <NotificationList compact onRefresh={refresh} />
+        <NotificationCenter />
       </PopoverContent>
     </Popover>
   );
