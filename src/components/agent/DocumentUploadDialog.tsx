@@ -10,13 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -49,12 +43,7 @@ const DOC_TYPES = [
   { value: "other", label: "Other" },
 ];
 
-export default function DocumentUploadDialog({ 
-  open, 
-  onClose, 
-  enquiryId, 
-  onUploaded 
-}: DocumentUploadDialogProps) {
+export default function DocumentUploadDialog({ open, onClose, enquiryId, onUploaded }: DocumentUploadDialogProps) {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [docType, setDocType] = useState("pan_card");
   const [file, setFile] = useState<File | null>(null);
@@ -65,7 +54,7 @@ export default function DocumentUploadDialog({
   const load = async () => {
     if (!enquiryId) return;
     setListLoading(true);
-    
+
     try {
       const { data, error } = await supabase
         .from("financial_loan_documents")
@@ -105,12 +94,10 @@ export default function DocumentUploadDialog({
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      const { error: upErr } = await supabase.storage
-        .from("loan-documents")
-        .upload(path, file, { 
-          upsert: false,
-          cacheControl: "3600",
-        });
+      const { error: upErr } = await supabase.storage.from("loan-documents").upload(path, file, {
+        upsert: false,
+        cacheControl: "3600",
+      });
 
       clearInterval(progressInterval);
 
@@ -146,14 +133,11 @@ export default function DocumentUploadDialog({
 
     try {
       await supabase.storage.from("loan-documents").remove([doc.file_path]);
-      
-      const { error } = await supabase
-        .from("financial_loan_documents")
-        .delete()
-        .eq("id", doc.id);
-        
+
+      const { error } = await supabase.from("financial_loan_documents").delete().eq("id", doc.id);
+
       if (error) throw error;
-      
+
       toast.success("Document removed");
       load();
       onUploaded?.();
@@ -166,11 +150,23 @@ export default function DocumentUploadDialog({
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "verified":
-        return <Badge className="bg-green-600 text-white"><CheckCircle className="h-3 w-3 mr-0.5" /> Verified</Badge>;
+        return (
+          <Badge className="bg-green-600 text-white">
+            <CheckCircle className="h-3 w-3 mr-0.5" /> Verified
+          </Badge>
+        );
       case "rejected":
-        return <Badge className="bg-red-600 text-white"><XCircle className="h-3 w-3 mr-0.5" /> Rejected</Badge>;
+        return (
+          <Badge className="bg-red-600 text-white">
+            <XCircle className="h-3 w-3 mr-0.5" /> Rejected
+          </Badge>
+        );
       default:
-        return <Badge variant="outline" className="text-amber-600 border-amber-200"><Clock className="h-3 w-3 mr-0.5" /> Pending</Badge>;
+        return (
+          <Badge variant="outline" className="text-amber-600 border-amber-200">
+            <Clock className="h-3 w-3 mr-0.5" /> Pending
+          </Badge>
+        );
     }
   };
 
@@ -207,9 +203,7 @@ export default function DocumentUploadDialog({
             <FileText className="h-5 w-5 text-primary" />
             Loan Documents
           </DialogTitle>
-          <DialogDescription>
-            Upload KYC and supporting documents for this enquiry.
-          </DialogDescription>
+          <DialogDescription>Upload KYC and supporting documents for this enquiry.</DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-2">
@@ -241,4 +235,104 @@ export default function DocumentUploadDialog({
                   className="cursor-pointer"
                 />
                 {file && (
-                  <p className="text-[10
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {file.name} ({formatFileSize(file.size)})
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="space-y-1">
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">{uploadProgress}%</p>
+              </div>
+            )}
+
+            <Button onClick={upload} disabled={loading || !file} className="w-full">
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-1" />
+                  Upload Document
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Document List */}
+          <div className="space-y-2 border-t pt-3">
+            <p className="text-xs font-medium text-muted-foreground">Uploaded Documents ({docs.length})</p>
+
+            {listLoading ? (
+              <div className="space-y-2">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="h-12 rounded-lg bg-muted/40 animate-pulse" />
+                ))}
+              </div>
+            ) : docs.length === 0 ? (
+              <div className="text-center py-6 border-2 border-dashed rounded-lg">
+                <FileText className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {docs.map((d) => (
+                  <div
+                    key={d.id}
+                    className="flex items-center justify-between border rounded-md p-2 hover:bg-muted/30 transition"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {getDocumentIcon(d.document_type)}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium capitalize truncate">{d.document_type.replace(/_/g, " ")}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(d.uploaded_at).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(d.verified_status)}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => remove(d)}
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Info Note */}
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-2">
+            <p className="text-[10px] text-blue-600 dark:text-blue-400">
+              📄 Supported formats: PDF, JPG, PNG, DOC, DOCX. Max file size: 5MB. Documents will be verified by the
+              financial team.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
