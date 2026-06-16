@@ -64,7 +64,7 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: n
 
 export const BuilderCRM = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<CRMNote[]>([]);
   const [stats, setStats] = useState<CRMStats | null>(null);
