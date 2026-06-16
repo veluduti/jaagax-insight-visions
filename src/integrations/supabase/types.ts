@@ -1170,6 +1170,63 @@ export type Database = {
         }
         Relationships: []
       }
+      construction_updates: {
+        Row: {
+          completion_percentage: number | null
+          created_at: string
+          delay_reason: string | null
+          description: string | null
+          id: string
+          is_delay: boolean
+          media_type: string | null
+          media_urls: string[] | null
+          milestone: string | null
+          project_id: string
+          title: string
+        }
+        Insert: {
+          completion_percentage?: number | null
+          created_at?: string
+          delay_reason?: string | null
+          description?: string | null
+          id?: string
+          is_delay?: boolean
+          media_type?: string | null
+          media_urls?: string[] | null
+          milestone?: string | null
+          project_id: string
+          title: string
+        }
+        Update: {
+          completion_percentage?: number | null
+          created_at?: string
+          delay_reason?: string | null
+          description?: string | null
+          id?: string
+          is_delay?: boolean
+          media_type?: string | null
+          media_urls?: string[] | null
+          milestone?: string | null
+          project_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_stats_view"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "construction_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -2250,6 +2307,72 @@ export type Database = {
         }
         Relationships: []
       }
+      project_units: {
+        Row: {
+          area_sqft: number | null
+          booked_at: string | null
+          booking_amount: number | null
+          buyer_id: string | null
+          created_at: string
+          facing: string | null
+          floor_number: number | null
+          id: string
+          price: number | null
+          project_id: string
+          sold_at: string | null
+          status: string
+          type: string | null
+          unit_number: string
+        }
+        Insert: {
+          area_sqft?: number | null
+          booked_at?: string | null
+          booking_amount?: number | null
+          buyer_id?: string | null
+          created_at?: string
+          facing?: string | null
+          floor_number?: number | null
+          id?: string
+          price?: number | null
+          project_id: string
+          sold_at?: string | null
+          status?: string
+          type?: string | null
+          unit_number: string
+        }
+        Update: {
+          area_sqft?: number | null
+          booked_at?: string | null
+          booking_amount?: number | null
+          buyer_id?: string | null
+          created_at?: string
+          facing?: string | null
+          floor_number?: number | null
+          id?: string
+          price?: number | null
+          project_id?: string
+          sold_at?: string | null
+          status?: string
+          type?: string | null
+          unit_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_units_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_stats_view"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "project_units_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           address: string | null
@@ -2259,15 +2382,19 @@ export type Database = {
           bhk_types: string | null
           brochure_url: string | null
           builder_name: string | null
+          builder_profile_id: string | null
           city: string | null
           created_at: string | null
           description: string | null
           environmental_clearance_url: string | null
+          floors: string | null
           floors_per_tower: number | null
+          hero_image: string | null
           id: string
           image: string | null
           images: string[] | null
           is_draft: boolean | null
+          land_area: string | null
           latitude: number | null
           launch_date: string | null
           layout_plan_url: string | null
@@ -2283,11 +2410,14 @@ export type Database = {
           project_type: string | null
           rera_document_url: string | null
           rera_id: string | null
+          size_range: string | null
           slug: string | null
           status: string | null
           submitted_by: string | null
+          subtitle: string | null
           total_towers: number | null
           total_units: number | null
+          towers: number | null
           trust_score: number | null
           verified: boolean | null
           videos: string[] | null
@@ -2301,15 +2431,19 @@ export type Database = {
           bhk_types?: string | null
           brochure_url?: string | null
           builder_name?: string | null
+          builder_profile_id?: string | null
           city?: string | null
           created_at?: string | null
           description?: string | null
           environmental_clearance_url?: string | null
+          floors?: string | null
           floors_per_tower?: number | null
+          hero_image?: string | null
           id?: string
           image?: string | null
           images?: string[] | null
           is_draft?: boolean | null
+          land_area?: string | null
           latitude?: number | null
           launch_date?: string | null
           layout_plan_url?: string | null
@@ -2325,11 +2459,14 @@ export type Database = {
           project_type?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          size_range?: string | null
           slug?: string | null
           status?: string | null
           submitted_by?: string | null
+          subtitle?: string | null
           total_towers?: number | null
           total_units?: number | null
+          towers?: number | null
           trust_score?: number | null
           verified?: boolean | null
           videos?: string[] | null
@@ -2343,15 +2480,19 @@ export type Database = {
           bhk_types?: string | null
           brochure_url?: string | null
           builder_name?: string | null
+          builder_profile_id?: string | null
           city?: string | null
           created_at?: string | null
           description?: string | null
           environmental_clearance_url?: string | null
+          floors?: string | null
           floors_per_tower?: number | null
+          hero_image?: string | null
           id?: string
           image?: string | null
           images?: string[] | null
           is_draft?: boolean | null
+          land_area?: string | null
           latitude?: number | null
           launch_date?: string | null
           layout_plan_url?: string | null
@@ -2367,17 +2508,28 @@ export type Database = {
           project_type?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          size_range?: string | null
           slug?: string | null
           status?: string | null
           submitted_by?: string | null
+          subtitle?: string | null
           total_towers?: number | null
           total_units?: number | null
+          towers?: number | null
           trust_score?: number | null
           verified?: boolean | null
           videos?: string[] | null
           virtual_tour_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promotion_events: {
         Row: {
@@ -2467,6 +2619,7 @@ export type Database = {
           amount_paid: number
           badge_label: string | null
           builder_id: string
+          builder_profile_id: string | null
           clicks_count: number | null
           created_at: string | null
           duration_days: number
@@ -2495,6 +2648,7 @@ export type Database = {
           amount_paid: number
           badge_label?: string | null
           builder_id: string
+          builder_profile_id?: string | null
           clicks_count?: number | null
           created_at?: string | null
           duration_days: number
@@ -2523,6 +2677,7 @@ export type Database = {
           amount_paid?: number
           badge_label?: string | null
           builder_id?: string
+          builder_profile_id?: string | null
           clicks_count?: number | null
           created_at?: string | null
           duration_days?: number
@@ -2548,6 +2703,13 @@ export type Database = {
           views_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "promotions_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "promotions_plan_id_fkey"
             columns: ["plan_id"]
@@ -3727,7 +3889,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      project_stats_view: {
+        Row: {
+          available_units: number | null
+          booked_units: number | null
+          builder_name: string | null
+          project_id: string | null
+          project_name: string | null
+          project_status: string | null
+          revenue_generated: number | null
+          sold_units: number | null
+          total_units: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_ban_user: {
