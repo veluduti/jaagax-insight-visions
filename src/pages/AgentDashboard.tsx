@@ -71,6 +71,7 @@ import AgentAnalytics from "@/components/agent/AgentAnalytics";
 import AgentWallet from "@/components/agent/AgentWallet";
 import HotelBookingsManager from "@/components/agent/HotelBookingsManager";
 import FinancialEnquiriesManager from "@/components/agent/FinancialEnquiriesManager";
+import PreferredLocations from "@/components/agent/PreferredLocations";
 
 // Lazy-load heavy panels
 const AssignedPropertiesPanel = lazy(() => import("@/components/agents/AssignedPropertiesPanel"));
@@ -820,6 +821,13 @@ export default function AgentDashboard() {
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 gap-6">
             <FinancialEnquiriesManager userId={user.id} agentId={agentProfile.id} />
+          </div>
+        )}
+
+        {/* ===== Preferred Locations (Excel Section 6.6) ===== */}
+        {agentProfile.id && user?.id && (
+          <div className="grid grid-cols-1 gap-6">
+            <PreferredLocations userId={user.id} compact={true} />
           </div>
         )}
 
