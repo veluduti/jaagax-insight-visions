@@ -104,12 +104,23 @@ const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications")
 const AdminPriceDrops = lazy(() => import("./pages/AdminPriceDrops"));
 
 // ============================================
-// BUILDER PROJECT COMPONENTS (NEW)
+// BUILDER PROJECT COMPONENTS
 // ============================================
 const BuilderProjectsDashboard = lazy(() => import("@/components/builder/projects/BuilderProjectsDashboard"));
 const AddProjectForm = lazy(() => import("@/components/builder/projects/AddProjectForm"));
 const ProjectDetailPage = lazy(() => import("@/components/builder/projects/ProjectDetail"));
 const AddConstructionUpdateWrapper = lazy(() => import("@/components/builder/projects/AddConstructionUpdateWrapper"));
+
+// ============================================
+// BUILDER WALLET COMPONENTS (PHASE 2)
+// ============================================
+const BuilderWallet = lazy(() => import("@/components/builder/wallet/BuilderWallet"));
+
+// ============================================
+// BUILDER CRM & TEAM COMPONENTS (PHASE 3)
+// ============================================
+const BuilderCRM = lazy(() => import("@/components/builder/crm/BuilderCRM"));
+const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/BuilderTeamDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -163,13 +174,24 @@ const App = () => (
                   <Route path="/project/:slug" element={<ProjectDetail />} />
 
                   {/* ============================================
-              BUILDER PROJECT ROUTES (NEW)
-              ============================================ */}
+                      BUILDER PROJECT ROUTES
+                      ============================================ */}
                   <Route path="/builder/projects" element={<BuilderProjectsDashboard />} />
                   <Route path="/add-project" element={<AddProjectForm />} />
                   <Route path="/edit-project/:id" element={<AddProjectForm />} />
                   <Route path="/project/:id" element={<ProjectDetailPage />} />
                   <Route path="/builder/projects/:id/update" element={<AddConstructionUpdateWrapper />} />
+
+                  {/* ============================================
+                      BUILDER WALLET ROUTES (PHASE 2)
+                      ============================================ */}
+                  <Route path="/builder/wallet" element={<BuilderWallet />} />
+
+                  {/* ============================================
+                      BUILDER CRM & TEAM ROUTES (PHASE 3)
+                      ============================================ */}
+                  <Route path="/builder/crm" element={<BuilderCRM />} />
+                  <Route path="/builder/team" element={<BuilderTeamDashboard />} />
 
                   {/* Existing Builder Routes */}
                   <Route path="/builder/add-project" element={<AddProject />} />
