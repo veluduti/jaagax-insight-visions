@@ -2232,10 +2232,13 @@ export type Database = {
       }
       notifications: {
         Row: {
+          builder_profile_id: string | null
           created_at: string
           id: string
+          is_archived: boolean
+          is_read: boolean
           link: string | null
-          message: string | null
+          message: string
           metadata: Json | null
           read: boolean
           title: string
@@ -2243,10 +2246,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          builder_profile_id?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
+          is_read?: boolean
           link?: string | null
-          message?: string | null
+          message: string
           metadata?: Json | null
           read?: boolean
           title: string
@@ -2254,17 +2260,28 @@ export type Database = {
           user_id: string
         }
         Update: {
+          builder_profile_id?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
+          is_read?: boolean
           link?: string | null
-          message?: string | null
+          message?: string
           metadata?: Json | null
           read?: boolean
           title?: string
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_hotels: {
         Row: {
