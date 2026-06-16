@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
 import { crmService, type CRMNote, type CRMNoteStatus, type CRMStats } from "@/services/crmService";
 import AddNoteModal from "./AddNoteModal";
 
@@ -63,7 +64,7 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: n
 
 export const BuilderCRM = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<CRMNote[]>([]);
   const [stats, setStats] = useState<CRMStats | null>(null);
