@@ -28,7 +28,7 @@ const TABLE = "notifications";
 
 export const notificationService = {
   async list(opts?: { onlyUnread?: boolean; includeArchived?: boolean; limit?: number }) {
-    let q = sb.from(TABLE).select("*").order("created_at", { ascending: false });
+    let q = sb(TABLE).select("*").order("created_at", { ascending: false });
     if (opts?.onlyUnread) q = q.eq("is_read", false);
     if (!opts?.includeArchived) q = q.eq("is_archived", false);
     if (opts?.limit) q = q.limit(opts.limit);
@@ -48,7 +48,7 @@ export const notificationService = {
   },
 
   async markAsRead(id: string) {
-    const { error } = await sb.from(TABLE).update({ is_read: true }).eq("id", id);
+    const { error } = await sb(TABLE).update({ is_read: true }).eq("id", id);
     if (error) throw error;
   },
 
@@ -64,12 +64,12 @@ export const notificationService = {
   },
 
   async archive(id: string) {
-    const { error } = await sb.from(TABLE).update({ is_archived: true }).eq("id", id);
+    const { error } = await sb(TABLE).update({ is_archived: true }).eq("id", id);
     if (error) throw error;
   },
 
   async remove(id: string) {
-    const { error } = await sb.from(TABLE).delete().eq("id", id);
+    const { error } = await sb(TABLE).delete().eq("id", id);
     if (error) throw error;
   },
 
@@ -82,7 +82,7 @@ export const notificationService = {
     builder_profile_id?: string;
     metadata?: Record<string, any>;
   }) {
-    const { data, error } = await sb.from(TABLE).insert(input).select().single();
+    const { data, error } = await sb(TABLE).insert(input).select().single();
     if (error) throw error;
     return data as Notification;
   },
