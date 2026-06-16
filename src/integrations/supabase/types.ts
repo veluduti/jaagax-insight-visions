@@ -1268,6 +1268,74 @@ export type Database = {
           },
         ]
       }
+      crm_notes: {
+        Row: {
+          assigned_to: string | null
+          builder_profile_id: string | null
+          completed_at: string | null
+          content: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          priority: string | null
+          related_to_id: string | null
+          related_to_type: string | null
+          reminder_at: string | null
+          status: string | null
+          title: string
+          type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          builder_profile_id?: string | null
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          related_to_id?: string | null
+          related_to_type?: string | null
+          reminder_at?: string | null
+          status?: string | null
+          title: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          builder_profile_id?: string | null
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          related_to_id?: string | null
+          related_to_type?: string | null
+          reminder_at?: string | null
+          status?: string | null
+          title?: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_notes_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -3438,6 +3506,126 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      team_activity_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: string | null
+          id: string
+          metadata: Json | null
+          team_member_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          metadata?: Json | null
+          team_member_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          metadata?: Json | null
+          team_member_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_activity_log_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_lead_assignments: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          lead_type: string | null
+          notes: string | null
+          status: string | null
+          team_member_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_type?: string | null
+          notes?: string | null
+          status?: string | null
+          team_member_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_type?: string | null
+          notes?: string | null
+          status?: string | null
+          team_member_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_lead_assignments_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          builder_profile_id: string | null
+          id: string
+          joined_at: string | null
+          permissions: Json | null
+          role: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          builder_profile_id?: string | null
+          id?: string
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          builder_profile_id?: string | null
+          id?: string
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
