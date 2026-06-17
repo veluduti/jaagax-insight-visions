@@ -26,6 +26,7 @@ import {
   ListTodo,
   Calendar as CalendarIcon,
   Loader2,
+  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -64,7 +65,7 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: n
 
 export const BuilderCRM = () => {
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<CRMNote[]>([]);
   const [stats, setStats] = useState<CRMStats | null>(null);
@@ -79,7 +80,6 @@ export const BuilderCRM = () => {
   const load = async () => {
     setLoading(true);
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -89,7 +89,6 @@ export const BuilderCRM = () => {
         return;
       }
 
-      // Get builder profile
       const { data: profile, error: profileError } = await supabase
         .from("builder_profiles")
         .select("id")
@@ -99,14 +98,14 @@ export const BuilderCRM = () => {
       if (profileError) throw profileError;
 
       if (!profile) {
-        toast.error("Builder profile not found. Please create one first.");
-        navigate("/add-builder-profile");
+        // Don't redirect - just show message
+        setBuilderProfileId(null);
+        setLoading(false);
         return;
       }
 
       setBuilderProfileId(profile.id);
 
-      // Load notes and stats
       const [notesList, statsData] = await Promise.all([
         crmService.listNotes({ builderProfileId: profile.id }),
         crmService.getStats(profile.id),
@@ -163,6 +162,7 @@ export const BuilderCRM = () => {
     }
   };
 
+  // ---- Loading State ----
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -176,6 +176,31 @@ export const BuilderCRM = () => {
     );
   }
 
+  // ---- No Builder Profile State ----
+  if (!builderProfileId) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20">
+          <Card className="max-w-md mx-auto p-8 text-center shadow-sm border-border">
+            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Building2 className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Builder Profile Required</h2>
+            <p className="text-muted-foreground mb-6">You need to create a builder profile before using the CRM.</p>
+            <Button
+              onClick={() => navigate("/add-builder-profile")}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Create Builder Profile
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Main CRM Dashboard ----
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
