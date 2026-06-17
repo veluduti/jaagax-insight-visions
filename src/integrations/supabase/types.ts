@@ -799,6 +799,51 @@ export type Database = {
           },
         ]
       }
+      badge_definitions: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          min_properties: number
+          min_rating: number
+          min_reviews: number
+          name: string
+          requirements: Json | null
+          tier: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          min_properties?: number
+          min_rating?: number
+          min_reviews?: number
+          name: string
+          requirements?: Json | null
+          tier: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          min_properties?: number
+          min_rating?: number
+          min_reviews?: number
+          name?: string
+          requirements?: Json | null
+          tier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       builder_profiles: {
         Row: {
           about_features: string[] | null
@@ -3266,6 +3311,104 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_programs: {
+        Row: {
+          builder_profile_id: string
+          created_at: string
+          id: string
+          max_referrals: number | null
+          property_id: string | null
+          referral_amount: number
+          referral_code: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          builder_profile_id: string
+          created_at?: string
+          id?: string
+          max_referrals?: number | null
+          property_id?: string | null
+          referral_amount?: number
+          referral_code?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          builder_profile_id?: string
+          created_at?: string
+          id?: string
+          max_referrals?: number | null
+          property_id?: string | null
+          referral_amount?: number
+          referral_code?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_programs_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_programs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_tracking: {
+        Row: {
+          commission_amount: number | null
+          created_at: string
+          id: string
+          paid_at: string | null
+          referral_program_id: string
+          referrer_id: string | null
+          status: string
+          updated_at: string
+          visit_date: string
+          visitor_id: string | null
+        }
+        Insert: {
+          commission_amount?: number | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          referral_program_id: string
+          referrer_id?: string | null
+          status?: string
+          updated_at?: string
+          visit_date?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          commission_amount?: number | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          referral_program_id?: string
+          referrer_id?: string | null
+          status?: string
+          updated_at?: string
+          visit_date?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_tracking_referral_program_id_fkey"
+            columns: ["referral_program_id"]
+            isOneToOne: false
+            referencedRelation: "referral_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rera_verifications: {
         Row: {
           admin_notes: string | null
@@ -3637,6 +3780,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "team_members_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          builder_profile_id: string
+          created_at: string
+          earned_at: string
+          id: string
+          is_current: boolean
+          updated_at: string
+        }
+        Insert: {
+          badge_id: string
+          builder_profile_id: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          is_current?: boolean
+          updated_at?: string
+        }
+        Update: {
+          badge_id?: string
+          builder_profile_id?: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          is_current?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badge_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_builder_profile_id_fkey"
             columns: ["builder_profile_id"]
             isOneToOne: false
             referencedRelation: "builder_profiles"

@@ -128,6 +128,8 @@ const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/Builde
 // BUILDER NOTIFICATIONS COMPONENTS
 // ============================================
 const NotificationCenter = lazy(() => import("@/components/builder/notifications/NotificationCenter"));
+const BadgeDashboard = lazy(() => import("@/components/builder/badges/BadgeDashboard"));
+const ReferralDashboard = lazy(() => import("@/components/builder/referral/ReferralDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -290,6 +292,26 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="builder">
                         <NotificationCenter />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Badges */}
+                  <Route
+                    path="/builder/badges"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BadgeDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Referrals */}
+                  <Route
+                    path="/builder/referrals"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <ReferralDashboard />
                       </ProtectedRoute>
                     }
                   />
