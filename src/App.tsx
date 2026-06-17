@@ -128,6 +128,8 @@ const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/Builde
 // BUILDER NOTIFICATIONS COMPONENTS
 // ============================================
 const NotificationCenter = lazy(() => import("@/components/builder/notifications/NotificationCenter"));
+const BadgeDashboard = lazy(() => import("@/components/builder/badges/BadgeDashboard"));
+const ReferralDashboard = lazy(() => import("@/components/builder/referral/ReferralDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
