@@ -296,6 +296,26 @@ const App = () => (
                     }
                   />
 
+                  {/* Builder Badges */}
+                  <Route
+                    path="/builder/badges"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <BadgeDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Referrals */}
+                  <Route
+                    path="/builder/referrals"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <ReferralDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Builder Visits */}
                   <Route
                     path="/builder-visits"
