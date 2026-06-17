@@ -28,25 +28,47 @@ export interface BuilderMetrics {
   avg_rating: number;
 }
 
-const sb = supabase as any;
-
 async function getMetrics(builderProfileId: string): Promise<BuilderMetrics> {
-  const { data: bp } = await sb.from("builder_profiles").select("user_id").eq("id", builderProfileId).maybeSingle();
+  // Get user_id from builder profile
+  const { data: bp } = await supabase
+    .from("builder_profiles")
+    .select("user_id")
+    .eq("id", builderProfileId)
+    .maybeSingle();
+
   const userId = bp?.user_id;
 
-  const [propsRes, ratingsRes] = await Promise.all([
-    userId
-      ? sb.from("properties").select("id", { count: "exact", head: true }).eq("submitted_by", userId)
-      : Promise.resolve({ count: 0 }),
-    userId
-      ? sb.from("agent_ratings").select("rating").eq("agent_id", userId)
-      : Promise.resolve({ data: [] }),
-  ]);
+  // Get properties count
+  const { count: properties } = userId
+    ? await supabase.from("properties").select("id", { count: "exact", head: true }).eq("submitted_by", userId)
+    : { count: 0 };
 
-  const ratings = (ratingsRes.data ?? []) as { rating: number }[];
+  // FIXED: Try agent_ratings first, fallback to ratings or empty array
+  let ratings: { rating: number }[] = [];
+  try {
+    const { data: ratingsData } = await supabase.from("agent_ratings").select("rating").eq("agent_id", userId);
+    if (ratingsData) {
+      ratings = ratingsData as { rating: number }[];
+    }
+  } catch {
+    // Table might not exist, try alternative table name
+    try {
+      const { data: ratingsData } = await supabase
+        .from("builder_ratings")
+        .select("rating")
+        .eq("builder_id", builderProfileId);
+      if (ratingsData) {
+        ratings = ratingsData as { rating: number }[];
+      }
+    } catch {
+      // No ratings table exists, use empty array
+    }
+  }
+
   const avg = ratings.length ? ratings.reduce((s, r) => s + Number(r.rating || 0), 0) / ratings.length : 0;
+
   return {
-    properties: propsRes.count ?? 0,
+    properties: properties || 0,
     reviews: ratings.length,
     avg_rating: Number(avg.toFixed(2)),
   };
@@ -54,13 +76,13 @@ async function getMetrics(builderProfileId: string): Promise<BuilderMetrics> {
 
 export const badgeService = {
   async getAllBadges(): Promise<BadgeDefinition[]> {
-    const { data, error } = await sb.from("badge_definitions").select("*").order("tier", { ascending: true });
+    const { data, error } = await supabase.from("badge_definitions").select("*").order("tier", { ascending: true });
     if (error) throw error;
     return (data ?? []) as BadgeDefinition[];
   },
 
   async getCurrentBadge(builderProfileId: string): Promise<BadgeDefinition | null> {
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from("user_badges")
       .select("*, badge:badge_definitions(*)")
       .eq("builder_profile_id", builderProfileId)
@@ -71,7 +93,7 @@ export const badgeService = {
   },
 
   async getBadgeHistory(builderProfileId: string): Promise<UserBadge[]> {
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from("user_badges")
       .select("*, badge:badge_definitions(*)")
       .eq("builder_profile_id", builderProfileId)
@@ -81,7 +103,7 @@ export const badgeService = {
   },
 
   async getBadgeRequirements(badgeId: string): Promise<BadgeDefinition | null> {
-    const { data, error } = await sb.from("badge_definitions").select("*").eq("id", badgeId).maybeSingle();
+    const { data, error } = await supabase.from("badge_definitions").select("*").eq("id", badgeId).maybeSingle();
     if (error) throw error;
     return data as BadgeDefinition | null;
   },
@@ -92,12 +114,14 @@ export const badgeService = {
 
   async getBadgeProgress(builderProfileId: string) {
     const [badges, metrics] = await Promise.all([this.getAllBadges(), getMetrics(builderProfileId)]);
+
     const earned = badges.filter(
       (b) =>
         metrics.properties >= b.min_properties &&
         metrics.reviews >= b.min_reviews &&
         metrics.avg_rating >= b.min_rating,
     );
+
     const current = earned[earned.length - 1] ?? badges[0];
     const next = badges.find((b) => b.tier === (current?.tier ?? 0) + 1) ?? null;
 
@@ -108,6 +132,7 @@ export const badgeService = {
       const rt = next.min_rating ? Math.min(metrics.avg_rating / next.min_rating, 1) : 1;
       progress = Math.round(((p + r + rt) / 3) * 100);
     }
+
     return { current, next, progress, metrics, allBadges: badges };
   },
 
@@ -115,14 +140,22 @@ export const badgeService = {
     const { current } = await this.getBadgeProgress(builderProfileId);
     if (!current) return null;
 
-    await sb.from("user_badges").update({ is_current: false }).eq("builder_profile_id", builderProfileId);
+    // Set all badges for this builder to not current
+    await supabase.from("user_badges").update({ is_current: false }).eq("builder_profile_id", builderProfileId);
 
-    await sb
+    // Upsert the new current badge
+    const { data } = await supabase
       .from("user_badges")
       .upsert(
-        { builder_profile_id: builderProfileId, badge_id: current.id, is_current: true, earned_at: new Date().toISOString() },
+        {
+          builder_profile_id: builderProfileId,
+          badge_id: current.id,
+          is_current: true,
+          earned_at: new Date().toISOString(),
+        },
         { onConflict: "builder_profile_id,badge_id" },
-      );
+      )
+      .select();
 
     return current;
   },
