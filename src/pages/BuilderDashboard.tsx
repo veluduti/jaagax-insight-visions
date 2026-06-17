@@ -25,6 +25,8 @@ import {
   Users,
   ClipboardList,
   Bell,
+  Award,
+  Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
