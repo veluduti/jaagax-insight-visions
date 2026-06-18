@@ -628,6 +628,7 @@ const App = () => (
                 </Routes>
               </Suspense>
               <LocationPermissionDialog />
+              </WalletProvider>
             </LocationProvider>
           </ProfileBootProvider>
         </BrowserRouter>
