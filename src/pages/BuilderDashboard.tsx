@@ -85,6 +85,7 @@ export default function BuilderDashboard() {
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [activeTab, setActiveTab] = useState("properties");
+  const { balance: liveWalletBalance } = useWallet();
   const [reraModalOpen, setReraModalOpen] = useState(false);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
