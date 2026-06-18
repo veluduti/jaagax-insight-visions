@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addPreferredLocation, LocationType } from "@/services/locationPreferenceService";
+import { locationPreferenceService, LocationType } from "@/services/locationPreferenceService";
 import { toast } from "sonner";
 
 interface Props {
@@ -28,7 +28,7 @@ export default function AddLocationModal({ open, onOpenChange, builderProfileId,
     }
     setSaving(true);
     try {
-      await addPreferredLocation(builderProfileId, {
+      await locationPreferenceService.addPreferredLocation(builderProfileId, {
         city: city.trim(),
         locality: locality.trim() || undefined,
         pincode: pincode.trim() || undefined,
