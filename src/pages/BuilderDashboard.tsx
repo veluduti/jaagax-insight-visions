@@ -36,6 +36,8 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
+import { WalletDashboard } from "@/features/buyer/wallet";
+import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
 const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
@@ -83,6 +85,7 @@ export default function BuilderDashboard() {
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [activeTab, setActiveTab] = useState("properties");
+  const { balance: liveWalletBalance } = useWallet();
   const [reraModalOpen, setReraModalOpen] = useState(false);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
@@ -323,6 +326,10 @@ export default function BuilderDashboard() {
             <p className="text-muted-foreground mt-1">Manage your projects and properties</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setActiveTab("wallet")} className="gap-2">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{formatINR(liveWalletBalance)}</span>
+            </Button>
             <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
               <Sparkles className="h-4 w-4 mr-2" />
               View Sample Listings
@@ -637,13 +644,14 @@ export default function BuilderDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
             <TabsTrigger value="add-property">Add Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="wallet">Wallet</TabsTrigger>
           </TabsList>
 
           {/* My Profile Tab */}
@@ -991,6 +999,10 @@ export default function BuilderDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <WalletDashboard />
           </TabsContent>
         </Tabs>
 

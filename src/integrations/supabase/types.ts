@@ -1262,6 +1262,39 @@ export type Database = {
           },
         ]
       }
+      cash_back_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          redeemed_at: string | null
+          reference_id: string | null
+          source: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          reference_id?: string | null
+          source: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          redeemed_at?: string | null
+          reference_id?: string | null
+          source?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cashback_earnings: {
         Row: {
           amount: number
@@ -4485,6 +4518,15 @@ export type Database = {
       }
     }
     Functions: {
+      add_to_wallet: {
+        Args: {
+          _amount: number
+          _description?: string
+          _reference?: string
+          _user_id: string
+        }
+        Returns: number
+      }
       admin_ban_user: {
         Args: { _reason: string; _user_id: string }
         Returns: undefined
@@ -4504,6 +4546,15 @@ export type Database = {
       }
       check_financial_kyc: { Args: { _user_id: string }; Returns: boolean }
       create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
+      debit_from_wallet: {
+        Args: {
+          _amount: number
+          _description?: string
+          _reference?: string
+          _user_id: string
+        }
+        Returns: number
+      }
       decrement_balance: {
         Args: { _amount: number; _wallet_id: string }
         Returns: number
@@ -4574,6 +4625,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_wallet_balance: { Args: { _user_id: string }; Returns: number }
       increment_balance: {
         Args: { _amount: number; _wallet_id: string }
         Returns: number
@@ -4619,6 +4671,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      redeem_cashback: { Args: { _user_id: string }; Returns: number }
       reject_profile: {
         Args: { _profile_id: string; _reason?: string }
         Returns: undefined

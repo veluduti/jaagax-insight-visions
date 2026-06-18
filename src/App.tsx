@@ -13,6 +13,7 @@ import { LocationProvider } from "./contexts/LocationContext";
 import LocationPermissionDialog from "./components/location/LocationPermissionDialog";
 
 import ProfileBootProvider from "./contexts/ProfileBootProvider";
+import { WalletProvider } from "./contexts/WalletContext";
 import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
@@ -167,6 +168,7 @@ const App = () => (
         <BrowserRouter>
           <ProfileBootProvider>
             <LocationProvider>
+              <WalletProvider>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -626,6 +628,7 @@ const App = () => (
                 </Routes>
               </Suspense>
               <LocationPermissionDialog />
+              </WalletProvider>
             </LocationProvider>
           </ProfileBootProvider>
         </BrowserRouter>

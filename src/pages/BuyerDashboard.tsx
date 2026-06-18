@@ -14,9 +14,11 @@ import {
   Heart, MapPin, Search, Bell, Calculator,
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles
+  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles, Wallet as WalletIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useWallet, formatINR } from "@/contexts/WalletContext";
+const WalletDashboard = lazy(() => import("@/features/buyer/wallet/WalletDashboard").then(m => ({ default: m.WalletDashboard })));
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
@@ -49,6 +51,7 @@ interface Property {
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { balance: walletBalance } = useWallet();
   const [user, setUser] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -278,10 +281,16 @@ const BuyerDashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Buyer"}!</h1>
             <p className="text-muted-foreground mt-1">Find your dream property</p>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSearchParams({ tab: "wallet" })} className="gap-2">
+              <WalletIcon className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{formatINR(walletBalance)}</span>
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -332,11 +341,21 @@ const BuyerDashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all border-primary/30" onClick={() => setSearchParams({ tab: "wallet" })}>
+              <CardContent className="p-6 text-center">
+                <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Wallet</h3>
+                <p className="text-xs text-muted-foreground mt-1">{formatINR(walletBalance)}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Content Tabs */}
         <Tabs value={searchParams.get("tab") || "recommended"} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-11">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -376,6 +395,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="alerts">
               <Bell className="h-4 w-4 mr-2" />
               Alerts
+            </TabsTrigger>
+            <TabsTrigger value="wallet">
+              <WalletIcon className="h-4 w-4 mr-2" />
+              Wallet
             </TabsTrigger>
           </TabsList>
 
@@ -665,6 +688,11 @@ const BuyerDashboard = () => {
           <TabsContent value="alerts">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <AlertsPanel />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="wallet">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <WalletDashboard />
             </Suspense>
           </TabsContent>
         </Tabs>
