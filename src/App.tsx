@@ -130,6 +130,8 @@ const BuilderTeamDashboard = lazy(() => import("@/components/builder/team/Builde
 const NotificationCenter = lazy(() => import("@/components/builder/notifications/NotificationCenter"));
 const BadgeDashboard = lazy(() => import("@/components/builder/badges/BadgeDashboard"));
 const ReferralDashboard = lazy(() => import("@/components/builder/referral/ReferralDashboard"));
+const HotelBookings = lazy(() => import("@/components/builder/hotels/HotelBookings"));
+const FinancialEnquiries = lazy(() => import("@/components/builder/financial/FinancialEnquiries"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -312,6 +314,26 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="builder">
                         <ReferralDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Hotel Bookings */}
+                  <Route
+                    path="/builder/hotels"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <HotelBookings />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Financial Enquiries */}
+                  <Route
+                    path="/builder/financial"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <FinancialEnquiries />
                       </ProtectedRoute>
                     }
                   />
