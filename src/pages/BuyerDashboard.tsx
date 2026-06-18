@@ -34,6 +34,7 @@ import {
   Hotel,
   Sparkles,
   ShieldCheck,
+  PiggyBank,
   Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -46,6 +47,9 @@ const MyPostings = lazy(() =>
 );
 const KYCVerification = lazy(() =>
   import("@/features/buyer/KYCVerification").then((m) => ({ default: m.KYCVerification })),
+);
+const FinancialEnquiries = lazy(() =>
+  import("@/features/buyer/FinancialEnquiries").then((m) => ({ default: m.FinancialEnquiries })),
 );
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
@@ -391,7 +395,7 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(13,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(14,minmax(0,1fr))]">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -427,6 +431,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="kyc">
               <ShieldCheck className="h-4 w-4 mr-2" />
               KYC
+            </TabsTrigger>
+            <TabsTrigger value="financial">
+              <PiggyBank className="h-4 w-4 mr-2" />
+              Financial
             </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
@@ -749,6 +757,11 @@ const BuyerDashboard = () => {
           <TabsContent value="kyc">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <KYCVerification />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="financial">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <FinancialEnquiries />
             </Suspense>
           </TabsContent>
         </Tabs>

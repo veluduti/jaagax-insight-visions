@@ -2460,6 +2460,44 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_documents: {
+        Row: {
+          enquiry_id: string
+          file_url: string
+          id: string
+          status: string
+          type: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          enquiry_id: string
+          file_url: string
+          id?: string
+          status?: string
+          type: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          enquiry_id?: string
+          file_url?: string
+          id?: string
+          status?: string
+          type?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_documents_enquiry_id_fkey"
+            columns: ["enquiry_id"]
+            isOneToOne: false
+            referencedRelation: "financial_enquiries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_posting_limits: {
         Row: {
           created_at: string
