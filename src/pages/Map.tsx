@@ -458,24 +458,25 @@ const Map = () => {
       }
 
       setProperties(
-        (data || []).map((row: PropertyRow) => {
+        (data || []).flatMap((row: PropertyRow): Property[] => {
           const v = getPublicPropertyView(row);
-          if (!v) return row;
-          return {
-            ...row,
-            latitude: toFiniteNumber(row.latitude),
-            longitude: toFiniteNumber(row.longitude),
+          if (!v) return [];
+          return [{
+            id: v.id,
+            slug: asNullableString(row.slug),
+            latitude: toFiniteNumber(v.latitude ?? row.latitude),
+            longitude: toFiniteNumber(v.longitude ?? row.longitude),
             title: v.title,
-            city: v.city ?? row.city,
-            locality: v.locality ?? row.locality,
-            price: v.price ?? row.price,
-            area_sqft: v.area_sqft ?? row.area_sqft,
-            bhk: v.bhk ?? row.bhk,
-            bedrooms: v.bedrooms ?? row.bedrooms,
-            bathrooms: v.bathrooms ?? row.bathrooms,
-            type: v.type ?? row.type,
+            city: asNullableString(v.city ?? row.city),
+            locality: asNullableString(v.locality ?? row.locality),
+            price: toFiniteNumber(v.price ?? row.price) ?? 0,
+            area_sqft: toFiniteNumber(v.area_sqft ?? row.area_sqft),
+            bhk: toFiniteNumber(v.bhk ?? row.bhk),
+            type: asNullableString(v.type ?? row.type),
+            verified: Boolean(v.verified ?? row.verified),
             images: v.images?.length ? v.images : row.images,
-          };
+            trust_score: toFiniteNumber(v.trust_score ?? row.trust_score),
+          }];
         }),
       );
     } catch (err) {
