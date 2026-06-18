@@ -802,45 +802,45 @@ export type Database = {
       badge_definitions: {
         Row: {
           color: string | null
-          created_at: string
+          created_at: string | null
           description: string | null
           icon: string | null
           id: string
-          min_properties: number
-          min_rating: number
-          min_reviews: number
+          min_properties: number | null
+          min_rating: number | null
+          min_reviews: number | null
           name: string
           requirements: Json | null
+          sort_order: number | null
           tier: number
-          updated_at: string
         }
         Insert: {
           color?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
-          min_properties?: number
-          min_rating?: number
-          min_reviews?: number
+          min_properties?: number | null
+          min_rating?: number | null
+          min_reviews?: number | null
           name: string
           requirements?: Json | null
+          sort_order?: number | null
           tier: number
-          updated_at?: string
         }
         Update: {
           color?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: string
-          min_properties?: number
-          min_rating?: number
-          min_reviews?: number
+          min_properties?: number | null
+          min_rating?: number | null
+          min_reviews?: number | null
           name?: string
           requirements?: Json | null
+          sort_order?: number | null
           tier?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -3313,37 +3313,34 @@ export type Database = {
       }
       referral_programs: {
         Row: {
-          builder_profile_id: string
-          created_at: string
+          builder_profile_id: string | null
+          created_at: string | null
           id: string
           max_referrals: number | null
           property_id: string | null
           referral_amount: number
           referral_code: string
-          status: string
-          updated_at: string
+          status: string | null
         }
         Insert: {
-          builder_profile_id: string
-          created_at?: string
+          builder_profile_id?: string | null
+          created_at?: string | null
           id?: string
           max_referrals?: number | null
           property_id?: string | null
-          referral_amount?: number
-          referral_code?: string
-          status?: string
-          updated_at?: string
+          referral_amount: number
+          referral_code: string
+          status?: string | null
         }
         Update: {
-          builder_profile_id?: string
-          created_at?: string
+          builder_profile_id?: string | null
+          created_at?: string | null
           id?: string
           max_referrals?: number | null
           property_id?: string | null
           referral_amount?: number
           referral_code?: string
-          status?: string
-          updated_at?: string
+          status?: string | null
         }
         Relationships: [
           {
@@ -3365,38 +3362,35 @@ export type Database = {
       referral_tracking: {
         Row: {
           commission_amount: number | null
-          created_at: string
+          created_at: string | null
           id: string
           paid_at: string | null
-          referral_program_id: string
+          referral_program_id: string | null
           referrer_id: string | null
-          status: string
-          updated_at: string
-          visit_date: string
+          status: string | null
+          visit_date: string | null
           visitor_id: string | null
         }
         Insert: {
           commission_amount?: number | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           paid_at?: string | null
-          referral_program_id: string
+          referral_program_id?: string | null
           referrer_id?: string | null
-          status?: string
-          updated_at?: string
-          visit_date?: string
+          status?: string | null
+          visit_date?: string | null
           visitor_id?: string | null
         }
         Update: {
           commission_amount?: number | null
-          created_at?: string
+          created_at?: string | null
           id?: string
           paid_at?: string | null
-          referral_program_id?: string
+          referral_program_id?: string | null
           referrer_id?: string | null
-          status?: string
-          updated_at?: string
-          visit_date?: string
+          status?: string | null
+          visit_date?: string | null
           visitor_id?: string | null
         }
         Relationships: [
@@ -3789,31 +3783,25 @@ export type Database = {
       }
       user_badges: {
         Row: {
-          badge_id: string
-          builder_profile_id: string
-          created_at: string
-          earned_at: string
+          badge_id: string | null
+          builder_profile_id: string | null
+          earned_at: string | null
           id: string
-          is_current: boolean
-          updated_at: string
+          is_current: boolean | null
         }
         Insert: {
-          badge_id: string
-          builder_profile_id: string
-          created_at?: string
-          earned_at?: string
+          badge_id?: string | null
+          builder_profile_id?: string | null
+          earned_at?: string | null
           id?: string
-          is_current?: boolean
-          updated_at?: string
+          is_current?: boolean | null
         }
         Update: {
-          badge_id?: string
-          builder_profile_id?: string
-          created_at?: string
-          earned_at?: string
+          badge_id?: string | null
+          builder_profile_id?: string | null
+          earned_at?: string | null
           id?: string
-          is_current?: boolean
-          updated_at?: string
+          is_current?: boolean | null
         }
         Relationships: [
           {
