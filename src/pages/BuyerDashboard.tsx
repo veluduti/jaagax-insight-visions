@@ -40,6 +40,9 @@ import { useWallet, formatINR } from "@/contexts/WalletContext";
 const WalletDashboard = lazy(() =>
   import("@/features/buyer/wallet/WalletDashboard").then((m) => ({ default: m.WalletDashboard })),
 );
+const MyPostings = lazy(() =>
+  import("@/features/buyer/MyPostings").then((m) => ({ default: m.MyPostings })),
+);
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
@@ -384,7 +387,7 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-11">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-12">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -412,6 +415,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="favorites">
               <Heart className="h-4 w-4 mr-2" />
               Favorites
+            </TabsTrigger>
+            <TabsTrigger value="postings">
+              <Home className="h-4 w-4 mr-2" />
+              My Postings
             </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
@@ -724,6 +731,11 @@ const BuyerDashboard = () => {
           <TabsContent value="wallet">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <WalletDashboard />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="postings">
+            <Suspense fallback={<CardGridSkeleton count={3} />}>
+              <MyPostings />
             </Suspense>
           </TabsContent>
         </Tabs>
