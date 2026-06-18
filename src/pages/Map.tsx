@@ -206,6 +206,7 @@ const Map = () => {
   const [showLegend, setShowLegend] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showAILens, setShowAILens] = useState(false);
+  const [useRasterFallback, setUseRasterFallback] = useState(false);
   const navigate = useNavigate();
 
   // Auto-set city from detected location
@@ -261,24 +262,37 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken =
-      import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
-      import.meta.env.VITE_MAPBOX_TOKEN ||
-      "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
     if (!mapboxgl.accessToken) {
       setError("Mapbox token missing. Please configure VITE_MAPBOX_PUBLIC_TOKEN.");
       return;
     }
 
+    if (!mapboxgl.supported({ failIfMajorPerformanceCaveat: true })) {
+      setUseRasterFallback(true);
+      return;
+    }
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [cityCoordinates[currentCity].lng, cityCoordinates[currentCity].lat],
       zoom: cityCoordinates[currentCity].zoom,
       pitch: 0,
       bearing: 0,
     });
+
+    map.current.on("error", (event) => {
+      console.error("Mapbox render error:", event.error);
+      setUseRasterFallback(true);
+    });
+
+    window.setTimeout(() => {
+      if (map.current && mapContainer.current && !mapContainer.current.querySelector("canvas")) {
+        setUseRasterFallback(true);
+      }
+    }, 1800);
 
     // Add navigation controls
     map.current.addControl(
@@ -328,6 +342,7 @@ const Map = () => {
 
     return () => {
       map.current?.remove();
+      map.current = null;
     };
   }, []);
 
