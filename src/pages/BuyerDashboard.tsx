@@ -33,6 +33,7 @@ import {
   Route,
   Hotel,
   Sparkles,
+  ShieldCheck,
   Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
