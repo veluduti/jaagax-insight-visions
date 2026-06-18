@@ -605,8 +605,8 @@ const Map = () => {
               duration: 1000,
             });
           } else {
-            // Open the property detail in a new tab directly
-            window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
+            // Open the exact property detail route in a new tab.
+            openInNewTab(propertyPath(property));
           }
         });
 
@@ -654,9 +654,8 @@ const Map = () => {
 
   // Change city
   const changeCity = (city: "Hyderabad" | "Vijayawada") => {
-    if (!map.current) return;
     const coords = cityCoordinates[city];
-    map.current.flyTo({
+    map.current?.flyTo({
       center: [coords.lng, coords.lat],
       zoom: coords.zoom,
       duration: 2000,
@@ -725,7 +724,17 @@ const Map = () => {
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className={`absolute inset-0 ${useRasterFallback ? "hidden" : ""}`} />
+      {useRasterFallback && (
+        <RasterPropertyMap
+          properties={properties}
+          currentCity={currentCity}
+          center={cityCoordinates[currentCity]}
+          zoom={cityCoordinates[currentCity].zoom}
+          token={MAPBOX_TOKEN}
+          onPropertyOpen={(property) => openInNewTab(propertyPath(property))}
+        />
+      )}
 
       {/* Loading Skeleton */}
       {isLoading && (
