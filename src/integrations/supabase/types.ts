@@ -1562,13 +1562,24 @@ export type Database = {
       }
       financial_enquiries: {
         Row: {
+          advisor_contact: string | null
           advisor_id: string | null
+          advisor_name: string | null
+          advisor_notes: string | null
           amount_requested: number | null
+          builder_profile_id: string | null
+          contact_date: string | null
           created_at: string
           deactivated_reason: string | null
           documents: Json
+          enquiry_type: string | null
+          follow_up_date: string | null
           id: string
+          interest_rate_offered: number | null
+          loan_amount: number | null
+          loan_tenure_years: number | null
           loan_type: string
+          monthly_emi: number | null
           notes: string | null
           property_id: string | null
           status: string
@@ -1576,13 +1587,24 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          advisor_contact?: string | null
           advisor_id?: string | null
+          advisor_name?: string | null
+          advisor_notes?: string | null
           amount_requested?: number | null
+          builder_profile_id?: string | null
+          contact_date?: string | null
           created_at?: string
           deactivated_reason?: string | null
           documents?: Json
+          enquiry_type?: string | null
+          follow_up_date?: string | null
           id?: string
+          interest_rate_offered?: number | null
+          loan_amount?: number | null
+          loan_tenure_years?: number | null
           loan_type: string
+          monthly_emi?: number | null
           notes?: string | null
           property_id?: string | null
           status?: string
@@ -1590,20 +1612,39 @@ export type Database = {
           user_id: string
         }
         Update: {
+          advisor_contact?: string | null
           advisor_id?: string | null
+          advisor_name?: string | null
+          advisor_notes?: string | null
           amount_requested?: number | null
+          builder_profile_id?: string | null
+          contact_date?: string | null
           created_at?: string
           deactivated_reason?: string | null
           documents?: Json
+          enquiry_type?: string | null
+          follow_up_date?: string | null
           id?: string
+          interest_rate_offered?: number | null
+          loan_amount?: number | null
+          loan_tenure_years?: number | null
           loan_type?: string
+          monthly_emi?: number | null
           notes?: string | null
           property_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_enquiries_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_leads: {
         Row: {
@@ -2019,18 +2060,27 @@ export type Database = {
       }
       hotel_bookings: {
         Row: {
+          booking_reference: string | null
           booking_type: string | null
+          builder_profile_id: string | null
+          cancellation_reason: string | null
           check_in: string
           check_out: string
           created_at: string | null
+          currency: string
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
+          hotel_address: string | null
           hotel_id: string
+          hotel_name: string | null
           id: string
+          invoice_url: string | null
           num_guests: number | null
           num_rooms: number | null
           package_id: string | null
+          payment_method: string | null
+          payment_status: string
           property_id: string | null
           room_type: string | null
           special_requests: string | null
@@ -2040,18 +2090,27 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          booking_reference?: string | null
           booking_type?: string | null
+          builder_profile_id?: string | null
+          cancellation_reason?: string | null
           check_in: string
           check_out: string
           created_at?: string | null
+          currency?: string
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
+          hotel_address?: string | null
           hotel_id: string
+          hotel_name?: string | null
           id?: string
+          invoice_url?: string | null
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
           property_id?: string | null
           room_type?: string | null
           special_requests?: string | null
@@ -2061,18 +2120,27 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          booking_reference?: string | null
           booking_type?: string | null
+          builder_profile_id?: string | null
+          cancellation_reason?: string | null
           check_in?: string
           check_out?: string
           created_at?: string | null
+          currency?: string
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
+          hotel_address?: string | null
           hotel_id?: string
+          hotel_name?: string | null
           id?: string
+          invoice_url?: string | null
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
+          payment_method?: string | null
+          payment_status?: string
           property_id?: string | null
           room_type?: string | null
           special_requests?: string | null
@@ -2082,6 +2150,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hotel_bookings_builder_profile_id_fkey"
+            columns: ["builder_profile_id"]
+            isOneToOne: false
+            referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "hotel_bookings_hotel_id_fkey"
             columns: ["hotel_id"]
