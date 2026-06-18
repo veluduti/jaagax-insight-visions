@@ -8,10 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { RefreshCw, Trophy, Clock, Target, ShieldCheck, Star, MapPin, Loader2, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  getSuccessScore,
-  getScoreBreakdown,
-  getScoreHistory,
-  calculateScore,
+  successScoreService,
   SuccessScore as SuccessScoreType,
   Grade,
 } from "@/services/successScoreService";
@@ -44,7 +41,7 @@ export default function SuccessScore() {
   const load = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const [s, b, h] = await Promise.all([getSuccessScore(id), getScoreBreakdown(id), getScoreHistory(id)]);
+      const [s, b, h] = await Promise.all([successScoreService.getSuccessScore(id), successScoreService.getScoreBreakdown(id), successScoreService.getScoreHistory(id)]);
       setScore(s);
       setBreakdown(b);
       setHistory(h);
@@ -85,7 +82,7 @@ export default function SuccessScore() {
     if (!builderId) return;
     setRecalculating(true);
     try {
-      await calculateScore(builderId);
+      await successScoreService.calculateScore(builderId);
       toast.success("Score recalculated");
       await load(builderId);
     } catch (e: any) {

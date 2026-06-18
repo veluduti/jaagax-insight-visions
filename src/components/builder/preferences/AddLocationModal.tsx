@@ -28,7 +28,7 @@ export default function AddLocationModal({ open, onOpenChange, builderProfileId,
     }
     setSaving(true);
     try {
-      await addPreferredLocation(builderProfileId, {
+      await locationPreferenceService.addPreferredLocation(builderProfileId, {
         city: city.trim(),
         locality: locality.trim() || undefined,
         pincode: pincode.trim() || undefined,

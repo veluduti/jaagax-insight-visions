@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus, Trash2, Sparkles, Loader2, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  getPreferredLocations,
-  getLocationStats,
-  getRecommendationLocations,
-  removePreferredLocation,
-  PreferredLocation,
-} from "@/services/locationPreferenceService";
+import { locationPreferenceService, PreferredLocation } from "@/services/locationPreferenceService";
 import AddLocationModal from "./AddLocationModal";
 import { toast } from "sonner";
 
@@ -29,9 +23,9 @@ export default function PreferredLocations() {
     setLoading(true);
     try {
       const [list, s, recs] = await Promise.all([
-        getPreferredLocations(id),
-        getLocationStats(id),
-        getRecommendationLocations(id),
+        locationPreferenceService.getPreferredLocations(id),
+        locationPreferenceService.getLocationStats(id),
+        locationPreferenceService.getRecommendationLocations(id),
       ]);
       setLocations(list);
       setStats(s);
@@ -71,7 +65,7 @@ export default function PreferredLocations() {
 
   const handleRemove = async (id: string) => {
     try {
-      await removePreferredLocation(id);
+      await locationPreferenceService.removePreferredLocation(id);
       toast.success("Location removed");
       if (builderId) load(builderId);
     } catch (e: any) {
