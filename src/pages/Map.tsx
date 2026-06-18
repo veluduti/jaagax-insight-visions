@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
@@ -28,6 +29,7 @@ import { toast as sonnerToast } from "sonner";
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   latitude: number | null;
   longitude: number | null;
@@ -41,6 +43,151 @@ interface Property {
   city: string | null;
   locality: string | null;
 }
+
+const MAPBOX_TOKEN =
+  import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+  import.meta.env.VITE_MAPBOX_TOKEN ||
+  "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+
+const TILE_SIZE = 256;
+
+const lngLatToWorld = (lng: number, lat: number, zoom: number) => {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const sinLat = Math.sin((Math.max(Math.min(lat, 85.05112878), -85.05112878) * Math.PI) / 180);
+  return {
+    x: ((lng + 180) / 360) * scale,
+    y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale,
+  };
+};
+
+const toFiniteNumber = (value: unknown) => {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+};
+
+const RasterPropertyMap = ({
+  properties,
+  currentCity,
+  center,
+  zoom,
+  token,
+  onPropertyOpen,
+}: {
+  properties: Property[];
+  currentCity: "Hyderabad" | "Vijayawada";
+  center: { lng: number; lat: number };
+  zoom: number;
+  token: string;
+  onPropertyOpen: (property: Property) => void;
+}) => {
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1280 : window.innerWidth,
+    height: typeof window === "undefined" ? 720 : window.innerHeight,
+  }));
+
+  useEffect(() => {
+    const updateViewport = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  const projection = useMemo(() => {
+    const centerWorld = lngLatToWorld(center.lng, center.lat, zoom);
+    return {
+      topLeft: {
+        x: centerWorld.x - viewport.width / 2,
+        y: centerWorld.y - viewport.height / 2,
+      },
+      totalTiles: 2 ** zoom,
+    };
+  }, [center.lat, center.lng, viewport.height, viewport.width, zoom]);
+
+  const tiles = useMemo(() => {
+    const startX = Math.floor(projection.topLeft.x / TILE_SIZE) - 1;
+    const endX = Math.floor((projection.topLeft.x + viewport.width) / TILE_SIZE) + 1;
+    const startY = Math.floor(projection.topLeft.y / TILE_SIZE) - 1;
+    const endY = Math.floor((projection.topLeft.y + viewport.height) / TILE_SIZE) + 1;
+    const nextTiles: Array<{ key: string; url: string; left: number; top: number }> = [];
+
+    for (let x = startX; x <= endX; x += 1) {
+      for (let y = startY; y <= endY; y += 1) {
+        if (y < 0 || y >= projection.totalTiles) continue;
+        const wrappedX = ((x % projection.totalTiles) + projection.totalTiles) % projection.totalTiles;
+        nextTiles.push({
+          key: `${zoom}-${x}-${y}`,
+          left: Math.round(x * TILE_SIZE - projection.topLeft.x),
+          top: Math.round(y * TILE_SIZE - projection.topLeft.y),
+          url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/${TILE_SIZE}/${zoom}/${wrappedX}/${y}@2x?access_token=${encodeURIComponent(token)}`,
+        });
+      }
+    }
+    return nextTiles;
+  }, [projection.topLeft.x, projection.topLeft.y, projection.totalTiles, token, viewport.height, viewport.width, zoom]);
+
+  const positionedProperties = useMemo(
+    () =>
+      properties
+        .map((property) => {
+          const lat = toFiniteNumber(property.latitude);
+          const lng = toFiniteNumber(property.longitude);
+          if (lat === null || lng === null) return null;
+          const world = lngLatToWorld(lng, lat, zoom);
+          return {
+            property,
+            left: world.x - projection.topLeft.x,
+            top: world.y - projection.topLeft.y,
+          };
+        })
+        .filter((item): item is { property: Property; left: number; top: number } =>
+          Boolean(item && item.left > -80 && item.left < viewport.width + 80 && item.top > -80 && item.top < viewport.height + 80),
+        ),
+    [properties, projection.topLeft.x, projection.topLeft.y, viewport.height, viewport.width, zoom],
+  );
+
+  return (
+    <div className="absolute inset-0 z-[1] overflow-hidden bg-secondary" aria-label={`Property map for ${currentCity}`}>
+      {tiles.map((tile) => (
+        <img
+          key={tile.key}
+          src={tile.url}
+          alt=""
+          draggable={false}
+          className="absolute max-w-none select-none"
+          style={{ left: tile.left, top: tile.top, width: TILE_SIZE, height: TILE_SIZE }}
+        />
+      ))}
+
+      {positionedProperties.map(({ property, left, top }) => {
+        const isVerified = Boolean(property.verified);
+        const type = property.type?.toLowerCase() || "";
+        const icon = type.includes("villa") ? "🏡" : type.includes("plot") ? "📍" : type.includes("penthouse") ? "🏢" : "🏠";
+        return (
+          <button
+            key={property.id}
+            type="button"
+            onClick={() => onPropertyOpen(property)}
+            className="group absolute -translate-x-1/2 -translate-y-full rounded-full border-2 border-background px-3 py-2 text-xs font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
+            style={{
+              left,
+              top,
+              background: isVerified ? "linear-gradient(135deg, hsl(152 70% 38%), hsl(152 76% 28%))" : "hsl(var(--primary))",
+            }}
+            title={`${property.title} - open property`}
+            aria-label={`Open ${property.title}`}
+          >
+            <span className="mr-1" aria-hidden="true">{icon}</span>
+            ₹{((property.price || 0) / 100000).toFixed(1)}L
+          </button>
+        );
+      })}
+
+      <div className="absolute bottom-2 right-3 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm">
+        © Mapbox © OpenStreetMap
+      </div>
+    </div>
+  );
+};
 
 const Map = () => {
   const [searchParams] = useSearchParams();
