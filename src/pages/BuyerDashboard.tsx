@@ -11,14 +11,35 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import {
-  Heart, MapPin, Search, Bell, Calculator,
-  TrendingUp, Calendar, MessageSquare, LogOut,
-  Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles, Wallet as WalletIcon
+  Heart,
+  MapPin,
+  Search,
+  Bell,
+  Calculator,
+  TrendingUp,
+  Calendar,
+  MessageSquare,
+  LogOut,
+  Home,
+  Building2,
+  Filter,
+  Star,
+  ChevronRight,
+  GitCompare,
+  DollarSign,
+  Eye,
+  Clock,
+  Share2,
+  Route,
+  Hotel,
+  Sparkles,
+  Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
-const WalletDashboard = lazy(() => import("@/features/buyer/wallet/WalletDashboard").then(m => ({ default: m.WalletDashboard })));
+const WalletDashboard = lazy(() =>
+  import("@/features/buyer/wallet/WalletDashboard").then((m) => ({ default: m.WalletDashboard })),
+);
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
@@ -61,7 +82,7 @@ const BuyerDashboard = () => {
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
-  
+
   // EMI Calculator State
   const [loanAmount, setLoanAmount] = useState(5000000);
   const [interestRate, setInterestRate] = useState(8.5);
@@ -74,21 +95,21 @@ const BuyerDashboard = () => {
     fetchAvailableCities();
     fetchFavorites();
     fetchVisitBookings();
-    
+
     // Subscribe to real-time visit updates
     const channel = supabase
-      .channel('buyer-visit-updates')
+      .channel("buyer-visit-updates")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'visit_bookings'
+          event: "*",
+          schema: "public",
+          table: "visit_bookings",
         },
         (payload) => {
-          console.log('Visit booking updated:', payload);
+          console.log("Visit booking updated:", payload);
           fetchVisitBookings();
-        }
+        },
       )
       .subscribe();
 
@@ -101,9 +122,10 @@ const BuyerDashboard = () => {
     if (!user) return;
     // Defer AI suggestions to idle so dashboard renders instantly.
     const ric = (globalThis as any).requestIdleCallback;
-    const handle = typeof ric === "function"
-      ? ric(() => fetchAISuggestions(), { timeout: 1500 })
-      : (setTimeout(() => fetchAISuggestions(), 1) as unknown as number);
+    const handle =
+      typeof ric === "function"
+        ? ric(() => fetchAISuggestions(), { timeout: 1500 })
+        : (setTimeout(() => fetchAISuggestions(), 1) as unknown as number);
     return () => {
       const cic = (globalThis as any).cancelIdleCallback;
       if (typeof cic === "function") cic(handle);
@@ -120,13 +142,11 @@ const BuyerDashboard = () => {
   }, [cityFilter]);
 
   const fetchUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data } = await supabase.from("users").select("*").eq("id", user.id).maybeSingle();
       setUser(data);
     }
     setLoading(false);
@@ -156,22 +176,23 @@ const BuyerDashboard = () => {
   };
 
   const fetchFavorites = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("favorites")
-        .select("property_id")
-        .eq("user_id", user.id);
-      
+      const { data } = await supabase.from("favorites").select("property_id").eq("user_id", user.id);
+
       if (data) {
         // property_id is UUID (string)
-        setFavorites(data.map(f => f.property_id).filter(Boolean) as string[]);
+        setFavorites(data.map((f) => f.property_id).filter(Boolean) as string[]);
       }
     }
   };
 
   const fetchVisitBookings = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
         .from("visit_bookings")
@@ -179,7 +200,7 @@ const BuyerDashboard = () => {
         .eq("user_id", user.id)
         .order("visit_date", { ascending: true })
         .limit(3);
-      
+
       if (data) {
         setVisitBookings(data);
       }
@@ -187,24 +208,20 @@ const BuyerDashboard = () => {
   };
 
   const toggleFavorite = async (propertyId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Please login to save favorites");
       return;
     }
 
     if (favorites.includes(propertyId)) {
-      await supabase
-        .from("favorites")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("property_id", propertyId);
-      setFavorites(favorites.filter(id => id !== propertyId));
+      await supabase.from("favorites").delete().eq("user_id", user.id).eq("property_id", propertyId);
+      setFavorites(favorites.filter((id) => id !== propertyId));
       toast.success("Removed from favorites");
     } else {
-      await supabase
-        .from("favorites")
-        .insert({ user_id: user.id, property_id: propertyId });
+      await supabase.from("favorites").insert({ user_id: user.id, property_id: propertyId });
       setFavorites([...favorites, propertyId]);
       toast.success("Added to favorites");
     }
@@ -214,13 +231,15 @@ const BuyerDashboard = () => {
     setLoadingAI(true);
     try {
       const { aiService } = await import("@/services/aiService");
-      const data: any = await aiService.suggestProperties({
-        userId: user.id,
-        city: user.city || "Hyderabad",
-        minPrice: 3000000,
-        maxPrice: 10000000,
-        bhk: 3,
-      }).catch(() => null);
+      const data: any = await aiService
+        .suggestProperties({
+          userId: user.id,
+          city: user.city || "Hyderabad",
+          minPrice: 3000000,
+          maxPrice: 10000000,
+          bhk: 3,
+        })
+        .catch(() => null);
 
       if (data?.suggestions?.length) {
         const { data: suggestedProps } = await supabase
@@ -241,10 +260,11 @@ const BuyerDashboard = () => {
     const principal = loanAmount;
     const ratePerMonth = interestRate / 12 / 100;
     const numberOfMonths = loanTenure * 12;
-    
-    const emiValue = (principal * ratePerMonth * Math.pow(1 + ratePerMonth, numberOfMonths)) / 
-                     (Math.pow(1 + ratePerMonth, numberOfMonths) - 1);
-    
+
+    const emiValue =
+      (principal * ratePerMonth * Math.pow(1 + ratePerMonth, numberOfMonths)) /
+      (Math.pow(1 + ratePerMonth, numberOfMonths) - 1);
+
     setEmi(Math.round(emiValue));
   };
 
@@ -255,9 +275,9 @@ const BuyerDashboard = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(price);
   };
@@ -273,7 +293,7 @@ const BuyerDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navigation />
-      
+
       {/* Header */}
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -307,7 +327,10 @@ const BuyerDashboard = () => {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/visit/analytics")}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => navigate("/visit/analytics")}
+            >
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Visit Analytics</h3>
@@ -343,18 +366,24 @@ const BuyerDashboard = () => {
           </motion.div>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card className="cursor-pointer hover:shadow-lg transition-all border-primary/30" onClick={() => setSearchParams({ tab: "wallet" })}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "wallet" })}
+            >
               <CardContent className="p-6 text-center">
                 <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold">Wallet</h3>
-                <p className="text-xs text-muted-foreground mt-1">{formatINR(walletBalance)}</p>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs value={searchParams.get("tab") || "recommended"} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-6">
+        <Tabs
+          value={searchParams.get("tab") || "recommended"}
+          onValueChange={(v) => setSearchParams({ tab: v })}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-11">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
@@ -412,9 +441,7 @@ const BuyerDashboard = () => {
                     <Star className="h-5 w-5 text-primary" />
                     AI-Powered Recommendations
                   </CardTitle>
-                  <CardDescription>
-                    Smart suggestions tailored to your preferences using AI analysis
-                  </CardDescription>
+                  <CardDescription>Smart suggestions tailored to your preferences using AI analysis</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -431,7 +458,9 @@ const BuyerDashboard = () => {
                               src={property.images[0] || ""}
                               alt={property.title}
                               className="w-full h-full object-cover"
-                             loading="lazy" decoding="async" />
+                              loading="lazy"
+                              decoding="async"
+                            />
                             <Badge className="absolute top-2 left-2 bg-primary">AI Match</Badge>
                           </div>
                           <CardContent className="p-3">
@@ -451,7 +480,9 @@ const BuyerDashboard = () => {
               <CardHeader>
                 <CardTitle>All Recommended Properties</CardTitle>
                 <CardDescription>
-                  {cityFilter === "all" ? "Based on your preferences and search history" : `Showing properties in ${cityFilter}`}
+                  {cityFilter === "all"
+                    ? "Based on your preferences and search history"
+                    : `Showing properties in ${cityFilter}`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -468,7 +499,9 @@ const BuyerDashboard = () => {
                     <SelectContent className="bg-background z-50">
                       <SelectItem value="all">All Cities</SelectItem>
                       {availableCities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -493,32 +526,32 @@ const BuyerDashboard = () => {
                         key={property.id}
                         whileHover={{ y: -5 }}
                         className="group cursor-pointer"
-            onClick={() => openInNewTab(propertyPath(property))}
-          >
-            <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
-              <div className="relative">
-                <img
-                  src={property.images[0] || ""}
-                  alt={property.title}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                 loading="lazy" decoding="async" />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute top-2 right-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(property.id);
-                  }}
-                >
-                  <Heart
-                    className={`h-4 w-4 ${favorites.includes(property.id) ? "fill-red-500 text-red-500" : ""}`}
-                  />
-                </Button>
+                        onClick={() => openInNewTab(propertyPath(property))}
+                      >
+                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
+                          <div className="relative">
+                            <img
+                              src={property.images[0] || ""}
+                              alt={property.title}
+                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="absolute top-2 right-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(property.id);
+                              }}
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${favorites.includes(property.id) ? "fill-red-500 text-red-500" : ""}`}
+                              />
+                            </Button>
                             {property.verified && (
-                              <Badge className="absolute top-2 left-2 bg-green-600">
-                                Verified
-                              </Badge>
+                              <Badge className="absolute top-2 left-2 bg-green-600">Verified</Badge>
                             )}
                           </div>
                           <CardContent className="p-4">
@@ -528,9 +561,7 @@ const BuyerDashboard = () => {
                               {property.locality}, {property.city}
                             </p>
                             <div className="flex items-center justify-between mb-3">
-                              <span className="text-2xl font-bold text-primary">
-                                {formatPrice(property.price)}
-                              </span>
+                              <span className="text-2xl font-bold text-primary">{formatPrice(property.price)}</span>
                               <div className="flex gap-2 text-sm text-muted-foreground">
                                 <span>{property.bedrooms || property.bhk} Beds</span>
                                 <span>•</span>
@@ -657,7 +688,7 @@ const BuyerDashboard = () => {
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
                         <p className="text-xs text-muted-foreground mb-1">Total Interest</p>
-                        <p className="text-lg font-semibold">{formatPrice((emi * loanTenure * 12) - loanAmount)}</p>
+                        <p className="text-lg font-semibold">{formatPrice(emi * loanTenure * 12 - loanAmount)}</p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg col-span-2">
                         <p className="text-xs text-muted-foreground mb-1">Total Payment</p>
