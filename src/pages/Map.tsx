@@ -460,6 +460,8 @@ const Map = () => {
           if (!v) return row;
           return {
             ...row,
+            latitude: toFiniteNumber(row.latitude),
+            longitude: toFiniteNumber(row.longitude),
             title: v.title,
             city: v.city ?? row.city,
             locality: v.locality ?? row.locality,
