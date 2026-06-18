@@ -13,6 +13,7 @@ import { LocationProvider } from "./contexts/LocationContext";
 import LocationPermissionDialog from "./components/location/LocationPermissionDialog";
 
 import ProfileBootProvider from "./contexts/ProfileBootProvider";
+import { WalletProvider } from "./contexts/WalletContext";
 import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
