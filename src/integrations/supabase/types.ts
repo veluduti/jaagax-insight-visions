@@ -1250,6 +1250,51 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_preferred_locations: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          last_notification_at: string | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          name: string
+          notifications_enabled: boolean
+          radius_km: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_notification_at?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name: string
+          notifications_enabled?: boolean
+          radius_km?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_notification_at?: string | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name?: string
+          notifications_enabled?: boolean
+          radius_km?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       buyer_profiles: {
         Row: {
           budget_max: number | null
@@ -1293,6 +1338,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      buyer_referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      buyer_referral_events: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referee_id: string | null
+          referee_name: string | null
+          referrer_id: string
+          reward_amount: number
+          source: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id?: string | null
+          referee_name?: string | null
+          referrer_id: string
+          reward_amount?: number
+          source?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id?: string | null
+          referee_name?: string | null
+          referrer_id?: string
+          reward_amount?: number
+          source?: string
+          status?: string
+        }
+        Relationships: []
       }
       cash_back_entries: {
         Row: {
@@ -4822,6 +4924,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_or_create_referral_code: { Args: never; Returns: string }
       get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
       get_seller_contacts: {
         Args: { _user_ids: string[] }
