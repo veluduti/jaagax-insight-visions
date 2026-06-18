@@ -45,7 +45,6 @@ interface Property {
 
 type PropertyRow = Record<string, unknown> & Partial<Property>;
 
-const asString = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value : fallback);
 const asNullableString = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
 
 const MAPBOX_TOKEN =
