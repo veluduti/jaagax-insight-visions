@@ -407,6 +407,17 @@ All colors MUST be HSL.
 }
 
 /* Mapbox popup styling */
+.mapboxgl-map,
+.mapboxgl-canvas-container,
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mapboxgl-canvas {
+  max-width: none !important;
+}
+
 .mapboxgl-popup-content {
   background: hsl(var(--card)) !important;
   color: hsl(var(--foreground)) !important;
