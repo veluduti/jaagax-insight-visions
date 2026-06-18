@@ -34,6 +34,7 @@ import {
   Hotel,
   Sparkles,
   ShieldCheck,
+  PiggyBank,
   Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
