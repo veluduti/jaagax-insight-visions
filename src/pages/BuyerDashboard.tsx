@@ -51,6 +51,7 @@ interface Property {
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { balance: walletBalance } = useWallet();
   const [user, setUser] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
