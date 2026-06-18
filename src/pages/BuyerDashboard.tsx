@@ -281,10 +281,16 @@ const BuyerDashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Buyer"}!</h1>
             <p className="text-muted-foreground mt-1">Find your dream property</p>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSearchParams({ tab: "wallet" })} className="gap-2">
+              <WalletIcon className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{formatINR(walletBalance)}</span>
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
 
