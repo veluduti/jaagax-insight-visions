@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicPropertyView } from "@/lib/publicPropertyView";
+import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
 import MapFilters from "@/components/map/MapFilters";
 import PropertyDrawer from "@/components/map/PropertyDrawer";
 import AIAreaLens from "@/components/map/AIAreaLens";
@@ -23,11 +24,11 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   latitude: number | null;
   longitude: number | null;
@@ -36,11 +37,160 @@ interface Property {
   type: string | null;
   bhk: number | null;
   verified: boolean | null;
-  images: any;
+  images: unknown;
   trust_score: number | null;
   city: string | null;
   locality: string | null;
 }
+
+type PropertyRow = Record<string, unknown> & Partial<Property>;
+
+const asNullableString = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
+
+const MAPBOX_TOKEN =
+  import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+  import.meta.env.VITE_MAPBOX_TOKEN ||
+  "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+
+const TILE_SIZE = 256;
+
+const lngLatToWorld = (lng: number, lat: number, zoom: number) => {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const sinLat = Math.sin((Math.max(Math.min(lat, 85.05112878), -85.05112878) * Math.PI) / 180);
+  return {
+    x: ((lng + 180) / 360) * scale,
+    y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale,
+  };
+};
+
+const toFiniteNumber = (value: unknown) => {
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+};
+
+const RasterPropertyMap = ({
+  properties,
+  currentCity,
+  center,
+  zoom,
+  token,
+  onPropertyOpen,
+}: {
+  properties: Property[];
+  currentCity: "Hyderabad" | "Vijayawada";
+  center: { lng: number; lat: number };
+  zoom: number;
+  token: string;
+  onPropertyOpen: (property: Property) => void;
+}) => {
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1280 : window.innerWidth,
+    height: typeof window === "undefined" ? 720 : window.innerHeight,
+  }));
+
+  useEffect(() => {
+    const updateViewport = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  const projection = useMemo(() => {
+    const centerWorld = lngLatToWorld(center.lng, center.lat, zoom);
+    return {
+      topLeft: {
+        x: centerWorld.x - viewport.width / 2,
+        y: centerWorld.y - viewport.height / 2,
+      },
+      totalTiles: 2 ** zoom,
+    };
+  }, [center.lat, center.lng, viewport.height, viewport.width, zoom]);
+
+  const tiles = useMemo(() => {
+    const startX = Math.floor(projection.topLeft.x / TILE_SIZE) - 1;
+    const endX = Math.floor((projection.topLeft.x + viewport.width) / TILE_SIZE) + 1;
+    const startY = Math.floor(projection.topLeft.y / TILE_SIZE) - 1;
+    const endY = Math.floor((projection.topLeft.y + viewport.height) / TILE_SIZE) + 1;
+    const nextTiles: Array<{ key: string; url: string; left: number; top: number }> = [];
+
+    for (let x = startX; x <= endX; x += 1) {
+      for (let y = startY; y <= endY; y += 1) {
+        if (y < 0 || y >= projection.totalTiles) continue;
+        const wrappedX = ((x % projection.totalTiles) + projection.totalTiles) % projection.totalTiles;
+        nextTiles.push({
+          key: `${zoom}-${x}-${y}`,
+          left: Math.round(x * TILE_SIZE - projection.topLeft.x),
+          top: Math.round(y * TILE_SIZE - projection.topLeft.y),
+          url: `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/${TILE_SIZE}/${zoom}/${wrappedX}/${y}@2x?access_token=${encodeURIComponent(token)}`,
+        });
+      }
+    }
+    return nextTiles;
+  }, [projection.topLeft.x, projection.topLeft.y, projection.totalTiles, token, viewport.height, viewport.width, zoom]);
+
+  const positionedProperties = useMemo(
+    () =>
+      properties
+        .map((property) => {
+          const lat = toFiniteNumber(property.latitude);
+          const lng = toFiniteNumber(property.longitude);
+          if (lat === null || lng === null) return null;
+          const world = lngLatToWorld(lng, lat, zoom);
+          return {
+            property,
+            left: world.x - projection.topLeft.x,
+            top: world.y - projection.topLeft.y,
+          };
+        })
+        .filter((item): item is { property: Property; left: number; top: number } =>
+          Boolean(item && item.left > -80 && item.left < viewport.width + 80 && item.top > -80 && item.top < viewport.height + 80),
+        ),
+    [properties, projection.topLeft.x, projection.topLeft.y, viewport.height, viewport.width, zoom],
+  );
+
+  return (
+    <div className="absolute inset-0 z-[1] overflow-hidden bg-secondary" aria-label={`Property map for ${currentCity}`}>
+      {tiles.map((tile) => (
+        <img
+          key={tile.key}
+          src={tile.url}
+          alt=""
+          draggable={false}
+          className="absolute max-w-none select-none"
+          style={{ left: tile.left, top: tile.top, width: TILE_SIZE, height: TILE_SIZE }}
+        />
+      ))}
+
+      {positionedProperties.map(({ property, left, top }) => {
+        const isVerified = Boolean(property.verified);
+        const type = property.type?.toLowerCase() || "";
+        const icon = type.includes("villa") ? "🏡" : type.includes("plot") ? "📍" : type.includes("penthouse") ? "🏢" : "🏠";
+        return (
+          <button
+            key={property.id}
+            type="button"
+            onClick={() => onPropertyOpen(property)}
+            className="group absolute -translate-x-1/2 -translate-y-full rounded-full border-2 border-background px-3 py-2 text-xs font-bold text-primary-foreground shadow-2xl transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring"
+            style={{
+              left,
+              top,
+              background: isVerified ? "linear-gradient(135deg, hsl(152 70% 38%), hsl(152 76% 28%))" : "hsl(var(--primary))",
+            }}
+            title={`${property.title} - open property`}
+            aria-label={`Open ${property.title}`}
+          >
+            <span className="mr-1" aria-hidden="true">{icon}</span>
+            ₹{((property.price || 0) / 100000).toFixed(1)}L
+          </button>
+        );
+      })}
+
+      <div className="absolute bottom-2 right-3 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm">
+        © Mapbox © OpenStreetMap
+      </div>
+    </div>
+  );
+};
 
 const Map = () => {
   const [searchParams] = useSearchParams();
@@ -48,7 +198,6 @@ const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const { toast } = useToast();
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -59,6 +208,7 @@ const Map = () => {
   const [showLegend, setShowLegend] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showAILens, setShowAILens] = useState(false);
+  const [useRasterFallback, setUseRasterFallback] = useState(false);
   const navigate = useNavigate();
 
   // Auto-set city from detected location
@@ -114,24 +264,37 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken =
-      import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
-      import.meta.env.VITE_MAPBOX_TOKEN ||
-      "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+    mapboxgl.accessToken = MAPBOX_TOKEN;
 
     if (!mapboxgl.accessToken) {
       setError("Mapbox token missing. Please configure VITE_MAPBOX_PUBLIC_TOKEN.");
       return;
     }
 
+    if (!mapboxgl.supported({ failIfMajorPerformanceCaveat: true })) {
+      setUseRasterFallback(true);
+      return;
+    }
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [cityCoordinates[currentCity].lng, cityCoordinates[currentCity].lat],
       zoom: cityCoordinates[currentCity].zoom,
       pitch: 0,
       bearing: 0,
     });
+
+    map.current.on("error", (event) => {
+      console.error("Mapbox render error:", event.error);
+      setUseRasterFallback(true);
+    });
+
+    window.setTimeout(() => {
+      if (map.current && mapContainer.current && !mapContainer.current.querySelector("canvas")) {
+        setUseRasterFallback(true);
+      }
+    }, 1800);
 
     // Add navigation controls
     map.current.addControl(
@@ -181,6 +344,7 @@ const Map = () => {
 
     return () => {
       map.current?.remove();
+      map.current = null;
     };
   }, []);
 
@@ -293,22 +457,25 @@ const Map = () => {
       }
 
       setProperties(
-        (data || []).map((row: any) => {
+        (data || []).flatMap((row: PropertyRow): Property[] => {
           const v = getPublicPropertyView(row);
-          if (!v) return row;
-          return {
-            ...row,
+          if (!v) return [];
+          return [{
+            id: v.id,
+            slug: asNullableString(row.slug),
+            latitude: toFiniteNumber(v.latitude ?? row.latitude),
+            longitude: toFiniteNumber(v.longitude ?? row.longitude),
             title: v.title,
-            city: v.city ?? row.city,
-            locality: v.locality ?? row.locality,
-            price: v.price ?? row.price,
-            area_sqft: v.area_sqft ?? row.area_sqft,
-            bhk: v.bhk ?? row.bhk,
-            bedrooms: v.bedrooms ?? row.bedrooms,
-            bathrooms: v.bathrooms ?? row.bathrooms,
-            type: v.type ?? row.type,
+            city: asNullableString(v.city ?? row.city),
+            locality: asNullableString(v.locality ?? row.locality),
+            price: toFiniteNumber(v.price ?? row.price) ?? 0,
+            area_sqft: toFiniteNumber(v.area_sqft ?? row.area_sqft),
+            bhk: toFiniteNumber(v.bhk ?? row.bhk),
+            type: asNullableString(v.type ?? row.type),
+            verified: Boolean(v.verified ?? row.verified),
             images: v.images?.length ? v.images : row.images,
-          };
+            trust_score: toFiniteNumber(v.trust_score ?? row.trust_score),
+          }];
         }),
       );
     } catch (err) {
@@ -443,8 +610,8 @@ const Map = () => {
               duration: 1000,
             });
           } else {
-            // Open the property detail in a new tab directly
-            window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
+            // Open the exact property detail route in a new tab.
+            openInNewTab(propertyPath(property));
           }
         });
 
@@ -492,9 +659,8 @@ const Map = () => {
 
   // Change city
   const changeCity = (city: "Hyderabad" | "Vijayawada") => {
-    if (!map.current) return;
     const coords = cityCoordinates[city];
-    map.current.flyTo({
+    map.current?.flyTo({
       center: [coords.lng, coords.lat],
       zoom: coords.zoom,
       duration: 2000,
@@ -526,7 +692,7 @@ const Map = () => {
       priceMax: filters.priceRange?.[1],
     };
 
-    const { error } = await (supabase as any).from("saved_searches").insert({
+    const { error } = await supabase.from("saved_searches").insert({
       user_id: user.id,
       name,
       filters: filtersJson,
@@ -563,7 +729,17 @@ const Map = () => {
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className={`absolute inset-0 ${useRasterFallback ? "hidden" : ""}`} />
+      {useRasterFallback && (
+        <RasterPropertyMap
+          properties={properties}
+          currentCity={currentCity}
+          center={cityCoordinates[currentCity]}
+          zoom={cityCoordinates[currentCity].zoom}
+          token={MAPBOX_TOKEN}
+          onPropertyOpen={(property) => openInNewTab(propertyPath(property))}
+        />
+      )}
 
       {/* Loading Skeleton */}
       {isLoading && (
@@ -747,13 +923,13 @@ const Map = () => {
         className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
       >
         <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
-          <p className="text-sm font-semibold flex items-center gap-2">
+          <div className="text-sm font-semibold flex items-center gap-2">
             <Badge variant="secondary" className="rounded-full">
               <span className="text-primary font-bold">{properties.length}</span>
             </Badge>
             <span className="hidden sm:inline">properties in {currentCity}</span>
             <span className="sm:hidden">found</span>
-          </p>
+          </div>
         </div>
       </motion.div>
 
