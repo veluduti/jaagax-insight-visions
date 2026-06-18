@@ -46,9 +46,7 @@ import { useWallet, formatINR } from "@/contexts/WalletContext";
 const WalletDashboard = lazy(() =>
   import("@/features/buyer/wallet/WalletDashboard").then((m) => ({ default: m.WalletDashboard })),
 );
-const MyPostings = lazy(() =>
-  import("@/features/buyer/MyPostings").then((m) => ({ default: m.MyPostings })),
-);
+const MyPostings = lazy(() => import("@/features/buyer/MyPostings").then((m) => ({ default: m.MyPostings })));
 const KYCVerification = lazy(() =>
   import("@/features/buyer/KYCVerification").then((m) => ({ default: m.KYCVerification })),
 );
@@ -67,7 +65,6 @@ const AIRecommendations = lazy(() =>
 const ActivityTimeline = lazy(() =>
   import("@/features/buyer/ActivityTimeline").then((m) => ({ default: m.ActivityTimeline })),
 );
-
 
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
@@ -407,89 +404,92 @@ const BuyerDashboard = () => {
           </motion.div>
         </div>
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs - SCROLLABLE FIX APPLIED */}
         <Tabs
           value={searchParams.get("tab") || "recommended"}
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(18,minmax(0,1fr))]">
-            <TabsTrigger value="recommended">
-              <Star className="h-4 w-4 mr-2" />
-              For You
-            </TabsTrigger>
-            <TabsTrigger value="ai">
-              <SparklesIcon className="h-4 w-4 mr-2" />
-              AI
-            </TabsTrigger>
-            <TabsTrigger value="activity">
-              <ClockIcon className="h-4 w-4 mr-2" />
-              Activity
-            </TabsTrigger>
-            <TabsTrigger value="journey">
-              <Route className="h-4 w-4 mr-2" />
-              Journey
-            </TabsTrigger>
-            <TabsTrigger value="visits">
-              <Calendar className="h-4 w-4 mr-2" />
-              Visits
-            </TabsTrigger>
-            <TabsTrigger value="bookings">
-              <Hotel className="h-4 w-4 mr-2" />
-              Bookings
-            </TabsTrigger>
-            <TabsTrigger value="weekend">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Weekend
-            </TabsTrigger>
-            <TabsTrigger value="quick-visits">
-              <Calendar className="h-4 w-4 mr-2" />
-              Quick Visits
-            </TabsTrigger>
-            <TabsTrigger value="favorites">
-              <Heart className="h-4 w-4 mr-2" />
-              Favorites
-            </TabsTrigger>
-            <TabsTrigger value="postings">
-              <Home className="h-4 w-4 mr-2" />
-              My Postings
-            </TabsTrigger>
-            <TabsTrigger value="kyc">
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              KYC
-            </TabsTrigger>
-            <TabsTrigger value="financial">
-              <PiggyBank className="h-4 w-4 mr-2" />
-              Financial
-            </TabsTrigger>
-            <TabsTrigger value="calculator">
-              <Calculator className="h-4 w-4 mr-2" />
-              EMI
-            </TabsTrigger>
-            <TabsTrigger value="searches">
-              <Search className="h-4 w-4 mr-2" />
-              Searches
-            </TabsTrigger>
-            <TabsTrigger value="alerts">
-              <Bell className="h-4 w-4 mr-2" />
-              Alerts
-            </TabsTrigger>
-            <TabsTrigger value="locations">
-              <MapPinned className="h-4 w-4 mr-2" />
-              Locations
-            </TabsTrigger>
-            <TabsTrigger value="referrals">
-              <Gift className="h-4 w-4 mr-2" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="wallet">
-              <WalletIcon className="h-4 w-4 mr-2" />
-              Wallet
-            </TabsTrigger>
-          </TabsList>
+          <div className="relative w-full">
+            <div className="overflow-x-auto scrollbar-hide">
+              <TabsList className="inline-flex w-full md:w-auto min-w-full h-auto p-1 gap-1 flex-nowrap">
+                <TabsTrigger value="recommended">
+                  <Star className="h-4 w-4 mr-2" />
+                  For You
+                </TabsTrigger>
+                <TabsTrigger value="ai">
+                  <SparklesIcon className="h-4 w-4 mr-2" />
+                  AI
+                </TabsTrigger>
+                <TabsTrigger value="activity">
+                  <ClockIcon className="h-4 w-4 mr-2" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger value="journey">
+                  <Route className="h-4 w-4 mr-2" />
+                  Journey
+                </TabsTrigger>
+                <TabsTrigger value="visits">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Visits
+                </TabsTrigger>
+                <TabsTrigger value="bookings">
+                  <Hotel className="h-4 w-4 mr-2" />
+                  Bookings
+                </TabsTrigger>
+                <TabsTrigger value="weekend">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Weekend
+                </TabsTrigger>
+                <TabsTrigger value="quick-visits">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Quick Visits
+                </TabsTrigger>
+                <TabsTrigger value="favorites">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Favorites
+                </TabsTrigger>
+                <TabsTrigger value="postings">
+                  <Home className="h-4 w-4 mr-2" />
+                  My Postings
+                </TabsTrigger>
+                <TabsTrigger value="kyc">
+                  <ShieldCheck className="h-4 w-4 mr-2" />
+                  KYC
+                </TabsTrigger>
+                <TabsTrigger value="financial">
+                  <PiggyBank className="h-4 w-4 mr-2" />
+                  Financial
+                </TabsTrigger>
+                <TabsTrigger value="calculator">
+                  <Calculator className="h-4 w-4 mr-2" />
+                  EMI
+                </TabsTrigger>
+                <TabsTrigger value="searches">
+                  <Search className="h-4 w-4 mr-2" />
+                  Searches
+                </TabsTrigger>
+                <TabsTrigger value="alerts">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Alerts
+                </TabsTrigger>
+                <TabsTrigger value="locations">
+                  <MapPinned className="h-4 w-4 mr-2" />
+                  Locations
+                </TabsTrigger>
+                <TabsTrigger value="referrals">
+                  <Gift className="h-4 w-4 mr-2" />
+                  Referrals
+                </TabsTrigger>
+                <TabsTrigger value="wallet">
+                  <WalletIcon className="h-4 w-4 mr-2" />
+                  Wallet
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
 
-
-
+          {/* All TabsContent sections - unchanged from your original */}
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
             {/* AI Suggestions Banner */}
@@ -780,49 +780,63 @@ const BuyerDashboard = () => {
               <AlertsPanel />
             </Suspense>
           </TabsContent>
+
+          {/* Wallet */}
           <TabsContent value="wallet">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <WalletDashboard />
             </Suspense>
           </TabsContent>
+
+          {/* My Postings */}
           <TabsContent value="postings">
             <Suspense fallback={<CardGridSkeleton count={3} />}>
               <MyPostings />
             </Suspense>
           </TabsContent>
+
+          {/* KYC */}
           <TabsContent value="kyc">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <KYCVerification />
             </Suspense>
           </TabsContent>
+
+          {/* Financial */}
           <TabsContent value="financial">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <FinancialEnquiries />
             </Suspense>
           </TabsContent>
+
+          {/* Locations */}
           <TabsContent value="locations">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <PreferredLocations />
             </Suspense>
           </TabsContent>
+
+          {/* Referrals */}
           <TabsContent value="referrals">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <ReferralDashboard />
             </Suspense>
           </TabsContent>
+
+          {/* AI Recommendations */}
           <TabsContent value="ai">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <AIRecommendations />
             </Suspense>
           </TabsContent>
+
+          {/* Activity Timeline */}
           <TabsContent value="activity">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <ActivityTimeline />
             </Suspense>
           </TabsContent>
         </Tabs>
-
-
 
         {/* Market Insights */}
         <Card className="mt-8">
