@@ -432,6 +432,10 @@ const BuyerDashboard = () => {
               <ShieldCheck className="h-4 w-4 mr-2" />
               KYC
             </TabsTrigger>
+            <TabsTrigger value="financial">
+              <PiggyBank className="h-4 w-4 mr-2" />
+              Financial
+            </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
               EMI
