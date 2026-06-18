@@ -341,6 +341,16 @@ const BuyerDashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all border-primary/30" onClick={() => setSearchParams({ tab: "wallet" })}>
+              <CardContent className="p-6 text-center">
+                <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold">Wallet</h3>
+                <p className="text-xs text-muted-foreground mt-1">{formatINR(walletBalance)}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Content Tabs */}
