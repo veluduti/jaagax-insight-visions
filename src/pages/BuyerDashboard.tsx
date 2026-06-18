@@ -782,7 +782,18 @@ const BuyerDashboard = () => {
               <FinancialEnquiries />
             </Suspense>
           </TabsContent>
+          <TabsContent value="locations">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <PreferredLocations />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="referrals">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <ReferralDashboard />
+            </Suspense>
+          </TabsContent>
         </Tabs>
+
 
         {/* Market Insights */}
         <Card className="mt-8">
