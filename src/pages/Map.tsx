@@ -104,7 +104,15 @@ const Map = () => {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR4Y3B1ZGcxMnprMmpsYjIwOG10cXh6In0.HuoJqW9PJdDjLK5O5LJRAQ";
+    mapboxgl.accessToken =
+      import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+      import.meta.env.VITE_MAPBOX_TOKEN ||
+      "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+
+    if (!mapboxgl.accessToken) {
+      setError("Mapbox token missing. Please configure VITE_MAPBOX_PUBLIC_TOKEN.");
+      return;
+    }
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -415,7 +423,8 @@ const Map = () => {
         .addTo(map.current);
 
       // Add click event
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
         if (isCluster) {
           // Zoom into cluster
           map.current?.flyTo({
@@ -424,7 +433,8 @@ const Map = () => {
             duration: 1000,
           });
         } else {
-          setSelectedProperty(property);
+          // Open the property detail in a new tab directly
+          window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
         }
       });
 
