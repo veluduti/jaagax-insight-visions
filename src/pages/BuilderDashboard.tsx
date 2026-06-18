@@ -36,6 +36,8 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
+import { WalletDashboard } from "@/features/buyer/wallet";
+import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
 const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
