@@ -1,4 +1,3 @@
-this file?
 import { useState, useEffect, useRef } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -13,7 +12,17 @@ import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Layers, Navigation as Nav3D, Bookmark, Share2, Info, ChevronDown, ArrowLeft, SlidersHorizontal, Sparkles } from "lucide-react";
+import {
+  Layers,
+  Navigation as Nav3D,
+  Bookmark,
+  Share2,
+  Info,
+  ChevronDown,
+  ArrowLeft,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
@@ -61,31 +70,31 @@ const Map = () => {
       }
     }
   }, [detectedLocation]);
-  
+
   // Initialize filters from URL params
   const getInitialFilters = () => {
     return {
-      transactionType: searchParams.get('transactionType') || "buy",
-      propertyType: searchParams.get('propertyType') || "all",
-      priceRange: searchParams.get('priceRange') ? 
-        [1000000, parseInt(searchParams.get('priceRange') || "50000000")] : 
-        [1000000, 50000000],
-      beds: searchParams.get('beds') || "any",
+      transactionType: searchParams.get("transactionType") || "buy",
+      propertyType: searchParams.get("propertyType") || "all",
+      priceRange: searchParams.get("priceRange")
+        ? [1000000, parseInt(searchParams.get("priceRange") || "50000000")]
+        : [1000000, 50000000],
+      beds: searchParams.get("beds") || "any",
       verifiedOnly: false,
       locality: undefined as string | undefined,
     };
   };
-  
+
   const [filters, setFilters] = useState(getInitialFilters());
 
   // Update filters when URL changes
   useEffect(() => {
     const newFilters = getInitialFilters();
     setFilters(newFilters);
-    
+
     // Update city from URL if provided
-    const cityParam = searchParams.get('city');
-    if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
+    const cityParam = searchParams.get("city");
+    if (cityParam && (cityParam === "Hyderabad" || cityParam === "Vijayawada")) {
       setCurrentCity(cityParam);
     }
   }, [searchParams]);
@@ -98,7 +107,7 @@ const Map = () => {
   // City coordinates
   const cityCoordinates = {
     Hyderabad: { lng: 78.4867, lat: 17.385, zoom: 11 },
-    Vijayawada: { lng: 80.6480, lat: 16.5062, zoom: 12 },
+    Vijayawada: { lng: 80.648, lat: 16.5062, zoom: 12 },
   };
 
   // Initialize map
@@ -129,7 +138,7 @@ const Map = () => {
       new mapboxgl.NavigationControl({
         visualizePitch: true,
       }),
-      "top-right"
+      "top-right",
     );
 
     // Add scale control
@@ -138,7 +147,7 @@ const Map = () => {
         maxWidth: 100,
         unit: "metric",
       }),
-      "bottom-right"
+      "bottom-right",
     );
 
     // Enable 3D buildings
@@ -148,7 +157,7 @@ const Map = () => {
       // Add 3D building layer
       const layers = map.current.getStyle().layers;
       const labelLayerId = layers?.find(
-        (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"]
+        (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"],
       )?.id;
 
       map.current.addLayer(
@@ -161,28 +170,12 @@ const Map = () => {
           minzoom: 15,
           paint: {
             "fill-extrusion-color": "#1a1a2e",
-            "fill-extrusion-height": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              15,
-              0,
-              15.05,
-              ["get", "height"],
-            ],
-            "fill-extrusion-base": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              15,
-              0,
-              15.05,
-              ["get", "min_height"],
-            ],
+            "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "height"]],
+            "fill-extrusion-base": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "min_height"]],
             "fill-extrusion-opacity": 0.6,
           },
         },
-        labelLayerId
+        labelLayerId,
       );
     });
 
@@ -196,13 +189,11 @@ const Map = () => {
     const initializeData = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         // Check if database is empty
-        const { count } = await supabase
-          .from("properties")
-          .select("*", { count: "exact", head: true });
-        
+        const { count } = await supabase.from("properties").select("*", { count: "exact", head: true });
+
         // If empty, show a message instead of auto-seeding
         if (count === 0) {
           setError("No properties found. Please contact admin to add properties.");
@@ -233,7 +224,7 @@ const Map = () => {
           console.log("Property change detected:", payload);
           fetchProperties();
           sonnerToast.success("New property added to map!");
-        }
+        },
       )
       .subscribe();
 
@@ -241,7 +232,7 @@ const Map = () => {
       supabase.removeChannel(channel);
     };
   }, []);
-  
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -253,7 +244,7 @@ const Map = () => {
         toggle3DMode();
       }
     };
-    
+
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [selectedProperty, is3DMode]);
@@ -261,7 +252,7 @@ const Map = () => {
   const fetchProperties = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let query = supabase.from("properties").select("*");
 
@@ -291,9 +282,7 @@ const Map = () => {
       }
 
       // Price range filter
-      query = query
-        .gte("price", filters.priceRange[0])
-        .lte("price", filters.priceRange[1]);
+      query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]);
 
       const { data, error } = await query;
 
@@ -303,11 +292,25 @@ const Map = () => {
         return;
       }
 
-      setProperties((data || []).map((row: any) => {
-        const v = getPublicPropertyView(row);
-        if (!v) return row;
-        return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
-      }));
+      setProperties(
+        (data || []).map((row: any) => {
+          const v = getPublicPropertyView(row);
+          if (!v) return row;
+          return {
+            ...row,
+            title: v.title,
+            city: v.city ?? row.city,
+            locality: v.locality ?? row.locality,
+            price: v.price ?? row.price,
+            area_sqft: v.area_sqft ?? row.area_sqft,
+            bhk: v.bhk ?? row.bhk,
+            bedrooms: v.bedrooms ?? row.bedrooms,
+            bathrooms: v.bathrooms ?? row.bathrooms,
+            type: v.type ?? row.type,
+            images: v.images?.length ? v.images : row.images,
+          };
+        }),
+      );
     } catch (err) {
       console.error("Fetch error:", err);
       setError("An error occurred while fetching properties.");
@@ -326,40 +329,40 @@ const Map = () => {
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
 
-    // Group properties for clustering
-    const clusterGroups: { [key: string]: Property[] } = {};
-    
-    properties.forEach((property) => {
-      if (!property.latitude || !property.longitude) return;
-      const key = `${Math.round(property.latitude * 100)}_${Math.round(property.longitude * 100)}`;
-      if (!clusterGroups[key]) {
-        clusterGroups[key] = [];
-      }
-      clusterGroups[key].push(property);
-    });
+      // Group properties for clustering
+      const clusterGroups: { [key: string]: Property[] } = {};
 
-    // Add markers for each cluster
-    Object.values(clusterGroups).forEach((clusterProps) => {
-      if (!map.current) return;
+      properties.forEach((property) => {
+        if (!property.latitude || !property.longitude) return;
+        const key = `${Math.round(property.latitude * 100)}_${Math.round(property.longitude * 100)}`;
+        if (!clusterGroups[key]) {
+          clusterGroups[key] = [];
+        }
+        clusterGroups[key].push(property);
+      });
 
-      const property = clusterProps[0];
-      const isCluster = clusterProps.length > 1;
+      // Add markers for each cluster
+      Object.values(clusterGroups).forEach((clusterProps) => {
+        if (!map.current) return;
 
-      // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
-      const el = document.createElement("div");
-      el.className = "property-marker";
-      el.style.cursor = "pointer";
+        const property = clusterProps[0];
+        const isCluster = clusterProps.length > 1;
 
-      // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
-      const inner = document.createElement("div");
-      inner.style.transition = "transform 0.2s ease";
-      inner.style.transformOrigin = "center center";
-      el.appendChild(inner);
+        // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
+        const el = document.createElement("div");
+        el.className = "property-marker";
+        el.style.cursor = "pointer";
 
-      if (isCluster) {
-        // Cluster marker - use safe DOM manipulation
-        const clusterDiv = document.createElement("div");
-        clusterDiv.style.cssText = `
+        // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
+        const inner = document.createElement("div");
+        inner.style.transition = "transform 0.2s ease";
+        inner.style.transformOrigin = "center center";
+        el.appendChild(inner);
+
+        if (isCluster) {
+          // Cluster marker - use safe DOM manipulation
+          const clusterDiv = document.createElement("div");
+          clusterDiv.style.cssText = `
           background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
           color: white;
           padding: 12px 16px;
@@ -371,19 +374,25 @@ const Map = () => {
           min-width: 60px;
           text-align: center;
         `;
-        clusterDiv.textContent = String(clusterProps.length);
-        inner.appendChild(clusterDiv);
-      } else {
-        // Single property marker with type icon - use safe DOM manipulation
-        const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
-                         property.type?.toLowerCase().includes('plot') ? '📍' :
-                         property.type?.toLowerCase().includes('penthouse') ? '🏢' : '🏠';
-        
-        const markerDiv = document.createElement("div");
-        markerDiv.style.cssText = `
-          background: ${property.verified 
-            ? 'linear-gradient(135deg, #10b981, #059669)' 
-            : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'};
+          clusterDiv.textContent = String(clusterProps.length);
+          inner.appendChild(clusterDiv);
+        } else {
+          // Single property marker with type icon - use safe DOM manipulation
+          const typeEmoji = property.type?.toLowerCase().includes("villa")
+            ? "🏡"
+            : property.type?.toLowerCase().includes("plot")
+              ? "📍"
+              : property.type?.toLowerCase().includes("penthouse")
+                ? "🏢"
+                : "🏠";
+
+          const markerDiv = document.createElement("div");
+          markerDiv.style.cssText = `
+          background: ${
+            property.verified
+              ? "linear-gradient(135deg, #10b981, #059669)"
+              : "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))"
+          };
           color: white;
           padding: 8px 14px;
           border-radius: 20px;
@@ -396,72 +405,70 @@ const Map = () => {
           align-items: center;
           gap: 6px;
         `;
-        
-        const emojiSpan = document.createElement("span");
-        emojiSpan.style.fontSize = "14px";
-        emojiSpan.textContent = typeEmoji;
-        
-        const priceText = document.createTextNode(`₹${(property.price / 100000).toFixed(1)}L`);
-        
-        markerDiv.appendChild(emojiSpan);
-        markerDiv.appendChild(priceText);
-        inner.appendChild(markerDiv);
-      }
 
-      // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
-      el.addEventListener("mouseenter", () => {
-        inner.style.transform = "scale(1.1) translateY(-2px)";
-        el.style.zIndex = "1000";
-      });
-      el.addEventListener("mouseleave", () => {
-        inner.style.transform = "scale(1)";
-        el.style.zIndex = "auto";
-      });
+          const emojiSpan = document.createElement("span");
+          emojiSpan.style.fontSize = "14px";
+          emojiSpan.textContent = typeEmoji;
 
-      // Create marker
-      if (!property.longitude || !property.latitude) return;
-      
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([property.longitude, property.latitude])
-        .addTo(map.current);
+          const priceText = document.createTextNode(`₹${(property.price / 100000).toFixed(1)}L`);
 
-      // Add click event
-      el.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        if (isCluster) {
-          // Zoom into cluster
-          map.current?.flyTo({
-            center: [property.longitude!, property.latitude!],
-            zoom: map.current.getZoom() + 2,
-            duration: 1000,
-          });
-        } else {
-          // Open the property detail in a new tab directly
-          window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
+          markerDiv.appendChild(emojiSpan);
+          markerDiv.appendChild(priceText);
+          inner.appendChild(markerDiv);
         }
-      });
 
-      // Add popup on hover for single properties
-      if (!isCluster) {
-        const popup = new mapboxgl.Popup({
-          offset: 25,
-          closeButton: false,
-          className: "property-popup",
-        }).setHTML(`
+        // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
+        el.addEventListener("mouseenter", () => {
+          inner.style.transform = "scale(1.1) translateY(-2px)";
+          el.style.zIndex = "1000";
+        });
+        el.addEventListener("mouseleave", () => {
+          inner.style.transform = "scale(1)";
+          el.style.zIndex = "auto";
+        });
+
+        // Create marker
+        if (!property.longitude || !property.latitude) return;
+
+        const marker = new mapboxgl.Marker(el).setLngLat([property.longitude, property.latitude]).addTo(map.current);
+
+        // Add click event
+        el.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (isCluster) {
+            // Zoom into cluster
+            map.current?.flyTo({
+              center: [property.longitude!, property.latitude!],
+              zoom: map.current.getZoom() + 2,
+              duration: 1000,
+            });
+          } else {
+            // Open the property detail in a new tab directly
+            window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
+          }
+        });
+
+        // Add popup on hover for single properties
+        if (!isCluster) {
+          const popup = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: false,
+            className: "property-popup",
+          }).setHTML(`
           <div style="padding: 12px; min-width: 220px;">
             <h3 style="font-weight: 600; margin-bottom: 6px; font-size: 14px; line-height: 1.3;">${property.title}</h3>
             <p style="font-size: 18px; color: hsl(var(--primary)); font-weight: 700; margin-bottom: 6px;">₹${(property.price / 100000).toFixed(1)}L</p>
             <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area_sqft || 0} sq.ft</p>
             <p style="font-size: 12px; color: #888;">${property.locality}, ${property.city}</p>
-            ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ''}
+            ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ""}
           </div>
         `);
 
-        marker.setPopup(popup);
-      }
+          marker.setPopup(popup);
+        }
 
-      markersRef.current.push(marker);
-    });
+        markersRef.current.push(marker);
+      });
     };
 
     if (map.current.isStyleLoaded()) {
@@ -494,10 +501,12 @@ const Map = () => {
     });
     setCurrentCity(city);
   };
-  
+
   // Save current search to user's saved searches
   const handleSaveSearch = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       sonnerToast.error("Please sign in to save searches");
       navigate("/auth");
@@ -531,7 +540,7 @@ const Map = () => {
     }
     sonnerToast.success("Search saved! View it in your dashboard.");
   };
-  
+
   // Share current view
   const handleShare = async () => {
     const shareData = {
@@ -539,7 +548,7 @@ const Map = () => {
       text: `Check out ${properties.length} properties in ${currentCity}`,
       url: window.location.href,
     };
-    
+
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -652,7 +661,7 @@ const Map = () => {
           {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
           <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
         </Button>
-        
+
         <Button
           onClick={handleSaveSearch}
           variant="outline"
@@ -662,17 +671,11 @@ const Map = () => {
         >
           <Bookmark className="h-5 w-5" />
         </Button>
-        
-        <Button
-          onClick={handleShare}
-          variant="outline"
-          size="lg"
-          className="glass-panel shadow-lg"
-          title="Share Map"
-        >
+
+        <Button onClick={handleShare} variant="outline" size="lg" className="glass-panel shadow-lg" title="Share Map">
           <Share2 className="h-5 w-5" />
         </Button>
-        
+
         <Button
           onClick={() => setShowLegend(!showLegend)}
           variant="outline"
@@ -734,12 +737,7 @@ const Map = () => {
 
       {/* Property Drawer */}
       <AnimatePresence>
-        {selectedProperty && (
-          <PropertyDrawer
-            property={selectedProperty}
-            onClose={() => setSelectedProperty(null)}
-          />
-        )}
+        {selectedProperty && <PropertyDrawer property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
       </AnimatePresence>
 
       {/* Property Count Badge */}
@@ -766,7 +764,10 @@ const Map = () => {
         transition={{ delay: 2 }}
         className="absolute bottom-6 left-6 z-10 glass-panel px-4 py-2 rounded-lg text-xs text-muted-foreground hidden lg:block"
       >
-        <p>Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close • <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D</p>
+        <p>
+          Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close •{" "}
+          <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D
+        </p>
       </motion.div>
     </div>
   );
