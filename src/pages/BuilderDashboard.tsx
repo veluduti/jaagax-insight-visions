@@ -326,6 +326,10 @@ export default function BuilderDashboard() {
             <p className="text-muted-foreground mt-1">Manage your projects and properties</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setActiveTab("wallet")} className="gap-2">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{formatINR(liveWalletBalance)}</span>
+            </Button>
             <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
               <Sparkles className="h-4 w-4 mr-2" />
               View Sample Listings
