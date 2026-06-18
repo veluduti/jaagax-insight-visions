@@ -413,10 +413,18 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(16,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(18,minmax(0,1fr))]">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
+            </TabsTrigger>
+            <TabsTrigger value="ai">
+              <SparklesIcon className="h-4 w-4 mr-2" />
+              AI
+            </TabsTrigger>
+            <TabsTrigger value="activity">
+              <ClockIcon className="h-4 w-4 mr-2" />
+              Activity
             </TabsTrigger>
             <TabsTrigger value="journey">
               <Route className="h-4 w-4 mr-2" />
@@ -479,6 +487,7 @@ const BuyerDashboard = () => {
               Wallet
             </TabsTrigger>
           </TabsList>
+
 
 
           {/* Recommended Properties */}
