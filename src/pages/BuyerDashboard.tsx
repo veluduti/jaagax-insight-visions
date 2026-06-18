@@ -48,6 +48,9 @@ const MyPostings = lazy(() =>
 const KYCVerification = lazy(() =>
   import("@/features/buyer/KYCVerification").then((m) => ({ default: m.KYCVerification })),
 );
+const FinancialEnquiries = lazy(() =>
+  import("@/features/buyer/FinancialEnquiries").then((m) => ({ default: m.FinancialEnquiries })),
+);
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
