@@ -746,6 +746,11 @@ const BuyerDashboard = () => {
               <MyPostings />
             </Suspense>
           </TabsContent>
+          <TabsContent value="kyc">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <KYCVerification />
+            </Suspense>
+          </TabsContent>
         </Tabs>
 
         {/* Market Insights */}
