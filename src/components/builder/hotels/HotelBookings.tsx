@@ -111,7 +111,7 @@ export default function HotelBookings() {
             </h1>
             <p className="text-muted-foreground">Manage site-visit stays, client meetings and project tours.</p>
           </div>
-          <Button onClick={() => setShowNew(true)}>
+          <Button onClick={() => navigate("/hotels")}>
             <Plus className="h-4 w-4 mr-2" /> New Booking
           </Button>
         </div>
