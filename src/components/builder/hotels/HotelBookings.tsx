@@ -24,6 +24,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function HotelBookings() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [builderProfileId, setBuilderProfileId] = useState<string | null>(null);
