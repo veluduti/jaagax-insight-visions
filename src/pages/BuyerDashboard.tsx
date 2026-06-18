@@ -424,6 +424,10 @@ const BuyerDashboard = () => {
               <Home className="h-4 w-4 mr-2" />
               My Postings
             </TabsTrigger>
+            <TabsTrigger value="kyc">
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              KYC
+            </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
               EMI
