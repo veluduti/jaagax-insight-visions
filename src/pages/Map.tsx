@@ -27,6 +27,8 @@ import {
   Bath,
   Maximize,
   X,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
