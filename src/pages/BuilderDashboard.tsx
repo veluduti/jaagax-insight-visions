@@ -1000,6 +1000,10 @@ export default function BuilderDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="wallet">
+            <WalletDashboard />
+          </TabsContent>
         </Tabs>
 
         {/* Modals */}
