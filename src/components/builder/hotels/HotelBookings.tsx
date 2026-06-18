@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function HotelBookings() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [builderProfileId, setBuilderProfileId] = useState<string | null>(null);
@@ -109,7 +111,7 @@ export default function HotelBookings() {
             </h1>
             <p className="text-muted-foreground">Manage site-visit stays, client meetings and project tours.</p>
           </div>
-          <Button onClick={() => setShowNew(true)}>
+          <Button onClick={() => navigate("/hotels")}>
             <Plus className="h-4 w-4 mr-2" /> New Booking
           </Button>
         </div>
