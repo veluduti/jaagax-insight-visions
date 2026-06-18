@@ -14,9 +14,11 @@ import {
   Heart, MapPin, Search, Bell, Calculator,
   TrendingUp, Calendar, MessageSquare, LogOut,
   Home, Building2, Filter, Star, ChevronRight,
-  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles
+  GitCompare, DollarSign, Eye, Clock, Share2, Route, Hotel, Sparkles, Wallet as WalletIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useWallet, formatINR } from "@/contexts/WalletContext";
+const WalletDashboard = lazy(() => import("@/features/buyer/wallet/WalletDashboard").then(m => ({ default: m.WalletDashboard })));
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
