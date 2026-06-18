@@ -24,7 +24,6 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
 interface Property {
@@ -43,6 +42,8 @@ interface Property {
   city: string | null;
   locality: string | null;
 }
+
+type PropertyRow = Record<string, unknown> & Partial<Property>;
 
 const MAPBOX_TOKEN =
   import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
@@ -195,7 +196,6 @@ const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const { toast } = useToast();
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -455,7 +455,7 @@ const Map = () => {
       }
 
       setProperties(
-        (data || []).map((row: any) => {
+        (data || []).map((row: PropertyRow) => {
           const v = getPublicPropertyView(row);
           if (!v) return row;
           return {
@@ -689,7 +689,7 @@ const Map = () => {
       priceMax: filters.priceRange?.[1],
     };
 
-    const { error } = await (supabase as any).from("saved_searches").insert({
+    const { error } = await supabase.from("saved_searches").insert({
       user_id: user.id,
       name,
       filters: filtersJson,
