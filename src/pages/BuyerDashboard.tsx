@@ -36,6 +36,8 @@ import {
   ShieldCheck,
   PiggyBank,
   Wallet as WalletIcon,
+  Gift,
+  MapPinned,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
@@ -51,6 +53,13 @@ const KYCVerification = lazy(() =>
 const FinancialEnquiries = lazy(() =>
   import("@/features/buyer/FinancialEnquiries").then((m) => ({ default: m.FinancialEnquiries })),
 );
+const ReferralDashboard = lazy(() =>
+  import("@/features/buyer/referrals/ReferralDashboard").then((m) => ({ default: m.ReferralDashboard })),
+);
+const PreferredLocations = lazy(() =>
+  import("@/features/buyer/locations/PreferredLocations").then((m) => ({ default: m.PreferredLocations })),
+);
+
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
@@ -395,7 +404,7 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(14,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(16,minmax(0,1fr))]">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -448,11 +457,20 @@ const BuyerDashboard = () => {
               <Bell className="h-4 w-4 mr-2" />
               Alerts
             </TabsTrigger>
+            <TabsTrigger value="locations">
+              <MapPinned className="h-4 w-4 mr-2" />
+              Locations
+            </TabsTrigger>
+            <TabsTrigger value="referrals">
+              <Gift className="h-4 w-4 mr-2" />
+              Referrals
+            </TabsTrigger>
             <TabsTrigger value="wallet">
               <WalletIcon className="h-4 w-4 mr-2" />
               Wallet
             </TabsTrigger>
           </TabsList>
+
 
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
