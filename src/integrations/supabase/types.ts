@@ -800,6 +800,38 @@ export type Database = {
         }
         Relationships: []
       }
+      assigned_agents: {
+        Row: {
+          agent_id: string
+          assigned_at: string
+          id: string
+          property_id: string
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          assigned_at?: string
+          id?: string
+          property_id: string
+          status?: string
+        }
+        Update: {
+          agent_id?: string
+          assigned_at?: string
+          id?: string
+          property_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_agents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_recharge_settings: {
         Row: {
           created_at: string
@@ -3094,6 +3126,7 @@ export type Database = {
           is_draft: boolean | null
           is_featured: boolean
           is_live: boolean
+          is_premium: boolean
           is_sold: boolean | null
           latitude: number | null
           listed_by: string | null
@@ -3168,6 +3201,7 @@ export type Database = {
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_premium?: boolean
           is_sold?: boolean | null
           latitude?: number | null
           listed_by?: string | null
@@ -3242,6 +3276,7 @@ export type Database = {
           is_draft?: boolean | null
           is_featured?: boolean
           is_live?: boolean
+          is_premium?: boolean
           is_sold?: boolean | null
           latitude?: number | null
           listed_by?: string | null
@@ -3436,6 +3471,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      property_posts: {
+        Row: {
+          created_at: string
+          id: string
+          is_free_post: boolean
+          month_year: string
+          property_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_free_post?: boolean
+          month_year: string
+          property_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_free_post?: boolean
+          month_year?: string
+          property_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_posts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_reports: {
         Row: {
@@ -4031,6 +4101,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          plan_type: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          plan_type: string
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          plan_type?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       visit_bookings: {
         Row: {
