@@ -38,6 +38,8 @@ import {
   Wallet as WalletIcon,
   Gift,
   MapPinned,
+  Sparkles as SparklesIcon,
+  Clock as ClockIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
@@ -59,6 +61,13 @@ const ReferralDashboard = lazy(() =>
 const PreferredLocations = lazy(() =>
   import("@/features/buyer/locations/PreferredLocations").then((m) => ({ default: m.PreferredLocations })),
 );
+const AIRecommendations = lazy(() =>
+  import("@/features/buyer/AIRecommendations").then((m) => ({ default: m.AIRecommendations })),
+);
+const ActivityTimeline = lazy(() =>
+  import("@/features/buyer/ActivityTimeline").then((m) => ({ default: m.ActivityTimeline })),
+);
+
 
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
