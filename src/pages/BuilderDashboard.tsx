@@ -27,6 +27,8 @@ import {
   Bell,
   Award,
   Gift,
+  Hotel,
+  Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
