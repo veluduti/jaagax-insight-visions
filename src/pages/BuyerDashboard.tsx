@@ -341,13 +341,13 @@ const BuyerDashboard = () => {
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Quick Actions - Row 1 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/map")}>
               <CardContent className="p-6 text-center">
                 <MapPin className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Explore Map</h3>
+                <h3 className="font-semibold text-sm">Explore Map</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -359,7 +359,7 @@ const BuyerDashboard = () => {
             >
               <CardContent className="p-6 text-center">
                 <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Visit Analytics</h3>
+                <h3 className="font-semibold text-sm">Visit Analytics</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -368,7 +368,7 @@ const BuyerDashboard = () => {
             <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/compare")}>
               <CardContent className="p-6 text-center">
                 <GitCompare className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Compare</h3>
+                <h3 className="font-semibold text-sm">Compare</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -377,7 +377,7 @@ const BuyerDashboard = () => {
             <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/agents")}>
               <CardContent className="p-6 text-center">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Find Agent</h3>
+                <h3 className="font-semibold text-sm">Find Agent</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -386,7 +386,109 @@ const BuyerDashboard = () => {
             <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/valuation")}>
               <CardContent className="p-6 text-center">
                 <TrendingUp className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Property Value</h3>
+                <h3 className="font-semibold text-sm">Property Value</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Quick Actions - Row 2 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "visits" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Visits</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "bookings" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Hotel className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Bookings</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "favorites" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Heart className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Favorites</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "postings" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Home className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">My Postings</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "kyc" })}
+            >
+              <CardContent className="p-6 text-center">
+                <ShieldCheck className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">KYC</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Quick Actions - Row 3 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "financial" })}
+            >
+              <CardContent className="p-6 text-center">
+                <PiggyBank className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Financial</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "locations" })}
+            >
+              <CardContent className="p-6 text-center">
+                <MapPinned className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Locations</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "referrals" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Gift className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Referrals</h3>
               </CardContent>
             </Card>
           </motion.div>
@@ -398,13 +500,88 @@ const BuyerDashboard = () => {
             >
               <CardContent className="p-6 text-center">
                 <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold">Wallet</h3>
+                <h3 className="font-semibold text-sm">Wallet</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "ai" })}
+            >
+              <CardContent className="p-6 text-center">
+                <SparklesIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">AI</h3>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
-        {/* Main Content Tabs - SCROLLABLE FIX APPLIED */}
+        {/* Quick Actions - Row 4 */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "activity" })}
+            >
+              <CardContent className="p-6 text-center">
+                <ClockIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Activity</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "weekend" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Weekend</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "quick-visits" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Quick Visits</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "searches" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Search className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Searches</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all"
+              onClick={() => setSearchParams({ tab: "alerts" })}
+            >
+              <CardContent className="p-6 text-center">
+                <Bell className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <h3 className="font-semibold text-sm">Alerts</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Main Content Tabs - SCROLLABLE */}
         <Tabs
           value={searchParams.get("tab") || "recommended"}
           onValueChange={(v) => setSearchParams({ tab: v })}
@@ -489,10 +666,8 @@ const BuyerDashboard = () => {
             </div>
           </div>
 
-          {/* All TabsContent sections - unchanged from your original */}
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
-            {/* AI Suggestions Banner */}
             {aiSuggestions.length > 0 && (
               <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
                 <CardHeader>
@@ -545,7 +720,6 @@ const BuyerDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* City Filter Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 mb-6 rounded-lg border bg-muted/30">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Filter className="h-4 w-4 text-primary" />
