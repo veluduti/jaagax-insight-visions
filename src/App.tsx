@@ -132,6 +132,8 @@ const BadgeDashboard = lazy(() => import("@/components/builder/badges/BadgeDashb
 const ReferralDashboard = lazy(() => import("@/components/builder/referral/ReferralDashboard"));
 const HotelBookings = lazy(() => import("@/components/builder/hotels/HotelBookings"));
 const FinancialEnquiries = lazy(() => import("@/components/builder/financial/FinancialEnquiries"));
+const PreferredLocations = lazy(() => import("@/components/builder/preferences/PreferredLocations"));
+const SuccessScore = lazy(() => import("@/components/builder/success/SuccessScore"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -334,6 +336,26 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="builder">
                         <FinancialEnquiries />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Preferred Locations */}
+                  <Route
+                    path="/builder/locations"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <PreferredLocations />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Builder Success Score */}
+                  <Route
+                    path="/builder/success-score"
+                    element={
+                      <ProtectedRoute allowedRole="builder">
+                        <SuccessScore />
                       </ProtectedRoute>
                     }
                   />
