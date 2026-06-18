@@ -38,6 +38,8 @@ import {
   Wallet as WalletIcon,
   Gift,
   MapPinned,
+  Sparkles as SparklesIcon,
+  Clock as ClockIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
@@ -59,6 +61,13 @@ const ReferralDashboard = lazy(() =>
 const PreferredLocations = lazy(() =>
   import("@/features/buyer/locations/PreferredLocations").then((m) => ({ default: m.PreferredLocations })),
 );
+const AIRecommendations = lazy(() =>
+  import("@/features/buyer/AIRecommendations").then((m) => ({ default: m.AIRecommendations })),
+);
+const ActivityTimeline = lazy(() =>
+  import("@/features/buyer/ActivityTimeline").then((m) => ({ default: m.ActivityTimeline })),
+);
+
 
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
@@ -404,10 +413,18 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(16,minmax(0,1fr))]">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(18,minmax(0,1fr))]">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
+            </TabsTrigger>
+            <TabsTrigger value="ai">
+              <SparklesIcon className="h-4 w-4 mr-2" />
+              AI
+            </TabsTrigger>
+            <TabsTrigger value="activity">
+              <ClockIcon className="h-4 w-4 mr-2" />
+              Activity
             </TabsTrigger>
             <TabsTrigger value="journey">
               <Route className="h-4 w-4 mr-2" />
@@ -470,6 +487,7 @@ const BuyerDashboard = () => {
               Wallet
             </TabsTrigger>
           </TabsList>
+
 
 
           {/* Recommended Properties */}
@@ -792,7 +810,18 @@ const BuyerDashboard = () => {
               <ReferralDashboard />
             </Suspense>
           </TabsContent>
+          <TabsContent value="ai">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <AIRecommendations />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="activity">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <ActivityTimeline />
+            </Suspense>
+          </TabsContent>
         </Tabs>
+
 
 
         {/* Market Insights */}

@@ -8,3 +8,5 @@ export { EMIDiscussion } from "./EMIDiscussion";
 export { ReferralDashboard } from "./referrals/ReferralDashboard";
 export { PreferredLocations } from "./locations/PreferredLocations";
 export { AddLocation } from "./locations/AddLocation";
+export { AIRecommendations } from "./AIRecommendations";
+export { ActivityTimeline } from "./ActivityTimeline";

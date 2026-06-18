@@ -4192,6 +4192,33 @@ export type Database = {
           },
         ]
       }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string | null
