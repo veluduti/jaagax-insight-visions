@@ -461,6 +461,13 @@ const Map = () => {
 
       markersRef.current.push(marker);
     });
+    };
+
+    if (map.current.isStyleLoaded()) {
+      renderMarkers();
+    } else {
+      map.current.once("load", renderMarkers);
+    }
   }, [properties]);
 
   // Toggle 3D mode
