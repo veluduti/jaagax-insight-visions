@@ -733,6 +733,11 @@ const BuyerDashboard = () => {
               <WalletDashboard />
             </Suspense>
           </TabsContent>
+          <TabsContent value="postings">
+            <Suspense fallback={<CardGridSkeleton count={3} />}>
+              <MyPostings />
+            </Suspense>
+          </TabsContent>
         </Tabs>
 
         {/* Market Insights */}
