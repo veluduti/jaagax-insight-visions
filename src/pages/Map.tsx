@@ -319,9 +319,11 @@ const Map = () => {
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
+    const renderMarkers = () => {
+      if (!map.current) return;
+      // Clear existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
 
     // Group properties for clustering
     const clusterGroups: { [key: string]: Property[] } = {};
