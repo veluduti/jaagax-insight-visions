@@ -1,3 +1,4 @@
+this file?
 import { useState, useEffect, useRef } from "react";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -12,24 +13,7 @@ import AIAreaLens from "@/components/map/AIAreaLens";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  Layers,
-  Navigation as Nav3D,
-  Bookmark,
-  Share2,
-  Info,
-  ChevronDown,
-  ArrowLeft,
-  SlidersHorizontal,
-  Sparkles,
-  Home,
-  Bed,
-  Bath,
-  Maximize,
-  X,
-  MapPin,
-  Calendar,
-} from "lucide-react";
+import { Layers, Navigation as Nav3D, Bookmark, Share2, Info, ChevronDown, ArrowLeft, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 
@@ -42,15 +26,11 @@ interface Property {
   area_sqft: number | null;
   type: string | null;
   bhk: number | null;
-  bedrooms: number | null;
-  bathrooms: number | null;
   verified: boolean | null;
   images: any;
   trust_score: number | null;
   city: string | null;
   locality: string | null;
-  status: string;
-  is_live: boolean;
 }
 
 const Map = () => {
@@ -70,17 +50,7 @@ const Map = () => {
   const [showLegend, setShowLegend] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showAILens, setShowAILens] = useState(false);
-  const [mapLoaded, setMapLoaded] = useState(false);
   const navigate = useNavigate();
-
-  // City coordinates
-  const cityCoordinates = {
-    Hyderabad: { lng: 78.4867, lat: 17.385, zoom: 11 },
-    Vijayawada: { lng: 80.648, lat: 16.5062, zoom: 12 },
-  };
-
-  // Get Mapbox token
-  const mapboxToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN;
 
   // Auto-set city from detected location
   useEffect(() => {
@@ -91,129 +61,211 @@ const Map = () => {
       }
     }
   }, [detectedLocation]);
-
+  
   // Initialize filters from URL params
-  const getInitialFilters = () => ({
-    transactionType: searchParams.get("transactionType") || "buy",
-    propertyType: searchParams.get("propertyType") || "all",
-    priceRange: searchParams.get("priceRange")
-      ? [1000000, parseInt(searchParams.get("priceRange") || "50000000")]
-      : [1000000, 50000000],
-    beds: searchParams.get("beds") || "any",
-    verifiedOnly: false,
-    locality: undefined as string | undefined,
-  });
-
+  const getInitialFilters = () => {
+    return {
+      transactionType: searchParams.get('transactionType') || "buy",
+      propertyType: searchParams.get('propertyType') || "all",
+      priceRange: searchParams.get('priceRange') ? 
+        [1000000, parseInt(searchParams.get('priceRange') || "50000000")] : 
+        [1000000, 50000000],
+      beds: searchParams.get('beds') || "any",
+      verifiedOnly: false,
+      locality: undefined as string | undefined,
+    };
+  };
+  
   const [filters, setFilters] = useState(getInitialFilters());
 
   // Update filters when URL changes
   useEffect(() => {
     const newFilters = getInitialFilters();
     setFilters(newFilters);
-    const cityParam = searchParams.get("city");
-    if (cityParam && (cityParam === "Hyderabad" || cityParam === "Vijayawada")) {
+    
+    // Update city from URL if provided
+    const cityParam = searchParams.get('city');
+    if (cityParam && (cityParam === 'Hyderabad' || cityParam === 'Vijayawada')) {
       setCurrentCity(cityParam);
     }
   }, [searchParams]);
 
   // Refetch whenever filters or city change
   useEffect(() => {
-    if (mapLoaded) {
-      fetchProperties();
-    }
-  }, [filters, currentCity, mapLoaded]);
+    fetchProperties();
+  }, [filters, currentCity]);
+
+  // City coordinates
+  const cityCoordinates = {
+    Hyderabad: { lng: 78.4867, lat: 17.385, zoom: 11 },
+    Vijayawada: { lng: 80.6480, lat: 16.5062, zoom: 12 },
+  };
 
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // Check for Mapbox token
-    if (!mapboxToken) {
-      setError("Mapbox token missing. Please add VITE_MAPBOX_PUBLIC_TOKEN to your .env file.");
-      setIsLoading(false);
+    mapboxgl.accessToken =
+      import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
+      import.meta.env.VITE_MAPBOX_TOKEN ||
+      "pk.eyJ1IjoibHVja3kwNDEyIiwiYSI6ImNtaHFudzc3YTBqazUya3F6ZGt1dGg4bTkifQ.R8ZlF_DjnQCX0Y1pS47a-Q";
+
+    if (!mapboxgl.accessToken) {
+      setError("Mapbox token missing. Please configure VITE_MAPBOX_PUBLIC_TOKEN.");
       return;
     }
 
-    mapboxgl.accessToken = mapboxToken;
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/dark-v11",
+      center: [cityCoordinates[currentCity].lng, cityCoordinates[currentCity].lat],
+      zoom: cityCoordinates[currentCity].zoom,
+      pitch: 0,
+      bearing: 0,
+    });
 
-    try {
-      const mapInstance = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
-        center: [cityCoordinates[currentCity].lng, cityCoordinates[currentCity].lat],
-        zoom: cityCoordinates[currentCity].zoom,
-        pitch: 0,
-        bearing: 0,
-      });
+    // Add navigation controls
+    map.current.addControl(
+      new mapboxgl.NavigationControl({
+        visualizePitch: true,
+      }),
+      "top-right"
+    );
 
-      map.current = mapInstance;
+    // Add scale control
+    map.current.addControl(
+      new mapboxgl.ScaleControl({
+        maxWidth: 100,
+        unit: "metric",
+      }),
+      "bottom-right"
+    );
 
-      // Add navigation controls
-      mapInstance.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), "top-right");
+    // Enable 3D buildings
+    map.current.on("load", () => {
+      if (!map.current) return;
 
-      mapInstance.addControl(new mapboxgl.ScaleControl({ maxWidth: 100, unit: "metric" }), "bottom-right");
+      // Add 3D building layer
+      const layers = map.current.getStyle().layers;
+      const labelLayerId = layers?.find(
+        (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"]
+      )?.id;
 
-      // Handle map load
-      mapInstance.on("load", () => {
-        setMapLoaded(true);
-        setIsLoading(false);
-
-        // Add 3D building layer
-        const layers = mapInstance.getStyle().layers;
-        const labelLayerId = layers?.find(
-          (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"],
-        )?.id;
-
-        mapInstance.addLayer(
-          {
-            id: "3d-buildings",
-            source: "composite",
-            "source-layer": "building",
-            filter: ["==", "extrude", "true"],
-            type: "fill-extrusion",
-            minzoom: 15,
-            paint: {
-              "fill-extrusion-color": "#1a1a2e",
-              "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "height"]],
-              "fill-extrusion-base": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "min_height"]],
-              "fill-extrusion-opacity": 0.6,
-            },
+      map.current.addLayer(
+        {
+          id: "3d-buildings",
+          source: "composite",
+          "source-layer": "building",
+          filter: ["==", "extrude", "true"],
+          type: "fill-extrusion",
+          minzoom: 15,
+          paint: {
+            "fill-extrusion-color": "#1a1a2e",
+            "fill-extrusion-height": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              15,
+              0,
+              15.05,
+              ["get", "height"],
+            ],
+            "fill-extrusion-base": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              15,
+              0,
+              15.05,
+              ["get", "min_height"],
+            ],
+            "fill-extrusion-opacity": 0.6,
           },
-          labelLayerId,
-        );
-
-        // Fetch properties after map loads
-        fetchProperties();
-      });
-
-      // Handle errors
-      mapInstance.on("error", (e) => {
-        console.error("Mapbox error:", e);
-        setError("Failed to load map. Please check your Mapbox token.");
-        setIsLoading(false);
-      });
-    } catch (err) {
-      console.error("Map initialization error:", err);
-      setError("Failed to initialize map. Please try again.");
-      setIsLoading(false);
-    }
+        },
+        labelLayerId
+      );
+    });
 
     return () => {
       map.current?.remove();
-      map.current = null;
-      setMapLoaded(false);
     };
   }, []);
 
   // Fetch properties from Supabase
+  useEffect(() => {
+    const initializeData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // Check if database is empty
+        const { count } = await supabase
+          .from("properties")
+          .select("*", { count: "exact", head: true });
+        
+        // If empty, show a message instead of auto-seeding
+        if (count === 0) {
+          setError("No properties found. Please contact admin to add properties.");
+          setIsLoading(false);
+        } else {
+          await fetchProperties();
+        }
+      } catch (err) {
+        console.error("Error initializing data:", err);
+        setError("Failed to load properties. Please try again.");
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel("properties-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "properties",
+        },
+        (payload) => {
+          console.log("Property change detected:", payload);
+          fetchProperties();
+          sonnerToast.success("New property added to map!");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+  
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedProperty) {
+        setSelectedProperty(null);
+      }
+      if (e.key === "3" && e.ctrlKey) {
+        e.preventDefault();
+        toggle3DMode();
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [selectedProperty, is3DMode]);
+
   const fetchProperties = async () => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
       let query = supabase.from("properties").select("*");
 
-      // Filter by city
+      // Filter by city (case-insensitive)
       query = query.ilike("city", currentCity);
 
       if (filters.verifiedOnly) {
@@ -233,11 +285,15 @@ const Map = () => {
         }
       }
 
+      // Locality filter from search
       if (filters.locality) {
         query = query.ilike("locality", `%${filters.locality}%`);
       }
 
-      query = query.gte("price", filters.priceRange[0]).lte("price", filters.priceRange[1]).eq("is_live", true);
+      // Price range filter
+      query = query
+        .gte("price", filters.priceRange[0])
+        .lte("price", filters.priceRange[1]);
 
       const { data, error } = await query;
 
@@ -247,25 +303,11 @@ const Map = () => {
         return;
       }
 
-      const processedData = (data || []).map((row: any) => {
+      setProperties((data || []).map((row: any) => {
         const v = getPublicPropertyView(row);
         if (!v) return row;
-        return {
-          ...row,
-          title: v.title,
-          city: v.city ?? row.city,
-          locality: v.locality ?? row.locality,
-          price: v.price ?? row.price,
-          area_sqft: v.area_sqft ?? row.area_sqft,
-          bhk: v.bhk ?? row.bhk,
-          bedrooms: v.bedrooms ?? row.bedrooms,
-          bathrooms: v.bathrooms ?? row.bathrooms,
-          type: v.type ?? row.type,
-          images: v.images?.length ? v.images : row.images,
-        };
-      });
-
-      setProperties(processedData);
+        return { ...row, title: v.title, city: v.city ?? row.city, locality: v.locality ?? row.locality, price: v.price ?? row.price, area_sqft: v.area_sqft ?? row.area_sqft, bhk: v.bhk ?? row.bhk, bedrooms: v.bedrooms ?? row.bedrooms, bathrooms: v.bathrooms ?? row.bathrooms, type: v.type ?? row.type, images: (v.images?.length ? v.images : row.images) };
+      }));
     } catch (err) {
       console.error("Fetch error:", err);
       setError("An error occurred while fetching properties.");
@@ -276,44 +318,97 @@ const Map = () => {
 
   // Add property markers to map
   useEffect(() => {
-    if (!map.current || !mapLoaded || isLoading) return;
+    if (!map.current) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
+    const renderMarkers = () => {
+      if (!map.current) return;
+      // Clear existing markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
 
-    if (properties.length === 0) return;
-
-    // Add markers
+    // Group properties for clustering
+    const clusterGroups: { [key: string]: Property[] } = {};
+    
     properties.forEach((property) => {
       if (!property.latitude || !property.longitude) return;
+      const key = `${Math.round(property.latitude * 100)}_${Math.round(property.longitude * 100)}`;
+      if (!clusterGroups[key]) {
+        clusterGroups[key] = [];
+      }
+      clusterGroups[key].push(property);
+    });
 
-      // Create marker element
+    // Add markers for each cluster
+    Object.values(clusterGroups).forEach((clusterProps) => {
+      if (!map.current) return;
+
+      const property = clusterProps[0];
+      const isCluster = clusterProps.length > 1;
+
+      // Create custom marker element (outer wrapper - DO NOT set transform here, Mapbox uses it for positioning)
       const el = document.createElement("div");
       el.className = "property-marker";
       el.style.cursor = "pointer";
 
+      // Inner wrapper handles all visual transforms (hover/scale) so we don't clobber Mapbox's translate
       const inner = document.createElement("div");
-      inner.style.cssText = `
-        background: ${
-          property.verified ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #2563EB, #1D4ED8)"
-        };
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        border: 2px solid white;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: transform 0.2s ease;
-      `;
-      inner.textContent = `₹${(property.price / 100000).toFixed(1)}L`;
+      inner.style.transition = "transform 0.2s ease";
+      inner.style.transformOrigin = "center center";
+      el.appendChild(inner);
 
-      // Hover effect
+      if (isCluster) {
+        // Cluster marker - use safe DOM manipulation
+        const clusterDiv = document.createElement("div");
+        clusterDiv.style.cssText = `
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
+          color: white;
+          padding: 12px 16px;
+          border-radius: 24px;
+          font-weight: 700;
+          font-size: 16px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+          border: 3px solid white;
+          min-width: 60px;
+          text-align: center;
+        `;
+        clusterDiv.textContent = String(clusterProps.length);
+        inner.appendChild(clusterDiv);
+      } else {
+        // Single property marker with type icon - use safe DOM manipulation
+        const typeEmoji = property.type?.toLowerCase().includes('villa') ? '🏡' : 
+                         property.type?.toLowerCase().includes('plot') ? '📍' :
+                         property.type?.toLowerCase().includes('penthouse') ? '🏢' : '🏠';
+        
+        const markerDiv = document.createElement("div");
+        markerDiv.style.cssText = `
+          background: ${property.verified 
+            ? 'linear-gradient(135deg, #10b981, #059669)' 
+            : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))'};
+          color: white;
+          padding: 8px 14px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 13px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          border: 2px solid white;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        `;
+        
+        const emojiSpan = document.createElement("span");
+        emojiSpan.style.fontSize = "14px";
+        emojiSpan.textContent = typeEmoji;
+        
+        const priceText = document.createTextNode(`₹${(property.price / 100000).toFixed(1)}L`);
+        
+        markerDiv.appendChild(emojiSpan);
+        markerDiv.appendChild(priceText);
+        inner.appendChild(markerDiv);
+      }
+
+      // Hover effect on inner element (does NOT touch Mapbox's transform on `el`)
       el.addEventListener("mouseenter", () => {
         inner.style.transform = "scale(1.1) translateY(-2px)";
         el.style.zIndex = "1000";
@@ -323,24 +418,63 @@ const Map = () => {
         el.style.zIndex = "auto";
       });
 
-      el.appendChild(inner);
-
       // Create marker
-      const marker = new mapboxgl.Marker(el).setLngLat([property.longitude, property.latitude]).addTo(map.current!);
+      if (!property.longitude || !property.latitude) return;
+      
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([property.longitude, property.latitude])
+        .addTo(map.current);
 
-      // Click to open property
+      // Add click event
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        setSelectedProperty(property);
+        if (isCluster) {
+          // Zoom into cluster
+          map.current?.flyTo({
+            center: [property.longitude!, property.latitude!],
+            zoom: map.current.getZoom() + 2,
+            duration: 1000,
+          });
+        } else {
+          // Open the property detail in a new tab directly
+          window.open(`/property/${property.id}`, "_blank", "noopener,noreferrer");
+        }
       });
+
+      // Add popup on hover for single properties
+      if (!isCluster) {
+        const popup = new mapboxgl.Popup({
+          offset: 25,
+          closeButton: false,
+          className: "property-popup",
+        }).setHTML(`
+          <div style="padding: 12px; min-width: 220px;">
+            <h3 style="font-weight: 600; margin-bottom: 6px; font-size: 14px; line-height: 1.3;">${property.title}</h3>
+            <p style="font-size: 18px; color: hsl(var(--primary)); font-weight: 700; margin-bottom: 6px;">₹${(property.price / 100000).toFixed(1)}L</p>
+            <p style="font-size: 13px; color: #666; margin-bottom: 4px;">${property.bhk} BHK • ${property.area_sqft || 0} sq.ft</p>
+            <p style="font-size: 12px; color: #888;">${property.locality}, ${property.city}</p>
+            ${property.verified ? '<p style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 500;">✓ JaagaX Verified</p>' : ''}
+          </div>
+        `);
+
+        marker.setPopup(popup);
+      }
 
       markersRef.current.push(marker);
     });
-  }, [properties, mapLoaded, isLoading]);
+    };
+
+    if (map.current.isStyleLoaded()) {
+      renderMarkers();
+    } else {
+      map.current.once("load", renderMarkers);
+    }
+  }, [properties]);
 
   // Toggle 3D mode
   const toggle3DMode = () => {
     if (!map.current) return;
+
     if (is3DMode) {
       map.current.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
     } else {
@@ -360,40 +494,17 @@ const Map = () => {
     });
     setCurrentCity(city);
   };
-
-  // Format price
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(1)} L`;
-    return `₹${price.toLocaleString()}`;
-  };
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedProperty) {
-        setSelectedProperty(null);
-      }
-      if (e.key === "3" && e.ctrlKey) {
-        e.preventDefault();
-        toggle3DMode();
-      }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [selectedProperty, is3DMode]);
-
-  // Handle save search
+  
+  // Save current search to user's saved searches
   const handleSaveSearch = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       sonnerToast.error("Please sign in to save searches");
       navigate("/auth");
       return;
     }
-    const defaultName = `${filters.beds !== "any" ? filters.beds + " BHK " : ""}${filters.propertyType !== "any" ? filters.propertyType + " " : ""}in ${currentCity}`;
+
+    const defaultName = `${filters.beds !== "any" ? filters.beds + " BHK " : ""}${filters.propertyType !== "any" ? filters.propertyType + " " : ""}in ${currentCity}${filters.priceRange?.[1] ? " under ₹" + (filters.priceRange[1] / 100000).toFixed(0) + "L" : ""}`;
     const name = window.prompt("Name this search:", defaultName.trim());
     if (!name) return;
 
@@ -418,37 +529,34 @@ const Map = () => {
       sonnerToast.error("Failed to save search");
       return;
     }
-    sonnerToast.success("Search saved!");
+    sonnerToast.success("Search saved! View it in your dashboard.");
   };
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="glass-panel p-8 rounded-2xl max-w-md mx-auto text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
-            <Info className="h-8 w-8 text-destructive" />
-          </div>
-          <h3 className="text-xl font-bold">Map Error</h3>
-          <p className="text-muted-foreground">{error}</p>
-          <div className="flex gap-2">
-            <Button onClick={() => window.location.reload()} className="flex-1">
-              Reload
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/dashboard/buyer")} className="flex-1">
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  
+  // Share current view
+  const handleShare = async () => {
+    const shareData = {
+      title: `Properties in ${currentCity} - JaagaX`,
+      text: `Check out ${properties.length} properties in ${currentCity}`,
+      url: window.location.href,
+    };
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log("Share cancelled");
+      }
+    } else {
+      handleSaveSearch();
+    }
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-background">
       {/* Map Container */}
       <div ref={mapContainer} className="absolute inset-0" />
 
-      {/* Loading */}
+      {/* Loading Skeleton */}
       {isLoading && (
         <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
           <div className="glass-panel p-8 rounded-2xl space-y-4 max-w-md mx-4">
@@ -460,6 +568,32 @@ const Map = () => {
         </div>
       )}
 
+      {/* Error State */}
+      {error && !isLoading && (
+        <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center">
+          <div className="glass-panel p-8 rounded-2xl max-w-md mx-4 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
+              <Info className="h-8 w-8 text-destructive" />
+            </div>
+            <h3 className="text-xl font-bold">Oops! Something went wrong</h3>
+            <p className="text-muted-foreground">{error}</p>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Top Filters - toggleable */}
+      <MapFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        currentCity={currentCity}
+        onCityChange={changeCity}
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+      />
+
       {/* Top Left - Back + Filter Toggle */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
@@ -467,16 +601,23 @@ const Map = () => {
         className="absolute top-6 left-6 z-20 flex gap-2"
       >
         <Button
-          onClick={() => navigate("/dashboard/buyer")}
+          onClick={() => navigate("/dashboard")}
           variant="outline"
           size="lg"
           className="glass-panel shadow-lg"
+          title="Back to Dashboard"
         >
           <ArrowLeft className="h-5 w-5" />
           <span className="ml-2 hidden sm:inline">Back</span>
         </Button>
         {!showFilters && (
-          <Button onClick={() => setShowFilters(true)} variant="outline" size="lg" className="glass-panel shadow-lg">
+          <Button
+            onClick={() => setShowFilters(true)}
+            variant="outline"
+            size="lg"
+            className="glass-panel shadow-lg"
+            title="Show Filters"
+          >
             <SlidersHorizontal className="h-5 w-5" />
             <span className="ml-2 hidden sm:inline">Filters</span>
           </Button>
@@ -487,6 +628,7 @@ const Map = () => {
             variant="outline"
             size="lg"
             className="glass-panel shadow-lg glow-effect"
+            title="AI Area Lens"
           >
             <Sparkles className="h-5 w-5" />
             <span className="ml-2 hidden sm:inline">AI Lens</span>
@@ -494,7 +636,7 @@ const Map = () => {
         )}
       </motion.div>
 
-      {/* Top Right Controls */}
+      {/* Control Buttons - Top Right */}
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -505,17 +647,38 @@ const Map = () => {
           variant={is3DMode ? "default" : "outline"}
           size="lg"
           className="glass-panel shadow-lg"
+          title="Toggle 3D View (Ctrl+3)"
         >
-          {is3DMode ? <Nav3D className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
+          {is3DMode ? <Nav3D className="h-5 w-5 mr-2" /> : <Layers className="h-5 w-5 mr-2" />}
+          <span className="hidden md:inline">{is3DMode ? "3D" : "2D"}</span>
         </Button>
-        <Button onClick={handleSaveSearch} variant="outline" size="lg" className="glass-panel shadow-lg">
+        
+        <Button
+          onClick={handleSaveSearch}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Save Search"
+        >
           <Bookmark className="h-5 w-5" />
         </Button>
+        
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          size="lg"
+          className="glass-panel shadow-lg"
+          title="Share Map"
+        >
+          <Share2 className="h-5 w-5" />
+        </Button>
+        
         <Button
           onClick={() => setShowLegend(!showLegend)}
           variant="outline"
           size="lg"
           className="glass-panel shadow-lg"
+          title="Toggle Legend"
         >
           <Info className="h-5 w-5" />
         </Button>
@@ -533,24 +696,33 @@ const Map = () => {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-sm">Map Legend</h3>
               <Button variant="ghost" size="sm" onClick={() => setShowLegend(false)}>
-                <X className="h-4 w-4" />
+                <ChevronDown className="h-4 w-4" />
               </Button>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 border-2 border-white" />
-                <span>Verified</span>
+                <span>JaagaX Verified</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 border-2 border-white" />
-                <span>Standard</span>
+                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/80 border-2 border-white" />
+                <span>Standard Listing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-6 rounded-full bg-gradient-to-r from-primary to-primary/90 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                  5+
+                </div>
+                <span>Cluster (Multiple)</span>
+              </div>
+              <div className="pt-2 mt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground">🏠 Apartment • 🏡 Villa • 📍 Plot • 🏢 Penthouse</p>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* AI Area Lens */}
+      {/* AI Area Lens - toggleable */}
       {showAILens && (
         <AIAreaLens
           map={map.current}
@@ -560,94 +732,17 @@ const Map = () => {
         />
       )}
 
-      {/* Property Drawer - Clicking marker opens this */}
+      {/* Property Drawer */}
       <AnimatePresence>
         {selectedProperty && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="absolute right-0 top-0 h-full w-full sm:w-[420px] z-30 bg-background border-l shadow-2xl"
-          >
-            <div className="h-full overflow-y-auto p-6">
-              {/* Close button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 right-4 z-10"
-                onClick={() => setSelectedProperty(null)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-
-              {/* Property Image */}
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-muted mb-4">
-                <img
-                  src={
-                    selectedProperty.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800"
-                  }
-                  alt={selectedProperty.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800";
-                  }}
-                />
-                {selectedProperty.verified && <Badge className="absolute top-3 left-3 bg-green-500">✓ Verified</Badge>}
-              </div>
-
-              {/* Property Details */}
-              <h2 className="text-xl font-bold mb-1">{selectedProperty.title}</h2>
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
-                <MapPin className="h-3.5 w-3.5" />
-                {selectedProperty.locality}, {selectedProperty.city}
-              </p>
-
-              <p className="text-2xl font-bold text-primary mb-4">{formatPrice(selectedProperty.price)}</p>
-
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Bed className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="font-semibold">{selectedProperty.bhk || selectedProperty.bedrooms || 0} BHK</p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Bath className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="font-semibold">{selectedProperty.bathrooms || 0} Baths</p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Maximize className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-                  <p className="font-semibold">{selectedProperty.area_sqft || 0} sq.ft</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    window.open(`/property/${selectedProperty.id}`, "_blank");
-                  }}
-                >
-                  <Home className="h-4 w-4 mr-2" />
-                  View Full Details
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    navigate(`/visit/schedule?propertyId=${selectedProperty.id}`);
-                  }}
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Visit
-                </Button>
-              </div>
-            </div>
-          </motion.div>
+          <PropertyDrawer
+            property={selectedProperty}
+            onClose={() => setSelectedProperty(null)}
+          />
         )}
       </AnimatePresence>
 
-      {/* Property Count */}
+      {/* Property Count Badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -656,12 +751,22 @@ const Map = () => {
         <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
           <p className="text-sm font-semibold flex items-center gap-2">
             <Badge variant="secondary" className="rounded-full">
-              {properties.length}
+              <span className="text-primary font-bold">{properties.length}</span>
             </Badge>
             <span className="hidden sm:inline">properties in {currentCity}</span>
             <span className="sm:hidden">found</span>
           </p>
         </div>
+      </motion.div>
+
+      {/* Keyboard Shortcuts Hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        className="absolute bottom-6 left-6 z-10 glass-panel px-4 py-2 rounded-lg text-xs text-muted-foreground hidden lg:block"
+      >
+        <p>Keyboard: <kbd className="px-1 py-0.5 bg-secondary rounded">ESC</kbd> to close • <kbd className="px-1 py-0.5 bg-secondary rounded">Ctrl+3</kbd> for 3D</p>
       </motion.div>
     </div>
   );
