@@ -690,6 +690,11 @@ const BuyerDashboard = () => {
               <AlertsPanel />
             </Suspense>
           </TabsContent>
+          <TabsContent value="wallet">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <WalletDashboard />
+            </Suspense>
+          </TabsContent>
         </Tabs>
 
         {/* Market Insights */}
