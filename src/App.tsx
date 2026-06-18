@@ -168,6 +168,7 @@ const App = () => (
         <BrowserRouter>
           <ProfileBootProvider>
             <LocationProvider>
+              <WalletProvider>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
