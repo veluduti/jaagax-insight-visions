@@ -2382,6 +2382,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_documents: {
+        Row: {
+          created_at: string
+          file_url: string
+          id: string
+          rejection_reason: string | null
+          status: string
+          type: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_url: string
+          id?: string
+          rejection_reason?: string | null
+          status?: string
+          type: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_url?: string
+          id?: string
+          rejection_reason?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       kyc_verifications: {
         Row: {
           aadhaar_url: string | null
@@ -4135,6 +4168,36 @@ export type Database = {
           start_date?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_verification: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean
+          trust_score: number
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          trust_score?: number
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          trust_score?: number
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }

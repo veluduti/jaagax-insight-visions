@@ -33,6 +33,7 @@ import {
   Route,
   Hotel,
   Sparkles,
+  ShieldCheck,
   Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -42,6 +43,9 @@ const WalletDashboard = lazy(() =>
 );
 const MyPostings = lazy(() =>
   import("@/features/buyer/MyPostings").then((m) => ({ default: m.MyPostings })),
+);
+const KYCVerification = lazy(() =>
+  import("@/features/buyer/KYCVerification").then((m) => ({ default: m.KYCVerification })),
 );
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
@@ -387,7 +391,7 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-12">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-[repeat(13,minmax(0,1fr))]">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -419,6 +423,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="postings">
               <Home className="h-4 w-4 mr-2" />
               My Postings
+            </TabsTrigger>
+            <TabsTrigger value="kyc">
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              KYC
             </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
@@ -736,6 +744,11 @@ const BuyerDashboard = () => {
           <TabsContent value="postings">
             <Suspense fallback={<CardGridSkeleton count={3} />}>
               <MyPostings />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="kyc">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <KYCVerification />
             </Suspense>
           </TabsContent>
         </Tabs>
