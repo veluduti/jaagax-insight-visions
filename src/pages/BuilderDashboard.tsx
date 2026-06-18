@@ -566,6 +566,38 @@ export default function BuilderDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Hotels */}
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-amber-500/40 group h-full"
+              onClick={() => navigate("/builder/hotels")}
+            >
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <Hotel className="h-6 w-6 text-amber-500" />
+                </div>
+                <h3 className="font-semibold text-sm">Hotels</h3>
+                <p className="text-xs text-muted-foreground">Stays for site visits</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Financial */}
+          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-indigo-500/40 group h-full"
+              onClick={() => navigate("/builder/financial")}
+            >
+              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
+                <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
+                  <Banknote className="h-6 w-6 text-indigo-500" />
+                </div>
+                <h3 className="font-semibold text-sm">Financial</h3>
+                <p className="text-xs text-muted-foreground">Loan enquiries & EMI</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Main Content Tabs */}
