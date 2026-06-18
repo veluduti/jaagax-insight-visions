@@ -5,3 +5,6 @@ export { FinancialEnquiries } from "./FinancialEnquiries";
 export { LoanApplication } from "./LoanApplication";
 export { LoanStatusTracker } from "./LoanStatusTracker";
 export { EMIDiscussion } from "./EMIDiscussion";
+export { ReferralDashboard } from "./referrals/ReferralDashboard";
+export { PreferredLocations } from "./locations/PreferredLocations";
+export { AddLocation } from "./locations/AddLocation";
