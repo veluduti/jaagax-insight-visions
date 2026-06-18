@@ -534,6 +534,48 @@ export type Database = {
           },
         ]
       }
+      agent_success_scores: {
+        Row: {
+          builder_profile_id: string
+          conversion_rate: number
+          created_at: string
+          customer_rating: number
+          id: string
+          last_calculated: string
+          overall_score: number
+          response_time: number
+          updated_at: string
+          verified_listings: number
+          visit_success_rate: number
+        }
+        Insert: {
+          builder_profile_id: string
+          conversion_rate?: number
+          created_at?: string
+          customer_rating?: number
+          id?: string
+          last_calculated?: string
+          overall_score?: number
+          response_time?: number
+          updated_at?: string
+          verified_listings?: number
+          visit_success_rate?: number
+        }
+        Update: {
+          builder_profile_id?: string
+          conversion_rate?: number
+          created_at?: string
+          customer_rating?: number
+          id?: string
+          last_calculated?: string
+          overall_score?: number
+          response_time?: number
+          updated_at?: string
+          verified_listings?: number
+          visit_success_rate?: number
+        }
+        Relationships: []
+      }
       agent_tasks: {
         Row: {
           agent_id: string
@@ -2489,27 +2531,45 @@ export type Database = {
       }
       preferred_locations: {
         Row: {
+          builder_profile_id: string | null
+          city: string | null
           created_at: string
           id: string
           is_auto_suggested: boolean
+          locality: string | null
           location_name: string
           location_type: string
+          pincode: string | null
+          property_id: string | null
+          source: string | null
           user_id: string
         }
         Insert: {
+          builder_profile_id?: string | null
+          city?: string | null
           created_at?: string
           id?: string
           is_auto_suggested?: boolean
+          locality?: string | null
           location_name: string
           location_type: string
+          pincode?: string | null
+          property_id?: string | null
+          source?: string | null
           user_id: string
         }
         Update: {
+          builder_profile_id?: string | null
+          city?: string | null
           created_at?: string
           id?: string
           is_auto_suggested?: boolean
+          locality?: string | null
           location_name?: string
           location_type?: string
+          pincode?: string | null
+          property_id?: string | null
+          source?: string | null
           user_id?: string
         }
         Relationships: []
