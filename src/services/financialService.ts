@@ -15,6 +15,7 @@ export interface FinancialEnquiry {
   id: string;
   builder_profile_id: string | null;
   user_id: string;
+  buyer_name?: string | null;
   property_id: string | null;
   loan_type: string;
   enquiry_type: FinancialEnquiryType | null;
