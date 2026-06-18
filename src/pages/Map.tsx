@@ -37,13 +37,16 @@ interface Property {
   type: string | null;
   bhk: number | null;
   verified: boolean | null;
-  images: any;
+  images: unknown;
   trust_score: number | null;
   city: string | null;
   locality: string | null;
 }
 
 type PropertyRow = Record<string, unknown> & Partial<Property>;
+
+const asString = (value: unknown, fallback = "") => (typeof value === "string" && value.trim() ? value : fallback);
+const asNullableString = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
 
 const MAPBOX_TOKEN =
   import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN ||
