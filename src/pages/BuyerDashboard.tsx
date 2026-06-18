@@ -387,7 +387,7 @@ const BuyerDashboard = () => {
           onValueChange={(v) => setSearchParams({ tab: v })}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-11">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-12">
             <TabsTrigger value="recommended">
               <Star className="h-4 w-4 mr-2" />
               For You
@@ -415,6 +415,10 @@ const BuyerDashboard = () => {
             <TabsTrigger value="favorites">
               <Heart className="h-4 w-4 mr-2" />
               Favorites
+            </TabsTrigger>
+            <TabsTrigger value="postings">
+              <Home className="h-4 w-4 mr-2" />
+              My Postings
             </TabsTrigger>
             <TabsTrigger value="calculator">
               <Calculator className="h-4 w-4 mr-2" />
