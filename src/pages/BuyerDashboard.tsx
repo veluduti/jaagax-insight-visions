@@ -810,7 +810,18 @@ const BuyerDashboard = () => {
               <ReferralDashboard />
             </Suspense>
           </TabsContent>
+          <TabsContent value="ai">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <AIRecommendations />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="activity">
+            <Suspense fallback={<ListSkeleton rows={4} />}>
+              <ActivityTimeline />
+            </Suspense>
+          </TabsContent>
         </Tabs>
+
 
 
         {/* Market Insights */}
