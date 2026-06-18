@@ -923,13 +923,13 @@ const Map = () => {
         className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10"
       >
         <div className="glass-panel px-6 py-3 rounded-full shadow-lg">
-          <p className="text-sm font-semibold flex items-center gap-2">
+          <div className="text-sm font-semibold flex items-center gap-2">
             <Badge variant="secondary" className="rounded-full">
               <span className="text-primary font-bold">{properties.length}</span>
             </Badge>
             <span className="hidden sm:inline">properties in {currentCity}</span>
             <span className="sm:hidden">found</span>
-          </p>
+          </div>
         </div>
       </motion.div>
 
