@@ -95,7 +95,10 @@ export default function VerifyOtp() {
       });
       if (error) throw new Error(error.message || "Failed to resend code");
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("New code sent via SMS — check your phone");
+      const emailSent = (data as any)?.emailSent;
+      const smsSent = (data as any)?.smsSent;
+      const channels = [emailSent && "email", smsSent && "SMS"].filter(Boolean).join(" & ");
+      toast.success(`New code sent via ${channels || "email/SMS"}`);
       setCooldown(45);
     } catch (err: any) {
       toast.error(err?.message || "Failed to resend code");
