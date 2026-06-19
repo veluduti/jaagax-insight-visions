@@ -35,6 +35,41 @@ function otpHtml(code: string) {
     </div></body></html>`
 }
 
+async function findAuthUserByEmail(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+) {
+  const normalizedEmail = email.toLowerCase().trim()
+  let page = 1
+  const perPage = 1000
+
+  while (page <= 10) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage })
+    if (error) throw new Error(error.message)
+
+    const found = data.users.find((user: any) => user.email?.toLowerCase() === normalizedEmail)
+    if (found) return found as any
+    if (data.users.length < perPage) break
+    page += 1
+  }
+
+  return null
+}
+
+function buildUserMetadata(meta: any, phone: string | null) {
+  return {
+    name: meta.name ?? null,
+    phone: phone ?? meta.phone ?? null,
+    city: meta.city ?? null,
+    selected_role: meta.selectedRole ?? null,
+    selected_roles: meta.selectedRoles ?? [],
+  }
+}
+
+function isWeakPasswordError(message: string) {
+  return /weak|easy to guess|password/i.test(message)
+}
+
 async function getUnsubscribeToken(
   supabase: ReturnType<typeof createClient>,
   email: string,
@@ -156,9 +191,10 @@ Deno.serve(async (req) => {
         // Capture phone for profile only — NOT verified via OTP
         phone = String(body.phone || '').trim()
 
-        const { data: list } = await supabase.auth.admin.listUsers()
-        const taken = list?.users?.some((u: any) => u.email?.toLowerCase() === email && u.email_confirmed_at)
-        if (taken) return json({ error: 'This email is already registered. Please log in instead.' }, 409)
+        const existingAuthUser = await findAuthUserByEmail(supabase, email)
+        if (existingAuthUser?.email_confirmed_at) {
+          return json({ error: 'This email is already registered. Please log in instead.' }, 409)
+        }
 
         metadata = {
           selectedRole: body.selectedRole ?? null,
@@ -231,23 +267,47 @@ Deno.serve(async (req) => {
       }
 
       const meta = ((rec as any).metadata ?? {}) as any
-      const { error: createErr } = await supabase.auth.admin.createUser({
-        email,
-        password: (rec as any).password,
-        email_confirm: true,
-        user_metadata: {
-          name: meta.name ?? null,
-          phone: (rec as any).phone ?? meta.phone ?? null,
-          city: meta.city ?? null,
-          selected_role: meta.selectedRole ?? null,
-          selected_roles: meta.selectedRoles ?? [],
-        },
-      })
+      const savedPassword = String((rec as any).password || '')
+      if (!savedPassword) return json({ error: 'Signup password missing. Please sign up again.' }, 400)
 
-      if (createErr) {
-        const msg = createErr.message || 'Failed to create account'
-        if (!/already (registered|exists)/i.test(msg)) {
-          return json({ error: msg }, 500)
+      const userMetadata = buildUserMetadata(meta, (rec as any).phone ?? null)
+      const existingAuthUser = await findAuthUserByEmail(supabase, email)
+
+      if (existingAuthUser) {
+        if (existingAuthUser.email_confirmed_at) {
+          return json({ error: 'This email is already registered. Please log in instead.' }, 409)
+        }
+
+        const { error: updateErr } = await supabase.auth.admin.updateUserById(existingAuthUser.id, {
+          password: savedPassword,
+          email_confirm: true,
+          user_metadata: userMetadata,
+        })
+
+        if (updateErr) {
+          const message = updateErr.message || 'Failed to verify account'
+          if (isWeakPasswordError(message)) {
+            const { error: confirmErr } = await supabase.auth.admin.updateUserById(existingAuthUser.id, {
+              email_confirm: true,
+              user_metadata: userMetadata,
+            })
+
+            if (confirmErr) return json({ error: confirmErr.message || message }, 400)
+          } else {
+            return json({ error: message }, 500)
+          }
+        }
+      } else {
+        const { error: createErr } = await supabase.auth.admin.createUser({
+          email,
+          password: savedPassword,
+          email_confirm: true,
+          user_metadata: userMetadata,
+        })
+
+        if (createErr) {
+          const message = createErr.message || 'Failed to create account'
+          return json({ error: isWeakPasswordError(message) ? 'Please sign up again with a stronger password.' : message }, isWeakPasswordError(message) ? 400 : 500)
         }
       }
 

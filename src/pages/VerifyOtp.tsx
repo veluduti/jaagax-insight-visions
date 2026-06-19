@@ -7,6 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+async function getEdgeFunctionMessage(error: any, fallback: string) {
+  let message = error?.message || fallback;
+  try {
+    const context = error?.context;
+    if (context?.json) {
+      const body = await context.json();
+      if (body?.error) message = body.error;
+    } else if (context?.body) {
+      const body = typeof context.body === "string" ? JSON.parse(context.body) : context.body;
+      if (body?.error) message = body.error;
+    }
+  } catch {}
+  return message;
+}
+
 export default function VerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,7 +81,7 @@ export default function VerifyOtp() {
       const { data, error } = await supabase.functions.invoke("signup-otp", {
         body: { action: "verify", email, otp: token },
       });
-      if (error) throw new Error(error.message || "Verification failed");
+      if (error) throw new Error(await getEdgeFunctionMessage(error, "Verification failed"));
       if ((data as any)?.error) throw new Error((data as any).error);
 
       // Do NOT auto sign-in. Clear pending state and send user to login.
@@ -93,7 +108,7 @@ export default function VerifyOtp() {
       const { data, error } = await supabase.functions.invoke("signup-otp", {
         body: { action: "resend", email },
       });
-      if (error) throw new Error(error.message || "Failed to resend code");
+      if (error) throw new Error(await getEdgeFunctionMessage(error, "Failed to resend code"));
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success(`New code sent to ${email}`);
       setCooldown(45);
