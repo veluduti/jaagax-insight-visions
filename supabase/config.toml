@@ -15,3 +15,15 @@ otp_expiry = 3600
     verify_jwt = false
   [functions.signup-otp]
     verify_jwt = false
+  [functions.agent-accept-assignment]
+    verify_jwt = true
+  [functions.agent-reject-assignment]
+    verify_jwt = true
+  [functions.submit-verification-report]
+    verify_jwt = true
+  [functions.create-property-lead]
+    verify_jwt = false
+  [functions.send-expiry-reminders]
+    verify_jwt = false
+  [functions.escalate-stale-verification]
+    verify_jwt = false
