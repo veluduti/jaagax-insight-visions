@@ -304,15 +304,34 @@ const PropertyDetail = () => {
     }
   };
 
+  const fireLead = async (source: "call" | "whatsapp" | "inquiry") => {
+    if (!id) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.functions.invoke("create-property-lead", {
+        body: {
+          property_id: id,
+          source,
+          lead_name: user?.user_metadata?.full_name ?? null,
+          lead_email: user?.email ?? null,
+          lead_phone: user?.user_metadata?.phone ?? null,
+        },
+      });
+    } catch (e) {
+      // Non-blocking — UI flow continues even if lead capture fails
+      console.warn("Lead capture failed", e);
+    }
+  };
+
   const handleCall = () => {
     if (id) trackPropertyEvent({ propertyId: id, eventType: "call_click" });
-    // Redirect to AI Pre-Call flow instead of direct call
+    fireLead("call");
     setShowPreCallModal(true);
   };
 
   const handleWhatsApp = () => {
     if (id) trackPropertyEvent({ propertyId: id, eventType: "whatsapp_click" });
-    // Redirect to AI Pre-Call flow instead of direct WhatsApp
+    fireLead("whatsapp");
     setShowPreCallModal(true);
   };
 
@@ -492,7 +511,7 @@ const PropertyDetail = () => {
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
             </Button>
-            <Button size="lg" className="gap-2" onClick={() => setShowBookingModal(true)}>
+            <Button size="lg" className="gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
@@ -649,7 +668,7 @@ const PropertyDetail = () => {
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
         <div className="flex gap-2">
-          <Button size="lg" className="flex-1 gap-2" onClick={() => setShowBookingModal(true)}>
+          <Button size="lg" className="flex-1 gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
             <Calendar className="h-4 w-4" />
             Book
           </Button>

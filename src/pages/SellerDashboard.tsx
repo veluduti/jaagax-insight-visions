@@ -68,6 +68,7 @@ import PreferredLocations from "@/components/seller/PreferredLocations";
 import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
 import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
 import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
+import { OwnerPropertyStatusPanel } from "@/components/property/OwnerPropertyStatusPanel";
 import { usePostingQuotaGate } from "@/components/seller/PostingQuotaGate";
 
 interface AssignedAgent {
@@ -1011,6 +1012,7 @@ export default function SellerDashboard() {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-6"><OwnerPropertyStatusPanel /></div>
             <Tabs defaultValue="all">
               <TabsList className="flex flex-wrap h-auto">
                 <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
