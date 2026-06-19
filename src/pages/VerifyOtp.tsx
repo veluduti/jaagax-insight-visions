@@ -69,26 +69,18 @@ export default function VerifyOtp() {
       if (error) throw new Error(error.message || "Verification failed");
       if ((data as any)?.error) throw new Error((data as any).error);
 
-      // Auto sign-in using the password we stashed during signup
-      const password = sessionStorage.getItem("jaagax.pendingSignupPassword") || "";
-      if (password) {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          toast.success("Email verified! Please sign in.");
-          sessionStorage.removeItem("jaagax.pendingSignupPassword");
-          sessionStorage.removeItem("jaagax.pendingPhone");
-          sessionStorage.removeItem("jaagax.pendingEmail");
-          navigate("/auth", { replace: true });
-          return;
-        }
-      }
+      // Do NOT auto sign-in. Clear pending state and send user to login.
       sessionStorage.removeItem("jaagax.pendingEmail");
       sessionStorage.removeItem("jaagax.pendingSignupPassword");
-          sessionStorage.removeItem("jaagax.pendingPhone");
-      toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
-      navigate("/", { replace: true });
+      sessionStorage.removeItem("jaagax.pendingPhone");
+      sessionStorage.setItem("jaagax.justVerified", email);
+      toast.success("Account created! Please sign in to continue.", { duration: 4000 });
+      navigate("/auth", { replace: true });
     } catch (err: any) {
-      toast.error(err?.message || "Invalid or expired code");
+      const msg = err?.message || "";
+      if (/expired/i.test(msg)) toast.error("OTP has expired. Please request a new OTP.");
+      else if (/invalid|incorrect/i.test(msg)) toast.error("Incorrect OTP entered.");
+      else toast.error(msg || "Verification failed");
     } finally {
       setLoading(false);
     }
