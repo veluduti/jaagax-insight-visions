@@ -3266,8 +3266,15 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          agent_accepted_at: string | null
+          agent_assigned_at: string | null
+          agent_assignment_status:
+            | Database["public"]["Enums"]["agent_assignment_state"]
+            | null
           agent_data: Json | null
           agent_notes: string | null
+          agent_rejected_at: string | null
+          agent_rejection_reason: string | null
           agent_submitted_at: string | null
           amenities: string[] | null
           area_sqft: number | null
@@ -3286,12 +3293,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           document_urls: Json | null
+          edit_locked: boolean
           elevators: number | null
           expiry_date: string | null
           featured_until: string | null
           field_verification: Json | null
           final_data: Json | null
           floor_number: number | null
+          force_verification: boolean
           furnishing: string | null
           has_price_drop_ribbon: boolean | null
           id: string
@@ -3301,8 +3310,13 @@ export type Database = {
           is_live: boolean
           is_premium: boolean
           is_sold: boolean | null
+          last_verified_at: string | null
           latitude: number | null
+          lifecycle_status:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
           listed_by: string | null
+          listed_by_role_snapshot: string | null
           listing_status: string
           listing_type: string | null
           locality: string
@@ -3338,11 +3352,19 @@ export type Database = {
           verification_status: string
           verified: boolean | null
           video_urls: string[] | null
+          was_ever_rejected: boolean
         }
         Insert: {
           address?: string | null
+          agent_accepted_at?: string | null
+          agent_assigned_at?: string | null
+          agent_assignment_status?:
+            | Database["public"]["Enums"]["agent_assignment_state"]
+            | null
           agent_data?: Json | null
           agent_notes?: string | null
+          agent_rejected_at?: string | null
+          agent_rejection_reason?: string | null
           agent_submitted_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
@@ -3361,12 +3383,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_urls?: Json | null
+          edit_locked?: boolean
           elevators?: number | null
           expiry_date?: string | null
           featured_until?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
+          force_verification?: boolean
           furnishing?: string | null
           has_price_drop_ribbon?: boolean | null
           id?: string
@@ -3376,8 +3400,13 @@ export type Database = {
           is_live?: boolean
           is_premium?: boolean
           is_sold?: boolean | null
+          last_verified_at?: string | null
           latitude?: number | null
+          lifecycle_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
           listed_by?: string | null
+          listed_by_role_snapshot?: string | null
           listing_status?: string
           listing_type?: string | null
           locality: string
@@ -3413,11 +3442,19 @@ export type Database = {
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
+          was_ever_rejected?: boolean
         }
         Update: {
           address?: string | null
+          agent_accepted_at?: string | null
+          agent_assigned_at?: string | null
+          agent_assignment_status?:
+            | Database["public"]["Enums"]["agent_assignment_state"]
+            | null
           agent_data?: Json | null
           agent_notes?: string | null
+          agent_rejected_at?: string | null
+          agent_rejection_reason?: string | null
           agent_submitted_at?: string | null
           amenities?: string[] | null
           area_sqft?: number | null
@@ -3436,12 +3473,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_urls?: Json | null
+          edit_locked?: boolean
           elevators?: number | null
           expiry_date?: string | null
           featured_until?: string | null
           field_verification?: Json | null
           final_data?: Json | null
           floor_number?: number | null
+          force_verification?: boolean
           furnishing?: string | null
           has_price_drop_ribbon?: boolean | null
           id?: string
@@ -3451,8 +3490,13 @@ export type Database = {
           is_live?: boolean
           is_premium?: boolean
           is_sold?: boolean | null
+          last_verified_at?: string | null
           latitude?: number | null
+          lifecycle_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
           listed_by?: string | null
+          listed_by_role_snapshot?: string | null
           listing_status?: string
           listing_type?: string | null
           locality?: string
@@ -3488,6 +3532,7 @@ export type Database = {
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
+          was_ever_rejected?: boolean
         }
         Relationships: [
           {
@@ -3495,6 +3540,62 @@ export type Database = {
             columns: ["assigned_agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          field_changes: Json | null
+          from_status:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+          id: number
+          metadata: Json | null
+          property_id: string
+          to_status:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          field_changes?: Json | null
+          from_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+          id?: number
+          metadata?: Json | null
+          property_id: string
+          to_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          field_changes?: Json | null
+          from_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+          id?: number
+          metadata?: Json | null
+          property_id?: string
+          to_status?:
+            | Database["public"]["Enums"]["property_lifecycle_status"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_audit_log_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -3645,6 +3746,62 @@ export type Database = {
         }
         Relationships: []
       }
+      property_leads: {
+        Row: {
+          assigned_agent_id: string | null
+          created_at: string
+          id: string
+          lead_email: string | null
+          lead_name: string | null
+          lead_phone: string | null
+          lead_user_id: string | null
+          notes: string | null
+          owner_id: string
+          property_id: string
+          source: Database["public"]["Enums"]["lead_source"]
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          created_at?: string
+          id?: string
+          lead_email?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          lead_user_id?: string | null
+          notes?: string | null
+          owner_id: string
+          property_id: string
+          source: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          created_at?: string
+          id?: string
+          lead_email?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
+          lead_user_id?: string | null
+          notes?: string | null
+          owner_id?: string
+          property_id?: string
+          source?: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_leads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_posts: {
         Row: {
           created_at: string
@@ -3721,6 +3878,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      property_verifications: {
+        Row: {
+          agent_id: string
+          created_at: string
+          geo_photos: Json
+          id: string
+          photos: string[]
+          property_id: string
+          remarks: string | null
+          report_url: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["verification_artifact_status"]
+          submitted_at: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          geo_photos?: Json
+          id?: string
+          photos?: string[]
+          property_id: string
+          remarks?: string | null
+          report_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_artifact_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          geo_photos?: Json
+          id?: string
+          photos?: string[]
+          property_id?: string
+          remarks?: string | null
+          report_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_artifact_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_verifications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_programs: {
         Row: {
@@ -4951,6 +5170,20 @@ export type Database = {
           status: string
         }[]
       }
+      get_nearby_agents_for_property: {
+        Args: { _limit?: number; _property_id: string; _radius_km?: number }
+        Returns: {
+          active_tasks: number
+          agent_city: string
+          agent_id: string
+          agent_name: string
+          agent_phone: string
+          avg_rating: number
+          completed_verifications: number
+          distance_km: number
+          pending_tasks: number
+        }[]
+      }
       get_or_create_referral_code: { Args: never; Returns: string }
       get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
       get_seller_contacts: {
@@ -4981,6 +5214,13 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_valid_property_transition: {
+        Args: {
+          _from: Database["public"]["Enums"]["property_lifecycle_status"]
+          _to: Database["public"]["Enums"]["property_lifecycle_status"]
+        }
+        Returns: boolean
+      }
       mark_property_featured: {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
         Returns: undefined
@@ -5016,6 +5256,10 @@ export type Database = {
       renew_property_listing: {
         Args: { _property_id: string }
         Returns: undefined
+      }
+      renew_property_listing_v2: {
+        Args: { _property_id: string }
+        Returns: Database["public"]["Enums"]["property_lifecycle_status"]
       }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
@@ -5117,7 +5361,31 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      agent_assignment_state: "pending" | "accepted" | "rejected"
+      lead_source: "call" | "whatsapp" | "inquiry"
+      lead_status: "new" | "contacted" | "closed"
+      property_lifecycle_status:
+        | "draft"
+        | "submitted"
+        | "pending_admin_review"
+        | "agent_assigned"
+        | "agent_accepted"
+        | "agent_rejected"
+        | "visit_scheduled"
+        | "under_verification"
+        | "verification_submitted"
+        | "pending_final_approval"
+        | "live"
+        | "live_verified"
+        | "expired"
+        | "renewed"
+        | "rejected"
+        | "cancelled_by_owner"
+      verification_artifact_status:
+        | "in_progress"
+        | "submitted"
+        | "approved"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5244,6 +5512,34 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      agent_assignment_state: ["pending", "accepted", "rejected"],
+      lead_source: ["call", "whatsapp", "inquiry"],
+      lead_status: ["new", "contacted", "closed"],
+      property_lifecycle_status: [
+        "draft",
+        "submitted",
+        "pending_admin_review",
+        "agent_assigned",
+        "agent_accepted",
+        "agent_rejected",
+        "visit_scheduled",
+        "under_verification",
+        "verification_submitted",
+        "pending_final_approval",
+        "live",
+        "live_verified",
+        "expired",
+        "renewed",
+        "rejected",
+        "cancelled_by_owner",
+      ],
+      verification_artifact_status: [
+        "in_progress",
+        "submitted",
+        "approved",
+        "rejected",
+      ],
+    },
   },
 } as const
