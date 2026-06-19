@@ -66,6 +66,7 @@ const toPublicRow = (row: any) => {
 };
 import LocationSelector from "@/components/location/LocationSelector";
 import LocationPill from "@/components/location/LocationPill";
+import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 
 interface Property {
   id: string;
