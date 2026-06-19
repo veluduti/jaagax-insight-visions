@@ -41,6 +41,7 @@ async function enqueueOtpEmail(
   code: string,
 ) {
   const messageId = crypto.randomUUID()
+  const runId = `signup-otp-${messageId}`
   const html = otpHtml(code)
   const text = `Your JAAGA X verification code is ${code}. It expires in ${OTP_TTL_MIN} minutes.`
 
@@ -55,6 +56,7 @@ async function enqueueOtpEmail(
   const { error } = await supabase.rpc('enqueue_email', {
     queue_name: 'auth_emails',
     payload: {
+      run_id: runId,
       message_id: messageId,
       to: toEmail,
       from: FROM_EMAIL,
@@ -62,7 +64,7 @@ async function enqueueOtpEmail(
       subject: `Your JAAGA X verification code: ${code}`,
       html,
       text,
-      purpose: 'auth',
+      purpose: 'transactional',
       label: 'signup-otp',
       idempotency_key: messageId,
       queued_at: new Date().toISOString(),
