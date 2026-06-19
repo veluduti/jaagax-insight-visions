@@ -95,10 +95,7 @@ export default function VerifyOtp() {
       });
       if (error) throw new Error(error.message || "Failed to resend code");
       if ((data as any)?.error) throw new Error((data as any).error);
-      const emailSent = (data as any)?.emailSent;
-      const smsSent = (data as any)?.smsSent;
-      const channels = [emailSent && "email", smsSent && "SMS"].filter(Boolean).join(" & ");
-      toast.success(`New code sent via ${channels || "email/SMS"}`);
+      toast.success(`New code sent to ${email}`);
       setCooldown(45);
     } catch (err: any) {
       toast.error(err?.message || "Failed to resend code");
@@ -117,8 +114,7 @@ export default function VerifyOtp() {
             </div>
             <h1 className="text-2xl font-bold mb-1">Verify your account</h1>
             <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to your email <span className="text-foreground font-medium">{email}</span>
-              {phone ? <> and SMS to <span className="text-foreground font-medium">{phone}</span></> : null}
+              We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
             </p>
           </div>
 

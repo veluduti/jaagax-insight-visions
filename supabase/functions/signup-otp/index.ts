@@ -1,36 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 
 const SENDER_DOMAIN = 'notify.jaagax.com'
 const FROM_EMAIL = `JAAGA X <noreply@${SENDER_DOMAIN}>`
-
-async function sendOtpEmail(toEmail: string, code: string) {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
-  if (!apiKey) throw new Error('Email service not configured')
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#ffffff;padding:32px;color:#0f172a">
-    <div style="max-width:480px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;padding:32px">
-      <h2 style="margin:0 0 8px;color:#0f172a">Verify your email</h2>
-      <p style="color:#475569;margin:0 0 24px">Use this 6-digit code to finish signing up for JAAGA X. It expires in 5 minutes.</p>
-      <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;background:#f1f5f9;border-radius:8px;padding:16px 0;color:#0f172a">${code}</div>
-      <p style="color:#94a3b8;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
-    </div></body></html>`
-  const messageId = `signup-otp-${toEmail}-${Date.now()}`
-  await sendLovableEmail(
-    {
-      to: toEmail,
-      from: FROM_EMAIL,
-      sender_domain: SENDER_DOMAIN,
-      subject: `Your JAAGA X verification code: ${code}`,
-      html,
-      text: `Your JAAGA X verification code is ${code}. It expires in 5 minutes.`,
-      purpose: 'transactional',
-      label: 'signup-otp',
-      idempotency_key: messageId,
-      message_id: messageId,
-    },
-    { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
-  )
-}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,49 +25,60 @@ function json(body: unknown, status = 200) {
   })
 }
 
-function normalizePhone(raw: string): string {
-  const trimmed = raw.trim().replace(/[\s\-()]/g, '')
-  if (trimmed.startsWith('+')) return trimmed
-  const digits = trimmed.replace(/\D/g, '')
-  // Default to India +91 if 10 digits
-  if (digits.length === 10) return `+91${digits}`
-  if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`
-  return `+${digits}`
+function otpHtml(code: string) {
+  return `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#ffffff;padding:32px;color:#0f172a">
+    <div style="max-width:480px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;padding:32px">
+      <h2 style="margin:0 0 8px;color:#0f172a">Verify your email</h2>
+      <p style="color:#475569;margin:0 0 24px">Use this 6-digit code to finish signing up for JAAGA X. It expires in ${OTP_TTL_MIN} minutes.</p>
+      <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;background:#f1f5f9;border-radius:8px;padding:16px 0;color:#0f172a">${code}</div>
+      <p style="color:#94a3b8;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
+    </div></body></html>`
 }
 
-async function sendSms(toPhone: string, code: string) {
-  const sid = Deno.env.get('TWILIO_ACCOUNT_SID')
-  const token = Deno.env.get('TWILIO_AUTH_TOKEN')
-  const from = Deno.env.get('TWILIO_PHONE_NUMBER')
-  if (!sid || !token || !from) throw new Error('Twilio not configured')
+async function enqueueOtpEmail(
+  supabase: ReturnType<typeof createClient>,
+  toEmail: string,
+  code: string,
+) {
+  const messageId = crypto.randomUUID()
+  const html = otpHtml(code)
+  const text = `Your JAAGA X verification code is ${code}. It expires in ${OTP_TTL_MIN} minutes.`
 
-  const body = new URLSearchParams({
-    To: toPhone,
-    From: from,
-    Body: `Your JAAGA X verification code is ${code}. It expires in 5 minutes. Do not share this code.`,
+  // Log pending BEFORE enqueue so we have a record even if enqueue crashes
+  await supabase.from('email_send_log').insert({
+    message_id: messageId,
+    template_name: 'signup-otp',
+    recipient_email: toEmail,
+    status: 'pending',
   })
 
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${btoa(`${sid}:${token}`)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+  const { error } = await supabase.rpc('enqueue_email', {
+    queue_name: 'transactional_emails',
+    payload: {
+      message_id: messageId,
+      to: toEmail,
+      from: FROM_EMAIL,
+      sender_domain: SENDER_DOMAIN,
+      subject: `Your JAAGA X verification code: ${code}`,
+      html,
+      text,
+      purpose: 'transactional',
+      label: 'signup-otp',
+      idempotency_key: messageId,
+      queued_at: new Date().toISOString(),
     },
-    body,
   })
-  const data = await res.json()
-  if (!res.ok) {
-    console.error('Twilio error', data)
-    // Friendly messages for common Twilio errors
-    if (data?.code === 21635 || data?.code === 21614) {
-      throw new Error('This phone number cannot receive SMS. Please enter a valid mobile number.')
-    }
-    if (data?.code === 21211) {
-      throw new Error('Invalid phone number format.')
-    }
-    throw new Error(data?.message || `SMS service failed (${res.status})`)
+
+  if (error) {
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: 'signup-otp',
+      recipient_email: toEmail,
+      status: 'failed',
+      error_message: error.message ?? 'enqueue failed',
+    })
+    throw new Error(error.message || 'Failed to queue verification email')
   }
-  return data
 }
 
 Deno.serve(async (req) => {
@@ -120,32 +102,24 @@ Deno.serve(async (req) => {
         .eq('email', email)
         .maybeSingle()
 
-      // Cooldown check (anti-spam)
       if (existing?.last_sent_at) {
-        const elapsed = (Date.now() - new Date(existing.last_sent_at).getTime()) / 1000
+        const elapsed = (Date.now() - new Date(existing.last_sent_at as string).getTime()) / 1000
         if (elapsed < RESEND_COOLDOWN_SEC) {
           return json({ error: `Please wait ${Math.ceil(RESEND_COOLDOWN_SEC - elapsed)}s before requesting a new code` }, 429)
         }
       }
 
-      let phone: string
       let password: string | null = null
-      let metadata: any = existing?.metadata ?? {}
+      let metadata: any = (existing as any)?.metadata ?? {}
+      let phone: string = ((existing as any)?.phone as string) ?? metadata?.phone ?? ''
 
       if (action === 'init') {
-        const rawPhone = String(body.phone || '').trim()
-        if (!rawPhone) return json({ error: 'Phone number required' }, 400)
-        phone = normalizePhone(rawPhone)
-        if (!/^\+\d{10,15}$/.test(phone)) return json({ error: 'Invalid phone number' }, 400)
-        // Indian mobile numbers must start with 6, 7, 8, or 9
-        if (phone.startsWith('+91') && !/^\+91[6-9]\d{9}$/.test(phone)) {
-          return json({ error: 'Please enter a valid Indian mobile number (must start with 6, 7, 8, or 9).' }, 400)
-        }
-
         password = body.password ? String(body.password) : null
         if (!password) return json({ error: 'Password required' }, 400)
 
-        // Check if email already registered
+        // Capture phone for profile only — NOT verified via OTP
+        phone = String(body.phone || '').trim()
+
         const { data: list } = await supabase.auth.admin.listUsers()
         const taken = list?.users?.some((u: any) => u.email?.toLowerCase() === email && u.email_confirmed_at)
         if (taken) return json({ error: 'This email is already registered. Please log in instead.' }, 409)
@@ -157,11 +131,8 @@ Deno.serve(async (req) => {
           name: body.name ?? null,
           phone,
         }
-      } else {
-        // resend
-        if (!existing) return json({ error: 'No pending verification. Please sign up again.' }, 404)
-        phone = existing.phone || normalizePhone(metadata?.phone || '')
-        if (!phone) return json({ error: 'Phone missing — please sign up again.' }, 400)
+      } else if (!existing) {
+        return json({ error: 'No pending verification. Please sign up again.' }, 404)
       }
 
       const code = generateOtp()
@@ -169,7 +140,7 @@ Deno.serve(async (req) => {
 
       const upsertPayload: any = {
         email,
-        phone,
+        phone: phone || null,
         otp_code: code,
         expires_at: expiresAt,
         last_sent_at: new Date().toISOString(),
@@ -186,25 +157,16 @@ Deno.serve(async (req) => {
 
       if (upsertErr) return json({ error: upsertErr.message }, 500)
 
-      // Send OTP to BOTH email and phone. Succeed if at least one channel delivers.
-      const results = await Promise.allSettled([
-        sendOtpEmail(email, code),
-        sendSms(phone, code),
-      ])
-      const emailOk = results[0].status === 'fulfilled'
-      const smsOk = results[1].status === 'fulfilled'
-      if (!emailOk && !smsOk) {
-        const emailErr = (results[0] as PromiseRejectedResult).reason?.message ?? 'email failed'
-        const smsErr = (results[1] as PromiseRejectedResult).reason?.message ?? 'sms failed'
-        return json({ error: `Could not deliver OTP. ${emailErr}. ${smsErr}` }, 502)
+      try {
+        await enqueueOtpEmail(supabase, email, code)
+      } catch (err: any) {
+        console.error('Email OTP enqueue failed:', err)
+        return json({ error: err?.message || 'Could not deliver OTP email' }, 502)
       }
-      if (!emailOk) console.error('Email OTP failed:', (results[0] as PromiseRejectedResult).reason)
-      if (!smsOk) console.error('SMS OTP failed:', (results[1] as PromiseRejectedResult).reason)
+
       return json({
         success: true,
-        emailSent: emailOk,
-        smsSent: smsOk,
-        phoneMasked: phone.replace(/.(?=.{4})/g, '*'),
+        emailSent: true,
         expiresInMinutes: OTP_TTL_MIN,
       })
     }
@@ -220,27 +182,26 @@ Deno.serve(async (req) => {
         .maybeSingle()
 
       if (!rec) return json({ error: 'No pending verification found. Please sign up again.' }, 404)
-      if (rec.consumed_at) return json({ error: 'This code was already used.' }, 400)
-      if (new Date(rec.expires_at).getTime() < Date.now()) return json({ error: 'Code expired. Please request a new one.' }, 400)
-      if ((rec.attempt_count ?? 0) >= MAX_ATTEMPTS) return json({ error: 'Too many attempts. Please request a new code.' }, 429)
+      if ((rec as any).consumed_at) return json({ error: 'This code was already used.' }, 400)
+      if (new Date((rec as any).expires_at).getTime() < Date.now()) return json({ error: 'Code expired. Please request a new one.' }, 400)
+      if (((rec as any).attempt_count ?? 0) >= MAX_ATTEMPTS) return json({ error: 'Too many attempts. Please request a new code.' }, 429)
 
-      if (rec.otp_code !== otp) {
+      if ((rec as any).otp_code !== otp) {
         await supabase
           .from('signup_email_otps')
-          .update({ attempt_count: (rec.attempt_count ?? 0) + 1 })
-          .eq('id', rec.id)
+          .update({ attempt_count: ((rec as any).attempt_count ?? 0) + 1 })
+          .eq('id', (rec as any).id)
         return json({ error: 'Invalid OTP' }, 400)
       }
 
-      const meta = (rec.metadata ?? {}) as any
+      const meta = ((rec as any).metadata ?? {}) as any
       const { error: createErr } = await supabase.auth.admin.createUser({
         email,
-        password: rec.password,
+        password: (rec as any).password,
         email_confirm: true,
-        phone: rec.phone ?? meta.phone ?? undefined,
         user_metadata: {
           name: meta.name ?? null,
-          phone: rec.phone ?? meta.phone ?? null,
+          phone: (rec as any).phone ?? meta.phone ?? null,
           city: meta.city ?? null,
           selected_role: meta.selectedRole ?? null,
           selected_roles: meta.selectedRoles ?? [],
@@ -261,7 +222,7 @@ Deno.serve(async (req) => {
           consumed_at: new Date().toISOString(),
           password: null,
         })
-        .eq('id', rec.id)
+        .eq('id', (rec as any).id)
 
       return json({ success: true })
     }

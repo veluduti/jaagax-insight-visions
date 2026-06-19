@@ -303,8 +303,8 @@ export default function Auth() {
             localStorage.setItem("jaagax.pendingSignupLocation", JSON.stringify(locationMeta));
           } catch {}
         }
-        toast.success(`We sent a 6-digit code to ${email} and ${phone}. It expires in 5 minutes.`, { duration: 5000 });
-        navigate("/verify-otp", { state: { email, phone } });
+        toast.success(`We sent a 6-digit code to ${email}. It expires in 5 minutes.`, { duration: 5000 });
+        navigate("/verify-otp", { state: { email } });
         return;
       }
 
