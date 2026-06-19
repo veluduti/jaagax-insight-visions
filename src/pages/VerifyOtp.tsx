@@ -156,7 +156,7 @@ export default function VerifyOtp() {
             </div>
 
             <p className="text-[11px] text-center text-muted-foreground border-t border-border/50 pt-4">
-              After verification, you'll be signed in and taken to your dashboard.
+              After verification, you'll be redirected to sign in to your account.
             </p>
           </form>
         </Card>
