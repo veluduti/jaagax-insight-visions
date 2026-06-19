@@ -447,35 +447,31 @@ const ClientBannerHero = ({
                 width: "100%",
                 maxWidth: "460px",
                 marginBottom: "6px",
+                alignItems: "center",
               }}
             >
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "0 14px",
-                }}
-              >
-                <MapPin size={14} color="#9ca3af" />
-                <input
-                  type="text"
+              <div style={{ flex: 1, minWidth: 0, paddingLeft: 6 }}>
+                <InlineLocationSearch
+                  variant="pill"
                   placeholder="Enter location, city or landmark"
-                  defaultValue="Hyderabad"
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    background: "transparent",
-                    fontSize: "13px",
-                    color: "#374151",
-                    padding: "6px 0",
+                  initialValue={heroLocation}
+                  onTextChange={setHeroLocation}
+                  onSelected={(loc) => {
+                    const city = loc.city || loc.locality || "";
+                    setHeroLocation(city);
+                    navigate(`/search?city=${encodeURIComponent(city)}`);
                   }}
+                  onEnterRaw={(t) =>
+                    navigate(t ? `/search?city=${encodeURIComponent(t)}` : "/search")
+                  }
                 />
               </div>
               <button
-                onClick={() => navigate("/search")}
+                onClick={() =>
+                  navigate(
+                    heroLocation ? `/search?city=${encodeURIComponent(heroLocation)}` : "/search",
+                  )
+                }
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
