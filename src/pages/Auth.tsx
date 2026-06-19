@@ -96,6 +96,10 @@ export default function Auth() {
 
 
   useEffect(() => {
+    // Do NOT auto-redirect while in the password-reset flow. The recovery
+    // session would otherwise navigate the user to a dashboard before they
+    // can set a new password.
+    if (isPasswordReset) return;
     if (!authLoading && user) {
       // Admin always goes straight to admin dashboard
       if (role === "admin") {
@@ -123,40 +127,58 @@ export default function Auth() {
         }
       })();
     }
-  }, [user, role, authLoading, redirectToDashboard, navigate]);
+  }, [user, role, authLoading, redirectToDashboard, navigate, isPasswordReset]);
 
-  // Handle ?reset=true: parse access_token hash, validate via setSession, open modal.
+
+  // Handle ?reset=true: parse recovery token (hash OR PKCE ?code=), validate, open modal.
   useEffect(() => {
     if (!isPasswordReset) return;
     setShowResetPassword(true);
     setResetLinkValid(null);
 
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
     const params = new URLSearchParams(hash);
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");
     const type = params.get("type");
+    const hashError = params.get("error") || params.get("error_description");
 
     (async () => {
-      // If already in a recovery session (e.g. SDK auto-applied), accept it.
-      if (!accessToken) {
+      try {
+        if (hashError) { setResetLinkValid(false); return; }
+
+        // PKCE flow: ?code=...
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          setResetLinkValid(!error);
+          window.history.replaceState(null, "", `${window.location.pathname}?reset=true`);
+          return;
+        }
+
+        // Implicit flow: #access_token=...&type=recovery
+        if (accessToken) {
+          if (type && type !== "recovery") { setResetLinkValid(false); return; }
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken ?? "",
+          });
+          setResetLinkValid(!error);
+          window.history.replaceState(null, "", `${window.location.pathname}?reset=true`);
+          return;
+        }
+
+        // No token in URL — fall back to existing session (SDK may have auto-applied it).
         const { data: { session } } = await supabase.auth.getSession();
         setResetLinkValid(!!session);
-        return;
-      }
-      if (type && type !== "recovery") {
+      } catch (e) {
+        console.error("Reset link validation failed:", e);
         setResetLinkValid(false);
-        return;
       }
-      const { error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken ?? "",
-      });
-      setResetLinkValid(!error);
-      // Clean the hash so refresh doesn't reuse a consumed token.
-      window.history.replaceState(null, "", `${window.location.pathname}?reset=true`);
     })();
   }, [isPasswordReset]);
+
 
   // Prevent auto-login right after OTP verification: if newSignup flag was set,
   // sign the user out (defense in depth) and stay on /auth.
