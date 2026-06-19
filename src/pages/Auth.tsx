@@ -475,36 +475,34 @@ export default function Auth() {
 
       <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={email} />
 
-      <AnimatePresence>
-        {isResettingPassword && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="glass-panel border-primary/20 p-8 rounded-xl max-w-md w-full">
-              <div className="text-center mb-6">
-                <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold">Set New Password</h2>
-                <p className="text-muted-foreground mt-2">Enter your new password below</p>
-              </div>
-              <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password" className="flex items-center gap-2"><Lock className="h-4 w-4" />New Password</Label>
-                  <div className="relative">
-                    <Input id="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="pr-10 h-12" autoFocus />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
-                </div>
-                <Button type="submit" className="w-full h-12" disabled={loading}>
-                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</>) : "Update Password"}
-                </Button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ResetPasswordModal
+        isOpen={showResetPassword}
+        isValid={resetLinkValid}
+        onClose={() => {
+          setShowResetPassword(false);
+          navigate("/auth", { replace: true });
+        }}
+        onSuccess={() => {
+          setShowResetPassword(false);
+          setShowResetSuccess(true);
+        }}
+        onRequestNew={() => {
+          setShowResetPassword(false);
+          navigate("/auth", { replace: true });
+          setShowForgotPassword(true);
+        }}
+      />
+
+      <PasswordResetSuccess
+        isOpen={showResetSuccess}
+        onClose={() => setShowResetSuccess(false)}
+        onGoToLogin={() => {
+          setShowResetSuccess(false);
+          void supabase.auth.signOut();
+          navigate("/auth", { replace: true });
+        }}
+      />
+
     </div>
   );
 }
