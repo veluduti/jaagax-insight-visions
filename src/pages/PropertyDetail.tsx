@@ -511,7 +511,7 @@ const PropertyDetail = () => {
               <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
               Save
             </Button>
-            <Button size="lg" className="gap-2" onClick={() => setShowBookingModal(true)}>
+            <Button size="lg" className="gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
@@ -668,7 +668,7 @@ const PropertyDetail = () => {
       {/* Mobile Sticky CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 glass-panel border-t p-4 z-50">
         <div className="flex gap-2">
-          <Button size="lg" className="flex-1 gap-2" onClick={() => setShowBookingModal(true)}>
+          <Button size="lg" className="flex-1 gap-2" onClick={() => { fireLead("inquiry"); setShowBookingModal(true); }}>
             <Calendar className="h-4 w-4" />
             Book
           </Button>
