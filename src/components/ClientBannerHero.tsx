@@ -36,6 +36,8 @@ const ClientBannerHero = ({
   showSearchBar: _showSearchBar = true,
 }: Props) => {
   const navigate = useNavigate();
+  const { savedLocation } = useSavedLocation();
+  const [heroLocation, setHeroLocation] = useState(savedLocation?.city || "");
 
   const goComingSoon = (featureName: string) => () => navigate("/coming-soon", { state: { featureName } });
 
