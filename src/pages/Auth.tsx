@@ -125,36 +125,50 @@ export default function Auth() {
     }
   }, [user, role, authLoading, redirectToDashboard, navigate]);
 
+  // Handle ?reset=true: parse access_token hash, validate via setSession, open modal.
   useEffect(() => {
-    if (isPasswordReset) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setIsResettingPassword(true);
-        }
+    if (!isPasswordReset) return;
+    setShowResetPassword(true);
+    setResetLinkValid(null);
+
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    const type = params.get("type");
+
+    (async () => {
+      // If already in a recovery session (e.g. SDK auto-applied), accept it.
+      if (!accessToken) {
+        const { data: { session } } = await supabase.auth.getSession();
+        setResetLinkValid(!!session);
+        return;
+      }
+      if (type && type !== "recovery") {
+        setResetLinkValid(false);
+        return;
+      }
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken ?? "",
       });
-    }
+      setResetLinkValid(!error);
+      // Clean the hash so refresh doesn't reuse a consumed token.
+      window.history.replaceState(null, "", `${window.location.pathname}?reset=true`);
+    })();
   }, [isPasswordReset]);
 
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast.success("Password updated successfully!");
-      setIsResettingPassword(false);
-      setNewPassword("");
+  // Prevent auto-login right after OTP verification: if newSignup flag was set,
+  // sign the user out (defense in depth) and stay on /auth.
+  useEffect(() => {
+    const flag = sessionStorage.getItem("jaagax.newSignup");
+    if (flag) {
+      sessionStorage.removeItem("jaagax.newSignup");
+      void supabase.auth.signOut();
       navigate("/auth", { replace: true });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update password");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [navigate]);
+
 
   const validateForm = () => {
     if (!isLogin) {
