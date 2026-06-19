@@ -8,6 +8,7 @@ import AdvancedFiltersSheet, { AdvancedFilters, DEFAULT_FILTERS } from "@/compon
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { canSee } from "@/lib/roleAccess";
+import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 
 interface PropertySearchBarProps {
   activeTab: string;
