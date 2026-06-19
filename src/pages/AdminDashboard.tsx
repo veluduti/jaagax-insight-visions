@@ -36,16 +36,13 @@ import {
   Filter,
   Search,
   Bell,
-  BellRing,
   ChevronDown,
-  ChevronRight,
   Menu,
   Grid3X3,
   List,
   PlusCircle,
   Download,
   RefreshCw,
-  // NEW ICONS FOR NAVIGATION
   UserCog,
   Building,
   Landmark,
@@ -56,11 +53,23 @@ import {
   Zap,
   Layers,
   MapPinned,
+  Tag,
+  TrendingDown,
+  File,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LazyMount, ListSkeleton, ChartSkeleton, CardGridSkeleton } from "@/components/shared";
+import { LazyMount, ListSkeleton } from "@/components/shared";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -100,72 +109,7 @@ const WhatsAppLogsPanel = lazy(() =>
 const RegisteredUsersPanel = lazy(() => import("@/components/admin/RegisteredUsersPanel"));
 
 // ============================================================================
-// NEW: DROPDOWN NAVIGATION COMPONENT
-// ============================================================================
-const DropdownNavGroup = ({ label, icon: Icon, items, activeTab, setActiveTab, badge }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-          items.some((item: any) => item.value === activeTab)
-            ? "bg-primary text-primary-foreground shadow-sm"
-            : "hover:bg-muted"
-        }`}
-      >
-        <Icon className="h-4 w-4" />
-        <span className="hidden sm:inline">{label}</span>
-        {badge && (
-          <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
-            {badge}
-          </Badge>
-        )}
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -5, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -5, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-1 min-w-[200px] bg-popover rounded-lg shadow-lg border p-1 z-50"
-          >
-            {items.map((item: any) => {
-              const ItemIcon = item.icon;
-              return (
-                <button
-                  key={item.value}
-                  onClick={() => {
-                    setActiveTab(item.value);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2 ${
-                    activeTab === item.value ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-                  }`}
-                >
-                  <ItemIcon className="h-4 w-4" />
-                  {item.label}
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-auto text-[10px]">
-                      {item.badge}
-                    </Badge>
-                  )}
-                  {activeTab === item.value && <CheckCircle className="h-3 w-3 ml-auto text-primary" />}
-                </button>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-// ============================================================================
-// NEW: STAT CARD COMPONENT
+// STAT CARD COMPONENT
 // ============================================================================
 const StatCard = ({ title, value, icon: Icon, color, trend, trendLabel, onClick, loading }: any) => (
   <motion.div
@@ -208,7 +152,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend, trendLabel, onClick,
 );
 
 // ============================================================================
-// NEW: QUICK ACTION CARD
+// QUICK ACTION CARD
 // ============================================================================
 const QuickActionCard = ({ title, description, icon: Icon, onClick, color = "primary" }: any) => (
   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -225,11 +169,32 @@ const QuickActionCard = ({ title, description, icon: Icon, onClick, color = "pri
 );
 
 // ============================================================================
+// FILTER CHIP COMPONENT - NEW
+// ============================================================================
+const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+      active ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted hover:bg-muted/80 text-muted-foreground"
+    }`}
+  >
+    {Icon && <Icon className="h-3 w-3" />}
+    {label}
+    {count !== undefined && count > 0 && (
+      <Badge variant={active ? "secondary" : "outline"} className="h-4 px-1 text-[9px]">
+        {count}
+      </Badge>
+    )}
+  </button>
+);
+
+// ============================================================================
 // MAIN DASHBOARD COMPONENT
 // ============================================================================
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalProperties: 0,
@@ -241,6 +206,7 @@ export default function AdminDashboard() {
     totalBuilders: 0,
     totalHotelPartners: 0,
     reraVerifications: 0,
+    priceDropsPending: 0,
   });
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any>(null);
@@ -250,7 +216,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
 
   // ============================================================================
-  // NAVIGATION GROUPS - FIXED WITH ALL TABS ORGANIZED
+  // NAVIGATION GROUPS - DROPDOWN BASED
   // ============================================================================
   const NAV_GROUPS = [
     {
@@ -263,33 +229,31 @@ export default function AdminDashboard() {
       ],
     },
     {
-      label: "Users & Roles",
+      label: "Users",
       icon: Users,
       items: [
         { value: "users", label: "Registered Users", icon: Users },
         { value: "agents", label: "Agents", icon: Briefcase },
         { value: "builders", label: "Builders", icon: Building2 },
         { value: "hotels", label: "Hotel Partners", icon: Hotel },
-        { value: "kyc", label: "KYC Verification", icon: FileCheck, badge: stats.pendingSignups },
       ],
     },
     {
       label: "Properties",
       icon: Home,
       items: [
-        { value: "properties", label: "All Properties", icon: Home, badge: stats.totalProperties },
-        { value: "verification", label: "Pending Verification", icon: Shield, badge: stats.verificationsPending },
+        { value: "properties", label: "All Properties", icon: Home },
+        { value: "verification", label: "Pending Verification", icon: Shield },
         { value: "agent-verified", label: "Agent Verified", icon: CheckCircle },
         { value: "all-listings", label: "All Listings", icon: List },
-        { value: "price-drops", label: "Price Drops", icon: DollarSign },
       ],
     },
     {
       label: "Projects",
       icon: Building,
       items: [
-        { value: "projects", label: "All Projects", icon: Building, badge: stats.totalProjects },
-        { value: "rera-verifications", label: "RERA Verifications", icon: Shield, badge: stats.reraVerifications },
+        { value: "projects", label: "All Projects", icon: Building },
+        { value: "rera-verifications", label: "RERA Verifications", icon: Shield },
         { value: "documents", label: "Documents", icon: FileText },
       ],
     },
@@ -297,7 +261,7 @@ export default function AdminDashboard() {
       label: "Operations",
       icon: Activity,
       items: [
-        { value: "visits", label: "Visit Bookings", icon: CalendarCheck, badge: stats.pendingVisits },
+        { value: "visits", label: "Visit Bookings", icon: CalendarCheck },
         { value: "frm", label: "FRM Dashboard", icon: ClipboardCheck },
         { value: "events", label: "Events", icon: Calendar },
         { value: "whatsapp", label: "WhatsApp Logs", icon: MessageSquare },
@@ -308,11 +272,41 @@ export default function AdminDashboard() {
       icon: Wrench,
       items: [
         { value: "trust", label: "Trust Engine", icon: Shield },
+        { value: "kyc", label: "KYC", icon: FileCheck },
         { value: "settings", label: "Settings", icon: Settings },
-        { value: "weekend-explorer", label: "Weekend Explorer", icon: MapPinned },
-        { value: "quick-visits", label: "Quick Visits", icon: Zap },
+        { value: "price-drops", label: "Price Drops", icon: TrendingDown },
       ],
     },
+  ];
+
+  // ============================================================================
+  // FILTER OPTIONS - SEPARATE FROM NAVIGATION
+  // ============================================================================
+  const FILTER_OPTIONS = [
+    { value: "all", label: "All", icon: Grid3X3 },
+    { value: "registered-users", label: "Registered Users", icon: Users },
+    { value: "visits", label: "Visits", icon: CalendarCheck },
+    { value: "hotel-bookings", label: "Hotel Bookings", icon: Hotel },
+    { value: "agents", label: "Agents", icon: Briefcase },
+    { value: "agent-verified", label: "Agent-Verified", icon: CheckCircle },
+    { value: "properties", label: "Properties", icon: Home },
+    { value: "builders", label: "Builders", icon: Building2 },
+    { value: "projects", label: "Projects", icon: Building },
+    { value: "hotel-partners", label: "Hotel Partners", icon: Hotel },
+    { value: "weekend-explorer", label: "Weekend Explorer", icon: MapPinned },
+    { value: "quick-visits", label: "Quick Visits", icon: Zap },
+    { value: "rera-verifications", label: "RERA Verifications", icon: Shield },
+  ];
+
+  // ============================================================================
+  // ACTION OPTIONS - SEPARATE FROM NAVIGATION
+  // ============================================================================
+  const ACTION_OPTIONS = [
+    { value: "documents", label: "Documents", icon: FileText },
+    { value: "renovations", label: "Renovations", icon: Wrench },
+    { value: "all-listings", label: "All Listings", icon: List },
+    { value: "kyc", label: "KYC", icon: FileCheck },
+    { value: "price-drops", label: "Price Drops", icon: TrendingDown },
   ];
 
   // ============================================================================
@@ -344,6 +338,7 @@ export default function AdminDashboard() {
         { count: buildersCount },
         { count: hotelPartnersCount },
         { count: reraCount },
+        { count: priceDropsCount },
       ] = await Promise.all([
         supabase.from("properties").select("*", { count: "exact", head: true }),
         supabase.from("projects").select("*", { count: "exact", head: true }),
@@ -357,6 +352,7 @@ export default function AdminDashboard() {
         supabase.from("builders").select("*", { count: "exact", head: true }),
         supabase.from("hotel_partners").select("*", { count: "exact", head: true }),
         supabase.from("properties").select("*", { count: "exact", head: true }).eq("rera_verified", true),
+        supabase.from("properties").select("*", { count: "exact", head: true }).eq("price_drop_pending", true),
       ]);
 
       setStats({
@@ -370,6 +366,7 @@ export default function AdminDashboard() {
         totalBuilders: buildersCount || 0,
         totalHotelPartners: hotelPartnersCount || 0,
         reraVerifications: reraCount || 0,
+        priceDropsPending: priceDropsCount || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -445,7 +442,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
-        {/* STATS OVERVIEW - 4 columns with proper spacing */}
+        {/* STATS OVERVIEW */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Properties"
@@ -478,17 +475,6 @@ export default function AdminDashboard() {
             loading={loadingStats}
           />
           <StatCard
-            title="Pending Verifications"
-            value={stats.verificationsPending}
-            icon={AlertCircle}
-            color="border-orange-500"
-            onClick={() => {
-              setActiveTab("verification");
-              document.getElementById("admin-verifications")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            loading={loadingStats}
-          />
-          <StatCard
             title="Builders"
             value={stats.totalBuilders}
             icon={Building2}
@@ -496,10 +482,12 @@ export default function AdminDashboard() {
             loading={loadingStats}
           />
           <StatCard
-            title="Hotel Partners"
-            value={stats.totalHotelPartners}
-            icon={Hotel}
-            color="border-pink-500"
+            title="Registered Users"
+            value={stats.totalUsers}
+            icon={UserPlus}
+            color="border-cyan-500"
+            trend={3}
+            trendLabel="this month"
             loading={loadingStats}
           />
           <StatCard
@@ -517,9 +505,17 @@ export default function AdminDashboard() {
             color="border-emerald-500"
             loading={loadingStats}
           />
+          <StatCard
+            title="Price Drops"
+            value={stats.priceDropsPending}
+            icon={TrendingDown}
+            color="border-rose-500"
+            onClick={() => setActiveTab("price-drops")}
+            loading={loadingStats}
+          />
         </div>
 
-        {/* QUICK ACTIONS ROW */}
+        {/* QUICK ACTIONS */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
           <QuickActionCard
             title="Add Property"
@@ -551,36 +547,115 @@ export default function AdminDashboard() {
             onClick={() => fetchStats()}
           />
           <QuickActionCard
-            title="All Listings"
-            description="View all"
-            icon={List}
-            color="indigo"
-            onClick={() => setActiveTab("all-listings")}
+            title="Price Drops"
+            description={`${stats.priceDropsPending} pending`}
+            icon={TrendingDown}
+            color="rose"
+            onClick={() => setActiveTab("price-drops")}
           />
         </div>
 
         {/* ====================================================================== */}
-        {/* MAIN TABS - FIXED: CLEAN, ORGANIZED, NON-OVERLAPPING */}
+        {/* MAIN TABS */}
         {/* ====================================================================== */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Navigation - Dropdown Groups */}
+          {/* ================================================================== */}
+          {/* SECTION 1: DROPDOWN NAVIGATION - CLEAN AND ORGANIZED */}
+          {/* ================================================================== */}
           <div className="flex flex-wrap items-center gap-1.5 p-2 bg-card rounded-lg border shadow-sm">
             {NAV_GROUPS.map((group, idx) => (
               <div key={idx} className="flex items-center gap-1">
-                <DropdownNavGroup
-                  label={group.label}
-                  icon={group.icon}
-                  items={group.items}
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                  badge={group.items.some((i: any) => i.badge) ? undefined : undefined}
-                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium h-9 ${
+                        group.items.some((item: any) => item.value === activeTab)
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <group.icon className="h-4 w-4" />
+                      <span className="hidden sm:inline">{group.label}</span>
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel className="flex items-center gap-2">
+                      <group.icon className="h-4 w-4" />
+                      {group.label}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {group.items.map((item: any) => {
+                      const Icon = item.icon;
+                      return (
+                        <DropdownMenuItem
+                          key={item.value}
+                          onClick={() => setActiveTab(item.value)}
+                          className={`flex items-center gap-2 cursor-pointer ${
+                            activeTab === item.value ? "bg-primary/10 text-primary" : ""
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                          {activeTab === item.value && <CheckCircle className="h-3 w-3 ml-auto text-primary" />}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 {idx < NAV_GROUPS.length - 1 && <div className="w-px h-6 bg-border mx-0.5" />}
               </div>
             ))}
           </div>
 
+          {/* ================================================================== */}
+          {/* SECTION 2: FILTER OPTIONS - SEPARATE ROW */}
+          {/* ================================================================== */}
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-muted/30 rounded-lg border">
+            <span className="text-xs font-medium text-muted-foreground mr-1 flex items-center gap-1">
+              <Filter className="h-3 w-3" />
+              Filters:
+            </span>
+            {FILTER_OPTIONS.map((filter) => (
+              <FilterChip
+                key={filter.value}
+                label={filter.label}
+                icon={filter.icon}
+                active={activeFilter === filter.value}
+                onClick={() => setActiveFilter(filter.value)}
+              />
+            ))}
+          </div>
+
+          {/* ================================================================== */}
+          {/* SECTION 3: ACTION OPTIONS - SEPARATE ROW */}
+          {/* ================================================================== */}
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-muted/20 rounded-lg border">
+            <span className="text-xs font-medium text-muted-foreground mr-1 flex items-center gap-1">
+              <FolderOpen className="h-3 w-3" />
+              Actions:
+            </span>
+            {ACTION_OPTIONS.map((action) => (
+              <Button
+                key={action.value}
+                variant="ghost"
+                size="sm"
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs h-8 ${
+                  activeTab === action.value ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                }`}
+                onClick={() => setActiveTab(action.value)}
+              >
+                <action.icon className="h-3.5 w-3.5" />
+                {action.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* ================================================================== */}
           {/* TAB CONTENTS */}
+          {/* ================================================================== */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -649,7 +724,7 @@ export default function AdminDashboard() {
                     </Card>
                   </div>
 
-                  {/* Recent Activity Feed */}
+                  {/* Recent Activity */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -737,7 +812,7 @@ export default function AdminDashboard() {
                           Pending Review ({stats.verificationsPending})
                         </Badge>
                         <Badge variant="outline" className="px-3 py-1 cursor-pointer hover:bg-muted">
-                          Price Drops
+                          Price Drops ({stats.priceDropsPending})
                         </Badge>
                         <Badge variant="outline" className="px-3 py-1 cursor-pointer hover:bg-muted">
                           RERA Verified ({stats.reraVerifications})
@@ -1259,6 +1334,30 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
+              {/* PRICE DROPS TAB */}
+              {activeTab === "price-drops" && (
+                <TabsContent value="price-drops" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingDown className="h-5 w-5 text-primary" />
+                        Price Drop Approvals
+                      </CardTitle>
+                      <CardDescription>Review and approve price drop requests</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12">
+                        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
+                        <p className="text-lg font-medium">No pending price drops</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          All price drop requests have been processed
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
               {/* ALL LISTINGS TAB */}
               {activeTab === "all-listings" && (
                 <TabsContent value="all-listings" className="space-y-6 mt-6">
@@ -1272,24 +1371,6 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-center text-muted-foreground py-8">Full listing management coming soon</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              )}
-
-              {/* PRICE DROPS TAB */}
-              {activeTab === "price-drops" && (
-                <TabsContent value="price-drops" className="space-y-6 mt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5 text-primary" />
-                        Price Drops
-                      </CardTitle>
-                      <CardDescription>Properties with recent price reductions</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-center text-muted-foreground py-8">No price drops recorded</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1360,37 +1441,19 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* WEEKEND EXPLORER TAB */}
-              {activeTab === "weekend-explorer" && (
-                <TabsContent value="weekend-explorer" className="space-y-6 mt-6">
+              {/* RENOVATIONS TAB */}
+              {activeTab === "renovations" && (
+                <TabsContent value="renovations" className="space-y-6 mt-6">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <MapPinned className="h-5 w-5 text-primary" />
-                        Weekend Explorer
+                        <Wrench className="h-5 w-5 text-primary" />
+                        Renovations
                       </CardTitle>
-                      <CardDescription>Discover properties for weekend visits</CardDescription>
+                      <CardDescription>Manage renovation projects</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-center text-muted-foreground py-8">Weekend Explorer feature coming soon</p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              )}
-
-              {/* QUICK VISITS TAB */}
-              {activeTab === "quick-visits" && (
-                <TabsContent value="quick-visits" className="space-y-6 mt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-primary" />
-                        Quick Visits
-                      </CardTitle>
-                      <CardDescription>Properties available for quick viewing</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-center text-muted-foreground py-8">Quick Visits feature coming soon</p>
+                      <p className="text-center text-muted-foreground py-8">Renovation management coming soon</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1415,13 +1478,12 @@ export default function AdminDashboard() {
                 "reports",
                 "kyc",
                 "settings",
-                "all-listings",
                 "price-drops",
+                "all-listings",
                 "agent-verified",
                 "rera-verifications",
                 "documents",
-                "weekend-explorer",
-                "quick-visits",
+                "renovations",
               ].includes(activeTab) && (
                 <TabsContent value={activeTab} className="space-y-6 mt-6">
                   <Card>
