@@ -323,7 +323,7 @@ const Search = () => {
       .filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation))
       .filter((p) => classifyProperty(p) !== "draft");
 
-    // Nearby-first sort when we have user GPS coords.
+    // 10km radius hard filter + nearby-first sort when we have user coords.
     const uLat = savedLocation?.latitude;
     const uLng = savedLocation?.longitude;
     if (typeof uLat === "number" && typeof uLng === "number") {
@@ -337,23 +337,13 @@ const Search = () => {
           Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
         return 2 * R * Math.asin(Math.sqrt(a));
       };
-      const userLocality = (savedLocation?.area || "").toLowerCase().trim();
-      filtered = [...filtered].sort((a, b) => {
-        // Same locality first
-        const aLoc = (a.locality || "").toLowerCase().trim();
-        const bLoc = (b.locality || "").toLowerCase().trim();
-        if (userLocality) {
-          const aMatch = aLoc === userLocality ? 0 : 1;
-          const bMatch = bLoc === userLocality ? 0 : 1;
-          if (aMatch !== bMatch) return aMatch - bMatch;
-        }
-        const aHas = typeof a.latitude === "number" && typeof a.longitude === "number";
-        const bHas = typeof b.latitude === "number" && typeof b.longitude === "number";
-        if (aHas && bHas) return haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude);
-        if (aHas) return -1;
-        if (bHas) return 1;
-        return 0;
-      });
+      const RADIUS_KM = 10;
+      filtered = filtered
+        .filter((p) => {
+          if (typeof p.latitude !== "number" || typeof p.longitude !== "number") return false;
+          return haversine(p.latitude, p.longitude) <= RADIUS_KM;
+        })
+        .sort((a, b) => haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude));
     }
 
     setProperties((prev) => (append ? [...prev, ...filtered] : filtered));
@@ -389,7 +379,30 @@ const Search = () => {
     if (!error) {
       const all = (data as any[]) || [];
       const normalizedLocation = canonicalizeCity(location);
-      const strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
+      let strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
+
+      const uLat = savedLocation?.latitude;
+      const uLng = savedLocation?.longitude;
+      if (typeof uLat === "number" && typeof uLng === "number") {
+        const toRad = (d: number) => (d * Math.PI) / 180;
+        const haversine = (lat: number, lng: number) => {
+          const R = 6371;
+          const dLat = toRad(lat - uLat);
+          const dLng = toRad(lng - uLng);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+          return 2 * R * Math.asin(Math.sqrt(a));
+        };
+        const RADIUS_KM = 10;
+        strict = strict
+          .filter((p) => {
+            if (typeof p.latitude !== "number" || typeof p.longitude !== "number") return false;
+            return haversine(p.latitude, p.longitude) <= RADIUS_KM;
+          })
+          .sort((a, b) => haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude));
+      }
+
       setProjects((prev) => append ? [...prev, ...strict] : strict);
       setTotal(count || strict.length);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
@@ -604,7 +617,7 @@ const Search = () => {
     switch (activeTab) {
       case "properties":
         return properties.length === 0 ? (
-          <EmptyState message="No properties found" />
+          <EmptyState message={savedLocation?.city ? "No properties in this city or locality" : "No properties found"} />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -624,7 +637,7 @@ const Search = () => {
 
       case "new-projects":
         return projects.length === 0 ? (
-          <EmptyState message="No projects found" />
+          <EmptyState message={savedLocation?.city ? "No projects in this city or locality" : "No projects found"} />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}

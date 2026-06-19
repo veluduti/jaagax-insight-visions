@@ -1,23 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Crosshair, Loader2, Search, X, ArrowLeft } from "lucide-react";
+import { MapPin, Search, X, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
-import { INDIAN_CITIES } from "@/data/indianCities";
-
-const POPULAR_CITIES = [
-  "Hyderabad",
-  "Bangalore",
-  "Mumbai",
-  "Pune",
-  "Chennai",
-  "Delhi",
-  "Vijayawada",
-  "Vizag",
-];
+import { usePlacesAutocomplete } from "@/hooks/usePlacesAutocomplete";
+import { toast } from "@/hooks/use-toast";
 
 interface LocationSelectorProps {
   /** Called after the user picks/sets a location. */
@@ -28,32 +18,52 @@ interface LocationSelectorProps {
 
 const LocationSelector = ({ onSelected, showBack = false }: LocationSelectorProps) => {
   const navigate = useNavigate();
-  const { selectLocation, requestGpsLocation, isResolvingGps } = useLocationContext();
+  const { selectLocation } = useLocationContext();
   const [query, setQuery] = useState("");
-  const [skipped, setSkipped] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Slow GPS guard: after ~6s show "Skip" hint
-  useEffect(() => {
-    if (!isResolvingGps) return;
-    const t = setTimeout(() => setSkipped(true), 6000);
-    return () => clearTimeout(t);
-  }, [isResolvingGps]);
+  const { suggestions, loading, selectPlace } = usePlacesAutocomplete(query, {
+    country: "in",
+  });
 
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return INDIAN_CITIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8);
-  }, [query]);
-
-  const handleManualSelect = async (city: string, area = "") => {
-    await selectLocation({ city, area, latitude: null, longitude: null });
-    onSelected?.();
+  const handlePick = (placeId: string, label: string) => {
+    setSelectedPlaceId(placeId);
+    setQuery(label);
   };
 
-  const handleUseGps = async () => {
-    setSkipped(false);
-    await requestGpsLocation();
-    onSelected?.();
+  const handleSubmit = async () => {
+    if (!query.trim()) return;
+    setSubmitting(true);
+    try {
+      // Prefer explicitly selected suggestion; otherwise use the first one.
+      const placeId = selectedPlaceId || suggestions[0]?.placeId;
+      if (!placeId) {
+        toast({
+          title: "Pick a location",
+          description: "Choose a city or locality from the suggestions.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const details = await selectPlace(placeId);
+      await selectLocation({
+        city: details.city || details.locality || query.trim(),
+        area: details.locality && details.locality !== details.city ? details.locality : "",
+        latitude: details.latitude ?? null,
+        longitude: details.longitude ?? null,
+      });
+      onSelected?.();
+    } catch (err) {
+      console.error("Location selection failed", err);
+      toast({
+        title: "Could not set location",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -77,28 +87,36 @@ const LocationSelector = ({ onSelected, showBack = false }: LocationSelectorProp
           <h2 className="text-2xl font-bold text-foreground">Choose your location</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-5">
-          We'll show properties in your area. You can change this anytime.
+          Search for a city, area or locality. We'll show properties within 10km.
         </p>
 
         {/* Search input */}
-        <div className="relative mb-3">
+        <div className="relative mb-4">
           <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-background border border-border/50 focus-within:border-primary/50 transition-colors">
             <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <Input
               autoFocus
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedPlaceId(null);
+              }}
               placeholder="Search city, area or locality..."
               className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm"
               onKeyDown={(e) => {
-                if (e.key === "Enter" && query.trim()) {
-                  void handleManualSelect(suggestions[0] || query.trim());
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleSubmit();
                 }
               }}
             />
-            {query && (
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            {query && !loading && (
               <button
-                onClick={() => setQuery("")}
+                onClick={() => {
+                  setQuery("");
+                  setSelectedPlaceId(null);
+                }}
                 aria-label="Clear search"
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -107,68 +125,41 @@ const LocationSelector = ({ onSelected, showBack = false }: LocationSelectorProp
             )}
           </div>
 
-          {suggestions.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border/50 rounded-lg shadow-xl overflow-hidden">
-              {suggestions.map((city) => (
+          {suggestions.length > 0 && !selectedPlaceId && (
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border/50 rounded-lg shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+              {suggestions.map((s) => (
                 <button
-                  key={city}
-                  onClick={() => handleManualSelect(city)}
-                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-secondary/60 flex items-center gap-2 border-b border-border/30 last:border-0"
+                  key={s.placeId}
+                  onClick={() => handlePick(s.placeId, s.fullText)}
+                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-secondary/60 flex items-start gap-2 border-b border-border/30 last:border-0"
                 >
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-foreground">{city}</span>
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-foreground font-medium">{s.mainText}</span>
+                    {s.secondaryText && (
+                      <span className="text-xs text-muted-foreground">{s.secondaryText}</span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Use Current Location */}
         <Button
           type="button"
-          onClick={handleUseGps}
-          disabled={isResolvingGps}
-          className="w-full mb-2"
-          variant="default"
+          onClick={handleSubmit}
+          disabled={submitting || !query.trim()}
+          className="w-full"
         >
-          {isResolvingGps ? (
+          {submitting ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Getting your location...
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting location...
             </>
           ) : (
-            <>
-              <Crosshair className="h-4 w-4 mr-2" />
-              Use current location
-            </>
+            "Submit"
           )}
         </Button>
-
-        {isResolvingGps && skipped && (
-          <p className="text-xs text-muted-foreground text-center mb-3">
-            Taking too long? Pick a city below to continue.
-          </p>
-        )}
-
-        <div className="flex items-center gap-3 my-5">
-          <div className="h-px bg-border/60 flex-1" />
-          <span className="text-xs text-muted-foreground uppercase tracking-wider">
-            or popular cities
-          </span>
-          <div className="h-px bg-border/60 flex-1" />
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_CITIES.map((city) => (
-            <button
-              key={city}
-              onClick={() => handleManualSelect(city)}
-              className="px-3 py-1.5 rounded-full text-sm border border-border/60 bg-background hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-colors"
-            >
-              {city}
-            </button>
-          ))}
-        </div>
       </Card>
     </motion.div>
   );
