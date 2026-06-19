@@ -35,18 +35,13 @@ export default function ForgotPasswordModal({ isOpen, onClose, defaultEmail = ""
 
     try {
       const redirectUrl = `${window.location.origin}/auth?reset=true`;
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+      // Fire-and-forget: always show the same neutral message to avoid leaking
+      // whether the email is registered (account enumeration prevention).
+      await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl }).catch((e) => {
+        console.error("Password reset error:", e);
       });
-
-      if (error) {
-        throw error;
-      }
-
       setStep("sent");
-      toast.success("Password reset link sent!");
-      
+
       // Start countdown for resend
       setCountdown(60);
       const timer = setInterval(() => {
@@ -58,10 +53,6 @@ export default function ForgotPasswordModal({ isOpen, onClose, defaultEmail = ""
           return prev - 1;
         });
       }, 1000);
-
-    } catch (error: any) {
-      console.error("Password reset error:", error);
-      toast.error(error.message || "Failed to send reset email");
     } finally {
       setLoading(false);
     }
