@@ -617,7 +617,7 @@ const Search = () => {
     switch (activeTab) {
       case "properties":
         return properties.length === 0 ? (
-          <EmptyState message="No properties found" />
+          <EmptyState message={savedLocation?.city ? "No properties in this city or locality" : "No properties found"} />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
