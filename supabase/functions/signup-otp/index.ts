@@ -66,6 +66,10 @@ function buildUserMetadata(meta: any, phone: string | null) {
   }
 }
 
+function isWeakPasswordError(message: string) {
+  return /weak|easy to guess|password/i.test(message)
+}
+
 async function getUnsubscribeToken(
   supabase: ReturnType<typeof createClient>,
   email: string,
@@ -280,7 +284,19 @@ Deno.serve(async (req) => {
           user_metadata: userMetadata,
         })
 
-        if (updateErr) return json({ error: updateErr.message || 'Failed to verify account' }, 500)
+        if (updateErr) {
+          const message = updateErr.message || 'Failed to verify account'
+          if (isWeakPasswordError(message)) {
+            const { error: confirmErr } = await supabase.auth.admin.updateUserById(existingAuthUser.id, {
+              email_confirm: true,
+              user_metadata: userMetadata,
+            })
+
+            if (confirmErr) return json({ error: confirmErr.message || message }, 400)
+          } else {
+            return json({ error: message }, 500)
+          }
+        }
       } else {
         const { error: createErr } = await supabase.auth.admin.createUser({
           email,
@@ -289,7 +305,10 @@ Deno.serve(async (req) => {
           user_metadata: userMetadata,
         })
 
-        if (createErr) return json({ error: createErr.message || 'Failed to create account' }, 500)
+        if (createErr) {
+          const message = createErr.message || 'Failed to create account'
+          return json({ error: isWeakPasswordError(message) ? 'Please sign up again with a stronger password.' : message }, isWeakPasswordError(message) ? 400 : 500)
+        }
       }
 
       await supabase
