@@ -154,19 +154,19 @@ export default function ForgotPasswordModal({ isOpen, onClose, defaultEmail = ""
               </motion.div>
 
               <DialogHeader className="space-y-3">
-                <DialogTitle className="text-2xl">Check Your Email!</DialogTitle>
+                <DialogTitle className="text-2xl">Check Your Email</DialogTitle>
                 <DialogDescription className="text-base">
-                  We've sent a password reset link to
+                  If an account exists with this email address, a password reset link has been sent.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="my-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <p className="font-medium text-primary">{email}</p>
+                <p className="font-medium text-primary text-center">{email}</p>
               </div>
 
               <div className="space-y-4 mt-6">
                 <p className="text-sm text-muted-foreground">
-                  Click the link in the email to reset your password. The link will expire in 1 hour.
+                  Click the link in the email to reset your password. The link expires in 1 hour.
                 </p>
 
                 <div className="flex flex-col gap-3">
