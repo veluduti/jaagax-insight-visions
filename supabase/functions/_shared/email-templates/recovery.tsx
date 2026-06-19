@@ -20,7 +20,7 @@ interface RecoveryEmailProps {
   token?: string
 }
 
-export const RecoveryEmail = ({ confirmationUrl, token }: RecoveryEmailProps) => (
+export const RecoveryEmail = ({ confirmationUrl }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Reset your JAAGA X password</Preview>
@@ -29,13 +29,8 @@ export const RecoveryEmail = ({ confirmationUrl, token }: RecoveryEmailProps) =>
         <Text style={brand}>JAAGA X</Text>
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
-          We received a request to reset your password. Use the 6-digit code below, or click the button.
+          We received a request to reset your password. Click the button below to set a new one. This link will expire shortly for your security.
         </Text>
-        {token && (
-          <Section style={codeBox}>
-            <Text style={codeStyle}>{token}</Text>
-          </Section>
-        )}
         <Section style={{ textAlign: 'center' as const, margin: '0 0 24px' }}>
           <Button style={button} href={confirmationUrl}>
             Reset Password
