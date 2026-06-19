@@ -379,7 +379,30 @@ const Search = () => {
     if (!error) {
       const all = (data as any[]) || [];
       const normalizedLocation = canonicalizeCity(location);
-      const strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
+      let strict = all.filter((p) => !normalizedLocation || isSameCity(p.city, normalizedLocation));
+
+      const uLat = savedLocation?.latitude;
+      const uLng = savedLocation?.longitude;
+      if (typeof uLat === "number" && typeof uLng === "number") {
+        const toRad = (d: number) => (d * Math.PI) / 180;
+        const haversine = (lat: number, lng: number) => {
+          const R = 6371;
+          const dLat = toRad(lat - uLat);
+          const dLng = toRad(lng - uLng);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+          return 2 * R * Math.asin(Math.sqrt(a));
+        };
+        const RADIUS_KM = 10;
+        strict = strict
+          .filter((p) => {
+            if (typeof p.latitude !== "number" || typeof p.longitude !== "number") return false;
+            return haversine(p.latitude, p.longitude) <= RADIUS_KM;
+          })
+          .sort((a, b) => haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude));
+      }
+
       setProjects((prev) => append ? [...prev, ...strict] : strict);
       setTotal(count || strict.length);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
