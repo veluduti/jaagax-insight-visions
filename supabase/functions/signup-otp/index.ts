@@ -53,7 +53,7 @@ async function enqueueOtpEmail(
   })
 
   const { error } = await supabase.rpc('enqueue_email', {
-    queue_name: 'transactional_emails',
+    queue_name: 'auth_emails',
     payload: {
       message_id: messageId,
       to: toEmail,
@@ -62,12 +62,13 @@ async function enqueueOtpEmail(
       subject: `Your JAAGA X verification code: ${code}`,
       html,
       text,
-      purpose: 'transactional',
+      purpose: 'auth',
       label: 'signup-otp',
       idempotency_key: messageId,
       queued_at: new Date().toISOString(),
     },
   })
+
 
   if (error) {
     await supabase.from('email_send_log').insert({
