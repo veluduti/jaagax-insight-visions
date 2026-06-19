@@ -304,15 +304,34 @@ const PropertyDetail = () => {
     }
   };
 
+  const fireLead = async (source: "call" | "whatsapp" | "inquiry") => {
+    if (!id) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.functions.invoke("create-property-lead", {
+        body: {
+          property_id: id,
+          source,
+          lead_name: user?.user_metadata?.full_name ?? null,
+          lead_email: user?.email ?? null,
+          lead_phone: user?.user_metadata?.phone ?? null,
+        },
+      });
+    } catch (e) {
+      // Non-blocking — UI flow continues even if lead capture fails
+      console.warn("Lead capture failed", e);
+    }
+  };
+
   const handleCall = () => {
     if (id) trackPropertyEvent({ propertyId: id, eventType: "call_click" });
-    // Redirect to AI Pre-Call flow instead of direct call
+    fireLead("call");
     setShowPreCallModal(true);
   };
 
   const handleWhatsApp = () => {
     if (id) trackPropertyEvent({ propertyId: id, eventType: "whatsapp_click" });
-    // Redirect to AI Pre-Call flow instead of direct WhatsApp
+    fireLead("whatsapp");
     setShowPreCallModal(true);
   };
 
