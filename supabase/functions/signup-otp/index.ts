@@ -186,12 +186,27 @@ Deno.serve(async (req) => {
 
       if (upsertErr) return json({ error: upsertErr.message }, 500)
 
-      try {
-        await sendSms(phone, code)
-      } catch (e: any) {
-        return json({ error: `Could not send SMS: ${e.message}` }, 502)
+      // Send OTP to BOTH email and phone. Succeed if at least one channel delivers.
+      const results = await Promise.allSettled([
+        sendOtpEmail(email, code),
+        sendSms(phone, code),
+      ])
+      const emailOk = results[0].status === 'fulfilled'
+      const smsOk = results[1].status === 'fulfilled'
+      if (!emailOk && !smsOk) {
+        const emailErr = (results[0] as PromiseRejectedResult).reason?.message ?? 'email failed'
+        const smsErr = (results[1] as PromiseRejectedResult).reason?.message ?? 'sms failed'
+        return json({ error: `Could not deliver OTP. ${emailErr}. ${smsErr}` }, 502)
       }
-      return json({ success: true, phoneMasked: phone.replace(/.(?=.{4})/g, '*'), expiresInMinutes: OTP_TTL_MIN })
+      if (!emailOk) console.error('Email OTP failed:', (results[0] as PromiseRejectedResult).reason)
+      if (!smsOk) console.error('SMS OTP failed:', (results[1] as PromiseRejectedResult).reason)
+      return json({
+        success: true,
+        emailSent: emailOk,
+        smsSent: smsOk,
+        phoneMasked: phone.replace(/.(?=.{4})/g, '*'),
+        expiresInMinutes: OTP_TTL_MIN,
+      })
     }
 
     if (action === 'verify') {
