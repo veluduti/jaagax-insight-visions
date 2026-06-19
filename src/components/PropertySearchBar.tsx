@@ -175,45 +175,16 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
               {renderTransactionTabs()}
 
               <div className="relative flex-1 min-w-[250px]">
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-background border border-border/50 hover:border-primary/30 focus-within:border-primary/50 transition-colors">
-                  <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                  <Input
-                    placeholder="Enter location"
-                    className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm placeholder:text-muted-foreground"
-                    value={location}
-                    onChange={(e) => {
-                      setLocation(e.target.value);
-                      setShowSuggestions(e.target.value.length > 0);
-                    }}
-                    onFocus={() => setShowSuggestions(location.length > 0)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onKeyPress={handleKeyPress}
-                  />
-                </div>
-
-                {showSuggestions && location && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute z-[60] w-full mt-1 bg-popover rounded-lg overflow-hidden border border-border/50 shadow-xl"
-                  >
-                    {popularLocations
-                      .filter((loc) => loc.toLowerCase().includes(location.toLowerCase()))
-                      .map((loc, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setLocation(loc);
-                            setShowSuggestions(false);
-                          }}
-                          className="w-full px-3 py-2 text-left hover:bg-secondary/50 transition-colors flex items-center gap-2 border-b border-border/30 last:border-0 text-sm"
-                        >
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-foreground">{loc}</span>
-                        </button>
-                      ))}
-                  </motion.div>
-                )}
+                <InlineLocationSearch
+                  variant="box"
+                  placeholder="Enter location"
+                  initialValue={location}
+                  onTextChange={setLocation}
+                  onSelected={(loc) => {
+                    setLocation(loc.city || loc.locality || "");
+                  }}
+                  onEnterRaw={() => handleSearch()}
+                />
               </div>
 
               <Button
