@@ -25,7 +25,6 @@ import {
   MapPin,
   Phone,
   Loader2,
-  // NEW ICONS
   LayoutDashboard,
   UserPlus,
   Clock,
@@ -46,6 +45,17 @@ import {
   PlusCircle,
   Download,
   RefreshCw,
+  // NEW ICONS FOR NAVIGATION
+  UserCog,
+  Building,
+  Landmark,
+  FileSpreadsheet,
+  ClipboardCheck,
+  DollarSign,
+  Wrench,
+  Zap,
+  Layers,
+  MapPinned,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
@@ -89,47 +99,64 @@ const WhatsAppLogsPanel = lazy(() =>
 );
 const RegisteredUsersPanel = lazy(() => import("@/components/admin/RegisteredUsersPanel"));
 
-// NEW: Dropdown component for navigation
-const DropdownNav = ({ label, icon: Icon, items, activeTab, setActiveTab }: any) => {
+// ============================================================================
+// NEW: DROPDOWN NAVIGATION COMPONENT
+// ============================================================================
+const DropdownNavGroup = ({ label, icon: Icon, items, activeTab, setActiveTab, badge }: any) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-          activeTab === label ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+          items.some((item: any) => item.value === activeTab)
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "hover:bg-muted"
         }`}
       >
         <Icon className="h-4 w-4" />
-        {label}
+        <span className="hidden sm:inline">{label}</span>
+        {badge && (
+          <Badge variant="destructive" className="h-5 px-1.5 text-[10px]">
+            {badge}
+          </Badge>
+        )}
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 mt-1 w-48 bg-popover rounded-lg shadow-lg border p-1 z-50"
+            initial={{ opacity: 0, y: -5, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -5, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-1 min-w-[200px] bg-popover rounded-lg shadow-lg border p-1 z-50"
           >
-            {items.map((item: any) => (
-              <button
-                key={item.value}
-                onClick={() => {
-                  setActiveTab(item.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === item.value ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {item.icon && <item.icon className="h-4 w-4" />}
+            {items.map((item: any) => {
+              const ItemIcon = item.icon;
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => {
+                    setActiveTab(item.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2 ${
+                    activeTab === item.value ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                  }`}
+                >
+                  <ItemIcon className="h-4 w-4" />
                   {item.label}
-                </span>
-              </button>
-            ))}
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-auto text-[10px]">
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {activeTab === item.value && <CheckCircle className="h-3 w-3 ml-auto text-primary" />}
+                </button>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -137,7 +164,9 @@ const DropdownNav = ({ label, icon: Icon, items, activeTab, setActiveTab }: any)
   );
 };
 
-// NEW: Stat Card Component
+// ============================================================================
+// NEW: STAT CARD COMPONENT
+// ============================================================================
 const StatCard = ({ title, value, icon: Icon, color, trend, trendLabel, onClick, loading }: any) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -149,26 +178,28 @@ const StatCard = ({ title, value, icon: Icon, color, trend, trendLabel, onClick,
       className={`cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 ${color} ${onClick ? "cursor-pointer" : ""}`}
       onClick={onClick}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-xs md:text-sm font-medium text-muted-foreground">{title}</p>
             {loading ? (
-              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+              <div className="h-6 md:h-8 w-12 md:w-16 bg-muted animate-pulse rounded" />
             ) : (
-              <p className="text-2xl font-bold tracking-tight">{value}</p>
+              <p className="text-xl md:text-2xl font-bold tracking-tight">{value}</p>
             )}
             {trend !== undefined && (
               <div
-                className={`flex items-center gap-1 text-xs font-medium ${trend >= 0 ? "text-green-600" : "text-red-600"}`}
+                className={`flex items-center gap-1 text-[10px] md:text-xs font-medium ${
+                  trend >= 0 ? "text-green-600" : "text-red-600"
+                }`}
               >
                 {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
                 <span className="text-muted-foreground font-normal">{trendLabel}</span>
               </div>
             )}
           </div>
-          <div className={`p-3 rounded-full ${color.replace("border-", "bg-").replace("/60", "")}/10`}>
-            <Icon className={`h-6 w-6 ${color.replace("border-", "text-")}`} />
+          <div className={`p-2 md:p-3 rounded-full ${color.replace("border-", "bg-").replace("/60", "")}/10`}>
+            <Icon className={`h-4 w-4 md:h-6 md:w-6 ${color.replace("border-", "text-")}`} />
           </div>
         </div>
       </CardContent>
@@ -176,21 +207,26 @@ const StatCard = ({ title, value, icon: Icon, color, trend, trendLabel, onClick,
   </motion.div>
 );
 
-// NEW: Quick Action Card
+// ============================================================================
+// NEW: QUICK ACTION CARD
+// ============================================================================
 const QuickActionCard = ({ title, description, icon: Icon, onClick, color = "primary" }: any) => (
   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
     <Card className="cursor-pointer hover:shadow-lg transition-all duration-300" onClick={onClick}>
-      <CardContent className="p-6 text-center">
-        <div className={`p-3 rounded-full bg-${color}/10 w-fit mx-auto mb-3`}>
-          <Icon className={`h-6 w-6 text-${color}`} />
+      <CardContent className="p-4 md:p-6 text-center">
+        <div className={`p-2 md:p-3 rounded-full bg-${color}/10 w-fit mx-auto mb-2 md:mb-3`}>
+          <Icon className={`h-5 w-5 md:h-6 md:w-6 text-${color}`} />
         </div>
-        <h3 className="font-semibold text-sm">{title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <h3 className="font-semibold text-xs md:text-sm">{title}</h3>
+        <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1">{description}</p>
       </CardContent>
     </Card>
   </motion.div>
 );
 
+// ============================================================================
+// MAIN DASHBOARD COMPONENT
+// ============================================================================
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("overview");
@@ -213,35 +249,75 @@ export default function AdminDashboard() {
   const [loadingStats, setLoadingStats] = useState(true);
   const navigate = useNavigate();
 
-  // Navigation groups
-  const navGroups = {
-    main: [
-      { value: "overview", label: "Overview", icon: LayoutDashboard },
-      { value: "users", label: "Users", icon: Users },
-      { value: "verification", label: "Verifications", icon: Shield },
-      { value: "properties", label: "Properties", icon: Home },
-      { value: "projects", label: "Projects", icon: Building2 },
-    ],
-    management: [
-      { value: "agents", label: "Agents", icon: Briefcase },
-      { value: "builders", label: "Builders", icon: Building2 },
-      { value: "hotels", label: "Hotel Partners", icon: Hotel },
-      { value: "visits", label: "Visits", icon: CalendarCheck },
-    ],
-    moderation: [
-      { value: "events", label: "Events", icon: Calendar },
-      { value: "whatsapp", label: "WhatsApp", icon: MessageSquare },
-      { value: "trust", label: "Trust Engine", icon: Shield },
-      { value: "analytics", label: "Analytics", icon: BarChart3 },
-    ],
-    tools: [
-      { value: "frm", label: "FRM", icon: Activity },
-      { value: "reports", label: "Reports", icon: FileText },
-      { value: "kyc", label: "KYC", icon: FileCheck },
-      { value: "settings", label: "Settings", icon: Settings },
-    ],
-  };
+  // ============================================================================
+  // NAVIGATION GROUPS - FIXED WITH ALL TABS ORGANIZED
+  // ============================================================================
+  const NAV_GROUPS = [
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      items: [
+        { value: "overview", label: "Overview", icon: LayoutDashboard },
+        { value: "analytics", label: "Analytics", icon: BarChart3 },
+        { value: "reports", label: "Reports", icon: FileText },
+      ],
+    },
+    {
+      label: "Users & Roles",
+      icon: Users,
+      items: [
+        { value: "users", label: "Registered Users", icon: Users },
+        { value: "agents", label: "Agents", icon: Briefcase },
+        { value: "builders", label: "Builders", icon: Building2 },
+        { value: "hotels", label: "Hotel Partners", icon: Hotel },
+        { value: "kyc", label: "KYC Verification", icon: FileCheck, badge: stats.pendingSignups },
+      ],
+    },
+    {
+      label: "Properties",
+      icon: Home,
+      items: [
+        { value: "properties", label: "All Properties", icon: Home, badge: stats.totalProperties },
+        { value: "verification", label: "Pending Verification", icon: Shield, badge: stats.verificationsPending },
+        { value: "agent-verified", label: "Agent Verified", icon: CheckCircle },
+        { value: "all-listings", label: "All Listings", icon: List },
+        { value: "price-drops", label: "Price Drops", icon: DollarSign },
+      ],
+    },
+    {
+      label: "Projects",
+      icon: Building,
+      items: [
+        { value: "projects", label: "All Projects", icon: Building, badge: stats.totalProjects },
+        { value: "rera-verifications", label: "RERA Verifications", icon: Shield, badge: stats.reraVerifications },
+        { value: "documents", label: "Documents", icon: FileText },
+      ],
+    },
+    {
+      label: "Operations",
+      icon: Activity,
+      items: [
+        { value: "visits", label: "Visit Bookings", icon: CalendarCheck, badge: stats.pendingVisits },
+        { value: "frm", label: "FRM Dashboard", icon: ClipboardCheck },
+        { value: "events", label: "Events", icon: Calendar },
+        { value: "whatsapp", label: "WhatsApp Logs", icon: MessageSquare },
+      ],
+    },
+    {
+      label: "Tools",
+      icon: Wrench,
+      items: [
+        { value: "trust", label: "Trust Engine", icon: Shield },
+        { value: "settings", label: "Settings", icon: Settings },
+        { value: "weekend-explorer", label: "Weekend Explorer", icon: MapPinned },
+        { value: "quick-visits", label: "Quick Visits", icon: Zap },
+      ],
+    },
+  ];
 
+  // ============================================================================
+  // FETCH FUNCTIONS
+  // ============================================================================
   useEffect(() => {
     fetchUser();
     fetchStats();
@@ -334,11 +410,14 @@ export default function AdminDashboard() {
     navigate("/");
   };
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-background to-primary/5">
       <Navigation />
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -366,8 +445,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
-        {/* Stats Overview - 4 columns with proper spacing */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* STATS OVERVIEW - 4 columns with proper spacing */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           <StatCard
             title="Properties"
             value={stats.totalProperties}
@@ -440,8 +519,8 @@ export default function AdminDashboard() {
           />
         </div>
 
-        {/* Quick Actions Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {/* QUICK ACTIONS ROW */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
           <QuickActionCard
             title="Add Property"
             description="New listing"
@@ -476,72 +555,32 @@ export default function AdminDashboard() {
             description="View all"
             icon={List}
             color="indigo"
-            onClick={() => setActiveTab("properties")}
+            onClick={() => setActiveTab("all-listings")}
           />
         </div>
 
-        {/* Main Tabs - REDESIGNED with dropdown groups */}
+        {/* ====================================================================== */}
+        {/* MAIN TABS - FIXED: CLEAN, ORGANIZED, NON-OVERLAPPING */}
+        {/* ====================================================================== */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* NEW: Grouped Navigation */}
-          <div className="flex flex-wrap items-center gap-2 p-2 bg-card rounded-lg border shadow-sm">
-            {/* Main Group */}
-            <div className="flex items-center gap-1 border-r pr-2">
-              {navGroups.main.map((item) => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
-                </TabsTrigger>
-              ))}
-            </div>
-
-            {/* Management Group */}
-            <div className="flex items-center gap-1 border-r pr-2">
-              {navGroups.management.map((item) => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
-                </TabsTrigger>
-              ))}
-            </div>
-
-            {/* Moderation Group */}
-            <div className="flex items-center gap-1 border-r pr-2">
-              {navGroups.moderation.map((item) => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
-                </TabsTrigger>
-              ))}
-            </div>
-
-            {/* Tools Group */}
-            <div className="flex items-center gap-1">
-              {navGroups.tools.map((item) => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
-                </TabsTrigger>
-              ))}
-            </div>
+          {/* Navigation - Dropdown Groups */}
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-card rounded-lg border shadow-sm">
+            {NAV_GROUPS.map((group, idx) => (
+              <div key={idx} className="flex items-center gap-1">
+                <DropdownNavGroup
+                  label={group.label}
+                  icon={group.icon}
+                  items={group.items}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  badge={group.items.some((i: any) => i.badge) ? undefined : undefined}
+                />
+                {idx < NAV_GROUPS.length - 1 && <div className="w-px h-6 bg-border mx-0.5" />}
+              </div>
+            ))}
           </div>
 
-          {/* Tab Contents */}
+          {/* TAB CONTENTS */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -550,7 +589,7 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {/* Overview Tab */}
+              {/* OVERVIEW TAB */}
               {activeTab === "overview" && (
                 <TabsContent value="overview" className="space-y-6 mt-6">
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -570,7 +609,10 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
 
-                    <Card className="cursor-pointer hover:shadow-lg transition-all">
+                    <Card
+                      className="cursor-pointer hover:shadow-lg transition-all"
+                      onClick={() => setActiveTab("rera-verifications")}
+                    >
                       <CardContent className="p-6 text-center">
                         <div className="p-3 rounded-full bg-green-500/10 w-fit mx-auto mb-3">
                           <Shield className="h-6 w-6 text-green-500" />
@@ -607,7 +649,7 @@ export default function AdminDashboard() {
                     </Card>
                   </div>
 
-                  {/* Recent Activity Feed - NEW */}
+                  {/* Recent Activity Feed */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -664,7 +706,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Users Tab */}
+              {/* USERS TAB */}
               {activeTab === "users" && (
                 <TabsContent value="users" className="space-y-6 mt-6">
                   <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={400}>
@@ -675,7 +717,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Properties Tab - NEW */}
+              {/* PROPERTIES TAB */}
               {activeTab === "properties" && (
                 <TabsContent value="properties" className="space-y-6 mt-6">
                   <Card>
@@ -712,7 +754,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Projects Tab - NEW */}
+              {/* PROJECTS TAB */}
               {activeTab === "projects" && (
                 <TabsContent value="projects" className="space-y-6 mt-6">
                   <Card>
@@ -743,7 +785,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Agents Tab - NEW */}
+              {/* AGENTS TAB */}
               {activeTab === "agents" && (
                 <TabsContent value="agents" className="space-y-6 mt-6">
                   <Card>
@@ -778,7 +820,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Builders Tab - NEW */}
+              {/* BUILDERS TAB */}
               {activeTab === "builders" && (
                 <TabsContent value="builders" className="space-y-6 mt-6">
                   <Card>
@@ -809,7 +851,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Hotels Tab - NEW */}
+              {/* HOTELS TAB */}
               {activeTab === "hotels" && (
                 <TabsContent value="hotels" className="space-y-6 mt-6">
                   <Card>
@@ -836,7 +878,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Visits Tab */}
+              {/* VISITS TAB */}
               {activeTab === "visits" && (
                 <TabsContent value="visits" className="space-y-6 mt-6">
                   <Card>
@@ -900,7 +942,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* FRM Tab */}
+              {/* FRM TAB */}
               {activeTab === "frm" && (
                 <TabsContent value="frm" className="space-y-6 mt-6">
                   <Card>
@@ -922,7 +964,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Verifications Tab */}
+              {/* VERIFICATIONS TAB */}
               {activeTab === "verification" && (
                 <TabsContent value="verification" id="admin-verifications" className="space-y-6 mt-6 scroll-mt-24">
                   <Suspense fallback={<ListSkeleton rows={4} />}>
@@ -942,7 +984,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Events Tab */}
+              {/* EVENTS TAB */}
               {activeTab === "events" && (
                 <TabsContent value="events" className="space-y-6 mt-6">
                   <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
@@ -953,7 +995,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* WhatsApp Tab */}
+              {/* WHATSAPP TAB */}
               {activeTab === "whatsapp" && (
                 <TabsContent value="whatsapp" className="space-y-6 mt-6">
                   <LazyMount fallback={<ListSkeleton rows={5} />} minHeight={400}>
@@ -964,7 +1006,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Trust Engine Tab */}
+              {/* TRUST ENGINE TAB */}
               {activeTab === "trust" && (
                 <TabsContent value="trust" className="space-y-6 mt-6">
                   <Card>
@@ -1073,7 +1115,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Analytics Tab */}
+              {/* ANALYTICS TAB */}
               {activeTab === "analytics" && (
                 <TabsContent value="analytics" className="space-y-6 mt-6">
                   <Card>
@@ -1109,7 +1151,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Reports Tab - NEW */}
+              {/* REPORTS TAB */}
               {activeTab === "reports" && (
                 <TabsContent value="reports" className="space-y-6 mt-6">
                   <Card>
@@ -1143,7 +1185,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* KYC Tab - NEW */}
+              {/* KYC TAB */}
               {activeTab === "kyc" && (
                 <TabsContent value="kyc" className="space-y-6 mt-6">
                   <Card>
@@ -1165,7 +1207,7 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* Settings Tab - NEW */}
+              {/* SETTINGS TAB */}
               {activeTab === "settings" && (
                 <TabsContent value="settings" className="space-y-6 mt-6">
                   <Card>
@@ -1212,6 +1254,179 @@ export default function AdminDashboard() {
                           </Button>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* ALL LISTINGS TAB */}
+              {activeTab === "all-listings" && (
+                <TabsContent value="all-listings" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <List className="h-5 w-5 text-primary" />
+                        All Listings
+                      </CardTitle>
+                      <CardDescription>View all properties across the platform</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">Full listing management coming soon</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* PRICE DROPS TAB */}
+              {activeTab === "price-drops" && (
+                <TabsContent value="price-drops" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-primary" />
+                        Price Drops
+                      </CardTitle>
+                      <CardDescription>Properties with recent price reductions</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">No price drops recorded</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* AGENT VERIFIED TAB */}
+              {activeTab === "agent-verified" && (
+                <TabsContent value="agent-verified" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        Agent Verified Properties
+                      </CardTitle>
+                      <CardDescription>Properties verified by agents</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">
+                        Agent verified properties list coming soon
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* RERA VERIFICATIONS TAB */}
+              {activeTab === "rera-verifications" && (
+                <TabsContent value="rera-verifications" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-primary" />
+                        RERA Verifications
+                      </CardTitle>
+                      <CardDescription>RERA verified projects and properties</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 border rounded-lg text-center">
+                          <p className="text-2xl font-bold">{stats.reraVerifications}</p>
+                          <p className="text-sm text-muted-foreground">RERA Verified</p>
+                        </div>
+                        <div className="p-4 border rounded-lg text-center">
+                          <p className="text-2xl font-bold text-amber-600">3</p>
+                          <p className="text-sm text-muted-foreground">Pending Verification</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* DOCUMENTS TAB */}
+              {activeTab === "documents" && (
+                <TabsContent value="documents" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" />
+                        Documents
+                      </CardTitle>
+                      <CardDescription>Manage all documents</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">Document management coming soon</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* WEEKEND EXPLORER TAB */}
+              {activeTab === "weekend-explorer" && (
+                <TabsContent value="weekend-explorer" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPinned className="h-5 w-5 text-primary" />
+                        Weekend Explorer
+                      </CardTitle>
+                      <CardDescription>Discover properties for weekend visits</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">Weekend Explorer feature coming soon</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* QUICK VISITS TAB */}
+              {activeTab === "quick-visits" && (
+                <TabsContent value="quick-visits" className="space-y-6 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        Quick Visits
+                      </CardTitle>
+                      <CardDescription>Properties available for quick viewing</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-center text-muted-foreground py-8">Quick Visits feature coming soon</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* DEFAULT FALLBACK */}
+              {![
+                "overview",
+                "users",
+                "properties",
+                "projects",
+                "agents",
+                "builders",
+                "hotels",
+                "visits",
+                "frm",
+                "verification",
+                "events",
+                "whatsapp",
+                "trust",
+                "analytics",
+                "reports",
+                "kyc",
+                "settings",
+                "all-listings",
+                "price-drops",
+                "agent-verified",
+                "rera-verifications",
+                "documents",
+                "weekend-explorer",
+                "quick-visits",
+              ].includes(activeTab) && (
+                <TabsContent value={activeTab} className="space-y-6 mt-6">
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <p className="text-muted-foreground">Content for "{activeTab}" coming soon</p>
                     </CardContent>
                   </Card>
                 </TabsContent>
