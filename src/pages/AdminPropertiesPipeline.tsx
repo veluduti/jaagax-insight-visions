@@ -9,9 +9,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, MapPin, User, ShieldCheck, UserPlus } from "lucide-react";
+import { Loader2, MapPin, User, ShieldCheck, UserPlus, History } from "lucide-react";
 import { AssignAgentDialog } from "@/components/admin/AssignAgentDialog";
 import { PropertyStatusBadge } from "@/components/property/PropertyStatusBadge";
+import { PropertyAuditLogDialog } from "@/components/property/PropertyAuditLogDialog";
 
 type Row = {
   id: string;
@@ -55,6 +56,7 @@ export default function AdminPropertiesPipeline() {
   const [rows, setRows] = useState<Row[]>([]);
   const [acting, setActing] = useState<string | null>(null);
   const [assignFor, setAssignFor] = useState<Row | null>(null);
+  const [auditFor, setAuditFor] = useState<Row | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -281,6 +283,10 @@ export default function AdminPropertiesPipeline() {
                           Reject
                         </Button>
                       )}
+
+                      <Button size="sm" variant="ghost" onClick={() => setAuditFor(r)} className="w-full text-xs">
+                        <History className="h-3.5 w-3.5 mr-1" /> Audit log
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -296,6 +302,15 @@ export default function AdminPropertiesPipeline() {
             open={!!assignFor}
             onOpenChange={(o) => !o && setAssignFor(null)}
             onAssigned={load}
+          />
+        )}
+
+        {auditFor && (
+          <PropertyAuditLogDialog
+            propertyId={auditFor.id}
+            propertyTitle={auditFor.title}
+            open={!!auditFor}
+            onOpenChange={(o) => !o && setAuditFor(null)}
           />
         )}
       </div>
