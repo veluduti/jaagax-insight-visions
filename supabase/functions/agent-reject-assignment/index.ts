@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendLifecycleEmail } from "../_shared/lifecycleEmail.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -34,20 +35,17 @@ Deno.serve(async (req) => {
     if (prop.assigned_agent_id !== user.id) return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
     if (prop.lifecycle_status !== "agent_assigned") return new Response(JSON.stringify({ error: `Cannot reject from state ${prop.lifecycle_status}` }), { status: 400, headers: cors });
 
-    // First mark as rejected
     await admin.from("properties").update({
       lifecycle_status: "agent_rejected",
       agent_rejection_reason: reason,
     }).eq("id", property_id);
 
-    // Then bounce back to admin review with cleared assignment
     await admin.from("properties").update({
       lifecycle_status: "pending_admin_review",
       assigned_agent_id: null,
       agent_assignment_status: null,
     }).eq("id", property_id);
 
-    // Notify admins to reassign
     const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "admin");
     if (admins?.length) {
       await admin.from("notifications").insert(
@@ -60,13 +58,20 @@ Deno.serve(async (req) => {
         }))
       );
     }
-    // Notify owner
     await admin.from("notifications").insert({
       user_id: prop.submitted_by,
       title: "Agent unavailable — being reassigned",
       message: `Admin will assign a different agent for "${prop.title}".`,
       type: "info",
       link: "/dashboard/seller",
+    });
+
+    // Email owner
+    await sendLifecycleEmail(admin, prop.submitted_by, "agent_rejected", {
+      propertyTitle: prop.title ?? "Your property",
+      propertyId: property_id,
+      ctaLink: "/dashboard/seller",
+      extra: { reason },
     });
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...cors, "Content-Type": "application/json" } });

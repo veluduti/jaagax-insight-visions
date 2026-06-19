@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendLifecycleEmail } from "../_shared/lifecycleEmail.ts";
+import { sendLifecycleSMS } from "../_shared/lifecycleSms.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -50,7 +52,6 @@ Deno.serve(async (req) => {
         link: "/dashboard/seller",
       },
     ]);
-    // Notify admins
     const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "admin");
     if (admins?.length) {
       await admin.from("notifications").insert(
@@ -63,6 +64,15 @@ Deno.serve(async (req) => {
         }))
       );
     }
+
+    // Email + SMS fan-out (best-effort)
+    await sendLifecycleEmail(admin, prop.submitted_by, "agent_accepted", {
+      propertyTitle: prop.title ?? "Your property",
+      propertyId: property_id,
+      ctaLink: "/dashboard/seller",
+    });
+    const { data: ownerProfile } = await admin.from("profiles").select("phone").eq("id", prop.submitted_by).maybeSingle();
+    await sendLifecycleSMS(admin, (ownerProfile as any)?.phone, `JAAGA X: Agent accepted "${prop.title}". Editing is now locked until verification completes.`, { propertyId: property_id, event: "agent_accepted" });
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...cors, "Content-Type": "application/json" } });
   } catch (e) {

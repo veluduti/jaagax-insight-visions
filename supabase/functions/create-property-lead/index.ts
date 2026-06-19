@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendLifecycleEmail } from "../_shared/lifecycleEmail.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -34,13 +35,13 @@ Deno.serve(async (req) => {
     if (!prop) return new Response(JSON.stringify({ error: "Property not found" }), { status: 404, headers: cors });
     if (!prop.is_live) return new Response(JSON.stringify({ error: "Property is not live" }), { status: 400, headers: cors });
 
-    // Freeze owner + assigned agent at creation time (historical preservation)
+    // Snapshot owner + currently assigned agent at creation time
     const { data: lead, error: lErr } = await admin.from("property_leads").insert({
       property_id,
       lead_user_id: user?.id ?? null,
       lead_name, lead_phone, lead_email, notes,
       owner_id: prop.submitted_by,
-      assigned_agent_id: prop.assigned_agent_id,   // snapshot — historical
+      assigned_agent_id: prop.assigned_agent_id,
       source,
       status: "new",
     }).select().single();
@@ -66,6 +67,20 @@ Deno.serve(async (req) => {
       type: "success", link: `/property/${property_id}`,
     });
     if (notifs.length) await admin.from("notifications").insert(notifs);
+
+    // Email fan-out
+    const emailCtx = {
+      propertyTitle: prop.title ?? "Your property",
+      propertyId: property_id,
+      ctaLink: "/dashboard/seller",
+      extra: { source, lead_name, lead_phone, bucket_key: lead.id },
+    };
+    await sendLifecycleEmail(admin, prop.submitted_by, "new_lead", emailCtx);
+    if (prop.assigned_agent_id) {
+      await sendLifecycleEmail(admin, prop.assigned_agent_id, "new_lead", {
+        ...emailCtx, ctaLink: "/dashboard/agent",
+      });
+    }
 
     return new Response(JSON.stringify({ success: true, lead_id: lead.id }), { headers: { ...cors, "Content-Type": "application/json" } });
   } catch (e) {
