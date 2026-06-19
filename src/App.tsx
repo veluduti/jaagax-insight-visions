@@ -630,6 +630,7 @@ const App = () => (
                 </Routes>
               </Suspense>
               <LocationPermissionDialog />
+              </RequireAuthProvider>
               </WalletProvider>
             </LocationProvider>
           </ProfileBootProvider>
