@@ -35,12 +35,46 @@ function otpHtml(code: string) {
     </div></body></html>`
 }
 
+async function getUnsubscribeToken(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+) {
+  const { data: existing, error: selectError } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (selectError) throw new Error(selectError.message)
+  if (existing?.token) return existing.token as string
+
+  const token = crypto.randomUUID()
+  const { data: inserted, error: insertError } = await supabase
+    .from('email_unsubscribe_tokens')
+    .insert({ email, token })
+    .select('token')
+    .single()
+
+  if (!insertError && inserted?.token) return inserted.token as string
+  if (insertError && /duplicate|unique/i.test(insertError.message)) {
+    const { data: retry } = await supabase
+      .from('email_unsubscribe_tokens')
+      .select('token')
+      .eq('email', email)
+      .maybeSingle()
+    if (retry?.token) return retry.token as string
+  }
+
+  throw new Error(insertError?.message || 'Failed to prepare email token')
+}
+
 async function enqueueOtpEmail(
   supabase: ReturnType<typeof createClient>,
   toEmail: string,
   code: string,
 ) {
   const messageId = crypto.randomUUID()
+  const unsubscribeToken = await getUnsubscribeToken(supabase, toEmail)
   const html = otpHtml(code)
   const text = `Your JAAGA X verification code is ${code}. It expires in ${OTP_TTL_MIN} minutes.`
 
@@ -53,7 +87,7 @@ async function enqueueOtpEmail(
   })
 
   const { error } = await supabase.rpc('enqueue_email', {
-    queue_name: 'auth_emails',
+    queue_name: 'transactional_emails',
     payload: {
       message_id: messageId,
       to: toEmail,
@@ -62,9 +96,10 @@ async function enqueueOtpEmail(
       subject: `Your JAAGA X verification code: ${code}`,
       html,
       text,
-      purpose: 'auth',
+      purpose: 'transactional',
       label: 'signup-otp',
       idempotency_key: messageId,
+      unsubscribe_token: unsubscribeToken,
       queued_at: new Date().toISOString(),
     },
   })
