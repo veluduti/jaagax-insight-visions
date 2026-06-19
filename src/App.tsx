@@ -170,6 +170,7 @@ const App = () => (
           <ProfileBootProvider>
             <LocationProvider>
               <WalletProvider>
+              <RequireAuthProvider>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
