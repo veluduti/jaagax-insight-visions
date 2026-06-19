@@ -366,7 +366,7 @@ export default function Auth() {
                     <div className="space-y-2">
                       <Label htmlFor="password-signup" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
                       <div className="relative">
-                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="pr-10" />
+                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8+ chars, upper, lower, number, special" className="pr-10" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
