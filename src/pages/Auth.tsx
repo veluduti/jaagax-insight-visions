@@ -174,7 +174,8 @@ export default function Auth() {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
       if (!phone.trim() || phone.replace(/\D/g, "").length < 10) { toast.error("Enter a valid phone number"); return false; }
-      if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+      const pwOk = password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password);
+      if (!pwOk) { toast.error("Password must be 8+ chars with upper, lower, number & special character"); return false; }
       if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
       if (!city.trim()) { toast.error("Please select your city"); return false; }
     }
