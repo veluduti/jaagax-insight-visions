@@ -50,7 +50,25 @@ export default function InlineLocationSearch({
   const [highlight, setHighlight] = useState(0);
   const [selecting, setSelecting] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const [menuRect, setMenuRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const { suggestions, loading, selectPlace } = usePlacesAutocomplete(text, { country });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setMenuRect({ top: r.bottom + 6, left: r.left, width: r.width });
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open, suggestions.length]);
 
   useEffect(() => setText(initialValue), [initialValue]);
 
