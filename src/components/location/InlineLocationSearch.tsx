@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, MapPin, X } from "lucide-react";
 import { usePlacesAutocomplete } from "@/hooks/usePlacesAutocomplete";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
