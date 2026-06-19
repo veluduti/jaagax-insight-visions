@@ -1,6 +1,7 @@
 // Cron: dispatches T-10 / T-7 / T-3 / T-1 expiry reminders.
 // Idempotent: dedupes via notifications.metadata.bucket_key
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendLifecycleEmail } from "../_shared/lifecycleEmail.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*" };
 
@@ -45,6 +46,12 @@ Deno.serve(async (_req) => {
         type: "listing_expiry_warning",
         link: "/dashboard/seller",
         metadata: { bucket_key: bucketKey, days, property_id: r.id },
+      });
+      await sendLifecycleEmail(admin, r.submitted_by, "expiry_warning", {
+        propertyTitle: r.title ?? "Your property",
+        propertyId: r.id,
+        ctaLink: "/dashboard/seller",
+        extra: { days, bucket_key: bucketKey },
       });
       inserted++;
     }

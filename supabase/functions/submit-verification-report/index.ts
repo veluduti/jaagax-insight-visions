@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendLifecycleEmail } from "../_shared/lifecycleEmail.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: prop } = await admin
       .from("properties")
-      .select("id, assigned_agent_id, title, lifecycle_status")
+      .select("id, assigned_agent_id, submitted_by, title, lifecycle_status")
       .eq("id", property_id).maybeSingle();
     if (!prop) return new Response(JSON.stringify({ error: "Property not found" }), { status: 404, headers: cors });
     if (prop.assigned_agent_id !== user.id) return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
@@ -36,7 +37,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: `Cannot submit from ${prop.lifecycle_status}` }), { status: 400, headers: cors });
     }
 
-    // Move to under_verification then verification_submitted
     if (prop.lifecycle_status === "agent_accepted") {
       await admin.from("properties").update({ lifecycle_status: "visit_scheduled" }).eq("id", property_id);
     }
@@ -55,7 +55,6 @@ Deno.serve(async (req) => {
     await admin.from("properties").update({ lifecycle_status: "verification_submitted" }).eq("id", property_id);
     await admin.from("properties").update({ lifecycle_status: "pending_final_approval" }).eq("id", property_id);
 
-    // Notify admins
     const { data: admins } = await admin.from("user_roles").select("user_id").eq("role", "admin");
     if (admins?.length) {
       await admin.from("notifications").insert(
@@ -68,6 +67,20 @@ Deno.serve(async (req) => {
         }))
       );
     }
+
+    // Notify + email owner
+    await admin.from("notifications").insert({
+      user_id: prop.submitted_by,
+      title: "Verification submitted",
+      message: `Agent submitted verification for "${prop.title}". Awaiting admin final approval.`,
+      type: "info",
+      link: "/dashboard/seller",
+    });
+    await sendLifecycleEmail(admin, prop.submitted_by, "verification_submitted", {
+      propertyTitle: prop.title ?? "Your property",
+      propertyId: property_id,
+      ctaLink: "/dashboard/seller",
+    });
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...cors, "Content-Type": "application/json" } });
   } catch (e) {

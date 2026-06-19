@@ -4,8 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PropertyStatusBadge } from "@/components/property/PropertyStatusBadge";
+import { PropertyAuditLogDialog } from "@/components/property/PropertyAuditLogDialog";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Lock } from "lucide-react";
+import { Loader2, RefreshCw, Lock, History } from "lucide-react";
 
 interface Row {
   id: string;
@@ -33,6 +34,7 @@ export function OwnerPropertyStatusPanel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [renewing, setRenewing] = useState<string | null>(null);
+  const [auditFor, setAuditFor] = useState<Row | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -109,16 +111,29 @@ export function OwnerPropertyStatusPanel() {
                   </div>
                 )}
               </div>
-              {showRenew && (
-                <Button size="sm" disabled={renewing === r.id} onClick={() => renew(r.id)}>
-                  {renewing === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-1" />}
-                  Renew
+              <div className="flex flex-col gap-2 shrink-0">
+                {showRenew && (
+                  <Button size="sm" disabled={renewing === r.id} onClick={() => renew(r.id)}>
+                    {renewing === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-1" />}
+                    Renew
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={() => setAuditFor(r)} className="text-xs">
+                  <History className="w-3.5 h-3.5 mr-1" /> History
                 </Button>
-              )}
+              </div>
             </div>
           </Card>
         );
       })}
+      {auditFor && (
+        <PropertyAuditLogDialog
+          propertyId={auditFor.id}
+          propertyTitle={auditFor.title}
+          open={!!auditFor}
+          onOpenChange={(o) => !o && setAuditFor(null)}
+        />
+      )}
     </div>
   );
 }
