@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner";
-import { useBuyerContext, BudgetComfort, DecisionMode } from "@/hooks/useBuyerContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ChevronRight, ChevronLeft, Check } from "lucide-react";
 
-const FEARS = [
+const BuyerOnboarding = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/dashboard/buyer", { replace: true });
+  }, [navigate]);
+
+  return null;
+};
+
+export default BuyerOnboarding;
+
   { id: "price_fall", label: "Price fall", icon: "📉" },
   { id: "builder_delay", label: "Builder delay", icon: "🏗️" },
   { id: "emi_pressure", label: "EMI pressure", icon: "💸" },
