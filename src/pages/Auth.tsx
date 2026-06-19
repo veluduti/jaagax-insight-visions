@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import ResetPasswordModal from "@/components/auth/ResetPasswordModal";
+import PasswordResetSuccess from "@/components/auth/PasswordResetSuccess";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
