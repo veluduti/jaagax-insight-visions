@@ -192,10 +192,11 @@ export default function InlineLocationSearch({
         )}
       </div>
 
-      {open && (suggestions.length > 0 || loading) && (
+      {open && (suggestions.length > 0 || loading) && menuRect && createPortal(
         <ul
           role="listbox"
-          className="absolute z-[80] left-0 right-0 mt-1.5 rounded-lg border border-border bg-popover shadow-xl overflow-hidden max-h-72 overflow-y-auto"
+          style={{ position: "fixed", top: menuRect.top, left: menuRect.left, width: menuRect.width }}
+          className="z-[1000] rounded-lg border border-border bg-popover shadow-xl overflow-hidden max-h-72 overflow-y-auto"
         >
           {loading && suggestions.length === 0 && (
             <li className="px-3 py-3 text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
@@ -230,7 +231,8 @@ export default function InlineLocationSearch({
               </span>
             </li>
           ))}
-        </ul>
+        </ul>,
+        document.body,
       )}
     </div>
   );
