@@ -69,26 +69,18 @@ export default function VerifyOtp() {
       if (error) throw new Error(error.message || "Verification failed");
       if ((data as any)?.error) throw new Error((data as any).error);
 
-      // Auto sign-in using the password we stashed during signup
-      const password = sessionStorage.getItem("jaagax.pendingSignupPassword") || "";
-      if (password) {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          toast.success("Email verified! Please sign in.");
-          sessionStorage.removeItem("jaagax.pendingSignupPassword");
-          sessionStorage.removeItem("jaagax.pendingPhone");
-          sessionStorage.removeItem("jaagax.pendingEmail");
-          navigate("/auth", { replace: true });
-          return;
-        }
-      }
+      // Do NOT auto sign-in. Clear pending state and send user to login.
       sessionStorage.removeItem("jaagax.pendingEmail");
       sessionStorage.removeItem("jaagax.pendingSignupPassword");
-          sessionStorage.removeItem("jaagax.pendingPhone");
-      toast.success("Email verified! Welcome to JAAGA X.", { duration: 4000 });
-      navigate("/", { replace: true });
+      sessionStorage.removeItem("jaagax.pendingPhone");
+      sessionStorage.setItem("jaagax.justVerified", email);
+      toast.success("Account created! Please sign in to continue.", { duration: 4000 });
+      navigate("/auth", { replace: true });
     } catch (err: any) {
-      toast.error(err?.message || "Invalid or expired code");
+      const msg = err?.message || "";
+      if (/expired/i.test(msg)) toast.error("OTP has expired. Please request a new OTP.");
+      else if (/invalid|incorrect/i.test(msg)) toast.error("Incorrect OTP entered.");
+      else toast.error(msg || "Verification failed");
     } finally {
       setLoading(false);
     }
@@ -103,7 +95,10 @@ export default function VerifyOtp() {
       });
       if (error) throw new Error(error.message || "Failed to resend code");
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("New code sent via SMS — check your phone");
+      const emailSent = (data as any)?.emailSent;
+      const smsSent = (data as any)?.smsSent;
+      const channels = [emailSent && "email", smsSent && "SMS"].filter(Boolean).join(" & ");
+      toast.success(`New code sent via ${channels || "email/SMS"}`);
       setCooldown(45);
     } catch (err: any) {
       toast.error(err?.message || "Failed to resend code");
@@ -120,9 +115,10 @@ export default function VerifyOtp() {
             <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
               <Mail className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold mb-1">Verify your phone</h1>
+            <h1 className="text-2xl font-bold mb-1">Verify your account</h1>
             <p className="text-sm text-muted-foreground">
-              We sent a 6-digit SMS code to <span className="text-foreground font-medium">{phone || email}</span>
+              We sent a 6-digit code to your email <span className="text-foreground font-medium">{email}</span>
+              {phone ? <> and SMS to <span className="text-foreground font-medium">{phone}</span></> : null}
             </p>
           </div>
 
@@ -160,7 +156,7 @@ export default function VerifyOtp() {
             </div>
 
             <p className="text-[11px] text-center text-muted-foreground border-t border-border/50 pt-4">
-              After verification, you'll be signed in and taken to your dashboard.
+              After verification, you'll be redirected to sign in to your account.
             </p>
           </form>
         </Card>

@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import ResetPasswordModal from "@/components/auth/ResetPasswordModal";
+import PasswordResetSuccess from "@/components/auth/PasswordResetSuccess";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,8 +74,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetSuccess, setShowResetSuccess] = useState(false);
+  const [resetLinkValid, setResetLinkValid] = useState<boolean | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
@@ -122,42 +125,57 @@ export default function Auth() {
     }
   }, [user, role, authLoading, redirectToDashboard, navigate]);
 
+  // Handle ?reset=true: parse access_token hash, validate via setSession, open modal.
   useEffect(() => {
-    if (isPasswordReset) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setIsResettingPassword(true);
-        }
+    if (!isPasswordReset) return;
+    setShowResetPassword(true);
+    setResetLinkValid(null);
+
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    const type = params.get("type");
+
+    (async () => {
+      // If already in a recovery session (e.g. SDK auto-applied), accept it.
+      if (!accessToken) {
+        const { data: { session } } = await supabase.auth.getSession();
+        setResetLinkValid(!!session);
+        return;
+      }
+      if (type && type !== "recovery") {
+        setResetLinkValid(false);
+        return;
+      }
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken ?? "",
       });
-    }
+      setResetLinkValid(!error);
+      // Clean the hash so refresh doesn't reuse a consumed token.
+      window.history.replaceState(null, "", `${window.location.pathname}?reset=true`);
+    })();
   }, [isPasswordReset]);
 
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast.success("Password updated successfully!");
-      setIsResettingPassword(false);
-      setNewPassword("");
+  // Prevent auto-login right after OTP verification: if newSignup flag was set,
+  // sign the user out (defense in depth) and stay on /auth.
+  useEffect(() => {
+    const flag = sessionStorage.getItem("jaagax.newSignup");
+    if (flag) {
+      sessionStorage.removeItem("jaagax.newSignup");
+      void supabase.auth.signOut();
       navigate("/auth", { replace: true });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update password");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [navigate]);
+
 
   const validateForm = () => {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
       if (!phone.trim() || phone.replace(/\D/g, "").length < 10) { toast.error("Enter a valid phone number"); return false; }
-      if (password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
+      const pwOk = password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password);
+      if (!pwOk) { toast.error("Password must be 8+ chars with upper, lower, number & special character"); return false; }
       if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
       if (!city.trim()) { toast.error("Please select your city"); return false; }
     }
@@ -257,14 +275,13 @@ export default function Auth() {
         sessionStorage.setItem("jaagax.pendingEmail", email);
         sessionStorage.setItem("jaagax.pendingPhone", phone);
         sessionStorage.setItem("jaagax.pendingSignupPassword", password);
+        sessionStorage.setItem("jaagax.newSignup", "1");
         if (locationMeta) {
-          // Cache the full Google Places result so onboarding / profile pages
-          // can read placeId, lat/lng, state, country, locality after verify.
           try {
             localStorage.setItem("jaagax.pendingSignupLocation", JSON.stringify(locationMeta));
           } catch {}
         }
-        toast.success(`We sent a 6-digit code to ${phone} via SMS. It expires in 5 minutes.`, { duration: 5000 });
+        toast.success(`We sent a 6-digit code to ${email} and ${phone}. It expires in 5 minutes.`, { duration: 5000 });
         navigate("/verify-otp", { state: { email, phone } });
         return;
       }
@@ -349,7 +366,7 @@ export default function Auth() {
                     <div className="space-y-2">
                       <Label htmlFor="password-signup" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
                       <div className="relative">
-                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="pr-10" />
+                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8+ chars, upper, lower, number, special" className="pr-10" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -458,36 +475,34 @@ export default function Auth() {
 
       <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={email} />
 
-      <AnimatePresence>
-        {isResettingPassword && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="glass-panel border-primary/20 p-8 rounded-xl max-w-md w-full">
-              <div className="text-center mb-6">
-                <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-                  <Lock className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold">Set New Password</h2>
-                <p className="text-muted-foreground mt-2">Enter your new password below</p>
-              </div>
-              <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password" className="flex items-center gap-2"><Lock className="h-4 w-4" />New Password</Label>
-                  <div className="relative">
-                    <Input id="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="pr-10 h-12" autoFocus />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
-                </div>
-                <Button type="submit" className="w-full h-12" disabled={loading}>
-                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</>) : "Update Password"}
-                </Button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ResetPasswordModal
+        isOpen={showResetPassword}
+        isValid={resetLinkValid}
+        onClose={() => {
+          setShowResetPassword(false);
+          navigate("/auth", { replace: true });
+        }}
+        onSuccess={() => {
+          setShowResetPassword(false);
+          setShowResetSuccess(true);
+        }}
+        onRequestNew={() => {
+          setShowResetPassword(false);
+          navigate("/auth", { replace: true });
+          setShowForgotPassword(true);
+        }}
+      />
+
+      <PasswordResetSuccess
+        isOpen={showResetSuccess}
+        onClose={() => setShowResetSuccess(false)}
+        onGoToLogin={() => {
+          setShowResetSuccess(false);
+          void supabase.auth.signOut();
+          navigate("/auth", { replace: true });
+        }}
+      />
+
     </div>
   );
 }

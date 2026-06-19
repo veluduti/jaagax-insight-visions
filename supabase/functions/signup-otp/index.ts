@@ -1,4 +1,36 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
+
+const SENDER_DOMAIN = 'notify.jaagax.com'
+const FROM_EMAIL = `JAAGA X <noreply@${SENDER_DOMAIN}>`
+
+async function sendOtpEmail(toEmail: string, code: string) {
+  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  if (!apiKey) throw new Error('Email service not configured')
+  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#ffffff;padding:32px;color:#0f172a">
+    <div style="max-width:480px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;padding:32px">
+      <h2 style="margin:0 0 8px;color:#0f172a">Verify your email</h2>
+      <p style="color:#475569;margin:0 0 24px">Use this 6-digit code to finish signing up for JAAGA X. It expires in 5 minutes.</p>
+      <div style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;background:#f1f5f9;border-radius:8px;padding:16px 0;color:#0f172a">${code}</div>
+      <p style="color:#94a3b8;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
+    </div></body></html>`
+  const messageId = `signup-otp-${toEmail}-${Date.now()}`
+  await sendLovableEmail(
+    {
+      to: toEmail,
+      from: FROM_EMAIL,
+      sender_domain: SENDER_DOMAIN,
+      subject: `Your JAAGA X verification code: ${code}`,
+      html,
+      text: `Your JAAGA X verification code is ${code}. It expires in 5 minutes.`,
+      purpose: 'transactional',
+      label: 'signup-otp',
+      idempotency_key: messageId,
+      message_id: messageId,
+    },
+    { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
+  )
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -154,12 +186,27 @@ Deno.serve(async (req) => {
 
       if (upsertErr) return json({ error: upsertErr.message }, 500)
 
-      try {
-        await sendSms(phone, code)
-      } catch (e: any) {
-        return json({ error: `Could not send SMS: ${e.message}` }, 502)
+      // Send OTP to BOTH email and phone. Succeed if at least one channel delivers.
+      const results = await Promise.allSettled([
+        sendOtpEmail(email, code),
+        sendSms(phone, code),
+      ])
+      const emailOk = results[0].status === 'fulfilled'
+      const smsOk = results[1].status === 'fulfilled'
+      if (!emailOk && !smsOk) {
+        const emailErr = (results[0] as PromiseRejectedResult).reason?.message ?? 'email failed'
+        const smsErr = (results[1] as PromiseRejectedResult).reason?.message ?? 'sms failed'
+        return json({ error: `Could not deliver OTP. ${emailErr}. ${smsErr}` }, 502)
       }
-      return json({ success: true, phoneMasked: phone.replace(/.(?=.{4})/g, '*'), expiresInMinutes: OTP_TTL_MIN })
+      if (!emailOk) console.error('Email OTP failed:', (results[0] as PromiseRejectedResult).reason)
+      if (!smsOk) console.error('SMS OTP failed:', (results[1] as PromiseRejectedResult).reason)
+      return json({
+        success: true,
+        emailSent: emailOk,
+        smsSent: smsOk,
+        phoneMasked: phone.replace(/.(?=.{4})/g, '*'),
+        expiresInMinutes: OTP_TTL_MIN,
+      })
     }
 
     if (action === 'verify') {
