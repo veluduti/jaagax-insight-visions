@@ -637,7 +637,7 @@ const Search = () => {
 
       case "new-projects":
         return projects.length === 0 ? (
-          <EmptyState message="No projects found" />
+          <EmptyState message={savedLocation?.city ? "No projects in this city or locality" : "No projects found"} />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
