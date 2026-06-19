@@ -37,14 +37,17 @@ export function AssignAgentDialog({
 
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
     setLoading(true);
-    supabase
-      .rpc("get_nearby_agents_for_property", { _property_id: propertyId, _radius_km: 50, _limit: 30 })
-      .then(({ data, error }) => {
-        if (error) toast({ title: "Failed to load agents", description: error.message, variant: "destructive" });
-        else setAgents((data ?? []) as Agent[]);
-      })
-      .finally(() => setLoading(false));
+    (async () => {
+      const { data, error } = await supabase
+        .rpc("get_nearby_agents_for_property", { _property_id: propertyId, _radius_km: 50, _limit: 30 });
+      if (cancelled) return;
+      if (error) toast({ title: "Failed to load agents", description: error.message, variant: "destructive" });
+      else setAgents((data ?? []) as Agent[]);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, [open, propertyId]);
 
   const assign = async (agentId: string) => {
