@@ -68,64 +68,17 @@ export default function RegisteredUsersPanel() {
   const load = async () => {
     setLoading(true);
     try {
-      const [{ data: signups }, { data: profileRows }] = await Promise.all([
-        supabase.from("signup_requests" as any).select("*").order("created_at", { ascending: false }),
-        supabase.from("profiles" as any).select("*").order("created_at", { ascending: false }),
-      ]);
-
-      const signupList = (signups ?? []) as unknown as SignupRow[];
-      const profileList = (profileRows ?? []) as unknown as ProfileRow[];
-
-      // Group by user_id, merging signup contact info + all profile types
-      const byUser = new Map<string, UserCardData>();
-
-      for (const s of signupList) {
-        if (!byUser.has(s.user_id)) {
-          byUser.set(s.user_id, {
-            user_id: s.user_id,
-            email: s.email,
-            full_name: s.full_name,
-            phone: s.phone,
-            city: s.city,
-            created_at: s.created_at,
-            roles: [],
-            profiles: [],
-            signup: s,
-          });
-        }
+      const { data, error } = await supabase.functions.invoke("admin-list-users");
+      if (error || (data as any)?.error) {
+        toast({
+          title: "Failed to load users",
+          description: (data as any)?.error || error?.message || "Unknown error",
+          variant: "destructive",
+        });
+        setUsers([]);
+        return;
       }
-
-      for (const p of profileList) {
-        const existing = byUser.get(p.user_id);
-        if (existing) {
-          existing.profiles.push(p);
-          if (!existing.roles.includes(p.type)) existing.roles.push(p.type);
-        } else {
-          byUser.set(p.user_id, {
-            user_id: p.user_id,
-            email: null,
-            full_name: null,
-            phone: null,
-            city: null,
-            created_at: p.created_at,
-            roles: [p.type],
-            profiles: [p],
-            signup: null,
-          });
-        }
-      }
-
-      // For users that only had signup (no profile yet), seed roles from requested_role
-      for (const u of byUser.values()) {
-        if (u.roles.length === 0 && u.signup?.requested_role) {
-          const r = u.signup.requested_role === "customer" ? "buyer" : u.signup.requested_role;
-          u.roles.push(r);
-        }
-      }
-
-      const list = Array.from(byUser.values()).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      const list = ((data as any)?.users ?? []) as UserCardData[];
       setUsers(list);
     } finally {
       setLoading(false);
