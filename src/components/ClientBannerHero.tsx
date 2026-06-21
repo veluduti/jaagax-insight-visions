@@ -14,12 +14,10 @@ import {
   Users,
   Activity,
   TrendingUp,
-  CheckCircle2,
   Hotel,
   Building2,
   Lock,
   Star,
-  ArrowRight,
   MapPin,
 } from "lucide-react";
 import skylineImg from "@/assets/hero-skyline.jpg";
