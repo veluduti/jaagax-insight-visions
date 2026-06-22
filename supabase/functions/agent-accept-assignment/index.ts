@@ -33,7 +33,23 @@ Deno.serve(async (req) => {
       .eq("id", property_id)
       .maybeSingle();
     if (pErr || !prop) return new Response(JSON.stringify({ error: "Property not found" }), { status: 404, headers: cors });
-    if (prop.assigned_agent_id !== user.id) return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
+
+    // assigned_agent_id may be either agents.id OR agents.user_id depending on flow.
+    // Resolve the owning auth user and compare.
+    let ownerUserId: string | null = null;
+    if (prop.assigned_agent_id === user.id) {
+      ownerUserId = user.id;
+    } else if (prop.assigned_agent_id) {
+      const { data: a } = await admin
+        .from("agents")
+        .select("user_id")
+        .eq("id", prop.assigned_agent_id)
+        .maybeSingle();
+      ownerUserId = (a as any)?.user_id ?? null;
+    }
+    if (ownerUserId !== user.id) {
+      return new Response(JSON.stringify({ error: "Not your assignment" }), { status: 403, headers: cors });
+    }
     if (prop.lifecycle_status !== "agent_assigned") return new Response(JSON.stringify({ error: `Cannot accept from state ${prop.lifecycle_status}` }), { status: 400, headers: cors });
 
     const { error: uErr } = await admin
