@@ -3288,7 +3288,7 @@ export type Database = {
           builder_id: string | null
           building_area_sqft: number | null
           building_name: string | null
-          city: string
+          city: string | null
           completion_stage: string | null
           created_at: string | null
           description: string | null
@@ -3319,13 +3319,13 @@ export type Database = {
           listed_by_role_snapshot: string | null
           listing_status: string
           listing_type: string | null
-          locality: string
+          locality: string | null
           longitude: number | null
           maintenance_charges: number | null
           original_snapshot: Json | null
           pincode: string | null
           previous_price: number | null
-          price: number
+          price: number | null
           price_drop_rejection_reason: string | null
           price_drop_requested_at: string | null
           price_drop_requested_price: number | null
@@ -3343,7 +3343,7 @@ export type Database = {
           slug: string | null
           sold_at: string | null
           submitted_by: string | null
-          title: string
+          title: string | null
           total_floors: number | null
           total_parking: number | null
           trust_score: number | null
@@ -3378,7 +3378,7 @@ export type Database = {
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
-          city: string
+          city?: string | null
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
@@ -3409,13 +3409,13 @@ export type Database = {
           listed_by_role_snapshot?: string | null
           listing_status?: string
           listing_type?: string | null
-          locality: string
+          locality?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
           original_snapshot?: Json | null
           pincode?: string | null
           previous_price?: number | null
-          price?: number
+          price?: number | null
           price_drop_rejection_reason?: string | null
           price_drop_requested_at?: string | null
           price_drop_requested_price?: number | null
@@ -3433,7 +3433,7 @@ export type Database = {
           slug?: string | null
           sold_at?: string | null
           submitted_by?: string | null
-          title: string
+          title?: string | null
           total_floors?: number | null
           total_parking?: number | null
           trust_score?: number | null
@@ -3468,7 +3468,7 @@ export type Database = {
           builder_id?: string | null
           building_area_sqft?: number | null
           building_name?: string | null
-          city?: string
+          city?: string | null
           completion_stage?: string | null
           created_at?: string | null
           description?: string | null
@@ -3499,13 +3499,13 @@ export type Database = {
           listed_by_role_snapshot?: string | null
           listing_status?: string
           listing_type?: string | null
-          locality?: string
+          locality?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
           original_snapshot?: Json | null
           pincode?: string | null
           previous_price?: number | null
-          price?: number
+          price?: number | null
           price_drop_rejection_reason?: string | null
           price_drop_requested_at?: string | null
           price_drop_requested_price?: number | null
@@ -3523,7 +3523,7 @@ export type Database = {
           slug?: string | null
           sold_at?: string | null
           submitted_by?: string | null
-          title?: string
+          title?: string | null
           total_floors?: number | null
           total_parking?: number | null
           trust_score?: number | null
