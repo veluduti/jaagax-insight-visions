@@ -78,16 +78,27 @@ export default function AgentVerifiedReviewPanel() {
         rejection_reason: null,
         final_data: finalData,
         is_live: true,
+        lifecycle_status: "live_verified",
         published_at: new Date().toISOString(),
       } as any)
       .eq("id", p.id);
     if (error) return toast.error(error.message);
 
+    // Audit log
+    const { data: { user } } = await supabase.auth.getUser();
+    await (supabase.from as any)("property_audit_log").insert({
+      property_id: p.id,
+      actor_id: user?.id ?? null,
+      action: "final_approved_by_admin",
+      from_status: "pending_final_approval",
+      to_status: "live_verified",
+    });
+
     const notifs: any[] = [];
     if (p.submitted_by) {
       notifs.push({
         user_id: p.submitted_by,
-        type: "property_approved",
+        type: "success",
         title: "Your property is now live ✅",
         message: `"${p.title}" has been approved by admin and is now visible to buyers.`,
         link: `/property/${p.id}`,
@@ -103,12 +114,23 @@ export default function AgentVerifiedReviewPanel() {
       if (agent?.user_id) {
         notifs.push({
           user_id: agent.user_id,
-          type: "property_approved",
+          type: "success",
           title: "Property approved 🎉",
           message: `"${p.title}" — the property you verified has been approved by admin and is now live.`,
           link: `/property/${p.id}`,
         });
       }
+    }
+    // Notify all admins
+    const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+    if (admins?.length) {
+      notifs.push(...admins.map((a: any) => ({
+        user_id: a.user_id,
+        type: "info",
+        title: "Property published live",
+        message: `"${p.title}" is now live on the platform.`,
+        link: `/property/${p.id}`,
+      })));
     }
     if (notifs.length) await supabase.from("notifications").insert(notifs);
 
@@ -116,6 +138,7 @@ export default function AgentVerifiedReviewPanel() {
     setReviewTarget(null);
     toast.success("Property approved & published");
   };
+
 
   const handleReject = async () => {
     if (!rejectTarget) return;
