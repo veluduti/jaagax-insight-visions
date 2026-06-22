@@ -250,104 +250,11 @@ const ClientBannerHero = ({
             }}
           >
 
-            {/* Tabs */}
-            <div
-              style={{
-                display: "flex",
-                gap: "2px",
-                background: "rgba(255,255,255,0.13)",
-                backdropFilter: "blur(8px)",
-                borderRadius: "99px",
-                padding: "4px",
-                width: "100%",
-                maxWidth: "460px",
-                marginBottom: "10px",
-              }}
-            >
-              {["Buy", "Rent", "New Projects", "Commercial"].map((tab) => {
-                const key = tab.toLowerCase().replace(" ", "-");
-                const isActive = activeTab === key;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => {
-                      onTabChange(key);
-                      navigate(
-                        `/${key === "new-projects" ? "new-projects" : key === "commercial" ? "commercial" : key}`,
-                      );
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: "8px 0",
-                      borderRadius: "99px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      border: "none",
-                      cursor: "pointer",
-                      background: isActive ? "#22c55e" : "transparent",
-                      color: isActive ? "#fff" : "rgba(255,255,255,0.82)",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    {tab}
-                  </button>
-                );
-              })}
+            {/* Unified Property Search Bar */}
+            <div style={{ width: "100%", marginBottom: "10px" }}>
+              <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
             </div>
 
-            {/* Search bar */}
-            <div
-              style={{
-                display: "flex",
-                background: "#fff",
-                borderRadius: "99px",
-                padding: "5px",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
-                width: "100%",
-                maxWidth: "460px",
-                marginBottom: "6px",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0, paddingLeft: 6 }}>
-                <InlineLocationSearch
-                  variant="pill"
-                  placeholder="Enter location, city or landmark"
-                  initialValue={heroLocation}
-                  onTextChange={setHeroLocation}
-                  onSelected={(loc) => {
-                    const city = loc.city || loc.locality || "";
-                    setHeroLocation(city);
-                    navigate(`/search?city=${encodeURIComponent(city)}`);
-                  }}
-                  onEnterRaw={(t) =>
-                    navigate(t ? `/search?city=${encodeURIComponent(t)}` : "/search")
-                  }
-                />
-              </div>
-              <button
-                onClick={() =>
-                  navigate(
-                    heroLocation ? `/search?city=${encodeURIComponent(heroLocation)}` : "/search",
-                  )
-                }
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "9px 22px",
-                  background: "#22c55e",
-                  color: "#fff",
-                  borderRadius: "99px",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <Search size={13} /> Search
-              </button>
-            </div>
 
             {/* Book Hotel + Smart Financing */}
             <div style={{ display: "flex", gap: "14px" }}>
