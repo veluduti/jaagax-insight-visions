@@ -78,16 +78,23 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
 
   const renderTransactionTabs = () => {
     if (activeTab === "agents" || activeTab === "new-projects") return null;
-    const tabs = activeTab === "transactions"
-      ? [{ value: "sold", label: "Sold" }, { value: "rented", label: "Rented" }]
-      : [{ value: "buy", label: "Buy" }, { value: "rent", label: "Rent" }];
+    const tabs =
+      activeTab === "transactions"
+        ? [
+            { value: "sold", label: "Sold" },
+            { value: "rented", label: "Rented" },
+          ]
+        : [
+            { value: "buy", label: "Buy" },
+            { value: "rent", label: "Rent" },
+          ];
     return (
       <>
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setSearchType(tab.value)}
-            className={`py-2.5 px-6 text-sm font-medium rounded-lg transition-all ${
+            className={`py-2 px-4 text-sm font-medium rounded-lg transition-all ${
               searchType === tab.value
                 ? "bg-primary/10 text-primary border border-primary/30"
                 : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
@@ -170,12 +177,15 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
             ))}
           </div>
 
-          {/* Form */}
-          <div className="p-4 space-y-3">
-            <div className="flex gap-2 items-center flex-wrap">
+          {/* Form - FIXED: Removed flex-wrap and made it a single row */}
+          <div className="p-3 space-y-2">
+            {/* Main search row - all items in one line */}
+            <div className="flex gap-2 items-center">
+              {/* Transaction tabs - Buy/Rent */}
               {renderTransactionTabs()}
 
-              <div className="relative flex-1 min-w-[250px]">
+              {/* Location input - takes remaining space */}
+              <div className="flex-1 min-w-[180px]">
                 <InlineLocationSearch
                   variant="box"
                   placeholder="Enter location"
@@ -188,29 +198,32 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
                 />
               </div>
 
+              {/* Search Button - now inline */}
               <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm px-8 py-2.5 rounded-lg shadow"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm px-6 py-2 rounded-lg shadow whitespace-nowrap"
                 onClick={handleSearch}
               >
                 Search
               </Button>
             </div>
 
-            {showFilters && (activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
-              <div className="flex gap-2 items-center flex-wrap">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowMoreFilters(true)}
-                  className="h-10 text-sm bg-background/80 border-border/50 hover:bg-primary/5 hover:border-primary/30 gap-2"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span>More Filters</span>
-                  {activeCount > 0 && (
-                    <Badge className="ml-1 bg-primary/10 text-primary border-primary/30">{activeCount}</Badge>
-                  )}
-                </Button>
-              </div>
-            )}
+            {/* Filters row - separate line */}
+            {showFilters &&
+              (activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
+                <div className="flex gap-2 items-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowMoreFilters(true)}
+                    className="h-9 text-sm bg-background/80 border-border/50 hover:bg-primary/5 hover:border-primary/30 gap-2"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    <span>More Filters</span>
+                    {activeCount > 0 && (
+                      <Badge className="ml-1 bg-primary/10 text-primary border-primary/30">{activeCount}</Badge>
+                    )}
+                  </Button>
+                </div>
+              )}
           </div>
         </div>
 
