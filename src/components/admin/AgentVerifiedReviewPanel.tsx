@@ -178,8 +178,8 @@ export default function AgentVerifiedReviewPanel() {
   };
 
   const Diff = ({ label, original, edited, format }: { label: string; original: any; edited: any; format?: (v: any) => string }) => {
-    const fmt = format || ((v: any) => (v == null || v === "" ? "—" : String(v)));
-    const changed = JSON.stringify(original) !== JSON.stringify(edited);
+    const fmt = format || fmtVal;
+    const changed = JSON.stringify(original ?? null) !== JSON.stringify(edited ?? null);
     return (
       <div className="grid grid-cols-2 gap-3 py-2 border-b last:border-0">
         <div>
