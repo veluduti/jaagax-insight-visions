@@ -9,7 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { PropertyStatusBadge } from "@/components/property/PropertyStatusBadge";
 import { PropertyAuditLogDialog } from "@/components/property/PropertyAuditLogDialog";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Lock, History, Phone, Mail, Star, CalendarCheck2, CalendarClock, UserCheck } from "lucide-react";
+import { Loader2, RefreshCw, Lock, History, Phone, Mail, Star, CalendarCheck2, CalendarClock, UserCheck, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Agent {
   id: string;
@@ -63,6 +67,19 @@ export function OwnerPropertyStatusPanel() {
   // Reschedule dialog
   const [rescheduleTarget, setRescheduleTarget] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const deleteListing = async (id: string) => {
+    setDeleting(id);
+    try {
+      const { error } = await (supabase.from as any)("properties").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Listing deleted" });
+      setRows((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+    } finally { setDeleting(null); }
+  };
   const [prefDate, setPrefDate] = useState("");
   const [prefTime, setPrefTime] = useState("");
 
@@ -188,6 +205,27 @@ export function OwnerPropertyStatusPanel() {
                 <Button size="sm" variant="ghost" onClick={() => setAuditFor(r)} className="text-xs">
                   <History className="w-3.5 h-3.5 mr-1" /> History
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10" disabled={deleting === r.id}>
+                      {deleting === r.id ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Trash2 className="w-3.5 h-3.5 mr-1" />} Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this listing?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently removes "{r.title}" and all its data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteListing(r.id)} className="bg-destructive hover:bg-destructive/90">
+                        Delete permanently
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
 
