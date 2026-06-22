@@ -48,6 +48,7 @@ import GoogleMapPicker from "@/components/location/GoogleMapPicker";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
+import { financialRequirementFlow } from "@/config/propertyFlows/financial";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
