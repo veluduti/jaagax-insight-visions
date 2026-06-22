@@ -47,6 +47,7 @@ const DocumentationModal = lazy(() => import("@/components/builder/Documentation
 const BuilderAnalyticsPanel = lazy(() => import("@/components/builder/BuilderAnalyticsPanel"));
 const BuilderMyProfileCard = lazy(() => import("@/components/builder/BuilderMyProfileCard"));
 const SamplePropertiesPreviewDialog = lazy(() => import("@/components/builder/SamplePropertiesPreviewDialog"));
+import { OwnerPropertyStatusPanel } from "@/components/property/OwnerPropertyStatusPanel";
 
 interface Project {
   id: string;
