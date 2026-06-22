@@ -147,8 +147,11 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(false);
   };
 
-  const formatPrice = (n: number) =>
-    n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(2)} L` : `₹${n.toLocaleString("en-IN")}`;
+  const formatPrice = (n: number | null | undefined) => {
+    if (n == null || isNaN(Number(n))) return "Price not set";
+    const v = Number(n);
+    return v >= 1e7 ? `₹${(v / 1e7).toFixed(2)} Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(2)} L` : `₹${v.toLocaleString("en-IN")}`;
+  };
 
   const openSchedule = (t: AssignedTask) => {
     setScheduleTarget(t);
