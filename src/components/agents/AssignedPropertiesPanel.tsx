@@ -209,11 +209,15 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     }
 
     if (scheduleTarget.submitted_by) {
+      // Fetch agent's phone so seller can contact them
+      const { data: agentRow } = await supabase
+        .from("agents").select("phone").eq("id", agentId).maybeSingle();
+      const agentPhone = (agentRow as any)?.phone ? ` Contact agent: ${(agentRow as any).phone}.` : "";
       await supabase.from("notifications").insert({
         user_id: scheduleTarget.submitted_by,
         type: "visit_scheduled",
-        title: "Agent will visit your property",
-        message: `${agentName} will visit your property "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.`,
+        title: "Agent scheduled a visit to your property",
+        message: `${agentName} will visit "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.${agentPhone}`,
         link: `/property/${scheduleTarget.id}`,
       });
     }
