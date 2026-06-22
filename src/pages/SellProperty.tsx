@@ -2940,6 +2940,7 @@ export default function SellProperty() {
       const isRentListing = String(editForm.listing_type || state.listing_type || "").toLowerCase() === "rent";
       const rentCandidates = [
         editForm.monthly_rent, state.monthly_rent,
+        editForm.rent_amount, state.rent_amount,
         editForm.rental_price, state.rental_price,
         editForm.rent, state.rent,
         editForm.price_per_seat, state.price_per_seat,
