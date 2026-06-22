@@ -52,7 +52,7 @@ interface SectionDef {
   fields: FieldDef[];
 }
 
-const SECTIONS: SectionDef[] = [
+export const SECTIONS: SectionDef[] = [
   {
     id: "basic_information",
     title: "Basic Info",
