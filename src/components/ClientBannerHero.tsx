@@ -249,12 +249,18 @@ const ClientBannerHero = ({
               padding: "0 16px",
             }}
           >
-
-            {/* Unified Property Search Bar */}
-            <div style={{ width: "100%", marginBottom: "10px" }}>
+            {/* Unified Property Search Bar - COMPACT VERSION */}
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "620px",
+                marginBottom: "10px",
+                transform: "scale(0.85)",
+                transformOrigin: "top center",
+              }}
+            >
               <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
             </div>
-
 
             {/* Book Hotel + Smart Financing */}
             <div style={{ display: "flex", gap: "14px" }}>
@@ -264,18 +270,18 @@ const ClientBannerHero = ({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  padding: "13px 28px",
+                  padding: "11px 24px",
                   borderRadius: "99px",
                   background: "#2563eb",
                   color: "#fff",
-                  fontSize: "14px",
+                  fontSize: "13px",
                   fontWeight: 700,
                   border: "none",
                   cursor: "pointer",
                   boxShadow: "0 4px 16px rgba(37,99,235,0.45)",
                 }}
               >
-                <Hotel size={16} /> Book Hotel
+                <Hotel size={15} /> Book Hotel
               </button>
               <button
                 onClick={() => navigate("/smart-financing")}
@@ -283,18 +289,18 @@ const ClientBannerHero = ({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  padding: "13px 28px",
+                  padding: "11px 24px",
                   borderRadius: "99px",
                   background: "#7c3aed",
                   color: "#fff",
-                  fontSize: "14px",
+                  fontSize: "13px",
                   fontWeight: 700,
                   border: "none",
                   cursor: "pointer",
                   boxShadow: "0 4px 16px rgba(124,58,237,0.45)",
                 }}
               >
-                <Building2 size={16} /> Smart Financing
+                <Building2 size={15} /> Smart Financing
               </button>
             </div>
           </div>
