@@ -260,6 +260,17 @@ export function OwnerPropertyStatusPanel() {
                       <span className="flex items-center gap-1"><Star className="h-3 w-3" />{Number(r.agent.avg_rating || 0).toFixed(1)} ({r.agent.total_ratings || 0})</span>
                       {(r.agent.sales_count ?? 0) > 0 && <span>{r.agent.sales_count} verifications</span>}
                     </div>
+                    {userId && ["verification_submitted", "pending_final_approval", "live_verified", "live"].includes(r.lifecycle_status || "") && (
+                      <div className="mt-2">
+                        <RateAgentDialog
+                          agentId={r.agent.id}
+                          agentName={r.agent.name}
+                          propertyId={r.id}
+                          buyerId={userId}
+                          variant="inline"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
