@@ -86,7 +86,7 @@ const ClientBannerHero = ({
             bottom: 0,
             zIndex: 10,
             display: "flex",
-            alignItems: "flex-start",
+            alignItems: "center",
             padding: "24px 0 0 0",
           }}
         >
@@ -99,6 +99,7 @@ const ClientBannerHero = ({
               flexDirection: "column",
               gap: "10px",
               height: "100%",
+              justifyContent: "center",
             }}
           >
             {/* Headline */}
@@ -247,6 +248,7 @@ const ClientBannerHero = ({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              gap: "12px",
               padding: "0 16px",
             }}
           >
@@ -254,17 +256,24 @@ const ClientBannerHero = ({
             <div
               style={{
                 width: "100%",
-                maxWidth: "580px",
-                marginBottom: "10px",
-                transform: "scale(0.72)",
-                transformOrigin: "center center",
+                maxWidth: "520px",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
-              <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
+              <div
+                style={{
+                  transform: "scale(0.72)",
+                  transformOrigin: "center center",
+                  width: "138%", // Compensate for scale reduction
+                }}
+              >
+                <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
+              </div>
             </div>
 
             {/* Book Hotel + Smart Financing */}
-            <div style={{ display: "flex", gap: "14px" }}>
+            <div style={{ display: "flex", gap: "14px", marginTop: "4px" }}>
               <button
                 onClick={() => navigate("/hotels")}
                 style={{
@@ -316,7 +325,7 @@ const ClientBannerHero = ({
               height: "100%",
               display: "flex",
               flexDirection: "row",
-              alignItems: "flex-start",
+              alignItems: "center",
             }}
           >
             {/* Feature cards — take all space except the icon strip */}
@@ -326,7 +335,6 @@ const ClientBannerHero = ({
                 display: "flex",
                 flexDirection: "column",
                 gap: "10px",
-                paddingTop: "95px",
                 paddingLeft: "8px",
                 paddingRight: "12px",
               }}
@@ -432,7 +440,6 @@ const ClientBannerHero = ({
                 flexDirection: "column",
                 alignItems: "center",
                 gap: "18px",
-                paddingTop: "28px",
                 paddingRight: "8px",
               }}
             >
