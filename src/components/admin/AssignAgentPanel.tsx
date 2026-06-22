@@ -50,11 +50,14 @@ interface PendingProperty {
   images: any;
   video_urls: any;
   listed_by: string | null;
+  listed_by_role_snapshot: string | null;
   assigned_agent_id: string | null;
   submitted_by: string | null;
   rejection_reason: string | null;
   created_at: string;
   document_urls: any;
+  lifecycle_status: string | null;
+  force_verification: boolean | null;
 }
 
 interface SellerInfo {
