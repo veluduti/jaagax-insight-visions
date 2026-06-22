@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import PropertyChat from "@/components/chat/PropertyChat";
 import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
+import { AgentAssignmentActions } from "@/components/agent/AgentAssignmentActions";
 
 interface AssignedTask {
   // task
@@ -40,6 +41,7 @@ interface AssignedTask {
   images: any;
   verified: boolean | null;
   verification_status: string;
+  lifecycle_status?: string | null;
   submitted_by: string | null;
   agent_notes?: string | null;
   // owner
@@ -104,7 +106,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -207,11 +209,15 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     }
 
     if (scheduleTarget.submitted_by) {
+      // Fetch agent's phone so seller can contact them
+      const { data: agentRow } = await supabase
+        .from("agents").select("phone").eq("id", agentId).maybeSingle();
+      const agentPhone = (agentRow as any)?.phone ? ` Contact agent: ${(agentRow as any).phone}.` : "";
       await supabase.from("notifications").insert({
         user_id: scheduleTarget.submitted_by,
         type: "visit_scheduled",
-        title: "Agent will visit your property",
-        message: `${agentName} will visit your property "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.`,
+        title: "Agent scheduled a visit to your property",
+        message: `${agentName} will visit "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.${agentPhone}`,
         link: `/property/${scheduleTarget.id}`,
       });
     }
@@ -500,49 +506,58 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                    <Button
-                      size="sm"
-                      className="h-8 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white"
-                      disabled={!p.owner_phone}
-                      onClick={() => p.owner_phone && (window.location.href = `tel:${p.owner_phone}`)}
-                    >
-                      <Phone className="h-3 w-3 mr-1" />Call Seller
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-[11px]"
-                      onClick={() => openSchedule(p)}
-                      disabled={isCompleted}
-                    >
-                      <CalendarPlus className="h-3 w-3 mr-1" />
-                      {p.scheduled_visit_at ? "Reschedule" : "Schedule"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-[11px]"
-                      onClick={() => setChatTarget(p)}
-                      disabled={!p.submitted_by}
-                    >
-                      <MessageSquare className="h-3 w-3 mr-1" />Chat
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => void openFullVerificationForm(p)}
-                      disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
-                      title="Open full sectioned form to verify, correct, and add fields"
-                    >
-                      <FileCheck2 className="h-3 w-3 mr-1" />
-                      {fullTargetLoadingId === p.id
-                        ? "Opening form..."
-                        : p.verification_status === "agent_verified_pending"
-                        ? "Submitted for Approval"
-                        : "Edit Property & Submit Verification"}
-                    </Button>
-                  </div>
+                  {p.lifecycle_status === "agent_assigned" ? (
+                    <div className="mt-3 p-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10">
+                      <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 mb-2">
+                        New assignment — please accept or reject within 24 hours.
+                      </p>
+                      <AgentAssignmentActions propertyId={p.id} onChanged={load} />
+                    </div>
+                  ) : (
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      <Button
+                        size="sm"
+                        className="h-8 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white"
+                        disabled={!p.owner_phone}
+                        onClick={() => p.owner_phone && (window.location.href = `tel:${p.owner_phone}`)}
+                      >
+                        <Phone className="h-3 w-3 mr-1" />Call Seller
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-[11px]"
+                        onClick={() => openSchedule(p)}
+                        disabled={isCompleted}
+                      >
+                        <CalendarPlus className="h-3 w-3 mr-1" />
+                        {p.scheduled_visit_at ? "Reschedule" : "Schedule"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-[11px]"
+                        onClick={() => setChatTarget(p)}
+                        disabled={!p.submitted_by}
+                      >
+                        <MessageSquare className="h-3 w-3 mr-1" />Chat
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => void openFullVerificationForm(p)}
+                        disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
+                        title="Open full sectioned form to verify, correct, and add fields"
+                      >
+                        <FileCheck2 className="h-3 w-3 mr-1" />
+                        {fullTargetLoadingId === p.id
+                          ? "Opening form..."
+                          : p.verification_status === "agent_verified_pending"
+                          ? "Submitted for Approval"
+                          : "Edit Property & Submit Verification"}
+                      </Button>
+                    </div>
+                  )}
 
                   <button
                     className="mt-2 text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"

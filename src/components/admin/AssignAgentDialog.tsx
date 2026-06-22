@@ -62,13 +62,21 @@ export function AssignAgentDialog({
         .eq("id", propertyId);
       if (error) throw error;
 
-      // Notify the agent + owner
+      // Notify the agent (look up auth user_id) + owner
+      const { data: agentRow } = await supabase
+        .from("agents").select("user_id").eq("id", agentId).maybeSingle();
+      const agentUserId = (agentRow as any)?.user_id as string | undefined;
+
       const { data: prop } = await supabase
         .from("properties").select("submitted_by, title").eq("id", propertyId).maybeSingle();
-      await supabase.from("notifications").insert([
-        { user_id: agentId, title: "New verification task", message: `You've been assigned to verify "${prop?.title ?? propertyTitle}". Accept or reject from your dashboard.`, type: "alert", link: "/dashboard/agent" },
-        ...(prop?.submitted_by ? [{ user_id: prop.submitted_by, title: "Verification agent assigned", message: `An agent has been assigned to verify "${prop.title}". You can still edit until they accept.`, type: "info", link: "/dashboard/seller" }] : []),
-      ]);
+      const notifs: any[] = [];
+      if (agentUserId) {
+        notifs.push({ user_id: agentUserId, title: "New verification task", message: `You've been assigned to verify "${prop?.title ?? propertyTitle}". Accept or reject from your dashboard.`, type: "alert", link: "/dashboard/agent" });
+      }
+      if (prop?.submitted_by) {
+        notifs.push({ user_id: prop.submitted_by, title: "Verification agent assigned", message: `An agent has been assigned to verify "${prop.title}". You can still edit until they accept.`, type: "info", link: "/dashboard/seller" });
+      }
+      if (notifs.length) await supabase.from("notifications").insert(notifs);
 
       toast({ title: "Agent assigned" });
       onAssigned?.();
