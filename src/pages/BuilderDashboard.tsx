@@ -740,7 +740,7 @@ export default function BuilderDashboard() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-xs text-muted-foreground">Price</p>
-                                <p className="font-bold text-primary">₹{(property.price / 10000000).toFixed(2)} Cr</p>
+                                <p className="font-bold text-primary">{formatUserPrice(property.price)}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Config</p>
@@ -748,7 +748,7 @@ export default function BuilderDashboard() {
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Area</p>
-                                <p className="font-semibold">{property.area_sqft} sq.ft</p>
+                                <p className="font-semibold">{property.area_sqft} {getAreaUnit(property)}</p>
                               </div>
                             </div>
                           </CardContent>
