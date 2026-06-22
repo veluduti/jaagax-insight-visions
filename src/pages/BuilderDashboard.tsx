@@ -41,6 +41,32 @@ import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
 const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
+
+// Format price in user-friendly units (Lakhs/Crores) without forcing conversion
+function formatUserPrice(n: number | null | undefined): string {
+  const v = Number(n);
+  if (!v || !Number.isFinite(v)) return "₹0";
+  if (v >= 1e7) {
+    const cr = v / 1e7;
+    return `₹${Number.isInteger(cr) ? cr : cr.toFixed(2)} Cr`;
+  }
+  if (v >= 1e5) {
+    const l = v / 1e5;
+    return `₹${Number.isInteger(l) ? l : l.toFixed(2)} Lakh`;
+  }
+  return `₹${v.toLocaleString("en-IN")}`;
+}
+
+// Preserve the unit the user originally entered (cents, acres, sq.ft, etc.)
+function getAreaUnit(p: any): string {
+  return (
+    p?.area_unit ||
+    p?.final_data?.area_unit ||
+    p?.agent_data?.area_unit ||
+    p?.original_snapshot?.area_unit ||
+    "sq.ft"
+  );
+}
 const RERAUploadModal = lazy(() => import("@/components/builder/RERAUploadModal"));
 const BuilderRERAStatus = lazy(() => import("@/components/builder/BuilderRERAStatus"));
 const DocumentationModal = lazy(() => import("@/components/builder/DocumentationModal"));
@@ -740,7 +766,7 @@ export default function BuilderDashboard() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-xs text-muted-foreground">Price</p>
-                                <p className="font-bold text-primary">₹{(property.price / 10000000).toFixed(2)} Cr</p>
+                                <p className="font-bold text-primary">{formatUserPrice(property.price)}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Config</p>
@@ -748,7 +774,7 @@ export default function BuilderDashboard() {
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Area</p>
-                                <p className="font-semibold">{property.area_sqft} sq.ft</p>
+                                <p className="font-semibold">{property.area_sqft} {getAreaUnit(property)}</p>
                               </div>
                             </div>
                           </CardContent>
