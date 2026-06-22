@@ -1280,6 +1280,7 @@ export default function SellProperty() {
     { id: "plots", label: "Plots / Land", emoji: "📐" },
     { id: "agriculture", label: "Agricultural", emoji: "🌾" },
     { id: "coworking", label: "Co-working", emoji: "💼" },
+    { id: "financial", label: "Financial", emoji: "💰" },
   ];
 
   /* ----- Auto-scroll on new messages ----- */
