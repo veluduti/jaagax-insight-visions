@@ -342,8 +342,8 @@ export default function AssignAgentPanel() {
         await supabase.from("notifications").insert({
           user_id: agent.user_id,
           type: "property_assigned",
-          title: "New property assigned to you",
-          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}). Check your dashboard for the new task.`,
+          title: "New assignment — Accept or Reject",
+          message: `Admin assigned "${selected.title}" (${selected.locality || selected.city || ""}) to you. Open your dashboard to accept or reject within 24 hours.`,
           link: `/dashboard/agent`,
         });
       }
