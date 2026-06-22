@@ -440,10 +440,7 @@ export default function AgentEditPropertyDialog({
   }, [agentData, verification]);
 
   const handleSubmit = async () => {
-    if (!isAdmin && !agentNotes.trim()) {
-      toast.error("Please add agent notes from the visit");
-      return;
-    }
+    // Agent notes are optional — agent can submit with or without modifications.
     setSubmitting(true);
 
     // Build full field_verification using auto-computed statuses (preserving manual overrides)
