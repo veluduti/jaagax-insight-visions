@@ -4397,7 +4397,7 @@ export default function SellProperty() {
                     {/* 8. STICKY ACTION BAR */}
                     <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
                       <div className="container max-w-4xl mx-auto px-3 sm:px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-1.5">
-                        {!titleReady && (
+                        {!isFinancial && !titleReady && (
                           <div className="text-[11px] text-muted-foreground text-center">
                             {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
                           </div>
@@ -4416,7 +4416,7 @@ export default function SellProperty() {
                             className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95 disabled:opacity-50"
                           >
                             {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                            Publish Property
+                            {isFinancial ? "Submit Request" : "Publish Property"}
                           </Button>
                         </div>
                       </div>
