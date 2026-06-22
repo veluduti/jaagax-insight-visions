@@ -92,6 +92,26 @@ export default function RateAgentDialog({
         if (data) setExisting(data);
       }
       if (error) throw error;
+
+      // Notify the agent (best-effort) — resolve their auth user_id then insert a notification.
+      try {
+        const { data: agentRow } = await (supabase.from as any)("agents")
+          .select("user_id").eq("id", agentId).maybeSingle();
+        const agentUserId = agentRow?.user_id;
+        if (agentUserId) {
+          await (supabase.from as any)("notifications").insert({
+            user_id: agentUserId,
+            type: "agent_rating",
+            title: existing ? "Your rating was updated" : "You received a new rating",
+            message: `${stars}★ from a property owner${comment.trim() ? `: "${comment.trim().slice(0, 140)}"` : ""}`,
+            link: "/agent-dashboard",
+            metadata: { agent_id: agentId, property_id: propertyId, rating: stars },
+          });
+        }
+      } catch (notifyErr) {
+        console.warn("Agent notification failed (non-blocking):", notifyErr);
+      }
+
       toast({ title: existing ? "Rating updated" : "Thanks for rating!", description: "Agent ranking refreshed." });
       setOpen(false);
       onSubmitted?.();
