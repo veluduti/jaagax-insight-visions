@@ -298,7 +298,9 @@ export default function AssignAgentPanel() {
         .update({
           assigned_agent_id: agent.id,
           verification_status: "agent_assigned",
-          verified: true,
+          lifecycle_status: "agent_assigned",
+          agent_assignment_status: "pending",
+          verified: false,
           rejection_reason: null,
           updated_at: new Date().toISOString(),
         })
