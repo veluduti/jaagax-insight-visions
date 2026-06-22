@@ -36,6 +36,104 @@ const Ring = ({ label, value, max = 100, suffix = "" }: { label: string; value: 
   );
 };
 
+/**
+ * Compute live metrics from the agent's actual activity and upsert a log row,
+ * so the success score reflects real work (ratings, verified listings, visits).
+ */
+async function computeAndPersistMetrics(userId: string): Promise<Log> {
+  // 1) Resolve the agent row for this user
+  const { data: agent } = await supabase
+    .from("agents")
+    .select("id, avg_rating, total_ratings")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const agentId = (agent as any)?.id as string | undefined;
+
+  // 2) Properties submitted / verified by this user
+  const { data: props } = await supabase
+    .from("properties")
+    .select("id, verification_status, assigned_agent_id")
+    .or(`submitted_by.eq.${userId}${agentId ? `,assigned_agent_id.eq.${agentId}` : ""}`);
+  const propsList = (props as any[]) || [];
+  const verified_listings = propsList.filter(
+    (p) => p.verification_status === "verified" || p.verification_status === "approved",
+  ).length;
+
+  // 3) Visits handled by this agent
+  let visit_success_rate = 0;
+  let conversion_rate = 0;
+  let response_time_avg = 0;
+  if (agentId) {
+    const { data: visits } = await supabase
+      .from("visit_bookings")
+      .select("status, created_at, scheduled_at")
+      .eq("agent_id", agentId);
+    const vs = (visits as any[]) || [];
+    if (vs.length) {
+      const completed = vs.filter((v) => v.status === "completed" || v.status === "verified").length;
+      visit_success_rate = Math.round((completed / vs.length) * 100);
+      conversion_rate = propsList.length
+        ? Math.round((completed / propsList.length) * 100)
+        : 0;
+      const diffs = vs
+        .filter((v) => v.scheduled_at && v.created_at)
+        .map((v) => (new Date(v.scheduled_at).getTime() - new Date(v.created_at).getTime()) / 60000)
+        .filter((d) => d > 0 && d < 60 * 24 * 7);
+      if (diffs.length) {
+        response_time_avg = Math.round(diffs.reduce((s, d) => s + d, 0) / diffs.length);
+      }
+    }
+  }
+
+  // 4) Customer rating — prefer agents.avg_rating (kept fresh by trigger),
+  //    fallback to live aggregate from agent_ratings
+  let avg_customer_rating = Number((agent as any)?.avg_rating || 0);
+  if (!avg_customer_rating && agentId) {
+    const { data: ratings } = await supabase
+      .from("agent_ratings")
+      .select("rating")
+      .eq("agent_id", agentId);
+    const list = (ratings as any[]) || [];
+    if (list.length) {
+      avg_customer_rating = Number(
+        (list.reduce((s, r) => s + Number(r.rating || 0), 0) / list.length).toFixed(2),
+      );
+    }
+  }
+
+  // 5) Overall score (weighted 0-100)
+  const responsePct = Math.max(0, Math.min(100, 100 - response_time_avg / 6)); // 0min=100, 600min=0
+  const verifiedPct = propsList.length
+    ? Math.min(100, (verified_listings / propsList.length) * 100)
+    : 0;
+  const ratingPct = (avg_customer_rating / 5) * 100;
+  const success_score = Math.round(
+    responsePct * 0.2 + conversion_rate * 0.25 + verifiedPct * 0.2 + ratingPct * 0.2 + visit_success_rate * 0.15,
+  );
+
+  const payload = {
+    user_id: userId,
+    agent_id: agentId ?? null,
+    response_time_avg,
+    conversion_rate,
+    verified_listings,
+    avg_customer_rating,
+    visit_success_rate,
+    success_score,
+    calculated_at: new Date().toISOString(),
+  };
+
+  // Best-effort insert — failure shouldn't break the UI
+  try {
+    await (supabase as any).from("agent_success_logs").insert(payload);
+  } catch (e) {
+    console.warn("agent_success_logs insert failed:", e);
+  }
+
+  return payload as Log;
+}
+
 export default function AgentSuccessScore() {
   const { user } = useAuth();
   const [logs, setLogs] = useState<Log[]>([]);
@@ -44,13 +142,16 @@ export default function AgentSuccessScore() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      // Always recompute on mount so the dashboard reflects fresh activity
+      const live = await computeAndPersistMetrics(user.id);
       const { data } = await (supabase as any)
         .from("agent_success_logs")
         .select("*")
         .eq("user_id", user.id)
         .order("calculated_at", { ascending: false })
         .limit(12);
-      setLogs((data || []) as Log[]);
+      const history = ((data || []) as Log[]);
+      setLogs(history.length ? history : [live]);
       setLoading(false);
     })();
   }, [user]);
