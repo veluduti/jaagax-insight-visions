@@ -348,7 +348,7 @@ export type Database = {
       agent_ratings: {
         Row: {
           agent_id: string
-          booking_id: string
+          booking_id: string | null
           buyer_id: string
           comment: string | null
           created_at: string
@@ -360,7 +360,7 @@ export type Database = {
         }
         Insert: {
           agent_id: string
-          booking_id: string
+          booking_id?: string | null
           buyer_id: string
           comment?: string | null
           created_at?: string
@@ -372,7 +372,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string
-          booking_id?: string
+          booking_id?: string | null
           buyer_id?: string
           comment?: string | null
           created_at?: string
