@@ -13,9 +13,10 @@ import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 interface PropertySearchBarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  compact?: boolean; // NEW: Add compact mode
 }
 
-const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) => {
+const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: PropertySearchBarProps) => {
   const navigate = useNavigate();
   const { role } = useAuth();
   const [searchType, setSearchType] = useState("buy");
@@ -94,7 +95,7 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           <button
             key={tab.value}
             onClick={() => setSearchType(tab.value)}
-            className={`py-2 px-4 text-sm font-medium rounded-lg transition-all ${
+            className={`py-1.5 px-3 text-xs font-medium rounded-lg transition-all ${
               searchType === tab.value
                 ? "bg-primary/10 text-primary border border-primary/30"
                 : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
@@ -154,38 +155,42 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
         transition={{ duration: 0.2 }}
         className="w-full max-w-5xl mx-auto"
       >
-        <div className="bg-card/95 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden border border-border/50">
-          {/* Tabs */}
-          <div className="flex justify-center gap-6 px-4 pt-3 pb-2.5 bg-background/50 border-b border-border/30">
-            {navItems.map((item) => (
-              <button
-                key={item.value}
-                onClick={() => onTabChange(item.value)}
-                className={`text-sm font-medium transition-colors relative pb-1.5 ${
-                  activeTab === item.value ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.label}
-                {activeTab === item.value && (
-                  <motion.span
-                    layoutId="activeSearchTab"
-                    className="absolute -bottom-[11px] left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
+        <div
+          className={`${compact ? "bg-transparent shadow-none border-none" : "bg-card/95 backdrop-blur-lg rounded-xl shadow-lg border border-border/50"}`}
+        >
+          {/* Tabs - HIDE in compact mode */}
+          {!compact && (
+            <div className="flex justify-center gap-6 px-4 pt-3 pb-2.5 bg-background/50 border-b border-border/30">
+              {navItems.map((item) => (
+                <button
+                  key={item.value}
+                  onClick={() => onTabChange(item.value)}
+                  className={`text-sm font-medium transition-colors relative pb-1.5 ${
+                    activeTab === item.value ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                  {activeTab === item.value && (
+                    <motion.span
+                      layoutId="activeSearchTab"
+                      className="absolute -bottom-[11px] left-0 right-0 h-0.5 bg-primary"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* Form - FIXED: Removed flex-wrap and made it a single row */}
-          <div className="p-3 space-y-2">
-            {/* Main search row - all items in one line */}
+          {/* Form */}
+          <div className={`${compact ? "p-0" : "p-3"} space-y-2`}>
+            {/* Main search row */}
             <div className="flex gap-2 items-center">
-              {/* Transaction tabs - Buy/Rent */}
-              {renderTransactionTabs()}
+              {/* Transaction tabs - Buy/Rent - HIDE in compact mode */}
+              {!compact && renderTransactionTabs()}
 
-              {/* Location input - takes remaining space */}
-              <div className="flex-1 min-w-[180px]">
+              {/* Location input */}
+              <div className={`${compact ? "flex-1" : "flex-1 min-w-[180px]"}`}>
                 <InlineLocationSearch
                   variant="box"
                   placeholder="Enter location"
@@ -198,17 +203,20 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
                 />
               </div>
 
-              {/* Search Button - now inline */}
+              {/* Search Button */}
               <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm px-6 py-2 rounded-lg shadow whitespace-nowrap"
+                className={`bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg shadow whitespace-nowrap ${
+                  compact ? "text-xs px-4 py-1.5" : "text-sm px-6 py-2"
+                }`}
                 onClick={handleSearch}
               >
                 Search
               </Button>
             </div>
 
-            {/* Filters row - separate line */}
-            {showFilters &&
+            {/* Filters row - HIDE in compact mode */}
+            {!compact &&
+              showFilters &&
               (activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
                 <div className="flex gap-2 items-center">
                   <Button
@@ -227,23 +235,26 @@ const PropertySearchBar = ({ activeTab, onTabChange }: PropertySearchBarProps) =
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mt-3 text-center"
-        >
-          <button
-            onClick={() => navigate("/ai-advisor")}
-            className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors group"
+        {/* AI Advisor text - HIDE in compact mode */}
+        {!compact && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-3 text-center"
           >
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <span>Want to find out more about real estate using AI?</span>
-            <span className="text-primary font-medium">Try AI Advisor →</span>
-          </button>
-        </motion.div>
+            <button
+              onClick={() => navigate("/ai-advisor")}
+              className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors group"
+            >
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <span>Want to find out more about real estate using AI?</span>
+              <span className="text-primary font-medium">Try AI Advisor →</span>
+            </button>
+          </motion.div>
+        )}
 
         <AdvancedFiltersSheet
           open={showMoreFilters}
