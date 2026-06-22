@@ -514,6 +514,40 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                   )}
 
 
+                  {/* Visit schedule snapshot */}
+                  {(p.lifecycle_status === "visit_scheduled" || p.lifecycle_status === "visit_confirmed" || p.lifecycle_status === "visit_reschedule_requested") && (
+                    <div className={`mt-3 p-2.5 rounded-lg border text-[11px] ${
+                      p.lifecycle_status === "visit_confirmed" ? "border-emerald-500/40 bg-emerald-500/10" :
+                      p.lifecycle_status === "visit_reschedule_requested" ? "border-amber-500/40 bg-amber-500/10" :
+                      "border-blue-500/40 bg-blue-500/10"
+                    }`}>
+                      <p className="font-semibold mb-1">
+                        {p.lifecycle_status === "visit_confirmed" ? "✅ Owner confirmed visit" :
+                         p.lifecycle_status === "visit_reschedule_requested" ? "⚠️ Owner requested a reschedule" :
+                         "⏳ Awaiting owner confirmation"}
+                      </p>
+                      <div>📅 {p.visit_scheduled_date} · 🕒 {p.visit_scheduled_time}</div>
+                      {p.lifecycle_status === "visit_reschedule_requested" && (
+                        <>
+                          <div className="mt-1">Reason: <em>{p.reschedule_reason}</em></div>
+                          {p.reschedule_preferred_date && (
+                            <div>Owner suggests: <strong>{p.reschedule_preferred_date}{p.reschedule_preferred_time ? " at " + p.reschedule_preferred_time : ""}</strong></div>
+                          )}
+                          <div className="mt-2 flex gap-1.5 flex-wrap">
+                            {p.reschedule_preferred_date && (
+                              <Button size="sm" className="h-7 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => acceptReschedule(p)}>
+                                Accept owner's time
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => openSchedule(p)}>
+                              Propose new schedule
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {/* Actions */}
                   {p.lifecycle_status === "agent_assigned" ? (
                     <div className="mt-3 p-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10">
@@ -537,10 +571,10 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                         variant="outline"
                         className="h-8 text-[11px]"
                         onClick={() => openSchedule(p)}
-                        disabled={isCompleted}
+                        disabled={isCompleted || p.lifecycle_status === "visit_confirmed"}
                       >
                         <CalendarPlus className="h-3 w-3 mr-1" />
-                        {p.scheduled_visit_at ? "Reschedule" : "Schedule"}
+                        {p.visit_scheduled_date ? "Reschedule" : "Schedule"}
                       </Button>
                       <Button
                         size="sm"
@@ -555,18 +589,29 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                         size="sm"
                         className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
                         onClick={() => void openFullVerificationForm(p)}
-                        disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
-                        title="Open full sectioned form to verify, correct, and add fields"
+                        disabled={
+                          p.verification_status === "agent_verified_pending" ||
+                          fullTargetLoadingId === p.id ||
+                          !["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                        }
+                        title={
+                          ["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                            ? "Open full sectioned form to verify, correct, and add fields"
+                            : "Owner must confirm the visit schedule before you can start verification"
+                        }
                       >
                         <FileCheck2 className="h-3 w-3 mr-1" />
                         {fullTargetLoadingId === p.id
                           ? "Opening form..."
                           : p.verification_status === "agent_verified_pending"
                           ? "Submitted for Approval"
+                          : !["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                          ? "Awaiting visit confirmation"
                           : "Edit Property & Submit Verification"}
                       </Button>
                     </div>
                   )}
+
 
                   <button
                     className="mt-2 text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
