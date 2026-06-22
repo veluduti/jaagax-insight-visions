@@ -664,6 +664,7 @@ export default function BuilderDashboard() {
 
           {/* My Properties Tab */}
           <TabsContent value="properties" className="space-y-6">
+            <OwnerPropertyStatusPanel />
             <Card>
               <CardHeader>
                 <CardTitle>Your Properties</CardTitle>
