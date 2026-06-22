@@ -310,7 +310,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
   const submitVerification = async () => {
     if (!verifyTarget) return;
-    if (!editAgentNotes.trim()) { toast.error("Please add agent notes from the visit"); return; }
+    // Agent notes are optional — submit allowed with or without modifications.
     const priceNum = Number(editPrice);
     const areaNum = editArea ? Number(editArea) : null;
     if (!editTitle.trim() || !Number.isFinite(priceNum) || priceNum <= 0) {
