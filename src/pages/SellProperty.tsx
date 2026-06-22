@@ -2912,6 +2912,77 @@ export default function SellProperty() {
 
   /* ----- Final submit ----- */
   const onSubmit = async () => {
+    // ============================================
+    // FINANCIAL category — separate flow: insert into financial_leads
+    // so any financial provider can view and contact the applicant.
+    // ============================================
+    if (category === "financial") {
+      setSubmitting(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Please sign in");
+          navigate("/auth");
+          return;
+        }
+        const src: any = { ...state, ...editForm };
+        const parseNum = (v: any) => {
+          const n = parseFloat(String(v ?? "").replace(/[^\d.]/g, ""));
+          return isFinite(n) && n > 0 ? n : null;
+        };
+        const amount = parseNum(src.required_amount) ?? parseNum(src.amount_requested) ?? parseNum(src.loan_amount);
+
+        // Try to read display name + phone from profile
+        let customerName = (user.user_metadata?.full_name as string) || (user.email?.split("@")[0] ?? "Applicant");
+        let phone: string | null = (user.user_metadata?.phone as string) || null;
+        try {
+          const { data: prof } = await (supabase.from as any)("profiles")
+            .select("full_name, phone").eq("id", user.id).maybeSingle();
+          if (prof?.full_name) customerName = prof.full_name;
+          if (prof?.phone) phone = prof.phone;
+        } catch { /* ignore */ }
+
+        const requirementText = [
+          src.requirement_type && `Type: ${src.requirement_type}`,
+          src.category && `Category: ${src.category}`,
+          src.applicant_type && `Applicant: ${src.applicant_type}`,
+          src.employment_business_profile && `Profile: ${src.employment_business_profile}`,
+          src.credit_score && `Credit: ${src.credit_score}`,
+          src.preferred_finance_source && `Prefers: ${src.preferred_finance_source}`,
+          src.property_information && `Property: ${src.property_information}`,
+          src.example_description,
+        ].filter(Boolean).join(" • ");
+
+        const locationStr = [src.locality, src.city, src.state_name].filter(Boolean).join(", ") || null;
+
+        const { error } = await (supabase.from as any)("financial_leads").insert({
+          lead_type: "buyer",
+          customer_name: customerName,
+          requirement: requirementText || null,
+          budget: amount,
+          location: locationStr,
+          city: src.city || null,
+          contact_email: user.email || null,
+          contact_phone: phone,
+          source_user_id: user.id,
+          price: 0,
+          is_purchased: false,
+        });
+        if (error) throw error;
+
+        toast.success("Financial request submitted ✅", {
+          description: "Our financial partners will reach out shortly.",
+        });
+        navigate("/dashboard/financial");
+      } catch (e: any) {
+        console.error(e);
+        toast.error(e.message || "Could not submit financial request");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     // Block Publish when business rules fail (floor/total_floors, dates).
     const ruleError = validateBusinessRules({ ...state, ...editForm });
     if (ruleError) {
