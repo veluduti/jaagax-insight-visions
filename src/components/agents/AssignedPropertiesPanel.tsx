@@ -168,65 +168,65 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
   const saveSchedule = async () => {
     if (!scheduleTarget || !scheduleDate) { toast.error("Pick a date"); return; }
-    const visitAt = new Date(`${scheduleDate}T${scheduleTime || "10:00"}`);
-    const now = new Date();
-    const slaDeadline = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    if (visitAt.getTime() < now.getTime()) {
+    const time = scheduleTime || "10:00";
+    const visitAt = new Date(`${scheduleDate}T${time}`);
+    if (visitAt.getTime() < Date.now()) {
       toast.error("Visit time must be in the future"); return;
     }
-    if (visitAt.getTime() > slaDeadline.getTime()) {
-      toast.error("SLA: visit must be scheduled within 48 hours");
-      return;
-    }
-    const iso = visitAt.toISOString();
-    const payload: any = {
-      status: "in_progress",
-      metadata: {
-        scheduled_visit_at: iso,
-        sla_deadline: slaDeadline.toISOString(),
-        scheduled_at: now.toISOString(),
-      },
-      updated_at: now.toISOString(),
-    };
-
-    if (scheduleTarget.task_id) {
-      await supabase.from("agent_tasks" as any).update(payload).eq("id", scheduleTarget.task_id);
-    } else {
-      await supabase.from("agent_tasks" as any).insert({
-        agent_id: agentId,
-        agent_user_id: agentUserId,
-        property_id: scheduleTarget.id,
-        task_type: "property_assigned",
-        title: `Visit ${scheduleTarget.title}`,
-        status: "in_progress",
-        priority: "high",
-        metadata: {
-          scheduled_visit_at: iso,
-          sla_deadline: slaDeadline.toISOString(),
-          scheduled_at: now.toISOString(),
+    try {
+      const { data, error } = await supabase.functions.invoke("agent-schedule-visit", {
+        body: {
+          property_id: scheduleTarget.id,
+          visit_date: scheduleDate,
+          visit_time: time,
+          notes: null,
         },
       });
-    }
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
 
-    if (scheduleTarget.submitted_by) {
-      // Fetch agent's phone so seller can contact them
-      const { data: agentRow } = await supabase
-        .from("agents").select("phone").eq("id", agentId).maybeSingle();
-      const agentPhone = (agentRow as any)?.phone ? ` Contact agent: ${(agentRow as any).phone}.` : "";
-      await supabase.from("notifications").insert({
-        user_id: scheduleTarget.submitted_by,
-        type: "visit_scheduled",
-        title: "Agent scheduled a visit to your property",
-        message: `${agentName} will visit "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.${agentPhone}`,
-        link: `/property/${scheduleTarget.id}`,
-      });
+      // Also keep agent_tasks in sync for legacy widgets
+      const iso = visitAt.toISOString();
+      const taskPayload: any = {
+        status: "in_progress",
+        metadata: { scheduled_visit_at: iso, scheduled_at: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      };
+      if (scheduleTarget.task_id) {
+        await supabase.from("agent_tasks" as any).update(taskPayload).eq("id", scheduleTarget.task_id);
+      } else {
+        await supabase.from("agent_tasks" as any).insert({
+          agent_id: agentId,
+          agent_user_id: agentUserId,
+          property_id: scheduleTarget.id,
+          task_type: "property_assigned",
+          title: `Visit ${scheduleTarget.title}`,
+          status: "in_progress",
+          priority: "high",
+          metadata: { scheduled_visit_at: iso, scheduled_at: new Date().toISOString() },
+        });
+      }
+
+      toast.success("Visit scheduled — waiting for owner to confirm");
+      setScheduleTarget(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to schedule");
     }
-    toast.success("Visit scheduled", {
-      description: `Visit set for ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} • Within 48h SLA`,
-    });
-    setScheduleTarget(null);
-    load();
   };
+
+  const acceptReschedule = async (t: AssignedTask) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("agent-accept-reschedule", { body: { property_id: t.id } });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Visit confirmed at owner's preferred time");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Failed");
+    }
+  };
+
 
   const markCompleted = async (t: AssignedTask) => {
     if (!confirm("Mark this visit as completed?")) return;
