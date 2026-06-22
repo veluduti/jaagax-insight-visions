@@ -4325,7 +4325,8 @@ export default function SellProperty() {
                       </div>
                     </SectionCard>
 
-                    {/* 7. AI TITLES */}
+                    {/* 7. AI TITLES — not for financial */}
+                    {!isFinancial && (
                     <SectionCard
                       title="AI Suggested Titles"
                       icon={<Wand2 className="h-4 w-4 text-primary" />}
@@ -4391,6 +4392,7 @@ export default function SellProperty() {
                         </div>
                       )}
                     </SectionCard>
+                    )}
 
                     {/* 8. STICKY ACTION BAR */}
                     <div className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
