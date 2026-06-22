@@ -1838,7 +1838,7 @@ export default function SellProperty() {
         // ============================================
 
         setTimeout(() => {
-          regenerateTitles();
+          if (category !== "financial") regenerateTitles();
         }, 100);
 
         setField(null);
