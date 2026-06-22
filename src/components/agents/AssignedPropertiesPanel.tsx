@@ -106,7 +106,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
