@@ -268,7 +268,11 @@ const ClientBannerHero = ({
                   width: "138%", // Compensate for scale reduction
                 }}
               >
-                <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
+                <PropertySearchBar
+                  activeTab={activeTab}
+                  onTabChange={onTabChange}
+                  compact={true} // ← ADD THIS LINE
+                />
               </div>
             </div>
 
