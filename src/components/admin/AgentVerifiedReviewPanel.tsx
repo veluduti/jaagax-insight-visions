@@ -271,30 +271,40 @@ export default function AgentVerifiedReviewPanel() {
                   <p className="text-sm whitespace-pre-wrap">{reviewTarget.agent_notes}</p>
                 </div>
               )}
-              <div>
-                {(() => {
+              <div className="space-y-5">
+                {SECTIONS.map((sec) => {
                   const seller = reviewTarget.original_snapshot || {};
                   const ad = reviewTarget.agent_data || {};
-                  const aTitle = ad.basic_information?.title ?? reviewTarget.title;
-                  const aType = ad.basic_information?.property_type ?? reviewTarget.type;
-                  const aCity = ad.location_details?.city ?? reviewTarget.city;
-                  const aLocality = ad.location_details?.locality ?? reviewTarget.locality;
-                  const aPrice = ad.price ?? reviewTarget.price;
-                  const aArea = ad.area_sqft ?? reviewTarget.area_sqft;
-                  const aDesc = ad.description ?? reviewTarget.description;
+                  // Fallback seller source = top-level property row when snapshot missing the field
+                  const sellerFallback: any = reviewTarget;
                   return (
-                    <>
-                      <Diff label="Title" original={seller.title} edited={aTitle} />
-                      <Diff label="Type" original={seller.type} edited={aType} />
-                      <Diff label="City" original={seller.city} edited={aCity} />
-                      <Diff label="Locality" original={seller.locality} edited={aLocality} />
-                      <Diff label="Price" original={seller.price} edited={aPrice} format={fmtPrice} />
-                      <Diff label="Area (sqft)" original={seller.area_sqft} edited={aArea} />
-                      <Diff label="Description" original={seller.description} edited={aDesc} />
-                    </>
+                    <div key={sec.id} className="rounded-lg border bg-card">
+                      <div className="px-3 py-2 border-b bg-muted/40">
+                        <p className="text-xs font-semibold uppercase tracking-wide">{sec.title}</p>
+                      </div>
+                      <div className="px-3">
+                        {sec.fields.map((f) => {
+                          const sv = f.sellerPath
+                            ? (getPath(seller, f.sellerPath) ?? getPath(sellerFallback, f.sellerPath))
+                            : undefined;
+                          const av = getPath(ad, f.key);
+                          const formatter = f.key === "price_details.expected_price" ? fmtPrice : undefined;
+                          return (
+                            <Diff
+                              key={f.key}
+                              label={f.label}
+                              original={sv}
+                              edited={av}
+                              format={formatter as any}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
-                })()}
+                })}
               </div>
+
               <div>
                 <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-2">Images comparison</p>
                 <div className="grid grid-cols-2 gap-3">
