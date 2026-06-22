@@ -14,6 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import RateAgentDialog from "@/components/seller/RateAgentDialog";
 
 interface Agent {
   id: string;
@@ -63,6 +64,7 @@ export function OwnerPropertyStatusPanel() {
   const [renewing, setRenewing] = useState<string | null>(null);
   const [auditFor, setAuditFor] = useState<Row | null>(null);
   const [acting, setActing] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Reschedule dialog
   const [rescheduleTarget, setRescheduleTarget] = useState<Row | null>(null);
@@ -88,6 +90,7 @@ export function OwnerPropertyStatusPanel() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
       const { data } = await (supabase.from as any)("properties")
         .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
         .eq("submitted_by", user.id)
@@ -257,6 +260,17 @@ export function OwnerPropertyStatusPanel() {
                       <span className="flex items-center gap-1"><Star className="h-3 w-3" />{Number(r.agent.avg_rating || 0).toFixed(1)} ({r.agent.total_ratings || 0})</span>
                       {(r.agent.sales_count ?? 0) > 0 && <span>{r.agent.sales_count} verifications</span>}
                     </div>
+                    {userId && ["verification_submitted", "pending_final_approval", "live_verified", "live"].includes(r.lifecycle_status || "") && (
+                      <div className="mt-2">
+                        <RateAgentDialog
+                          agentId={r.agent.id}
+                          agentName={r.agent.name}
+                          propertyId={r.id}
+                          buyerId={userId}
+                          variant="inline"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
