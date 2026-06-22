@@ -3954,8 +3954,9 @@ export default function SellProperty() {
                 const descTooLong = (editForm.description || "").length > 280;
                 const photos: string[] = editForm.media_urls || state.media_urls || [];
 
-                const titleReady = !!editForm.title.trim();
-                const canPublish = titleReady && !submitting && !titlesLoading;
+                const isFinancial = category === "financial";
+                const titleReady = isFinancial ? true : !!editForm.title.trim();
+                const canPublish = isFinancial ? !submitting : titleReady && !submitting && !titlesLoading;
 
                 const SectionCard: React.FC<{
                   title: string;
