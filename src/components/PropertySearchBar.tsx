@@ -156,7 +156,11 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
         className="w-full max-w-5xl mx-auto"
       >
         <div
-          className={`${compact ? "bg-transparent shadow-none border-none" : "bg-card/95 backdrop-blur-lg rounded-xl shadow-lg border border-border/50"}`}
+          className={`${
+            compact
+              ? "bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-lg p-2"
+              : "bg-card/95 backdrop-blur-lg rounded-xl shadow-lg border border-border/50"
+          }`}
         >
           {/* Tabs - HIDE in compact mode */}
           {!compact && (
@@ -183,7 +187,7 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
           )}
 
           {/* Form */}
-          <div className={`${compact ? "p-0" : "p-3"} space-y-2`}>
+          <div className={`${compact ? "p-1" : "p-3"} space-y-2`}>
             {/* Main search row */}
             <div className="flex gap-2 items-center">
               {/* Transaction tabs - Buy/Rent - HIDE in compact mode */}
