@@ -41,6 +41,7 @@ interface AssignedTask {
   images: any;
   verified: boolean | null;
   verification_status: string;
+  lifecycle_status?: string | null;
   submitted_by: string | null;
   agent_notes?: string | null;
   // owner
