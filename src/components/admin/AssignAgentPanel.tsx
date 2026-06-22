@@ -50,11 +50,14 @@ interface PendingProperty {
   images: any;
   video_urls: any;
   listed_by: string | null;
+  listed_by_role_snapshot: string | null;
   assigned_agent_id: string | null;
   submitted_by: string | null;
   rejection_reason: string | null;
   created_at: string;
   document_urls: any;
+  lifecycle_status: string | null;
+  force_verification: boolean | null;
 }
 
 interface SellerInfo {
@@ -114,7 +117,7 @@ export default function AssignAgentPanel() {
     const { data } = await supabase
       .from("properties")
       .select(
-        "id, title, description, city, locality, address, pincode, latitude, longitude, type, listing_type, price, price_negotiable, maintenance_charges, booking_amount, area_sqft, building_area_sqft, bedrooms, bathrooms, balconies, bhk, furnishing, completion_stage, property_age, floor_number, total_floors, total_parking, building_name, amenities, rera_id, rera_document_url, images, video_urls, listed_by, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls"
+        "id, title, description, city, locality, address, pincode, latitude, longitude, type, listing_type, price, price_negotiable, maintenance_charges, booking_amount, area_sqft, building_area_sqft, bedrooms, bathrooms, balconies, bhk, furnishing, completion_stage, property_age, floor_number, total_floors, total_parking, building_name, amenities, rera_id, rera_document_url, images, video_urls, listed_by, listed_by_role_snapshot, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls, lifecycle_status, force_verification"
       )
       .eq("verification_status", "pending")
       .order("created_at", { ascending: false });
@@ -295,7 +298,9 @@ export default function AssignAgentPanel() {
         .update({
           assigned_agent_id: agent.id,
           verification_status: "agent_assigned",
-          verified: true,
+          lifecycle_status: "agent_assigned",
+          agent_assignment_status: "pending",
+          verified: false,
           rejection_reason: null,
           updated_at: new Date().toISOString(),
         })
@@ -337,8 +342,8 @@ export default function AssignAgentPanel() {
         await supabase.from("notifications").insert({
           user_id: agent.user_id,
           type: "property_assigned",
-          title: "New property assigned to you",
-          message: `You've been assigned to handle ${selected.title} (${selected.locality || selected.city || ""}). Check your dashboard for the new task.`,
+          title: "New assignment — Accept or Reject",
+          message: `Admin assigned "${selected.title}" (${selected.locality || selected.city || ""}) to you. Open your dashboard to accept or reject within 24 hours.`,
           link: `/dashboard/agent`,
         });
       }
@@ -462,33 +467,69 @@ export default function AssignAgentPanel() {
         })}
       </div>
 
-      {/* Editable details modal — same form as the Sell Your Property flow / agent verification */}
-      {selected && (
-        <AgentEditPropertyDialog
-          open={!!selected}
-          onOpenChange={(o) => { if (!o) { setSelected(null); setShowAgents(false); setSuggestions([]); } }}
-          property={selected}
-          mode="admin"
-          onSubmitted={() => fetchPending()}
-          adminFooter={
-            <>
-              <Button variant="destructive" onClick={rejectProperty} disabled={working}>
-                <XCircle className="h-4 w-4 mr-1.5" />Reject
-              </Button>
-              {!selfListedByVerifiedAgent && (
-                <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
-                  <UserCheck className="h-4 w-4 mr-1.5" />
-                  {showAgents ? "Refresh Agents" : "Assign Agent"}
-                </Button>
-              )}
-              <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
-                {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                Approve
-              </Button>
-            </>
-          }
-        />
-      )}
+      {/* Editable details modal — visibility of action buttons follows the JAAGAX workflow */}
+      {selected && (() => {
+        const listedRole = (selected.listed_by_role_snapshot || selected.listed_by || "seller").toLowerCase();
+        // "Agent-posted" only if listing role is agent AND the submitter is a verified agent.
+        const isAgentPosted = listedRole === "agent" && selfListedByVerifiedAgent;
+        const forceVerify = !!selected.force_verification;
+        // Verification required when not agent-posted, or when admin forced it.
+        const requiresVerification = !isAgentPosted || forceVerify;
+        const showApproveReject = !requiresVerification;
+        const showAssignAgent = requiresVerification;
+        const toggleForceVerify = async (on: boolean) => {
+          const { error } = await supabase
+            .from("properties")
+            .update({ force_verification: on })
+            .eq("id", selected.id);
+          if (error) return toast.error(error.message);
+          setSelected({ ...selected, force_verification: on });
+          setProperties((prev) => prev.map((x) => x.id === selected.id ? { ...x, force_verification: on } : x));
+          toast.success(on ? "Verification required" : "Direct approve enabled");
+        };
+        return (
+          <AgentEditPropertyDialog
+            open={!!selected}
+            onOpenChange={(o) => { if (!o) { setSelected(null); setShowAgents(false); setSuggestions([]); } }}
+            property={selected}
+            mode="admin"
+            onSubmitted={() => fetchPending()}
+            adminFooter={
+              <>
+                {/* Force-verification toggle is only meaningful for agent-posted listings */}
+                {isAgentPosted && (
+                  <label className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md border bg-muted/30 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5"
+                      checked={forceVerify}
+                      onChange={(e) => toggleForceVerify(e.target.checked)}
+                    />
+                    Require verification
+                  </label>
+                )}
+                {showApproveReject && (
+                  <>
+                    <Button variant="destructive" onClick={rejectProperty} disabled={working}>
+                      <XCircle className="h-4 w-4 mr-1.5" />Reject
+                    </Button>
+                    <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
+                      {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                      Approve
+                    </Button>
+                  </>
+                )}
+                {showAssignAgent && (
+                  <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                    <UserCheck className="h-4 w-4 mr-1.5" />
+                    {showAgents ? "Refresh Agents" : "Assign Agent"}
+                  </Button>
+                )}
+              </>
+            }
+          />
+        );
+      })()}
 
       {/* Agent suggestions sub-dialog */}
       <Dialog open={showAgents} onOpenChange={(o) => { if (!o) { setShowAgents(false); setSuggestions([]); } }}>
