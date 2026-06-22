@@ -15,17 +15,22 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: "Unauthenticated" }), { status: 401, headers: cors });
+    if (!user) {
+      console.error("[owner-request-reschedule] no user");
+      return new Response(JSON.stringify({ error: "Unauthenticated" }), { status: 401, headers: cors });
+    }
 
     const { property_id, reason, preferred_date, preferred_time } = await req.json();
+    console.log("[owner-request-reschedule] input", { user: user.id, property_id, has_reason: !!reason, preferred_date, preferred_time });
     if (!property_id || !reason?.trim()) {
       return new Response(JSON.stringify({ error: "property_id and reason are required" }), { status: 400, headers: cors });
     }
 
-    const { data: prop } = await admin
+    const { data: prop, error: pErr } = await admin
       .from("properties")
       .select("id, submitted_by, assigned_agent_id, title, lifecycle_status")
       .eq("id", property_id).maybeSingle();
+    if (pErr) { console.error("[owner-request-reschedule] prop select error", pErr); throw pErr; }
     if (!prop) return new Response(JSON.stringify({ error: "Property not found" }), { status: 404, headers: cors });
     if (prop.submitted_by !== user.id) return new Response(JSON.stringify({ error: "Not your property" }), { status: 403, headers: cors });
     if (prop.lifecycle_status !== "visit_scheduled") {
@@ -40,13 +45,16 @@ Deno.serve(async (req) => {
       reschedule_preferred_time: preferred_time || null,
       reschedule_requested_at: now,
     }).eq("id", property_id);
-    if (uErr) throw uErr;
+    if (uErr) { console.error("[owner-request-reschedule] update error", uErr); throw uErr; }
 
-    await admin.from("property_audit_log").insert({
+    const { error: aErr } = await admin.from("property_audit_log").insert({
       property_id, actor_id: user.id, action: "reschedule_requested",
       from_status: "visit_scheduled", to_status: "visit_reschedule_requested",
       metadata: { reason, preferred_date: preferred_date || null, preferred_time: preferred_time || null },
     });
+    if (aErr) console.error("[owner-request-reschedule] audit insert error", aErr);
+
+
 
     const notifs: any[] = [];
     let agentUserId: string | null = null;
