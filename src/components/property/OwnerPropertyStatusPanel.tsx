@@ -205,6 +205,27 @@ export function OwnerPropertyStatusPanel() {
                 <Button size="sm" variant="ghost" onClick={() => setAuditFor(r)} className="text-xs">
                   <History className="w-3.5 h-3.5 mr-1" /> History
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10" disabled={deleting === r.id}>
+                      {deleting === r.id ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Trash2 className="w-3.5 h-3.5 mr-1" />} Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this listing?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently removes "{r.title}" and all its data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteListing(r.id)} className="bg-destructive hover:bg-destructive/90">
+                        Delete permanently
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
 
