@@ -246,6 +246,7 @@ const ClientBannerHero = ({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
               padding: "0 16px",
             }}
           >
@@ -253,10 +254,10 @@ const ClientBannerHero = ({
             <div
               style={{
                 width: "100%",
-                maxWidth: "620px",
+                maxWidth: "480px",
                 marginBottom: "10px",
-                transform: "scale(0.85)",
-                transformOrigin: "top center",
+                transform: "scale(0.72)",
+                transformOrigin: "center center",
               }}
             >
               <PropertySearchBar activeTab={activeTab} onTabChange={onTabChange} />
