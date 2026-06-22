@@ -8,7 +8,7 @@
 // PROPERTY CATEGORIES
 // ============================================================
 
-export type PropertyCategory = "residential" | "commercial" | "plots" | "agriculture" | "coworking";
+export type PropertyCategory = "residential" | "commercial" | "plots" | "agriculture" | "coworking" | "financial";
 
 // ============================================================
 // FIELD INPUT TYPES
