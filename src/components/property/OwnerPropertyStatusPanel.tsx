@@ -67,6 +67,19 @@ export function OwnerPropertyStatusPanel() {
   // Reschedule dialog
   const [rescheduleTarget, setRescheduleTarget] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const deleteListing = async (id: string) => {
+    setDeleting(id);
+    try {
+      const { error } = await (supabase.from as any)("properties").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Listing deleted" });
+      setRows((prev) => prev.filter((x) => x.id !== id));
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+    } finally { setDeleting(null); }
+  };
   const [prefDate, setPrefDate] = useState("");
   const [prefTime, setPrefTime] = useState("");
 
