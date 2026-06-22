@@ -120,7 +120,9 @@ export const WeekendBookingsList = ({ scope, agentId, userId, kind = "all" }: Pr
             const hasInterest = interestedCount > 0;
             const dealClosed = b.status === "deal_closed" || b.status === "rated";
             const remainingDue = dealClosed && b.deal_amount && b.final_payment_status !== "paid";
-            const canDelete = scope === "buyer" || scope === "admin";
+            // Allow delete in every scope, especially within the History view,
+            // so users can permanently clean up bookings they no longer need.
+            const canDelete = view === "history" || scope === "buyer" || scope === "admin";
             return (
               <motion.div key={b.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                 <Card className={`cursor-pointer hover:shadow-md transition-all group relative ${hasInterest && !dealClosed ? "border-emerald-500/50 ring-1 ring-emerald-500/20 shadow-[0_0_0_1px_hsl(var(--primary)/0.05)]" : "hover:border-primary/30"}`} onClick={() => setSelectedId(b.id)}>
