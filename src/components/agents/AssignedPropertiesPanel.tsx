@@ -329,7 +329,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     };
     const newImages = editImages.split(/\n+/).map((s) => s.trim()).filter(Boolean);
 
-    const { error } = await supabase
+    const { data: updatedProperty, error } = await supabase
       .from("properties")
       .update({
         title: editTitle.trim(),
@@ -343,11 +343,18 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
         verified: false,
         agent_submitted_at: new Date().toISOString(),
       } as any)
-      .eq("id", verifyTarget.id);
+      .eq("id", verifyTarget.id)
+      .select("id, verification_status, agent_submitted_at")
+      .maybeSingle();
 
     if (error) {
       setSubmittingVerify(false);
       toast.error(error.message);
+      return;
+    }
+    if (!updatedProperty) {
+      setSubmittingVerify(false);
+      toast.error("Could not submit this property. Please refresh and try again.");
       return;
     }
 
