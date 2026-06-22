@@ -2930,10 +2930,37 @@ export default function SellProperty() {
 
       // Use review-screen edits as the source of truth
       const area = parseFloat(String(editForm.area).replace(/[^\d.]/g, "")) || null;
-      const totalPrice =
-        parseFloat(String(editForm.total_price || state.total_price || "").replace(/[^\d.]/g, "")) ||
-        parseFloat(String(editForm.monthly_rent || "").replace(/[^\d.]/g, "")) ||
-        null;
+      // Pull a price out of whichever field the flow used.
+      // Sale flows store under total_price/property_price; rent flows under
+      // monthly_rent/rental_price/rent; coworking adds hourly/daily/weekly/per-seat tiers.
+      const parseNum = (v: any) => {
+        const n = parseFloat(String(v ?? "").replace(/[^\d.]/g, ""));
+        return isFinite(n) && n > 0 ? n : null;
+      };
+      const isRentListing = String(editForm.listing_type || state.listing_type || "").toLowerCase() === "rent";
+      const rentCandidates = [
+        editForm.monthly_rent, state.monthly_rent,
+        editForm.rental_price, state.rental_price,
+        editForm.rent, state.rent,
+        editForm.price_per_seat, state.price_per_seat,
+        editForm.weekly_price, state.weekly_price,
+        editForm.daily_pass_price, state.daily_pass_price,
+        editForm.hourly_price, state.hourly_price,
+      ];
+      const saleCandidates = [
+        editForm.total_price, state.total_price,
+        editForm.property_price, state.property_price,
+        editForm.price, state.price,
+        editForm.amount, state.amount,
+      ];
+      const ordered = isRentListing
+        ? [...rentCandidates, ...saleCandidates]
+        : [...saleCandidates, ...rentCandidates];
+      let totalPrice: number | null = null;
+      for (const c of ordered) {
+        const n = parseNum(c);
+        if (n) { totalPrice = n; break; }
+      }
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1,
         "sq m": 10.7639,
