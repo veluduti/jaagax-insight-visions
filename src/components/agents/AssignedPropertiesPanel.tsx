@@ -484,26 +484,29 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                     </div>
                   </div>
 
-                  {/* Seller details */}
-                  <div className="mt-3 p-2 rounded-lg bg-muted/40 border">
-                    <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1">Seller Details</p>
-                    <div className="flex items-center gap-2 text-xs">
-                      <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="font-medium">{p.owner_name || "Owner"}</span>
+                  {/* Seller details - only shown after agent accepts the assignment */}
+                  {p.lifecycle_status !== "agent_assigned" && (
+                    <div className="mt-3 p-2 rounded-lg bg-muted/40 border">
+                      <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1">Seller Details</p>
+                      <div className="flex items-center gap-2 text-xs">
+                        <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-medium">{p.owner_name || "Owner"}</span>
+                      </div>
+                      {p.owner_phone && (
+                        <div className="flex items-center gap-2 text-xs mt-0.5">
+                          <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                          <a href={`tel:${p.owner_phone}`} className="hover:underline">{p.owner_phone}</a>
+                        </div>
+                      )}
+                      {p.owner_email && (
+                        <div className="flex items-center gap-2 text-xs mt-0.5 truncate">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                          <a href={`mailto:${p.owner_email}`} className="hover:underline truncate">{p.owner_email}</a>
+                        </div>
+                      )}
                     </div>
-                    {p.owner_phone && (
-                      <div className="flex items-center gap-2 text-xs mt-0.5">
-                        <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                        <a href={`tel:${p.owner_phone}`} className="hover:underline">{p.owner_phone}</a>
-                      </div>
-                    )}
-                    {p.owner_email && (
-                      <div className="flex items-center gap-2 text-xs mt-0.5 truncate">
-                        <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                        <a href={`mailto:${p.owner_email}`} className="hover:underline truncate">{p.owner_email}</a>
-                      </div>
-                    )}
-                  </div>
+                  )}
+
 
                   {/* Actions */}
                   {p.lifecycle_status === "agent_assigned" ? (
