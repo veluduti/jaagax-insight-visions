@@ -70,6 +70,12 @@ interface AssignedTask {
   agent_data?: any;
   field_verification?: any;
   original_snapshot?: any;
+  visit_scheduled_date?: string | null;
+  visit_scheduled_time?: string | null;
+  visit_scheduled_notes?: string | null;
+  reschedule_reason?: string | null;
+  reschedule_preferred_date?: string | null;
+  reschedule_preferred_time?: string | null;
 }
 
 interface Props {
