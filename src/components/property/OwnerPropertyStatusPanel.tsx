@@ -9,7 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { PropertyStatusBadge } from "@/components/property/PropertyStatusBadge";
 import { PropertyAuditLogDialog } from "@/components/property/PropertyAuditLogDialog";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Lock, History, Phone, Mail, Star, CalendarCheck2, CalendarClock, UserCheck } from "lucide-react";
+import { Loader2, RefreshCw, Lock, History, Phone, Mail, Star, CalendarCheck2, CalendarClock, UserCheck, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Agent {
   id: string;
