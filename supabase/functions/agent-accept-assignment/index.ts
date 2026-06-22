@@ -58,6 +58,15 @@ Deno.serve(async (req) => {
       .eq("id", property_id);
     if (uErr) throw uErr;
 
+    // Audit log
+    await admin.from("property_audit_log").insert({
+      property_id,
+      actor_id: user.id,
+      action: "agent_accepted_assignment",
+      from_status: "agent_assigned",
+      to_status: "agent_accepted",
+    });
+
     // Notify owner (edit locked) + admins
     await admin.from("notifications").insert([
       {

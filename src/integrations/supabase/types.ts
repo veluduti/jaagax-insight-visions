@@ -3339,6 +3339,10 @@ export type Database = {
           rejection_reason: string | null
           rera_document_url: string | null
           rera_id: string | null
+          reschedule_preferred_date: string | null
+          reschedule_preferred_time: string | null
+          reschedule_reason: string | null
+          reschedule_requested_at: string | null
           retail_centres: number | null
           slug: string | null
           sold_at: string | null
@@ -3352,6 +3356,12 @@ export type Database = {
           verification_status: string
           verified: boolean | null
           video_urls: string[] | null
+          visit_confirmed_at: string | null
+          visit_scheduled_at: string | null
+          visit_scheduled_by: string | null
+          visit_scheduled_date: string | null
+          visit_scheduled_notes: string | null
+          visit_scheduled_time: string | null
           was_ever_rejected: boolean
         }
         Insert: {
@@ -3429,6 +3439,10 @@ export type Database = {
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          reschedule_preferred_date?: string | null
+          reschedule_preferred_time?: string | null
+          reschedule_reason?: string | null
+          reschedule_requested_at?: string | null
           retail_centres?: number | null
           slug?: string | null
           sold_at?: string | null
@@ -3442,6 +3456,12 @@ export type Database = {
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
+          visit_confirmed_at?: string | null
+          visit_scheduled_at?: string | null
+          visit_scheduled_by?: string | null
+          visit_scheduled_date?: string | null
+          visit_scheduled_notes?: string | null
+          visit_scheduled_time?: string | null
           was_ever_rejected?: boolean
         }
         Update: {
@@ -3519,6 +3539,10 @@ export type Database = {
           rejection_reason?: string | null
           rera_document_url?: string | null
           rera_id?: string | null
+          reschedule_preferred_date?: string | null
+          reschedule_preferred_time?: string | null
+          reschedule_reason?: string | null
+          reschedule_requested_at?: string | null
           retail_centres?: number | null
           slug?: string | null
           sold_at?: string | null
@@ -3532,6 +3556,12 @@ export type Database = {
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
+          visit_confirmed_at?: string | null
+          visit_scheduled_at?: string | null
+          visit_scheduled_by?: string | null
+          visit_scheduled_date?: string | null
+          visit_scheduled_notes?: string | null
+          visit_scheduled_time?: string | null
           was_ever_rejected?: boolean
         }
         Relationships: [
@@ -5381,6 +5411,8 @@ export type Database = {
         | "renewed"
         | "rejected"
         | "cancelled_by_owner"
+        | "visit_confirmed"
+        | "visit_reschedule_requested"
       verification_artifact_status:
         | "in_progress"
         | "submitted"
@@ -5533,6 +5565,8 @@ export const Constants = {
         "renewed",
         "rejected",
         "cancelled_by_owner",
+        "visit_confirmed",
+        "visit_reschedule_requested",
       ],
       verification_artifact_status: [
         "in_progress",

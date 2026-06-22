@@ -70,6 +70,12 @@ interface AssignedTask {
   agent_data?: any;
   field_verification?: any;
   original_snapshot?: any;
+  visit_scheduled_date?: string | null;
+  visit_scheduled_time?: string | null;
+  visit_scheduled_notes?: string | null;
+  reschedule_reason?: string | null;
+  reschedule_preferred_date?: string | null;
+  reschedule_preferred_time?: string | null;
 }
 
 interface Props {
@@ -106,7 +112,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -168,65 +174,65 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
   const saveSchedule = async () => {
     if (!scheduleTarget || !scheduleDate) { toast.error("Pick a date"); return; }
-    const visitAt = new Date(`${scheduleDate}T${scheduleTime || "10:00"}`);
-    const now = new Date();
-    const slaDeadline = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-    if (visitAt.getTime() < now.getTime()) {
+    const time = scheduleTime || "10:00";
+    const visitAt = new Date(`${scheduleDate}T${time}`);
+    if (visitAt.getTime() < Date.now()) {
       toast.error("Visit time must be in the future"); return;
     }
-    if (visitAt.getTime() > slaDeadline.getTime()) {
-      toast.error("SLA: visit must be scheduled within 48 hours");
-      return;
-    }
-    const iso = visitAt.toISOString();
-    const payload: any = {
-      status: "in_progress",
-      metadata: {
-        scheduled_visit_at: iso,
-        sla_deadline: slaDeadline.toISOString(),
-        scheduled_at: now.toISOString(),
-      },
-      updated_at: now.toISOString(),
-    };
-
-    if (scheduleTarget.task_id) {
-      await supabase.from("agent_tasks" as any).update(payload).eq("id", scheduleTarget.task_id);
-    } else {
-      await supabase.from("agent_tasks" as any).insert({
-        agent_id: agentId,
-        agent_user_id: agentUserId,
-        property_id: scheduleTarget.id,
-        task_type: "property_assigned",
-        title: `Visit ${scheduleTarget.title}`,
-        status: "in_progress",
-        priority: "high",
-        metadata: {
-          scheduled_visit_at: iso,
-          sla_deadline: slaDeadline.toISOString(),
-          scheduled_at: now.toISOString(),
+    try {
+      const { data, error } = await supabase.functions.invoke("agent-schedule-visit", {
+        body: {
+          property_id: scheduleTarget.id,
+          visit_date: scheduleDate,
+          visit_time: time,
+          notes: null,
         },
       });
-    }
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
 
-    if (scheduleTarget.submitted_by) {
-      // Fetch agent's phone so seller can contact them
-      const { data: agentRow } = await supabase
-        .from("agents").select("phone").eq("id", agentId).maybeSingle();
-      const agentPhone = (agentRow as any)?.phone ? ` Contact agent: ${(agentRow as any).phone}.` : "";
-      await supabase.from("notifications").insert({
-        user_id: scheduleTarget.submitted_by,
-        type: "visit_scheduled",
-        title: "Agent scheduled a visit to your property",
-        message: `${agentName} will visit "${scheduleTarget.title}" on ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}.${agentPhone}`,
-        link: `/property/${scheduleTarget.id}`,
-      });
+      // Also keep agent_tasks in sync for legacy widgets
+      const iso = visitAt.toISOString();
+      const taskPayload: any = {
+        status: "in_progress",
+        metadata: { scheduled_visit_at: iso, scheduled_at: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      };
+      if (scheduleTarget.task_id) {
+        await supabase.from("agent_tasks" as any).update(taskPayload).eq("id", scheduleTarget.task_id);
+      } else {
+        await supabase.from("agent_tasks" as any).insert({
+          agent_id: agentId,
+          agent_user_id: agentUserId,
+          property_id: scheduleTarget.id,
+          task_type: "property_assigned",
+          title: `Visit ${scheduleTarget.title}`,
+          status: "in_progress",
+          priority: "high",
+          metadata: { scheduled_visit_at: iso, scheduled_at: new Date().toISOString() },
+        });
+      }
+
+      toast.success("Visit scheduled — waiting for owner to confirm");
+      setScheduleTarget(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to schedule");
     }
-    toast.success("Visit scheduled", {
-      description: `Visit set for ${visitAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} • Within 48h SLA`,
-    });
-    setScheduleTarget(null);
-    load();
   };
+
+  const acceptReschedule = async (t: AssignedTask) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("agent-accept-reschedule", { body: { property_id: t.id } });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Visit confirmed at owner's preferred time");
+      load();
+    } catch (e: any) {
+      toast.error(e.message || "Failed");
+    }
+  };
+
 
   const markCompleted = async (t: AssignedTask) => {
     if (!confirm("Mark this visit as completed?")) return;
@@ -508,6 +514,40 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                   )}
 
 
+                  {/* Visit schedule snapshot */}
+                  {(p.lifecycle_status === "visit_scheduled" || p.lifecycle_status === "visit_confirmed" || p.lifecycle_status === "visit_reschedule_requested") && (
+                    <div className={`mt-3 p-2.5 rounded-lg border text-[11px] ${
+                      p.lifecycle_status === "visit_confirmed" ? "border-emerald-500/40 bg-emerald-500/10" :
+                      p.lifecycle_status === "visit_reschedule_requested" ? "border-amber-500/40 bg-amber-500/10" :
+                      "border-blue-500/40 bg-blue-500/10"
+                    }`}>
+                      <p className="font-semibold mb-1">
+                        {p.lifecycle_status === "visit_confirmed" ? "✅ Owner confirmed visit" :
+                         p.lifecycle_status === "visit_reschedule_requested" ? "⚠️ Owner requested a reschedule" :
+                         "⏳ Awaiting owner confirmation"}
+                      </p>
+                      <div>📅 {p.visit_scheduled_date} · 🕒 {p.visit_scheduled_time}</div>
+                      {p.lifecycle_status === "visit_reschedule_requested" && (
+                        <>
+                          <div className="mt-1">Reason: <em>{p.reschedule_reason}</em></div>
+                          {p.reschedule_preferred_date && (
+                            <div>Owner suggests: <strong>{p.reschedule_preferred_date}{p.reschedule_preferred_time ? " at " + p.reschedule_preferred_time : ""}</strong></div>
+                          )}
+                          <div className="mt-2 flex gap-1.5 flex-wrap">
+                            {p.reschedule_preferred_date && (
+                              <Button size="sm" className="h-7 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => acceptReschedule(p)}>
+                                Accept owner's time
+                              </Button>
+                            )}
+                            <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => openSchedule(p)}>
+                              Propose new schedule
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {/* Actions */}
                   {p.lifecycle_status === "agent_assigned" ? (
                     <div className="mt-3 p-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10">
@@ -531,10 +571,10 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                         variant="outline"
                         className="h-8 text-[11px]"
                         onClick={() => openSchedule(p)}
-                        disabled={isCompleted}
+                        disabled={isCompleted || p.lifecycle_status === "visit_confirmed"}
                       >
                         <CalendarPlus className="h-3 w-3 mr-1" />
-                        {p.scheduled_visit_at ? "Reschedule" : "Schedule"}
+                        {p.visit_scheduled_date ? "Reschedule" : "Schedule"}
                       </Button>
                       <Button
                         size="sm"
@@ -549,18 +589,29 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                         size="sm"
                         className="h-8 text-[11px] col-span-2 sm:col-span-3 bg-blue-600 hover:bg-blue-700 text-white"
                         onClick={() => void openFullVerificationForm(p)}
-                        disabled={p.verification_status === "agent_verified_pending" || fullTargetLoadingId === p.id}
-                        title="Open full sectioned form to verify, correct, and add fields"
+                        disabled={
+                          p.verification_status === "agent_verified_pending" ||
+                          fullTargetLoadingId === p.id ||
+                          !["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                        }
+                        title={
+                          ["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                            ? "Open full sectioned form to verify, correct, and add fields"
+                            : "Owner must confirm the visit schedule before you can start verification"
+                        }
                       >
                         <FileCheck2 className="h-3 w-3 mr-1" />
                         {fullTargetLoadingId === p.id
                           ? "Opening form..."
                           : p.verification_status === "agent_verified_pending"
                           ? "Submitted for Approval"
+                          : !["visit_confirmed", "under_verification"].includes(p.lifecycle_status || "")
+                          ? "Awaiting visit confirmation"
                           : "Edit Property & Submit Verification"}
                       </Button>
                     </div>
                   )}
+
 
                   <button
                     className="mt-2 text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
@@ -600,9 +651,9 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
               Set a date & time to visit "{scheduleTarget?.title}". The seller will be notified instantly.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-2">
+          <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2.5 text-[11px] text-blue-700 dark:text-blue-400 flex items-start gap-2">
             <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span><strong>SLA:</strong> Visit must occur within <strong>48 hours</strong> from now (by {new Date(Date.now() + 48 * 3600 * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}).</span>
+            <span>The owner must <strong>confirm</strong> this schedule before you can start verification.</span>
           </div>
           <div className="space-y-3">
             <div>
@@ -612,7 +663,6 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                 value={scheduleDate}
                 onChange={(e) => setScheduleDate(e.target.value)}
                 min={new Date().toISOString().slice(0, 10)}
-                max={new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 10)}
               />
             </div>
             <div>
