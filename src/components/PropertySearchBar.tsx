@@ -13,7 +13,7 @@ import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 interface PropertySearchBarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  compact?: boolean; // NEW: Add compact mode
+  compact?: boolean;
 }
 
 const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: PropertySearchBarProps) => {
@@ -158,8 +158,8 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
         <div
           className={`${
             compact
-              ? "bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-lg p-2"
-              : "bg-card/95 backdrop-blur-lg rounded-xl shadow-lg border border-border/50"
+              ? "bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-lg overflow-hidden"
+              : "bg-card/95 backdrop-blur-lg rounded-xl shadow-lg border border-border/50 overflow-hidden"
           }`}
         >
           {/* Tabs - HIDE in compact mode */}
@@ -187,7 +187,7 @@ const PropertySearchBar = ({ activeTab, onTabChange, compact = false }: Property
           )}
 
           {/* Form */}
-          <div className={`${compact ? "p-1" : "p-3"} space-y-2`}>
+          <div className={`${compact ? "p-2" : "p-3"} space-y-2`}>
             {/* Main search row */}
             <div className="flex gap-2 items-center">
               {/* Transaction tabs - Buy/Rent - HIDE in compact mode */}
