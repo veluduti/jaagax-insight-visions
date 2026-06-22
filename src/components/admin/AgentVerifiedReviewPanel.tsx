@@ -10,6 +10,18 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
+import { SECTIONS } from "@/components/agents/AgentEditPropertyDialog";
+
+const getPath = (obj: any, path?: string) =>
+  !path || obj == null ? undefined : path.split(".").reduce((a: any, k) => (a == null ? a : a[k]), obj);
+
+const fmtVal = (v: any): string => {
+  if (v == null || v === "") return "—";
+  if (Array.isArray(v)) return v.length ? v.join(", ") : "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  if (typeof v === "object") { try { return JSON.stringify(v); } catch { return "—"; } }
+  return String(v);
+};
 
 interface PendingProperty {
   id: string;
