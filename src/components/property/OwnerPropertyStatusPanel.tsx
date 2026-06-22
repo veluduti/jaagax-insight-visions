@@ -64,6 +64,7 @@ export function OwnerPropertyStatusPanel() {
   const [renewing, setRenewing] = useState<string | null>(null);
   const [auditFor, setAuditFor] = useState<Row | null>(null);
   const [acting, setActing] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Reschedule dialog
   const [rescheduleTarget, setRescheduleTarget] = useState<Row | null>(null);
