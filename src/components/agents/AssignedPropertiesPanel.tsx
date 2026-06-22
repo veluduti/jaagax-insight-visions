@@ -651,9 +651,9 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
               Set a date & time to visit "{scheduleTarget?.title}". The seller will be notified instantly.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-2">
+          <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2.5 text-[11px] text-blue-700 dark:text-blue-400 flex items-start gap-2">
             <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span><strong>SLA:</strong> Visit must occur within <strong>48 hours</strong> from now (by {new Date(Date.now() + 48 * 3600 * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}).</span>
+            <span>The owner must <strong>confirm</strong> this schedule before you can start verification.</span>
           </div>
           <div className="space-y-3">
             <div>
@@ -663,7 +663,6 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                 value={scheduleDate}
                 onChange={(e) => setScheduleDate(e.target.value)}
                 min={new Date().toISOString().slice(0, 10)}
-                max={new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 10)}
               />
             </div>
             <div>
