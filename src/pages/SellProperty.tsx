@@ -4426,30 +4426,146 @@ export default function SellProperty() {
                     <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
                       <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
                         <SheetHeader>
-                          <SheetTitle>Edit property details</SheetTitle>
+                          <SheetTitle>
+                            {isFinancial ? "Review your financial request" : "Edit property details"}
+                          </SheetTitle>
                           <SheetDescription>
-                            Update any field. Changes apply to your preview instantly.
+                            {isFinancial
+                              ? "Verify your details below. Edit any field before submitting."
+                              : "Update any field. Changes apply to your preview instantly."}
                           </SheetDescription>
                         </SheetHeader>
 
                         <div className="mt-6 space-y-6 pb-24">
-                          {/* Title */}
-                          <div className="space-y-2">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              Listing title
-                            </h4>
-                            <Input
-                              value={editForm.title}
-                              onChange={(e) => {
-                                setEditForm((p) => ({ ...p, title: e.target.value }));
-                                setSelectedTitleIdx(null);
-                              }}
-                              placeholder="e.g. Spacious 3 BHK Independent House in Kondapur"
-                            />
-                          </div>
+                          {/* Title — not for financial */}
+                          {!isFinancial && (
+                            <div className="space-y-2">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                Listing title
+                              </h4>
+                              <Input
+                                value={editForm.title}
+                                onChange={(e) => {
+                                  setEditForm((p) => ({ ...p, title: e.target.value }));
+                                  setSelectedTitleIdx(null);
+                                }}
+                                placeholder="e.g. Spacious 3 BHK Independent House in Kondapur"
+                              />
+                            </div>
+                          )}
 
-                          {/* Config-driven sections — writes to editForm (canonical) */}
-                          {visibleSections.map((section) => (
+                          {/* FINANCIAL: render only answered flow fields */}
+                          {isFinancial && (() => {
+                            const ff: any = (financialRequirementFlow as any).fields || {};
+                            const src: any = { ...state, ...editForm };
+                            const entries = Object.entries(ff).filter(([k]) => {
+                              const v = src[k];
+                              if (v === null || v === undefined || v === "") return false;
+                              if (Array.isArray(v) && v.length === 0) return false;
+                              if (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0) return false;
+                              return true;
+                            });
+                            if (entries.length === 0) {
+                              return (
+                                <p className="text-sm text-muted-foreground italic">
+                                  No answers captured yet — go back and chat with the AI.
+                                </p>
+                              );
+                            }
+                            return (
+                              <div className="space-y-3">
+                                {entries.map(([key, def]: [string, any]) => {
+                                  const v = (editForm as any)[key] ?? (state as any)[key];
+                                  const label = (def.question || key).replace(/:$/, "");
+                                  const isArr = Array.isArray(v);
+                                  const isObj = !isArr && v !== null && typeof v === "object";
+                                  const options: string[] = def.options || [];
+                                  const type = def.type;
+                                  const setVal = (nv: any) => setEditForm((p) => ({ ...p, [key]: nv }));
+                                  if (type === "single_select" && options.length > 0) {
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <select
+                                          value={String(v ?? "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                                        >
+                                          {options.map((o) => (
+                                            <option key={o} value={o}>{o}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    );
+                                  }
+                                  if (type === "multi_select" && options.length > 0) {
+                                    const arr: string[] = isArr ? v : v ? [v] : [];
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {options.map((o) => {
+                                            const on = arr.includes(o);
+                                            return (
+                                              <button
+                                                key={o}
+                                                type="button"
+                                                onClick={() =>
+                                                  setVal(on ? arr.filter((x) => x !== o) : [...arr, o])
+                                                }
+                                                className={cn(
+                                                  "px-2.5 py-1 rounded-full text-xs border transition",
+                                                  on
+                                                    ? "bg-primary text-primary-foreground border-primary"
+                                                    : "bg-background border-border hover:border-primary/40",
+                                                )}
+                                              >
+                                                {o}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  if (def.inputMode === "textarea") {
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <Textarea
+                                          value={String(v ?? "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                  // smart_location object — show editable summary fields
+                                  if (isObj) {
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <pre className="text-xs bg-muted/40 p-2 rounded-md whitespace-pre-wrap">
+                                          {JSON.stringify(v, null, 2)}
+                                        </pre>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={key}>
+                                      <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                      <Input
+                                        value={String(v ?? "")}
+                                        onChange={(e) => setVal(e.target.value)}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+
+                          {/* Config-driven sections — non-financial only */}
+                          {!isFinancial && visibleSections.map((section) => (
                             <div key={section.id} className="space-y-3">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 {section.title}
