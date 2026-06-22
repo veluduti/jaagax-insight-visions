@@ -505,14 +505,21 @@ export default function AgentEditPropertyDialog({
       baseUpdate.agent_notes = agentNotes.trim();
     }
 
-    const { error } = await supabase
+    const { data: updatedProperty, error } = await supabase
       .from("properties")
       .update(baseUpdate as any)
-      .eq("id", property.id);
+      .eq("id", property.id)
+      .select("id, verification_status, agent_submitted_at")
+      .maybeSingle();
 
     if (error) {
       setSubmitting(false);
       toast.error(error.message);
+      return;
+    }
+    if (!updatedProperty) {
+      setSubmitting(false);
+      toast.error("Could not submit this property. Please refresh and try again.");
       return;
     }
 
