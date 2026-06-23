@@ -3595,13 +3595,16 @@ export default function SellProperty() {
                 <DocumentUploadWidget
                   docTypes={value as string[]}
                   onSubmit={async (uploaded) => {
-                    const payload = {
-                      types: value as string[],
-                      files: uploaded,
-                    };
-                    setEditForm((f: any) => ({ ...f, upload_documents: payload, documents: uploaded }));
+                    const types = value as string[];
+                    setEditForm((f: any) => ({
+                      ...f,
+                      upload_documents: types,
+                      documents: uploaded,
+                    }));
+                    // Commit the original multi-select array so engine validation passes;
+                    // file URLs are kept alongside in editForm + state.
                     await commitAnswer(
-                      payload,
+                      types,
                       `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
                     );
                   }}
