@@ -295,28 +295,170 @@ function Step1({ data, update }: any) {
 }
 
 function Step2({ data, update }: any) {
+  const [mapOpen, setMapOpen] = useState(false);
+  const [tempLat, setTempLat] = useState<number | null>(data.latitude);
+  const [tempLng, setTempLng] = useState<number | null>(data.longitude);
+
+  const cityCenters: Record<string, { lat: number; lng: number }> = {
+    Hyderabad: { lat: 17.385, lng: 78.4867 },
+    Bangalore: { lat: 12.9716, lng: 77.5946 },
+    Mumbai: { lat: 19.076, lng: 72.8777 },
+    Pune: { lat: 18.5204, lng: 73.8567 },
+    Chennai: { lat: 13.0827, lng: 80.2707 },
+    Delhi: { lat: 28.6139, lng: 77.209 },
+    Gurgaon: { lat: 28.4595, lng: 77.0266 },
+    Noida: { lat: 28.5355, lng: 77.391 },
+    Kolkata: { lat: 22.5726, lng: 88.3639 },
+    Ahmedabad: { lat: 23.0225, lng: 72.5714 },
+  };
+
+  // Reverse-geocode a lat/lng → autofill city / locality / pincode / address
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const google = await loadGoogleMaps();
+      const geocoder = new google.maps.Geocoder();
+      const { results }: any = await geocoder.geocode({ location: { lat, lng } });
+      if (!results?.length) return;
+      const best = results[0];
+      const comps: any[] = best.address_components || [];
+      const get = (t: string) =>
+        comps.find((c) => c.types.includes(t))?.long_name || "";
+      const city =
+        get("locality") ||
+        get("administrative_area_level_2") ||
+        get("administrative_area_level_3");
+      const locality =
+        get("sublocality_level_1") ||
+        get("sublocality") ||
+        get("neighborhood") ||
+        get("locality");
+      const pincode = get("postal_code");
+
+      if (city && CITIES.includes(city)) update("city", city);
+      if (locality) update("locality", locality);
+      if (pincode) update("pincode", pincode);
+      if (!data.address?.trim() && best.formatted_address) update("address", best.formatted_address);
+    } catch (err) {
+      console.warn("[HotelOnboarding] reverse geocode failed", err);
+    }
+  };
+
+  const confirmMapPin = async () => {
+    if (tempLat === null || tempLng === null) {
+      toast.error("Drop a pin on the map first");
+      return;
+    }
+    update("latitude", tempLat);
+    update("longitude", tempLng);
+    await reverseGeocode(tempLat, tempLng);
+    setMapOpen(false);
+    toast.success("Location pinned");
+  };
+
+  const cityKey = data.city as string;
+  const mapCenter = cityCenters[cityKey] || { lat: 20.5937, lng: 78.9629 };
+
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-semibold">Where are you located?</h2>
       <div className="grid md:grid-cols-2 gap-4">
         <Field label="City *">
-          <Select value={data.city} onValueChange={(v) => update("city", v)}>
+          <Select
+            value={data.city}
+            onValueChange={(v) => {
+              update("city", v);
+              // Clear downstream when city changes
+              update("locality", "");
+              update("pincode", "");
+              update("latitude", null);
+              update("longitude", null);
+            }}
+          >
             <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
             <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
-        <Field label="Locality / Area *"><Input value={data.locality} onChange={(e) => update("locality", e.target.value)} placeholder="e.g. Gachibowli" /></Field>
+
+        <Field label="Locality / Area *" hint={data.city ? `Suggestions inside ${data.city}` : "Pick a city first"}>
+          <InlineLocationSearch
+            key={data.city || "no-city"}
+            variant="box"
+            placeholder={data.city ? `Search locality in ${data.city}` : "Select a city first"}
+            initialValue={data.locality}
+            persistSavedLocation={false}
+            onTextChange={(t) => update("locality", t)}
+            onSelected={(loc) => {
+              update("locality", loc.locality || loc.city || "");
+              if (loc.postalCode) update("pincode", loc.postalCode);
+              if (loc.latitude && loc.longitude) {
+                update("latitude", loc.latitude);
+                update("longitude", loc.longitude);
+                setTempLat(loc.latitude);
+                setTempLng(loc.longitude);
+              }
+              if (!data.address?.trim() && loc.formattedAddress) update("address", loc.formattedAddress);
+            }}
+          />
+        </Field>
+
         <div className="md:col-span-2">
-          <Field label="Full Address *"><Textarea value={data.address} onChange={(e) => update("address", e.target.value)} placeholder="Street, building, landmark" rows={2} /></Field>
+          <Field label="Full Address *">
+            <Textarea value={data.address} onChange={(e) => update("address", e.target.value)} placeholder="Street, building, landmark" rows={2} />
+          </Field>
         </div>
-        <Field label="Pincode *"><Input value={data.pincode} onChange={(e) => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="500032" /></Field>
-        <Field label="Coordinates (optional)" hint="Auto-filled when you save the address">
-          <div className="flex gap-2">
-            <Input placeholder="Latitude" type="number" value={data.latitude ?? ""} onChange={(e) => update("latitude", e.target.value ? parseFloat(e.target.value) : null)} />
-            <Input placeholder="Longitude" type="number" value={data.longitude ?? ""} onChange={(e) => update("longitude", e.target.value ? parseFloat(e.target.value) : null)} />
-          </div>
+
+        <Field label="Pincode *" hint="Auto-filled from locality / map">
+          <Input value={data.pincode} onChange={(e) => update("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="500032" />
+        </Field>
+
+        <Field label="Pin exact location on map *" hint="Drop a pin to auto-fill coordinates">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={() => {
+              setTempLat(data.latitude);
+              setTempLng(data.longitude);
+              setMapOpen(true);
+            }}
+          >
+            <MapPin className="h-4 w-4 text-primary" />
+            {data.latitude && data.longitude
+              ? `Pinned: ${Number(data.latitude).toFixed(5)}, ${Number(data.longitude).toFixed(5)}`
+              : "Select location from map"}
+          </Button>
         </Field>
       </div>
+
+      <Dialog open={mapOpen} onOpenChange={setMapOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" /> Pin your hotel location
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Click anywhere on the map to drop a pin, then drag to fine-tune. We'll auto-fill the locality and pincode.
+          </p>
+          <GoogleMapPicker
+            lat={tempLat}
+            lng={tempLng}
+            defaultCenter={mapCenter}
+            height="420px"
+            label=""
+            onChange={(lat, lng) => {
+              setTempLat(lat);
+              setTempLng(lng);
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMapOpen(false)}>Cancel</Button>
+            <Button onClick={confirmMapPin} disabled={tempLat === null || tempLng === null}>
+              OK, use this location
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
