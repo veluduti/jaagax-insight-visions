@@ -24,6 +24,7 @@ import Navigation from "@/components/Navigation";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import GoogleMapPicker from "@/components/location/GoogleMapPicker";
 import { loadGoogleMaps } from "@/lib/googleMaps";
+import { INDIAN_CITIES } from "@/data/indianCities";
 
 const STEPS = [
   { id: 1, label: "Basics", icon: Hotel },
