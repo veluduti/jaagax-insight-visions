@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Hotel, MapPin, BedDouble, Sparkles, Image as ImageIcon, FileCheck,
   Check, ChevronLeft, ChevronRight, Loader2, Upload, X, ShieldCheck,
+  Plus, Trash2, Pencil, ChevronDown, ChevronUp, Clock,
 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
