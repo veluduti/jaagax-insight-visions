@@ -383,10 +383,10 @@ function Step2({ data, update }: any) {
         get("locality");
       const pincode = get("postal_code");
 
-      if (city && CITIES.includes(city)) update("city", city);
+      if (city) update("city", city);
       if (locality) update("locality", locality);
       if (pincode) update("pincode", pincode);
-      if (!data.address?.trim() && best.formatted_address) update("address", best.formatted_address);
+      if (best.formatted_address) update("address", best.formatted_address);
     } catch (err) {
       console.warn("[HotelOnboarding] reverse geocode failed", err);
     }
