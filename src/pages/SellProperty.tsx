@@ -3996,26 +3996,25 @@ export default function SellProperty() {
                   {
                     key: "maintenance",
                     label: "Maintenance",
-                    value: has(editForm.maintenance_charges) ? `₹ ${fmtINR(Number(editForm.maintenance_charges))}` : "",
+                    value: has(pick("maintenance_charges")) ? `₹ ${fmtINR(Number(pick("maintenance_charges")))}` : "",
                   },
                   {
                     key: "security_deposit",
                     label: "Security Deposit",
-                    value: has(editForm.security_deposit) ? `₹ ${fmtINR(Number(editForm.security_deposit))}` : "",
+                    value: has(pick("security_deposit")) ? `₹ ${fmtINR(Number(pick("security_deposit")))}` : "",
                   },
-                  { key: "project_name_placeholder", label: "", value: "" },
-                  { key: "project_name", label: "Project", value: asStr(editForm.project_name) },
+                  { key: "project_name", label: "Project", value: asStr(pick("project_name")) },
                 ].filter((r) => has(r.value));
 
                 const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
                 const allHighlights = Array.from(
                   new Set(
                     [
-                      ...arrFlat(editForm.property_highlights),
-                      ...arrFlat(editForm.amenities),
-                      ...arrFlat(editForm.payment_options),
-                      ...arrFlat(editForm.approvals),
-                      ...arrFlat(editForm.furnishing_items),
+                      ...arrFlat(editForm.property_highlights || state.property_highlights),
+                      ...arrFlat(editForm.amenities || state.amenities),
+                      ...arrFlat(editForm.payment_options || state.payment_options),
+                      ...arrFlat(editForm.approvals || state.approvals),
+                      ...arrFlat(editForm.furnishing_items || state.furnishing_items),
                     ].filter(Boolean),
                   ),
                 );
