@@ -23,7 +23,8 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import GoogleMapPicker from "@/components/location/GoogleMapPicker";
-import { loadGoogleMaps } from "@/lib/googleMaps";
+import { loadGoogleMaps, createSessionToken, fetchAutocompleteSuggestions, fetchPlaceDetails } from "@/lib/googleMaps";
+import { Search } from "lucide-react";
 import { INDIAN_CITIES } from "@/data/indianCities";
 
 const STEPS = [
@@ -486,13 +487,19 @@ function Step2({ data, update }: any) {
             </DialogTitle>
           </DialogHeader>
           <p className="text-xs text-muted-foreground">
-            Click anywhere on the map to drop a pin, then drag to fine-tune. We'll auto-fill the locality and pincode.
+            Search a city/locality or click on the map to drop a pin, then drag to fine-tune. We'll auto-fill address, city, locality and pincode.
           </p>
+          <MapSearchBox
+            onPick={(loc) => {
+              setTempLat(loc.latitude);
+              setTempLng(loc.longitude);
+            }}
+          />
           <GoogleMapPicker
             lat={tempLat}
             lng={tempLng}
             defaultCenter={mapCenter}
-            height="420px"
+            height="380px"
             label=""
             onChange={(lat, lng) => {
               setTempLat(lat);
@@ -932,4 +939,88 @@ function CityTypeahead({ value, onChange, onSelect }: { value: string; onChange:
     </div>
   );
 }
+
+function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude: number }) => void }) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [results, setResults] = useState<Array<{ placeId: string; mainText: string; secondaryText: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [sessionToken, setSessionToken] = useState<any>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await loadGoogleMaps();
+        setSessionToken(createSessionToken());
+      } catch (e) {
+        console.warn("[MapSearchBox] gmaps load failed", e);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!query || query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const suggestions = await fetchAutocompleteSuggestions(query, sessionToken, { country: "in" });
+        setResults(suggestions);
+        setOpen(true);
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [query, sessionToken]);
+
+  const pick = async (placeId: string, label: string) => {
+    try {
+      const details = await fetchPlaceDetails(placeId, sessionToken);
+      setQuery(label);
+      setOpen(false);
+      setSessionToken(createSessionToken());
+      if (details.latitude && details.longitude) {
+        onPick({ latitude: details.latitude, longitude: details.longitude });
+      }
+    } catch (e) {
+      console.warn("[MapSearchBox] details failed", e);
+      toast.error("Could not fetch location details");
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => results.length && setOpen(true)}
+          placeholder="Search city, locality or landmark…"
+          className="pl-9"
+        />
+      </div>
+      {open && (results.length > 0 || loading) && (
+        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border bg-popover shadow-md">
+          {loading && <div className="p-2 text-xs text-muted-foreground">Searching…</div>}
+          {results.map((r) => (
+            <button
+              key={r.placeId}
+              type="button"
+              onClick={() => pick(r.placeId, r.mainText + (r.secondaryText ? `, ${r.secondaryText}` : ""))}
+              className="w-full text-left px-3 py-2 hover:bg-accent text-sm border-b last:border-b-0"
+            >
+              <div className="font-medium">{r.mainText}</div>
+              {r.secondaryText && <div className="text-xs text-muted-foreground">{r.secondaryText}</div>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
