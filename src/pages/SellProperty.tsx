@@ -2957,11 +2957,10 @@ export default function SellProperty() {
 
         const locationStr = [src.locality, src.city, src.state_name].filter(Boolean).join(", ") || null;
 
-        const docPayload = src.upload_documents;
-        const documents = Array.isArray(docPayload?.files)
-          ? docPayload.files
-          : Array.isArray(src.documents)
-            ? src.documents
+        const documents = Array.isArray(src.documents)
+          ? src.documents
+          : Array.isArray(src.upload_documents?.files)
+            ? src.upload_documents.files
             : [];
 
         const { error } = await (supabase.from as any)("financial_leads").insert({
