@@ -35,17 +35,42 @@ const STEPS = [
 ];
 
 const BUSINESS_TYPES = ["Hotel", "Resort", "Homestay", "Service Apartment"];
-const ROOM_TYPES = ["Standard", "Deluxe", "Suite", "Family", "Executive"];
+const ROOM_TYPE_OPTIONS = [
+  "Standard Room", "Deluxe Room", "Premium Deluxe Room", "Executive Room",
+  "Family Room", "Junior Suite", "Suite Room", "Presidential Suite",
+  "Dormitory", "Villa", "Cottage", "Tent", "Other",
+];
+const ROOM_AMENITIES = [
+  "Air Conditioner", "WiFi", "TV", "Balcony", "Mini Fridge", "Bathtub",
+  "Room Service", "Coffee Maker", "Work Desk", "Wardrobe", "Sea View",
+  "Mountain View", "Pool View", "Kitchenette",
+];
 const AMENITIES = [
   "Free WiFi", "Parking", "Air Conditioning", "Restaurant",
   "Room Service", "Swimming Pool", "Gym", "24x7 Reception", "Breakfast Included",
 ];
 const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Pune", "Chennai", "Delhi", "Gurgaon", "Noida", "Kolkata", "Ahmedabad"];
 
+export type RoomCategory = {
+  id: string;
+  room_type: string;
+  custom_room_name?: string;
+  room_count: number;
+  room_size_sqft?: number | null;
+  max_occupancy: number;
+  base_price: number;
+  weekend_price?: number | null;
+  extra_bed_available: boolean;
+  children_allowed: boolean;
+  amenities: string[];
+};
+
 type FormState = {
   hotel_name: string; owner_name: string; email: string; phone: string; business_type: string;
   city: string; locality: string; address: string; pincode: string; latitude: number | null; longitude: number | null;
-  total_rooms: number; room_types: string[]; price_min: number; price_max: number; check_in_time: string; check_out_time: string;
+  room_categories: RoomCategory[];
+  total_rooms: number; room_types: string[]; price_min: number; price_max: number;
+  check_in_time: string; check_out_time: string; check_in_24h: boolean; front_desk_24h: boolean;
   amenities: string[];
   photos: string[];
   business_registration_url: string; id_proof_url: string; gst_certificate_url: string;
@@ -54,7 +79,9 @@ type FormState = {
 const initial: FormState = {
   hotel_name: "", owner_name: "", email: "", phone: "", business_type: "Hotel",
   city: "", locality: "", address: "", pincode: "", latitude: null, longitude: null,
-  total_rooms: 10, room_types: [], price_min: 1500, price_max: 5000, check_in_time: "14:00", check_out_time: "12:00",
+  room_categories: [],
+  total_rooms: 0, room_types: [], price_min: 0, price_max: 0,
+  check_in_time: "14:00", check_out_time: "12:00", check_in_24h: false, front_desk_24h: false,
   amenities: [],
   photos: [],
   business_registration_url: "", id_proof_url: "", gst_certificate_url: "",
