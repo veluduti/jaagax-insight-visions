@@ -49,7 +49,8 @@ const AMENITIES = [
   "Free WiFi", "Parking", "Air Conditioning", "Restaurant",
   "Room Service", "Swimming Pool", "Gym", "24x7 Reception", "Breakfast Included",
 ];
-const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Pune", "Chennai", "Delhi", "Gurgaon", "Noida", "Kolkata", "Ahmedabad"];
+import { INDIAN_CITIES } from "@/data/indianCities";
+const CITIES = INDIAN_CITIES;
 
 export type RoomCategory = {
   id: string;
