@@ -3851,136 +3851,170 @@ export default function SellProperty() {
                   if (n >= 1e5) return `₹ ${(n / 1e5).toFixed(n % 1e5 === 0 ? 0 : 2)} Lakh`;
                   return `₹ ${fmtINR(n)}`;
                 };
-                const areaN = Number(editForm.area) || 0;
+                /* Resolve a canonical value by checking editForm first, then state,
+                 * across all known aliases. Fixes the review screen showing blanks
+                 * when the AI stored an answer under an alias key (e.g. bhk_type,
+                 * residential_type, built_up_area, flat_size). */
+                const PREVIEW_ALIASES: Record<string, string[]> = {
+                  property_type: ["property_type", "residential_type", "sub_type", "type"],
+                  listing_type: ["listing_type", "purpose"],
+                  bhk: ["bhk", "bhk_type", "configuration"],
+                  bedrooms: ["bedrooms", "bedroom_count"],
+                  bathrooms: ["bathrooms", "bathroom_count"],
+                  balconies: ["balconies", "balcony_count"],
+                  floor_number: ["floor_number", "floor"],
+                  total_floors: ["total_floors", "floors"],
+                  built_up_area: ["built_up_area", "built_area", "builtup_area", "building_area_sqft", "flat_size"],
+                  carpet_area: ["carpet_area"],
+                  area: ["area", "area_sqft", "total_area", "flat_size", "built_up_area", "built_area", "plot_area", "land_size"],
+                  plot_area: ["plot_area", "land_size", "land_area"],
+                  facing: ["facing", "facing_direction"],
+                  furnishing: ["furnishing", "furnishing_status"],
+                  property_age: ["property_age", "age"],
+                  property_condition: ["property_condition", "condition"],
+                  availability_status: ["availability_status", "possession_status"],
+                  possession_date: ["possession_date"],
+                  available_from: ["available_from_date", "available_from"],
+                  parking: ["parking", "parking_type"],
+                  ownership: ["ownership", "ownership_type"],
+                  project_name: ["project_name", "society_name", "building_name"],
+                  total_price: ["total_price", "price", "expected_price"],
+                  monthly_rent: ["monthly_rent", "rent"],
+                  maintenance_charges: ["maintenance_charges", "maintenance"],
+                  security_deposit: ["security_deposit", "deposit"],
+                  gated_community: ["gated_community"],
+                  area_unit: ["area_unit"],
+                };
+                const pick = (id: string): any => {
+                  const keys = PREVIEW_ALIASES[id] || [id];
+                  for (const k of keys) {
+                    const v = (editForm as any)[k] ?? (state as any)[k];
+                    if (v === null || v === undefined || v === "") continue;
+                    if (Array.isArray(v) && v.length === 0) continue;
+                    return v;
+                  }
+                  return undefined;
+                };
+
+                const areaN = Number(pick("area")) || 0;
                 const totalPrice =
-                  Number(
-                    String(editForm.total_price ?? "")
-                      .toString()
-                      .replace(/[^\d.]/g, ""),
-                  ) ||
-                  Number(
-                    String(editForm.monthly_rent ?? "")
-                      .toString()
-                      .replace(/[^\d.]/g, ""),
-                  ) ||
+                  Number(String(pick("total_price") ?? "").replace(/[^\d.]/g, "")) ||
+                  Number(String(pick("monthly_rent") ?? "").replace(/[^\d.]/g, "")) ||
                   0;
 
+                const propTypeRaw = pick("property_type");
                 const sub =
-                  (Array.isArray(editForm.property_type) ? editForm.property_type[0] : editForm.property_type) ||
-                  "Property";
-                const purpose = (editForm.listing_type || "sale").toString().toLowerCase();
-                const locLine = [editForm.locality, editForm.city].filter(Boolean).join(", ");
+                  (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
+                const purpose = (pick("listing_type") || "sale").toString().toLowerCase();
+                const locLine = [editForm.locality || state.locality, editForm.city || state.city]
+                  .filter(Boolean)
+                  .join(", ");
                 const cap = (v: any) =>
                   typeof v === "string" && v.length ? v.charAt(0).toUpperCase() + v.slice(1) : v;
                 const asStr = (v: any) =>
                   Array.isArray(v) ? v.filter(Boolean).join(", ") : v == null ? "" : String(v);
 
                 // BHK normalize ("3 BHK" or "3")
-                const bhkRaw = editForm.bhk || "";
-                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? bhkRaw : `${bhkRaw} BHK`) : "";
-                const bathRaw = editForm.bathrooms ?? "";
-                const facingRaw = editForm.facing || "";
-                const furnishing = editForm.furnishing || "";
+                const bhkRaw = pick("bhk") || pick("bedrooms") || "";
+                const bhkLabel = bhkRaw ? (String(bhkRaw).match(/bhk/i) ? String(bhkRaw) : `${bhkRaw} BHK`) : "";
+                const bathRaw = pick("bathrooms") ?? "";
+                const facingRaw = pick("facing") || "";
+                const furnishing = pick("furnishing") || "";
+                const floorNum = pick("floor_number");
+                const totalFloorsVal = pick("total_floors");
                 const floorLine =
-                  editForm.floor_number != null && editForm.floor_number !== ""
-                    ? `${editForm.floor_number}${editForm.total_floors ? ` of ${editForm.total_floors}` : ""}`
+                  floorNum != null && floorNum !== ""
+                    ? `${floorNum}${totalFloorsVal ? ` of ${totalFloorsVal}` : ""}`
                     : "";
 
                 /* Canonical detail map — render in this order, skip empty */
                 const has = (v: any) =>
                   v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
-                const unit = editForm.area_unit || "sq ft";
+                const unit = pick("area_unit") || "sq ft";
 
+                const builtUp = pick("built_up_area");
+                const carpet = pick("carpet_area");
+                const plot = pick("plot_area");
+                const gated = pick("gated_community");
                 const detailRows: Array<{ key: string; label: string; value: string }> = [
-                  { key: "property_type", label: "Property Type", value: asStr(sub) },
+                  { key: "property_type", label: "Property Type", value: has(propTypeRaw) ? asStr(propTypeRaw) : "" },
                   { key: "listing_type", label: "Listing For", value: cap(purpose) },
                   { key: "bhk", label: "Configuration", value: bhkLabel },
                   { key: "bathrooms", label: "Bathrooms", value: asStr(bathRaw) },
-                  { key: "balconies", label: "Balconies", value: asStr(editForm.balconies) },
+                  { key: "balconies", label: "Balconies", value: asStr(pick("balconies")) },
                   { key: "floor", label: "Floor", value: floorLine },
-                  { key: "total_floors", label: "Total Floors", value: asStr(editForm.total_floors) },
+                  { key: "total_floors", label: "Total Floors", value: asStr(totalFloorsVal) },
                   {
                     key: "area",
                     label: "Built-up Area",
-                    value:
-                      has(editForm.built_up_area) || has(editForm.built_area) || has(editForm.area)
-                        ? `${editForm.built_up_area || editForm.built_area || editForm.area} ${unit}`
-                        : "",
+                    value: has(builtUp) ? `${builtUp} ${unit}` : has(pick("area")) ? `${pick("area")} ${unit}` : "",
                   },
                   {
                     key: "carpet",
                     label: "Carpet Area",
-                    value: has(editForm.carpet_area) ? `${editForm.carpet_area} ${unit}` : "",
+                    value: has(carpet) ? `${carpet} ${unit}` : "",
                   },
                   {
                     key: "plot",
                     label: "Plot / Land Area",
-                    value:
-                      has(editForm.land_size) || has(editForm.plot_area)
-                        ? `${editForm.land_size || editForm.plot_area} ${unit}`
-                        : "",
+                    value: has(plot) ? `${plot} ${unit}` : "",
                   },
                   { key: "furnishing", label: "Furnishing", value: cap(asStr(furnishing)) },
                   { key: "facing", label: "Facing", value: cap(asStr(facingRaw)) },
-                  { key: "property_age", label: "Property Age", value: asStr(editForm.property_age) },
+                  { key: "property_age", label: "Property Age", value: asStr(pick("property_age")) },
                   {
                     key: "property_condition",
                     label: "Condition",
-                    value: cap(asStr(editForm.property_condition)),
+                    value: cap(asStr(pick("property_condition"))),
                   },
                   {
                     key: "availability_status",
                     label: "Availability",
-                    value: cap(asStr(editForm.availability_status || editForm.possession_status)),
+                    value: cap(asStr(pick("availability_status"))),
                   },
                   {
                     key: "possession_date",
                     label: "Possession",
-                    value: asStr(editForm.possession_date),
+                    value: asStr(pick("possession_date")),
                   },
                   {
                     key: "available_from",
                     label: "Available From",
-                    value: asStr(editForm.available_from_date || editForm.available_from),
+                    value: asStr(pick("available_from")),
                   },
-                  { key: "parking", label: "Parking", value: asStr(editForm.parking) },
+                  { key: "parking", label: "Parking", value: asStr(pick("parking")) },
                   {
                     key: "gated_community",
                     label: "Gated Community",
-                    value: has(editForm.gated_community)
-                      ? /^y/i.test(String(editForm.gated_community))
-                        ? "Yes"
-                        : "No"
-                      : "",
+                    value: has(gated) ? (/^y|true/i.test(String(gated)) ? "Yes" : "No") : "",
                   },
                   {
                     key: "ownership",
                     label: "Ownership",
-                    value: cap(asStr(editForm.ownership)),
+                    value: cap(asStr(pick("ownership"))),
                   },
                   {
                     key: "maintenance",
                     label: "Maintenance",
-                    value: has(editForm.maintenance_charges) ? `₹ ${fmtINR(Number(editForm.maintenance_charges))}` : "",
+                    value: has(pick("maintenance_charges")) ? `₹ ${fmtINR(Number(pick("maintenance_charges")))}` : "",
                   },
                   {
                     key: "security_deposit",
                     label: "Security Deposit",
-                    value: has(editForm.security_deposit) ? `₹ ${fmtINR(Number(editForm.security_deposit))}` : "",
+                    value: has(pick("security_deposit")) ? `₹ ${fmtINR(Number(pick("security_deposit")))}` : "",
                   },
-                  { key: "project_name_placeholder", label: "", value: "" },
-                  { key: "project_name", label: "Project", value: asStr(editForm.project_name) },
+                  { key: "project_name", label: "Project", value: asStr(pick("project_name")) },
                 ].filter((r) => has(r.value));
 
                 const arrFlat = (v: any) => (Array.isArray(v) ? v : v ? [v] : []);
                 const allHighlights = Array.from(
                   new Set(
                     [
-                      ...arrFlat(editForm.property_highlights),
-                      ...arrFlat(editForm.amenities),
-                      ...arrFlat(editForm.payment_options),
-                      ...arrFlat(editForm.approvals),
-                      ...arrFlat(editForm.furnishing_items),
+                      ...arrFlat(editForm.property_highlights || state.property_highlights),
+                      ...arrFlat(editForm.amenities || state.amenities),
+                      ...arrFlat(editForm.payment_options || state.payment_options),
+                      ...arrFlat(editForm.approvals || state.approvals),
+                      ...arrFlat(editForm.furnishing_items || state.furnishing_items),
                     ].filter(Boolean),
                   ),
                 );
