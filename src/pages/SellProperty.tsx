@@ -2957,6 +2957,13 @@ export default function SellProperty() {
 
         const locationStr = [src.locality, src.city, src.state_name].filter(Boolean).join(", ") || null;
 
+        const docPayload = src.upload_documents;
+        const documents = Array.isArray(docPayload?.files)
+          ? docPayload.files
+          : Array.isArray(src.documents)
+            ? src.documents
+            : [];
+
         const { error } = await (supabase.from as any)("financial_leads").insert({
           lead_type: "buyer",
           customer_name: customerName,
@@ -2969,6 +2976,8 @@ export default function SellProperty() {
           source_user_id: user.id,
           price: 0,
           is_purchased: false,
+          documents,
+          full_details: src,
         });
         if (error) throw error;
 
