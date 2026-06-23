@@ -512,27 +512,261 @@ function Step2({ data, update }: any) {
   );
 }
 
-function Step3({ data, update, toggle }: any) {
+function Step3({ data, update }: any) {
+  const cats: RoomCategory[] = data.room_categories || [];
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [draft, setDraft] = useState<RoomCategory | null>(null);
+
+  const newDraft = (): RoomCategory => ({
+    id: (crypto as any)?.randomUUID?.() || `rc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    room_type: "",
+    custom_room_name: "",
+    room_count: 1,
+    room_size_sqft: null,
+    max_occupancy: 2,
+    base_price: 0,
+    weekend_price: null,
+    extra_bed_available: false,
+    children_allowed: true,
+    amenities: [],
+  });
+
+  const startAdd = () => { setDraft(newDraft()); setEditingId("__new__"); };
+  const startEdit = (rc: RoomCategory) => { setDraft({ ...rc }); setEditingId(rc.id); };
+  const cancelEdit = () => { setDraft(null); setEditingId(null); };
+
+  const saveDraft = () => {
+    if (!draft) return;
+    if (!draft.room_type) return toast.error("Pick a room type");
+    if (draft.room_type === "Other" && !draft.custom_room_name?.trim()) return toast.error("Enter custom room name");
+    if (!draft.room_count || draft.room_count <= 0) return toast.error("Number of rooms must be > 0");
+    if (!draft.max_occupancy || draft.max_occupancy <= 0) return toast.error("Max occupancy must be > 0");
+    if (!draft.base_price || draft.base_price <= 0) return toast.error("Base price must be > 0");
+    const exists = cats.some((c) => c.id === draft.id);
+    const updated = exists ? cats.map((c) => (c.id === draft.id ? draft : c)) : [...cats, draft];
+    update("room_categories", updated);
+    cancelEdit();
+  };
+
+  const removeCat = (id: string) => {
+    update("room_categories", cats.filter((c) => c.id !== id));
+  };
+
+  const total_rooms = cats.reduce((s, c) => s + (Number(c.room_count) || 0), 0);
+  const prices = cats.map((c) => Number(c.base_price)).filter((p) => p > 0);
+  const starting = prices.length ? Math.min(...prices) : 0;
+  const highest = prices.length ? Math.max(...prices) : 0;
+
+  const toggleAmenity = (a: string) => {
+    if (!draft) return;
+    setDraft({ ...draft, amenities: draft.amenities.includes(a) ? draft.amenities.filter((x) => x !== a) : [...draft.amenities, a] });
+  };
+
   return (
-    <div className="space-y-5">
-      <h2 className="text-xl font-semibold">Rooms & pricing</h2>
-      <div className="grid md:grid-cols-2 gap-4">
-        <Field label="Total Rooms *"><Input type="number" min={1} value={data.total_rooms} onChange={(e) => update("total_rooms", parseInt(e.target.value) || 0)} /></Field>
-        <div>
-          <Label className="text-sm mb-2 block">Room Types Available *</Label>
-          <div className="flex flex-wrap gap-2">
-            {ROOM_TYPES.map((rt) => (
-              <Badge key={rt} variant={data.room_types.includes(rt) ? "default" : "outline"}
-                className={`cursor-pointer ${data.room_types.includes(rt) ? "bg-emerald-500 hover:bg-emerald-600" : "hover:bg-muted"}`}
-                onClick={() => toggle(rt)}>{rt}</Badge>
-            ))}
-          </div>
-        </div>
-        <Field label="Min Price / Night (₹) *"><Input type="number" value={data.price_min} onChange={(e) => update("price_min", parseFloat(e.target.value) || 0)} /></Field>
-        <Field label="Max Price / Night (₹) *"><Input type="number" value={data.price_max} onChange={(e) => update("price_max", parseFloat(e.target.value) || 0)} /></Field>
-        <Field label="Check-in Time"><Input type="time" value={data.check_in_time} onChange={(e) => update("check_in_time", e.target.value)} /></Field>
-        <Field label="Check-out Time"><Input type="time" value={data.check_out_time} onChange={(e) => update("check_out_time", e.target.value)} /></Field>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold">Room inventory & pricing</h2>
+        <p className="text-sm text-muted-foreground mt-1">Add every room category your property offers. Totals & pricing summary update automatically.</p>
       </div>
+
+      {/* Auto Summary */}
+      <Card className="border-emerald-500/30 bg-emerald-500/5">
+        <CardContent className="p-4 md:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">Property summary</p>
+            <Badge variant="outline" className="border-emerald-500/40 text-emerald-300">Auto-calculated</Badge>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <SummaryStat label="Room categories" value={cats.length.toString()} />
+            <SummaryStat label="Total rooms" value={total_rooms.toString()} />
+            <SummaryStat label="Starting price" value={starting ? `₹${starting.toLocaleString()}` : "—"} />
+            <SummaryStat label="Highest price" value={highest ? `₹${highest.toLocaleString()}` : "—"} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories list */}
+      <div className="space-y-3">
+        <AnimatePresence initial={false}>
+          {cats.map((rc) => {
+            const isOpen = expanded[rc.id] ?? false;
+            const name = rc.room_type === "Other" ? (rc.custom_room_name || "Custom Room") : rc.room_type;
+            return (
+              <motion.div key={rc.id} layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                <Card className="border-border/60">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <button type="button" className="flex-1 text-left" onClick={() => setExpanded((e) => ({ ...e, [rc.id]: !isOpen }))}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-base">{name}</h3>
+                          <Badge variant="secondary" className="text-xs">{rc.room_count} rooms</Badge>
+                          <Badge variant="secondary" className="text-xs">₹{Number(rc.base_price).toLocaleString()}/night</Badge>
+                          <Badge variant="secondary" className="text-xs">{rc.max_occupancy} guests</Badge>
+                        </div>
+                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button type="button" size="icon" variant="ghost" onClick={() => startEdit(rc)} aria-label="Edit category"><Pencil className="h-4 w-4" /></Button>
+                        <Button type="button" size="icon" variant="ghost" onClick={() => removeCat(rc.id)} aria-label="Delete category"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <Button type="button" size="icon" variant="ghost" onClick={() => setExpanded((e) => ({ ...e, [rc.id]: !isOpen }))} aria-label="Toggle">
+                          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div className="mt-3 pt-3 border-t border-border/50 grid sm:grid-cols-2 gap-2 text-sm">
+                        {rc.room_size_sqft ? <Info label="Room size" value={`${rc.room_size_sqft} sq.ft`} /> : null}
+                        {rc.weekend_price ? <Info label="Weekend price" value={`₹${Number(rc.weekend_price).toLocaleString()}/night`} /> : null}
+                        <Info label="Extra bed" value={rc.extra_bed_available ? "Yes" : "No"} />
+                        <Info label="Children allowed" value={rc.children_allowed ? "Yes" : "No"} />
+                        {rc.amenities.length > 0 && (
+                          <div className="sm:col-span-2">
+                            <p className="text-xs text-muted-foreground mb-1">Amenities</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {rc.amenities.map((a) => (
+                                <span key={a} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground">{a}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+        {/* Editor card */}
+        {editingId && draft && (
+          <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+            <Card className="border-emerald-500/40">
+              <CardContent className="p-4 md:p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">{editingId === "__new__" ? "Add room category" : "Edit room category"}</h3>
+                  <Button type="button" variant="ghost" size="icon" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Field label="Room Type *">
+                    <Select value={draft.room_type} onValueChange={(v) => setDraft({ ...draft, room_type: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select room type" /></SelectTrigger>
+                      <SelectContent>
+                        {ROOM_TYPE_OPTIONS.map((rt) => (<SelectItem key={rt} value={rt}>{rt}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {draft.room_type === "Other" && (
+                    <Field label="Custom Room Name *">
+                      <Input value={draft.custom_room_name || ""} onChange={(e) => setDraft({ ...draft, custom_room_name: e.target.value })} placeholder="e.g. Garden View Cabin" />
+                    </Field>
+                  )}
+                  <Field label="Number of Rooms *">
+                    <Input type="number" min={1} value={draft.room_count} onChange={(e) => setDraft({ ...draft, room_count: parseInt(e.target.value) || 0 })} />
+                  </Field>
+                  <Field label="Room Size (sq.ft)">
+                    <Input type="number" min={0} value={draft.room_size_sqft ?? ""} onChange={(e) => setDraft({ ...draft, room_size_sqft: e.target.value ? parseInt(e.target.value) : null })} placeholder="e.g. 250" />
+                  </Field>
+                  <Field label="Maximum Occupancy *">
+                    <Input type="number" min={1} value={draft.max_occupancy} onChange={(e) => setDraft({ ...draft, max_occupancy: parseInt(e.target.value) || 0 })} />
+                  </Field>
+                  <Field label="Base Price / Night (₹) *">
+                    <Input type="number" min={0} value={draft.base_price} onChange={(e) => setDraft({ ...draft, base_price: parseFloat(e.target.value) || 0 })} />
+                  </Field>
+                  <Field label="Weekend Price / Night (₹)">
+                    <Input type="number" min={0} value={draft.weekend_price ?? ""} onChange={(e) => setDraft({ ...draft, weekend_price: e.target.value ? parseFloat(e.target.value) : null })} placeholder="Optional" />
+                  </Field>
+                  <Field label="Extra Bed Available">
+                    <RadioGroup value={draft.extra_bed_available ? "yes" : "no"} onValueChange={(v) => setDraft({ ...draft, extra_bed_available: v === "yes" })} className="flex gap-4 pt-2">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="yes" /> Yes</label>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="no" /> No</label>
+                    </RadioGroup>
+                  </Field>
+                  <Field label="Children Allowed">
+                    <RadioGroup value={draft.children_allowed ? "yes" : "no"} onValueChange={(v) => setDraft({ ...draft, children_allowed: v === "yes" })} className="flex gap-4 pt-2">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="yes" /> Yes</label>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="no" /> No</label>
+                    </RadioGroup>
+                  </Field>
+                </div>
+                <div>
+                  <Label className="text-sm mb-2 block">Room Amenities</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {ROOM_AMENITIES.map((a) => {
+                      const active = draft.amenities.includes(a);
+                      return (
+                        <button key={a} type="button" onClick={() => toggleAmenity(a)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-sm transition-all ${active ? "border-emerald-500 bg-emerald-500/10" : "border-border hover:border-emerald-500/40"}`}>
+                          <Checkbox checked={active} className="pointer-events-none" />
+                          <span>{a}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={cancelEdit}>Cancel</Button>
+                  <Button type="button" onClick={saveDraft} variant="premium">{editingId === "__new__" ? "Add category" : "Save changes"}</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {!editingId && (
+          <Button type="button" variant="outline" onClick={startAdd} className="w-full border-dashed border-emerald-500/40 hover:border-emerald-500 hover:bg-emerald-500/5">
+            <Plus className="h-4 w-4 mr-1" /> Add room category
+          </Button>
+        )}
+      </div>
+
+      {/* Check-in / Check-out */}
+      <Card className="border-border/60">
+        <CardContent className="p-4 md:p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-emerald-400" />
+            <h3 className="font-semibold">Check-in & check-out</h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field label="Check-In Time *">
+              <Input type="time" value={data.check_in_time} onChange={(e) => update("check_in_time", e.target.value)} />
+            </Field>
+            <Field label="Check-Out Time *">
+              <Input type="time" value={data.check_out_time} onChange={(e) => update("check_out_time", e.target.value)} />
+            </Field>
+            <Field label="24 Hour Check-In">
+              <RadioGroup value={data.check_in_24h ? "yes" : "no"} onValueChange={(v) => update("check_in_24h", v === "yes")} className="flex gap-4 pt-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="yes" /> Yes</label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="no" /> No</label>
+              </RadioGroup>
+            </Field>
+            <Field label="Front Desk Available 24 Hours">
+              <RadioGroup value={data.front_desk_24h ? "yes" : "no"} onValueChange={(v) => update("front_desk_24h", v === "yes")} className="flex gap-4 pt-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="yes" /> Yes</label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer"><RadioGroupItem value="no" /> No</label>
+              </RadioGroup>
+            </Field>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function SummaryStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-background/40 border border-emerald-500/20 p-3">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold text-emerald-300 mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }
