@@ -24,6 +24,7 @@ import Navigation from "@/components/Navigation";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import GoogleMapPicker from "@/components/location/GoogleMapPicker";
 import { loadGoogleMaps } from "@/lib/googleMaps";
+import { INDIAN_CITIES } from "@/data/indianCities";
 
 const STEPS = [
   { id: 1, label: "Basics", icon: Hotel },
@@ -49,7 +50,7 @@ const AMENITIES = [
   "Free WiFi", "Parking", "Air Conditioning", "Restaurant",
   "Room Service", "Swimming Pool", "Gym", "24x7 Reception", "Breakfast Included",
 ];
-const CITIES = ["Hyderabad", "Bangalore", "Mumbai", "Pune", "Chennai", "Delhi", "Gurgaon", "Noida", "Kolkata", "Ahmedabad"];
+const CITIES = INDIAN_CITIES;
 
 export type RoomCategory = {
   id: string;
@@ -383,10 +384,10 @@ function Step2({ data, update }: any) {
         get("locality");
       const pincode = get("postal_code");
 
-      if (city && CITIES.includes(city)) update("city", city);
+      if (city) update("city", city);
       if (locality) update("locality", locality);
       if (pincode) update("pincode", pincode);
-      if (!data.address?.trim() && best.formatted_address) update("address", best.formatted_address);
+      if (best.formatted_address) update("address", best.formatted_address);
     } catch (err) {
       console.warn("[HotelOnboarding] reverse geocode failed", err);
     }
@@ -411,22 +412,20 @@ function Step2({ data, update }: any) {
     <div className="space-y-5">
       <h2 className="text-xl font-semibold">Where are you located?</h2>
       <div className="grid md:grid-cols-2 gap-4">
-        <Field label="City *">
-          <Select
+        <Field label="City *" hint="Type to search (e.g. 'hy' → Hyderabad)">
+          <CityTypeahead
             value={data.city}
-            onValueChange={(v) => {
+            onChange={(v) => update("city", v)}
+            onSelect={(v) => {
               update("city", v);
-              // Clear downstream when city changes
               update("locality", "");
               update("pincode", "");
               update("latitude", null);
               update("longitude", null);
             }}
-          >
-            <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
-            <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-          </Select>
+          />
         </Field>
+
 
         <Field label="Locality / Area *" hint={data.city ? `Suggestions inside ${data.city}` : "Pick a city first"}>
           <InlineLocationSearch
@@ -894,3 +893,43 @@ function SuccessScreen({ onGoStatus, hotelName }: { onGoStatus: () => void; hote
     </div>
   );
 }
+
+function CityTypeahead({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (v: string) => void }) {
+  const [query, setQuery] = useState(value || "");
+  const [open, setOpen] = useState(false);
+  useEffect(() => { setQuery(value || ""); }, [value]);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return CITIES.slice(0, 8);
+    return CITIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8);
+  }, [query]);
+
+  return (
+    <div className="relative">
+      <Input
+        value={query}
+        placeholder="Start typing your city..."
+        onChange={(e) => { setQuery(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        autoComplete="off"
+      />
+      {open && suggestions.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border border-border bg-popover shadow-lg">
+          {suggestions.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
+              onMouseDown={(e) => { e.preventDefault(); setQuery(c); onSelect(c); setOpen(false); }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
