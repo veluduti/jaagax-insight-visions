@@ -16,8 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import InlineLocationSearch from "@/components/location/InlineLocationSearch";
+import GoogleMapPicker from "@/components/location/GoogleMapPicker";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 const STEPS = [
   { id: 1, label: "Basics", icon: Hotel },
