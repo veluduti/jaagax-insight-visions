@@ -3932,72 +3932,66 @@ export default function SellProperty() {
                   v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0);
                 const unit = pick("area_unit") || "sq ft";
 
+                const builtUp = pick("built_up_area");
+                const carpet = pick("carpet_area");
+                const plot = pick("plot_area");
+                const gated = pick("gated_community");
                 const detailRows: Array<{ key: string; label: string; value: string }> = [
-                  { key: "property_type", label: "Property Type", value: asStr(sub) },
+                  { key: "property_type", label: "Property Type", value: has(propTypeRaw) ? asStr(propTypeRaw) : "" },
                   { key: "listing_type", label: "Listing For", value: cap(purpose) },
                   { key: "bhk", label: "Configuration", value: bhkLabel },
                   { key: "bathrooms", label: "Bathrooms", value: asStr(bathRaw) },
-                  { key: "balconies", label: "Balconies", value: asStr(editForm.balconies) },
+                  { key: "balconies", label: "Balconies", value: asStr(pick("balconies")) },
                   { key: "floor", label: "Floor", value: floorLine },
-                  { key: "total_floors", label: "Total Floors", value: asStr(editForm.total_floors) },
+                  { key: "total_floors", label: "Total Floors", value: asStr(totalFloorsVal) },
                   {
                     key: "area",
                     label: "Built-up Area",
-                    value:
-                      has(editForm.built_up_area) || has(editForm.built_area) || has(editForm.area)
-                        ? `${editForm.built_up_area || editForm.built_area || editForm.area} ${unit}`
-                        : "",
+                    value: has(builtUp) ? `${builtUp} ${unit}` : has(pick("area")) ? `${pick("area")} ${unit}` : "",
                   },
                   {
                     key: "carpet",
                     label: "Carpet Area",
-                    value: has(editForm.carpet_area) ? `${editForm.carpet_area} ${unit}` : "",
+                    value: has(carpet) ? `${carpet} ${unit}` : "",
                   },
                   {
                     key: "plot",
                     label: "Plot / Land Area",
-                    value:
-                      has(editForm.land_size) || has(editForm.plot_area)
-                        ? `${editForm.land_size || editForm.plot_area} ${unit}`
-                        : "",
+                    value: has(plot) ? `${plot} ${unit}` : "",
                   },
                   { key: "furnishing", label: "Furnishing", value: cap(asStr(furnishing)) },
                   { key: "facing", label: "Facing", value: cap(asStr(facingRaw)) },
-                  { key: "property_age", label: "Property Age", value: asStr(editForm.property_age) },
+                  { key: "property_age", label: "Property Age", value: asStr(pick("property_age")) },
                   {
                     key: "property_condition",
                     label: "Condition",
-                    value: cap(asStr(editForm.property_condition)),
+                    value: cap(asStr(pick("property_condition"))),
                   },
                   {
                     key: "availability_status",
                     label: "Availability",
-                    value: cap(asStr(editForm.availability_status || editForm.possession_status)),
+                    value: cap(asStr(pick("availability_status"))),
                   },
                   {
                     key: "possession_date",
                     label: "Possession",
-                    value: asStr(editForm.possession_date),
+                    value: asStr(pick("possession_date")),
                   },
                   {
                     key: "available_from",
                     label: "Available From",
-                    value: asStr(editForm.available_from_date || editForm.available_from),
+                    value: asStr(pick("available_from")),
                   },
-                  { key: "parking", label: "Parking", value: asStr(editForm.parking) },
+                  { key: "parking", label: "Parking", value: asStr(pick("parking")) },
                   {
                     key: "gated_community",
                     label: "Gated Community",
-                    value: has(editForm.gated_community)
-                      ? /^y/i.test(String(editForm.gated_community))
-                        ? "Yes"
-                        : "No"
-                      : "",
+                    value: has(gated) ? (/^y|true/i.test(String(gated)) ? "Yes" : "No") : "",
                   },
                   {
                     key: "ownership",
                     label: "Ownership",
-                    value: cap(asStr(editForm.ownership)),
+                    value: cap(asStr(pick("ownership"))),
                   },
                   {
                     key: "maintenance",
