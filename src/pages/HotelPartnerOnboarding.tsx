@@ -487,13 +487,19 @@ function Step2({ data, update }: any) {
             </DialogTitle>
           </DialogHeader>
           <p className="text-xs text-muted-foreground">
-            Click anywhere on the map to drop a pin, then drag to fine-tune. We'll auto-fill the locality and pincode.
+            Search a city/locality or click on the map to drop a pin, then drag to fine-tune. We'll auto-fill address, city, locality and pincode.
           </p>
+          <MapSearchBox
+            onPick={(loc) => {
+              setTempLat(loc.latitude);
+              setTempLng(loc.longitude);
+            }}
+          />
           <GoogleMapPicker
             lat={tempLat}
             lng={tempLng}
             defaultCenter={mapCenter}
-            height="420px"
+            height="380px"
             label=""
             onChange={(lat, lng) => {
               setTempLat(lat);
