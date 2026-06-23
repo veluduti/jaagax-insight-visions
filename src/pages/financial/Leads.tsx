@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Eye, Lock, Mail, MapPin, Phone, Search as SearchIcon, Wallet as WalletIcon } from "lucide-react";
+import { Eye, FileText, Lock, Mail, MapPin, Phone, Search as SearchIcon, Wallet as WalletIcon } from "lucide-react";
 
 type DocFile = { type: string; url: string; path?: string; name?: string };
 type Lead = {
