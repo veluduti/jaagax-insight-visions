@@ -187,11 +187,24 @@ export default function HotelPartnerOnboarding() {
     if (err) return toast.error(err);
     setSubmitting(true);
     try {
+      const cats = data.room_categories;
+      const total_rooms = cats.reduce((s, c) => s + (c.room_count || 0), 0);
+      const prices = cats.map((c) => c.base_price).filter((p) => p > 0);
+      const price_min = prices.length ? Math.min(...prices) : 0;
+      const price_max = prices.length ? Math.max(...prices) : 0;
+      const room_types = Array.from(new Set(cats.map((c) => c.room_type === "Other" ? (c.custom_room_name || "Other") : c.room_type)));
+      const payload = {
+        ...data,
+        total_rooms,
+        price_min,
+        price_max,
+        room_types,
+      };
       const { data: inserted, error } = await supabase
         .from("hotel_partner_applications")
         .insert({
           user_id: userId,
-          ...data,
+          ...payload,
           status: "pending",
         } as any)
         .select("id")
