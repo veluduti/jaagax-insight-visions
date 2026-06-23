@@ -163,6 +163,19 @@ export default function FinancialLeads() {
                     <p className="flex items-center gap-2 text-foreground"><Phone className="h-3 w-3" />{l.contact_phone || "—"}</p>
                     <p className="flex items-center gap-2 text-foreground"><Mail className="h-3 w-3" />{l.contact_email || "—"}</p>
                   </div>
+                  {unlocked && Array.isArray(l.documents) && l.documents.length > 0 && (
+                    <div className="space-y-1.5 pt-1 border-t border-border">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Submitted Documents</p>
+                      <div className="flex flex-wrap gap-2">
+                        {l.documents.map((d, i) => (
+                          <a key={i} href={d.url} target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20">
+                            <FileText className="h-3 w-3" />{d.type}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {unlocked ? (
                     <div className="flex gap-2">
                       <Select onValueChange={(v) => assignRM(l.id, v)}>
