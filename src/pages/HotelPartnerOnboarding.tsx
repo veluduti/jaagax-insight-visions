@@ -412,22 +412,20 @@ function Step2({ data, update }: any) {
     <div className="space-y-5">
       <h2 className="text-xl font-semibold">Where are you located?</h2>
       <div className="grid md:grid-cols-2 gap-4">
-        <Field label="City *">
-          <Select
+        <Field label="City *" hint="Type to search (e.g. 'hy' → Hyderabad)">
+          <CityTypeahead
             value={data.city}
-            onValueChange={(v) => {
+            onChange={(v) => update("city", v)}
+            onSelect={(v) => {
               update("city", v);
-              // Clear downstream when city changes
               update("locality", "");
               update("pincode", "");
               update("latitude", null);
               update("longitude", null);
             }}
-          >
-            <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
-            <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-          </Select>
+          />
         </Field>
+
 
         <Field label="Locality / Area *" hint={data.city ? `Suggestions inside ${data.city}` : "Pick a city first"}>
           <InlineLocationSearch
