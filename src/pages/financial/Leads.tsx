@@ -10,14 +10,17 @@ import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Eye, Lock, Mail, MapPin, Phone, Search as SearchIcon, Wallet as WalletIcon } from "lucide-react";
+import { Eye, FileText, Lock, Mail, MapPin, Phone, Search as SearchIcon, Wallet as WalletIcon } from "lucide-react";
 
+type DocFile = { type: string; url: string; path?: string; name?: string };
 type Lead = {
   id: string; lead_type: string; customer_name: string; requirement: string | null;
   budget: number | null; location: string | null; city: string | null;
   contact_email: string | null; contact_phone: string | null;
   price: number; is_purchased: boolean; purchased_by_provider_id: string | null;
   created_at: string;
+  documents?: DocFile[] | null;
+  full_details?: Record<string, any> | null;
 };
 
 const TAB_TYPES: Record<string, string | null> = {
@@ -160,6 +163,19 @@ export default function FinancialLeads() {
                     <p className="flex items-center gap-2 text-foreground"><Phone className="h-3 w-3" />{l.contact_phone || "—"}</p>
                     <p className="flex items-center gap-2 text-foreground"><Mail className="h-3 w-3" />{l.contact_email || "—"}</p>
                   </div>
+                  {unlocked && Array.isArray(l.documents) && l.documents.length > 0 && (
+                    <div className="space-y-1.5 pt-1 border-t border-border">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Submitted Documents</p>
+                      <div className="flex flex-wrap gap-2">
+                        {l.documents.map((d, i) => (
+                          <a key={i} href={d.url} target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20">
+                            <FileText className="h-3 w-3" />{d.type}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {unlocked ? (
                     <div className="flex gap-2">
                       <Select onValueChange={(v) => assignRM(l.id, v)}>

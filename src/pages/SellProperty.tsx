@@ -49,6 +49,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { cn } from "@/lib/utils";
 import { completionTier, missingRequired, answeredFields, NUMBER_QUICK_REPLIES } from "@/config/propertyFieldsConfig";
 import { financialRequirementFlow } from "@/config/propertyFlows/financial";
+import DocumentUploadWidget from "@/components/financial/DocumentUploadWidget";
 import { createConversationEngine, type ConversationEngine } from "@/engines/conversationEngine";
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
@@ -2956,6 +2957,12 @@ export default function SellProperty() {
 
         const locationStr = [src.locality, src.city, src.state_name].filter(Boolean).join(", ") || null;
 
+        const documents = Array.isArray(src.documents)
+          ? src.documents
+          : Array.isArray(src.upload_documents?.files)
+            ? src.upload_documents.files
+            : [];
+
         const { error } = await (supabase.from as any)("financial_leads").insert({
           lead_type: "buyer",
           customer_name: customerName,
@@ -2968,6 +2975,8 @@ export default function SellProperty() {
           source_user_id: user.id,
           price: 0,
           is_purchased: false,
+          documents,
+          full_details: src,
         });
         if (error) throw error;
 
@@ -3574,6 +3583,31 @@ export default function SellProperty() {
                     );
                   })}
                 </motion.div>
+              )}
+
+            {/* Document upload widget — financial flow */}
+            {field?.id === "upload_documents" &&
+              !loadingNext &&
+              !done &&
+              Array.isArray(value) &&
+              value.length > 0 && (
+                <DocumentUploadWidget
+                  docTypes={value as string[]}
+                  onSubmit={async (uploaded) => {
+                    const types = value as string[];
+                    setEditForm((f: any) => ({
+                      ...f,
+                      upload_documents: types,
+                      documents: uploaded,
+                    }));
+                    // Commit the original multi-select array so engine validation passes;
+                    // file URLs are kept alongside in editForm + state.
+                    await commitAnswer(
+                      types,
+                      `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
+                    );
+                  }}
+                />
               )}
 
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
