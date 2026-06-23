@@ -12,12 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Eye, Lock, Mail, MapPin, Phone, Search as SearchIcon, Wallet as WalletIcon } from "lucide-react";
 
+type DocFile = { type: string; url: string; path?: string; name?: string };
 type Lead = {
   id: string; lead_type: string; customer_name: string; requirement: string | null;
   budget: number | null; location: string | null; city: string | null;
   contact_email: string | null; contact_phone: string | null;
   price: number; is_purchased: boolean; purchased_by_provider_id: string | null;
   created_at: string;
+  documents?: DocFile[] | null;
+  full_details?: Record<string, any> | null;
 };
 
 const TAB_TYPES: Record<string, string | null> = {
