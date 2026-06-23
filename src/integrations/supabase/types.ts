@@ -1863,6 +1863,8 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           customer_name: string
+          documents: Json | null
+          full_details: Json | null
           id: string
           is_purchased: boolean
           lead_type: string
@@ -1880,6 +1882,8 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           customer_name: string
+          documents?: Json | null
+          full_details?: Json | null
           id?: string
           is_purchased?: boolean
           lead_type: string
@@ -1897,6 +1901,8 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           customer_name?: string
+          documents?: Json | null
+          full_details?: Json | null
           id?: string
           is_purchased?: boolean
           lead_type?: string
