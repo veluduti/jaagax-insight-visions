@@ -49,7 +49,6 @@ const AMENITIES = [
   "Free WiFi", "Parking", "Air Conditioning", "Restaurant",
   "Room Service", "Swimming Pool", "Gym", "24x7 Reception", "Breakfast Included",
 ];
-import { INDIAN_CITIES } from "@/data/indianCities";
 const CITIES = INDIAN_CITIES;
 
 export type RoomCategory = {
