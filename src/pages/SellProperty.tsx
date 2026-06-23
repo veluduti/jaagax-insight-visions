@@ -3577,6 +3577,28 @@ export default function SellProperty() {
                 </motion.div>
               )}
 
+            {/* Document upload widget — financial flow */}
+            {field?.id === "upload_documents" &&
+              !loadingNext &&
+              !done &&
+              Array.isArray(value) &&
+              value.length > 0 && (
+                <DocumentUploadWidget
+                  docTypes={value as string[]}
+                  onSubmit={async (uploaded) => {
+                    const payload = {
+                      types: value as string[],
+                      files: uploaded,
+                    };
+                    setEditForm((f: any) => ({ ...f, upload_documents: payload, documents: uploaded }));
+                    await commitAnswer(
+                      payload,
+                      `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
+                    );
+                  }}
+                />
+              )}
+
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
             {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
               <motion.div
