@@ -2395,11 +2395,13 @@ export type Database = {
           approved_hotel_id: string | null
           business_registration_url: string | null
           business_type: string
+          check_in_24h: boolean
           check_in_time: string | null
           check_out_time: string | null
           city: string
           created_at: string
           email: string
+          front_desk_24h: boolean
           gst_certificate_url: string | null
           hotel_name: string
           id: string
@@ -2416,6 +2418,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          room_categories: Json
           room_types: string[] | null
           status: string
           total_rooms: number | null
@@ -2428,11 +2431,13 @@ export type Database = {
           approved_hotel_id?: string | null
           business_registration_url?: string | null
           business_type?: string
+          check_in_24h?: boolean
           check_in_time?: string | null
           check_out_time?: string | null
           city: string
           created_at?: string
           email: string
+          front_desk_24h?: boolean
           gst_certificate_url?: string | null
           hotel_name: string
           id?: string
@@ -2449,6 +2454,7 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          room_categories?: Json
           room_types?: string[] | null
           status?: string
           total_rooms?: number | null
@@ -2461,11 +2467,13 @@ export type Database = {
           approved_hotel_id?: string | null
           business_registration_url?: string | null
           business_type?: string
+          check_in_24h?: boolean
           check_in_time?: string | null
           check_out_time?: string | null
           city?: string
           created_at?: string
           email?: string
+          front_desk_24h?: boolean
           gst_certificate_url?: string | null
           hotel_name?: string
           id?: string
@@ -2482,6 +2490,7 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          room_categories?: Json
           room_types?: string[] | null
           status?: string
           total_rooms?: number | null
