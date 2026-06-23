@@ -284,7 +284,7 @@ export default function HotelPartnerOnboarding() {
               >
                 {step === 1 && <Step1 data={data} update={update} />}
                 {step === 2 && <Step2 data={data} update={update} />}
-                {step === 3 && <Step3 data={data} update={update} toggle={(v) => toggleInArray("room_types", v)} />}
+                {step === 3 && <Step3 data={data} update={update} />}
                 {step === 4 && <Step4 data={data} toggle={(v) => toggleInArray("amenities", v)} />}
                 {step === 5 && <Step5 data={data} update={update} uploadFile={uploadFile} uploading={uploading} />}
                 {step === 6 && <Step6 data={data} uploadFile={uploadFile} uploading={uploading} />}
