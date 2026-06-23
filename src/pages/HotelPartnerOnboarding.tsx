@@ -131,9 +131,15 @@ export default function HotelPartnerOnboarding() {
       return null;
     }
     if (step === 3) {
-      if (data.total_rooms < 1) return "At least 1 room";
-      if (data.room_types.length === 0) return "Select at least one room type";
-      if (data.price_min <= 0 || data.price_max <= data.price_min) return "Price range invalid";
+      if (!data.room_categories || data.room_categories.length === 0) return "Add at least one room category";
+      for (const rc of data.room_categories) {
+        if (!rc.room_type) return "Room type is required for every category";
+        if (rc.room_type === "Other" && !rc.custom_room_name?.trim()) return "Custom room name required";
+        if (!rc.room_count || rc.room_count <= 0) return "Number of rooms must be greater than 0";
+        if (!rc.max_occupancy || rc.max_occupancy <= 0) return "Maximum occupancy must be greater than 0";
+        if (!rc.base_price || rc.base_price <= 0) return "Base price must be greater than 0";
+      }
+      if (!data.check_in_time || !data.check_out_time) return "Check-in & check-out time required";
       return null;
     }
     if (step === 4) return data.amenities.length === 0 ? "Pick a few amenities" : null;
