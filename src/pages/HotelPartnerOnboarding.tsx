@@ -98,6 +98,7 @@ export default function HotelPartnerOnboarding() {
       if (!data.locality.trim()) return "Locality required";
       if (!data.address.trim()) return "Address required";
       if (!/^\d{6}$/.test(data.pincode)) return "Valid 6-digit pincode required";
+      if (data.latitude === null || data.longitude === null) return "Pin your exact location on the map";
       return null;
     }
     if (step === 3) {
