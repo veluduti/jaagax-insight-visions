@@ -52,9 +52,19 @@ export default function HotelPartnersPanel() {
         reviewed_at: new Date().toISOString(),
       })
       .eq("id", reviewing.id);
+    if (error) { setActing(false); return toast.error(error.message); }
+
+    // Fire-and-forget applicant email
+    try {
+      await supabase.functions.invoke("hotel-partner-notify", {
+        body: { applicationId: reviewing.id, decision, reason: decision === "rejected" ? reason : undefined },
+      });
+    } catch (e) {
+      console.warn("[HotelPartners] notify email failed", e);
+    }
+
     setActing(false);
-    if (error) return toast.error(error.message);
-    toast.success(decision === "approved" ? "Hotel approved & published" : "Application rejected");
+    toast.success(decision === "approved" ? "Hotel approved, published & applicant emailed" : "Application rejected & applicant emailed");
     setReviewing(null); setReason("");
     load();
   };
@@ -114,26 +124,60 @@ export default function HotelPartnersPanel() {
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <Info label="Owner" value={viewing.owner_name} />
-                <Info label="Type" value={viewing.business_type} />
+                <Info label="Business Type" value={viewing.business_type} />
                 <Info label="Email" value={viewing.email} />
                 <Info label="Phone" value={viewing.phone} />
                 <Info label="City" value={viewing.city} />
                 <Info label="Locality" value={viewing.locality} />
                 <Info label="Pincode" value={viewing.pincode} />
-                <Info label="Total Rooms" value={String(viewing.total_rooms)} />
-                <Info label="Price Range" value={`₹${viewing.price_min} – ₹${viewing.price_max}`} />
-                <Info label="Check-in / out" value={`${viewing.check_in_time} / ${viewing.check_out_time}`} />
+                <Info label="Coordinates" value={viewing.latitude && viewing.longitude ? `${Number(viewing.latitude).toFixed(5)}, ${Number(viewing.longitude).toFixed(5)}` : "—"} />
+                <Info label="Total Rooms" value={String(viewing.total_rooms ?? 0)} />
+                <Info label="Price Range" value={`₹${viewing.price_min ?? 0} – ₹${viewing.price_max ?? 0}`} />
+                <Info label="Check-in / out" value={`${viewing.check_in_time || "—"} / ${viewing.check_out_time || "—"}`} />
+                <Info label="24h Check-in" value={viewing.check_in_24h ? "Yes" : "No"} />
+                <Info label="24h Front Desk" value={viewing.front_desk_24h ? "Yes" : "No"} />
+                <Info label="Submitted" value={new Date(viewing.created_at).toLocaleString()} />
               </div>
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Address</p>
-                <p>{viewing.address}</p>
+                <p>{viewing.address || "—"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Room Types</p>
                 <div className="flex flex-wrap gap-1">{(viewing.room_types || []).map((r: string) => <Badge key={r} variant="outline">{r}</Badge>)}</div>
               </div>
+
+              {Array.isArray(viewing.room_categories) && viewing.room_categories.length > 0 && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-2">Room Inventory ({viewing.room_categories.length} categories)</p>
+                  <div className="space-y-2">
+                    {viewing.room_categories.map((rc: any, i: number) => (
+                      <div key={i} className="rounded-md border border-border p-3 bg-muted/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium">{rc.custom_room_name || rc.room_type}</p>
+                          <Badge variant="outline">{rc.room_count} rooms</Badge>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                          <Info label="Base Price" value={`₹${rc.base_price ?? "—"}`} />
+                          <Info label="Weekend" value={rc.weekend_price ? `₹${rc.weekend_price}` : "—"} />
+                          <Info label="Occupancy" value={String(rc.max_occupancy ?? "—")} />
+                          <Info label="Size" value={rc.room_size_sqft ? `${rc.room_size_sqft} sqft` : "—"} />
+                          <Info label="Extra Bed" value={rc.extra_bed_available ? "Yes" : "No"} />
+                          <Info label="Children" value={rc.children_allowed ? "Allowed" : "No"} />
+                        </div>
+                        {rc.amenities?.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {rc.amenities.map((a: string) => <Badge key={a} variant="secondary" className="text-[10px]">{a}</Badge>)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <p className="text-muted-foreground text-xs mb-1">Amenities</p>
+                <p className="text-muted-foreground text-xs mb-1">Property Amenities</p>
                 <div className="flex flex-wrap gap-1">{(viewing.amenities || []).map((r: string) => <Badge key={r} variant="outline">{r}</Badge>)}</div>
               </div>
               {viewing.photos?.length > 0 && (
