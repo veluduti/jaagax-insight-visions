@@ -27,3 +27,7 @@ otp_expiry = 3600
     verify_jwt = false
   [functions.escalate-stale-verification]
     verify_jwt = false
+  [functions.reverse-geocode]
+    verify_jwt = true
+  [functions.hotel-partner-notify]
+    verify_jwt = true
