@@ -52,9 +52,19 @@ export default function HotelPartnersPanel() {
         reviewed_at: new Date().toISOString(),
       })
       .eq("id", reviewing.id);
+    if (error) { setActing(false); return toast.error(error.message); }
+
+    // Fire-and-forget applicant email
+    try {
+      await supabase.functions.invoke("hotel-partner-notify", {
+        body: { applicationId: reviewing.id, decision, reason: decision === "rejected" ? reason : undefined },
+      });
+    } catch (e) {
+      console.warn("[HotelPartners] notify email failed", e);
+    }
+
     setActing(false);
-    if (error) return toast.error(error.message);
-    toast.success(decision === "approved" ? "Hotel approved & published" : "Application rejected");
+    toast.success(decision === "approved" ? "Hotel approved, published & applicant emailed" : "Application rejected & applicant emailed");
     setReviewing(null); setReason("");
     load();
   };
