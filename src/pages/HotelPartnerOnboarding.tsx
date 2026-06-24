@@ -349,6 +349,10 @@ function Step2({ data, update }: any) {
   const [mapOpen, setMapOpen] = useState(false);
   const [tempLat, setTempLat] = useState<number | null>(data.latitude);
   const [tempLng, setTempLng] = useState<number | null>(data.longitude);
+  // Holds the full normalized location picked from the search box so we can
+  // auto-fill city/locality/pincode/address WITHOUT relying on the browser
+  // Geocoding API (which the Lovable Google Maps browser key cannot call).
+  const [pendingPicked, setPendingPicked] = useState<any | null>(null);
 
   const cityCenters: Record<string, { lat: number; lng: number }> = {
     Hyderabad: { lat: 17.385, lng: 78.4867 },
@@ -363,35 +367,25 @@ function Step2({ data, update }: any) {
     Ahmedabad: { lat: 23.0225, lng: 72.5714 },
   };
 
-  // Reverse-geocode a lat/lng → autofill city / locality / pincode / address
-  const reverseGeocode = async (lat: number, lng: number) => {
+  // Reverse-geocode via our edge function (gateway-backed Geocoding API).
+  const reverseGeocodeViaEdge = async (lat: number, lng: number) => {
     try {
-      const google = await loadGoogleMaps();
-      const geocoder = new google.maps.Geocoder();
-      const { results }: any = await geocoder.geocode({ location: { lat, lng } });
-      if (!results?.length) return;
-      const best = results[0];
-      const comps: any[] = best.address_components || [];
-      const get = (t: string) =>
-        comps.find((c) => c.types.includes(t))?.long_name || "";
-      const city =
-        get("locality") ||
-        get("administrative_area_level_2") ||
-        get("administrative_area_level_3");
-      const locality =
-        get("sublocality_level_1") ||
-        get("sublocality") ||
-        get("neighborhood") ||
-        get("locality");
-      const pincode = get("postal_code");
-
-      if (city) update("city", city);
-      if (locality) update("locality", locality);
-      if (pincode) update("pincode", pincode);
-      if (best.formatted_address) update("address", best.formatted_address);
-    } catch (err) {
-      console.warn("[HotelOnboarding] reverse geocode failed", err);
+      const { data: res, error } = await supabase.functions.invoke("reverse-geocode", {
+        body: { latitude: lat, longitude: lng },
+      });
+      if (error || !res) return null;
+      return res as { city?: string; locality?: string; pincode?: string; formattedAddress?: string };
+    } catch (e) {
+      console.warn("[HotelOnboarding] reverse-geocode edge failed", e);
+      return null;
     }
+  };
+
+  const applyLocation = (loc: { city?: string; locality?: string; pincode?: string; formattedAddress?: string }) => {
+    if (loc.city) update("city", loc.city);
+    if (loc.locality) update("locality", loc.locality);
+    if (loc.pincode) update("pincode", loc.pincode);
+    if (loc.formattedAddress) update("address", loc.formattedAddress);
   };
 
   const confirmMapPin = async () => {
@@ -401,9 +395,22 @@ function Step2({ data, update }: any) {
     }
     update("latitude", tempLat);
     update("longitude", tempLng);
-    await reverseGeocode(tempLat, tempLng);
+
+    if (pendingPicked) {
+      applyLocation({
+        city: pendingPicked.city,
+        locality: pendingPicked.locality,
+        pincode: pendingPicked.postalCode,
+        formattedAddress: pendingPicked.formattedAddress,
+      });
+    } else {
+      const geocoded = await reverseGeocodeViaEdge(tempLat, tempLng);
+      if (geocoded) applyLocation(geocoded);
+      else toast.warning("Pinned, but couldn't auto-fill address. Please type city/locality manually.");
+    }
     setMapOpen(false);
-    toast.success("Location pinned");
+    setPendingPicked(null);
+    toast.success("Location pinned & details filled");
   };
 
   const cityKey = data.city as string;
@@ -468,6 +475,7 @@ function Step2({ data, update }: any) {
             onClick={() => {
               setTempLat(data.latitude);
               setTempLng(data.longitude);
+              setPendingPicked(null);
               setMapOpen(true);
             }}
           >
@@ -493,6 +501,7 @@ function Step2({ data, update }: any) {
             onPick={(loc) => {
               setTempLat(loc.latitude);
               setTempLng(loc.longitude);
+              setPendingPicked(loc);
             }}
           />
           <GoogleMapPicker
@@ -504,6 +513,7 @@ function Step2({ data, update }: any) {
             onChange={(lat, lng) => {
               setTempLat(lat);
               setTempLng(lng);
+              setPendingPicked(null);
             }}
           />
           <DialogFooter>
