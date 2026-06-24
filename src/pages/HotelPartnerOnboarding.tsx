@@ -950,12 +950,15 @@ function CityTypeahead({ value, onChange, onSelect }: { value: string; onChange:
   );
 }
 
-function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude: number }) => void }) {
+function MapSearchBox({ onPick }: { onPick: (loc: any) => void }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<Array<{ placeId: string; mainText: string; secondaryText: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [sessionToken, setSessionToken] = useState<any>(null);
+  // After selecting a suggestion we don't want the query→fetch effect to
+  // re-open the dropdown with the same address as the new query.
+  const skipNextRef = (useState({ skip: false })[0]);
 
   useEffect(() => {
     (async () => {
@@ -969,8 +972,13 @@ function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude:
   }, []);
 
   useEffect(() => {
+    if (skipNextRef.skip) {
+      skipNextRef.skip = false;
+      return;
+    }
     if (!query || query.trim().length < 2) {
       setResults([]);
+      setOpen(false);
       return;
     }
     const t = setTimeout(async () => {
@@ -989,11 +997,13 @@ function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude:
   const pick = async (placeId: string, label: string) => {
     try {
       const details = await fetchPlaceDetails(placeId, sessionToken);
+      skipNextRef.skip = true;
       setQuery(label);
       setOpen(false);
+      setResults([]);
       setSessionToken(createSessionToken());
       if (details.latitude && details.longitude) {
-        onPick({ latitude: details.latitude, longitude: details.longitude });
+        onPick(details);
       }
     } catch (e) {
       console.warn("[MapSearchBox] details failed", e);
@@ -1009,6 +1019,7 @@ function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude:
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length && setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Search city, locality or landmark…"
           className="pl-9"
         />
@@ -1020,7 +1031,7 @@ function MapSearchBox({ onPick }: { onPick: (loc: { latitude: number; longitude:
             <button
               key={r.placeId}
               type="button"
-              onClick={() => pick(r.placeId, r.mainText + (r.secondaryText ? `, ${r.secondaryText}` : ""))}
+              onMouseDown={(e) => { e.preventDefault(); pick(r.placeId, r.mainText + (r.secondaryText ? `, ${r.secondaryText}` : "")); }}
               className="w-full text-left px-3 py-2 hover:bg-accent text-sm border-b last:border-b-0"
             >
               <div className="font-medium">{r.mainText}</div>
