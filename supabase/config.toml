@@ -31,3 +31,5 @@ otp_expiry = 3600
     verify_jwt = true
   [functions.hotel-partner-notify]
     verify_jwt = true
+  [functions.phone-otp-login]
+    verify_jwt = false
