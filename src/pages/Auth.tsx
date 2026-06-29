@@ -197,6 +197,13 @@ export default function Auth() {
   }, [navigate]);
 
 
+  // Detect if the login identifier is an email or phone number.
+  const isEmailIdentifier = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+  const isPhoneIdentifier = (val: string) => {
+    const digits = val.replace(/\D/g, "");
+    return digits.length >= 10 && !val.includes("@");
+  };
+
   const validateForm = () => {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
@@ -205,10 +212,9 @@ export default function Auth() {
       if (!pwOk) { toast.error("Password must be 8+ chars with upper, lower, number & special character"); return false; }
       if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
       if (!city.trim()) { toast.error("Please select your city"); return false; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
-    if (isLogin && password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
     return true;
   };
 
