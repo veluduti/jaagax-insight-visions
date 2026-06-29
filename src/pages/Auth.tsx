@@ -513,31 +513,77 @@ export default function Auth() {
                       <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
                     </div>
                   </motion.div>
+                ) : otpSent ? (
+                  <motion.div key="otp" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    <div className="text-sm text-muted-foreground">
+                      OTP sent to <span className="font-medium text-foreground">{otpPhone}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="h-4 w-4" />Enter 6-digit OTP</Label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="••••••"
+                        className="tracking-[0.5em] text-center text-lg"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <button type="button" onClick={() => { setOtpSent(false); setOtpCode(""); }} className="text-muted-foreground hover:text-foreground">
+                        ← Change number
+                      </button>
+                      <button type="button" onClick={() => handleRequestOtp(otpPhone)} disabled={loading} className="text-primary hover:underline font-medium">
+                        Resend OTP
+                      </button>
+                    </div>
+                  </motion.div>
                 ) : (
                   <motion.div key="login" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
-                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                      <Label htmlFor="login-id" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email Address or Mobile Number</Label>
+                      <Input
+                        id="login-id"
+                        type="text"
+                        value={loginIdentifier}
+                        onChange={(e) => setLoginIdentifier(e.target.value)}
+                        placeholder="you@example.com or 9876543210"
+                        autoComplete="username"
+                      />
+                      {loginIdentifier && isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) && (
+                        <p className="text-xs text-muted-foreground">We'll send a 6-digit OTP to this mobile number.</p>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
-                      <div className="relative">
-                        <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {(!loginIdentifier || isEmailIdentifier(loginIdentifier)) && (
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                        <div className="relative">
+                          <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
+                          Forgot password?
                         </button>
                       </div>
-                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
-                        Forgot password?
-                      </button>
-                    </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <Button type="submit" className="w-full" disabled={loading} size="lg">
-                {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? "Signing in..." : "Creating account..."}</>) : (isLogin ? "Sign In" : "Create Account")}
-              </Button>
+              {otpSent ? (
+                <Button type="button" onClick={handleVerifyOtp} className="w-full" disabled={loading} size="lg">
+                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>) : "Verify & Login"}
+                </Button>
+              ) : (
+                <Button type="submit" className="w-full" disabled={loading} size="lg">
+                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Sending OTP..." : "Signing in...") : "Creating account..."}</>) : (isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Send OTP" : "Sign In") : "Create Account")}
+                </Button>
+              )}
             </form>
 
 
