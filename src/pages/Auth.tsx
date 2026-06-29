@@ -218,14 +218,106 @@ export default function Auth() {
     return true;
   };
 
+  // After a successful sign-in (email or phone), figure out where to send the user.
+  const routeAfterLogin = async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) { navigate("/dashboard"); return; }
+
+    const { data: roleRows } = await supabase
+      .from("user_roles" as any).select("role").eq("user_id", currentUser.id);
+    const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
+    if (roles.includes("admin")) { navigate("/dashboard/admin"); return; }
+
+    const { data: profileRows } = await supabase
+      .from("profiles" as any).select("id, type, status").eq("user_id", currentUser.id);
+    const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
+    const active = profs.filter((p) => p.status === "active");
+    if (active.length > 1) {
+      const storedId = localStorage.getItem("jaagax.activeProfileId");
+      const stored = storedId ? active.find((p) => p.id === storedId) : null;
+      if (stored) { navigate(`/dashboard/${stored.type}`); return; }
+      navigate("/select-profile"); return;
+    }
+    if (active.length === 1) {
+      localStorage.setItem("jaagax.activeProfileId", active[0].id);
+      void supabase.from("user_settings" as any).upsert({
+        user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
+      });
+      navigate(`/dashboard/${active[0].type}`); return;
+    }
+    if (roles.length > 0) {
+      const r = roles[0];
+      const target = r === "customer" ? "buyer" : r;
+      navigate(`/dashboard/${target}`); return;
+    }
+    navigate("/select-profile");
+  };
+
+  const handleRequestOtp = async (phoneVal: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-login", {
+        body: { action: "request", phone: phoneVal },
+      });
+      if (error || (data as any)?.error) {
+        const msg = (data as any)?.error || error?.message || "Failed to send OTP";
+        toast.error(msg);
+        return;
+      }
+      setOtpPhone(phoneVal);
+      setOtpSent(true);
+      toast.success("OTP sent to your mobile. It expires in 5 minutes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(otpCode)) { toast.error("Enter the 6-digit OTP"); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-login", {
+        body: { action: "verify", phone: otpPhone, otp: otpCode },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || "Verification failed");
+        return;
+      }
+      const { email: signInEmail, token_hash } = data as { email: string; token_hash: string };
+      const { error: vErr } = await supabase.auth.verifyOtp({
+        type: "magiclink", token_hash, email: signInEmail,
+      } as any);
+      if (vErr) { toast.error(vErr.message); return; }
+      toast.success("Welcome back!");
+      setOtpSent(false); setOtpCode(""); setOtpPhone("");
+      await routeAfterLogin();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Phone-based login: request OTP and switch UI to OTP entry.
+    if (isLogin && isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier)) {
+      await handleRequestOtp(loginIdentifier.trim());
+      return;
+    }
+
+    if (isLogin && !isEmailIdentifier(loginIdentifier)) {
+      toast.error("Enter a valid email or 10-digit mobile number");
+      return;
+    }
+
     if (!validateForm()) return;
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        if (password.length < 6) { toast.error("Password must be at least 6 characters"); setLoading(false); return; }
+        const { error } = await signIn(loginIdentifier.trim(), password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -236,6 +328,8 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
+        await routeAfterLogin();
+        return;
 
         // Multi-profile login flow: fetch profiles, decide where to send the user.
         const { data: { user: currentUser } } = await supabase.auth.getUser();
