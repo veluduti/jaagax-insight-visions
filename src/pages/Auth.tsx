@@ -596,7 +596,7 @@ export default function Auth() {
         </div>
       </motion.div>
 
-      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={email} />
+      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={isEmailIdentifier(loginIdentifier) ? loginIdentifier : email} />
 
       <ResetPasswordModal
         isOpen={showResetPassword}
