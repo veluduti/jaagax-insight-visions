@@ -332,56 +332,6 @@ export default function Auth() {
         return;
 
         // Multi-profile login flow: fetch profiles, decide where to send the user.
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser) {
-          // Admin shortcut — straight to admin dashboard, never the picker.
-          const { data: roleRows } = await supabase
-            .from("user_roles" as any)
-            .select("role")
-            .eq("user_id", currentUser.id);
-          const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
-          if (roles.includes("admin")) {
-            navigate("/dashboard/admin");
-            return;
-          }
-
-          const { data: profileRows } = await supabase
-            .from("profiles" as any)
-            .select("id, type, status")
-            .eq("user_id", currentUser.id);
-          const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
-          const active = profs.filter((p) => p.status === "active");
-          if (active.length > 1) {
-            // Prefer last-used profile so returning users skip the picker.
-            const storedId = localStorage.getItem("jaagax.activeProfileId");
-            const stored = storedId ? active.find((p) => p.id === storedId) : null;
-            if (stored) {
-              navigate(`/dashboard/${stored.type}`);
-              return;
-            }
-            navigate("/select-profile");
-            return;
-          }
-          if (active.length === 1) {
-            localStorage.setItem("jaagax.activeProfileId", active[0].id);
-            void supabase.from("user_settings" as any).upsert({
-              user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
-            });
-            navigate(`/dashboard/${active[0].type}`);
-            return;
-          }
-          // No profiles yet — fall back to role-based dashboard if we have one, else picker.
-          if (roles.length > 0) {
-            const r = roles[0];
-            const target = r === "customer" ? "buyer" : r;
-            navigate(`/dashboard/${target}`);
-            return;
-          }
-          navigate("/select-profile");
-          return;
-        }
-        navigate("/dashboard");
-        return;
       } else {
         // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
         const primary = selectedRoles[0];
