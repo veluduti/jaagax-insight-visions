@@ -2782,6 +2782,42 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_login_otps: {
+        Row: {
+          attempts: number
+          created_at: string
+          email: string
+          expires_at: string
+          last_sent_at: string
+          otp_hash: string
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          email: string
+          expires_at: string
+          last_sent_at?: string
+          otp_hash: string
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          email?: string
+          expires_at?: string
+          last_sent_at?: string
+          otp_hash?: string
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       preferred_locations: {
         Row: {
           builder_profile_id: string | null

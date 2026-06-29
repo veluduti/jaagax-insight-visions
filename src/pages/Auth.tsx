@@ -66,6 +66,11 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Phone OTP login state
+  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpPhone, setOtpPhone] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
@@ -192,6 +197,13 @@ export default function Auth() {
   }, [navigate]);
 
 
+  // Detect if the login identifier is an email or phone number.
+  const isEmailIdentifier = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+  const isPhoneIdentifier = (val: string) => {
+    const digits = val.replace(/\D/g, "");
+    return digits.length >= 10 && !val.includes("@");
+  };
+
   const validateForm = () => {
     if (!isLogin) {
       if (!name.trim()) { toast.error("Name is required"); return false; }
@@ -200,21 +212,112 @@ export default function Auth() {
       if (!pwOk) { toast.error("Password must be 8+ chars with upper, lower, number & special character"); return false; }
       if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
       if (!city.trim()) { toast.error("Please select your city"); return false; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
-    if (isLogin && password.length < 6) { toast.error("Password must be at least 6 characters"); return false; }
     return true;
+  };
+
+  // After a successful sign-in (email or phone), figure out where to send the user.
+  const routeAfterLogin = async () => {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) { navigate("/dashboard"); return; }
+
+    const { data: roleRows } = await supabase
+      .from("user_roles" as any).select("role").eq("user_id", currentUser.id);
+    const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
+    if (roles.includes("admin")) { navigate("/dashboard/admin"); return; }
+
+    const { data: profileRows } = await supabase
+      .from("profiles" as any).select("id, type, status").eq("user_id", currentUser.id);
+    const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
+    const active = profs.filter((p) => p.status === "active");
+    if (active.length > 1) {
+      const storedId = localStorage.getItem("jaagax.activeProfileId");
+      const stored = storedId ? active.find((p) => p.id === storedId) : null;
+      if (stored) { navigate(`/dashboard/${stored.type}`); return; }
+      navigate("/select-profile"); return;
+    }
+    if (active.length === 1) {
+      localStorage.setItem("jaagax.activeProfileId", active[0].id);
+      void supabase.from("user_settings" as any).upsert({
+        user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
+      });
+      navigate(`/dashboard/${active[0].type}`); return;
+    }
+    if (roles.length > 0) {
+      const r = roles[0];
+      const target = r === "customer" ? "buyer" : r;
+      navigate(`/dashboard/${target}`); return;
+    }
+    navigate("/select-profile");
+  };
+
+  const handleRequestOtp = async (phoneVal: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-login", {
+        body: { action: "request", phone: phoneVal },
+      });
+      if (error || (data as any)?.error) {
+        const msg = (data as any)?.error || error?.message || "Failed to send OTP";
+        toast.error(msg);
+        return;
+      }
+      setOtpPhone(phoneVal);
+      setOtpSent(true);
+      toast.success("OTP sent to your mobile. It expires in 5 minutes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(otpCode)) { toast.error("Enter the 6-digit OTP"); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-login", {
+        body: { action: "verify", phone: otpPhone, otp: otpCode },
+      });
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || error?.message || "Verification failed");
+        return;
+      }
+      const { email: signInEmail, token_hash } = data as { email: string; token_hash: string };
+      const { error: vErr } = await supabase.auth.verifyOtp({
+        type: "magiclink", token_hash, email: signInEmail,
+      } as any);
+      if (vErr) { toast.error(vErr.message); return; }
+      toast.success("Welcome back!");
+      setOtpSent(false); setOtpCode(""); setOtpPhone("");
+      await routeAfterLogin();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Phone-based login: request OTP and switch UI to OTP entry.
+    if (isLogin && isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier)) {
+      await handleRequestOtp(loginIdentifier.trim());
+      return;
+    }
+
+    if (isLogin && !isEmailIdentifier(loginIdentifier)) {
+      toast.error("Enter a valid email or 10-digit mobile number");
+      return;
+    }
+
     if (!validateForm()) return;
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        if (password.length < 6) { toast.error("Password must be at least 6 characters"); setLoading(false); return; }
+        const { error } = await signIn(loginIdentifier.trim(), password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
             throw new Error("Please verify your email before signing in. Check your inbox for the confirmation link.");
@@ -225,58 +328,10 @@ export default function Auth() {
           throw error;
         }
         toast.success("Welcome back!");
+        await routeAfterLogin();
+        return;
 
         // Multi-profile login flow: fetch profiles, decide where to send the user.
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser) {
-          // Admin shortcut — straight to admin dashboard, never the picker.
-          const { data: roleRows } = await supabase
-            .from("user_roles" as any)
-            .select("role")
-            .eq("user_id", currentUser.id);
-          const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
-          if (roles.includes("admin")) {
-            navigate("/dashboard/admin");
-            return;
-          }
-
-          const { data: profileRows } = await supabase
-            .from("profiles" as any)
-            .select("id, type, status")
-            .eq("user_id", currentUser.id);
-          const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
-          const active = profs.filter((p) => p.status === "active");
-          if (active.length > 1) {
-            // Prefer last-used profile so returning users skip the picker.
-            const storedId = localStorage.getItem("jaagax.activeProfileId");
-            const stored = storedId ? active.find((p) => p.id === storedId) : null;
-            if (stored) {
-              navigate(`/dashboard/${stored.type}`);
-              return;
-            }
-            navigate("/select-profile");
-            return;
-          }
-          if (active.length === 1) {
-            localStorage.setItem("jaagax.activeProfileId", active[0].id);
-            void supabase.from("user_settings" as any).upsert({
-              user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
-            });
-            navigate(`/dashboard/${active[0].type}`);
-            return;
-          }
-          // No profiles yet — fall back to role-based dashboard if we have one, else picker.
-          if (roles.length > 0) {
-            const r = roles[0];
-            const target = r === "customer" ? "buyer" : r;
-            navigate(`/dashboard/${target}`);
-            return;
-          }
-          navigate("/select-profile");
-          return;
-        }
-        navigate("/dashboard");
-        return;
       } else {
         // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
         const primary = selectedRoles[0];
@@ -458,31 +513,77 @@ export default function Auth() {
                       <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
                     </div>
                   </motion.div>
+                ) : otpSent ? (
+                  <motion.div key="otp" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                    <div className="text-sm text-muted-foreground">
+                      OTP sent to <span className="font-medium text-foreground">{otpPhone}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="h-4 w-4" />Enter 6-digit OTP</Label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="••••••"
+                        className="tracking-[0.5em] text-center text-lg"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <button type="button" onClick={() => { setOtpSent(false); setOtpCode(""); }} className="text-muted-foreground hover:text-foreground">
+                        ← Change number
+                      </button>
+                      <button type="button" onClick={() => handleRequestOtp(otpPhone)} disabled={loading} className="text-primary hover:underline font-medium">
+                        Resend OTP
+                      </button>
+                    </div>
+                  </motion.div>
                 ) : (
                   <motion.div key="login" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email</Label>
-                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                      <Label htmlFor="login-id" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email Address or Mobile Number</Label>
+                      <Input
+                        id="login-id"
+                        type="text"
+                        value={loginIdentifier}
+                        onChange={(e) => setLoginIdentifier(e.target.value)}
+                        placeholder="you@example.com or 9876543210"
+                        autoComplete="username"
+                      />
+                      {loginIdentifier && isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) && (
+                        <p className="text-xs text-muted-foreground">We'll send a 6-digit OTP to this mobile number.</p>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
-                      <div className="relative">
-                        <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {(!loginIdentifier || isEmailIdentifier(loginIdentifier)) && (
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                        <div className="relative">
+                          <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
+                          Forgot password?
                         </button>
                       </div>
-                      <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
-                        Forgot password?
-                      </button>
-                    </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <Button type="submit" className="w-full" disabled={loading} size="lg">
-                {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? "Signing in..." : "Creating account..."}</>) : (isLogin ? "Sign In" : "Create Account")}
-              </Button>
+              {otpSent ? (
+                <Button type="button" onClick={handleVerifyOtp} className="w-full" disabled={loading} size="lg">
+                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>) : "Verify & Login"}
+                </Button>
+              ) : (
+                <Button type="submit" className="w-full" disabled={loading} size="lg">
+                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Sending OTP..." : "Signing in...") : "Creating account..."}</>) : (isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Send OTP" : "Sign In") : "Create Account")}
+                </Button>
+              )}
             </form>
 
 
@@ -495,7 +596,7 @@ export default function Auth() {
         </div>
       </motion.div>
 
-      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={email} />
+      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={isEmailIdentifier(loginIdentifier) ? loginIdentifier : email} />
 
       <ResetPasswordModal
         isOpen={showResetPassword}
