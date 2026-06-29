@@ -34,7 +34,12 @@ export default function ForgotPasswordModal({ isOpen, onClose, defaultEmail = ""
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/auth?reset=true`;
+      // Use the published app URL for the reset link so it works on any device
+      // (the preview URL `id-preview--*.lovable.app` requires a Lovable login on mobile).
+      const host = window.location.hostname;
+      const isPreview = host.includes("id-preview--") || host.endsWith(".lovableproject.com") || host === "localhost";
+      const baseUrl = isPreview ? "https://jaagax-insight-visions.lovable.app" : window.location.origin;
+      const redirectUrl = `${baseUrl}/auth?reset=true`;
       // Fire-and-forget: always show the same neutral message to avoid leaking
       // whether the email is registered (account enumeration prevention).
       await supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl }).catch((e) => {
