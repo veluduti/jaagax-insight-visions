@@ -12,7 +12,6 @@ import TruValue from "@/components/TruValue";
 import FeaturedCommunities from "@/components/FeaturedCommunities";
 import Footer from "@/components/Footer";
 import { useLocation } from "@/contexts/LocationContext";
-import IntentChips from "@/components/home/IntentChips";
 import VisitStayTeaser from "@/components/home/VisitStayTeaser";
 import TrustStatements from "@/components/home/TrustStatements";
 import PromotedListings from "@/components/home/PromotedListings";
@@ -46,20 +45,17 @@ const Index = () => {
       />
       <Navigation />
       <HeroCarousel activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
-      
-      {/* Intent Chips - Thin strip for user mindset */}
-      <IntentChips />
-      
+
       {/* Promoted Listings Carousel */}
       <PromotedListings />
-      
+
       {/* AI Insight Strip - Only shown to buyers with context. Lazy mount keeps initial paint fast. */}
       {role === "buyer" && (
         <LazyMount fallback={<AISectionSkeleton />} rootMargin="300px">
           <AIInsightStrip />
         </LazyMount>
       )}
-      
+
       {/* Dynamic Content Based on Active Tab */}
       {activeTab === "properties" && showBuyRent && (
         <>
@@ -77,7 +73,7 @@ const Index = () => {
           )}
         </>
       )}
-      
+
       {activeTab === "new-projects" && showNewProjects && (
         <>
           <NewProjects detectedCity={detectedLocation?.city} />
@@ -91,7 +87,7 @@ const Index = () => {
           <TruValue />
         </>
       )}
-      
+
       {activeTab === "transactions" && showTransactions && (
         <>
           {showCommunities && <FeaturedCommunities />}
@@ -103,7 +99,7 @@ const Index = () => {
           <TruValue />
         </>
       )}
-      
+
       {activeTab === "agents" && showAgents && (
         <>
           <FindMyAgent />
@@ -113,7 +109,7 @@ const Index = () => {
           <TruValue />
         </>
       )}
-      
+
       {/* Trust Statements above Footer */}
       <TrustStatements />
       <Footer />
