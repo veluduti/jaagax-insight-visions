@@ -3324,8 +3324,8 @@ export default function SellProperty() {
         }
       }
 
-      // Auto-assign agent only for seller flow OR non-trusted agent submissions
-      if (propertyId && !(isAgentMode && isTrustedAgent)) {
+      // Auto-assign agent only if owner asked for verification AND not a trusted agent flow
+      if (propertyId && verificationRequested && !(isAgentMode && isTrustedAgent)) {
         try {
           await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
         } catch (e) {
