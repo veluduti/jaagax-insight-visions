@@ -4479,6 +4479,16 @@ export default function SellProperty() {
                             {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
                           </div>
                         )}
+                        {!isFinancial && (
+                          <div className="rounded-xl border border-border bg-card p-3 mb-1">
+                            <div className="text-sm font-semibold mb-1">Would you like a nearby JAAGA verification agent to verify your property?</div>
+                            <div className="text-[11px] text-muted-foreground mb-2">Verified listings get a trust badge and rank higher. You can skip this and list as unverified.</div>
+                            <div className="flex gap-2">
+                              <Button type="button" size="sm" variant={verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(true)} className="flex-1">Yes, verify</Button>
+                              <Button type="button" size="sm" variant={!verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(false)} className="flex-1">No, list as unverified</Button>
+                            </div>
+                          </div>
+                        )}
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
