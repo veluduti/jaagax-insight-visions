@@ -284,9 +284,9 @@ export default function Auth() {
         toast.error((data as any)?.error || error?.message || "Verification failed");
         return;
       }
-      const { email: signInEmail, token_hash } = data as { email: string; token_hash: string };
+      const { token_hash } = data as { email: string; token_hash: string };
       const { error: vErr } = await supabase.auth.verifyOtp({
-        type: "magiclink", token_hash, email: signInEmail,
+        type: "magiclink", token_hash,
       } as any);
       if (vErr) { toast.error(vErr.message); return; }
       toast.success("Welcome back!");
