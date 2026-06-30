@@ -5,7 +5,7 @@ import { Sparkles, MessageSquare, Brain } from "lucide-react";
 
 const AISpotlight = () => {
   const navigate = useNavigate();
-  
+
   return (
     <section className="section-spacing relative overflow-hidden">
       {/* Background Glow */}
@@ -53,24 +53,20 @@ const AISpotlight = () => {
           </h2>
 
           <p className="text-lg md:text-xl text-foreground/80 mb-lg max-w-2xl mx-auto">
-            Chat with JaagaXGPT — Your intelligent real estate assistant. 
-            Ask questions, get recommendations, and find your dream home in seconds.
+            Chat with JaagaXGPT — Your intelligent real estate assistant. Ask questions, get recommendations, and find
+            your dream home in seconds.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
-            <Button 
-              size="lg" 
-              variant="premium"
-              onClick={() => navigate('/ai-advisor')}
-            >
+            <Button size="lg" variant="premium" onClick={() => navigate("/ai-advisor")}>
               <Sparkles className="h-5 w-5 mr-2" />
               Launch AI Property Advisor
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="border-primary/50 hover:bg-primary/10 hover:border-primary"
-              onClick={() => navigate('/guides')}
+              onClick={() => navigate("/guides")}
             >
               <MessageSquare className="h-5 w-5 mr-2" />
               See How It Works
@@ -78,18 +74,6 @@ const AISpotlight = () => {
           </div>
 
           {/* Feature Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-sm mt-lg">
-            {["Smart Recommendations", "Market Insights", "Price Prediction", "Legal Assistance"].map(
-              (feature) => (
-                <div
-                  key={feature}
-                  className="px-md py-sm rounded-full bg-secondary/50 backdrop-blur-sm text-sm font-medium border border-border/30 transition-all hover:bg-secondary/70 hover:scale-105"
-                >
-                  {feature}
-                </div>
-              )
-            )}
-          </div>
         </motion.div>
       </div>
     </section>
