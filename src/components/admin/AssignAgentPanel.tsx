@@ -540,6 +540,12 @@ export default function AssignAgentPanel() {
                     {showAgents ? "Refresh Agents" : "Assign Agent"}
                   </Button>
                 )}
+                {showAssignAgent && noAgentsFound && (
+                  <Button onClick={tempApprove} disabled={working} className="bg-amber-600 hover:bg-amber-700">
+                    {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                    Temporary Approve (No agent available)
+                  </Button>
+                )}
               </>
             }
           />
