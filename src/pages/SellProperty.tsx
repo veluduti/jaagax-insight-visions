@@ -1206,6 +1206,7 @@ export default function SellProperty() {
   const [posterTitle, setPosterTitle] = useState<string>("");
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
+  const [verificationRequested, setVerificationRequested] = useState<boolean>(true);
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
