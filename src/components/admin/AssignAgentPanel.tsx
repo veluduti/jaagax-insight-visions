@@ -58,6 +58,7 @@ interface PendingProperty {
   document_urls: any;
   lifecycle_status: string | null;
   force_verification: boolean | null;
+  verification_requested: boolean | null;
 }
 
 interface SellerInfo {
@@ -117,7 +118,7 @@ export default function AssignAgentPanel() {
     const { data } = await supabase
       .from("properties")
       .select(
-        "id, title, description, city, locality, address, pincode, latitude, longitude, type, listing_type, price, price_negotiable, maintenance_charges, booking_amount, area_sqft, building_area_sqft, bedrooms, bathrooms, balconies, bhk, furnishing, completion_stage, property_age, floor_number, total_floors, total_parking, building_name, amenities, rera_id, rera_document_url, images, video_urls, listed_by, listed_by_role_snapshot, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls, lifecycle_status, force_verification"
+        "id, title, description, city, locality, address, pincode, latitude, longitude, type, listing_type, price, price_negotiable, maintenance_charges, booking_amount, area_sqft, building_area_sqft, bedrooms, bathrooms, balconies, bhk, furnishing, completion_stage, property_age, floor_number, total_floors, total_parking, building_name, amenities, rera_id, rera_document_url, images, video_urls, listed_by, listed_by_role_snapshot, assigned_agent_id, submitted_by, rejection_reason, created_at, document_urls, lifecycle_status, force_verification, verification_requested"
       )
       .eq("verification_status", "pending")
       .order("created_at", { ascending: false });
@@ -470,13 +471,27 @@ export default function AssignAgentPanel() {
       {/* Editable details modal — visibility of action buttons follows the JAAGAX workflow */}
       {selected && (() => {
         const listedRole = (selected.listed_by_role_snapshot || selected.listed_by || "seller").toLowerCase();
-        // "Agent-posted" only if listing role is agent AND the submitter is a verified agent.
         const isAgentPosted = listedRole === "agent" && selfListedByVerifiedAgent;
         const forceVerify = !!selected.force_verification;
-        // Verification required when not agent-posted, or when admin forced it.
-        const requiresVerification = !isAgentPosted || forceVerify;
+        // Owner explicitly chose NO verification → direct approve only.
+        const ownerDeclined = selected.verification_requested === false;
+        const requiresVerification = !ownerDeclined && (!isAgentPosted || forceVerify);
         const showApproveReject = !requiresVerification;
         const showAssignAgent = requiresVerification;
+        const noAgentsFound = showAgents && !loadingAgents && suggestions.length === 0;
+        const tempApprove = async () => {
+          if (!selected) return;
+          setWorking(true);
+          try {
+            const { error } = await (supabase as any).rpc("admin_temp_approve_no_agent", { _property_id: selected.id });
+            if (error) throw error;
+            toast.success("Listing approved as Live (Unverified). Owner will be notified when an agent is available.");
+            setProperties((prev) => prev.filter((x) => x.id !== selected.id));
+            setSelected(null); setShowAgents(false);
+          } catch (e: any) {
+            toast.error(e.message || "Failed");
+          } finally { setWorking(false); }
+        };
         const toggleForceVerify = async (on: boolean) => {
           const { error } = await supabase
             .from("properties")
@@ -523,6 +538,12 @@ export default function AssignAgentPanel() {
                   <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
                     <UserCheck className="h-4 w-4 mr-1.5" />
                     {showAgents ? "Refresh Agents" : "Assign Agent"}
+                  </Button>
+                )}
+                {showAssignAgent && noAgentsFound && (
+                  <Button onClick={tempApprove} disabled={working} className="bg-amber-600 hover:bg-amber-700">
+                    {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                    Temporary Approve (No agent available)
                   </Button>
                 )}
               </>

@@ -1206,6 +1206,7 @@ export default function SellProperty() {
   const [posterTitle, setPosterTitle] = useState<string>("");
 
   const [editForm, setEditForm] = useState<Record<string, any>>({});
+  const [verificationRequested, setVerificationRequested] = useState<boolean>(true);
 
   const openEditSheet = () => {
     const canonical = toCanonical(state);
@@ -3215,7 +3216,14 @@ export default function SellProperty() {
 
           created_by_id: isAgentMode && agentRecord ? agentRecord.id : user.id,
         },
+
+        verification_requested: verificationRequested,
       };
+      // If owner declined verification, route admin to direct-approval (no agent)
+      if (!verificationRequested) {
+        payload.verification_status = "pending";
+        payload.assigned_agent_id = null;
+      }
 
       // Safety net: only send columns that exist on the `properties` table.
       const PROPERTIES_COLUMNS = new Set([
@@ -3276,6 +3284,7 @@ export default function SellProperty() {
         "featured_until",
         "boost_payment_ref",
         "builder_id",
+        "verification_requested",
       ]);
       const cleanPayload: any = {};
       for (const k of Object.keys(payload)) {
@@ -3315,8 +3324,8 @@ export default function SellProperty() {
         }
       }
 
-      // Auto-assign agent only for seller flow OR non-trusted agent submissions
-      if (propertyId && !(isAgentMode && isTrustedAgent)) {
+      // Auto-assign agent only if owner asked for verification AND not a trusted agent flow
+      if (propertyId && verificationRequested && !(isAgentMode && isTrustedAgent)) {
         try {
           await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
         } catch (e) {
@@ -4468,6 +4477,16 @@ export default function SellProperty() {
                         {!isFinancial && !titleReady && (
                           <div className="text-[11px] text-muted-foreground text-center">
                             {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
+                          </div>
+                        )}
+                        {!isFinancial && (
+                          <div className="rounded-xl border border-border bg-card p-3 mb-1">
+                            <div className="text-sm font-semibold mb-1">Would you like a nearby JAAGA verification agent to verify your property?</div>
+                            <div className="text-[11px] text-muted-foreground mb-2">Verified listings get a trust badge and rank higher. You can skip this and list as unverified.</div>
+                            <div className="flex gap-2">
+                              <Button type="button" size="sm" variant={verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(true)} className="flex-1">Yes, verify</Button>
+                              <Button type="button" size="sm" variant={!verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(false)} className="flex-1">No, list as unverified</Button>
+                            </div>
                           </div>
                         )}
                         <div className="flex gap-2">

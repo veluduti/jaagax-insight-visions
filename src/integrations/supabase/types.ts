@@ -3404,6 +3404,7 @@ export type Database = {
           trust_score: number | null
           type: string | null
           updated_at: string | null
+          verification_requested: boolean
           verification_status: string
           verified: boolean | null
           video_urls: string[] | null
@@ -3504,6 +3505,7 @@ export type Database = {
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
+          verification_requested?: boolean
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
@@ -3604,6 +3606,7 @@ export type Database = {
           trust_score?: number | null
           type?: string | null
           updated_at?: string | null
+          verification_requested?: boolean
           verification_status?: string
           verified?: boolean | null
           video_urls?: string[] | null
@@ -5171,6 +5174,10 @@ export type Database = {
         Args: { _property_id: string; _reason: string }
         Returns: undefined
       }
+      admin_temp_approve_no_agent: {
+        Args: { _property_id: string }
+        Returns: undefined
+      }
       approve_profile: { Args: { _profile_id: string }; Returns: undefined }
       assign_user_role: {
         Args: { _role: string; _user_id: string }
@@ -5315,6 +5322,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      owner_request_verification: {
+        Args: { _property_id: string }
+        Returns: undefined
       }
       purchase_financial_lead: { Args: { _lead_id: string }; Returns: Json }
       purchase_financial_promotion: {
