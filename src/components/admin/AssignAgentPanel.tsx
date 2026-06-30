@@ -58,6 +58,7 @@ interface PendingProperty {
   document_urls: any;
   lifecycle_status: string | null;
   force_verification: boolean | null;
+  verification_requested: boolean | null;
 }
 
 interface SellerInfo {
