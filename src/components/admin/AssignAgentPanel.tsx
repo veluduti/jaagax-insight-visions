@@ -471,13 +471,27 @@ export default function AssignAgentPanel() {
       {/* Editable details modal — visibility of action buttons follows the JAAGAX workflow */}
       {selected && (() => {
         const listedRole = (selected.listed_by_role_snapshot || selected.listed_by || "seller").toLowerCase();
-        // "Agent-posted" only if listing role is agent AND the submitter is a verified agent.
         const isAgentPosted = listedRole === "agent" && selfListedByVerifiedAgent;
         const forceVerify = !!selected.force_verification;
-        // Verification required when not agent-posted, or when admin forced it.
-        const requiresVerification = !isAgentPosted || forceVerify;
+        // Owner explicitly chose NO verification → direct approve only.
+        const ownerDeclined = selected.verification_requested === false;
+        const requiresVerification = !ownerDeclined && (!isAgentPosted || forceVerify);
         const showApproveReject = !requiresVerification;
         const showAssignAgent = requiresVerification;
+        const noAgentsFound = showAgents && !loadingAgents && suggestions.length === 0;
+        const tempApprove = async () => {
+          if (!selected) return;
+          setWorking(true);
+          try {
+            const { error } = await (supabase as any).rpc("admin_temp_approve_no_agent", { _property_id: selected.id });
+            if (error) throw error;
+            toast.success("Listing approved as Live (Unverified). Owner will be notified when an agent is available.");
+            setProperties((prev) => prev.filter((x) => x.id !== selected.id));
+            setSelected(null); setShowAgents(false);
+          } catch (e: any) {
+            toast.error(e.message || "Failed");
+          } finally { setWorking(false); }
+        };
         const toggleForceVerify = async (on: boolean) => {
           const { error } = await supabase
             .from("properties")
