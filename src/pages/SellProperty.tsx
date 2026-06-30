@@ -3284,6 +3284,7 @@ export default function SellProperty() {
         "featured_until",
         "boost_payment_ref",
         "builder_id",
+        "verification_requested",
       ]);
       const cleanPayload: any = {};
       for (const k of Object.keys(payload)) {
