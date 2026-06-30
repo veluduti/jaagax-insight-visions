@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
       if (existing?.last_sent_at) {
         const elapsed = (Date.now() - new Date(existing.last_sent_at).getTime()) / 1000
         if (elapsed < RESEND_COOLDOWN_SEC) {
-          return json({ error: `Please wait ${Math.ceil(RESEND_COOLDOWN_SEC - elapsed)}s before requesting a new OTP.` }, 429)
+          return json({ error: `Please wait ${Math.ceil(RESEND_COOLDOWN_SEC - elapsed)}s before requesting a new OTP.` })
         }
       }
 
