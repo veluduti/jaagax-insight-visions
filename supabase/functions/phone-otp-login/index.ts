@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
         return json({
           error: 'This mobile number is not registered. Please sign up before logging in.',
           notRegistered: true,
-        }, 404)
+        })
       }
 
       // Rate limit (resend cooldown).
