@@ -3216,7 +3216,14 @@ export default function SellProperty() {
 
           created_by_id: isAgentMode && agentRecord ? agentRecord.id : user.id,
         },
+
+        verification_requested: verificationRequested,
       };
+      // If owner declined verification, route admin to direct-approval (no agent)
+      if (!verificationRequested) {
+        payload.verification_status = "pending";
+        payload.assigned_agent_id = null;
+      }
 
       // Safety net: only send columns that exist on the `properties` table.
       const PROPERTIES_COLUMNS = new Set([
