@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
         return json({
           error: 'This mobile number is not registered. Please sign up before logging in.',
           notRegistered: true,
-        }, 404)
+        })
       }
 
       // Rate limit (resend cooldown).
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
       if (existing?.last_sent_at) {
         const elapsed = (Date.now() - new Date(existing.last_sent_at).getTime()) / 1000
         if (elapsed < RESEND_COOLDOWN_SEC) {
-          return json({ error: `Please wait ${Math.ceil(RESEND_COOLDOWN_SEC - elapsed)}s before requesting a new OTP.` }, 429)
+          return json({ error: `Please wait ${Math.ceil(RESEND_COOLDOWN_SEC - elapsed)}s before requesting a new OTP.` })
         }
       }
 
@@ -157,22 +157,24 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'verify') {
-      if (!otp || !/^\d{6}$/.test(String(otp))) return json({ error: 'Invalid OTP. Please try again.' }, 400)
+      // Return 200 for user-correctable errors so supabase.functions.invoke
+      // surfaces our message instead of "non-2xx status code".
+      if (!otp || !/^\d{6}$/.test(String(otp))) return json({ error: 'Invalid OTP. Please try again.' })
 
       const { data: rec } = await supabase
         .from('phone_login_otps')
         .select('*')
         .eq('phone', normPhone)
         .maybeSingle()
-      if (!rec) return json({ error: 'No OTP found. Please request a new OTP.' }, 400)
+      if (!rec) return json({ error: 'No OTP found. Please request a new OTP.' })
 
       if (new Date(rec.expires_at).getTime() < Date.now()) {
         await supabase.from('phone_login_otps').delete().eq('phone', normPhone)
-        return json({ error: 'OTP has expired. Please request a new OTP.' }, 400)
+        return json({ error: 'OTP has expired. Please request a new OTP.' })
       }
       if (rec.attempts >= MAX_ATTEMPTS) {
         await supabase.from('phone_login_otps').delete().eq('phone', normPhone)
-        return json({ error: 'Too many attempts. Please request a new OTP.' }, 429)
+        return json({ error: 'Too many attempts. Please request a new OTP.' })
       }
 
       const hash = await sha256(String(otp))
@@ -181,7 +183,7 @@ Deno.serve(async (req) => {
           .from('phone_login_otps')
           .update({ attempts: rec.attempts + 1, updated_at: new Date().toISOString() })
           .eq('phone', normPhone)
-        return json({ error: 'Invalid OTP. Please try again.' }, 400)
+        return json({ error: 'Invalid OTP. Please try again.' })
       }
 
       // OTP verified — generate a magic-link token_hash for the client to consume.
