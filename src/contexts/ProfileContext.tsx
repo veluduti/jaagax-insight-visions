@@ -182,7 +182,16 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
       } else {
         localStorage.removeItem(ACTIVE_KEY);
       }
+      // Persist active profile change (or clear) in user_settings
+      await supabase
+        .from("user_settings" as any)
+        .upsert({
+          user_id: user.id,
+          active_profile_id: next?.id ?? null,
+          updated_at: new Date().toISOString(),
+        });
     }
+
 
     return { error: null };
   }, [user?.id, profiles, activeProfile?.id]);
