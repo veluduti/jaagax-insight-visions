@@ -44,6 +44,9 @@ interface Row {
   reschedule_reason?: string | null;
   reschedule_preferred_date?: string | null;
   reschedule_preferred_time?: string | null;
+  verification_status?: string | null;
+  verification_requested?: boolean | null;
+  is_verified?: boolean | null;
   agent?: Agent | null;
 }
 
@@ -92,7 +95,7 @@ export function OwnerPropertyStatusPanel() {
       if (!user) return;
       setUserId(user.id);
       const { data } = await (supabase.from as any)("properties")
-        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
+        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, is_verified")
         .eq("submitted_by", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -153,6 +156,18 @@ export function OwnerPropertyStatusPanel() {
       if ((data as any)?.error) throw new Error((data as any).error);
       toast({ title: "Reschedule request sent" });
       setRescheduleTarget(null); setReason(""); setPrefDate(""); setPrefTime("");
+      load();
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally { setActing(null); }
+  };
+
+  const requestVerification = async (id: string) => {
+    setActing(id);
+    try {
+      const { error } = await (supabase.rpc as any)("owner_request_verification", { _property_id: id });
+      if (error) throw error;
+      toast({ title: "Verification requested", description: "Admin will assign a nearby agent shortly." });
       load();
     } catch (e: any) {
       toast({ title: "Failed", description: e.message, variant: "destructive" });
@@ -312,6 +327,20 @@ export function OwnerPropertyStatusPanel() {
                     </Button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Waiting-for-agent — allow owner to request verification later */}
+            {r.verification_status === "agent_unavailable" && r.verification_requested && !r.is_verified && (
+              <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
+                <div className="text-xs font-semibold text-amber-700 mb-1">Waiting for a nearby verification agent</div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  No JAAGA verification agent was available in your locality when you listed. We'll notify you when one is available. You can also request verification anytime.
+                </div>
+                <Button size="sm" disabled={acting === r.id} onClick={() => requestVerification(r.id)}>
+                  {acting === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4 mr-1" />}
+                  Request Verification
+                </Button>
               </div>
             )}
           </Card>

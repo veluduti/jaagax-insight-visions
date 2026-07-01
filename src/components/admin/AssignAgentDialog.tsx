@@ -41,7 +41,7 @@ export function AssignAgentDialog({
     setLoading(true);
     (async () => {
       const { data, error } = await supabase
-        .rpc("get_nearby_agents_for_property", { _property_id: propertyId, _radius_km: 50, _limit: 30 });
+        .rpc("get_nearby_agents_for_property", { _property_id: propertyId, _radius_km: 20, _limit: 30 });
       if (cancelled) return;
       if (error) toast({ title: "Failed to load agents", description: error.message, variant: "destructive" });
       else setAgents((data ?? []) as Agent[]);
