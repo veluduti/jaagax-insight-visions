@@ -44,6 +44,9 @@ interface Row {
   reschedule_reason?: string | null;
   reschedule_preferred_date?: string | null;
   reschedule_preferred_time?: string | null;
+  verification_status?: string | null;
+  verification_requested?: boolean | null;
+  is_verified?: boolean | null;
   agent?: Agent | null;
 }
 
