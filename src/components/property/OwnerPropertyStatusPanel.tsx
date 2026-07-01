@@ -95,7 +95,7 @@ export function OwnerPropertyStatusPanel() {
       if (!user) return;
       setUserId(user.id);
       const { data } = await (supabase.from as any)("properties")
-        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
+        .select("id, title, lifecycle_status, edit_locked, expiry_date, assigned_agent_id, last_verified_at, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, visit_scheduled_at, visit_confirmed_at, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, verification_status, verification_requested, is_verified")
         .eq("submitted_by", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
