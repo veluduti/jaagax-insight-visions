@@ -162,6 +162,18 @@ export function OwnerPropertyStatusPanel() {
     } finally { setActing(null); }
   };
 
+  const requestVerification = async (id: string) => {
+    setActing(id);
+    try {
+      const { error } = await (supabase.rpc as any)("owner_request_verification", { _property_id: id });
+      if (error) throw error;
+      toast({ title: "Verification requested", description: "Admin will assign a nearby agent shortly." });
+      load();
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally { setActing(null); }
+  };
+
   if (loading) return <div className="flex justify-center py-8"><Loader2 className="animate-spin" /></div>;
   if (rows.length === 0) return null;
 
