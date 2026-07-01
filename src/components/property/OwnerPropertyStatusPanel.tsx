@@ -329,6 +329,20 @@ export function OwnerPropertyStatusPanel() {
                 )}
               </div>
             )}
+
+            {/* Waiting-for-agent — allow owner to request verification later */}
+            {r.verification_status === "agent_unavailable" && r.verification_requested && !r.is_verified && (
+              <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3">
+                <div className="text-xs font-semibold text-amber-700 mb-1">Waiting for a nearby verification agent</div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  No JAAGA verification agent was available in your locality when you listed. We'll notify you when one is available. You can also request verification anytime.
+                </div>
+                <Button size="sm" disabled={acting === r.id} onClick={() => requestVerification(r.id)}>
+                  {acting === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4 mr-1" />}
+                  Request Verification
+                </Button>
+              </div>
+            )}
           </Card>
         );
       })}
