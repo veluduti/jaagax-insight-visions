@@ -449,6 +449,13 @@ const App = () => (
                   <Route path="/partners/analytics" element={<PartnerAnalytics />} />
                   <Route path="/partners/payouts" element={<PartnerPayouts />} />
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
+                  <Route path="/partners/staff" element={<PartnerStaff />} />
+                  <Route path="/partners/pricing" element={<PartnerPricing />} />
+                  <Route path="/partners/addons" element={<PartnerAddons />} />
+                  <Route path="/partners/booking-engine" element={<PartnerBookingEngine />} />
+                  <Route path="/book/:hotelId" element={<BookingEngine />} />
+                  <Route path="/stay/:token" element={<GuestPortal />} />
+
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />
