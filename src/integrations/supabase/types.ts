@@ -2493,6 +2493,104 @@ export type Database = {
           },
         ]
       }
+      hotel_commission_config: {
+        Row: {
+          channel: string
+          commission_percent: number
+          created_at: string
+          hotel_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          commission_percent?: number
+          created_at?: string
+          hotel_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          commission_percent?: number
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_commission_config_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_guest_messages: {
+        Row: {
+          body: string
+          booking_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_phone: string | null
+          guest_user_id: string | null
+          hotel_id: string
+          id: string
+          read_by_guest: boolean
+          read_by_partner: boolean
+          sender: string
+          sent_via_whatsapp: boolean
+          whatsapp_sid: string | null
+        }
+        Insert: {
+          body: string
+          booking_id?: string | null
+          created_at?: string
+          guest_name?: string | null
+          guest_phone?: string | null
+          guest_user_id?: string | null
+          hotel_id: string
+          id?: string
+          read_by_guest?: boolean
+          read_by_partner?: boolean
+          sender: string
+          sent_via_whatsapp?: boolean
+          whatsapp_sid?: string | null
+        }
+        Update: {
+          body?: string
+          booking_id?: string | null
+          created_at?: string
+          guest_name?: string | null
+          guest_phone?: string | null
+          guest_user_id?: string | null
+          hotel_id?: string
+          id?: string
+          read_by_guest?: boolean
+          read_by_partner?: boolean
+          sender?: string
+          sent_via_whatsapp?: boolean
+          whatsapp_sid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_guest_messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_guest_messages_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_guests: {
         Row: {
           created_at: string
@@ -2711,6 +2809,124 @@ export type Database = {
         }
         Relationships: []
       }
+      hotel_payout_batches: {
+        Row: {
+          bookings_count: number
+          commission_amount: number
+          created_at: string
+          currency: string
+          gross_amount: number
+          hotel_id: string
+          id: string
+          invoice_url: string | null
+          net_amount: number
+          notes: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          period_end: string
+          period_start: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bookings_count?: number
+          commission_amount?: number
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          hotel_id: string
+          id?: string
+          invoice_url?: string | null
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bookings_count?: number
+          commission_amount?: number
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          hotel_id?: string
+          id?: string
+          invoice_url?: string | null
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_payout_batches_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_payout_settings: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string | null
+          bank_name: string | null
+          created_at: string
+          gst_number: string | null
+          hotel_id: string
+          id: string
+          ifsc_code: string | null
+          pan_number: string | null
+          payout_frequency: string
+          updated_at: string
+          upi_id: string | null
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          gst_number?: string | null
+          hotel_id: string
+          id?: string
+          ifsc_code?: string | null
+          pan_number?: string | null
+          payout_frequency?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          gst_number?: string | null
+          hotel_id?: string
+          id?: string
+          ifsc_code?: string | null
+          pan_number?: string | null
+          payout_frequency?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_payout_settings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: true
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_pms_connections: {
         Row: {
           api_endpoint: string | null
@@ -2885,6 +3101,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_rate_plans_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_reviews: {
+        Row: {
+          body: string | null
+          booking_id: string | null
+          created_at: string
+          guest_name: string
+          guest_user_id: string | null
+          hotel_id: string
+          id: string
+          rating: number
+          responded_at: string | null
+          response: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          booking_id?: string | null
+          created_at?: string
+          guest_name: string
+          guest_user_id?: string | null
+          hotel_id: string
+          id?: string
+          rating: number
+          responded_at?: string | null
+          response?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          booking_id?: string | null
+          created_at?: string
+          guest_name?: string
+          guest_user_id?: string | null
+          hotel_id?: string
+          id?: string
+          rating?: number
+          responded_at?: string | null
+          response?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_reviews_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
