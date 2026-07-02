@@ -112,9 +112,9 @@ export default function PartnerStatus() {
                 <ShieldCheck className="h-5 w-5 text-emerald-400" />
                 <p className="font-semibold text-emerald-300">You're verified & live!</p>
               </div>
-              <p className="mt-1 text-sm text-emerald-200/80">Complete room setup and start receiving bookings.</p>
-              <Button onClick={() => nav("/dashboard/hotel-manager")} className="mt-3 bg-emerald-500 text-white hover:bg-emerald-600">
-                Open Dashboard <ArrowRight className="ml-1 h-4 w-4" />
+              <p className="mt-1 text-sm text-emerald-200/80">Next: connect your PMS & OTA channels to start receiving bookings.</p>
+              <Button onClick={() => nav(app.pms_setup_completed ? "/partners/dashboard" : "/partners/pms-setup")} className="mt-3 bg-emerald-500 text-white hover:bg-emerald-600">
+                {app.pms_setup_completed ? "Open Dashboard" : "Connect PMS"} <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
           )}
