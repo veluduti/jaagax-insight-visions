@@ -33,3 +33,6 @@ otp_expiry = 3600
     verify_jwt = true
   [functions.phone-otp-login]
     verify_jwt = false
+  [functions.send-whatsapp-message]
+    verify_jwt = true
+
