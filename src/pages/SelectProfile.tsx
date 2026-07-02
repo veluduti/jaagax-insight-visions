@@ -76,14 +76,14 @@ export default function SelectProfile() {
   // If only one profile, auto-select it
   useEffect(() => {
     if (!loading && profiles.length === 1 && profiles[0].status === "active") {
-      void switchProfile(profiles[0].id).then(() => navigate(`/dashboard/${profiles[0].type}`));
+      void switchProfile(profiles[0].id).then(() => navigate(`/dashboard/${profiles[0].type.replace(/_/g, "-")}`));
     }
   }, [loading, profiles, switchProfile, navigate]);
 
   const handlePick = async (p: Profile) => {
     if (p.status !== "active") return;
     await switchProfile(p.id);
-    navigate(`/dashboard/${p.type}`);
+    navigate(`/dashboard/${p.type.replace(/_/g, "-")}`);
   };
 
   if (loading || authLoading) {
