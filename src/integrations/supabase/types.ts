@@ -2892,51 +2892,147 @@ export type Database = {
           },
         ]
       }
+      hotel_room_channel_mappings: {
+        Row: {
+          channel: string
+          commission_percent: number | null
+          created_at: string
+          external_rate_plan_id: string | null
+          external_room_id: string | null
+          hotel_id: string
+          id: string
+          last_sync_at: string | null
+          last_sync_status: string | null
+          notes: string | null
+          room_id: string
+          sync_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          commission_percent?: number | null
+          created_at?: string
+          external_rate_plan_id?: string | null
+          external_room_id?: string | null
+          hotel_id: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          notes?: string | null
+          room_id: string
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          commission_percent?: number | null
+          created_at?: string
+          external_rate_plan_id?: string | null
+          external_room_id?: string | null
+          hotel_id?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          notes?: string | null
+          room_id?: string
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_room_channel_mappings_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_room_channel_mappings_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_rooms: {
         Row: {
           amenities: Json | null
           base_price: number
+          bed_type: string | null
+          breakfast_included: boolean
+          cancellation_policy: string | null
           category: string | null
           created_at: string
           description: string | null
+          extra_bed_allowed: boolean
+          extra_bed_price: number | null
           hotel_id: string
           id: string
           is_active: boolean
           max_occupancy: number
+          min_nights: number
           photos: string[] | null
+          pms_room_code: string | null
+          pms_room_id: string | null
           room_type: string
+          size_sqft: number | null
+          smoking_allowed: boolean
           total_units: number
           updated_at: string
+          view_type: string | null
         }
         Insert: {
           amenities?: Json | null
           base_price?: number
+          bed_type?: string | null
+          breakfast_included?: boolean
+          cancellation_policy?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          extra_bed_allowed?: boolean
+          extra_bed_price?: number | null
           hotel_id: string
           id?: string
           is_active?: boolean
           max_occupancy?: number
+          min_nights?: number
           photos?: string[] | null
+          pms_room_code?: string | null
+          pms_room_id?: string | null
           room_type: string
+          size_sqft?: number | null
+          smoking_allowed?: boolean
           total_units?: number
           updated_at?: string
+          view_type?: string | null
         }
         Update: {
           amenities?: Json | null
           base_price?: number
+          bed_type?: string | null
+          breakfast_included?: boolean
+          cancellation_policy?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          extra_bed_allowed?: boolean
+          extra_bed_price?: number | null
           hotel_id?: string
           id?: string
           is_active?: boolean
           max_occupancy?: number
+          min_nights?: number
           photos?: string[] | null
+          pms_room_code?: string | null
+          pms_room_id?: string | null
           room_type?: string
+          size_sqft?: number | null
+          smoking_allowed?: boolean
           total_units?: number
           updated_at?: string
+          view_type?: string | null
         }
         Relationships: [
           {
