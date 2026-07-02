@@ -378,7 +378,7 @@ function ApplicationsTable({ apps, statusBadge, onView, onReview }: any) {
             <TableCell className="text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
             <TableCell className="text-right space-x-1">
               <Button size="sm" variant="ghost" onClick={() => onView(a)}><Eye className="h-3 w-3" /></Button>
-              {onReview && <Button size="sm" variant="premium" onClick={() => onReview(a)}>Review</Button>}
+              {onReview && a.status === "pending" && <Button size="sm" variant="premium" onClick={() => onReview(a)}>Review</Button>}
             </TableCell>
           </TableRow>
         ))}
