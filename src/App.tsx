@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -78,6 +78,14 @@ const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
 const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
+const PartnerLanding = lazy(() => import("./pages/partners/PartnerLanding"));
+const PartnerRegister = lazy(() => import("./pages/partners/PartnerRegister"));
+const PartnerLogin = lazy(() => import("./pages/partners/PartnerLogin"));
+const PartnerForgotPassword = lazy(() => import("./pages/partners/PartnerForgotPassword"));
+const PartnerVerifyOtp = lazy(() => import("./pages/partners/PartnerVerifyOtp"));
+const PartnerWelcome = lazy(() => import("./pages/partners/PartnerWelcome"));
+const PartnerKYC = lazy(() => import("./pages/partners/PartnerKYC"));
+const PartnerStatus = lazy(() => import("./pages/partners/PartnerStatus"));
 const Promotions = lazy(() => import("./pages/Promotions"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
@@ -414,9 +422,17 @@ const App = () => (
                   <Route path="/sell-property" element={<SellProperty />} />
                   <Route path="/natural-living" element={<NaturalLiving />} />
                   <Route path="/hotels" element={<Hotels />} />
-                  <Route path="/hotels/partner" element={<HotelPartnerOnboarding />} />
-                  <Route path="/hotels/partner/status" element={<HotelPartnerStatus />} />
+                  <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
+                  <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
+                  <Route path="/partners" element={<PartnerLanding />} />
+                  <Route path="/partners/register" element={<PartnerRegister />} />
+                  <Route path="/partners/login" element={<PartnerLogin />} />
+                  <Route path="/partners/forgot-password" element={<PartnerForgotPassword />} />
+                  <Route path="/partners/verify-otp" element={<PartnerVerifyOtp />} />
+                  <Route path="/partners/welcome" element={<PartnerWelcome />} />
+                  <Route path="/partners/kyc" element={<PartnerKYC />} />
+                  <Route path="/partners/status" element={<PartnerStatus />} />
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />

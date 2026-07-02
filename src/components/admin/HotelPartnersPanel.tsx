@@ -190,9 +190,27 @@ export default function HotelPartnersPanel() {
               )}
               <div className="space-y-2">
                 <p className="text-muted-foreground text-xs">Documents</p>
-                {viewing.business_registration_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.business_registration_url)}><FileText className="h-3 w-3 mr-1" /> Business Registration</Button>}
-                {viewing.id_proof_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.id_proof_url)} className="ml-2"><FileText className="h-3 w-3 mr-1" /> ID Proof</Button>}
-                {viewing.gst_certificate_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.gst_certificate_url)} className="ml-2"><FileText className="h-3 w-3 mr-1" /> GST</Button>}
+                <div className="flex flex-wrap gap-2">
+                  {viewing.business_registration_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.business_registration_url)}><FileText className="h-3 w-3 mr-1" /> Business Reg.</Button>}
+                  {viewing.trade_license_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.trade_license_url)}><FileText className="h-3 w-3 mr-1" /> Trade License</Button>}
+                  {viewing.gst_certificate_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.gst_certificate_url)}><FileText className="h-3 w-3 mr-1" /> GST</Button>}
+                  {viewing.id_proof_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.id_proof_url)}><FileText className="h-3 w-3 mr-1" /> PAN</Button>}
+                  {viewing.identity_proof_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.identity_proof_url)}><FileText className="h-3 w-3 mr-1" /> Identity Proof</Button>}
+                  {viewing.address_proof_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.address_proof_url)}><FileText className="h-3 w-3 mr-1" /> Address Proof</Button>}
+                  {viewing.cancelled_cheque_url && <Button size="sm" variant="outline" onClick={() => openDoc(viewing.cancelled_cheque_url)}><FileText className="h-3 w-3 mr-1" /> Cancelled Cheque</Button>}
+                </div>
+                {(viewing.gst_number || viewing.pan_number || viewing.company_name || viewing.bank_account_number) && (
+                  <div className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-border/50 bg-muted/20 p-3 text-xs">
+                    {viewing.company_name && <Info label="Company" value={viewing.company_name} />}
+                    {viewing.gst_number && <Info label="GST No." value={viewing.gst_number} />}
+                    {viewing.pan_number && <Info label="PAN No." value={viewing.pan_number} />}
+                    {viewing.num_hotels && <Info label="Hotels" value={String(viewing.num_hotels)} />}
+                    {viewing.bank_name && <Info label="Bank" value={viewing.bank_name} />}
+                    {viewing.bank_account_name && <Info label="A/C Name" value={viewing.bank_account_name} />}
+                    {viewing.bank_account_number && <Info label="A/C No." value={viewing.bank_account_number} />}
+                    {viewing.bank_ifsc && <Info label="IFSC" value={viewing.bank_ifsc} />}
+                  </div>
+                )}
               </div>
               {viewing.status === "pending" && (
                 <div className="flex gap-2 pt-2">

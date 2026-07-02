@@ -1,0 +1,17 @@
+ALTER TABLE public.hotel_partner_applications
+  ADD COLUMN IF NOT EXISTS company_name text,
+  ADD COLUMN IF NOT EXISTS country text,
+  ADD COLUMN IF NOT EXISTS state text,
+  ADD COLUMN IF NOT EXISTS gst_number text,
+  ADD COLUMN IF NOT EXISTS pan_number text,
+  ADD COLUMN IF NOT EXISTS num_hotels int,
+  ADD COLUMN IF NOT EXISTS num_rooms_total int,
+  ADD COLUMN IF NOT EXISTS trade_license_url text,
+  ADD COLUMN IF NOT EXISTS cancelled_cheque_url text,
+  ADD COLUMN IF NOT EXISTS address_proof_url text,
+  ADD COLUMN IF NOT EXISTS identity_proof_url text,
+  ADD COLUMN IF NOT EXISTS bank_account_name text,
+  ADD COLUMN IF NOT EXISTS bank_account_number text,
+  ADD COLUMN IF NOT EXISTS bank_ifsc text,
+  ADD COLUMN IF NOT EXISTS bank_name text,
+  ADD COLUMN IF NOT EXISTS admin_notes text;

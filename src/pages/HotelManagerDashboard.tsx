@@ -106,7 +106,7 @@ const HotelManagerDashboard = () => {
         .eq("user_id", user.id)
         .limit(1);
       if (!data || data.length === 0) {
-        navigate("/hotels/partner", { replace: true });
+        navigate("/partners/kyc", { replace: true });
         return;
       }
       fetchHotels();
