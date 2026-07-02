@@ -32,7 +32,7 @@ export default function PartnerStatus() {
       const load = async () => {
         const { data } = await (supabase as any)
           .from("hotel_partner_applications")
-          .select("id,status,hotel_name,created_at,reviewed_at,rejection_reason,approved_hotel_id")
+          .select("id,status,hotel_name,created_at,reviewed_at,rejection_reason,approved_hotel_id,pms_setup_completed")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(1);
