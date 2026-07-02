@@ -91,6 +91,9 @@ const PartnerDashboard = lazy(() => import("./pages/partners/PartnerDashboard"))
 const PartnerRooms = lazy(() => import("./pages/partners/PartnerRooms"));
 const PartnerReservations = lazy(() => import("./pages/partners/PartnerReservations"));
 const PartnerGuests = lazy(() => import("./pages/partners/PartnerGuests"));
+const PartnerAnalytics = lazy(() => import("./pages/partners/PartnerAnalytics"));
+const PartnerPayouts = lazy(() => import("./pages/partners/PartnerPayouts"));
+const PartnerInbox = lazy(() => import("./pages/partners/PartnerInbox"));
 const Promotions = lazy(() => import("./pages/Promotions"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
