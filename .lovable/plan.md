@@ -1,75 +1,51 @@
-# Phase 4 — JAAGA X Partner Hub
+# Phase 5 — Growth, Scale & Guest Experience
 
-Ship three modules in one pass. All routes live under `/partners/*` and reuse `PartnerSubNav`.
+Build on Phases 1–4 (KYC, PMS, Operations, Analytics/Payouts/Inbox) to help hotel partners grow direct revenue, price smarter, and delight guests.
 
-## 1. Analytics & Reports — `/partners/analytics`
+## Modules
 
-Data source: `hotel_bookings` (already exists), `hotel_rooms`, `hotel_rate_calendar`.
+### 1. Direct Booking Engine & Embeddable Widget
+- Public hotel microsite at `/book/:hotelSlug` (rooms, rates, availability, gallery, reviews).
+- Embeddable `<script>` widget hotels paste on their own website; opens booking flow in iframe/modal.
+- Zero-commission bookings write directly to `hotel_bookings` with `source='direct'`.
 
-KPI cards (period-filtered: 7d / 30d / 90d / custom):
-- Revenue (sum of confirmed + checked_out `total_amount`)
-- ADR — revenue ÷ room-nights sold
-- RevPAR — revenue ÷ available room-nights
-- Occupancy % — nights sold ÷ (rooms × days)
-- Booking count, cancellation rate, avg lead time
+### 2. Dynamic Pricing & Promotions Engine
+- New table `hotel_pricing_rules` (occupancy-based, day-of-week, lead-time, min-stay).
+- New table `hotel_promo_codes` (percent/flat, validity, usage cap, applicable room types).
+- Rule evaluator applied on `hotel_rate_calendar` reads at booking time.
+- Partner UI at `/partners/pricing` to create/preview rules.
 
-Charts (recharts, already installed):
-- Revenue trend (line, daily)
-- Occupancy heatmap (30-day grid)
-- Channel mix (donut — from `hotel_bookings.source`)
-- Top rooms by revenue (bar)
+### 3. Guest Experience Portal (Pre-arrival → Post-stay)
+- Guest-facing page at `/stay/:bookingCode` (no login, tokenized link sent via email/WhatsApp).
+- Digital check-in form (ID upload, ETA, preferences), house rules acknowledgment.
+- In-stay: request add-ons (breakfast, pickup), message hotel, view invoice.
+- Post-stay: review prompt feeding `hotel_reviews`.
 
-Export:
-- CSV of raw booking rows (client-side `Blob` download)
-- PDF summary via `jspdf` (already in deps)
+### 4. Add-on Services & Upsell Marketplace
+- New table `hotel_addons` (title, price, category: F&B/transport/experience, availability window).
+- New table `hotel_booking_addons` linking selections to bookings.
+- Surfaced in booking engine, guest portal, and reservations screen for walk-in upsell.
 
-## 2. Payouts & Finance — `/partners/payouts`
+### 5. Multi-property & Staff Roles
+- Extend `hotel_partner_applications` for chains; add `hotel_staff` table (user_id, hotel_id, role: owner/manager/front-desk/housekeeping).
+- Property switcher in `PartnerSubNav`.
+- Role-gated routes: housekeeping sees only room status board; front-desk sees reservations; manager sees analytics/payouts.
+- Consolidated multi-property dashboard for owners.
 
-Derived from bookings, no gateway. New tables (migration):
+## Technical Details
 
-```text
-hotel_payout_settings   ← bank/UPI details per hotel
-hotel_payout_batches    ← monthly rollup rows
-hotel_commission_config ← per-channel commission % (default 15%)
-```
+- **DB migrations:** `hotel_pricing_rules`, `hotel_promo_codes`, `hotel_addons`, `hotel_booking_addons`, `hotel_staff`, plus columns on `hotel_bookings` (`source`, `promo_code`, `addon_total`).
+- **RLS:** reuse `user_owns_hotel(hotel_id)`; staff access via new `user_has_hotel_role(hotel_id, role)` security-definer.
+- **Edge functions:** `booking-engine-quote` (applies pricing rules + promos), `booking-engine-confirm`, `guest-portal-token` (issues signed tokens), `send-guest-portal-link`.
+- **Widget:** built as standalone `dist/widget.js` served from `/public/widget.js`, mounts iframe pointing to `/book/:hotelSlug`.
+- **Guest portal auth:** JWT-signed magic links, no Supabase auth session.
+- **Routes:** `/book/:slug`, `/stay/:code`, `/partners/pricing`, `/partners/addons`, `/partners/staff`, `/partners/properties`.
 
-Views:
-- Earnings ledger: booking → gross → commission → net (from `hotel_room_channel_mappings.commission_percent` fallback to config)
-- Monthly summary cards: This month / Last month / YTD
-- Payout schedule table with status (pending/processing/paid) — admin-controlled
-- Bank details form (IFSC, account, UPI) → saved to `hotel_payout_settings`
-- Invoice PDF per batch (jspdf)
+## Suggested Build Order
+1. Multi-property + staff roles (foundation for everything else).
+2. Dynamic pricing + promos.
+3. Direct booking engine + widget.
+4. Add-ons marketplace.
+5. Guest experience portal.
 
-RLS: hotel-owner scoped via existing `user_owns_hotel()`.
-
-## 3. Reviews & Guest Messaging — `/partners/inbox`
-
-New tables:
-
-```text
-hotel_reviews           ← rating, title, body, guest_name, response, responded_at
-hotel_guest_messages    ← thread per booking, sender=guest|partner, body, sent_via_whatsapp bool
-```
-
-UI (two-tab layout):
-- **Reviews tab**: list with star filter, rating breakdown widget, inline "Reply" that saves to `response`
-- **Messages tab**: booking-threaded conversation, textarea + "Send in-app" / "Send via WhatsApp" split button
-
-WhatsApp integration:
-- Edge function `partner-send-whatsapp` reuses existing Twilio connector
-- Formats `+91` if missing, posts to `/Messages.json` with `From=whatsapp:` + business number
-- Logs delivery status to `hotel_guest_messages.sent_via_whatsapp`
-
-## 4. Wiring
-
-- Add analytics/payouts/inbox routes in `src/App.tsx`
-- Extend `PartnerSubNav` with 3 new tabs
-- Add quick-link cards on `PartnerDashboard` overview
-
-## Technical notes
-- One migration creates all 5 tables + GRANTs + RLS scoped to `user_owns_hotel()`
-- No new dependencies (recharts, jspdf, Twilio connector all present)
-- Reviews stay read-only from guest side for now (partners see + reply; guest submission form is Phase 5)
-- Payout status transitions are admin-only (add small admin panel section in a follow-up if needed)
-
-Say **go** to ship.
+Approve to proceed, or tell me which modules to drop/reorder.
