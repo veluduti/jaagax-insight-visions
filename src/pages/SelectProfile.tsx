@@ -47,6 +47,20 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; subtitle: string
     iconColor: "text-amber-300",
     ring: "hover:ring-amber-400/60",
   },
+  hotel_manager: {
+    icon: Building2, label: "Hotel",
+    subtitle: "Manage hotel listings, bookings & partner details",
+    gradient: "from-rose-500/25 via-pink-500/15 to-transparent",
+    iconColor: "text-rose-300",
+    ring: "hover:ring-rose-400/60",
+  },
+  hotel: {
+    icon: Building2, label: "Hotel",
+    subtitle: "Manage hotel listings, bookings & partner details",
+    gradient: "from-rose-500/25 via-pink-500/15 to-transparent",
+    iconColor: "text-rose-300",
+    ring: "hover:ring-rose-400/60",
+  },
 };
 
 export default function SelectProfile() {
@@ -62,14 +76,14 @@ export default function SelectProfile() {
   // If only one profile, auto-select it
   useEffect(() => {
     if (!loading && profiles.length === 1 && profiles[0].status === "active") {
-      void switchProfile(profiles[0].id).then(() => navigate(`/dashboard/${profiles[0].type}`));
+      void switchProfile(profiles[0].id).then(() => navigate(`/dashboard/${profiles[0].type.replace(/_/g, "-")}`));
     }
   }, [loading, profiles, switchProfile, navigate]);
 
   const handlePick = async (p: Profile) => {
     if (p.status !== "active") return;
     await switchProfile(p.id);
-    navigate(`/dashboard/${p.type}`);
+    navigate(`/dashboard/${p.type.replace(/_/g, "-")}`);
   };
 
   if (loading || authLoading) {
