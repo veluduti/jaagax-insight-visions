@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 type App = {
   id: string; status: string; hotel_name: string; created_at: string;
   reviewed_at?: string | null; rejection_reason?: string | null; approved_hotel_id?: string | null;
+  pms_setup_completed?: boolean | null;
 };
 
 const timeline = [
