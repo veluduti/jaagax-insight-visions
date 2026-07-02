@@ -163,7 +163,7 @@ const Hotels = () => {
               <Button
                 variant="premium"
                 size="lg"
-                onClick={() => navigate("/hotels/partner")}
+                onClick={() => navigate("/partners")}
                 className="gap-2"
               >
                 <Hotel className="h-5 w-5" />
