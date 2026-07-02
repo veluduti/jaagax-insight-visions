@@ -2391,25 +2391,39 @@ export type Database = {
       hotel_partner_applications: {
         Row: {
           address: string | null
+          address_proof_url: string | null
+          admin_notes: string | null
           amenities: string[] | null
           approved_hotel_id: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
           business_registration_url: string | null
           business_type: string
+          cancelled_cheque_url: string | null
           check_in_24h: boolean
           check_in_time: string | null
           check_out_time: string | null
           city: string
+          company_name: string | null
+          country: string | null
           created_at: string
           email: string
           front_desk_24h: boolean
           gst_certificate_url: string | null
+          gst_number: string | null
           hotel_name: string
           id: string
           id_proof_url: string | null
+          identity_proof_url: string | null
           latitude: number | null
           locality: string
           longitude: number | null
+          num_hotels: number | null
+          num_rooms_total: number | null
           owner_name: string
+          pan_number: string | null
           phone: string
           photos: string[] | null
           pincode: string | null
@@ -2420,32 +2434,48 @@ export type Database = {
           reviewed_by: string | null
           room_categories: Json
           room_types: string[] | null
+          state: string | null
           status: string
           total_rooms: number | null
+          trade_license_url: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           address?: string | null
+          address_proof_url?: string | null
+          admin_notes?: string | null
           amenities?: string[] | null
           approved_hotel_id?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           business_registration_url?: string | null
           business_type?: string
+          cancelled_cheque_url?: string | null
           check_in_24h?: boolean
           check_in_time?: string | null
           check_out_time?: string | null
           city: string
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           email: string
           front_desk_24h?: boolean
           gst_certificate_url?: string | null
+          gst_number?: string | null
           hotel_name: string
           id?: string
           id_proof_url?: string | null
+          identity_proof_url?: string | null
           latitude?: number | null
           locality: string
           longitude?: number | null
+          num_hotels?: number | null
+          num_rooms_total?: number | null
           owner_name: string
+          pan_number?: string | null
           phone: string
           photos?: string[] | null
           pincode?: string | null
@@ -2456,32 +2486,48 @@ export type Database = {
           reviewed_by?: string | null
           room_categories?: Json
           room_types?: string[] | null
+          state?: string | null
           status?: string
           total_rooms?: number | null
+          trade_license_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           address?: string | null
+          address_proof_url?: string | null
+          admin_notes?: string | null
           amenities?: string[] | null
           approved_hotel_id?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           business_registration_url?: string | null
           business_type?: string
+          cancelled_cheque_url?: string | null
           check_in_24h?: boolean
           check_in_time?: string | null
           check_out_time?: string | null
           city?: string
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           email?: string
           front_desk_24h?: boolean
           gst_certificate_url?: string | null
+          gst_number?: string | null
           hotel_name?: string
           id?: string
           id_proof_url?: string | null
+          identity_proof_url?: string | null
           latitude?: number | null
           locality?: string
           longitude?: number | null
+          num_hotels?: number | null
+          num_rooms_total?: number | null
           owner_name?: string
+          pan_number?: string | null
           phone?: string
           photos?: string[] | null
           pincode?: string | null
@@ -2492,8 +2538,10 @@ export type Database = {
           reviewed_by?: string | null
           room_categories?: Json
           room_types?: string[] | null
+          state?: string | null
           status?: string
           total_rooms?: number | null
+          trade_license_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
