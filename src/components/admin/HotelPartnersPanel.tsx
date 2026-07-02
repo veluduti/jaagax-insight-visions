@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText, RefreshCw, Lock, LogIn } from "lucide-react";
+import { Loader2, ShieldCheck, XCircle, Clock, Eye, FileText, RefreshCw, Lock, LogIn, Search, X } from "lucide-react";
 import { toast } from "sonner";
+
+type StatusFilter = "all" | "pending" | "approved" | "rejected";
 
 export default function HotelPartnersPanel() {
   const navigate = useNavigate();
