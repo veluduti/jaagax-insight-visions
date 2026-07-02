@@ -93,7 +93,23 @@ export default function PartnerRegister() {
         name: form.owner_name,
         phone: form.phone,
       });
-      if (error || (data as any)?.error) throw new Error(error?.message || (data as any)?.error || "Signup failed");
+      let errMsg: string | null = null;
+      if (error) {
+        errMsg = error.message || "Signup failed";
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx?.json) {
+            const b = await ctx.json();
+            if (b?.error) errMsg = b.error;
+          } else if (ctx?.body) {
+            const b = typeof ctx.body === "string" ? JSON.parse(ctx.body) : ctx.body;
+            if (b?.error) errMsg = b.error;
+          }
+        } catch {}
+      } else if ((data as any)?.error) {
+        errMsg = (data as any).error;
+      }
+      if (errMsg) throw new Error(errMsg);
       toast.success("Verification code sent to your email");
       navigate("/partners/verify-otp", { state: { email: form.email } });
     } catch (e: any) {
