@@ -114,6 +114,13 @@ const FinancialPromotions = lazy(() => import("./pages/financial/Promotions"));
 const FinancialNotifications = lazy(() => import("./pages/financial/Notifications"));
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
+const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerPricing = lazy(() => import("./pages/partners/PartnerPricing"));
+const PartnerAddons = lazy(() => import("./pages/partners/PartnerAddons"));
+const PartnerBookingEngine = lazy(() => import("./pages/partners/PartnerBookingEngine"));
+const BookingEngine = lazy(() => import("./pages/public/BookingEngine"));
+const GuestPortal = lazy(() => import("./pages/public/GuestPortal"));
+
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
@@ -449,6 +456,13 @@ const App = () => (
                   <Route path="/partners/analytics" element={<PartnerAnalytics />} />
                   <Route path="/partners/payouts" element={<PartnerPayouts />} />
                   <Route path="/partners/inbox" element={<PartnerInbox />} />
+                  <Route path="/partners/staff" element={<PartnerStaff />} />
+                  <Route path="/partners/pricing" element={<PartnerPricing />} />
+                  <Route path="/partners/addons" element={<PartnerAddons />} />
+                  <Route path="/partners/booking-engine" element={<PartnerBookingEngine />} />
+                  <Route path="/book/:hotelId" element={<BookingEngine />} />
+                  <Route path="/stay/:token" element={<GuestPortal />} />
+
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />

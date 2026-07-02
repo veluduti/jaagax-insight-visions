@@ -35,4 +35,9 @@ otp_expiry = 3600
     verify_jwt = false
   [functions.send-whatsapp-message]
     verify_jwt = true
+  [functions.booking-engine-quote]
+    verify_jwt = false
+  [functions.booking-engine-confirm]
+    verify_jwt = false
+
 

@@ -2273,6 +2273,164 @@ export type Database = {
           },
         ]
       }
+      guest_portal_requests: {
+        Row: {
+          booking_id: string
+          created_at: string
+          handled_by: string | null
+          hotel_id: string
+          id: string
+          payload: Json
+          request_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          handled_by?: string | null
+          hotel_id: string
+          id?: string
+          payload?: Json
+          request_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          handled_by?: string | null
+          hotel_id?: string
+          id?: string
+          payload?: Json
+          request_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_portal_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_portal_requests_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_addons: {
+        Row: {
+          available_from: string | null
+          available_to: string | null
+          category: string
+          created_at: string
+          description: string | null
+          hotel_id: string
+          id: string
+          is_active: boolean
+          photo_url: string | null
+          price: number
+          title: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          available_from?: string | null
+          available_to?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          photo_url?: string | null
+          price?: number
+          title: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          available_from?: string | null
+          available_to?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          photo_url?: string | null
+          price?: number
+          title?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_addons_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_booking_addons: {
+        Row: {
+          addon_id: string
+          booking_id: string
+          created_at: string
+          id: string
+          quantity: number
+          status: string
+          total_price: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          addon_id: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          status?: string
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          addon_id?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          status?: string
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_booking_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_booking_addons_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_booking_notes: {
         Row: {
           author_id: string | null
@@ -2317,17 +2475,21 @@ export type Database = {
       }
       hotel_bookings: {
         Row: {
+          addon_total: number
           booking_reference: string | null
           booking_type: string | null
           builder_profile_id: string | null
           cancellation_reason: string | null
           check_in: string
           check_out: string
+          checked_in_at: string | null
+          checkin_info: Json | null
           created_at: string | null
           currency: string
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
+          guest_portal_token: string | null
           hotel_address: string | null
           hotel_id: string
           hotel_name: string | null
@@ -2338,8 +2500,10 @@ export type Database = {
           package_id: string | null
           payment_method: string | null
           payment_status: string
+          promo_code: string | null
           property_id: string | null
           room_type: string | null
+          source: string
           special_requests: string | null
           status: string
           total_amount: number
@@ -2347,17 +2511,21 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          addon_total?: number
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
           cancellation_reason?: string | null
           check_in: string
           check_out: string
+          checked_in_at?: string | null
+          checkin_info?: Json | null
           created_at?: string | null
           currency?: string
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
+          guest_portal_token?: string | null
           hotel_address?: string | null
           hotel_id: string
           hotel_name?: string | null
@@ -2368,8 +2536,10 @@ export type Database = {
           package_id?: string | null
           payment_method?: string | null
           payment_status?: string
+          promo_code?: string | null
           property_id?: string | null
           room_type?: string | null
+          source?: string
           special_requests?: string | null
           status?: string
           total_amount?: number
@@ -2377,17 +2547,21 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          addon_total?: number
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
           cancellation_reason?: string | null
           check_in?: string
           check_out?: string
+          checked_in_at?: string | null
+          checkin_info?: Json | null
           created_at?: string | null
           currency?: string
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
+          guest_portal_token?: string | null
           hotel_address?: string | null
           hotel_id?: string
           hotel_name?: string | null
@@ -2398,8 +2572,10 @@ export type Database = {
           package_id?: string | null
           payment_method?: string | null
           payment_status?: string
+          promo_code?: string | null
           property_id?: string | null
           room_type?: string | null
+          source?: string
           special_requests?: string | null
           status?: string
           total_amount?: number
@@ -3004,6 +3180,134 @@ export type Database = {
           },
         ]
       }
+      hotel_pricing_rules: {
+        Row: {
+          adjustment_type: string
+          adjustment_value: number
+          conditions: Json
+          created_at: string
+          ends_on: string | null
+          hotel_id: string
+          id: string
+          is_active: boolean
+          name: string
+          priority: number
+          room_id: string | null
+          rule_type: string
+          starts_on: string | null
+          updated_at: string
+        }
+        Insert: {
+          adjustment_type: string
+          adjustment_value?: number
+          conditions?: Json
+          created_at?: string
+          ends_on?: string | null
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: number
+          room_id?: string | null
+          rule_type: string
+          starts_on?: string | null
+          updated_at?: string
+        }
+        Update: {
+          adjustment_type?: string
+          adjustment_value?: number
+          conditions?: Json
+          created_at?: string
+          ends_on?: string | null
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: number
+          room_id?: string | null
+          rule_type?: string
+          starts_on?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_pricing_rules_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_pricing_rules_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_promo_codes: {
+        Row: {
+          applicable_room_ids: string[] | null
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          hotel_id: string
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_nights: number | null
+          updated_at: string
+          uses_count: number
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_room_ids?: string[] | null
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type: string
+          discount_value?: number
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_nights?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_room_ids?: string[] | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_nights?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_promo_codes_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_rate_calendar: {
         Row: {
           available_units: number | null
@@ -3313,6 +3617,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hotel_rooms_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_staff: {
+        Row: {
+          created_at: string
+          hotel_id: string
+          id: string
+          invited_email: string | null
+          is_active: boolean
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hotel_id: string
+          id?: string
+          invited_email?: string | null
+          is_active?: boolean
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          invited_email?: string | null
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_staff_hotel_id_fkey"
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
@@ -6268,6 +6613,10 @@ export type Database = {
       update_financial_loan_document_status: {
         Args: { _document_id: string; _notes?: string; _status: string }
         Returns: undefined
+      }
+      user_has_hotel_access: {
+        Args: { _hotel_id: string; _min_role?: string }
+        Returns: boolean
       }
       user_owns_hotel: { Args: { _hotel_id: string }; Returns: boolean }
       user_owns_profile: {
