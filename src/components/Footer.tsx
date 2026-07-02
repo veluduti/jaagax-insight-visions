@@ -14,7 +14,7 @@ const Footer = () => {
               <img
                 src={jaagaxLogo}
                 alt="JAAGA X"
-                className="h-20 w-auto object-contain"
+                className="h-10 w-auto object-contain"
                 loading="lazy"
                 decoding="async"
               />
