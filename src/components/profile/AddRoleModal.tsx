@@ -61,6 +61,20 @@ const roleMeta: Record<ProfileType, RoleMeta> = {
     iconBg: "bg-gradient-to-br from-yellow-500/30 to-amber-500/20",
     iconColor: "text-amber-200", glow: "shadow-[0_0_40px_-10px_hsl(45_95%_60%/0.45)]", accent: "text-amber-300",
   },
+  hotel_manager: {
+    icon: Building2, title: "Hotel", subtitle: "Manage hotel listings, bookings & partners",
+    perks: ["Hotel dashboard", "Booking management", "Partner visibility"],
+    gradient: "from-rose-500/30 via-pink-500/15 to-transparent",
+    iconBg: "bg-gradient-to-br from-rose-500/30 to-pink-500/20",
+    iconColor: "text-rose-200", glow: "shadow-[0_0_40px_-10px_hsl(340_85%_60%/0.45)]", accent: "text-rose-300",
+  },
+  hotel: {
+    icon: Building2, title: "Hotel", subtitle: "Manage hotel listings, bookings & partners",
+    perks: ["Hotel dashboard", "Booking management", "Partner visibility"],
+    gradient: "from-rose-500/30 via-pink-500/15 to-transparent",
+    iconBg: "bg-gradient-to-br from-rose-500/30 to-pink-500/20",
+    iconColor: "text-rose-200", glow: "shadow-[0_0_40px_-10px_hsl(340_85%_60%/0.45)]", accent: "text-rose-300",
+  },
 };
 
 const ROLE_ORDER: ProfileType[] = ["buyer", "seller", "agent", "builder", "financial"];
