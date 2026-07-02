@@ -114,6 +114,13 @@ const FinancialPromotions = lazy(() => import("./pages/financial/Promotions"));
 const FinancialNotifications = lazy(() => import("./pages/financial/Notifications"));
 const FinancialSettings = lazy(() => import("./pages/financial/Settings"));
 const SmartFinancing = lazy(() => import("./pages/SmartFinancing"));
+const PartnerStaff = lazy(() => import("./pages/partners/PartnerStaff"));
+const PartnerPricing = lazy(() => import("./pages/partners/PartnerPricing"));
+const PartnerAddons = lazy(() => import("./pages/partners/PartnerAddons"));
+const PartnerBookingEngine = lazy(() => import("./pages/partners/PartnerBookingEngine"));
+const BookingEngine = lazy(() => import("./pages/public/BookingEngine"));
+const GuestPortal = lazy(() => import("./pages/public/GuestPortal"));
+
 
 const SelectLocation = lazy(() => import("./pages/SelectLocation"));
 const AgentAssignedProperties = lazy(() => import("./pages/AgentAssignedProperties"));
