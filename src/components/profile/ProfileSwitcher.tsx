@@ -21,9 +21,11 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; gradient: string
   agent:     { icon: Users,      label: "Agent",     gradient: "from-violet-500/20 to-fuchsia-500/10", iconColor: "text-violet-300" },
   builder:   { icon: Building2,  label: "Builder",   gradient: "from-amber-500/20 to-orange-500/10",   iconColor: "text-amber-300" },
   financial: { icon: Building2,  label: "Financial", gradient: "from-yellow-500/20 to-amber-500/10",   iconColor: "text-amber-300" },
+  hotel_manager: { icon: Building2, label: "Hotel",  gradient: "from-rose-500/20 to-pink-500/10",      iconColor: "text-rose-300" },
+  hotel:         { icon: Building2, label: "Hotel",  gradient: "from-rose-500/20 to-pink-500/10",      iconColor: "text-rose-300" },
 };
 
-const dashboardRoute = (type: ProfileType) => `/dashboard/${type}`;
+const dashboardRoute = (type: ProfileType) => `/dashboard/${type.replace(/_/g, "-")}`;
 
 export default function ProfileSwitcher() {
   const navigate = useNavigate();
