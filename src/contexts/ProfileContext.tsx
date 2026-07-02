@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-export type ProfileType = "buyer" | "seller" | "agent" | "builder" | "financial";
+export type ProfileType = "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel_manager" | "hotel";
 export type ProfileStatus = "active" | "pending" | "rejected";
 
 export interface Profile {
