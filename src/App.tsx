@@ -422,9 +422,17 @@ const App = () => (
                   <Route path="/sell-property" element={<SellProperty />} />
                   <Route path="/natural-living" element={<NaturalLiving />} />
                   <Route path="/hotels" element={<Hotels />} />
-                  <Route path="/hotels/partner" element={<HotelPartnerOnboarding />} />
-                  <Route path="/hotels/partner/status" element={<HotelPartnerStatus />} />
+                  <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
+                  <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
+                  <Route path="/partners" element={<PartnerLanding />} />
+                  <Route path="/partners/register" element={<PartnerRegister />} />
+                  <Route path="/partners/login" element={<PartnerLogin />} />
+                  <Route path="/partners/forgot-password" element={<PartnerForgotPassword />} />
+                  <Route path="/partners/verify-otp" element={<PartnerVerifyOtp />} />
+                  <Route path="/partners/welcome" element={<PartnerWelcome />} />
+                  <Route path="/partners/kyc" element={<PartnerKYC />} />
+                  <Route path="/partners/status" element={<PartnerStatus />} />
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />
