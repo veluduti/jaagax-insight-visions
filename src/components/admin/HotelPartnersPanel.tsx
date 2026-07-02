@@ -23,6 +23,14 @@ export default function HotelPartnersPanel() {
   const [viewing, setViewing] = useState<any | null>(null);
   const [reason, setReason] = useState("");
   const [acting, setActing] = useState(false);
+
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
+  const [query, setQuery] = useState("");
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [businessFilter, setBusinessFilter] = useState<string>("all");
+  const [sort, setSort] = useState<"newest" | "oldest">("newest");
+
   useEffect(() => {
     load();
     const channel = supabase
