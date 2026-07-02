@@ -47,6 +47,20 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; subtitle: string
     iconColor: "text-amber-300",
     ring: "hover:ring-amber-400/60",
   },
+  hotel_manager: {
+    icon: Building2, label: "Hotel",
+    subtitle: "Manage hotel listings, bookings & partner details",
+    gradient: "from-rose-500/25 via-pink-500/15 to-transparent",
+    iconColor: "text-rose-300",
+    ring: "hover:ring-rose-400/60",
+  },
+  hotel: {
+    icon: Building2, label: "Hotel",
+    subtitle: "Manage hotel listings, bookings & partner details",
+    gradient: "from-rose-500/25 via-pink-500/15 to-transparent",
+    iconColor: "text-rose-300",
+    ring: "hover:ring-rose-400/60",
+  },
 };
 
 export default function SelectProfile() {
