@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark } from "lucide-react";
+import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark, Hotel } from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ResetPasswordModal from "@/components/auth/ResetPasswordModal";
@@ -52,6 +52,13 @@ const roleConfig = {
     color: "from-yellow-500/20 to-amber-500/20",
     borderColor: "border-amber-500/50",
   },
+  hotel: {
+    icon: Hotel,
+    title: "Hotel",
+    description: "Manage rooms, bookings & inventory",
+    color: "from-rose-500/20 to-pink-500/20",
+    borderColor: "border-rose-500/50",
+  },
   admin: {
     icon: Shield,
     title: "Admin",
@@ -75,7 +82,7 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [locationMeta, setLocationMeta] = useState<NormalizedLocation | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder" | "financial">>(["buyer"]);
+  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder" | "financial" | "hotel">>(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -87,15 +94,16 @@ export default function Auth() {
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
 
   const isPasswordReset = searchParams.get("reset") === "true";
-  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder" | "financial"; label: string; desc: string }> = [
+  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel"; label: string; desc: string }> = [
     { key: "buyer",     label: "Buyer",     desc: "Browse & book" },
     { key: "seller",    label: "Seller",    desc: "Sell property" },
     { key: "agent",     label: "Agent",     desc: "List & earn" },
     { key: "builder",   label: "Builder",   desc: "Showcase projects" },
     { key: "financial", label: "Financial", desc: "Loans & legal" },
+    { key: "hotel",     label: "Hotel",     desc: "Manage bookings" },
   ];
 
-  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder" | "financial") => {
+  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel") => {
     setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   };
 
@@ -113,19 +121,20 @@ export default function Auth() {
       }
       // Decide redirect based on profiles count
       (async () => {
+        const dashPath = (t: string) => (t === "hotel" || t === "hotel_manager" ? "/dashboard/hotel-manager" : `/dashboard/${t}`);
         const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
         const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter((p) => p.status === "active");
         if (list.length === 0) {
           if (role) redirectToDashboard();
         } else if (list.length === 1) {
           localStorage.setItem("jaagax.activeProfileId", list[0].id);
-          navigate(`/dashboard/${list[0].type}`);
+          navigate(dashPath(list[0].type));
         } else {
           // Multiple profiles: prefer last-used (stored) to avoid showing the picker every login.
           const storedId = localStorage.getItem("jaagax.activeProfileId");
           const stored = storedId ? list.find((p) => p.id === storedId) : null;
           if (stored) {
-            navigate(`/dashboard/${stored.type}`);
+            navigate(dashPath(stored.type));
           } else {
             navigate("/select-profile");
           }
@@ -232,10 +241,12 @@ export default function Auth() {
       .from("profiles" as any).select("id, type, status").eq("user_id", currentUser.id);
     const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
     const active = profs.filter((p) => p.status === "active");
+    const dashPath = (t: string) =>
+      t === "hotel" || t === "hotel_manager" ? "/dashboard/hotel-manager" : `/dashboard/${t}`;
     if (active.length > 1) {
       const storedId = localStorage.getItem("jaagax.activeProfileId");
       const stored = storedId ? active.find((p) => p.id === storedId) : null;
-      if (stored) { navigate(`/dashboard/${stored.type}`); return; }
+      if (stored) { navigate(dashPath(stored.type)); return; }
       navigate("/select-profile"); return;
     }
     if (active.length === 1) {
@@ -243,11 +254,11 @@ export default function Auth() {
       void supabase.from("user_settings" as any).upsert({
         user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
       });
-      navigate(`/dashboard/${active[0].type}`); return;
+      navigate(dashPath(active[0].type)); return;
     }
     if (roles.length > 0) {
       const r = roles[0];
-      const target = r === "customer" ? "buyer" : r;
+      const target = r === "customer" ? "buyer" : r === "hotel_manager" ? "hotel-manager" : r;
       navigate(`/dashboard/${target}`); return;
     }
     navigate("/select-profile");
@@ -334,9 +345,12 @@ export default function Auth() {
         // Multi-profile login flow: fetch profiles, decide where to send the user.
       } else {
         // Sign up using primary role (first selected) for legacy signup_requests + auth metadata.
+        // "hotel" is a UI-only key that maps to DB role "hotel_manager".
+        const mapRole = (r: string): UserRole => (r === "hotel" ? "hotel_manager" : (r as UserRole));
         const primary = selectedRoles[0];
-        const primaryAsUserRole: UserRole = primary;
-        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone, selectedRoles as UserRole[]);
+        const primaryAsUserRole: UserRole = mapRole(primary);
+        const mappedRoles: UserRole[] = selectedRoles.map(mapRole);
+        const { error } = await signUp(email, password, primaryAsUserRole, city, name, phone, mappedRoles);
         if (error) {
           if (error.message.includes("already registered") || error.message.includes("User already registered")) {
             setIsLogin(true);

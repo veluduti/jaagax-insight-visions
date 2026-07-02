@@ -16,7 +16,7 @@ export type AccessResolution = {
 };
 
 const ROLE_PRIORITY = ["admin", "hotel_manager", "builder", "agent", "financial", "customer", "buyer", "driver"] as const;
-const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer", "agent", "builder", "financial"]);
+const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer", "agent", "builder", "financial", "hotel_manager"]);
 
 export const mapDbRoleToAppRole = (dbRole: string, requestedRole?: string | null): AppUserRole => {
   if (dbRole === "customer") {
@@ -29,6 +29,7 @@ export const mapDbRoleToAppRole = (dbRole: string, requestedRole?: string | null
 export const normalizeDbRole = (role?: string | null) => {
   if (!role) return null;
   if (role === "buyer" || role === "seller") return "customer";
+  if (role === "hotel") return "hotel_manager";
   return role;
 };
 

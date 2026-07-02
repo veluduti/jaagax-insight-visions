@@ -228,7 +228,7 @@ export default function HotelPartnerOnboarding() {
 
   const progress = useMemo(() => (step / STEPS.length) * 100, [step]);
 
-  if (submitted) return <SuccessScreen onGoStatus={() => navigate("/hotels/partner/status")} hotelName={data.hotel_name} />;
+  if (submitted) return <SuccessScreen onGoDashboard={() => navigate("/dashboard/hotel-manager")} onGoStatus={() => navigate("/hotels/partner/status")} hotelName={data.hotel_name} />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-950/20">
@@ -886,7 +886,7 @@ function Step6({ data, uploadFile, uploading }: any) {
   );
 }
 
-function SuccessScreen({ onGoStatus, hotelName }: { onGoStatus: () => void; hotelName: string }) {
+function SuccessScreen({ onGoDashboard, onGoStatus, hotelName }: { onGoDashboard: () => void; onGoStatus: () => void; hotelName: string }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-emerald-950/30">
       <Navigation />
@@ -895,16 +895,16 @@ function SuccessScreen({ onGoStatus, hotelName }: { onGoStatus: () => void; hote
           className="h-20 w-20 mx-auto bg-emerald-500/20 border-2 border-emerald-500 rounded-full flex items-center justify-center mb-6">
           <Check className="h-10 w-10 text-emerald-400" />
         </motion.div>
-        <h1 className="text-3xl font-bold mb-3">Application Submitted</h1>
+        <h1 className="text-3xl font-bold mb-3">Your hotel has been set up successfully</h1>
         <p className="text-muted-foreground mb-2">
-          <strong className="text-foreground">{hotelName}</strong> is now in our review queue.
+          Welcome to <strong className="text-foreground">Jaaga Hotel PMS</strong>. <strong className="text-foreground">{hotelName}</strong> is now in our review queue.
         </p>
         <p className="text-sm text-muted-foreground mb-8">
-          Our team will review your hotel within 24–48 hours. You'll get a notification once approved.
+          Our team will review your hotel within 24–48 hours. You can start managing your hotel from the dashboard right away.
         </p>
-        <div className="flex gap-3 justify-center">
-          <Button variant="outline" onClick={() => (window.location.href = "/hotels")}>Browse Hotels</Button>
-          <Button variant="premium" onClick={onGoStatus}>Check Status</Button>
+        <div className="flex gap-3 justify-center flex-wrap">
+          <Button variant="outline" onClick={onGoStatus}>Check Status</Button>
+          <Button variant="premium" onClick={onGoDashboard}>Go to Hotel Dashboard</Button>
         </div>
       </div>
     </div>
