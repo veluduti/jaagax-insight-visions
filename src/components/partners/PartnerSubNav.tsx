@@ -1,15 +1,22 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare } from "lucide-react";
+import {
+  LayoutDashboard, BedDouble, CalendarRange, Users, BarChart3, Wallet, MessageSquare,
+  TrendingUp, Sparkles, UserCog, Globe,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/partners/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/partners/rooms", label: "Rooms & Rates", icon: BedDouble },
+  { to: "/partners/pricing", label: "Pricing & Promos", icon: TrendingUp },
+  { to: "/partners/addons", label: "Add-ons", icon: Sparkles },
   { to: "/partners/reservations", label: "Reservations", icon: CalendarRange },
   { to: "/partners/guests", label: "Guests", icon: Users },
   { to: "/partners/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/partners/payouts", label: "Payouts", icon: Wallet },
   { to: "/partners/inbox", label: "Inbox", icon: MessageSquare },
+  { to: "/partners/staff", label: "Staff", icon: UserCog },
+  { to: "/partners/booking-engine", label: "Booking Engine", icon: Globe },
 ];
 
 export default function PartnerSubNav() {
