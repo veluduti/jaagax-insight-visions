@@ -100,8 +100,51 @@ export default function HotelPartnersPanel() {
     return <Badge className="bg-amber-500/20 text-amber-300"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
   };
 
-  const pending = apps.filter((a) => a.status === "pending");
-  const reviewed = apps.filter((a) => a.status !== "pending");
+  const counts = useMemo(() => ({
+    all: apps.length,
+    pending: apps.filter((a) => a.status === "pending").length,
+    approved: apps.filter((a) => a.status === "approved").length,
+    rejected: apps.filter((a) => a.status === "rejected").length,
+  }), [apps]);
+
+  const cities = useMemo(() => {
+    const set = new Set<string>();
+    apps.forEach((a) => a.city && set.add(a.city));
+    return Array.from(set).sort();
+  }, [apps]);
+
+  const businessTypes = useMemo(() => {
+    const set = new Set<string>();
+    apps.forEach((a) => a.business_type && set.add(a.business_type));
+    return Array.from(set).sort();
+  }, [apps]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = apps.slice();
+    if (statusFilter !== "all") list = list.filter((a) => a.status === statusFilter);
+    if (cityFilter !== "all") list = list.filter((a) => a.city === cityFilter);
+    if (businessFilter !== "all") list = list.filter((a) => a.business_type === businessFilter);
+    if (q) {
+      list = list.filter((a) =>
+        [a.hotel_name, a.owner_name, a.email, a.phone, a.city, a.locality, a.pincode]
+          .filter(Boolean).some((v: string) => String(v).toLowerCase().includes(q))
+      );
+    }
+    list.sort((a, b) => {
+      const da = new Date(a.created_at).getTime();
+      const db = new Date(b.created_at).getTime();
+      return sort === "newest" ? db - da : da - db;
+    });
+    return list;
+  }, [apps, statusFilter, cityFilter, businessFilter, query, sort]);
+
+  const clearFilters = () => {
+    setQuery(""); setCityFilter("all"); setBusinessFilter("all"); setSort("newest"); setStatusFilter("pending");
+  };
+
+  const activeFilterCount =
+    (query ? 1 : 0) + (cityFilter !== "all" ? 1 : 0) + (businessFilter !== "all" ? 1 : 0);
 
   return (
     <div className="space-y-4">
@@ -115,19 +158,72 @@ export default function HotelPartnersPanel() {
             <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+            <TabsList className="flex flex-wrap h-auto">
+              <TabsTrigger value="all" className="gap-1">All <Badge variant="outline" className="ml-1">{counts.all}</Badge></TabsTrigger>
+              <TabsTrigger value="pending" className="gap-1">Pending <Badge variant="outline" className="ml-1">{counts.pending}</Badge></TabsTrigger>
+              <TabsTrigger value="approved" className="gap-1">Approved <Badge variant="outline" className="ml-1">{counts.approved}</Badge></TabsTrigger>
+              <TabsTrigger value="rejected" className="gap-1">Rejected <Badge variant="outline" className="ml-1">{counts.rejected}</Badge></TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="grid gap-2 md:grid-cols-[1fr_180px_180px_160px_auto]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search hotel, owner, email, phone, pincode..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger><SelectValue placeholder="City" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All cities</SelectItem>
+                {cities.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={businessFilter} onValueChange={setBusinessFilter}>
+              <SelectTrigger><SelectValue placeholder="Business type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All business types</SelectItem>
+                {businessTypes.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="oldest">Oldest first</SelectItem>
+              </SelectContent>
+            </Select>
+            {(activeFilterCount > 0 || statusFilter !== "pending") && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                <X className="h-3 w-3" /> Clear
+              </Button>
+            )}
+          </div>
+
           {loading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : (
             <>
-              <h3 className="font-semibold mb-2 text-amber-400">Pending ({pending.length})</h3>
-              <ApplicationsTable apps={pending} statusBadge={statusBadge} onView={setViewing} onReview={(a) => { setReviewing(a); setReason(""); }} />
-              <h3 className="font-semibold mt-6 mb-2">Reviewed ({reviewed.length})</h3>
-              <ApplicationsTable apps={reviewed} statusBadge={statusBadge} onView={setViewing} />
+              <div className="text-xs text-muted-foreground">
+                Showing {filtered.length} of {apps.length} application{apps.length === 1 ? "" : "s"}
+              </div>
+              <ApplicationsTable
+                apps={filtered}
+                statusBadge={statusBadge}
+                onView={setViewing}
+                onReview={(a: any) => { setReviewing(a); setReason(""); }}
+              />
             </>
           )}
         </CardContent>
       </Card>
+
 
       {/* View dialog */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
