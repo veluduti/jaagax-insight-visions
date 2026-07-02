@@ -365,7 +365,7 @@ function ApplicationsTable({ apps, statusBadge, onView, onReview }: any) {
       <TableHeader>
         <TableRow>
           <TableHead>Hotel</TableHead><TableHead>Location</TableHead><TableHead>Owner</TableHead>
-          <TableHead>Status</TableHead><TableHead>Submitted</TableHead><TableHead className="text-right">Actions</TableHead>
+          <TableHead>Status</TableHead><TableHead>PMS</TableHead><TableHead>Submitted</TableHead><TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -375,6 +375,11 @@ function ApplicationsTable({ apps, statusBadge, onView, onReview }: any) {
             <TableCell>{a.locality}, {a.city}</TableCell>
             <TableCell>{a.owner_name}<div className="text-xs text-muted-foreground">{a.phone}</div></TableCell>
             <TableCell>{statusBadge(a.status)}</TableCell>
+            <TableCell className="text-xs">
+              {a.pms_setup_completed
+                ? <span className="text-emerald-400">{a.pms_provider || "Configured"}</span>
+                : <span className="text-muted-foreground">Not set</span>}
+            </TableCell>
             <TableCell className="text-xs">{new Date(a.created_at).toLocaleDateString()}</TableCell>
             <TableCell className="text-right space-x-1">
               <Button size="sm" variant="ghost" onClick={() => onView(a)}><Eye className="h-3 w-3" /></Button>

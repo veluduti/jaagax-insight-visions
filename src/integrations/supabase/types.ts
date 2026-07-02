@@ -2388,6 +2388,69 @@ export type Database = {
           },
         ]
       }
+      hotel_channel_mappings: {
+        Row: {
+          application_id: string | null
+          channel: string
+          commission_percent: number | null
+          created_at: string
+          external_property_id: string | null
+          id: string
+          last_sync_at: string | null
+          last_sync_status: string | null
+          notes: string | null
+          pms_connection_id: string | null
+          sync_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          channel: string
+          commission_percent?: number | null
+          created_at?: string
+          external_property_id?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          notes?: string | null
+          pms_connection_id?: string | null
+          sync_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          channel?: string
+          commission_percent?: number | null
+          created_at?: string
+          external_property_id?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          notes?: string | null
+          pms_connection_id?: string | null
+          sync_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_channel_mappings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_partner_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_channel_mappings_pms_connection_id_fkey"
+            columns: ["pms_connection_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_pms_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_partner_applications: {
         Row: {
           address: string | null
@@ -2427,6 +2490,8 @@ export type Database = {
           phone: string
           photos: string[] | null
           pincode: string | null
+          pms_provider: string | null
+          pms_setup_completed: boolean
           price_max: number | null
           price_min: number | null
           rejection_reason: string | null
@@ -2479,6 +2544,8 @@ export type Database = {
           phone: string
           photos?: string[] | null
           pincode?: string | null
+          pms_provider?: string | null
+          pms_setup_completed?: boolean
           price_max?: number | null
           price_min?: number | null
           rejection_reason?: string | null
@@ -2531,6 +2598,8 @@ export type Database = {
           phone?: string
           photos?: string[] | null
           pincode?: string | null
+          pms_provider?: string | null
+          pms_setup_completed?: boolean
           price_max?: number | null
           price_min?: number | null
           rejection_reason?: string | null
@@ -2546,6 +2615,83 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      hotel_pms_connections: {
+        Row: {
+          api_endpoint: string | null
+          api_key_masked: string | null
+          application_id: string | null
+          connection_mode: string
+          created_at: string
+          hotel_id: string | null
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          last_sync_error: string | null
+          pms_provider: string
+          property_code: string | null
+          sync_interval_minutes: number
+          sync_inventory: boolean
+          sync_rates: boolean
+          sync_reservations: boolean
+          sync_restrictions: boolean
+          sync_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_masked?: string | null
+          application_id?: string | null
+          connection_mode?: string
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          pms_provider: string
+          property_code?: string | null
+          sync_interval_minutes?: number
+          sync_inventory?: boolean
+          sync_rates?: boolean
+          sync_reservations?: boolean
+          sync_restrictions?: boolean
+          sync_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_masked?: string | null
+          application_id?: string | null
+          connection_mode?: string
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          pms_provider?: string
+          property_code?: string | null
+          sync_interval_minutes?: number
+          sync_inventory?: boolean
+          sync_rates?: boolean
+          sync_reservations?: boolean
+          sync_restrictions?: boolean
+          sync_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_pms_connections_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_partner_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kyc_documents: {
         Row: {
