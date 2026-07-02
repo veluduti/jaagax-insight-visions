@@ -86,6 +86,8 @@ const PartnerVerifyOtp = lazy(() => import("./pages/partners/PartnerVerifyOtp"))
 const PartnerWelcome = lazy(() => import("./pages/partners/PartnerWelcome"));
 const PartnerKYC = lazy(() => import("./pages/partners/PartnerKYC"));
 const PartnerStatus = lazy(() => import("./pages/partners/PartnerStatus"));
+const PartnerPmsSetup = lazy(() => import("./pages/partners/PartnerPmsSetup"));
+const PartnerDashboard = lazy(() => import("./pages/partners/PartnerDashboard"));
 const Promotions = lazy(() => import("./pages/Promotions"));
 const PropertyReels = lazy(() => import("./pages/PropertyReels"));
 const InnovationHub = lazy(() => import("./pages/InnovationHub"));
