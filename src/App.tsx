@@ -435,6 +435,8 @@ const App = () => (
                   <Route path="/partners/welcome" element={<PartnerWelcome />} />
                   <Route path="/partners/kyc" element={<PartnerKYC />} />
                   <Route path="/partners/status" element={<PartnerStatus />} />
+                  <Route path="/partners/pms-setup" element={<PartnerPmsSetup />} />
+                  <Route path="/partners/dashboard" element={<PartnerDashboard />} />
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/reels" element={<PropertyReels />} />
                   <Route path="/innovation" element={<InnovationHub />} />
