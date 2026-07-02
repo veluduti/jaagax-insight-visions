@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PartnerNav from "@/components/partners/PartnerNav";
+import PartnerSubNav from "@/components/partners/PartnerSubNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +165,7 @@ export default function PartnerDashboard() {
     return (
       <div className="min-h-screen bg-background">
         <PartnerNav />
+        <PartnerSubNav />
         <div className="flex h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
         </div>
@@ -174,6 +176,7 @@ export default function PartnerDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <PartnerNav />
+      <PartnerSubNav />
       <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -185,7 +188,8 @@ export default function PartnerDashboard() {
             <Button variant="outline" size="sm" onClick={runSync} disabled={syncing || !conn}>
               <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} /> Sync now
             </Button>
-            <Link to="/hotels/manage"><Button variant="outline" size="sm"><BedDouble className="mr-1.5 h-3.5 w-3.5" />Rooms</Button></Link>
+            <Link to="/partners/rooms"><Button variant="outline" size="sm"><BedDouble className="mr-1.5 h-3.5 w-3.5" />Rooms</Button></Link>
+            <Link to="/partners/reservations"><Button variant="outline" size="sm"><CalendarDays className="mr-1.5 h-3.5 w-3.5" />Reservations</Button></Link>
             <Link to="/partners/pms-setup"><Button variant="outline" size="sm"><Settings className="mr-1.5 h-3.5 w-3.5" />PMS Settings</Button></Link>
           </div>
         </div>
@@ -292,10 +296,10 @@ export default function PartnerDashboard() {
                 <Zap className="h-4 w-4 text-emerald-400" /> Quick actions
               </p>
               <div className="grid grid-cols-2 gap-2">
-                <Link to="/hotels/manage"><Button variant="outline" className="w-full justify-start"><Plus className="mr-1.5 h-4 w-4" />Add room</Button></Link>
-                <Link to="/hotels/manage"><Button variant="outline" className="w-full justify-start"><CalendarDays className="mr-1.5 h-4 w-4" />Block dates</Button></Link>
-                <Link to="/hotels/manage"><Button variant="outline" className="w-full justify-start"><Users className="mr-1.5 h-4 w-4" />Reservations</Button></Link>
-                <Link to="/hotels/manage"><Button variant="outline" className="w-full justify-start"><IndianRupee className="mr-1.5 h-4 w-4" />Update rates</Button></Link>
+                <Link to="/partners/rooms"><Button variant="outline" className="w-full justify-start"><Plus className="mr-1.5 h-4 w-4" />Add room</Button></Link>
+                <Link to="/partners/rooms"><Button variant="outline" className="w-full justify-start"><CalendarDays className="mr-1.5 h-4 w-4" />Block dates</Button></Link>
+                <Link to="/partners/reservations"><Button variant="outline" className="w-full justify-start"><Users className="mr-1.5 h-4 w-4" />Reservations</Button></Link>
+                <Link to="/partners/rooms"><Button variant="outline" className="w-full justify-start"><IndianRupee className="mr-1.5 h-4 w-4" />Update rates</Button></Link>
               </div>
             </CardContent>
           </Card>
