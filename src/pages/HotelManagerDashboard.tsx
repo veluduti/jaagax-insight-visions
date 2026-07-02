@@ -94,14 +94,25 @@ const HotelManagerDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // TODO: Re-enable auth check after testing
-    // if (!authLoading && !user) {
-    //   navigate("/auth");
-    //   return;
-    // }
-    fetchHotels();
-    fetchBookings();
-  }, [user, authLoading]);
+    // First-login gate: if the hotel account hasn't submitted the setup wizard,
+    // send them to /hotels/partner. We check hotel_partner_applications for a row
+    // belonging to this user (any status = setup completed / in review).
+    (async () => {
+      if (authLoading) return;
+      if (!user) return; // let existing auth flow handle unauth
+      const { data } = await supabase
+        .from("hotel_partner_applications" as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (!data || data.length === 0) {
+        navigate("/hotels/partner", { replace: true });
+        return;
+      }
+      fetchHotels();
+      fetchBookings();
+    })();
+  }, [user, authLoading, navigate]);
 
   const fetchHotels = async () => {
     try {
