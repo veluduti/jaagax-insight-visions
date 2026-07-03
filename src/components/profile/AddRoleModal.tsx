@@ -77,7 +77,7 @@ const roleMeta: Record<ProfileType, RoleMeta> = {
   },
 };
 
-const ROLE_ORDER: ProfileType[] = ["buyer", "seller", "agent", "builder", "financial"];
+const ROLE_ORDER: ProfileType[] = ["buyer", "seller", "agent", "builder", "financial", "hotel"];
 
 export default function AddRoleModal({ open, onOpenChange }: Props) {
   const { profiles, addProfile } = useProfile();
