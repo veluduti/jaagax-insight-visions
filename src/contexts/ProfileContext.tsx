@@ -37,6 +37,20 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
   const loadProfiles = useCallback(async (userId: string) => {
     setLoading(true);
     try {
+      // Admins have no user-facing profile — hide the switcher entirely.
+      const { data: adminRoles } = await supabase
+        .from("user_roles" as any)
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin");
+      if ((adminRoles ?? []).length > 0) {
+        setProfiles([]);
+        setActiveProfile(null);
+        localStorage.removeItem(ACTIVE_KEY);
+        setLoading(false);
+        return;
+      }
+
       const [{ data: profileRows }, { data: settingsRow }] = await Promise.all([
         supabase.from("profiles" as any).select("*").eq("user_id", userId).order("created_at"),
         supabase.from("user_settings" as any).select("active_profile_id").eq("user_id", userId).maybeSingle(),
