@@ -156,12 +156,12 @@ export default function RegisteredUsersPanel() {
                     )}
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {u.roles.length === 0 ? (
-                        u.requested_role ? (
+                        u.signup?.requested_role ? (
                           <Badge
                             variant="outline"
-                            className={`capitalize text-[10px] ${ROLE_COLORS[u.requested_role] ?? ""}`}
+                            className={`capitalize text-[10px] ${ROLE_COLORS[u.signup?.requested_role] ?? ""}`}
                           >
-                            {u.requested_role} (pending)
+                            {u.signup?.requested_role} (pending)
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[10px]">no role</Badge>
