@@ -228,7 +228,7 @@ export default function HotelPartnerOnboarding() {
 
   const progress = useMemo(() => (step / STEPS.length) * 100, [step]);
 
-  if (submitted) return <SuccessScreen onGoDashboard={() => navigate("/dashboard/hotel-manager")} onGoStatus={() => navigate("/hotels/partner/status")} hotelName={data.hotel_name} />;
+  if (submitted) return <SuccessScreen onGoDashboard={() => navigate("/partners/dashboard")} onGoStatus={() => navigate("/hotels/partner/status")} hotelName={data.hotel_name} />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-950/20">

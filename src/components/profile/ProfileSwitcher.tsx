@@ -26,7 +26,7 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; gradient: string
 };
 
 const dashboardRoute = (type: ProfileType) => {
-  if (type === "hotel" || type === "hotel_manager") return "/dashboard/hotel-manager";
+  if (type === "hotel" || type === "hotel_manager") return "/partners/dashboard";
   return `/dashboard/${type.replace(/_/g, "-")}`;
 };
 

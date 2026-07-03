@@ -613,7 +613,7 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/dashboard/hotel-manager"
+                    path="/partners/dashboard"
                     element={
                       <ProtectedRoute allowedRole="hotel_manager">
                         <HotelManagerDashboard />

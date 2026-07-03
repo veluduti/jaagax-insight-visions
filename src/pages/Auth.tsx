@@ -121,7 +121,7 @@ export default function Auth() {
       }
       // Decide redirect based on profiles count
       (async () => {
-        const dashPath = (t: string) => (t === "hotel" || t === "hotel_manager" ? "/dashboard/hotel-manager" : `/dashboard/${t}`);
+        const dashPath = (t: string) => (t === "hotel" || t === "hotel_manager" ? "/partners/dashboard" : `/dashboard/${t}`);
         const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
         const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter((p) => p.status === "active");
         if (list.length === 0) {
@@ -240,7 +240,7 @@ export default function Auth() {
     const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
     const active = profs.filter((p) => p.status === "active");
     const dashPath = (t: string) =>
-      t === "hotel" || t === "hotel_manager" ? "/dashboard/hotel-manager" : `/dashboard/${t}`;
+      t === "hotel" || t === "hotel_manager" ? "/partners/dashboard" : `/dashboard/${t}`;
     if (active.length > 1) {
       const storedId = localStorage.getItem("jaagax.activeProfileId");
       const stored = storedId ? active.find((p) => p.id === storedId) : null;

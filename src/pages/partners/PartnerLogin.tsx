@@ -36,7 +36,7 @@ export default function PartnerLogin() {
       toast.success("Welcome back!");
       if (!app) navigate("/partners/kyc");
       else if (app.status === "pending" || app.status === "rejected") navigate("/partners/status");
-      else navigate("/dashboard/hotel-manager");
+      else navigate("/partners/dashboard");
     } catch (err: any) {
       toast.error(err.message || "Invalid email or password");
     } finally {
