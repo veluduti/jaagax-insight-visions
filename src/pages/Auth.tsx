@@ -130,14 +130,12 @@ export default function Auth() {
           localStorage.setItem("jaagax.activeProfileId", list[0].id);
           navigate(dashPath(list[0].type));
         } else {
-          // Multiple profiles: prefer last-used (stored) to avoid showing the picker every login.
+          // Multiple profiles: prefer last-used, else fall back to first active profile.
           const storedId = localStorage.getItem("jaagax.activeProfileId");
           const stored = storedId ? list.find((p) => p.id === storedId) : null;
-          if (stored) {
-            navigate(dashPath(stored.type));
-          } else {
-            navigate("/select-profile");
-          }
+          const target = stored ?? list[0];
+          localStorage.setItem("jaagax.activeProfileId", target.id);
+          navigate(dashPath(target.type));
         }
       })();
     }
@@ -246,8 +244,9 @@ export default function Auth() {
     if (active.length > 1) {
       const storedId = localStorage.getItem("jaagax.activeProfileId");
       const stored = storedId ? active.find((p) => p.id === storedId) : null;
-      if (stored) { navigate(dashPath(stored.type)); return; }
-      navigate("/select-profile"); return;
+      const target = stored ?? active[0];
+      localStorage.setItem("jaagax.activeProfileId", target.id);
+      navigate(dashPath(target.type)); return;
     }
     if (active.length === 1) {
       localStorage.setItem("jaagax.activeProfileId", active[0].id);
@@ -261,7 +260,7 @@ export default function Auth() {
       const target = r === "customer" ? "buyer" : r === "hotel_manager" ? "hotel-manager" : r;
       navigate(`/dashboard/${target}`); return;
     }
-    navigate("/select-profile");
+    navigate("/dashboard");
   };
 
   const handleRequestOtp = async (phoneVal: string) => {
