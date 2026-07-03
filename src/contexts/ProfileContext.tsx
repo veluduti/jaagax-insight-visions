@@ -52,25 +52,32 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
         ]);
         const roles = (roleRows ?? []).map((r: any) => r.role as string);
         const reqRole = (signupRow as any)?.requested_role as string | undefined;
-        const candidate = roles[0] ?? reqRole ?? "buyer";
-        const typeMap: Record<string, ProfileType> = {
-          customer: "buyer",
-          buyer: "buyer",
-          seller: "seller",
-          agent: "agent",
-          builder: "builder",
-          financial: "financial",
-          hotel: "hotel_manager",
-          hotel_manager: "hotel_manager",
-        };
-        const profileType: ProfileType = typeMap[candidate] ?? "buyer";
-        const { data: inserted } = await supabase
-          .from("profiles" as any)
-          .insert({ user_id: userId, type: profileType } as any)
-          .select()
-          .single();
-        if (inserted) list = [inserted as unknown as Profile];
+
+        // Admins have no user-facing profile row. Skip bootstrap so the
+        // admin role isn't shadowed by a synthesized "buyer" profile.
+        const isAdmin = roles.includes("admin");
+        if (!isAdmin) {
+          const candidate = roles[0] ?? reqRole ?? "buyer";
+          const typeMap: Record<string, ProfileType> = {
+            customer: "buyer",
+            buyer: "buyer",
+            seller: "seller",
+            agent: "agent",
+            builder: "builder",
+            financial: "financial",
+            hotel: "hotel_manager",
+            hotel_manager: "hotel_manager",
+          };
+          const profileType: ProfileType = typeMap[candidate] ?? "buyer";
+          const { data: inserted } = await supabase
+            .from("profiles" as any)
+            .insert({ user_id: userId, type: profileType } as any)
+            .select()
+            .single();
+          if (inserted) list = [inserted as unknown as Profile];
+        }
       }
+
 
       setProfiles(list);
 
