@@ -25,7 +25,10 @@ const roleMeta: Record<ProfileType, { icon: any; label: string; gradient: string
   hotel:         { icon: Building2, label: "Hotel",  gradient: "from-rose-500/20 to-pink-500/10",      iconColor: "text-rose-300" },
 };
 
-const dashboardRoute = (type: ProfileType) => `/dashboard/${type.replace(/_/g, "-")}`;
+const dashboardRoute = (type: ProfileType) => {
+  if (type === "hotel" || type === "hotel_manager") return "/dashboard/hotel-manager";
+  return `/dashboard/${type.replace(/_/g, "-")}`;
+};
 
 export default function ProfileSwitcher() {
   const navigate = useNavigate();

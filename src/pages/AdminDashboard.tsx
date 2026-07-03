@@ -564,7 +564,7 @@ export default function AdminDashboard() {
     setLoadingStats(true);
     try {
       const [
-        { count: usersCount },
+        { data: profileUserRows },
         { count: propertiesCount },
         { count: projectsCount },
         { count: agentsCount },
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
         { count: agentVerifiedCount },
         { count: priceDropsCount },
       ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("user_id"),
         supabase.from("properties").select("*", { count: "exact", head: true }),
         supabase.from("projects").select("*", { count: "exact", head: true }),
         supabase.from("agents").select("*", { count: "exact", head: true }),
@@ -596,6 +596,7 @@ export default function AdminDashboard() {
           .eq("verification_status", "agent_verified"),
         supabase.from("properties").select("*", { count: "exact", head: true }).eq("price_drop_pending", true),
       ]);
+      const usersCount = new Set((profileUserRows ?? []).map((r: any) => r.user_id)).size;
 
       setStats({
         totalUsers: usersCount || 0,
