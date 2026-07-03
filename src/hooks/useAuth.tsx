@@ -56,23 +56,27 @@ export const useAuth = () => {
       }
 
       // Multi-profile bridge: if user has profiles, prefer the active profile's type for legacy `role`.
+      // Exception: admin role always wins — never override with a profile row.
       let resolvedRole: UserRole | null = access.resolvedRole;
-      try {
-        const { data: profileRows } = await supabase
-          .from("profiles" as any)
-          .select("id, type, status")
-          .eq("user_id", userId);
-        const list = (profileRows ?? []) as Array<{ id: string; type: UserRole; status: string }>;
-        if (list.length > 0) {
-          const storedId = typeof window !== "undefined" ? localStorage.getItem("jaagax.activeProfileId") : null;
-          const stored = storedId ? list.find((p) => p.id === storedId && p.status === "active") : null;
-          const fallback = list.find((p) => p.status === "active") ?? list[0];
-          const active = stored ?? fallback;
-          if (active) resolvedRole = active.type as UserRole;
+      if (resolvedRole !== "admin") {
+        try {
+          const { data: profileRows } = await supabase
+            .from("profiles" as any)
+            .select("id, type, status")
+            .eq("user_id", userId);
+          const list = (profileRows ?? []) as Array<{ id: string; type: UserRole; status: string }>;
+          if (list.length > 0) {
+            const storedId = typeof window !== "undefined" ? localStorage.getItem("jaagax.activeProfileId") : null;
+            const stored = storedId ? list.find((p) => p.id === storedId && p.status === "active") : null;
+            const fallback = list.find((p) => p.status === "active") ?? list[0];
+            const active = stored ?? fallback;
+            if (active) resolvedRole = active.type as UserRole;
+          }
+        } catch (e) {
+          // Profiles table may not exist yet for some users — fall back silently.
         }
-      } catch (e) {
-        // Profiles table may not exist yet for some users — fall back silently.
       }
+
 
       setRole(resolvedRole ?? null);
     } catch (error) {
