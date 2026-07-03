@@ -179,7 +179,7 @@ export const useAuth = () => {
         navigate("/dashboard/admin");
         break;
       case "hotel_manager":
-        navigate("/dashboard/hotel-manager");
+        navigate("/partners/dashboard");
         break;
       default:
         navigate("/");
