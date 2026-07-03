@@ -620,6 +620,14 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/dashboard/hotel"
+                    element={
+                      <ProtectedRoute allowedRole="hotel_manager">
+                        <HotelManagerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/smart-financing" element={<SmartFinancing />} />
                   <Route path="/financing" element={<SmartFinancing />} />
                   <Route path="/financial/register" element={<FinancialRegistration />} />
