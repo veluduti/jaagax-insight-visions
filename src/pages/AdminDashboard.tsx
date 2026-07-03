@@ -596,7 +596,15 @@ export default function AdminDashboard() {
           .eq("verification_status", "agent_verified"),
         supabase.from("properties").select("*", { count: "exact", head: true }).eq("price_drop_pending", true),
       ]);
-      const usersCount = new Set((profileUserRows ?? []).map((r: any) => r.user_id)).size;
+      // Source of truth for "Registered Users" is the auth users list (same as
+      // the Registered Users panel below). Falls back to distinct profile user_ids.
+      let usersCount = new Set((profileUserRows ?? []).map((r: any) => r.user_id)).size;
+      try {
+        const { data: authList } = await supabase.functions.invoke("admin-list-users");
+        const listed = (authList as any)?.users?.length;
+        if (typeof listed === "number") usersCount = listed;
+      } catch (_) { /* keep fallback */ }
+
 
       setStats({
         totalUsers: usersCount || 0,
