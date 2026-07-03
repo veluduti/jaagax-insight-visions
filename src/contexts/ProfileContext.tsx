@@ -42,7 +42,36 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
         supabase.from("user_settings" as any).select("active_profile_id").eq("user_id", userId).maybeSingle(),
       ]);
 
-      const list = ((profileRows ?? []) as unknown as Profile[]);
+      let list = ((profileRows ?? []) as unknown as Profile[]);
+
+      // Bootstrap: if no profiles exist, derive from user_roles / signup_requests
+      if (list.length === 0) {
+        const [{ data: roleRows }, { data: signupRow }] = await Promise.all([
+          supabase.from("user_roles" as any).select("role").eq("user_id", userId),
+          supabase.from("signup_requests" as any).select("requested_role").eq("user_id", userId).maybeSingle(),
+        ]);
+        const roles = (roleRows ?? []).map((r: any) => r.role as string);
+        const reqRole = (signupRow as any)?.requested_role as string | undefined;
+        const candidate = roles[0] ?? reqRole ?? "buyer";
+        const typeMap: Record<string, ProfileType> = {
+          customer: "buyer",
+          buyer: "buyer",
+          seller: "seller",
+          agent: "agent",
+          builder: "builder",
+          financial: "financial",
+          hotel: "hotel_manager",
+          hotel_manager: "hotel_manager",
+        };
+        const profileType: ProfileType = typeMap[candidate] ?? "buyer";
+        const { data: inserted } = await supabase
+          .from("profiles" as any)
+          .insert({ user_id: userId, type: profileType } as any)
+          .select()
+          .single();
+        if (inserted) list = [inserted as unknown as Profile];
+      }
+
       setProfiles(list);
 
       // Determine active profile: localStorage → user_settings → first by priority
