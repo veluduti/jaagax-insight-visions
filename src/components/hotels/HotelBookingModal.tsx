@@ -238,7 +238,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           </div>
 
           <Button className="w-full h-12" onClick={handleSubmit} disabled={submitting}>
-            {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</> : `Confirm Booking • ₹${totalAmount.toLocaleString()}`}
+            {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting...</> : `Continue to Payment • ₹${totalAmount.toLocaleString()}`}
           </Button>
         </div>
       </DialogContent>
