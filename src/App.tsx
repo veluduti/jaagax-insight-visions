@@ -73,7 +73,27 @@ const VisitAnalytics = lazy(() => import("./pages/VisitAnalytics"));
 const AgentStoryUpload = lazy(() => import("./pages/AgentStoryUpload"));
 const BuyerOnboarding = lazy(() => import("./pages/BuyerOnboarding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const NaturalLiving = lazy(() => import("./pages/NaturalLiving"));
+const NaturalLiving = lazy(() => import("./pages/natural-living/NLHome"));
+const NLVision = lazy(() => import("./pages/natural-living/NLVision"));
+const NLWhy = lazy(() => import("./pages/natural-living/NLWhy"));
+const NLAbout = lazy(() => import("./pages/natural-living/NLAbout"));
+const NLStorytelling = lazy(() => import("./pages/natural-living/NLStorytelling"));
+const NLSustainability = lazy(() => import("./pages/natural-living/NLSustainability"));
+const NLImpact = lazy(() => import("./pages/natural-living/NLImpact"));
+const NLCommunity = lazy(() => import("./pages/natural-living/NLCommunity"));
+const NLPartner = lazy(() => import("./pages/natural-living/NLPartner"));
+const NLContact = lazy(() => import("./pages/natural-living/NLContact"));
+const NLFaq = lazy(() => import("./pages/natural-living/NLFaq"));
+const NLPricing = lazy(() => import("./pages/natural-living/NLPricing"));
+const NLBlog = lazy(() => import("./pages/natural-living/NLBlog"));
+const NLSuccessStories = lazy(() => import("./pages/natural-living/NLSuccessStories"));
+const NLVillages = lazy(() => import("./pages/natural-living/NLVillages"));
+const NLFarms = lazy(() => import("./pages/natural-living/NLFarms"));
+const NLFarmers = lazy(() => import("./pages/natural-living/NLFarmers"));
+const NLFarmStay = lazy(() => import("./pages/natural-living/NLFarmStay"));
+const NLWellness = lazy(() => import("./pages/natural-living/NLWellness"));
+const NLCorporate = lazy(() => import("./pages/natural-living/NLCorporate"));
+const NLSchools = lazy(() => import("./pages/natural-living/NLSchools"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
@@ -438,6 +458,26 @@ const App = () => (
                   <Route path="/map" element={<Map />} />
                   <Route path="/sell-property" element={<SellProperty />} />
                   <Route path="/natural-living" element={<NaturalLiving />} />
+                  <Route path="/natural-living/vision" element={<NLVision />} />
+                  <Route path="/natural-living/why" element={<NLWhy />} />
+                  <Route path="/natural-living/about" element={<NLAbout />} />
+                  <Route path="/natural-living/stories" element={<NLStorytelling />} />
+                  <Route path="/natural-living/sustainability" element={<NLSustainability />} />
+                  <Route path="/natural-living/impact" element={<NLImpact />} />
+                  <Route path="/natural-living/community" element={<NLCommunity />} />
+                  <Route path="/natural-living/partner" element={<NLPartner />} />
+                  <Route path="/natural-living/contact" element={<NLContact />} />
+                  <Route path="/natural-living/faq" element={<NLFaq />} />
+                  <Route path="/natural-living/pricing" element={<NLPricing />} />
+                  <Route path="/natural-living/blog" element={<NLBlog />} />
+                  <Route path="/natural-living/success-stories" element={<NLSuccessStories />} />
+                  <Route path="/natural-living/villages" element={<NLVillages />} />
+                  <Route path="/natural-living/farms" element={<NLFarms />} />
+                  <Route path="/natural-living/farmers" element={<NLFarmers />} />
+                  <Route path="/natural-living/farm-stay" element={<NLFarmStay />} />
+                  <Route path="/natural-living/wellness" element={<NLWellness />} />
+                  <Route path="/natural-living/corporate" element={<NLCorporate />} />
+                  <Route path="/natural-living/schools" element={<NLSchools />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />

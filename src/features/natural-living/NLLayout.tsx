@@ -1,0 +1,217 @@
+import { PropsWithChildren, useEffect } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Leaf, Menu, X } from "lucide-react";
+import { useState } from "react";
+import "./theme.css";
+
+const NAV = [
+  { label: "Vision", to: "/natural-living/vision" },
+  { label: "Villages", to: "/natural-living/villages" },
+  { label: "Farms", to: "/natural-living/farms" },
+  { label: "Farmers", to: "/natural-living/farmers" },
+  { label: "Farm Stay", to: "/natural-living/farm-stay" },
+  { label: "Wellness", to: "/natural-living/wellness" },
+  { label: "Corporate", to: "/natural-living/corporate" },
+  { label: "Schools", to: "/natural-living/schools" },
+  { label: "Community", to: "/natural-living/community" },
+  { label: "Blog", to: "/natural-living/blog" },
+];
+
+const FOOTER_COLS = [
+  {
+    heading: "Explore",
+    items: [
+      { label: "Vision", to: "/natural-living/vision" },
+      { label: "Why JAGAA", to: "/natural-living/why" },
+      { label: "About", to: "/natural-living/about" },
+      { label: "Storytelling", to: "/natural-living/stories" },
+      { label: "Impact", to: "/natural-living/impact" },
+      { label: "Sustainability", to: "/natural-living/sustainability" },
+    ],
+  },
+  {
+    heading: "Discover",
+    items: [
+      { label: "Villages", to: "/natural-living/villages" },
+      { label: "Farms", to: "/natural-living/farms" },
+      { label: "Farmers", to: "/natural-living/farmers" },
+      { label: "Farm Stay", to: "/natural-living/farm-stay" },
+      { label: "Wellness", to: "/natural-living/wellness" },
+      { label: "Success Stories", to: "/natural-living/success-stories" },
+    ],
+  },
+  {
+    heading: "Partner",
+    items: [
+      { label: "Corporate", to: "/natural-living/corporate" },
+      { label: "Schools", to: "/natural-living/schools" },
+      { label: "Partner With Us", to: "/natural-living/partner" },
+      { label: "Pricing", to: "/natural-living/pricing" },
+      { label: "FAQ", to: "/natural-living/faq" },
+      { label: "Contact", to: "/natural-living/contact" },
+    ],
+  },
+];
+
+export default function NLLayout({ children }: PropsWithChildren) {
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    setOpen(false);
+  }, [location.pathname]);
+
+  return (
+    <div className="nl-scope min-h-screen flex flex-col">
+      {/* Announcement bar */}
+      <div
+        className="w-full text-center py-2 text-[11px] tracking-[0.24em] uppercase"
+        style={{
+          background: "hsl(var(--nl-forest))",
+          color: "hsl(var(--nl-cream))",
+        }}
+      >
+        JAGAA Natural Living · A quieter way to live, eat, and belong
+      </div>
+
+      {/* Header */}
+      <header
+        className="sticky top-0 z-40 border-b"
+        style={{
+          background: "hsl(var(--nl-cream) / 0.92)",
+          backdropFilter: "blur(8px)",
+          borderColor: "hsl(var(--border))",
+        }}
+      >
+        <div className="nl-container flex items-center justify-between h-16 md:h-20">
+          <Link to="/natural-living" className="flex items-center gap-2">
+            <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
+            <span className="nl-serif text-lg md:text-xl" style={{ color: "hsl(var(--nl-forest))" }}>
+              JAGAA <span style={{ fontStyle: "italic" }}>Natural Living</span>
+            </span>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-6">
+            {NAV.slice(0, 7).map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `text-[13px] tracking-wide transition-colors ${
+                    isActive
+                      ? "text-[hsl(var(--nl-forest))] font-medium"
+                      : "text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))]"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="hidden lg:flex items-center gap-3">
+            <Link to="/natural-living/partner" className="nl-btn nl-btn-outline">
+              Partner
+            </Link>
+            <Link to="/" className="text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))]">
+              JAAGA X →
+            </Link>
+          </div>
+
+          <button
+            aria-label="Menu"
+            className="lg:hidden p-2 -mr-2"
+            onClick={() => setOpen((v) => !v)}
+            style={{ color: "hsl(var(--nl-forest))" }}
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {open && (
+          <div
+            className="lg:hidden border-t"
+            style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--border))" }}
+          >
+            <div className="nl-container py-4 flex flex-col gap-1">
+              {NAV.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `py-2.5 text-sm ${
+                      isActive
+                        ? "text-[hsl(var(--nl-forest))] font-medium"
+                        : "text-[hsl(var(--nl-ink)/0.75)]"
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+              <Link to="/natural-living/partner" className="nl-btn nl-btn-primary mt-3 justify-center">
+                Partner With Us
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+
+      <main className="flex-1">{children}</main>
+
+      {/* Footer */}
+      <footer
+        className="mt-24 pt-20 pb-10 border-t"
+        style={{
+          background: "hsl(var(--nl-cream-deep))",
+          borderColor: "hsl(var(--nl-forest) / 0.2)",
+        }}
+      >
+        <div className="nl-container">
+          <div className="grid gap-12 md:grid-cols-4">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
+                <span className="nl-serif text-lg" style={{ color: "hsl(var(--nl-forest))" }}>
+                  JAGAA
+                </span>
+              </div>
+              <p className="nl-serif italic text-lg leading-snug" style={{ color: "hsl(var(--nl-forest))" }}>
+                Return to the land. Slowly, deliberately, together.
+              </p>
+              <p className="text-sm mt-4 text-[hsl(var(--nl-ink)/0.7)] leading-relaxed">
+                A community-owned ecosystem for organic farming, village tourism, farm stays, and mindful living — rooted in India.
+              </p>
+            </div>
+
+            {FOOTER_COLS.map((col) => (
+              <div key={col.heading}>
+                <h4 className="nl-eyebrow mb-4">{col.heading}</h4>
+                <ul className="space-y-2.5">
+                  {col.items.map((it) => (
+                    <li key={it.to}>
+                      <Link to={it.to} className="text-sm text-[hsl(var(--nl-ink)/0.75)] hover:text-[hsl(var(--nl-forest))] transition-colors">
+                        {it.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="nl-rule my-10" />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-[hsl(var(--nl-ink)/0.6)]">
+            <div>© {new Date().getFullYear()} JAGAA Natural Living · A JAAGA X initiative</div>
+            <div className="flex gap-6">
+              <Link to="/natural-living/faq" className="hover:text-[hsl(var(--nl-forest))]">FAQ</Link>
+              <Link to="/natural-living/contact" className="hover:text-[hsl(var(--nl-forest))]">Contact</Link>
+              <Link to="/" className="hover:text-[hsl(var(--nl-forest))]">Back to JAAGA X</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
