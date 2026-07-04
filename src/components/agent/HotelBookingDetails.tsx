@@ -56,6 +56,7 @@ interface HotelBookingDetailsProps {
 export default function HotelBookingDetails({ booking, onClose, onChanged }: HotelBookingDetailsProps) {
   const [mode, setMode] = useState<"view" | "edit" | "cancel">("view");
   const [saving, setSaving] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [form, setForm] = useState({
     check_in: "",
     check_out: "",
