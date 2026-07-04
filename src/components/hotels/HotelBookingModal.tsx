@@ -63,6 +63,8 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
 
   const handleSubmit = async () => {
     if (!guestName.trim()) { toast.error("Please enter guest name"); return; }
+    if (!guestEmail.trim() || !/^\S+@\S+\.\S+$/.test(guestEmail.trim())) { toast.error("Please enter a valid email"); return; }
+    if (!guestPhone.trim() || !/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) { toast.error("Please enter a valid phone"); return; }
     if (!checkIn || !checkOut) { toast.error("Please select dates"); return; }
     if (checkOut <= checkIn) { toast.error("Check-out must be after check-in"); return; }
 
@@ -76,49 +78,42 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
         return;
       }
 
-      const { data: inserted, error } = await supabase.from("hotel_bookings").insert({
-        hotel_id: hotel.id,
-        user_id: user.id,
-        guest_name: guestName.trim(),
-        guest_email: guestEmail.trim() || user.email || null,
-        guest_phone: guestPhone.trim() || null,
-        check_in: format(checkIn, "yyyy-MM-dd"),
-        check_out: format(checkOut, "yyyy-MM-dd"),
-        num_guests: parseInt(numGuests),
-        num_rooms: parseInt(numRooms),
-        room_type: roomType,
-        booking_type: bookingType,
-        special_requests: specialRequests.trim() || null,
-        total_amount: totalAmount,
-        status: "confirmed",
-      }).select().single();
+      // Find a bookable room for this hotel (prefer matching room_type)
+      const { data: rooms } = await (supabase as any)
+        .from("hotel_rooms")
+        .select("id, room_type, is_active")
+        .eq("hotel_id", hotel.id)
+        .eq("is_active", true);
 
-      if (error) throw error;
+      const room =
+        (rooms || []).find((r: any) => (r.room_type || "").toLowerCase() === roomType.toLowerCase()) ||
+        (rooms || [])[0];
 
-      // Fire-and-forget notifications (user + admin via WhatsApp/in-app)
-      supabase.functions.invoke("send-booking-confirmation", {
-        body: {
-          bookingId: inserted?.id,
-          hotelName: hotel.name,
-          guestName: guestName.trim(),
-          guestPhone: guestPhone.trim(),
-          guestEmail: guestEmail.trim() || user.email,
-          checkIn: format(checkIn, "dd MMM yyyy"),
-          checkOut: format(checkOut, "dd MMM yyyy"),
-          totalAmount,
-          bookingType,
-        },
-      }).catch((e) => console.warn("Notification failed:", e));
+      if (!room?.id) {
+        toast.error("This hotel has no rooms configured yet", { description: "Please try another hotel." });
+        return;
+      }
 
-      toast.success("🎉 Booking Confirmed!", {
-        description: `${hotel.name} • ${nights} night(s) • ₹${totalAmount.toLocaleString()}`,
-        action: { label: "View Bookings", onClick: () => navigate("/dashboard/buyer?tab=bookings") },
+      // Redirect to the full checkout page (Razorpay flow lives there)
+      const params = new URLSearchParams({
+        room: room.id,
+        checkin: format(checkIn, "yyyy-MM-dd"),
+        checkout: format(checkOut, "yyyy-MM-dd"),
+        adults: numGuests,
+        children: "0",
+        rooms: numRooms,
+        name: guestName.trim(),
+        email: guestEmail.trim(),
+        phone: guestPhone.trim(),
+        type: bookingType,
       });
+      if (specialRequests.trim()) params.set("notes", specialRequests.trim());
+
       onClose();
-      setTimeout(() => navigate("/dashboard/buyer?tab=bookings"), 800);
+      navigate(`/hotels/${hotel.id}/checkout?${params.toString()}`);
     } catch (err: any) {
       console.error("Booking error:", err);
-      toast.error("Booking failed", { description: err.message || "Please try again" });
+      toast.error("Could not start booking", { description: err.message || "Please try again" });
     } finally {
       setSubmitting(false);
     }
