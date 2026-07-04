@@ -336,21 +336,40 @@ const MyBookings = () => {
                       <p className="text-lg font-bold text-primary">{formatPrice(booking.total_amount)}</p>
                     </div>
 
-                    {!isCancelled && (
-                      <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" variant="outline" onClick={() => openEdit(booking)} className="flex-1">
-                          <Pencil className="h-3 w-3 mr-1" /> Edit
+                    <div className="flex flex-wrap gap-2 pt-2 border-t">
+                      {booking.guest_portal_token && !isCancelled && (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/stay/${booking.guest_portal_token}`}>
+                            <ExternalLink className="h-3 w-3 mr-1" /> Stay portal
+                          </Link>
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setDeleting(booking)}
-                          className="flex-1 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" /> Cancel
+                      )}
+                      {booking.status === "checked_out" && (
+                        <Button size="sm" onClick={() => setReviewFor(booking)}>
+                          <Star className="h-3 w-3 mr-1" /> Leave review
                         </Button>
-                      </div>
-                    )}
+                      )}
+                      {(booking.status === "pending" || booking.status === "confirmed") && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => openEdit(booking)}>
+                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeleting(booking)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" /> Cancel
+                          </Button>
+                        </>
+                      )}
+                      {isCancelled && Number(booking.refunded_amount) > 0 && (
+                        <span className="text-xs text-emerald-500 self-center">
+                          Refund initiated: ₹{Number(booking.refunded_amount).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>
