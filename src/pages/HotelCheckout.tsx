@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, ShieldCheck, CalendarDays, Users, BedDouble, CreditCard, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { resolveHotelImages } from "@/lib/hotelImage";
 
 declare global {
   interface Window { Razorpay?: any }
@@ -80,7 +81,8 @@ const HotelCheckout = () => {
         supabase.from("partner_hotels").select("id,name,city,locality,images,address").eq("id", hotelId).maybeSingle(),
         supabase.from("hotel_rooms").select("id,room_type,base_price,photos,bed_type,max_occupancy").eq("id", roomId).maybeSingle(),
       ]);
-      setHotel(h as any); setRoom(r as any);
+      const resolvedHotel = h ? { ...h, images: await resolveHotelImages((h as any).images) } : null;
+      setHotel(resolvedHotel as any); setRoom(r as any);
 
       const { data: q } = await supabase.functions.invoke("booking-engine-quote", {
         body: { hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut, guests: adults + children },
@@ -120,6 +122,15 @@ const HotelCheckout = () => {
       if (!ok) { toast.error("Failed to load payment gateway"); return; }
 
       const { data: { user } } = await supabase.auth.getUser();
+      // If the logged-in user is an agent, tag the booking with their agent id
+      // so it appears in the agent's dashboard.
+      let bookedByAgentId: string | null = null;
+      if (user?.id) {
+        const { data: agentRow } = await supabase
+          .from("agents").select("id").eq("user_id", user.id).maybeSingle();
+        if (agentRow?.id) bookedByAgentId = agentRow.id;
+      }
+
       const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
         body: {
           hotel_id: hotelId, room_id: roomId,
@@ -130,6 +141,7 @@ const HotelCheckout = () => {
           guest_phone: guestPhone.trim(),
           special_requests: specialRequests.trim() || null,
           user_id: user?.id || null,
+          booked_by_agent_id: bookedByAgentId,
         },
       });
       if (error || !data?.order_id) {

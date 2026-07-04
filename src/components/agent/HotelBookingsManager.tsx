@@ -14,17 +14,22 @@ import HotelBookingDialog from "./HotelBookingDialog";
 interface Booking {
   id: string;
   hotel_name?: string | null;
-  hotel_city?: string | null;
-  check_in_date: string;
-  check_out_date: string;
+  hotel_address?: string | null;
+  check_in: string;
+  check_out: string;
   room_type?: string | null;
-  guests?: number | null;
-  total_price: number;
-  booking_status: string;
+  num_guests?: number | null;
+  num_rooms?: number | null;
+  total_amount: number;
+  status: string;
+  payment_status?: string | null;
   hotel_id?: string | null;
   user_id?: string | null;
+  booked_by_agent_id?: string | null;
   guest_name?: string | null;
   guest_phone?: string | null;
+  guest_email?: string | null;
+  booking_reference?: string | null;
   created_at?: string;
 }
 
@@ -80,14 +85,14 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
   }, [agentId, userId]);
 
   const filtered = bookings.filter((b) => {
-    if (activeTab !== "all" && b.booking_status !== activeTab) return false;
+    if (activeTab !== "all" && b.status !== activeTab) return false;
     if (!query) return true;
     const q = query.toLowerCase();
     return (
       (b.hotel_name || "").toLowerCase().includes(q) ||
       (b.guest_name || "").toLowerCase().includes(q) ||
       (b.guest_phone || "").toLowerCase().includes(q) ||
-      (b.hotel_city || "").toLowerCase().includes(q)
+      (b.hotel_address || "").toLowerCase().includes(q)
     );
   });
 
@@ -114,9 +119,9 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
 
   const counts = {
     all: bookings.length,
-    confirmed: bookings.filter((b) => b.booking_status === "confirmed").length,
-    pending: bookings.filter((b) => b.booking_status === "pending").length,
-    cancelled: bookings.filter((b) => b.booking_status === "cancelled").length,
+    confirmed: bookings.filter((b) => b.status === "confirmed").length,
+    pending: bookings.filter((b) => b.status === "pending").length,
+    cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
   return (
@@ -210,30 +215,30 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold">{b.hotel_name || "Partner Hotel"}</p>
-                          {getStatusBadge(b.booking_status)}
+                          {getStatusBadge(b.status)}
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                           <Users className="h-3 w-3" />
                           {b.guest_name || "Guest"}
-                          {b.hotel_city && (
+                          {b.hotel_address && (
                             <>
                               <MapPin className="h-3 w-3 ml-2" />
-                              {b.hotel_city}
+                              {b.hotel_address}
                             </>
                           )}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-primary">{formatCurrency(b.total_price)}</p>
+                        <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
                         <p className="text-[10px] text-muted-foreground">
-                          {b.room_type || "Standard"} · {b.guests || 1} guest{(b.guests || 1) > 1 ? "s" : ""}
+                          {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {b.check_in_date?.slice(0, 10)} → {b.check_out_date?.slice(0, 10)}
+                        {b.check_in?.slice(0, 10)} → {b.check_out?.slice(0, 10)}
                       </span>
                       {b.created_at && <span>Booked: {new Date(b.created_at).toLocaleDateString("en-IN")}</span>}
                     </div>

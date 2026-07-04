@@ -19,6 +19,7 @@ import {
   Sun, Moon, Info, Banknote, BadgeCheck, Landmark, TreePine
 } from "lucide-react";
 import { toast } from "sonner";
+import { resolveHotelImages } from "@/lib/hotelImage";
 import HotelSpecsGrid from "@/components/hotels/HotelSpecsGrid";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
 import HotelPolicies from "@/components/hotels/HotelPolicies";
@@ -87,7 +88,8 @@ const HotelDetail = () => {
         console.error("Error fetching hotel:", error);
         setHotel(null);
       } else {
-        setHotel(data as HotelData);
+        const resolved = { ...data, images: await resolveHotelImages((data as any).images) };
+        setHotel(resolved as HotelData);
       }
       setLoading(false);
     };

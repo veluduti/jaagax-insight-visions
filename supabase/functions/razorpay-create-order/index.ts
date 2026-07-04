@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
       adults = 1, children = 0, num_rooms = 1,
       guest_name, guest_email, guest_phone,
       special_requests, addons = [], promo_code, user_id,
+      booked_by_agent_id = null,
     } = body;
 
     if (!hotel_id || !room_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone) {
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
     const { data: booking, error: bErr } = await supabase.from("hotel_bookings").insert({
       hotel_id,
       user_id: user_id || null,
+      booked_by_agent_id: booked_by_agent_id || null,
       guest_name, guest_email, guest_phone,
       check_in, check_out,
       room_type: room?.room_type ?? "Standard",
@@ -101,7 +103,7 @@ Deno.serve(async (req) => {
       payment_method: "razorpay",
       special_requests: special_requests || null,
       booking_type: "hotel_only",
-      source: "direct",
+      source: booked_by_agent_id ? "agent" : "direct",
       currency: "INR",
       hotel_name: hotel?.name ?? null,
       hotel_address: [hotel?.address, hotel?.locality, hotel?.city].filter(Boolean).join(", "),

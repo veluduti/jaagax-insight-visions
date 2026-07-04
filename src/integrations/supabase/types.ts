@@ -2478,6 +2478,7 @@ export type Database = {
           actual_check_in_at: string | null
           actual_check_out_at: string | null
           addon_total: number
+          booked_by_agent_id: string | null
           booking_reference: string | null
           booking_type: string | null
           builder_profile_id: string | null
@@ -2525,6 +2526,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          booked_by_agent_id?: string | null
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
@@ -2572,6 +2574,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          booked_by_agent_id?: string | null
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
@@ -2616,6 +2619,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hotel_bookings_booked_by_agent_id_fkey"
+            columns: ["booked_by_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "hotel_bookings_builder_profile_id_fkey"
             columns: ["builder_profile_id"]
