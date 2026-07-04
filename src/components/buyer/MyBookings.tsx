@@ -36,7 +36,11 @@ import {
   Pencil,
   Trash2,
   CalendarIcon,
+  Star,
+  ExternalLink,
 } from "lucide-react";
+import HotelReviewDialog from "@/components/hotels/HotelReviewDialog";
+import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -58,12 +62,16 @@ interface Booking {
   booking_type: string;
   special_requests: string | null;
   created_at: string;
+  guest_portal_token?: string | null;
+  refunded_amount?: number | null;
   hotel?: { name: string; city: string; locality: string; price_per_night: number; discount_percentage: number | null };
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pending", variant: "outline" },
   confirmed: { label: "Confirmed", variant: "default" },
+  checked_in: { label: "Checked in", variant: "default" },
+  checked_out: { label: "Completed", variant: "secondary" },
   cancelled: { label: "Cancelled", variant: "destructive" },
   completed: { label: "Completed", variant: "secondary" },
 };
