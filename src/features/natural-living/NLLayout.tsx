@@ -153,8 +153,11 @@ export default function NLLayout({ children }: PropsWithChildren) {
                   {item.label}
                 </NavLink>
               ))}
-              <Link to="/natural-living/partner" className="nl-btn nl-btn-primary mt-3 justify-center">
-                Partner With Us
+              <Link to="/natural-living/auth" className="nl-btn nl-btn-outline mt-3 justify-center">
+                Sign in
+              </Link>
+              <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary mt-2 justify-center">
+                Join Natural Living
               </Link>
             </div>
           </div>
