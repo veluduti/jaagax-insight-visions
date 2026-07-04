@@ -110,21 +110,32 @@ const Hotels = () => {
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
 
-  // Fetch hotels and packages from database only
+  // Fetch approved + active hotels that have at least one active room; compute
+  // "starts from" price from the cheapest active room (not the legacy field).
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [hotelsRes, packagesRes] = await Promise.all([
+        const [hotelsRes, roomsRes, packagesRes] = await Promise.all([
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
+          supabase.from("hotel_rooms").select("hotel_id, base_price, is_active").eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
-        if (hotelsRes.data) {
-          setHotels(hotelsRes.data);
-        }
-        if (packagesRes.data) {
-          setPackages(packagesRes.data);
-        }
+
+        const minByHotel = new Map<string, number>();
+        (roomsRes.data || []).forEach((r: any) => {
+          const cur = minByHotel.get(r.hotel_id);
+          const p = Number(r.base_price) || 0;
+          if (p <= 0) return;
+          if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
+        });
+
+        const enriched = (hotelsRes.data || [])
+          .filter((h: any) => minByHotel.has(h.id))
+          .map((h: any) => ({ ...h, price_per_night: minByHotel.get(h.id) as number }));
+
+        setHotels(enriched);
+        if (packagesRes.data) setPackages(packagesRes.data);
       } catch (err) {
         console.error("Error fetching hotels:", err);
         setHotels([]);
