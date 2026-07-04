@@ -88,7 +88,8 @@ const HotelDetail = () => {
         console.error("Error fetching hotel:", error);
         setHotel(null);
       } else {
-        setHotel(data as HotelData);
+        const resolved = { ...data, images: await resolveHotelImages((data as any).images) };
+        setHotel(resolved as HotelData);
       }
       setLoading(false);
     };
