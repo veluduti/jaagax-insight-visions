@@ -111,8 +111,11 @@ export default function NLLayout({ children }: PropsWithChildren) {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/natural-living/partner" className="nl-btn nl-btn-outline">
-              Partner
+            <Link to="/natural-living/auth" className="text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))]">
+              Sign in
+            </Link>
+            <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary">
+              Join
             </Link>
             <Link to="/" className="text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))]">
               JAAGA X →
