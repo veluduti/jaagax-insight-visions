@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,6 @@ import {
   ChevronLeft, ChevronRight, AlertCircle, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import HotelBookingModal from "@/components/hotels/HotelBookingModal";
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
 // Real config should move to hotel_commission_config / a tax table later.
@@ -302,8 +302,15 @@ export default function HotelRoomList({
                         toast.info("Please select check-in and check-out dates first");
                         return;
                       }
-                      setSelectedRoom(room);
-                      setBookingOpen(true);
+                      const params = new URLSearchParams({
+                        room: room.id,
+                        checkin: checkIn!,
+                        checkout: checkOut!,
+                        adults: String(adults ?? 2),
+                        children: String(children ?? 0),
+                        rooms: String(roomsWanted ?? 1),
+                      });
+                      navigate(`/hotels/${hotelId}/checkout?${params.toString()}`);
                     }}
                   >
                     {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
@@ -314,20 +321,6 @@ export default function HotelRoomList({
           </Card>
         );
       })}
-
-      {selectedRoom && (
-        <HotelBookingModal
-          open={bookingOpen}
-          onClose={() => setBookingOpen(false)}
-          hotel={{
-            id: hotelId,
-            name: hotelName,
-            price_per_night: selectedRoom.base_price,
-            discount_percentage: 0,
-          }}
-          bookingType="hotel_only"
-        />
-      )}
     </div>
   );
 }
