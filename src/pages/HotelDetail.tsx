@@ -50,6 +50,11 @@ interface HotelData {
   smoking_allowed?: boolean;
 }
 
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const plusDaysISO = (n: number) => {
+  const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
+};
+
 const HotelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,6 +64,15 @@ const HotelDetail = () => {
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
+
+  // Availability search state
+  const [checkIn, setCheckIn] = useState<string>(plusDaysISO(1));
+  const [checkOut, setCheckOut] = useState<string>(plusDaysISO(2));
+  const [adults, setAdults] = useState<number>(2);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
+  const [roomsWanted, setRoomsWanted] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState<string>("specs");
+  const [searchNonce, setSearchNonce] = useState(0);
 
   useEffect(() => {
     if (!id) return;
