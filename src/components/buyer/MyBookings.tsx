@@ -36,7 +36,11 @@ import {
   Pencil,
   Trash2,
   CalendarIcon,
+  Star,
+  ExternalLink,
 } from "lucide-react";
+import HotelReviewDialog from "@/components/hotels/HotelReviewDialog";
+import { Link } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -58,12 +62,16 @@ interface Booking {
   booking_type: string;
   special_requests: string | null;
   created_at: string;
+  guest_portal_token?: string | null;
+  refunded_amount?: number | null;
   hotel?: { name: string; city: string; locality: string; price_per_night: number; discount_percentage: number | null };
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pending", variant: "outline" },
   confirmed: { label: "Confirmed", variant: "default" },
+  checked_in: { label: "Checked in", variant: "default" },
+  checked_out: { label: "Completed", variant: "secondary" },
   cancelled: { label: "Cancelled", variant: "destructive" },
   completed: { label: "Completed", variant: "secondary" },
 };
@@ -73,6 +81,7 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Booking | null>(null);
   const [deleting, setDeleting] = useState<Booking | null>(null);
+  const [reviewFor, setReviewFor] = useState<Booking | null>(null);
   const [saving, setSaving] = useState(false);
 
   // edit form
@@ -195,29 +204,23 @@ const MyBookings = () => {
     if (!deleting) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("hotel_bookings").delete().eq("id", deleting.id);
-      if (error) throw error;
-
-      supabase.functions.invoke("send-booking-confirmation", {
-        body: {
-          bookingId: deleting.id,
-          hotelName: deleting.hotel?.name || "Hotel",
-          guestName: deleting.guest_name,
-          guestPhone: deleting.guest_phone || undefined,
-          guestEmail: deleting.guest_email || undefined,
-          checkIn: format(new Date(deleting.check_in), "dd MMM yyyy"),
-          checkOut: format(new Date(deleting.check_out), "dd MMM yyyy"),
-          totalAmount: deleting.total_amount,
-          bookingType: deleting.booking_type,
-          action: "cancelled",
-        },
-      }).catch((e) => console.warn("Notify failed:", e));
-
-      toast.success("Booking cancelled");
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase.functions.invoke("hotel-booking-cancel", {
+        body: { booking_id: deleting.id, reason: "guest_cancel", cancelled_by: user?.id || null },
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Cancellation failed");
+      }
+      const refund = data.refund?.amount || 0;
+      toast.success(
+        refund > 0
+          ? `Booking cancelled. Refund of ₹${refund.toLocaleString()} initiated (${data.refund.percent}%).`
+          : "Booking cancelled. This slot was outside the free-cancellation window.",
+      );
       setDeleting(null);
       fetchBookings();
     } catch (err: any) {
-      toast.error("Delete failed", { description: err.message });
+      toast.error(err.message || "Cancellation failed");
     } finally {
       setSaving(false);
     }
@@ -333,21 +336,40 @@ const MyBookings = () => {
                       <p className="text-lg font-bold text-primary">{formatPrice(booking.total_amount)}</p>
                     </div>
 
-                    {!isCancelled && (
-                      <div className="flex gap-2 pt-2 border-t">
-                        <Button size="sm" variant="outline" onClick={() => openEdit(booking)} className="flex-1">
-                          <Pencil className="h-3 w-3 mr-1" /> Edit
+                    <div className="flex flex-wrap gap-2 pt-2 border-t">
+                      {booking.guest_portal_token && !isCancelled && (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/stay/${booking.guest_portal_token}`}>
+                            <ExternalLink className="h-3 w-3 mr-1" /> Stay portal
+                          </Link>
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setDeleting(booking)}
-                          className="flex-1 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" /> Cancel
+                      )}
+                      {booking.status === "checked_out" && (
+                        <Button size="sm" onClick={() => setReviewFor(booking)}>
+                          <Star className="h-3 w-3 mr-1" /> Leave review
                         </Button>
-                      </div>
-                    )}
+                      )}
+                      {(booking.status === "pending" || booking.status === "confirmed") && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => openEdit(booking)}>
+                            <Pencil className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDeleting(booking)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" /> Cancel
+                          </Button>
+                        </>
+                      )}
+                      {isCancelled && Number(booking.refunded_amount) > 0 && (
+                        <span className="text-xs text-emerald-500 self-center">
+                          Refund initiated: ₹{Number(booking.refunded_amount).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -454,6 +476,16 @@ const MyBookings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {reviewFor && (
+        <HotelReviewDialog
+          open={!!reviewFor}
+          onOpenChange={(o) => !o && setReviewFor(null)}
+          hotelId={reviewFor.hotel_id}
+          bookingId={reviewFor.id}
+          guestName={reviewFor.guest_name}
+          onSubmitted={fetchBookings}
+        />
+      )}
     </>
   );
 };

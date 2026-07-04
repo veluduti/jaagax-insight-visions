@@ -44,6 +44,11 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Mint a stay-portal token
+    const tokBytes = new Uint8Array(20);
+    crypto.getRandomValues(tokBytes);
+    const portalToken = Array.from(tokBytes, b => b.toString(16).padStart(2, "0")).join("");
+
     const { data: booking, error: bErr } = await supabase
       .from("hotel_bookings")
       .update({
@@ -51,6 +56,7 @@ Deno.serve(async (req) => {
         payment_status: "paid",
         razorpay_payment_id,
         razorpay_signature,
+        guest_portal_token: portalToken,
         updated_at: new Date().toISOString(),
       })
       .eq("id", booking_id)
