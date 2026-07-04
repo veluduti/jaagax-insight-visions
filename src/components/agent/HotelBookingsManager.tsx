@@ -40,12 +40,15 @@ interface HotelBookingsManagerProps {
 }
 
 export default function HotelBookingsManager({ userId, agentId }: HotelBookingsManagerProps) {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Booking | null>(null);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending" | "cancelled">("all");
+
+  const goToHotels = () => navigate("/hotels");
 
   const load = async () => {
     setLoading(true);
