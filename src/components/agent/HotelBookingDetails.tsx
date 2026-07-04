@@ -15,7 +15,19 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle, Hotel } from "lucide-react";
+import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle, Hotel, CreditCard, Lock } from "lucide-react";
+
+declare global { interface Window { Razorpay?: any } }
+function loadRazorpay(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
 
 interface Booking {
   id: string;
@@ -27,9 +39,11 @@ interface Booking {
   num_guests?: number | null;
   total_amount: number;
   status: string;
+  payment_status?: string | null;
   hotel_id?: string | null;
   guest_name?: string | null;
   guest_phone?: string | null;
+  guest_email?: string | null;
   created_at?: string;
 }
 
@@ -42,6 +56,7 @@ interface HotelBookingDetailsProps {
 export default function HotelBookingDetails({ booking, onClose, onChanged }: HotelBookingDetailsProps) {
   const [mode, setMode] = useState<"view" | "edit" | "cancel">("view");
   const [saving, setSaving] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [form, setForm] = useState({
     check_in: "",
     check_out: "",
@@ -121,6 +136,62 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
     setMode("view");
     onChanged?.();
   };
+  const payNow = async () => {
+    setPaying(true);
+    try {
+      const ok = await loadRazorpay();
+      if (!ok) { toast.error("Failed to load payment gateway"); return; }
+
+      const { data, error } = await supabase.functions.invoke("razorpay-pay-existing", {
+        body: { booking_id: booking.id },
+      });
+      if (error || !data?.order_id) {
+        toast.error(data?.error || error?.message || "Could not start payment");
+        return;
+      }
+
+      const rzp = new (window as any).Razorpay({
+        key: data.key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: booking.hotel_name || "JAAGA X",
+        description: `Booking ${data.booking_reference || booking.id.slice(0, 8)}`,
+        order_id: data.order_id,
+        prefill: {
+          name: booking.guest_name || "",
+          email: (booking as any).guest_email || "",
+          contact: booking.guest_phone || "",
+        },
+        theme: { color: "#10b981" },
+        handler: async (response: any) => {
+          const { data: verify, error: vErr } = await supabase.functions.invoke("razorpay-verify-payment", {
+            body: {
+              booking_id: data.booking_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+          });
+          if (vErr || !verify?.success) {
+            toast.error(verify?.error || vErr?.message || "Payment verification failed");
+            return;
+          }
+          toast.success("Payment successful");
+          onChanged?.();
+        },
+        modal: { ondismiss: () => toast.info("Payment cancelled") },
+      });
+      rzp.on("payment.failed", (resp: any) => {
+        toast.error(resp?.error?.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (e: any) {
+      toast.error(e?.message || "Something went wrong");
+    } finally {
+      setPaying(false);
+    }
+  };
+
 
   const downloadInvoice = () => {
     const b = booking;
@@ -295,10 +366,33 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <span className="text-sm text-muted-foreground">Total Amount</span>
                 <span className="text-xl font-bold text-primary">{formatCurrency(booking.total_amount)}</span>
               </div>
-              <p className="text-xs text-muted-foreground text-right mt-1">
-                {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
+                </p>
+                {booking.payment_status === "paid" ? (
+                  <Badge className="bg-emerald-500 text-white text-[10px]">Paid</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">Payment {booking.payment_status || "pending"}</Badge>
+                )}
+              </div>
             </div>
+
+            {/* Pay Now for unpaid bookings */}
+            {booking.status !== "cancelled" && booking.payment_status !== "paid" && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CreditCard className="h-4 w-4 text-primary" />
+                  Complete payment to confirm this stay
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Secure payment via Razorpay · UPI, Cards, Netbanking
+                </p>
+                <Button className="w-full" onClick={payNow} disabled={paying}>
+                  {paying ? "Opening Razorpay…" : `Pay ${formatCurrency(booking.total_amount)}`}
+                </Button>
+              </div>
+            )}
 
             {/* Booking Date */}
             {booking.created_at && (
