@@ -81,6 +81,7 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Booking | null>(null);
   const [deleting, setDeleting] = useState<Booking | null>(null);
+  const [reviewFor, setReviewFor] = useState<Booking | null>(null);
   const [saving, setSaving] = useState(false);
 
   // edit form
