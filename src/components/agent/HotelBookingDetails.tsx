@@ -20,13 +20,13 @@ import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clo
 interface Booking {
   id: string;
   hotel_name?: string | null;
-  hotel_city?: string | null;
-  check_in_date: string;
-  check_out_date: string;
+  hotel_address?: string | null;
+  check_in: string;
+  check_out: string;
   room_type?: string | null;
-  guests?: number | null;
-  total_price: number;
-  booking_status: string;
+  num_guests?: number | null;
+  total_amount: number;
+  status: string;
   hotel_id?: string | null;
   guest_name?: string | null;
   guest_phone?: string | null;
@@ -43,9 +43,9 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
   const [mode, setMode] = useState<"view" | "edit" | "cancel">("view");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    check_in_date: "",
-    check_out_date: "",
-    guests: 1,
+    check_in: "",
+    check_out: "",
+    num_guests: 1,
     room_type: "",
   });
 
@@ -53,9 +53,9 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
     if (booking) {
       setMode("view");
       setForm({
-        check_in_date: booking.check_in_date?.slice(0, 10) || "",
-        check_out_date: booking.check_out_date?.slice(0, 10) || "",
-        guests: booking.guests || 1,
+        check_in: booking.check_in?.slice(0, 10) || "",
+        check_out: booking.check_out?.slice(0, 10) || "",
+        num_guests: booking.num_guests || 1,
         room_type: booking.room_type || "",
       });
     }
@@ -64,13 +64,13 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
   if (!booking) return null;
 
   const submitEdit = async () => {
-    if (!form.check_in_date || !form.check_out_date) {
+    if (!form.check_in || !form.check_out) {
       toast.error("Please select check-in and check-out dates");
       return;
     }
 
-    const checkIn = new Date(form.check_in_date);
-    const checkOut = new Date(form.check_out_date);
+    const checkIn = new Date(form.check_in);
+    const checkOut = new Date(form.check_out);
     if (checkIn >= checkOut) {
       toast.error("Check-out date must be after check-in date");
       return;
@@ -81,9 +81,9 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
     const { error } = await sb
       .from("hotel_bookings")
       .update({
-        check_in_date: form.check_in_date,
-        check_out_date: form.check_out_date,
-        guests: form.guests,
+        check_in: form.check_in,
+        check_out: form.check_out,
+        num_guests: form.num_guests,
         room_type: form.room_type || null,
         updated_at: new Date().toISOString(),
       })
@@ -106,7 +106,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
     const { error } = await sb
       .from("hotel_bookings")
       .update({
-        booking_status: "cancelled",
+        status: "cancelled",
         cancelled_at: new Date().toISOString(),
       })
       .eq("id", booking.id);
@@ -125,8 +125,8 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
   const downloadInvoice = () => {
     const b = booking;
     const gstRate = 0.12;
-    const base = b.total_price / (1 + gstRate);
-    const gst = b.total_price - base;
+    const base = b.total_amount / (1 + gstRate);
+    const gst = b.total_amount - base;
 
     const html = `<!doctype html>
 <html>
@@ -157,18 +157,18 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
   </div>
   
   <div style="margin-bottom: 20px;">
-    <span class="status-badge status-${b.booking_status}">${b.booking_status.toUpperCase()}</span>
+    <span class="status-badge status-${b.status}">${b.status.toUpperCase()}</span>
   </div>
   
   <table>
     <tr><th style="width:120px;">Guest</th><td>${b.guest_name || "Guest"}</td></tr>
     ${b.guest_phone ? `<tr><th>Phone</th><td>${b.guest_phone}</td></tr>` : ""}
-    <tr><th>Hotel</th><td>${b.hotel_name || "Partner Hotel"}${b.hotel_city ? " — " + b.hotel_city : ""}</td></tr>
+    <tr><th>Hotel</th><td>${b.hotel_name || "Partner Hotel"}${b.hotel_address ? " — " + b.hotel_address : ""}</td></tr>
     <tr><th>Room Type</th><td>${b.room_type || "Standard"}</td></tr>
-    <tr><th>Guests</th><td>${b.guests || 1}</td></tr>
-    <tr><th>Check-in</th><td>${b.check_in_date}</td></tr>
-    <tr><th>Check-out</th><td>${b.check_out_date}</td></tr>
-    <tr><th>Nights</th><td>${Math.ceil((new Date(b.check_out_date).getTime() - new Date(b.check_in_date).getTime()) / (1000 * 60 * 60 * 24))}</td></tr>
+    <tr><th>Guests</th><td>${b.num_guests || 1}</td></tr>
+    <tr><th>Check-in</th><td>${b.check_in}</td></tr>
+    <tr><th>Check-out</th><td>${b.check_out}</td></tr>
+    <tr><th>Nights</th><td>${Math.ceil((new Date(b.check_out).getTime() - new Date(b.check_in).getTime()) / (1000 * 60 * 60 * 24))}</td></tr>
   </table>
   
   <div style="border-top: 2px solid #ddd; padding-top: 15px; margin-top: 10px;">
@@ -176,7 +176,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
       <tr><th style="width:70%;">Description</th><th style="text-align:right;">Amount</th></tr>
       <tr><td>Room Charges (${b.room_type || "Standard"})</td><td style="text-align:right;">₹${base.toFixed(2)}</td></tr>
       <tr><td>GST (12%)</td><td style="text-align:right;">₹${gst.toFixed(2)}</td></tr>
-      <tr class="total"><td><strong>Total</strong></td><td style="text-align:right;"><strong>₹${b.total_price.toFixed(2)}</strong></td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td style="text-align:right;"><strong>₹${b.total_amount.toFixed(2)}</strong></td></tr>
     </table>
   </div>
   
@@ -218,8 +218,8 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
   };
 
   const calculateNights = () => {
-    const checkIn = new Date(booking.check_in_date);
-    const checkOut = new Date(booking.check_out_date);
+    const checkIn = new Date(booking.check_in);
+    const checkOut = new Date(booking.check_out);
     return Math.ceil(Math.abs(checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
   };
 
@@ -232,7 +232,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
               <Hotel className="h-5 w-5 text-primary" />
               {booking.hotel_name || "Partner Hotel"}
             </span>
-            {getStatusBadge(booking.booking_status)}
+            {getStatusBadge(booking.status)}
           </DialogTitle>
           <DialogDescription>Booking #{booking.id.slice(0, 8).toUpperCase()}</DialogDescription>
         </DialogHeader>
@@ -252,10 +252,10 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                     <span>{booking.guest_phone}</span>
                   </div>
                 )}
-                {booking.hotel_city && (
+                {booking.hotel_address && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{booking.hotel_city}</span>
+                    <span>{booking.hotel_address}</span>
                   </div>
                 )}
               </div>
@@ -269,13 +269,13 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <p className="text-muted-foreground text-xs flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Check-in
                 </p>
-                <p className="font-medium">{booking.check_in_date?.slice(0, 10)}</p>
+                <p className="font-medium">{booking.check_in?.slice(0, 10)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Check-out
                 </p>
-                <p className="font-medium">{booking.check_out_date?.slice(0, 10)}</p>
+                <p className="font-medium">{booking.check_out?.slice(0, 10)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs">Room type</p>
@@ -283,7 +283,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
               </div>
               <div>
                 <p className="text-muted-foreground text-xs">Guests</p>
-                <p className="font-medium">{booking.guests || 1}</p>
+                <p className="font-medium">{booking.num_guests || 1}</p>
               </div>
             </div>
 
@@ -293,7 +293,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Total Amount</span>
-                <span className="text-xl font-bold text-primary">{formatCurrency(booking.total_price)}</span>
+                <span className="text-xl font-bold text-primary">{formatCurrency(booking.total_amount)}</span>
               </div>
               <p className="text-xs text-muted-foreground text-right mt-1">
                 {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
@@ -324,8 +324,8 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <Label className="text-xs">Check-in</Label>
                 <Input
                   type="date"
-                  value={form.check_in_date}
-                  onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                  value={form.check_in}
+                  onChange={(e) => setForm({ ...form, check_in: e.target.value })}
                   min={new Date().toISOString().split("T")[0]}
                 />
               </div>
@@ -333,9 +333,9 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <Label className="text-xs">Check-out</Label>
                 <Input
                   type="date"
-                  value={form.check_out_date}
-                  onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
-                  min={form.check_in_date || new Date().toISOString().split("T")[0]}
+                  value={form.check_out}
+                  onChange={(e) => setForm({ ...form, check_out: e.target.value })}
+                  min={form.check_in || new Date().toISOString().split("T")[0]}
                 />
               </div>
               <div>
@@ -343,7 +343,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <Input
                   type="number"
                   min={1}
-                  value={form.guests}
+                  value={form.num_guests}
                   onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })}
                 />
               </div>
@@ -383,7 +383,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
               <Button variant="outline" size="sm" onClick={downloadInvoice}>
                 <Download className="h-4 w-4 mr-1" /> Invoice
               </Button>
-              {booking.booking_status !== "cancelled" && booking.booking_status !== "completed" && (
+              {booking.status !== "cancelled" && booking.status !== "completed" && (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setMode("edit")}>
                     <Calendar className="h-4 w-4 mr-1" /> Modify
