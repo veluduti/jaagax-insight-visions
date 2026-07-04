@@ -24,12 +24,8 @@ import {
   Heart,
   Sparkles,
   Handshake,
-  Building2,
   Trophy,
-  Award,
   TrendingUp,
-  Clock,
-  CheckCircle,
   Shield
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -216,18 +212,6 @@ const Hotels = () => {
     );
   };
 
-  const getRandomGradient = () => {
-    const gradients = [
-      'from-purple-500 to-pink-500',
-      'from-blue-500 to-cyan-500',
-      'from-green-500 to-emerald-500',
-      'from-orange-500 to-red-500',
-      'from-indigo-500 to-purple-500',
-      'from-pink-500 to-rose-500'
-    ];
-    return gradients[Math.floor(Math.random() * gradients.length)];
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
@@ -259,9 +243,9 @@ const Hotels = () => {
       <Navigation />
       
       <main className="flex-1 pt-20">
-        {/* Hero Section - Vibrant Gradient */}
+        {/* Hero Section */}
         <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
           
           <div className="container mx-auto max-w-7xl px-4 py-5 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -281,7 +265,6 @@ const Hotels = () => {
                 </p>
               </div>
               
-              {/* Connect with Us Button - Enhanced */}
               <Button 
                 variant="default"
                 size="default"
@@ -297,10 +280,10 @@ const Hotels = () => {
               </Button>
             </div>
 
-            {/* Search Bar - Enhanced */}
-            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20">
+            {/* Search Bar - Fixed z-index issue */}
+            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
                 <Input
                   placeholder="Search by city, hotel name or locality..."
                   value={searchQuery}
@@ -312,8 +295,9 @@ const Hotels = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent"
                 />
+                {/* Suggestions Dropdown - Fixed positioning */}
                 {showSuggestions && searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 max-h-60 overflow-y-auto">
                     {popularLocations
                       .filter(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
                       .map((loc) => (
@@ -327,24 +311,29 @@ const Hotels = () => {
                           }}
                           className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
                         >
-                          <div className="p-1.5 bg-green-100 rounded-full">
+                          <div className="p-1.5 bg-green-100 rounded-full flex-shrink-0">
                             <MapPin className="h-4 w-4 text-green-600" />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <span className="text-sm font-medium">{loc}</span>
                             <span className="text-xs text-gray-400 ml-2">
                               {hotels.filter(h => h.city.toLowerCase() === loc.toLowerCase()).length} hotels
                             </span>
                           </div>
-                          <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg]" />
+                          <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0" />
                         </button>
                       ))}
+                    {popularLocations.filter(l => l.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                      <div className="px-4 py-3 text-sm text-gray-500">
+                        No cities found. Try a different search.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
               <Button 
                 onClick={handleSearch}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 text-sm shadow-md hover:shadow-lg transition-all"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 text-sm shadow-md hover:shadow-lg transition-all flex-shrink-0"
               >
                 <Search className="h-4 w-4 mr-2" />
                 Search
@@ -354,7 +343,6 @@ const Hotels = () => {
         </div>
 
         <div className="container mx-auto max-w-7xl px-4 py-4">
-          {/* My Hotel Partner Application status */}
           <MyHotelApplicationsBanner />
 
           {/* Quick Stats */}
@@ -403,7 +391,7 @@ const Hotels = () => {
             </div>
           )}
 
-          {/* Filters and Sort Bar - Enhanced */}
+          {/* Filters and Sort Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 flex-wrap">
               <Button 
@@ -470,7 +458,7 @@ const Hotels = () => {
             </div>
           </div>
 
-          {/* Filters Panel - Enhanced */}
+          {/* Filters Panel */}
           <AnimatePresence>
             {showFilters && (
               <motion.div
@@ -552,7 +540,7 @@ const Hotels = () => {
             )}
           </AnimatePresence>
 
-          {/* Hotels Grid - Enhanced Cards */}
+          {/* Hotels Grid */}
           {filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
