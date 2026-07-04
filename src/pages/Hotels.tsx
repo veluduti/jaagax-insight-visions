@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLocation } from "@/contexts/LocationContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,8 @@ import {
   TrendingUp,
   Shield,
   Building2,
+  Clock,
+  TrendingUp as TrendingUpIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,14 @@ interface VisitPackage {
   is_active: boolean | null;
 }
 
+interface SearchSuggestion {
+  type: "city" | "hotel" | "locality" | "popular";
+  name: string;
+  subtitle?: string;
+  count?: number;
+  icon?: React.ReactNode;
+}
+
 const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -92,7 +102,13 @@ const Hotels = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"price" | "rating" | "popularity">("rating");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<{ type: "city" | "hotel"; name: string; count?: number }[]>([]);
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
+  const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
 
   // Fetch hotels and packages from database only
   useEffect(() => {
@@ -120,8 +136,6 @@ const Hotels = () => {
     fetchData();
   }, []);
 
-  const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
-
   // Auto-set city from detected location
   useEffect(() => {
     if (detectedLocation?.city && !searchParams.get("city")) {
@@ -133,31 +147,90 @@ const Hotels = () => {
     }
   }, [detectedLocation]);
 
-  // Get suggestions based on search query
+  // Click outside handler
   useEffect(() => {
-    if (searchQuery.length > 0) {
-      const query = searchQuery.toLowerCase();
-      const newSuggestions: { type: "city" | "hotel"; name: string; count?: number }[] = [];
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-      // City suggestions
-      const cityMatches = popularLocations.filter((city) => city.toLowerCase().includes(query));
-      cityMatches.forEach((city) => {
-        const count = hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length;
-        newSuggestions.push({ type: "city", name: city, count });
-      });
-
-      // Hotel name suggestions
-      const hotelMatches = hotels.filter(
-        (hotel) => hotel.name.toLowerCase().includes(query) || hotel.locality.toLowerCase().includes(query),
-      );
-      hotelMatches.slice(0, 5).forEach((hotel) => {
-        newSuggestions.push({ type: "hotel", name: hotel.name, count: 1 });
-      });
-
-      setSuggestions(newSuggestions);
-    } else {
-      setSuggestions([]);
+  // Get suggestions based on search query - Real-world hotel search behavior
+  useEffect(() => {
+    if (searchQuery.length === 0) {
+      // Show popular suggestions when empty
+      const popularSuggestions: SearchSuggestion[] = [
+        { type: "popular", name: "Popular Cities", subtitle: "Trending destinations" },
+        ...popularLocations.slice(0, 3).map((city) => ({
+          type: "city" as const,
+          name: city,
+          count: hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length,
+        })),
+        { type: "popular", name: "Popular Hotels", subtitle: "Most booked properties" },
+        ...popularHotels.slice(0, 3).map((hotel) => ({
+          type: "hotel" as const,
+          name: hotel,
+          subtitle: "Popular chain",
+        })),
+      ];
+      setSuggestions(popularSuggestions);
+      return;
     }
+
+    const query = searchQuery.toLowerCase().trim();
+    setIsSearching(true);
+
+    const newSuggestions: SearchSuggestion[] = [];
+
+    // 1. City suggestions (exact match priority)
+    const cityMatches = popularLocations.filter((city) => city.toLowerCase().includes(query));
+    cityMatches.forEach((city) => {
+      const count = hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length;
+      newSuggestions.push({
+        type: "city",
+        name: city,
+        count,
+        subtitle: `${count} hotels available`,
+      });
+    });
+
+    // 2. Hotel name suggestions
+    const hotelMatches = hotels.filter(
+      (hotel) => hotel.name.toLowerCase().includes(query) || hotel.locality.toLowerCase().includes(query),
+    );
+
+    // Remove duplicates and limit
+    const uniqueHotelMatches = hotelMatches.filter(
+      (hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name),
+    );
+    uniqueHotelMatches.slice(0, 5).forEach((hotel) => {
+      newSuggestions.push({
+        type: "hotel",
+        name: hotel.name,
+        subtitle: `${hotel.locality}, ${hotel.city}`,
+        count: 1,
+      });
+    });
+
+    // 3. Locality suggestions
+    const localityMatches = hotels.filter(
+      (hotel) => hotel.locality.toLowerCase().includes(query) && !hotel.name.toLowerCase().includes(query),
+    );
+    localityMatches.slice(0, 3).forEach((hotel) => {
+      newSuggestions.push({
+        type: "locality",
+        name: hotel.locality,
+        subtitle: `${hotel.city}`,
+        count: hotels.filter((h) => h.locality.toLowerCase() === hotel.locality.toLowerCase()).length,
+      });
+    });
+
+    // Limit total suggestions
+    setSuggestions(newSuggestions.slice(0, 12));
+    setIsSearching(false);
   }, [searchQuery, hotels]);
 
   // Get amenity icon with colors
@@ -208,25 +281,39 @@ const Hotels = () => {
   }, [hotels, selectedCity, starRating, priceRange, searchQuery, sortBy]);
 
   const handleSearch = () => {
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       // Check if it's a city
       const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
       if (matchedCity) {
         setSelectedCity(matchedCity);
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
+      } else {
+        // Search by hotel name or locality
+        const matchedHotel = hotels.find(
+          (h) =>
+            h.name.toLowerCase() === searchQuery.toLowerCase() ||
+            h.locality.toLowerCase() === searchQuery.toLowerCase(),
+        );
+        if (matchedHotel) {
+          // Filter hotels by the search query
+          // The filter will handle it via the matchesSearch condition
+        }
       }
     }
     setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion: { type: "city" | "hotel"; name: string }) => {
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (suggestion.type === "city") {
       setSelectedCity(suggestion.name);
       setSearchQuery(suggestion.name);
       navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
-    } else {
-      // For hotel suggestions, just set the search query
+    } else if (suggestion.type === "hotel" || suggestion.type === "locality") {
       setSearchQuery(suggestion.name);
+      // Focus on the search input after selecting
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
     setShowSuggestions(false);
   };
@@ -249,6 +336,36 @@ const Hotels = () => {
         ))}
       </div>
     );
+  };
+
+  const getSuggestionIcon = (type: string) => {
+    switch (type) {
+      case "city":
+        return <MapPin className="h-4 w-4 text-green-600" />;
+      case "hotel":
+        return <Building2 className="h-4 w-4 text-blue-600" />;
+      case "locality":
+        return <MapPin className="h-4 w-4 text-purple-600" />;
+      case "popular":
+        return <TrendingUpIcon className="h-4 w-4 text-orange-600" />;
+      default:
+        return <Search className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getSuggestionBgColor = (type: string) => {
+    switch (type) {
+      case "city":
+        return "bg-green-50";
+      case "hotel":
+        return "bg-blue-50";
+      case "locality":
+        return "bg-purple-50";
+      case "popular":
+        return "bg-orange-50";
+      default:
+        return "bg-gray-50";
+    }
   };
 
   if (loading) {
@@ -326,12 +443,16 @@ const Hotels = () => {
               </Button>
             </div>
 
-            {/* Search Bar - Fixed with proper z-index */}
-            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-50">
+            {/* Search Bar - Real-world hotel search behavior */}
+            <div
+              ref={searchRef}
+              className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-50"
+            >
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
                 <Input
-                  placeholder="Search by city, hotel name or locality..."
+                  ref={inputRef}
+                  placeholder="Search by city, hotel name, or locality..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -341,39 +462,65 @@ const Hotels = () => {
                   onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent text-gray-900 placeholder:text-gray-400"
                 />
-                {/* Suggestions Dropdown - Fixed */}
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 max-h-72 overflow-y-auto">
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
-                      >
-                        {suggestion.type === "city" ? (
-                          <>
-                            <div className="p-1.5 bg-green-100 rounded-full flex-shrink-0">
-                              <MapPin className="h-4 w-4 text-green-600" />
+
+                {/* Suggestions Dropdown - Real-world hotel search style */}
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-[100] max-h-80 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
+                        Searching...
+                      </div>
+                    ) : suggestions.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-gray-500">No results found for "{searchQuery}"</div>
+                    ) : (
+                      <>
+                        {/* Group suggestions by type */}
+                        {suggestions.map((suggestion, index) => (
+                          <button
+                            key={`${suggestion.type}-${suggestion.name}-${index}`}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            className="w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 border-b last:border-b-0 group"
+                          >
+                            <div
+                              className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
+                            >
+                              {getSuggestionIcon(suggestion.type)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium">{suggestion.name}</span>
-                              <span className="text-xs text-gray-400 ml-2">{suggestion.count} hotels</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{suggestion.name}</span>
+                                {suggestion.type === "popular" && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[8px] px-1.5 py-0 bg-orange-50 text-orange-600 border-orange-200"
+                                  >
+                                    Popular
+                                  </Badge>
+                                )}
+                              </div>
+                              {suggestion.subtitle && <p className="text-xs text-gray-400">{suggestion.subtitle}</p>}
+                              {suggestion.count !== undefined &&
+                                suggestion.count > 0 &&
+                                suggestion.type !== "popular" && (
+                                  <span className="text-xs text-green-600">
+                                    {suggestion.count} {suggestion.count === 1 ? "hotel" : "hotels"}
+                                  </span>
+                                )}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="p-1.5 bg-blue-100 rounded-full flex-shrink-0">
-                              <Building2 className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium">{suggestion.name}</span>
-                              <span className="text-xs text-gray-400 ml-2">Hotel</span>
-                            </div>
-                          </>
-                        )}
-                        <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0" />
-                      </button>
-                    ))}
+                            <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ))}
+
+                        {/* View all results option */}
+                        <button
+                          onClick={handleSearch}
+                          className="w-full px-4 py-2.5 text-center bg-green-50 hover:bg-green-100 transition-colors text-sm font-medium text-green-700 border-t"
+                        >
+                          View all results for "{searchQuery}"
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
