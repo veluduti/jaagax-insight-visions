@@ -927,6 +927,7 @@ const Hotels = () => {
                       <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 mt-auto">
                         <div>
                           <div className="flex items-baseline gap-1.5">
+                            <span className="text-[10px] text-gray-500">Starts from</span>
                             <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                               ₹{hotel.price_per_night.toLocaleString()}
                             </span>
