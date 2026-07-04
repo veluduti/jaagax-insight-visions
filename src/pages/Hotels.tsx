@@ -26,7 +26,8 @@ import {
   Handshake,
   Trophy,
   TrendingUp,
-  Shield
+  Shield,
+  Building2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,7 @@ const Hotels = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"price" | "rating" | "popularity">("rating");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<{type: 'city' | 'hotel', name: string, count?: number}[]>([]);
 
   // Fetch hotels and packages from database only
   useEffect(() => {
@@ -133,6 +135,36 @@ const Hotels = () => {
     }
   }, [detectedLocation]);
 
+  // Get suggestions based on search query
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      const query = searchQuery.toLowerCase();
+      const newSuggestions: {type: 'city' | 'hotel', name: string, count?: number}[] = [];
+      
+      // City suggestions
+      const cityMatches = popularLocations.filter(city => 
+        city.toLowerCase().includes(query)
+      );
+      cityMatches.forEach(city => {
+        const count = hotels.filter(h => h.city.toLowerCase() === city.toLowerCase()).length;
+        newSuggestions.push({ type: 'city', name: city, count });
+      });
+
+      // Hotel name suggestions
+      const hotelMatches = hotels.filter(hotel => 
+        hotel.name.toLowerCase().includes(query) ||
+        hotel.locality.toLowerCase().includes(query)
+      );
+      hotelMatches.slice(0, 5).forEach(hotel => {
+        newSuggestions.push({ type: 'hotel', name: hotel.name, count: 1 });
+      });
+
+      setSuggestions(newSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchQuery, hotels]);
+
   // Get amenity icon with colors
   const getAmenityIcon = (amenity: string) => {
     const amenityLower = amenity.toLowerCase();
@@ -174,6 +206,7 @@ const Hotels = () => {
 
   const handleSearch = () => {
     if (searchQuery) {
+      // Check if it's a city
       const matchedCity = popularLocations.find(
         c => c.toLowerCase() === searchQuery.toLowerCase()
       );
@@ -181,6 +214,18 @@ const Hotels = () => {
         setSelectedCity(matchedCity);
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
       }
+    }
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionClick = (suggestion: {type: 'city' | 'hotel', name: string}) => {
+    if (suggestion.type === 'city') {
+      setSelectedCity(suggestion.name);
+      setSearchQuery(suggestion.name);
+      navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
+    } else {
+      // For hotel suggestions, just set the search query
+      setSearchQuery(suggestion.name);
     }
     setShowSuggestions(false);
   };
@@ -245,13 +290,7 @@ const Hotels = () => {
       <main className="flex-1 pt-20">
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-            }}
-          />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
           
           <div className="container mx-auto max-w-7xl px-4 py-5 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -267,7 +306,7 @@ const Hotels = () => {
                   <Sparkles className="h-5 w-5 text-yellow-300" />
                 </h1>
                 <p className="text-green-100 text-sm">
-                  {filteredAndSortedHotels.length} hotels available in {selectedCity === "all" ? "all cities" : selectedCity}
+                  {filteredAndSortedHotels.length} hotels available {selectedCity !== "all" ? `in ${selectedCity}` : "in all cities"}
                 </p>
               </div>
               
@@ -286,8 +325,8 @@ const Hotels = () => {
               </Button>
             </div>
 
-            {/* Search Bar - Fixed z-index issue */}
-            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative">
+            {/* Search Bar - Fixed with proper z-index */}
+            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-10">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
                 <Input
@@ -301,39 +340,41 @@ const Hotels = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent"
                 />
-                {/* Suggestions Dropdown - Fixed positioning */}
-                {showSuggestions && searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 max-h-60 overflow-y-auto">
-                    {popularLocations
-                      .filter(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
-                      .map((loc) => (
-                        <button
-                          key={loc}
-                          onClick={() => {
-                            setSearchQuery(loc);
-                            setSelectedCity(loc);
-                            setShowSuggestions(false);
-                            handleSearch();
-                          }}
-                          className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
-                        >
-                          <div className="p-1.5 bg-green-100 rounded-full flex-shrink-0">
-                            <MapPin className="h-4 w-4 text-green-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm font-medium">{loc}</span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {hotels.filter(h => h.city.toLowerCase() === loc.toLowerCase()).length} hotels
-                            </span>
-                          </div>
-                          <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0" />
-                        </button>
-                      ))}
-                    {popularLocations.filter(l => l.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                      <div className="px-4 py-3 text-sm text-gray-500">
-                        No cities found. Try a different search.
-                      </div>
-                    )}
+                {/* Suggestions Dropdown - Fixed */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 max-h-72 overflow-y-auto">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
+                      >
+                        {suggestion.type === 'city' ? (
+                          <>
+                            <div className="p-1.5 bg-green-100 rounded-full flex-shrink-0">
+                              <MapPin className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium">{suggestion.name}</span>
+                              <span className="text-xs text-gray-400 ml-2">
+                                {suggestion.count} hotels
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="p-1.5 bg-blue-100 rounded-full flex-shrink-0">
+                              <Building2 className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium">{suggestion.name}</span>
+                              <span className="text-xs text-gray-400 ml-2">Hotel</span>
+                            </div>
+                          </>
+                        )}
+                        <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0" />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -369,7 +410,8 @@ const Hotels = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">
-                    {Math.round(filteredAndSortedHotels.reduce((acc, h) => acc + (h.star_rating || 0), 0) / filteredAndSortedHotels.length || 0)}
+                    {filteredAndSortedHotels.length > 0 ? 
+                      Math.round(filteredAndSortedHotels.reduce((acc, h) => acc + (h.star_rating || 0), 0) / filteredAndSortedHotels.length) : 0}
                   </p>
                   <p className="text-[10px] text-gray-500">Avg Rating</p>
                 </div>
@@ -425,10 +467,10 @@ const Hotels = () => {
               </div>
 
               {selectedCity !== "all" && (
-                <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200">
+                <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
                   {selectedCity}
                   <X 
-                    className="h-3 w-3 ml-1 cursor-pointer hover:text-red-500" 
+                    className="h-3 w-3 cursor-pointer hover:text-red-500" 
                     onClick={() => {
                       setSelectedCity("all");
                       setSearchQuery("");
@@ -554,7 +596,8 @@ const Hotels = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No hotels found</h3>
               <p className="text-sm text-gray-500 max-w-md mx-auto">
-                We couldn't find any hotels matching your criteria. Try adjusting your filters or search for a different city.
+                {searchQuery ? `No results found for "${searchQuery}"` : "We couldn't find any hotels matching your criteria."}
+                Try adjusting your filters or search for a different city.
               </p>
               <Button 
                 variant="outline" 
