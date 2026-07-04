@@ -344,7 +344,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                   type="number"
                   min={1}
                   value={form.num_guests}
-                  onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })}
+                  onChange={(e) => setForm({ ...form, num_guests: Number(e.target.value) || 1 })}
                 />
               </div>
               <div>
