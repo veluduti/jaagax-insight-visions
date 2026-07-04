@@ -15,7 +15,19 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle, Hotel } from "lucide-react";
+import { Calendar, Download, X, RotateCcw, User, Phone, MapPin, IndianRupee, Clock, AlertTriangle, Hotel, CreditCard, Lock } from "lucide-react";
+
+declare global { interface Window { Razorpay?: any } }
+function loadRazorpay(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
 
 interface Booking {
   id: string;
@@ -27,9 +39,11 @@ interface Booking {
   num_guests?: number | null;
   total_amount: number;
   status: string;
+  payment_status?: string | null;
   hotel_id?: string | null;
   guest_name?: string | null;
   guest_phone?: string | null;
+  guest_email?: string | null;
   created_at?: string;
 }
 
