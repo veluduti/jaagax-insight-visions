@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
+
 
 const nav = [
   { label: "Why Partner", href: "#why" },
