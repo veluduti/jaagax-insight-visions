@@ -146,7 +146,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                   <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
-                <Button size="sm" onClick={() => setCreating(true)}>
+                <Button size="sm" onClick={goToHotels}>
                   <Plus className="h-4 w-4 mr-1" />
                   New Booking
                 </Button>
@@ -199,7 +199,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                 <p className="text-xs text-muted-foreground mb-3">
                   {query ? "Try adjusting your search" : "Book a hotel for your client's site visit"}
                 </p>
-                <Button size="sm" onClick={() => setCreating(true)}>
+                <Button size="sm" onClick={goToHotels}>
                   <Plus className="h-4 w-4 mr-1" />
                   Create First Booking
                 </Button>
