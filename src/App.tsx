@@ -76,6 +76,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const NaturalLiving = lazy(() => import("./pages/NaturalLiving"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
+const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
+const HotelBookingConfirmed = lazy(() => import("./pages/HotelBookingConfirmed"));
 const HotelPartnerOnboarding = lazy(() => import("./pages/HotelPartnerOnboarding"));
 const HotelPartnerStatus = lazy(() => import("./pages/HotelPartnerStatus"));
 const PartnerLanding = lazy(() => import("./pages/partners/PartnerLanding"));
@@ -440,6 +442,8 @@ const App = () => (
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
                   <Route path="/hotels/:id" element={<HotelDetail />} />
+                  <Route path="/hotels/:id/checkout" element={<HotelCheckout />} />
+                  <Route path="/hotels/booking/:bookingId/confirmed" element={<HotelBookingConfirmed />} />
                   <Route path="/partners" element={<PartnerLanding />} />
                   <Route path="/partners/register" element={<PartnerRegister />} />
                   <Route path="/partners/login" element={<PartnerLogin />} />
