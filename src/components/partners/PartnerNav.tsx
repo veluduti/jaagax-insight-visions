@@ -1,8 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Building2, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const nav = [
   { label: "Why Partner", href: "#why" },
@@ -14,8 +16,54 @@ const nav = [
 
 export default function PartnerNav() {
   const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const loc = useLocation();
+  const nav_ = useNavigate();
   const onLanding = loc.pathname === "/partners";
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    nav_("/partners", { replace: true });
+  };
+
+  const authedActions = (
+    <>
+      <Link to="/partners/dashboard">
+        <Button variant="ghost" size="sm">
+          <LayoutDashboard className="mr-1.5 h-4 w-4" /> Dashboard
+        </Button>
+      </Link>
+      <Button
+        size="sm"
+        onClick={handleSignOut}
+        className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600"
+      >
+        <LogOut className="mr-1.5 h-4 w-4" /> Sign out
+      </Button>
+    </>
+  );
+
+  const guestActions = (
+    <>
+      <Link to="/partners/login">
+        <Button variant="ghost" size="sm">Log in</Button>
+      </Link>
+      <Link to="/partners/register">
+        <Button size="sm" className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">
+          List your hotel
+        </Button>
+      </Link>
+    </>
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -40,14 +88,7 @@ export default function PartnerNav() {
         )}
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link to="/partners/login">
-            <Button variant="ghost" size="sm">Log in</Button>
-          </Link>
-          <Link to="/partners/register">
-            <Button size="sm" className="bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">
-              List your hotel
-            </Button>
-          </Link>
+          {userId ? authedActions : guestActions}
         </div>
 
         <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menu">
@@ -63,12 +104,30 @@ export default function PartnerNav() {
                 {n.label}
               </a>
             ))}
-            <Link to="/partners/login" onClick={() => setOpen(false)}>
-              <Button variant="outline" className="w-full">Log in</Button>
-            </Link>
-            <Link to="/partners/register" onClick={() => setOpen(false)}>
-              <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
-            </Link>
+            {userId ? (
+              <>
+                <Link to="/partners/dashboard" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    <LayoutDashboard className="mr-1.5 h-4 w-4" /> Dashboard
+                  </Button>
+                </Link>
+                <Button
+                  className="w-full bg-emerald-500 text-white hover:bg-emerald-600"
+                  onClick={() => { setOpen(false); handleSignOut(); }}
+                >
+                  <LogOut className="mr-1.5 h-4 w-4" /> Sign out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/partners/login" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="w-full">Log in</Button>
+                </Link>
+                <Link to="/partners/register" onClick={() => setOpen(false)}>
+                  <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">List your hotel</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
