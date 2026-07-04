@@ -39,6 +39,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // If user_id given, resolve the agents.id server-side so agent-booked
+    // stays always surface in the agent dashboard, regardless of client RLS.
+    let resolvedAgentId: string | null = booked_by_agent_id;
+    if (!resolvedAgentId && user_id) {
+      const { data: agentRow } = await supabase
+        .from("agents").select("id").eq("user_id", user_id).maybeSingle();
+      if (agentRow?.id) resolvedAgentId = agentRow.id as string;
+    }
+
     // Server-authoritative quote
     const quoteRes = await fetch(
       new URL("/functions/v1/booking-engine-quote", Deno.env.get("SUPABASE_URL")!),
