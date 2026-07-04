@@ -29,6 +29,36 @@ function loadRazorpay(): Promise<boolean> {
   });
 }
 
+const razorpayCheckoutConfig = {
+  method: {
+    upi: true,
+    card: true,
+    netbanking: true,
+    wallet: true,
+    emi: true,
+    paylater: true,
+  },
+  config: {
+    display: {
+      blocks: {
+        allMethods: {
+          name: "All payment options",
+          instruments: [
+            { method: "card" },
+            { method: "netbanking" },
+            { method: "wallet" },
+            { method: "emi" },
+            { method: "paylater" },
+            { method: "upi" },
+          ],
+        },
+      },
+      sequence: ["block.allMethods"],
+      preferences: { show_default_blocks: true },
+    },
+  },
+};
+
 interface Booking {
   id: string;
   hotel_name?: string | null;
@@ -151,6 +181,7 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
       }
 
       const rzp = new (window as any).Razorpay({
+        ...razorpayCheckoutConfig,
         key: data.key_id,
         amount: data.amount,
         currency: data.currency,
