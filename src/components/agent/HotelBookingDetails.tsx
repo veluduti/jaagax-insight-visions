@@ -366,10 +366,33 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
                 <span className="text-sm text-muted-foreground">Total Amount</span>
                 <span className="text-xl font-bold text-primary">{formatCurrency(booking.total_amount)}</span>
               </div>
-              <p className="text-xs text-muted-foreground text-right mt-1">
-                {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {calculateNights()} night{calculateNights() !== 1 ? "s" : ""} stay
+                </p>
+                {booking.payment_status === "paid" ? (
+                  <Badge className="bg-emerald-500 text-white text-[10px]">Paid</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">Payment {booking.payment_status || "pending"}</Badge>
+                )}
+              </div>
             </div>
+
+            {/* Pay Now for unpaid bookings */}
+            {booking.status !== "cancelled" && booking.payment_status !== "paid" && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CreditCard className="h-4 w-4 text-primary" />
+                  Complete payment to confirm this stay
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Secure payment via Razorpay · UPI, Cards, Netbanking
+                </p>
+                <Button className="w-full" onClick={payNow} disabled={paying}>
+                  {paying ? "Opening Razorpay…" : `Pay ${formatCurrency(booking.total_amount)}`}
+                </Button>
+              </div>
+            )}
 
             {/* Booking Date */}
             {booking.created_at && (
