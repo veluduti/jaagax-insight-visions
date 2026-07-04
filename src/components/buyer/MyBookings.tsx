@@ -476,6 +476,16 @@ const MyBookings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {reviewFor && (
+        <HotelReviewDialog
+          open={!!reviewFor}
+          onOpenChange={(o) => !o && setReviewFor(null)}
+          hotelId={reviewFor.hotel_id}
+          bookingId={reviewFor.id}
+          guestName={reviewFor.guest_name}
+          onSubmitted={fetchBookings}
+        />
+      )}
     </>
   );
 };
