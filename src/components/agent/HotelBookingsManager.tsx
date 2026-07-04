@@ -92,7 +92,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
       (b.hotel_name || "").toLowerCase().includes(q) ||
       (b.guest_name || "").toLowerCase().includes(q) ||
       (b.guest_phone || "").toLowerCase().includes(q) ||
-      (b.hotel_city || "").toLowerCase().includes(q)
+      (b.hotel_address || "").toLowerCase().includes(q)
     );
   });
 
@@ -119,9 +119,9 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
 
   const counts = {
     all: bookings.length,
-    confirmed: bookings.filter((b) => b.booking_status === "confirmed").length,
-    pending: bookings.filter((b) => b.booking_status === "pending").length,
-    cancelled: bookings.filter((b) => b.booking_status === "cancelled").length,
+    confirmed: bookings.filter((b) => b.status === "confirmed").length,
+    pending: bookings.filter((b) => b.status === "pending").length,
+    cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
   return (
@@ -215,30 +215,30 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold">{b.hotel_name || "Partner Hotel"}</p>
-                          {getStatusBadge(b.booking_status)}
+                          {getStatusBadge(b.status)}
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                           <Users className="h-3 w-3" />
                           {b.guest_name || "Guest"}
-                          {b.hotel_city && (
+                          {b.hotel_address && (
                             <>
                               <MapPin className="h-3 w-3 ml-2" />
-                              {b.hotel_city}
+                              {b.hotel_address}
                             </>
                           )}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-primary">{formatCurrency(b.total_price)}</p>
+                        <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
                         <p className="text-[10px] text-muted-foreground">
-                          {b.room_type || "Standard"} · {b.guests || 1} guest{(b.guests || 1) > 1 ? "s" : ""}
+                          {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {b.check_in_date?.slice(0, 10)} → {b.check_out_date?.slice(0, 10)}
+                        {b.check_in?.slice(0, 10)} → {b.check_out?.slice(0, 10)}
                       </span>
                       {b.created_at && <span>Booked: {new Date(b.created_at).toLocaleDateString("en-IN")}</span>}
                     </div>
