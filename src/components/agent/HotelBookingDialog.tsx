@@ -40,9 +40,9 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
     hotel_id: "",
     guest_name: "",
     guest_phone: "",
-    check_in_date: "",
-    check_out_date: "",
-    guests: 1,
+    check_in: "",
+    check_out: "",
+    num_guests: 1,
     room_type: "Standard",
     nightly_rate: 0,
   });
@@ -75,9 +75,9 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
   const selectedHotel = hotels.find((h) => h.id === form.hotel_id);
 
   const nights = (() => {
-    if (!form.check_in_date || !form.check_out_date) return 0;
-    const a = new Date(form.check_in_date).getTime();
-    const b = new Date(form.check_out_date).getTime();
+    if (!form.check_in || !form.check_out) return 0;
+    const a = new Date(form.check_in).getTime();
+    const b = new Date(form.check_out).getTime();
     return Math.max(0, Math.round((b - a) / (1000 * 60 * 60 * 24)));
   })();
 
@@ -89,9 +89,9 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
       hotel_id: "",
       guest_name: "",
       guest_phone: "",
-      check_in_date: "",
-      check_out_date: "",
-      guests: 1,
+      check_in: "",
+      check_out: "",
+      num_guests: 1,
       room_type: "Standard",
       nightly_rate: 0,
     });
@@ -106,11 +106,11 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
       toast.error("Guest name is required");
       return;
     }
-    if (!form.check_in_date) {
+    if (!form.check_in) {
       toast.error("Please select check-in date");
       return;
     }
-    if (!form.check_out_date) {
+    if (!form.check_out) {
       toast.error("Please select check-out date");
       return;
     }
@@ -129,15 +129,15 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
     const payload: any = {
       hotel_id: form.hotel_id,
       hotel_name: selectedHotel?.name || null,
-      hotel_city: selectedHotel?.city || null,
+      hotel_address: selectedHotel?.city || null,
       guest_name: form.guest_name.trim(),
       guest_phone: form.guest_phone || null,
-      check_in_date: form.check_in_date,
-      check_out_date: form.check_out_date,
-      guests: form.guests,
+      check_in: form.check_in,
+      check_out: form.check_out,
+      num_guests: form.num_guests,
       room_type: form.room_type,
-      total_price: total,
-      booking_status: "confirmed",
+      total_amount: total,
+      status: "confirmed",
       booked_by_agent_id: agentId || null,
       user_id: userId || null,
     };
@@ -232,8 +232,8 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
               <Label className="text-xs font-medium">Check-in Date *</Label>
               <Input
                 type="date"
-                value={form.check_in_date}
-                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                value={form.check_in}
+                onChange={(e) => setForm({ ...form, check_in: e.target.value })}
                 min={new Date().toISOString().split("T")[0]}
               />
             </div>
@@ -241,9 +241,9 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
               <Label className="text-xs font-medium">Check-out Date *</Label>
               <Input
                 type="date"
-                value={form.check_out_date}
-                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
-                min={form.check_in_date || new Date().toISOString().split("T")[0]}
+                value={form.check_out}
+                onChange={(e) => setForm({ ...form, check_out: e.target.value })}
+                min={form.check_in || new Date().toISOString().split("T")[0]}
               />
             </div>
           </div>
@@ -256,8 +256,8 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
                 type="number"
                 min={1}
                 max={10}
-                value={form.guests}
-                onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })}
+                value={form.num_guests}
+                onChange={(e) => setForm({ ...form, num_guests: Number(e.target.value) || 1 })}
               />
             </div>
             <div className="col-span-2">
