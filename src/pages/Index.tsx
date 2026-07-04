@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HeroCarousel from "@/components/HeroCarousel";
 import FeaturedProperties from "@/components/FeaturedProperties";
@@ -26,6 +27,12 @@ const Index = () => {
   const { detectedLocation, isDetecting } = useLocation();
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState("properties");
+
+  // Hotel managers have their own dedicated Partner portal — send them there instead of the buyer/seller home.
+  if (role === "hotel_manager") {
+    return <Navigate to="/partners" replace />;
+  }
+
 
   const showBuyRent = canSee(role, "buyRent");
   const showNewProjects = canSee(role, "newProjects");
