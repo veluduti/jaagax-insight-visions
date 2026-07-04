@@ -2475,11 +2475,15 @@ export type Database = {
       }
       hotel_bookings: {
         Row: {
+          actual_check_in_at: string | null
+          actual_check_out_at: string | null
           addon_total: number
           booking_reference: string | null
           booking_type: string | null
           builder_profile_id: string | null
           cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           check_in: string
           check_out: string
           checked_in_at: string | null
@@ -2505,7 +2509,10 @@ export type Database = {
           property_id: string | null
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          razorpay_refund_id: string | null
           razorpay_signature: string | null
+          refunded_amount: number | null
+          refunded_at: string | null
           room_type: string | null
           source: string
           special_requests: string | null
@@ -2515,11 +2522,15 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          actual_check_in_at?: string | null
+          actual_check_out_at?: string | null
           addon_total?: number
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
           cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           check_in: string
           check_out: string
           checked_in_at?: string | null
@@ -2545,7 +2556,10 @@ export type Database = {
           property_id?: string | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          razorpay_refund_id?: string | null
           razorpay_signature?: string | null
+          refunded_amount?: number | null
+          refunded_at?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
@@ -2555,11 +2569,15 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          actual_check_in_at?: string | null
+          actual_check_out_at?: string | null
           addon_total?: number
           booking_reference?: string | null
           booking_type?: string | null
           builder_profile_id?: string | null
           cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           check_in?: string
           check_out?: string
           checked_in_at?: string | null
@@ -2585,7 +2603,10 @@ export type Database = {
           property_id?: string | null
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          razorpay_refund_id?: string | null
           razorpay_signature?: string | null
+          refunded_amount?: number | null
+          refunded_at?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
