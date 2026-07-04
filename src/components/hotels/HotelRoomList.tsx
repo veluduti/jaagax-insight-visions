@@ -68,8 +68,7 @@ export default function HotelRoomList({
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
   const [galleryIdx, setGalleryIdx] = useState<Record<string, number>>({});
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const navigate = useNavigate();
 
   // Load rooms
   useEffect(() => {
