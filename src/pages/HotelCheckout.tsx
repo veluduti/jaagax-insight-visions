@@ -89,13 +89,22 @@ const HotelCheckout = () => {
       });
       setQuote(q);
 
-      // Prefill from user
+      // Prefill from URL params first (from HotelBookingModal), then user profile
+      const qName = params.get("name") || "";
+      const qEmail = params.get("email") || "";
+      const qPhone = params.get("phone") || "";
+      const qNotes = params.get("notes") || "";
+      if (qName) setGuestName(qName);
+      if (qEmail) setGuestEmail(qEmail);
+      if (qPhone) setGuestPhone(qPhone);
+      if (qNotes) setSpecialRequests(qNotes);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setGuestEmail(user.email || "");
+        if (!qEmail) setGuestEmail(user.email || "");
         const { data: p } = await supabase.from("profiles").select("full_name,phone").eq("user_id", user.id).maybeSingle();
-        if (p?.full_name) setGuestName(p.full_name);
-        if ((p as any)?.phone) setGuestPhone((p as any).phone);
+        if (!qName && p?.full_name) setGuestName(p.full_name);
+        if (!qPhone && (p as any)?.phone) setGuestPhone((p as any).phone);
       }
       setLoading(false);
     })();
