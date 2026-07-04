@@ -3899,6 +3899,96 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_kyc: {
+        Row: {
+          address_proof_url: string | null
+          created_at: string
+          id: string
+          id_document_url: string | null
+          id_number: string
+          id_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["nl_kyc_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_proof_url?: string | null
+          created_at?: string
+          id?: string
+          id_document_url?: string | null
+          id_number: string
+          id_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["nl_kyc_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_proof_url?: string | null
+          created_at?: string
+          id?: string
+          id_document_url?: string | null
+          id_number?: string
+          id_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["nl_kyc_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nl_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          onboarding_completed: boolean
+          phone: string | null
+          role: Database["public"]["Enums"]["nl_role"]
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["nl_role"]
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["nl_role"]
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           builder_profile_id: string | null
@@ -6720,6 +6810,8 @@ export type Database = {
       agent_assignment_state: "pending" | "accepted" | "rejected"
       lead_source: "call" | "whatsapp" | "inquiry"
       lead_status: "new" | "contacted" | "closed"
+      nl_kyc_status: "pending" | "approved" | "rejected"
+      nl_role: "customer" | "farmer" | "land_owner" | "admin"
       property_lifecycle_status:
         | "draft"
         | "submitted"
@@ -6874,6 +6966,8 @@ export const Constants = {
       agent_assignment_state: ["pending", "accepted", "rejected"],
       lead_source: ["call", "whatsapp", "inquiry"],
       lead_status: ["new", "contacted", "closed"],
+      nl_kyc_status: ["pending", "approved", "rejected"],
+      nl_role: ["customer", "farmer", "land_owner", "admin"],
       property_lifecycle_status: [
         "draft",
         "submitted",

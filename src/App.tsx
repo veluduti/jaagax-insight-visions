@@ -94,6 +94,10 @@ const NLFarmStay = lazy(() => import("./pages/natural-living/NLFarmStay"));
 const NLWellness = lazy(() => import("./pages/natural-living/NLWellness"));
 const NLCorporate = lazy(() => import("./pages/natural-living/NLCorporate"));
 const NLSchools = lazy(() => import("./pages/natural-living/NLSchools"));
+const NLAuthPage = lazy(() => import("./pages/natural-living/NLAuth"));
+const NLOnboarding = lazy(() => import("./pages/natural-living/NLOnboarding"));
+const NLKyc = lazy(() => import("./pages/natural-living/NLKyc"));
+const NLDashboard = lazy(() => import("./pages/natural-living/NLDashboard"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
@@ -478,6 +482,10 @@ const App = () => (
                   <Route path="/natural-living/wellness" element={<NLWellness />} />
                   <Route path="/natural-living/corporate" element={<NLCorporate />} />
                   <Route path="/natural-living/schools" element={<NLSchools />} />
+                  <Route path="/natural-living/auth" element={<NLAuthPage />} />
+                  <Route path="/natural-living/onboarding" element={<NLOnboarding />} />
+                  <Route path="/natural-living/kyc" element={<NLKyc />} />
+                  <Route path="/natural-living/dashboard" element={<NLDashboard />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
