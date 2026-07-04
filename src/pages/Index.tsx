@@ -28,6 +28,12 @@ const Index = () => {
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState("properties");
 
+  // Hotel managers have their own dedicated Partner portal — send them there instead of the buyer/seller home.
+  if (role === "hotel_manager") {
+    return <Navigate to="/partners" replace />;
+  }
+
+
   const showBuyRent = canSee(role, "buyRent");
   const showNewProjects = canSee(role, "newProjects");
   const showTransactions = canSee(role, "transactions");
