@@ -5,17 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import {
-  Hotel,
-  MapPin,
-  Star,
-  Wifi,
-  Coffee,
-  Car,
-  Utensils,
-  Dumbbell,
-  Waves,
-  Tv,
+import { 
+  Hotel, 
+  MapPin, 
+  Star, 
+  Wifi, 
+  Coffee, 
+  Car, 
+  Utensils, 
+  Dumbbell, 
+  Waves, 
+  Tv, 
   Snowflake,
   Search,
   SlidersHorizontal,
@@ -24,6 +24,13 @@ import {
   Heart,
   Sparkles,
   Handshake,
+  Building2,
+  Trophy,
+  Award,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Shield
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,12 +78,12 @@ const Hotels = () => {
   const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
   const { user, role } = useAuth();
-
+  
   const [hotels, setHotels] = useState<PartnerHotel[]>([]);
   const [packages, setPackages] = useState<VisitPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
+  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || "all");
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
@@ -98,7 +105,6 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
-        // Only set data if we get results, no defaults
         if (hotelsRes.data) {
           setHotels(hotelsRes.data);
         }
@@ -120,8 +126,10 @@ const Hotels = () => {
 
   // Auto-set city from detected location
   useEffect(() => {
-    if (detectedLocation?.city && !searchParams.get("city")) {
-      const matchedCity = popularLocations.find((c) => c.toLowerCase() === detectedLocation.city.toLowerCase());
+    if (detectedLocation?.city && !searchParams.get('city')) {
+      const matchedCity = popularLocations.find(
+        c => c.toLowerCase() === detectedLocation.city.toLowerCase()
+      );
       if (matchedCity) {
         setSelectedCity(matchedCity);
         setSearchQuery(matchedCity);
@@ -129,30 +137,27 @@ const Hotels = () => {
     }
   }, [detectedLocation]);
 
-  // Get amenity icon
+  // Get amenity icon with colors
   const getAmenityIcon = (amenity: string) => {
     const amenityLower = amenity.toLowerCase();
-    if (amenityLower.includes("wifi")) return <Wifi className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("breakfast") || amenityLower.includes("meal")) return <Coffee className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("parking") || amenityLower.includes("car")) return <Car className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("restaurant") || amenityLower.includes("dining"))
-      return <Utensils className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("gym") || amenityLower.includes("fitness")) return <Dumbbell className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("pool") || amenityLower.includes("swimming")) return <Waves className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("tv") || amenityLower.includes("entertainment")) return <Tv className="h-3.5 w-3.5" />;
-    if (amenityLower.includes("ac") || amenityLower.includes("air conditioning"))
-      return <Snowflake className="h-3.5 w-3.5" />;
-    return <Sparkles className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("wifi")) return <Wifi className="h-3.5 w-3.5 text-blue-500" />;
+    if (amenityLower.includes("breakfast") || amenityLower.includes("meal")) return <Coffee className="h-3.5 w-3.5 text-amber-600" />;
+    if (amenityLower.includes("parking") || amenityLower.includes("car")) return <Car className="h-3.5 w-3.5 text-purple-500" />;
+    if (amenityLower.includes("restaurant") || amenityLower.includes("dining")) return <Utensils className="h-3.5 w-3.5 text-red-500" />;
+    if (amenityLower.includes("gym") || amenityLower.includes("fitness")) return <Dumbbell className="h-3.5 w-3.5 text-orange-500" />;
+    if (amenityLower.includes("pool") || amenityLower.includes("swimming")) return <Waves className="h-3.5 w-3.5 text-cyan-500" />;
+    if (amenityLower.includes("tv") || amenityLower.includes("entertainment")) return <Tv className="h-3.5 w-3.5 text-indigo-500" />;
+    if (amenityLower.includes("ac") || amenityLower.includes("air conditioning")) return <Snowflake className="h-3.5 w-3.5 text-blue-400" />;
+    return <Sparkles className="h-3.5 w-3.5 text-yellow-500" />;
   };
 
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
-    let result = hotels.filter((hotel) => {
+    let result = hotels.filter(hotel => {
       const matchesCity = selectedCity === "all" || hotel.city.toLowerCase() === selectedCity.toLowerCase();
       const matchesRating = starRating === 0 || (hotel.star_rating && hotel.star_rating >= starRating);
       const matchesPrice = hotel.price_per_night >= priceRange[0] && hotel.price_per_night <= priceRange[1];
-      const matchesSearch =
-        !searchQuery ||
+      const matchesSearch = !searchQuery || 
         hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.locality.toLowerCase().includes(searchQuery.toLowerCase());
@@ -173,7 +178,9 @@ const Hotels = () => {
 
   const handleSearch = () => {
     if (searchQuery) {
-      const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
+      const matchedCity = popularLocations.find(
+        c => c.toLowerCase() === searchQuery.toLowerCase()
+      );
       if (matchedCity) {
         setSelectedCity(matchedCity);
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
@@ -188,7 +195,11 @@ const Hotels = () => {
 
   const toggleFavorite = (hotelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]));
+    setFavorites(prev => 
+      prev.includes(hotelId) 
+        ? prev.filter(id => id !== hotelId)
+        : [...prev, hotelId]
+    );
   };
 
   const renderStars = (rating: number | null) => {
@@ -196,10 +207,25 @@ const Hotels = () => {
     return (
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => (
-          <Star key={i} className={`h-3.5 w-3.5 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+          <Star 
+            key={i} 
+            className={`h-3.5 w-3.5 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+          />
         ))}
       </div>
     );
+  };
+
+  const getRandomGradient = () => {
+    const gradients = [
+      'from-purple-500 to-pink-500',
+      'from-blue-500 to-cyan-500',
+      'from-green-500 to-emerald-500',
+      'from-orange-500 to-red-500',
+      'from-indigo-500 to-purple-500',
+      'from-pink-500 to-rose-500'
+    ];
+    return gradients[Math.floor(Math.random() * gradients.length)];
   };
 
   if (loading) {
@@ -211,7 +237,7 @@ const Hotels = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <Card key={i} className="overflow-hidden animate-pulse border-0 shadow-sm">
-                  <div className="h-48 bg-gray-200" />
+                  <div className="h-48 bg-gradient-to-r from-gray-200 to-gray-300" />
                   <CardContent className="p-3 space-y-2">
                     <div className="h-5 bg-gray-200 rounded w-3/4" />
                     <div className="h-4 bg-gray-200 rounded w-1/2" />
@@ -229,56 +255,67 @@ const Hotels = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       <Navigation />
-
+      
       <main className="flex-1 pt-20">
-        {/* Hero Section - Green Theme - No extra padding */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="container mx-auto max-w-7xl px-4 py-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+        {/* Hero Section - Vibrant Gradient */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20" />
+          
+          <div className="container mx-auto max-w-7xl px-4 py-5 relative">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Find Hotels</h1>
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge className="bg-white/20 text-white border-0 text-xs px-3 py-1">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Premium Partner Hotels
+                  </Badge>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                  Find Your Perfect Stay
+                  <Sparkles className="h-5 w-5 text-yellow-300" />
+                </h1>
                 <p className="text-green-100 text-sm">
-                  {filteredAndSortedHotels.length} hotels available in{" "}
-                  {selectedCity === "all" ? "all cities" : selectedCity}
+                  {filteredAndSortedHotels.length} hotels available in {selectedCity === "all" ? "all cities" : selectedCity}
                 </p>
               </div>
-
-              {/* Connect with Us Button */}
-              <Button
+              
+              {/* Connect with Us Button - Enhanced */}
+              <Button 
                 variant="default"
                 size="default"
                 onClick={() => navigate("/partners")}
-                className="bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-5 py-2 rounded-lg border-2 border-white/20 flex items-center gap-2 whitespace-nowrap"
+                className="group bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-2xl transition-all duration-300 font-semibold px-5 py-2.5 rounded-xl border-2 border-white/30 flex items-center gap-2 relative overflow-hidden"
               >
-                <Handshake className="h-4 w-4" />
-                Connect with Us
-                <span className="ml-1 text-[10px] bg-green-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+                <span className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Handshake className="h-4 w-4 relative z-10" />
+                <span className="relative z-10">Connect with Us</span>
+                <span className="relative z-10 ml-1 text-[10px] bg-gradient-to-r from-green-600 to-emerald-600 text-white px-2.5 py-0.5 rounded-full animate-pulse">
                   NEW
                 </span>
               </Button>
             </div>
 
-            {/* Search Bar */}
-            <div className="mt-2 bg-white rounded-lg shadow-lg p-1.5 flex flex-col md:flex-row gap-1.5">
+            {/* Search Bar - Enhanced */}
+            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by city, hotel name..."
+                  placeholder="Search by city, hotel name or locality..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     setShowSuggestions(true);
                   }}
                   onFocus={() => setShowSuggestions(true)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-9 border-0 focus-visible:ring-0 focus-visible:ring-transparent h-9 text-sm"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent"
                 />
                 {showSuggestions && searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-50 overflow-hidden">
                     {popularLocations
-                      .filter((l) => l.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .filter(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
                       .map((loc) => (
                         <button
                           key={loc}
@@ -288,71 +325,143 @@ const Hotels = () => {
                             setShowSuggestions(false);
                             handleSearch();
                           }}
-                          className="w-full px-4 py-2 text-left hover:bg-green-50 transition-colors flex items-center gap-3"
+                          className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
                         >
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">{loc}</span>
-                          <span className="text-xs text-gray-400 ml-auto">
-                            {hotels.filter((h) => h.city.toLowerCase() === loc.toLowerCase()).length} hotels
-                          </span>
+                          <div className="p-1.5 bg-green-100 rounded-full">
+                            <MapPin className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{loc}</span>
+                            <span className="text-xs text-gray-400 ml-2">
+                              {hotels.filter(h => h.city.toLowerCase() === loc.toLowerCase()).length} hotels
+                            </span>
+                          </div>
+                          <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg]" />
                         </button>
                       ))}
                   </div>
                 )}
               </div>
-              <Button onClick={handleSearch} className="bg-green-600 hover:bg-green-700 text-white px-5 h-9 text-sm">
+              <Button 
+                onClick={handleSearch}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 text-sm shadow-md hover:shadow-lg transition-all"
+              >
+                <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto max-w-7xl px-4 py-3">
+        <div className="container mx-auto max-w-7xl px-4 py-4">
           {/* My Hotel Partner Application status */}
           <MyHotelApplicationsBanner />
 
-          {/* Filters and Sort Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-2 rounded-lg shadow-sm border">
+          {/* Quick Stats */}
+          {filteredAndSortedHotels.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Hotel className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{filteredAndSortedHotels.length}</p>
+                  <p className="text-[10px] text-gray-500">Total Hotels</p>
+                </div>
+              </div>
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Star className="h-4 w-4 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">
+                    {Math.round(filteredAndSortedHotels.reduce((acc, h) => acc + (h.star_rating || 0), 0) / filteredAndSortedHotels.length || 0)}
+                  </p>
+                  <p className="text-[10px] text-gray-500">Avg Rating</p>
+                </div>
+              </div>
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <TrendingUp className="h-4 w-4 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">
+                    {filteredAndSortedHotels.filter(h => h.discount_percentage).length}
+                  </p>
+                  <p className="text-[10px] text-gray-500">With Offers</p>
+                </div>
+              </div>
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">100%</p>
+                  <p className="text-[10px] text-gray-500">Verified</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filters and Sort Bar - Enhanced */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
+              <Button 
+                variant="outline" 
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className="gap-1.5 h-7 text-xs"
+                className="gap-1.5 h-8 text-xs border-gray-200 hover:border-green-400 hover:bg-green-50 transition-colors"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 Filters
                 {showFilters ? <ChevronDown className="h-3 w-3" /> : null}
               </Button>
-
-              <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <span className="text-xs font-medium">Sort:</span>
+              
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="text-xs font-medium">Sort by:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border-0 bg-transparent focus:outline-none text-xs font-medium text-green-600"
+                  className="border-0 bg-transparent focus:outline-none text-xs font-medium text-green-600 cursor-pointer"
                 >
                   <option value="rating">⭐ Top Rated</option>
                   <option value="price">💰 Price: Low to High</option>
                   <option value="popularity">🔥 Most Popular</option>
                 </select>
               </div>
+
+              {selectedCity !== "all" && (
+                <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200">
+                  {selectedCity}
+                  <X 
+                    className="h-3 w-3 ml-1 cursor-pointer hover:text-red-500" 
+                    onClick={() => {
+                      setSelectedCity("all");
+                      setSearchQuery("");
+                    }}
+                  />
+                </Badge>
+              )}
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <div className="flex border rounded-md overflow-hidden">
+            <div className="flex items-center gap-2">
+              <div className="flex border rounded-lg overflow-hidden shadow-sm">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-1 px-2.5 text-xs transition-colors ${
-                    viewMode === "grid" ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                  className={`p-1.5 px-3 text-xs transition-all ${
+                    viewMode === "grid" 
+                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white" 
+                      : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   Grid
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-1 px-2.5 text-xs transition-colors ${
-                    viewMode === "list" ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                  className={`p-1.5 px-3 text-xs transition-all ${
+                    viewMode === "list" 
+                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white" 
+                      : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   List
@@ -361,7 +470,7 @@ const Hotels = () => {
             </div>
           </div>
 
-          {/* Filters Panel */}
+          {/* Filters Panel - Enhanced */}
           <AnimatePresence>
             {showFilters && (
               <motion.div
@@ -370,29 +479,27 @@ const Hotels = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1">City</label>
+                      <label className="text-xs font-medium text-gray-600 block mb-1.5">📍 City</label>
                       <select
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full border rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       >
                         <option value="all">All Cities</option>
-                        {popularLocations.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
+                        {popularLocations.map(city => (
+                          <option key={city} value={city}>{city}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1">Min Rating</label>
+                      <label className="text-xs font-medium text-gray-600 block mb-1.5">⭐ Min Rating</label>
                       <select
                         value={starRating}
                         onChange={(e) => setStarRating(parseInt(e.target.value))}
-                        className="w-full border rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       >
                         <option value="0">Any Rating</option>
                         <option value="3">3+ Stars</option>
@@ -401,7 +508,7 @@ const Hotels = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1">Max Price</label>
+                      <label className="text-xs font-medium text-gray-600 block mb-1.5">💰 Max Price</label>
                       <input
                         type="range"
                         min="0"
@@ -409,16 +516,16 @@ const Hotels = () => {
                         step="500"
                         value={priceRange[1]}
                         onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                        className="w-full mt-1"
+                        className="w-full mt-1 accent-green-600"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-0.5">
                         <span>₹0</span>
-                        <span>₹{priceRange[1].toLocaleString()}</span>
+                        <span className="font-medium text-green-600">₹{priceRange[1].toLocaleString()}</span>
                       </div>
                     </div>
                     <div className="flex items-end gap-2">
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         size="sm"
                         onClick={() => {
                           setSelectedCity("all");
@@ -426,17 +533,17 @@ const Hotels = () => {
                           setPriceRange([0, 20000]);
                           setSearchQuery("");
                         }}
-                        className="flex-1 h-7 text-xs"
+                        className="flex-1 h-9 text-xs border-gray-200 hover:border-red-400 hover:text-red-600 hover:bg-red-50"
                       >
                         <X className="h-3 w-3 mr-1" />
-                        Clear
+                        Clear All
                       </Button>
-                      <Button
+                      <Button 
                         size="sm"
                         onClick={() => setShowFilters(false)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 h-7 text-xs"
+                        className="flex-1 h-9 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                       >
-                        Apply
+                        Apply Filters
                       </Button>
                     </div>
                   </div>
@@ -445,15 +552,19 @@ const Hotels = () => {
             )}
           </AnimatePresence>
 
-          {/* Hotels Grid - Uniform card sizes */}
+          {/* Hotels Grid - Enhanced Cards */}
           {filteredAndSortedHotels.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
-              <Hotel className="h-14 w-14 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-gray-700 mb-1">No hotels found</h3>
-              <p className="text-sm text-gray-500">Try adjusting your filters or search for a different city</p>
-              <Button
-                variant="outline"
-                className="mt-3"
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Hotel className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No hotels found</h3>
+              <p className="text-sm text-gray-500 max-w-md mx-auto">
+                We couldn't find any hotels matching your criteria. Try adjusting your filters or search for a different city.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4 border-green-200 text-green-600 hover:bg-green-50"
                 onClick={() => {
                   setSelectedCity("all");
                   setStarRating(0);
@@ -465,103 +576,128 @@ const Hotels = () => {
               </Button>
             </div>
           ) : (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                  : "space-y-3"
-              }
-            >
-              {filteredAndSortedHotels.map((hotel) => (
+            <div className={viewMode === "grid" 
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              : "space-y-3"
+            }>
+              {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
                   key={hotel.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -2 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ y: -4 }}
                   className="cursor-pointer h-full"
                   onClick={() => handleHotelClick(hotel)}
                 >
-                  <Card
-                    className={`overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-sm h-full flex flex-col ${
-                      viewMode === "list" ? "flex-row" : ""
-                    }`}
-                  >
-                    {/* Image - Fixed height */}
-                    <div
-                      className={`relative flex-shrink-0 ${
-                        viewMode === "list" ? "w-48 h-48" : "h-48 w-full"
-                      } bg-gray-100 overflow-hidden`}
-                    >
+                  <Card className={`overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col ${
+                    viewMode === "list" ? "flex-row" : ""
+                  }`}>
+                    {/* Image Section */}
+                    <div className={`relative flex-shrink-0 ${
+                      viewMode === "list" ? "w-52 h-52" : "h-52 w-full"
+                    } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden`}>
                       {hotel.images && hotel.images[0] ? (
-                        <img
-                          src={hotel.images[0]}
+                        <img 
+                          src={hotel.images[0]} 
                           alt={hotel.name}
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Hotel className="h-12 w-12 text-gray-300" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-emerald-100">
+                          <Hotel className="h-16 w-16 text-green-300" />
                         </div>
                       )}
-
-                      {hotel.discount_percentage && (
-                        <Badge className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 border-0 text-white text-[10px] px-2 py-0.5">
-                          {hotel.discount_percentage}% OFF
-                        </Badge>
-                      )}
-
+                      
+                      {/* Badges */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+                        {hotel.discount_percentage && (
+                          <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
+                            🔥 {hotel.discount_percentage}% OFF
+                          </Badge>
+                        )}
+                        {hotel.star_rating && hotel.star_rating >= 4.5 && (
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-black border-0 text-[10px] px-2.5 py-1 shadow-lg">
+                            ⭐ Premium
+                          </Badge>
+                        )}
+                      </div>
+                      
                       <button
                         onClick={(e) => toggleFavorite(hotel.id, e)}
-                        className="absolute top-2 left-2 p-1 bg-white/90 hover:bg-white rounded-full shadow-md transition-all hover:scale-110"
+                        className="absolute top-2 left-2 p-1.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
                       >
-                        <Heart
+                        <Heart 
                           className={`h-4 w-4 ${
-                            favorites.includes(hotel.id) ? "fill-red-500 text-red-500" : "text-gray-500"
-                          }`}
+                            favorites.includes(hotel.id) 
+                              ? "fill-red-500 text-red-500" 
+                              : "text-gray-500 hover:text-red-500"
+                          }`} 
                         />
                       </button>
+
+                      {viewMode === "list" && (
+                        <div className="absolute bottom-3 left-3 right-3 flex gap-1.5">
+                          <Button 
+                            size="sm" 
+                            className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-white text-gray-700 text-xs h-8 rounded-xl shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedHotel(hotel);
+                              setShowHotelOnlyModal(true);
+                            }}
+                          >
+                            Quick Book
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Content - Flexible */}
-                    <CardContent className={`p-3 flex-1 flex flex-col ${viewMode === "list" ? "justify-between" : ""}`}>
+                    {/* Content */}
+                    <CardContent className={`p-3.5 flex-1 flex flex-col ${
+                      viewMode === "list" ? "justify-between" : ""
+                    }`}>
                       <div>
-                        <div className="flex justify-between items-start mb-0.5">
+                        <div className="flex justify-between items-start mb-1">
                           <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
                             {hotel.name}
                           </h3>
                           {renderStars(hotel.star_rating)}
                         </div>
-
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1.5">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="line-clamp-1">
-                            {hotel.locality}, {hotel.city}
-                          </span>
+                        
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                          <MapPin className="h-3 w-3 flex-shrink-0 text-green-500" />
+                          <span className="line-clamp-1">{hotel.locality}, {hotel.city}</span>
                         </div>
 
                         {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
-                          <div className="flex flex-wrap gap-1 mb-1.5">
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 3).map((amenity) => (
-                              <Badge
-                                key={amenity}
-                                variant="outline"
-                                className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
+                              <Badge 
+                                key={amenity} 
+                                variant="outline" 
+                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
                               >
                                 {getAmenityIcon(amenity)}
                                 <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
                               </Badge>
                             ))}
+                            {hotel.amenities.length > 3 && (
+                              <Badge variant="outline" className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 rounded-full">
+                                +{hotel.amenities.length - 3}
+                              </Badge>
+                            )}
                           </div>
                         )}
 
                         {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-1.5">
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 5).map((amenity) => (
-                              <Badge
-                                key={amenity}
-                                variant="outline"
-                                className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
+                              <Badge 
+                                key={amenity} 
+                                variant="outline" 
+                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
                               >
                                 {getAmenityIcon(amenity)}
                                 <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
@@ -571,21 +707,23 @@ const Hotels = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-1.5 border-t mt-auto">
+                      <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 mt-auto">
                         <div>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-base font-bold text-green-600">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                               ₹{hotel.price_per_night.toLocaleString()}
                             </span>
                             <span className="text-[10px] text-gray-500">/night</span>
                           </div>
                           {hotel.discount_percentage && (
-                            <span className="text-[10px] text-green-600">Save {hotel.discount_percentage}%</span>
+                            <span className="text-[10px] text-green-600 font-medium">
+                              Save {hotel.discount_percentage}%
+                            </span>
                           )}
                         </div>
-                        <Button
+                        <Button 
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3 flex-shrink-0"
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedHotel(hotel);
