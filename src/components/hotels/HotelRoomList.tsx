@@ -317,20 +317,15 @@ export default function HotelRoomList({
 
       {selectedRoom && (
         <HotelBookingModal
-          isOpen={bookingOpen}
+          open={bookingOpen}
           onClose={() => setBookingOpen(false)}
           hotel={{
             id: hotelId,
             name: hotelName,
-            city: hotelCity || "",
             price_per_night: selectedRoom.base_price,
             discount_percentage: 0,
-          } as any}
-          preselectedRoomType={selectedRoom.room_type}
-          preselectedCheckIn={checkIn}
-          preselectedCheckOut={checkOut}
-          preselectedGuests={adults + children}
-          preselectedRooms={roomsWanted}
+          }}
+          bookingType="hotel_only"
         />
       )}
     </div>
