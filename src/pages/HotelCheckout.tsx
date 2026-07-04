@@ -81,7 +81,8 @@ const HotelCheckout = () => {
         supabase.from("partner_hotels").select("id,name,city,locality,images,address").eq("id", hotelId).maybeSingle(),
         supabase.from("hotel_rooms").select("id,room_type,base_price,photos,bed_type,max_occupancy").eq("id", roomId).maybeSingle(),
       ]);
-      setHotel(h as any); setRoom(r as any);
+      const resolvedHotel = h ? { ...h, images: await resolveHotelImages((h as any).images) } : null;
+      setHotel(resolvedHotel as any); setRoom(r as any);
 
       const { data: q } = await supabase.functions.invoke("booking-engine-quote", {
         body: { hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut, guests: adults + children },
