@@ -29,6 +29,36 @@ function loadRazorpay(): Promise<boolean> {
   });
 }
 
+const razorpayCheckoutConfig = {
+  method: {
+    upi: true,
+    card: true,
+    netbanking: true,
+    wallet: true,
+    emi: true,
+    paylater: true,
+  },
+  config: {
+    display: {
+      blocks: {
+        allMethods: {
+          name: "All payment options",
+          instruments: [
+            { method: "card" },
+            { method: "netbanking" },
+            { method: "wallet" },
+            { method: "emi" },
+            { method: "paylater" },
+            { method: "upi" },
+          ],
+        },
+      },
+      sequence: ["block.allMethods"],
+      preferences: { show_default_blocks: true },
+    },
+  },
+};
+
 type Step = "guest" | "summary" | "pay";
 
 interface RoomRow {
@@ -159,6 +189,7 @@ const HotelCheckout = () => {
       }
 
       const rzp = new window.Razorpay({
+        ...razorpayCheckoutConfig,
         key: data.key_id,
         amount: data.amount,
         currency: data.currency,
