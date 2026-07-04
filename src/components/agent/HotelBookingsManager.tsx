@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,12 +40,15 @@ interface HotelBookingsManagerProps {
 }
 
 export default function HotelBookingsManager({ userId, agentId }: HotelBookingsManagerProps) {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Booking | null>(null);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending" | "cancelled">("all");
+
+  const goToHotels = () => navigate("/hotels");
 
   const load = async () => {
     setLoading(true);
@@ -142,7 +146,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                   <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
                   Refresh
                 </Button>
-                <Button size="sm" onClick={() => setCreating(true)}>
+                <Button size="sm" onClick={goToHotels}>
                   <Plus className="h-4 w-4 mr-1" />
                   New Booking
                 </Button>
@@ -195,7 +199,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                 <p className="text-xs text-muted-foreground mb-3">
                   {query ? "Try adjusting your search" : "Book a hotel for your client's site visit"}
                 </p>
-                <Button size="sm" onClick={() => setCreating(true)}>
+                <Button size="sm" onClick={goToHotels}>
                   <Plus className="h-4 w-4 mr-1" />
                   Create First Booking
                 </Button>
