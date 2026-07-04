@@ -5,17 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { 
-  Hotel, 
-  MapPin, 
-  Star, 
-  Wifi, 
-  Coffee, 
-  Car, 
-  Utensils, 
-  Dumbbell, 
-  Waves, 
-  Tv, 
+import {
+  Hotel,
+  MapPin,
+  Star,
+  Wifi,
+  Coffee,
+  Car,
+  Utensils,
+  Dumbbell,
+  Waves,
+  Tv,
   Snowflake,
   Search,
   SlidersHorizontal,
@@ -27,7 +27,7 @@ import {
   Trophy,
   TrendingUp,
   Shield,
-  Building2
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,12 +75,12 @@ const Hotels = () => {
   const [searchParams] = useSearchParams();
   const { detectedLocation } = useLocation();
   const { user, role } = useAuth();
-  
+
   const [hotels, setHotels] = useState<PartnerHotel[]>([]);
   const [packages, setPackages] = useState<VisitPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || "all");
+  const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
   const [selectedHotel, setSelectedHotel] = useState<PartnerHotel | null>(null);
   const [showHotelOnlyModal, setShowHotelOnlyModal] = useState(false);
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
@@ -92,7 +92,7 @@ const Hotels = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"price" | "rating" | "popularity">("rating");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<{type: 'city' | 'hotel', name: string, count?: number}[]>([]);
+  const [suggestions, setSuggestions] = useState<{ type: "city" | "hotel"; name: string; count?: number }[]>([]);
 
   // Fetch hotels and packages from database only
   useEffect(() => {
@@ -124,10 +124,8 @@ const Hotels = () => {
 
   // Auto-set city from detected location
   useEffect(() => {
-    if (detectedLocation?.city && !searchParams.get('city')) {
-      const matchedCity = popularLocations.find(
-        c => c.toLowerCase() === detectedLocation.city.toLowerCase()
-      );
+    if (detectedLocation?.city && !searchParams.get("city")) {
+      const matchedCity = popularLocations.find((c) => c.toLowerCase() === detectedLocation.city.toLowerCase());
       if (matchedCity) {
         setSelectedCity(matchedCity);
         setSearchQuery(matchedCity);
@@ -139,24 +137,21 @@ const Hotels = () => {
   useEffect(() => {
     if (searchQuery.length > 0) {
       const query = searchQuery.toLowerCase();
-      const newSuggestions: {type: 'city' | 'hotel', name: string, count?: number}[] = [];
-      
+      const newSuggestions: { type: "city" | "hotel"; name: string; count?: number }[] = [];
+
       // City suggestions
-      const cityMatches = popularLocations.filter(city => 
-        city.toLowerCase().includes(query)
-      );
-      cityMatches.forEach(city => {
-        const count = hotels.filter(h => h.city.toLowerCase() === city.toLowerCase()).length;
-        newSuggestions.push({ type: 'city', name: city, count });
+      const cityMatches = popularLocations.filter((city) => city.toLowerCase().includes(query));
+      cityMatches.forEach((city) => {
+        const count = hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length;
+        newSuggestions.push({ type: "city", name: city, count });
       });
 
       // Hotel name suggestions
-      const hotelMatches = hotels.filter(hotel => 
-        hotel.name.toLowerCase().includes(query) ||
-        hotel.locality.toLowerCase().includes(query)
+      const hotelMatches = hotels.filter(
+        (hotel) => hotel.name.toLowerCase().includes(query) || hotel.locality.toLowerCase().includes(query),
       );
-      hotelMatches.slice(0, 5).forEach(hotel => {
-        newSuggestions.push({ type: 'hotel', name: hotel.name, count: 1 });
+      hotelMatches.slice(0, 5).forEach((hotel) => {
+        newSuggestions.push({ type: "hotel", name: hotel.name, count: 1 });
       });
 
       setSuggestions(newSuggestions);
@@ -169,23 +164,31 @@ const Hotels = () => {
   const getAmenityIcon = (amenity: string) => {
     const amenityLower = amenity.toLowerCase();
     if (amenityLower.includes("wifi")) return <Wifi className="h-3.5 w-3.5 text-blue-500" />;
-    if (amenityLower.includes("breakfast") || amenityLower.includes("meal")) return <Coffee className="h-3.5 w-3.5 text-amber-600" />;
-    if (amenityLower.includes("parking") || amenityLower.includes("car")) return <Car className="h-3.5 w-3.5 text-purple-500" />;
-    if (amenityLower.includes("restaurant") || amenityLower.includes("dining")) return <Utensils className="h-3.5 w-3.5 text-red-500" />;
-    if (amenityLower.includes("gym") || amenityLower.includes("fitness")) return <Dumbbell className="h-3.5 w-3.5 text-orange-500" />;
-    if (amenityLower.includes("pool") || amenityLower.includes("swimming")) return <Waves className="h-3.5 w-3.5 text-cyan-500" />;
-    if (amenityLower.includes("tv") || amenityLower.includes("entertainment")) return <Tv className="h-3.5 w-3.5 text-indigo-500" />;
-    if (amenityLower.includes("ac") || amenityLower.includes("air conditioning")) return <Snowflake className="h-3.5 w-3.5 text-blue-400" />;
+    if (amenityLower.includes("breakfast") || amenityLower.includes("meal"))
+      return <Coffee className="h-3.5 w-3.5 text-amber-600" />;
+    if (amenityLower.includes("parking") || amenityLower.includes("car"))
+      return <Car className="h-3.5 w-3.5 text-purple-500" />;
+    if (amenityLower.includes("restaurant") || amenityLower.includes("dining"))
+      return <Utensils className="h-3.5 w-3.5 text-red-500" />;
+    if (amenityLower.includes("gym") || amenityLower.includes("fitness"))
+      return <Dumbbell className="h-3.5 w-3.5 text-orange-500" />;
+    if (amenityLower.includes("pool") || amenityLower.includes("swimming"))
+      return <Waves className="h-3.5 w-3.5 text-cyan-500" />;
+    if (amenityLower.includes("tv") || amenityLower.includes("entertainment"))
+      return <Tv className="h-3.5 w-3.5 text-indigo-500" />;
+    if (amenityLower.includes("ac") || amenityLower.includes("air conditioning"))
+      return <Snowflake className="h-3.5 w-3.5 text-blue-400" />;
     return <Sparkles className="h-3.5 w-3.5 text-yellow-500" />;
   };
 
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
-    let result = hotels.filter(hotel => {
+    let result = hotels.filter((hotel) => {
       const matchesCity = selectedCity === "all" || hotel.city.toLowerCase() === selectedCity.toLowerCase();
       const matchesRating = starRating === 0 || (hotel.star_rating && hotel.star_rating >= starRating);
       const matchesPrice = hotel.price_per_night >= priceRange[0] && hotel.price_per_night <= priceRange[1];
-      const matchesSearch = !searchQuery || 
+      const matchesSearch =
+        !searchQuery ||
         hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.locality.toLowerCase().includes(searchQuery.toLowerCase());
@@ -207,9 +210,7 @@ const Hotels = () => {
   const handleSearch = () => {
     if (searchQuery) {
       // Check if it's a city
-      const matchedCity = popularLocations.find(
-        c => c.toLowerCase() === searchQuery.toLowerCase()
-      );
+      const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
       if (matchedCity) {
         setSelectedCity(matchedCity);
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
@@ -218,8 +219,8 @@ const Hotels = () => {
     setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion: {type: 'city' | 'hotel', name: string}) => {
-    if (suggestion.type === 'city') {
+  const handleSuggestionClick = (suggestion: { type: "city" | "hotel"; name: string }) => {
+    if (suggestion.type === "city") {
       setSelectedCity(suggestion.name);
       setSearchQuery(suggestion.name);
       navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
@@ -236,11 +237,7 @@ const Hotels = () => {
 
   const toggleFavorite = (hotelId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setFavorites(prev => 
-      prev.includes(hotelId) 
-        ? prev.filter(id => id !== hotelId)
-        : [...prev, hotelId]
-    );
+    setFavorites((prev) => (prev.includes(hotelId) ? prev.filter((id) => id !== hotelId) : [...prev, hotelId]));
   };
 
   const renderStars = (rating: number | null) => {
@@ -248,10 +245,7 @@ const Hotels = () => {
     return (
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => (
-          <Star 
-            key={i} 
-            className={`h-3.5 w-3.5 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
-          />
+          <Star key={i} className={`h-3.5 w-3.5 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
         ))}
       </div>
     );
@@ -286,7 +280,7 @@ const Hotels = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       <Navigation />
-      
+
       <main className="flex-1 pt-20">
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
@@ -297,7 +291,7 @@ const Hotels = () => {
                 "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
             }}
           />
-          
+
           <div className="container mx-auto max-w-7xl px-4 py-5 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
@@ -312,11 +306,12 @@ const Hotels = () => {
                   <Sparkles className="h-5 w-5 text-yellow-300" />
                 </h1>
                 <p className="text-green-100 text-sm">
-                  {filteredAndSortedHotels.length} hotels available {selectedCity !== "all" ? `in ${selectedCity}` : "in all cities"}
+                  {filteredAndSortedHotels.length} hotels available{" "}
+                  {selectedCity !== "all" ? `in ${selectedCity}` : "in all cities"}
                 </p>
               </div>
-              
-              <Button 
+
+              <Button
                 variant="default"
                 size="default"
                 onClick={() => navigate("/partners")}
@@ -332,7 +327,7 @@ const Hotels = () => {
             </div>
 
             {/* Search Bar - Fixed with proper z-index */}
-            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-10">
+            <div className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-50">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
                 <Input
@@ -343,7 +338,7 @@ const Hotels = () => {
                     setShowSuggestions(true);
                   }}
                   onFocus={() => setShowSuggestions(true)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent text-gray-900 placeholder:text-gray-400"
                 />
                 {/* Suggestions Dropdown - Fixed */}
@@ -355,16 +350,14 @@ const Hotels = () => {
                         onClick={() => handleSuggestionClick(suggestion)}
                         className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3 border-b last:border-b-0"
                       >
-                        {suggestion.type === 'city' ? (
+                        {suggestion.type === "city" ? (
                           <>
                             <div className="p-1.5 bg-green-100 rounded-full flex-shrink-0">
                               <MapPin className="h-4 w-4 text-green-600" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <span className="text-sm font-medium">{suggestion.name}</span>
-                              <span className="text-xs text-gray-400 ml-2">
-                                {suggestion.count} hotels
-                              </span>
+                              <span className="text-xs text-gray-400 ml-2">{suggestion.count} hotels</span>
                             </div>
                           </>
                         ) : (
@@ -384,7 +377,7 @@ const Hotels = () => {
                   </div>
                 )}
               </div>
-              <Button 
+              <Button
                 onClick={handleSearch}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 text-sm shadow-md hover:shadow-lg transition-all flex-shrink-0"
               >
@@ -416,8 +409,12 @@ const Hotels = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">
-                    {filteredAndSortedHotels.length > 0 ? 
-                      Math.round(filteredAndSortedHotels.reduce((acc, h) => acc + (h.star_rating || 0), 0) / filteredAndSortedHotels.length) : 0}
+                    {filteredAndSortedHotels.length > 0
+                      ? Math.round(
+                          filteredAndSortedHotels.reduce((acc, h) => acc + (h.star_rating || 0), 0) /
+                            filteredAndSortedHotels.length,
+                        )
+                      : 0}
                   </p>
                   <p className="text-[10px] text-gray-500">Avg Rating</p>
                 </div>
@@ -428,7 +425,7 @@ const Hotels = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">
-                    {filteredAndSortedHotels.filter(h => h.discount_percentage).length}
+                    {filteredAndSortedHotels.filter((h) => h.discount_percentage).length}
                   </p>
                   <p className="text-[10px] text-gray-500">With Offers</p>
                 </div>
@@ -448,8 +445,8 @@ const Hotels = () => {
           {/* Filters and Sort Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-2 flex-wrap">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
                 className="gap-1.5 h-8 text-xs border-gray-200 hover:border-green-400 hover:bg-green-50 transition-colors"
@@ -458,7 +455,7 @@ const Hotels = () => {
                 Filters
                 {showFilters ? <ChevronDown className="h-3 w-3" /> : null}
               </Button>
-              
+
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="text-xs font-medium">Sort by:</span>
                 <select
@@ -473,10 +470,13 @@ const Hotels = () => {
               </div>
 
               {selectedCity !== "all" && (
-                <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+                <Badge
+                  variant="secondary"
+                  className="text-xs bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
+                >
                   {selectedCity}
-                  <X 
-                    className="h-3 w-3 cursor-pointer hover:text-red-500" 
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-red-500"
                     onClick={() => {
                       setSelectedCity("all");
                       setSearchQuery("");
@@ -491,8 +491,8 @@ const Hotels = () => {
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-1.5 px-3 text-xs transition-all ${
-                    viewMode === "grid" 
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white" 
+                    viewMode === "grid"
+                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
                       : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -501,8 +501,8 @@ const Hotels = () => {
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-1.5 px-3 text-xs transition-all ${
-                    viewMode === "list" 
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white" 
+                    viewMode === "list"
+                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
                       : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -531,8 +531,10 @@ const Hotels = () => {
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       >
                         <option value="all">All Cities</option>
-                        {popularLocations.map(city => (
-                          <option key={city} value={city}>{city}</option>
+                        {popularLocations.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -566,8 +568,8 @@ const Hotels = () => {
                       </div>
                     </div>
                     <div className="flex items-end gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => {
                           setSelectedCity("all");
@@ -580,7 +582,7 @@ const Hotels = () => {
                         <X className="h-3 w-3 mr-1" />
                         Clear All
                       </Button>
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => setShowFilters(false)}
                         className="flex-1 h-9 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
@@ -602,11 +604,13 @@ const Hotels = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No hotels found</h3>
               <p className="text-sm text-gray-500 max-w-md mx-auto">
-                {searchQuery ? `No results found for "${searchQuery}"` : "We couldn't find any hotels matching your criteria."}
+                {searchQuery
+                  ? `No results found for "${searchQuery}"`
+                  : "We couldn't find any hotels matching your criteria."}
                 Try adjusting your filters or search for a different city.
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4 border-green-200 text-green-600 hover:bg-green-50"
                 onClick={() => {
                   setSelectedCity("all");
@@ -619,10 +623,13 @@ const Hotels = () => {
               </Button>
             </div>
           ) : (
-            <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-              : "space-y-3"
-            }>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                  : "space-y-3"
+              }
+            >
               {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
                   key={hotel.id}
@@ -633,16 +640,20 @@ const Hotels = () => {
                   className="cursor-pointer h-full"
                   onClick={() => handleHotelClick(hotel)}
                 >
-                  <Card className={`overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col ${
-                    viewMode === "list" ? "flex-row" : ""
-                  }`}>
+                  <Card
+                    className={`overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col ${
+                      viewMode === "list" ? "flex-row" : ""
+                    }`}
+                  >
                     {/* Image Section */}
-                    <div className={`relative flex-shrink-0 ${
-                      viewMode === "list" ? "w-52 h-52" : "h-52 w-full"
-                    } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden`}>
+                    <div
+                      className={`relative flex-shrink-0 ${
+                        viewMode === "list" ? "w-52 h-52" : "h-52 w-full"
+                      } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden`}
+                    >
                       {hotel.images && hotel.images[0] ? (
-                        <img 
-                          src={hotel.images[0]} 
+                        <img
+                          src={hotel.images[0]}
                           alt={hotel.name}
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           loading="lazy"
@@ -652,7 +663,7 @@ const Hotels = () => {
                           <Hotel className="h-16 w-16 text-green-300" />
                         </div>
                       )}
-                      
+
                       {/* Badges */}
                       <div className="absolute top-2 right-2 flex flex-col gap-1.5">
                         {hotel.discount_percentage && (
@@ -666,24 +677,24 @@ const Hotels = () => {
                           </Badge>
                         )}
                       </div>
-                      
+
                       <button
                         onClick={(e) => toggleFavorite(hotel.id, e)}
                         className="absolute top-2 left-2 p-1.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
                       >
-                        <Heart 
+                        <Heart
                           className={`h-4 w-4 ${
-                            favorites.includes(hotel.id) 
-                              ? "fill-red-500 text-red-500" 
+                            favorites.includes(hotel.id)
+                              ? "fill-red-500 text-red-500"
                               : "text-gray-500 hover:text-red-500"
-                          }`} 
+                          }`}
                         />
                       </button>
 
                       {viewMode === "list" && (
                         <div className="absolute bottom-3 left-3 right-3 flex gap-1.5">
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-white text-gray-700 text-xs h-8 rounded-xl shadow-lg"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -698,9 +709,9 @@ const Hotels = () => {
                     </div>
 
                     {/* Content */}
-                    <CardContent className={`p-3.5 flex-1 flex flex-col ${
-                      viewMode === "list" ? "justify-between" : ""
-                    }`}>
+                    <CardContent
+                      className={`p-3.5 flex-1 flex flex-col ${viewMode === "list" ? "justify-between" : ""}`}
+                    >
                       <div>
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
@@ -708,18 +719,20 @@ const Hotels = () => {
                           </h3>
                           {renderStars(hotel.star_rating)}
                         </div>
-                        
+
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
                           <MapPin className="h-3 w-3 flex-shrink-0 text-green-500" />
-                          <span className="line-clamp-1">{hotel.locality}, {hotel.city}</span>
+                          <span className="line-clamp-1">
+                            {hotel.locality}, {hotel.city}
+                          </span>
                         </div>
 
                         {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 3).map((amenity) => (
-                              <Badge 
-                                key={amenity} 
-                                variant="outline" 
+                              <Badge
+                                key={amenity}
+                                variant="outline"
                                 className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
                               >
                                 {getAmenityIcon(amenity)}
@@ -727,7 +740,10 @@ const Hotels = () => {
                               </Badge>
                             ))}
                             {hotel.amenities.length > 3 && (
-                              <Badge variant="outline" className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 rounded-full">
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 rounded-full"
+                              >
                                 +{hotel.amenities.length - 3}
                               </Badge>
                             )}
@@ -737,9 +753,9 @@ const Hotels = () => {
                         {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 5).map((amenity) => (
-                              <Badge 
-                                key={amenity} 
-                                variant="outline" 
+                              <Badge
+                                key={amenity}
+                                variant="outline"
                                 className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
                               >
                                 {getAmenityIcon(amenity)}
@@ -764,7 +780,7 @@ const Hotels = () => {
                             </span>
                           )}
                         </div>
-                        <Button 
+                        <Button
                           size="sm"
                           className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
                           onClick={(e) => {
