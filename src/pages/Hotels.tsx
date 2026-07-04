@@ -21,14 +21,12 @@ import {
   SlidersHorizontal,
   X,
   ChevronDown,
+  Heart,
+  Sparkles,
   Phone,
   Mail,
-  Heart,
-  Share2,
-  Clock,
-  Users,
-  Bed,
-  Sparkles,
+  Building2,
+  Handshake,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -134,16 +132,17 @@ const Hotels = () => {
   // Get amenity icon
   const getAmenityIcon = (amenity: string) => {
     const amenityLower = amenity.toLowerCase();
-    if (amenityLower.includes("wifi")) return <Wifi className="h-4 w-4" />;
-    if (amenityLower.includes("breakfast") || amenityLower.includes("meal")) return <Coffee className="h-4 w-4" />;
-    if (amenityLower.includes("parking") || amenityLower.includes("car")) return <Car className="h-4 w-4" />;
-    if (amenityLower.includes("restaurant") || amenityLower.includes("dining")) return <Utensils className="h-4 w-4" />;
-    if (amenityLower.includes("gym") || amenityLower.includes("fitness")) return <Dumbbell className="h-4 w-4" />;
-    if (amenityLower.includes("pool") || amenityLower.includes("swimming")) return <Waves className="h-4 w-4" />;
-    if (amenityLower.includes("tv") || amenityLower.includes("entertainment")) return <Tv className="h-4 w-4" />;
+    if (amenityLower.includes("wifi")) return <Wifi className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("breakfast") || amenityLower.includes("meal")) return <Coffee className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("parking") || amenityLower.includes("car")) return <Car className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("restaurant") || amenityLower.includes("dining"))
+      return <Utensils className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("gym") || amenityLower.includes("fitness")) return <Dumbbell className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("pool") || amenityLower.includes("swimming")) return <Waves className="h-3.5 w-3.5" />;
+    if (amenityLower.includes("tv") || amenityLower.includes("entertainment")) return <Tv className="h-3.5 w-3.5" />;
     if (amenityLower.includes("ac") || amenityLower.includes("air conditioning"))
-      return <Snowflake className="h-4 w-4" />;
-    return <Sparkles className="h-4 w-4" />;
+      return <Snowflake className="h-3.5 w-3.5" />;
+    return <Sparkles className="h-3.5 w-3.5" />;
   };
 
   // Filter and sort hotels
@@ -197,7 +196,7 @@ const Hotels = () => {
     return (
       <div className="flex items-center gap-0.5">
         {[...Array(5)].map((_, i) => (
-          <Star key={i} className={`h-3.5 w-3.5 ${i < rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+          <Star key={i} className={`h-3.5 w-3.5 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
         ))}
       </div>
     );
@@ -208,8 +207,8 @@ const Hotels = () => {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation />
         <main className="flex-1 pt-20">
-          <div className="container mx-auto max-w-7xl px-4 py-8">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <Card key={i} className="overflow-hidden animate-pulse border-0 shadow-sm">
                   <div className="h-48 bg-gray-200" />
@@ -234,33 +233,35 @@ const Hotels = () => {
       <Navigation />
 
       <main className="flex-1 pt-20">
-        {/* Modern Hero Section with Search */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-          <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Hero Section - Green Theme */}
+        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
+          <div className="container mx-auto max-w-7xl px-4 py-6 md:py-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">Find Hotels</h1>
-                <p className="text-blue-100 text-sm mt-1">
+                <p className="text-green-100 text-sm mt-0.5">
                   {filteredAndSortedHotels.length} hotels available in{" "}
                   {selectedCity === "all" ? "all cities" : selectedCity}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => navigate("/partners")}
-                  className="bg-white/20 hover:bg-white/30 text-white border-0"
-                >
-                  List Your Hotel
-                </Button>
-              </div>
+
+              {/* Connect with Us Button - Highlighted */}
+              <Button
+                variant="default"
+                size="default"
+                onClick={() => navigate("/partners")}
+                className="bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-6 py-2.5 rounded-lg border-2 border-white/20 flex items-center gap-2"
+              >
+                <Handshake className="h-5 w-5" />
+                Connect with Us
+                <span className="ml-1 text-xs bg-green-600 text-white px-2 py-0.5 rounded-full animate-pulse">NEW</span>
+              </Button>
             </div>
 
             {/* Search Bar */}
-            <div className="mt-4 bg-white rounded-lg shadow-lg p-2 flex flex-col md:flex-row gap-2">
+            <div className="mt-3 bg-white rounded-lg shadow-lg p-1.5 flex flex-col md:flex-row gap-1.5">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search by city, hotel name..."
                   value={searchQuery}
@@ -270,7 +271,7 @@ const Hotels = () => {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-10 border-0 focus-visible:ring-0 focus-visible:ring-transparent h-11"
+                  className="pl-9 border-0 focus-visible:ring-0 focus-visible:ring-transparent h-10 text-sm"
                 />
                 {showSuggestions && searchQuery && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
@@ -285,7 +286,7 @@ const Hotels = () => {
                             setShowSuggestions(false);
                             handleSearch();
                           }}
-                          className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3"
+                          className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3"
                         >
                           <MapPin className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">{loc}</span>
@@ -297,32 +298,37 @@ const Hotels = () => {
                   </div>
                 )}
               </div>
-              <Button onClick={handleSearch} className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-11">
+              <Button onClick={handleSearch} className="bg-green-600 hover:bg-green-700 text-white px-6 h-10 text-sm">
                 Search
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto max-w-7xl px-4 py-6">
+        <div className="container mx-auto max-w-7xl px-4 py-4">
           {/* My Hotel Partner Application status */}
           <MyHotelApplicationsBanner />
 
           {/* Filters and Sort Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-white p-3 rounded-lg shadow-sm border">
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 bg-white p-2.5 rounded-lg shadow-sm border">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="gap-1.5 h-8 text-xs"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
                 Filters
                 {showFilters ? <ChevronDown className="h-3 w-3" /> : null}
               </Button>
 
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-medium">Sort:</span>
+              <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                <span className="text-xs font-medium">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border-0 bg-transparent focus:outline-none text-sm font-medium text-blue-600"
+                  className="border-0 bg-transparent focus:outline-none text-xs font-medium text-green-600"
                 >
                   <option value="rating">⭐ Top Rated</option>
                   <option value="price">💰 Price: Low to High</option>
@@ -331,20 +337,20 @@ const Hotels = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <div className="flex border rounded-md overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-1.5 px-3 text-xs transition-colors ${
-                    viewMode === "grid" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                  className={`p-1 px-2.5 text-xs transition-colors ${
+                    viewMode === "grid" ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   Grid
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-1.5 px-3 text-xs transition-colors ${
-                    viewMode === "list" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                  className={`p-1 px-2.5 text-xs transition-colors ${
+                    viewMode === "list" ? "bg-green-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   List
@@ -362,14 +368,14 @@ const Hotels = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div>
                       <label className="text-xs font-medium text-gray-600 block mb-1">City</label>
                       <select
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
                         <option value="all">All Cities</option>
                         {popularLocations.map((city) => (
@@ -384,7 +390,7 @@ const Hotels = () => {
                       <select
                         value={starRating}
                         onChange={(e) => setStarRating(parseInt(e.target.value))}
-                        className="w-full border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border rounded-md px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
                         <option value="0">Any Rating</option>
                         <option value="3">3+ Stars</option>
@@ -401,9 +407,9 @@ const Hotels = () => {
                         step="500"
                         value={priceRange[1]}
                         onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                        className="w-full mt-2"
+                        className="w-full mt-1"
                       />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <div className="flex justify-between text-xs text-gray-500 mt-0.5">
                         <span>₹0</span>
                         <span>₹{priceRange[1].toLocaleString()}</span>
                       </div>
@@ -418,7 +424,7 @@ const Hotels = () => {
                           setPriceRange([0, 20000]);
                           setSearchQuery("");
                         }}
-                        className="flex-1"
+                        className="flex-1 h-8 text-xs"
                       >
                         <X className="h-3 w-3 mr-1" />
                         Clear
@@ -426,7 +432,7 @@ const Hotels = () => {
                       <Button
                         size="sm"
                         onClick={() => setShowFilters(false)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
                       >
                         Apply
                       </Button>
@@ -439,13 +445,13 @@ const Hotels = () => {
 
           {/* Hotels Grid */}
           {filteredAndSortedHotels.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-lg shadow-sm border">
-              <Hotel className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No hotels found</h3>
+            <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
+              <Hotel className="h-14 w-14 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-base font-semibold text-gray-700 mb-1">No hotels found</h3>
               <p className="text-sm text-gray-500">Try adjusting your filters or search for a different city</p>
               <Button
                 variant="outline"
-                className="mt-4"
+                className="mt-3"
                 onClick={() => {
                   setSelectedCity("all");
                   setStarRating(0);
@@ -498,14 +504,14 @@ const Hotels = () => {
                       )}
 
                       {hotel.discount_percentage && (
-                        <Badge className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 border-0 text-white text-xs">
+                        <Badge className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 border-0 text-white text-[10px] px-2 py-0.5">
                           {hotel.discount_percentage}% OFF
                         </Badge>
                       )}
 
                       <button
                         onClick={(e) => toggleFavorite(hotel.id, e)}
-                        className="absolute top-2 left-2 p-1.5 bg-white/90 hover:bg-white rounded-full shadow-md transition-all hover:scale-110"
+                        className="absolute top-2 left-2 p-1 bg-white/90 hover:bg-white rounded-full shadow-md transition-all hover:scale-110"
                       >
                         <Heart
                           className={`h-4 w-4 ${
@@ -533,14 +539,14 @@ const Hotels = () => {
 
                     {/* Content */}
                     <CardContent className={`p-3 ${viewMode === "list" ? "flex-1" : ""}`}>
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-sm line-clamp-1 hover:text-blue-600 transition-colors">
+                      <div className="flex justify-between items-start mb-0.5">
+                        <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
                           {hotel.name}
                         </h3>
                         {renderStars(hotel.star_rating)}
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1.5">
                         <MapPin className="h-3 w-3" />
                         <span className="line-clamp-1">
                           {hotel.locality}, {hotel.city}
@@ -548,12 +554,12 @@ const Hotels = () => {
                       </div>
 
                       {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
-                        <div className="flex flex-wrap gap-1 mb-2">
+                        <div className="flex flex-wrap gap-1 mb-1.5">
                           {hotel.amenities.slice(0, 3).map((amenity) => (
                             <Badge
                               key={amenity}
                               variant="outline"
-                              className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200"
+                              className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
                             >
                               {getAmenityIcon(amenity)}
                               <span className="ml-0.5">{amenity}</span>
@@ -563,12 +569,12 @@ const Hotels = () => {
                       )}
 
                       {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
+                        <div className="flex flex-wrap gap-1 mb-1.5">
                           {hotel.amenities.slice(0, 5).map((amenity) => (
                             <Badge
                               key={amenity}
                               variant="outline"
-                              className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200"
+                              className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
                             >
                               {getAmenityIcon(amenity)}
                               <span className="ml-0.5">{amenity}</span>
@@ -577,22 +583,22 @@ const Hotels = () => {
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center justify-between pt-1.5 border-t">
                         <div>
                           <div className="flex items-baseline gap-1">
-                            <span className="text-lg font-bold text-blue-600">
+                            <span className="text-base font-bold text-green-600">
                               ₹{hotel.price_per_night.toLocaleString()}
                             </span>
-                            <span className="text-xs text-gray-500">/night</span>
+                            <span className="text-[10px] text-gray-500">/night</span>
                           </div>
                           {hotel.discount_percentage && (
-                            <span className="text-xs text-green-600">Save {hotel.discount_percentage}%</span>
+                            <span className="text-[10px] text-green-600">Save {hotel.discount_percentage}%</span>
                           )}
                         </div>
                         {viewMode === "grid" && (
                           <Button
                             size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-4"
+                            className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedHotel(hotel);
@@ -605,7 +611,7 @@ const Hotels = () => {
                         {viewMode === "list" && (
                           <Button
                             size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-4"
+                            className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedHotel(hotel);
