@@ -2498,10 +2498,14 @@ export type Database = {
           num_guests: number | null
           num_rooms: number | null
           package_id: string | null
+          payment_attempted_at: string | null
           payment_method: string | null
           payment_status: string
           promo_code: string | null
           property_id: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
           room_type: string | null
           source: string
           special_requests: string | null
@@ -2534,10 +2538,14 @@ export type Database = {
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
+          payment_attempted_at?: string | null
           payment_method?: string | null
           payment_status?: string
           promo_code?: string | null
           property_id?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
@@ -2570,10 +2578,14 @@ export type Database = {
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
+          payment_attempted_at?: string | null
           payment_method?: string | null
           payment_status?: string
           promo_code?: string | null
           property_id?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
