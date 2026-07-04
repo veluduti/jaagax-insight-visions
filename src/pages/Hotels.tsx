@@ -42,6 +42,7 @@ import { QuickVisitWizard } from "@/components/booking/QuickVisitWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { resolveHotelImages } from "@/lib/hotelImage";
 
 interface PartnerHotel {
   id: string;
