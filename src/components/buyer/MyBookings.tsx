@@ -204,29 +204,23 @@ const MyBookings = () => {
     if (!deleting) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from("hotel_bookings").delete().eq("id", deleting.id);
-      if (error) throw error;
-
-      supabase.functions.invoke("send-booking-confirmation", {
-        body: {
-          bookingId: deleting.id,
-          hotelName: deleting.hotel?.name || "Hotel",
-          guestName: deleting.guest_name,
-          guestPhone: deleting.guest_phone || undefined,
-          guestEmail: deleting.guest_email || undefined,
-          checkIn: format(new Date(deleting.check_in), "dd MMM yyyy"),
-          checkOut: format(new Date(deleting.check_out), "dd MMM yyyy"),
-          totalAmount: deleting.total_amount,
-          bookingType: deleting.booking_type,
-          action: "cancelled",
-        },
-      }).catch((e) => console.warn("Notify failed:", e));
-
-      toast.success("Booking cancelled");
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase.functions.invoke("hotel-booking-cancel", {
+        body: { booking_id: deleting.id, reason: "guest_cancel", cancelled_by: user?.id || null },
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Cancellation failed");
+      }
+      const refund = data.refund?.amount || 0;
+      toast.success(
+        refund > 0
+          ? `Booking cancelled. Refund of ₹${refund.toLocaleString()} initiated (${data.refund.percent}%).`
+          : "Booking cancelled. This slot was outside the free-cancellation window.",
+      );
       setDeleting(null);
       fetchBookings();
     } catch (err: any) {
-      toast.error("Delete failed", { description: err.message });
+      toast.error(err.message || "Cancellation failed");
     } finally {
       setSaving(false);
     }
