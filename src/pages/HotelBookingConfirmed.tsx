@@ -92,13 +92,20 @@ const HotelBookingConfirmed = () => {
         </CardContent></Card>
 
         <div className="flex flex-wrap gap-3 mt-6 justify-center">
+          {booking.guest_portal_token && (
+            <Button asChild>
+              <Link to={`/stay/${booking.guest_portal_token}`}>
+                Open stay portal
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" onClick={() => window.print()}>
             <Download className="w-4 h-4 mr-2" /> Print receipt
           </Button>
           <Button variant="outline" asChild>
             <Link to="/dashboard/buyer?tab=bookings"><Mail className="w-4 h-4 mr-2" /> My bookings</Link>
           </Button>
-          <Button asChild>
+          <Button variant="outline" asChild>
             <Link to="/hotels"><Home className="w-4 h-4 mr-2" /> Explore more hotels</Link>
           </Button>
         </div>
