@@ -131,9 +131,15 @@ const Hotels = () => {
           if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
         });
 
-        const enriched = (hotelsRes.data || [])
-          .filter((h: any) => minByHotel.has(h.id))
-          .map((h: any) => ({ ...h, price_per_night: minByHotel.get(h.id) as number }));
+        const enriched = await Promise.all(
+          (hotelsRes.data || [])
+            .filter((h: any) => minByHotel.has(h.id))
+            .map(async (h: any) => ({
+              ...h,
+              price_per_night: minByHotel.get(h.id) as number,
+              images: await resolveHotelImages(h.images),
+            })),
+        );
 
         setHotels(enriched);
         if (packagesRes.data) setPackages(packagesRes.data);
