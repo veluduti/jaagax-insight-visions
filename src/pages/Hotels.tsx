@@ -344,7 +344,7 @@ const Hotels = () => {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent"
+                  className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent text-gray-900 placeholder:text-gray-400"
                 />
                 {/* Suggestions Dropdown - Fixed */}
                 {showSuggestions && suggestions.length > 0 && (
