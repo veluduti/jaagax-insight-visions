@@ -14,17 +14,22 @@ import HotelBookingDialog from "./HotelBookingDialog";
 interface Booking {
   id: string;
   hotel_name?: string | null;
-  hotel_city?: string | null;
-  check_in_date: string;
-  check_out_date: string;
+  hotel_address?: string | null;
+  check_in: string;
+  check_out: string;
   room_type?: string | null;
-  guests?: number | null;
-  total_price: number;
-  booking_status: string;
+  num_guests?: number | null;
+  num_rooms?: number | null;
+  total_amount: number;
+  status: string;
+  payment_status?: string | null;
   hotel_id?: string | null;
   user_id?: string | null;
+  booked_by_agent_id?: string | null;
   guest_name?: string | null;
   guest_phone?: string | null;
+  guest_email?: string | null;
+  booking_reference?: string | null;
   created_at?: string;
 }
 
