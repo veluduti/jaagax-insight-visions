@@ -136,6 +136,62 @@ export default function HotelBookingDetails({ booking, onClose, onChanged }: Hot
     setMode("view");
     onChanged?.();
   };
+  const payNow = async () => {
+    setPaying(true);
+    try {
+      const ok = await loadRazorpay();
+      if (!ok) { toast.error("Failed to load payment gateway"); return; }
+
+      const { data, error } = await supabase.functions.invoke("razorpay-pay-existing", {
+        body: { booking_id: booking.id },
+      });
+      if (error || !data?.order_id) {
+        toast.error(data?.error || error?.message || "Could not start payment");
+        return;
+      }
+
+      const rzp = new (window as any).Razorpay({
+        key: data.key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: booking.hotel_name || "JAAGA X",
+        description: `Booking ${data.booking_reference || booking.id.slice(0, 8)}`,
+        order_id: data.order_id,
+        prefill: {
+          name: booking.guest_name || "",
+          email: (booking as any).guest_email || "",
+          contact: booking.guest_phone || "",
+        },
+        theme: { color: "#10b981" },
+        handler: async (response: any) => {
+          const { data: verify, error: vErr } = await supabase.functions.invoke("razorpay-verify-payment", {
+            body: {
+              booking_id: data.booking_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+          });
+          if (vErr || !verify?.success) {
+            toast.error(verify?.error || vErr?.message || "Payment verification failed");
+            return;
+          }
+          toast.success("Payment successful");
+          onChanged?.();
+        },
+        modal: { ondismiss: () => toast.info("Payment cancelled") },
+      });
+      rzp.on("payment.failed", (resp: any) => {
+        toast.error(resp?.error?.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (e: any) {
+      toast.error(e?.message || "Something went wrong");
+    } finally {
+      setPaying(false);
+    }
+  };
+
 
   const downloadInvoice = () => {
     const b = booking;
