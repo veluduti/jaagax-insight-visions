@@ -23,9 +23,6 @@ import {
   ChevronDown,
   Heart,
   Sparkles,
-  Phone,
-  Mail,
-  Building2,
   Handshake,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -55,10 +52,6 @@ interface PartnerHotel {
   contact_email: string | null;
   partner_since: string | null;
   is_active: boolean | null;
-  description?: string;
-  reviews_count?: number;
-  check_in_time?: string;
-  check_out_time?: string;
 }
 
 interface VisitPackage {
@@ -96,7 +89,7 @@ const Hotels = () => {
   const [sortBy, setSortBy] = useState<"price" | "rating" | "popularity">("rating");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Fetch hotels and packages
+  // Fetch hotels and packages from database only
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -105,10 +98,17 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
-        setHotels(hotelsRes.data || []);
-        setPackages(packagesRes.data || []);
+        // Only set data if we get results, no defaults
+        if (hotelsRes.data) {
+          setHotels(hotelsRes.data);
+        }
+        if (packagesRes.data) {
+          setPackages(packagesRes.data);
+        }
       } catch (err) {
         console.error("Error fetching hotels:", err);
+        setHotels([]);
+        setPackages([]);
       } finally {
         setLoading(false);
       }
@@ -207,12 +207,12 @@ const Hotels = () => {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation />
         <main className="flex-1 pt-20">
-          <div className="container mx-auto max-w-7xl px-4 py-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="container mx-auto max-w-7xl px-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <Card key={i} className="overflow-hidden animate-pulse border-0 shadow-sm">
                   <div className="h-48 bg-gray-200" />
-                  <CardContent className="p-4 space-y-3">
+                  <CardContent className="p-3 space-y-2">
                     <div className="h-5 bg-gray-200 rounded w-3/4" />
                     <div className="h-4 bg-gray-200 rounded w-1/2" />
                     <div className="h-4 bg-gray-200 rounded w-1/3" />
@@ -233,33 +233,35 @@ const Hotels = () => {
       <Navigation />
 
       <main className="flex-1 pt-20">
-        {/* Hero Section - Green Theme */}
+        {/* Hero Section - Green Theme - No extra padding */}
         <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
-          <div className="container mx-auto max-w-7xl px-4 py-6 md:py-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="container mx-auto max-w-7xl px-4 py-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">Find Hotels</h1>
-                <p className="text-green-100 text-sm mt-0.5">
+                <p className="text-green-100 text-sm">
                   {filteredAndSortedHotels.length} hotels available in{" "}
                   {selectedCity === "all" ? "all cities" : selectedCity}
                 </p>
               </div>
 
-              {/* Connect with Us Button - Highlighted */}
+              {/* Connect with Us Button */}
               <Button
                 variant="default"
                 size="default"
                 onClick={() => navigate("/partners")}
-                className="bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-6 py-2.5 rounded-lg border-2 border-white/20 flex items-center gap-2"
+                className="bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold px-5 py-2 rounded-lg border-2 border-white/20 flex items-center gap-2 whitespace-nowrap"
               >
-                <Handshake className="h-5 w-5" />
+                <Handshake className="h-4 w-4" />
                 Connect with Us
-                <span className="ml-1 text-xs bg-green-600 text-white px-2 py-0.5 rounded-full animate-pulse">NEW</span>
+                <span className="ml-1 text-[10px] bg-green-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+                  NEW
+                </span>
               </Button>
             </div>
 
             {/* Search Bar */}
-            <div className="mt-3 bg-white rounded-lg shadow-lg p-1.5 flex flex-col md:flex-row gap-1.5">
+            <div className="mt-2 bg-white rounded-lg shadow-lg p-1.5 flex flex-col md:flex-row gap-1.5">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -271,7 +273,7 @@ const Hotels = () => {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-9 border-0 focus-visible:ring-0 focus-visible:ring-transparent h-10 text-sm"
+                  className="pl-9 border-0 focus-visible:ring-0 focus-visible:ring-transparent h-9 text-sm"
                 />
                 {showSuggestions && searchQuery && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
@@ -286,7 +288,7 @@ const Hotels = () => {
                             setShowSuggestions(false);
                             handleSearch();
                           }}
-                          className="w-full px-4 py-2.5 text-left hover:bg-green-50 transition-colors flex items-center gap-3"
+                          className="w-full px-4 py-2 text-left hover:bg-green-50 transition-colors flex items-center gap-3"
                         >
                           <MapPin className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">{loc}</span>
@@ -298,25 +300,25 @@ const Hotels = () => {
                   </div>
                 )}
               </div>
-              <Button onClick={handleSearch} className="bg-green-600 hover:bg-green-700 text-white px-6 h-10 text-sm">
+              <Button onClick={handleSearch} className="bg-green-600 hover:bg-green-700 text-white px-5 h-9 text-sm">
                 Search
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto max-w-7xl px-4 py-4">
+        <div className="container mx-auto max-w-7xl px-4 py-3">
           {/* My Hotel Partner Application status */}
           <MyHotelApplicationsBanner />
 
           {/* Filters and Sort Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 bg-white p-2.5 rounded-lg shadow-sm border">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-2 rounded-lg shadow-sm border">
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className="gap-1.5 h-8 text-xs"
+                className="gap-1.5 h-7 text-xs"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 Filters
@@ -368,7 +370,7 @@ const Hotels = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+                <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     <div>
                       <label className="text-xs font-medium text-gray-600 block mb-1">City</label>
@@ -424,7 +426,7 @@ const Hotels = () => {
                           setPriceRange([0, 20000]);
                           setSearchQuery("");
                         }}
-                        className="flex-1 h-8 text-xs"
+                        className="flex-1 h-7 text-xs"
                       >
                         <X className="h-3 w-3 mr-1" />
                         Clear
@@ -432,7 +434,7 @@ const Hotels = () => {
                       <Button
                         size="sm"
                         onClick={() => setShowFilters(false)}
-                        className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
+                        className="flex-1 bg-green-600 hover:bg-green-700 h-7 text-xs"
                       >
                         Apply
                       </Button>
@@ -443,7 +445,7 @@ const Hotels = () => {
             )}
           </AnimatePresence>
 
-          {/* Hotels Grid */}
+          {/* Hotels Grid - Uniform card sizes */}
           {filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
               <Hotel className="h-14 w-14 text-gray-300 mx-auto mb-3" />
@@ -476,18 +478,18 @@ const Hotels = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -2 }}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-full"
                   onClick={() => handleHotelClick(hotel)}
                 >
                   <Card
-                    className={`overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-sm ${
-                      viewMode === "list" ? "flex flex-col md:flex-row" : ""
+                    className={`overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-sm h-full flex flex-col ${
+                      viewMode === "list" ? "flex-row" : ""
                     }`}
                   >
-                    {/* Image */}
+                    {/* Image - Fixed height */}
                     <div
-                      className={`relative ${
-                        viewMode === "list" ? "md:w-56 md:h-40 h-48" : "h-48"
+                      className={`relative flex-shrink-0 ${
+                        viewMode === "list" ? "w-48 h-48" : "h-48 w-full"
                       } bg-gray-100 overflow-hidden`}
                     >
                       {hotel.images && hotel.images[0] ? (
@@ -519,71 +521,57 @@ const Hotels = () => {
                           }`}
                         />
                       </button>
-
-                      {viewMode === "list" && (
-                        <div className="absolute bottom-2 left-2 right-2 flex gap-1">
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-white/90 hover:bg-white text-gray-700 text-xs h-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedHotel(hotel);
-                              setShowHotelOnlyModal(true);
-                            }}
-                          >
-                            Quick Book
-                          </Button>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Content */}
-                    <CardContent className={`p-3 ${viewMode === "list" ? "flex-1" : ""}`}>
-                      <div className="flex justify-between items-start mb-0.5">
-                        <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
-                          {hotel.name}
-                        </h3>
-                        {renderStars(hotel.star_rating)}
+                    {/* Content - Flexible */}
+                    <CardContent className={`p-3 flex-1 flex flex-col ${viewMode === "list" ? "justify-between" : ""}`}>
+                      <div>
+                        <div className="flex justify-between items-start mb-0.5">
+                          <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
+                            {hotel.name}
+                          </h3>
+                          {renderStars(hotel.star_rating)}
+                        </div>
+
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1.5">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="line-clamp-1">
+                            {hotel.locality}, {hotel.city}
+                          </span>
+                        </div>
+
+                        {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
+                          <div className="flex flex-wrap gap-1 mb-1.5">
+                            {hotel.amenities.slice(0, 3).map((amenity) => (
+                              <Badge
+                                key={amenity}
+                                variant="outline"
+                                className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
+                              >
+                                {getAmenityIcon(amenity)}
+                                <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-1.5">
+                            {hotel.amenities.slice(0, 5).map((amenity) => (
+                              <Badge
+                                key={amenity}
+                                variant="outline"
+                                className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
+                              >
+                                {getAmenityIcon(amenity)}
+                                <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1.5">
-                        <MapPin className="h-3 w-3" />
-                        <span className="line-clamp-1">
-                          {hotel.locality}, {hotel.city}
-                        </span>
-                      </div>
-
-                      {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
-                        <div className="flex flex-wrap gap-1 mb-1.5">
-                          {hotel.amenities.slice(0, 3).map((amenity) => (
-                            <Badge
-                              key={amenity}
-                              variant="outline"
-                              className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
-                            >
-                              {getAmenityIcon(amenity)}
-                              <span className="ml-0.5">{amenity}</span>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1.5">
-                          {hotel.amenities.slice(0, 5).map((amenity) => (
-                            <Badge
-                              key={amenity}
-                              variant="outline"
-                              className="text-[9px] px-1.5 py-0 bg-gray-50 border-gray-200 gap-0.5"
-                            >
-                              {getAmenityIcon(amenity)}
-                              <span className="ml-0.5">{amenity}</span>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between pt-1.5 border-t">
+                      <div className="flex items-center justify-between pt-1.5 border-t mt-auto">
                         <div>
                           <div className="flex items-baseline gap-1">
                             <span className="text-base font-bold text-green-600">
@@ -595,32 +583,17 @@ const Hotels = () => {
                             <span className="text-[10px] text-green-600">Save {hotel.discount_percentage}%</span>
                           )}
                         </div>
-                        {viewMode === "grid" && (
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedHotel(hotel);
-                              setShowHotelOnlyModal(true);
-                            }}
-                          >
-                            Book
-                          </Button>
-                        )}
-                        {viewMode === "list" && (
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedHotel(hotel);
-                              setShowHotelOnlyModal(true);
-                            }}
-                          >
-                            Book Now
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs h-7 px-3 flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedHotel(hotel);
+                            setShowHotelOnlyModal(true);
+                          }}
+                        >
+                          {viewMode === "list" ? "Book Now" : "Book"}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
