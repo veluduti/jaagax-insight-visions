@@ -283,7 +283,7 @@ const Hotels = () => {
 
       <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
+        <div className="relative bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
           <div
             className="absolute inset-0 opacity-20"
             style={{
