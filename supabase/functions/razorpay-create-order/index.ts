@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
       adults = 1, children = 0, num_rooms = 1,
       guest_name, guest_email, guest_phone,
       special_requests, addons = [], promo_code, user_id,
+      booked_by_agent_id = null,
     } = body;
 
     if (!hotel_id || !room_id || !check_in || !check_out || !guest_name || !guest_email || !guest_phone) {
