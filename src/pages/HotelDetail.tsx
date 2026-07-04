@@ -50,6 +50,11 @@ interface HotelData {
   smoking_allowed?: boolean;
 }
 
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const plusDaysISO = (n: number) => {
+  const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
+};
+
 const HotelDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,6 +64,15 @@ const HotelDetail = () => {
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingType, setBookingType] = useState<"hotel_only" | "visit_stay">("hotel_only");
+
+  // Availability search state
+  const [checkIn, setCheckIn] = useState<string>(plusDaysISO(1));
+  const [checkOut, setCheckOut] = useState<string>(plusDaysISO(2));
+  const [adults, setAdults] = useState<number>(2);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
+  const [roomsWanted, setRoomsWanted] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState<string>("specs");
+  const [searchNonce, setSearchNonce] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -261,8 +275,56 @@ const HotelDetail = () => {
                 ))}
               </div>
 
+              {/* Availability search bar */}
+              <Card className="border-primary/20">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
+                    <div className="flex flex-col">
+                      <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
+                      <input type="date" value={checkIn} min={todayISO()}
+                        onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(plusDaysISO(1)); }}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
+                      <input type="date" value={checkOut} min={checkIn}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
+                      <input type="number" min={1} max={20} value={adults}
+                        onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[11px] text-muted-foreground mb-1">Children</label>
+                      <input type="number" min={0} max={10} value={childrenCount}
+                        onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
+                      <input type="number" min={1} max={10} value={roomsWanted}
+                        onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                    </div>
+                    <Button
+                      className="h-10"
+                      onClick={() => {
+                        if (checkOut <= checkIn) { toast.error("Check-out must be after check-in"); return; }
+                        setActiveTab("rooms");
+                        setSearchNonce((n) => n + 1);
+                      }}
+                    >
+                      Search Rooms
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Tabs */}
-              <Tabs defaultValue="specs" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full grid grid-cols-4 h-12">
                   <TabsTrigger value="specs" className="text-xs sm:text-sm">Specifications</TabsTrigger>
                   <TabsTrigger value="rooms" className="text-xs sm:text-sm">Room Types</TabsTrigger>
@@ -275,7 +337,17 @@ const HotelDetail = () => {
                 </TabsContent>
 
                 <TabsContent value="rooms" className="mt-6">
-                  <HotelRoomTypes hotelId={hotel.id} hotelName={hotel.name} basePrice={hotel.price_per_night} discount={hotel.discount_percentage || 0} />
+                  <HotelRoomTypes
+                    key={searchNonce}
+                    hotelId={hotel.id}
+                    hotelName={hotel.name}
+                    hotelCity={hotel.city}
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    adults={adults}
+                    children={childrenCount}
+                    roomsWanted={roomsWanted}
+                  />
                 </TabsContent>
 
                 <TabsContent value="nearby" className="mt-6">
