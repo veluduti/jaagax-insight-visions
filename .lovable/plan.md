@@ -1,51 +1,47 @@
-# Phase 5 — Growth, Scale & Guest Experience
 
-Build on Phases 1–4 (KYC, PMS, Operations, Analytics/Payouts/Inbox) to help hotel partners grow direct revenue, price smarter, and delight guests.
+## Scope
 
-## Modules
+Phases 1–4 only: public listing → hotel details → availability search → room selection card. No payment / guest info / summary yet (those come in the next iteration; Razorpay integration will be a separate step where I request keys).
 
-### 1. Direct Booking Engine & Embeddable Widget
-- Public hotel microsite at `/book/:hotelSlug` (rooms, rates, availability, gallery, reviews).
-- Embeddable `<script>` widget hotels paste on their own website; opens booking flow in iframe/modal.
-- Zero-commission bookings write directly to `hotel_bookings` with `source='direct'`.
+## What changes (user-visible)
 
-### 2. Dynamic Pricing & Promotions Engine
-- New table `hotel_pricing_rules` (occupancy-based, day-of-week, lead-time, min-stay).
-- New table `hotel_promo_codes` (percent/flat, validity, usage cap, applicable room types).
-- Rule evaluator applied on `hotel_rate_calendar` reads at booking time.
-- Partner UI at `/partners/pricing` to create/preview rules.
+**Hotels.tsx**
+- Fetches only approved + active hotels that have at least one active room (via a room-count check).
+- Each card's "Starts From ₹X" is computed from the cheapest active room's `base_price` (not the legacy `partner_hotels.price_per_night`), with discount badge.
+- Existing search/filters/hero UI kept as-is.
 
-### 3. Guest Experience Portal (Pre-arrival → Post-stay)
-- Guest-facing page at `/stay/:bookingCode` (no login, tokenized link sent via email/WhatsApp).
-- Digital check-in form (ID upload, ETA, preferences), house rules acknowledgment.
-- In-stay: request add-ons (breakfast, pickup), message hotel, view invoice.
-- Post-stay: review prompt feeding `hotel_reviews`.
+**HotelDetail.tsx**
+- New "Search Rooms" bar at the top of the page: check-in date, check-out date, adults, children, rooms → routes to the Rooms tab and triggers availability check.
+- The "Room Types" tab is replaced with a real, DB-driven MMT-style room-list component.
+- Replaces the hardcoded `HotelRoomTypes.tsx` mock data.
 
-### 4. Add-on Services & Upsell Marketplace
-- New table `hotel_addons` (title, price, category: F&B/transport/experience, availability window).
-- New table `hotel_booking_addons` linking selections to bookings.
-- Surfaced in booking engine, guest portal, and reservations screen for walk-in upsell.
+**New `HotelRoomList.tsx` (MMT-style card)**
+Per room, from DB:
+- Gallery (`hotel_rooms.photos`), name, size, bed type, max occupancy, amenities, description
+- Base price × nights + pricing rules (reuses existing `booking-engine-quote` edge fn per room)
+- Discount, taxes (12% GST placeholder for now — flagged in code for real config later), final price
+- Policies: free breakfast, cancellation policy, min-nights
+- "Only N rooms left" from live inventory
+- "Select Room" CTA — currently opens existing `HotelBookingModal` with the selected room pre-filled (fully replaced in Phase 5+)
 
-### 5. Multi-property & Staff Roles
-- Extend `hotel_partner_applications` for chains; add `hotel_staff` table (user_id, hotel_id, role: owner/manager/front-desk/housekeeping).
-- Property switcher in `PartnerSubNav`.
-- Role-gated routes: housekeeping sees only room status board; front-desk sees reservations; manager sees analytics/payouts.
-- Consolidated multi-property dashboard for owners.
+## Database
 
-## Technical Details
+New table `hotel_room_inventory` (date × room_id × available_units) with:
+- One row per (room_id, date), default `available_units = hotel_rooms.total_units`
+- RLS: public SELECT, owner + admin write
+- Availability helper RPC `check_room_availability(room_id, check_in, check_out)` → returns `min_available` across the range and computes it from `total_units - (confirmed booking overlap count)` when no explicit inventory row exists (so it works before backfill).
+- Trigger on `hotel_bookings` insert/cancel that decrements/restores inventory for the date range when `status = 'confirmed'`.
 
-- **DB migrations:** `hotel_pricing_rules`, `hotel_promo_codes`, `hotel_addons`, `hotel_booking_addons`, `hotel_staff`, plus columns on `hotel_bookings` (`source`, `promo_code`, `addon_total`).
-- **RLS:** reuse `user_owns_hotel(hotel_id)`; staff access via new `user_has_hotel_role(hotel_id, role)` security-definer.
-- **Edge functions:** `booking-engine-quote` (applies pricing rules + promos), `booking-engine-confirm`, `guest-portal-token` (issues signed tokens), `send-guest-portal-link`.
-- **Widget:** built as standalone `dist/widget.js` served from `/public/widget.js`, mounts iframe pointing to `/book/:hotelSlug`.
-- **Guest portal auth:** JWT-signed magic links, no Supabase auth session.
-- **Routes:** `/book/:slug`, `/stay/:code`, `/partners/pricing`, `/partners/addons`, `/partners/staff`, `/partners/properties`.
+No changes to existing tables' structure.
 
-## Suggested Build Order
-1. Multi-property + staff roles (foundation for everything else).
-2. Dynamic pricing + promos.
-3. Direct booking engine + widget.
-4. Add-ons marketplace.
-5. Guest experience portal.
+## Files touched
 
-Approve to proceed, or tell me which modules to drop/reorder.
+- `supabase/migrations/*` — new inventory table, RPC, trigger, grants + RLS
+- `src/pages/Hotels.tsx` — swap fetch to filter by "has active rooms", compute min price from `hotel_rooms`
+- `src/pages/HotelDetail.tsx` — add availability search bar, wire selected dates to rooms tab
+- `src/components/hotels/HotelRoomList.tsx` — NEW, real room cards
+- `src/components/hotels/HotelRoomTypes.tsx` — thin wrapper delegating to `HotelRoomList` (keeps existing imports working)
+
+## Out of scope this round
+
+Phases 5–15 (guest info, add-ons, summary, payment, check-in flow, cancellation, reviews). Razorpay integration will be requested in the next iteration once you're ready to share the key_id/key_secret.

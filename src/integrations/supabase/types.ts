@@ -3535,6 +3535,51 @@ export type Database = {
           },
         ]
       }
+      hotel_room_inventory: {
+        Row: {
+          available_units: number
+          created_at: string
+          date: string
+          hotel_id: string
+          id: string
+          room_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_units?: number
+          created_at?: string
+          date: string
+          hotel_id: string
+          id?: string
+          room_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_units?: number
+          created_at?: string
+          date?: string
+          hotel_id?: string
+          id?: string
+          room_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_room_inventory_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_room_inventory_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_rooms: {
         Row: {
           amenities: Json | null
@@ -6354,6 +6399,10 @@ export type Database = {
         Returns: Json
       }
       check_financial_kyc: { Args: { _user_id: string }; Returns: boolean }
+      check_room_availability: {
+        Args: { _check_in: string; _check_out: string; _room_id: string }
+        Returns: number
+      }
       create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
       debit_from_wallet: {
         Args: {
