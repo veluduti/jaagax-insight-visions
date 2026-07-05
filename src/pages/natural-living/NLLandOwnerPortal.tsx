@@ -145,8 +145,12 @@ function PartnershipsTab({ userId }: { userId: string }) {
   const [form, setForm] = useState({ parcel_id: "", farmer_user_id: "", revenue_share_pct: "", monthly_lease: "", starts_on: new Date().toISOString().slice(0, 10), notes: "" });
 
   const load = async () => {
-    const { data: p } = await sb.from("nl_land_parcels").select("id,name").eq("owner_user_id", userId);
+    const [{ data: p }, { data: fs }] = await Promise.all([
+      sb.from("nl_land_parcels").select("id,name").eq("owner_user_id", userId),
+      sb.from("nl_profiles").select("user_id,full_name,city").in("role", ["farmer"]).order("full_name"),
+    ]);
     setParcels(p ?? []);
+    setFarmers(fs ?? []);
     const ids = (p ?? []).map((x: any) => x.id);
     if (!ids.length) return setRows([]);
     const { data } = await sb.from("nl_land_partnerships").select("*").in("parcel_id", ids).order("created_at", { ascending: false });
@@ -156,17 +160,13 @@ function PartnershipsTab({ userId }: { userId: string }) {
 
   const invite = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Resolve farmer by email via nl_profiles + auth join: use profiles table since we don't expose auth.users.
-    // We rely on nl_profiles: users must have signed up already.
-    const { data: prof } = await sb.from("profiles").select("id").eq("email", form.farmer_email.trim().toLowerCase()).maybeSingle();
-    const farmer_user_id = prof?.id;
-    if (!farmer_user_id) {
-      toast({ title: "Farmer not found", description: "That email hasn't signed up yet. Ask them to join Natural Living first.", variant: "destructive" });
+    if (!form.farmer_user_id) {
+      toast({ title: "Pick a farmer", variant: "destructive" });
       return;
     }
     const { error } = await sb.from("nl_land_partnerships").insert({
       parcel_id: form.parcel_id,
-      farmer_user_id,
+      farmer_user_id: form.farmer_user_id,
       revenue_share_pct: Number(form.revenue_share_pct || 0),
       monthly_lease: Number(form.monthly_lease || 0),
       starts_on: form.starts_on,
@@ -175,7 +175,7 @@ function PartnershipsTab({ userId }: { userId: string }) {
     });
     if (error) return toast({ title: "Failed", description: error.message, variant: "destructive" });
     toast({ title: "Invitation sent", description: "The farmer will see this in their portal." });
-    setForm({ parcel_id: "", farmer_email: "", revenue_share_pct: "", monthly_lease: "", starts_on: new Date().toISOString().slice(0, 10), notes: "" });
+    setForm({ parcel_id: "", farmer_user_id: "", revenue_share_pct: "", monthly_lease: "", starts_on: new Date().toISOString().slice(0, 10), notes: "" });
     void load();
   };
 
