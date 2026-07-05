@@ -22,9 +22,9 @@ const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string
     { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/farmer-portal" },
   ],
   land_owner: [
-    { icon: MapPin, title: "My Farms", desc: "Register and manage your land.", to: "/natural-living/my-farms" },
-    { icon: Users, title: "Partnerships", desc: "Farmer partnerships & shared yield.", to: "/natural-living/partner" },
-    { icon: BarChart3, title: "Reports", desc: "Yield, revenue, sustainability.", to: "/natural-living/impact" },
+    { icon: MapPin, title: "Land Owner Portal", desc: "Parcels, partnerships, lease income.", to: "/natural-living/land-owner-portal" },
+    { icon: Users, title: "Farmer partnerships", desc: "Invite and manage farmer partners.", to: "/natural-living/land-owner-portal" },
+    { icon: BarChart3, title: "Reports", desc: "Lease income & parcel status.", to: "/natural-living/land-owner-portal" },
     { icon: ClipboardCheck, title: "Documents", desc: "Agreements, records, KYC.", to: "/natural-living/kyc" },
   ],
   admin: [

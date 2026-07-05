@@ -4217,6 +4217,125 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_land_parcels: {
+        Row: {
+          area_acres: number
+          created_at: string
+          description: string | null
+          hero_image_url: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          owner_user_id: string
+          soil_type: string | null
+          status: string
+          updated_at: string
+          village_id: string | null
+          water_source: string | null
+        }
+        Insert: {
+          area_acres?: number
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          owner_user_id: string
+          soil_type?: string | null
+          status?: string
+          updated_at?: string
+          village_id?: string | null
+          water_source?: string | null
+        }
+        Update: {
+          area_acres?: number
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          owner_user_id?: string
+          soil_type?: string | null
+          status?: string
+          updated_at?: string
+          village_id?: string | null
+          water_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_land_parcels_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "nl_villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_land_partnerships: {
+        Row: {
+          created_at: string
+          ends_on: string | null
+          farm_id: string | null
+          farmer_user_id: string
+          id: string
+          monthly_lease: number
+          notes: string | null
+          parcel_id: string
+          revenue_share_pct: number
+          starts_on: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on?: string | null
+          farm_id?: string | null
+          farmer_user_id: string
+          id?: string
+          monthly_lease?: number
+          notes?: string | null
+          parcel_id: string
+          revenue_share_pct?: number
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string | null
+          farm_id?: string | null
+          farmer_user_id?: string
+          id?: string
+          monthly_lease?: number
+          notes?: string | null
+          parcel_id?: string
+          revenue_share_pct?: number
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_land_partnerships_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_land_partnerships_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "nl_land_parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_plots: {
         Row: {
           created_at: string
