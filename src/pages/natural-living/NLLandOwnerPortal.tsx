@@ -141,7 +141,8 @@ function ParcelsTab({ userId }: { userId: string }) {
 function PartnershipsTab({ userId }: { userId: string }) {
   const [parcels, setParcels] = useState<any[]>([]);
   const [rows, setRows] = useState<any[]>([]);
-  const [form, setForm] = useState({ parcel_id: "", farmer_email: "", revenue_share_pct: "", monthly_lease: "", starts_on: new Date().toISOString().slice(0, 10), notes: "" });
+  const [farmers, setFarmers] = useState<any[]>([]);
+  const [form, setForm] = useState({ parcel_id: "", farmer_user_id: "", revenue_share_pct: "", monthly_lease: "", starts_on: new Date().toISOString().slice(0, 10), notes: "" });
 
   const load = async () => {
     const { data: p } = await sb.from("nl_land_parcels").select("id,name").eq("owner_user_id", userId);
