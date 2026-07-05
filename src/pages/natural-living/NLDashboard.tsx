@@ -18,12 +18,12 @@ const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string
   farmer: [
     { icon: Sprout, title: "Farmer Portal", desc: "Orders, calendar, expenses, harvest, AI.", to: "/natural-living/farmer-portal" },
     { icon: ClipboardCheck, title: "My Farms", desc: "Plots, crops, subscription plans.", to: "/natural-living/my-farms" },
-    { icon: Package, title: "Subscribers", desc: "Deliveries and active subscribers.", to: "/natural-living/farmer-portal" },
+    { icon: Users, title: "Farm Management", desc: "Tasks, workers, attendance, inventory.", to: "/natural-living/farm-management" },
     { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/farmer-portal" },
   ],
   land_owner: [
     { icon: MapPin, title: "Land Owner Portal", desc: "Parcels, partnerships, lease income.", to: "/natural-living/land-owner-portal" },
-    { icon: Users, title: "Farmer partnerships", desc: "Invite and manage farmer partners.", to: "/natural-living/land-owner-portal" },
+    { icon: Users, title: "Farm Management", desc: "Tasks, workers, attendance, inventory.", to: "/natural-living/farm-management" },
     { icon: BarChart3, title: "Reports", desc: "Lease income & parcel status.", to: "/natural-living/land-owner-portal" },
     { icon: ClipboardCheck, title: "Documents", desc: "Agreements, records, KYC.", to: "/natural-living/kyc" },
   ],
