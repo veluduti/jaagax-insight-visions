@@ -106,3 +106,18 @@
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
 }
+
+.nl-scope .nl-input {
+  background: hsl(var(--nl-cream));
+  border: 1px solid hsl(var(--nl-forest) / 0.25);
+  color: hsl(var(--nl-ink));
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 180ms ease;
+}
+.nl-scope .nl-input:focus {
+  border-color: hsl(var(--nl-forest));
+}
+

@@ -4107,6 +4107,212 @@ export type Database = {
           },
         ]
       }
+      nl_farm_inventory: {
+        Row: {
+          category: string
+          created_at: string
+          farm_id: string
+          id: string
+          item_name: string
+          notes: string | null
+          quantity: number
+          reorder_level: number
+          supplier: string | null
+          unit: string
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          farm_id: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          farm_id?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          supplier?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_farm_managers: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          farm_id: string
+          id: string
+          is_active: boolean
+          manager_id: string
+          permissions: Json
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          farm_id: string
+          id?: string
+          is_active?: boolean
+          manager_id: string
+          permissions?: Json
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          farm_id?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string
+          permissions?: Json
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_managers_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_farm_tasks: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          farm_id: string
+          id: string
+          notes: string | null
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          farm_id: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          farm_id?: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_tasks_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_farm_workers: {
+        Row: {
+          created_at: string
+          daily_wage: number
+          farm_id: string
+          id: string
+          is_active: boolean
+          joined_on: string
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_wage?: number
+          farm_id: string
+          id?: string
+          is_active?: boolean
+          joined_on?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_wage?: number
+          farm_id?: string
+          id?: string
+          is_active?: boolean
+          joined_on?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_workers_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_farms: {
         Row: {
           certification: string | null
@@ -4168,6 +4374,57 @@ export type Database = {
             columns: ["village_id"]
             isOneToOne: false
             referencedRelation: "nl_villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_inventory_movements: {
+        Row: {
+          cost: number
+          created_at: string
+          farm_id: string
+          id: string
+          inventory_id: string
+          movement_type: string
+          performed_by: string | null
+          quantity: number
+          reason: string | null
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          farm_id: string
+          id?: string
+          inventory_id: string
+          movement_type?: string
+          performed_by?: string | null
+          quantity?: number
+          reason?: string | null
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          farm_id?: string
+          id?: string
+          inventory_id?: string
+          movement_type?: string
+          performed_by?: string | null
+          quantity?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_inventory_movements_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_inventory_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farm_inventory"
             referencedColumns: ["id"]
           },
         ]
@@ -4660,6 +4917,60 @@ export type Database = {
             columns: ["district_id"]
             isOneToOne: false
             referencedRelation: "nl_districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_worker_attendance: {
+        Row: {
+          attendance_date: string
+          created_at: string
+          farm_id: string
+          hours: number
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+          wage_paid: number
+          worker_id: string
+        }
+        Insert: {
+          attendance_date?: string
+          created_at?: string
+          farm_id: string
+          hours?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          wage_paid?: number
+          worker_id: string
+        }
+        Update: {
+          attendance_date?: string
+          created_at?: string
+          farm_id?: string
+          hours?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          wage_paid?: number
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_worker_attendance_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_worker_attendance_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farm_workers"
             referencedColumns: ["id"]
           },
         ]
@@ -7346,6 +7657,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      nl_can_manage_farm: {
+        Args: { _farm_id: string; _user_id: string }
+        Returns: boolean
       }
       owner_request_verification: {
         Args: { _property_id: string }
