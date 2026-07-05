@@ -16,10 +16,10 @@ const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string
     { icon: Leaf, title: "My Impact", desc: "Trees planted, plastic saved, farmers supported.", to: "/natural-living/impact" },
   ],
   farmer: [
-    { icon: Sprout, title: "My Farms", desc: "Plots, crops, subscription plans.", to: "/natural-living/my-farms" },
-    { icon: Package, title: "Subscribers", desc: "Deliveries and active subscribers.", to: "/natural-living/my-farms" },
-    { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/my-farms" },
-    { icon: ClipboardCheck, title: "Farm profile", desc: "Update photos, story, offerings.", to: "/natural-living/my-farms" },
+    { icon: Sprout, title: "Farmer Portal", desc: "Orders, calendar, expenses, harvest, AI.", to: "/natural-living/farmer-portal" },
+    { icon: ClipboardCheck, title: "My Farms", desc: "Plots, crops, subscription plans.", to: "/natural-living/my-farms" },
+    { icon: Package, title: "Subscribers", desc: "Deliveries and active subscribers.", to: "/natural-living/farmer-portal" },
+    { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/farmer-portal" },
   ],
   land_owner: [
     { icon: MapPin, title: "My Farms", desc: "Register and manage your land.", to: "/natural-living/my-farms" },

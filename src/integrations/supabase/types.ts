@@ -3996,6 +3996,117 @@ export type Database = {
           },
         ]
       }
+      nl_farm_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          farm_id: string
+          id: string
+          receipt_url: string | null
+          spent_on: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          description?: string | null
+          farm_id: string
+          id?: string
+          receipt_url?: string | null
+          spent_on?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          farm_id?: string
+          id?: string
+          receipt_url?: string | null
+          spent_on?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_expenses_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_farm_harvests: {
+        Row: {
+          created_at: string
+          crop_id: string | null
+          farm_id: string
+          harvest_date: string
+          id: string
+          notes: string | null
+          plot_id: string | null
+          price_per_kg: number | null
+          quality_grade: string | null
+          quantity_kg: number
+          total_revenue: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          crop_id?: string | null
+          farm_id: string
+          harvest_date?: string
+          id?: string
+          notes?: string | null
+          plot_id?: string | null
+          price_per_kg?: number | null
+          quality_grade?: string | null
+          quantity_kg?: number
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          crop_id?: string | null
+          farm_id?: string
+          harvest_date?: string
+          id?: string
+          notes?: string | null
+          plot_id?: string | null
+          price_per_kg?: number | null
+          quality_grade?: string | null
+          quantity_kg?: number
+          total_revenue?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farm_harvests_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "nl_crops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_farm_harvests_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_farm_harvests_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "nl_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_farms: {
         Row: {
           certification: string | null

@@ -103,6 +103,7 @@ const NLFarmDetail = lazy(() => import("./pages/natural-living/NLFarmDetail"));
 const NLSubscribe = lazy(() => import("./pages/natural-living/NLSubscribe"));
 const NLMySubscriptions = lazy(() => import("./pages/natural-living/NLMySubscriptions"));
 const NLMyFarms = lazy(() => import("./pages/natural-living/NLMyFarms"));
+const NLFarmerPortal = lazy(() => import("./pages/natural-living/NLFarmerPortal"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
@@ -496,6 +497,7 @@ const App = () => (
                   <Route path="/natural-living/subscribe/:planId" element={<NLSubscribe />} />
                   <Route path="/natural-living/my-subscriptions" element={<NLMySubscriptions />} />
                   <Route path="/natural-living/my-farms" element={<NLMyFarms />} />
+                  <Route path="/natural-living/farmer-portal" element={<NLFarmerPortal />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
