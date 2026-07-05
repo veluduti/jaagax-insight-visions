@@ -103,6 +103,7 @@ const NLFarmDetail = lazy(() => import("./pages/natural-living/NLFarmDetail"));
 const NLSubscribe = lazy(() => import("./pages/natural-living/NLSubscribe"));
 const NLMySubscriptions = lazy(() => import("./pages/natural-living/NLMySubscriptions"));
 const NLMyFarms = lazy(() => import("./pages/natural-living/NLMyFarms"));
+const NLFarmerPortal = lazy(() => import("./pages/natural-living/NLFarmerPortal"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
