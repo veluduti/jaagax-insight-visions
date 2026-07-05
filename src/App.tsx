@@ -501,6 +501,7 @@ const App = () => (
                   <Route path="/natural-living/my-farms" element={<NLMyFarms />} />
                   <Route path="/natural-living/farmer-portal" element={<NLFarmerPortal />} />
                   <Route path="/natural-living/land-owner-portal" element={<NLLandOwnerPortal />} />
+                  <Route path="/natural-living/farm-management" element={<NLFarmManagement />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
