@@ -3899,6 +3899,168 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_crops: {
+        Row: {
+          created_at: string
+          description: string | null
+          expected_harvest_at: string | null
+          hero_image_url: string | null
+          id: string
+          name: string
+          planted_at: string | null
+          plot_id: string
+          price_per_kg: number | null
+          season: string | null
+          status: string
+          updated_at: string
+          variety: string | null
+          yield_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          expected_harvest_at?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          planted_at?: string | null
+          plot_id: string
+          price_per_kg?: number | null
+          season?: string | null
+          status?: string
+          updated_at?: string
+          variety?: string | null
+          yield_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          expected_harvest_at?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          planted_at?: string | null
+          plot_id?: string
+          price_per_kg?: number | null
+          season?: string | null
+          status?: string
+          updated_at?: string
+          variety?: string | null
+          yield_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_crops_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "nl_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_districts: {
+        Row: {
+          created_at: string
+          description: string | null
+          hero_image_url: string | null
+          id: string
+          name: string
+          slug: string
+          state_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          slug: string
+          state_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          state_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_districts_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nl_states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_farms: {
+        Row: {
+          certification: string | null
+          created_at: string
+          description: string | null
+          farming_method: string | null
+          gallery: Json | null
+          hero_image_url: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          owner_user_id: string
+          slug: string
+          status: string
+          total_area_acres: number
+          updated_at: string
+          village_id: string | null
+        }
+        Insert: {
+          certification?: string | null
+          created_at?: string
+          description?: string | null
+          farming_method?: string | null
+          gallery?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          owner_user_id: string
+          slug: string
+          status?: string
+          total_area_acres?: number
+          updated_at?: string
+          village_id?: string | null
+        }
+        Update: {
+          certification?: string | null
+          created_at?: string
+          description?: string | null
+          farming_method?: string | null
+          gallery?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          owner_user_id?: string
+          slug?: string
+          status?: string
+          total_area_acres?: number
+          updated_at?: string
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_farms_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "nl_villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_kyc: {
         Row: {
           address_proof_url: string | null
@@ -3944,6 +4106,56 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_plots: {
+        Row: {
+          created_at: string
+          description: string | null
+          farm_id: string
+          hero_image_url: string | null
+          id: string
+          name: string
+          size_acres: number
+          soil_type: string | null
+          status: string
+          updated_at: string
+          water_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          farm_id: string
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          size_acres?: number
+          soil_type?: string | null
+          status?: string
+          updated_at?: string
+          water_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          farm_id?: string
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          size_acres?: number
+          soil_type?: string | null
+          status?: string
+          updated_at?: string
+          water_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_plots_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_profiles: {
         Row: {
           avatar_url: string | null
@@ -3988,6 +4200,239 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      nl_states: {
+        Row: {
+          created_at: string
+          description: string | null
+          hero_image_url: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      nl_subscription_plans: {
+        Row: {
+          created_at: string
+          crop_id: string | null
+          description: string | null
+          farm_id: string | null
+          frequency: string
+          id: string
+          included_kg: number | null
+          is_active: boolean
+          name: string
+          plot_id: string | null
+          price: number
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          crop_id?: string | null
+          description?: string | null
+          farm_id?: string | null
+          frequency?: string
+          id?: string
+          included_kg?: number | null
+          is_active?: boolean
+          name: string
+          plot_id?: string | null
+          price: number
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          crop_id?: string | null
+          description?: string | null
+          farm_id?: string | null
+          frequency?: string
+          id?: string
+          included_kg?: number | null
+          is_active?: boolean
+          name?: string
+          plot_id?: string | null
+          price?: number
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_subscription_plans_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "nl_crops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_subscription_plans_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_subscription_plans_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "nl_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_subscriptions: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          crop_id: string | null
+          customer_user_id: string
+          delivery_address: string | null
+          delivery_city: string | null
+          delivery_pincode: string | null
+          ends_on: string | null
+          farm_id: string | null
+          id: string
+          notes: string | null
+          plan_id: string
+          plot_id: string | null
+          starts_on: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          crop_id?: string | null
+          customer_user_id: string
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_pincode?: string | null
+          ends_on?: string | null
+          farm_id?: string | null
+          id?: string
+          notes?: string | null
+          plan_id: string
+          plot_id?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          crop_id?: string | null
+          customer_user_id?: string
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_pincode?: string | null
+          ends_on?: string | null
+          farm_id?: string | null
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          plot_id?: string | null
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_subscriptions_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "nl_crops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_subscriptions_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "nl_subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_subscriptions_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "nl_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_villages: {
+        Row: {
+          coordinator_user_id: string | null
+          created_at: string
+          description: string | null
+          district_id: string
+          hero_image_url: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          population: number | null
+          slug: string
+        }
+        Insert: {
+          coordinator_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          district_id: string
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          population?: number | null
+          slug: string
+        }
+        Update: {
+          coordinator_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          district_id?: string
+          hero_image_url?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          population?: number | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_villages_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nl_districts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

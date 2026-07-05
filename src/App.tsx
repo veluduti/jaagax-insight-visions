@@ -98,6 +98,11 @@ const NLAuthPage = lazy(() => import("./pages/natural-living/NLAuth"));
 const NLOnboarding = lazy(() => import("./pages/natural-living/NLOnboarding"));
 const NLKyc = lazy(() => import("./pages/natural-living/NLKyc"));
 const NLDashboard = lazy(() => import("./pages/natural-living/NLDashboard"));
+const NLDigitalFarm = lazy(() => import("./pages/natural-living/NLDigitalFarm"));
+const NLFarmDetail = lazy(() => import("./pages/natural-living/NLFarmDetail"));
+const NLSubscribe = lazy(() => import("./pages/natural-living/NLSubscribe"));
+const NLMySubscriptions = lazy(() => import("./pages/natural-living/NLMySubscriptions"));
+const NLMyFarms = lazy(() => import("./pages/natural-living/NLMyFarms"));
 const Hotels = lazy(() => import("./pages/Hotels"));
 const HotelDetail = lazy(() => import("./pages/HotelDetail"));
 const HotelCheckout = lazy(() => import("./pages/HotelCheckout"));
@@ -486,6 +491,11 @@ const App = () => (
                   <Route path="/natural-living/onboarding" element={<NLOnboarding />} />
                   <Route path="/natural-living/kyc" element={<NLKyc />} />
                   <Route path="/natural-living/dashboard" element={<NLDashboard />} />
+                  <Route path="/natural-living/digital-farm" element={<NLDigitalFarm />} />
+                  <Route path="/natural-living/digital-farm/farms/:farmId" element={<NLFarmDetail />} />
+                  <Route path="/natural-living/subscribe/:planId" element={<NLSubscribe />} />
+                  <Route path="/natural-living/my-subscriptions" element={<NLMySubscriptions />} />
+                  <Route path="/natural-living/my-farms" element={<NLMyFarms />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
