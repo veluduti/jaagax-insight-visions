@@ -10,19 +10,19 @@ import {
 
 const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string }[]> = {
   customer: [
-    { icon: Package, title: "My Subscriptions", desc: "Weekly veggie boxes and meal plans.", to: "/natural-living/farms" },
+    { icon: Package, title: "My Subscriptions", desc: "Weekly veggie boxes and meal plans.", to: "/natural-living/my-subscriptions" },
+    { icon: Sprout, title: "Digital Farm", desc: "Browse villages, farms and crops.", to: "/natural-living/digital-farm" },
     { icon: Calendar, title: "Upcoming Stays", desc: "Farm stays and wellness retreats.", to: "/natural-living/farm-stay" },
     { icon: Leaf, title: "My Impact", desc: "Trees planted, plastic saved, farmers supported.", to: "/natural-living/impact" },
-    { icon: BookOpen, title: "Community", desc: "Events, learning, and storytelling.", to: "/natural-living/community" },
   ],
   farmer: [
-    { icon: Sprout, title: "My Crops", desc: "Calendar, harvests, expenses.", to: "/natural-living/farmers" },
-    { icon: Package, title: "Orders", desc: "Deliveries, subscriptions, packing.", to: "/natural-living/farmers" },
-    { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/farmers" },
-    { icon: ClipboardCheck, title: "Farm profile", desc: "Update photos, story, offerings.", to: "/natural-living/farmers" },
+    { icon: Sprout, title: "My Farms", desc: "Plots, crops, subscription plans.", to: "/natural-living/my-farms" },
+    { icon: Package, title: "Subscribers", desc: "Deliveries and active subscribers.", to: "/natural-living/my-farms" },
+    { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/my-farms" },
+    { icon: ClipboardCheck, title: "Farm profile", desc: "Update photos, story, offerings.", to: "/natural-living/my-farms" },
   ],
   land_owner: [
-    { icon: MapPin, title: "My Land", desc: "Plots, boundaries, soil health.", to: "/natural-living/farms" },
+    { icon: MapPin, title: "My Farms", desc: "Register and manage your land.", to: "/natural-living/my-farms" },
     { icon: Users, title: "Partnerships", desc: "Farmer partnerships & shared yield.", to: "/natural-living/partner" },
     { icon: BarChart3, title: "Reports", desc: "Yield, revenue, sustainability.", to: "/natural-living/impact" },
     { icon: ClipboardCheck, title: "Documents", desc: "Agreements, records, KYC.", to: "/natural-living/kyc" },
