@@ -193,7 +193,10 @@ function PartnershipsTab({ userId }: { userId: string }) {
           <option value="">Parcel…</option>
           {parcels.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
-        <input required type="email" placeholder="Farmer email" className="border p-2 text-sm bg-white" value={form.farmer_email} onChange={(e) => setForm({ ...form, farmer_email: e.target.value })} />
+        <select required className="border p-2 text-sm bg-white" value={form.farmer_user_id} onChange={(e) => setForm({ ...form, farmer_user_id: e.target.value })}>
+          <option value="">Farmer…</option>
+          {farmers.map((f) => <option key={f.user_id} value={f.user_id}>{f.full_name ?? f.user_id.slice(0, 8)} {f.city && `· ${f.city}`}</option>)}
+        </select>
         <input type="date" className="border p-2 text-sm bg-white" value={form.starts_on} onChange={(e) => setForm({ ...form, starts_on: e.target.value })} />
         <input type="number" step="0.1" placeholder="Revenue share %" className="border p-2 text-sm bg-white" value={form.revenue_share_pct} onChange={(e) => setForm({ ...form, revenue_share_pct: e.target.value })} />
         <input type="number" placeholder="Monthly lease ₹" className="border p-2 text-sm bg-white" value={form.monthly_lease} onChange={(e) => setForm({ ...form, monthly_lease: e.target.value })} />
