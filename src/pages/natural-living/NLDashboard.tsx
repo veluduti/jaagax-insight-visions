@@ -6,6 +6,7 @@ import { Eyebrow, H1, Lede } from "@/features/natural-living/ui";
 import {
   Sprout, MapPin, User as UserIcon, ShieldCheck, LogOut, ArrowUpRight,
   Package, Calendar, Leaf, Users, Wallet, ClipboardCheck, BookOpen, BarChart3,
+  ShoppingBag,
 } from "lucide-react";
 
 const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string }[]> = {
