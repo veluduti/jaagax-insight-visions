@@ -11,6 +11,8 @@ import {
 
 const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string }[]> = {
   customer: [
+    { icon: ShoppingBag, title: "Marketplace", desc: "Order fresh organic produce from partner farms.", to: "/natural-living/marketplace" },
+    { icon: Package, title: "My Orders", desc: "Track every basket from harvest to doorstep.", to: "/natural-living/my-orders" },
     { icon: Package, title: "My Subscriptions", desc: "Weekly veggie boxes and meal plans.", to: "/natural-living/my-subscriptions" },
     { icon: Sprout, title: "Digital Farm", desc: "Browse villages, farms and crops.", to: "/natural-living/digital-farm" },
     { icon: Calendar, title: "Upcoming Stays", desc: "Farm stays and wellness retreats.", to: "/natural-living/farm-stay" },
@@ -18,18 +20,21 @@ const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string
   ],
   farmer: [
     { icon: Sprout, title: "Farmer Portal", desc: "Orders, calendar, expenses, harvest, AI.", to: "/natural-living/farmer-portal" },
+    { icon: ShoppingBag, title: "Farm Orders", desc: "Confirm, pack and ship incoming produce orders.", to: "/natural-living/farm-orders" },
     { icon: ClipboardCheck, title: "My Farms", desc: "Plots, crops, subscription plans.", to: "/natural-living/my-farms" },
     { icon: Users, title: "Farm Management", desc: "Tasks, workers, attendance, inventory.", to: "/natural-living/farm-management" },
     { icon: Wallet, title: "Earnings", desc: "Payouts and yield tracking.", to: "/natural-living/farmer-portal" },
   ],
   land_owner: [
     { icon: MapPin, title: "Land Owner Portal", desc: "Parcels, partnerships, lease income.", to: "/natural-living/land-owner-portal" },
+    { icon: ShoppingBag, title: "Farm Orders", desc: "Track produce orders from partnered farms.", to: "/natural-living/farm-orders" },
     { icon: Users, title: "Farm Management", desc: "Tasks, workers, attendance, inventory.", to: "/natural-living/farm-management" },
     { icon: BarChart3, title: "Reports", desc: "Lease income & parcel status.", to: "/natural-living/land-owner-portal" },
     { icon: ClipboardCheck, title: "Documents", desc: "Agreements, records, KYC.", to: "/natural-living/kyc" },
   ],
   admin: [
     { icon: ClipboardCheck, title: "Approvals", desc: "Farmers, villages, farms, KYC.", to: "/natural-living/dashboard" },
+    { icon: ShoppingBag, title: "All Orders", desc: "Platform-wide marketplace orders.", to: "/natural-living/farm-orders" },
     { icon: Users, title: "Users", desc: "Manage community members.", to: "/natural-living/dashboard" },
     { icon: BarChart3, title: "Analytics", desc: "Revenue, orders, growth.", to: "/natural-living/dashboard" },
     { icon: Package, title: "Orders", desc: "Platform-wide orders view.", to: "/natural-living/dashboard" },
