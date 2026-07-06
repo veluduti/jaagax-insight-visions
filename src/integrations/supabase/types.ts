@@ -4593,6 +4593,119 @@ export type Database = {
           },
         ]
       }
+      nl_order_items: {
+        Row: {
+          created_at: string
+          crop_id: string | null
+          id: string
+          item_name: string
+          line_total: number
+          order_id: string
+          price_per_kg: number
+          quantity_kg: number
+        }
+        Insert: {
+          created_at?: string
+          crop_id?: string | null
+          id?: string
+          item_name: string
+          line_total?: number
+          order_id: string
+          price_per_kg?: number
+          quantity_kg?: number
+        }
+        Update: {
+          created_at?: string
+          crop_id?: string | null
+          id?: string
+          item_name?: string
+          line_total?: number
+          order_id?: string
+          price_per_kg?: number
+          quantity_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_order_items_crop_id_fkey"
+            columns: ["crop_id"]
+            isOneToOne: false
+            referencedRelation: "nl_crops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "nl_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_orders: {
+        Row: {
+          contact_phone: string | null
+          created_at: string
+          customer_user_id: string
+          delivered_at: string | null
+          delivery_address: string
+          delivery_city: string | null
+          delivery_fee: number
+          delivery_pincode: string | null
+          farm_id: string
+          id: string
+          notes: string | null
+          placed_at: string
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          contact_phone?: string | null
+          created_at?: string
+          customer_user_id: string
+          delivered_at?: string | null
+          delivery_address: string
+          delivery_city?: string | null
+          delivery_fee?: number
+          delivery_pincode?: string | null
+          farm_id: string
+          id?: string
+          notes?: string | null
+          placed_at?: string
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          contact_phone?: string | null
+          created_at?: string
+          customer_user_id?: string
+          delivered_at?: string | null
+          delivery_address?: string
+          delivery_city?: string | null
+          delivery_fee?: number
+          delivery_pincode?: string | null
+          farm_id?: string
+          id?: string
+          notes?: string | null
+          placed_at?: string
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_orders_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "nl_farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_plots: {
         Row: {
           created_at: string

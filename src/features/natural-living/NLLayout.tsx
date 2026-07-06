@@ -7,6 +7,7 @@ import "./theme.css";
 const NAV = [
   { label: "Vision", to: "/natural-living/vision" },
   { label: "Digital Farm", to: "/natural-living/digital-farm" },
+  { label: "Marketplace", to: "/natural-living/marketplace" },
   { label: "Villages", to: "/natural-living/villages" },
   { label: "Farms", to: "/natural-living/farms" },
   { label: "Farmers", to: "/natural-living/farmers" },
