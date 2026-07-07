@@ -122,26 +122,6 @@ const pickAttributes = (p: any): Attr[] => {
   return out;
 };
 
-/**
- * Derive 2-3 short AI insights from available data — no hardcoded fake content.
- */
-const deriveInsights = (p: any): { icon: React.ComponentType<{ className?: string }>; label: string }[] => {
-  const insights: { icon: any; label: string }[] = [];
-  const score = p.trust_score ?? 0;
-
-  if (p.near_metro || /metro/i.test(p.description || "")) {
-    insights.push({ icon: Train, label: "Near Metro" });
-  }
-  if (score >= 80) {
-    insights.push({ icon: TrendingUp, label: "High Demand Locality" });
-  } else if (p.locality) {
-    insights.push({ icon: TrendingUp, label: "Growing Locality" });
-  }
-  if (p.verified) {
-    insights.push({ icon: ShieldCheck, label: "JaagaX Verified" });
-  }
-  return insights.slice(0, 3);
-};
 
 const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   const navigate = useNavigate();
