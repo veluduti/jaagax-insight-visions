@@ -110,7 +110,7 @@ const pickAttributes = (p: any): Attr[] => {
     // residential default: apartment / villa / house
     push(Bed, beds);
     push(Bath, baths);
-    push(Maximize, area);
+    push(Maximize, area || areaYd || acres);
   }
 
   // Fallback: ensure at least area appears if nothing matched
