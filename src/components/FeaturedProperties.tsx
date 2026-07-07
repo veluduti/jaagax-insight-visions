@@ -330,30 +330,6 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                     </div>
                   )}
 
-                  {/* AI Insights — always-visible, no collapsed link */}
-                  {insights.length > 0 && (
-                    <div className="mt-4 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary/80">
-                        <Sparkles className="h-3 w-3" />
-                        AI Insight
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {insights.map((ins, i) => {
-                          const Icon = ins.icon;
-                          return (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 rounded-md bg-primary/8 text-primary/90 px-2 py-1 text-[11px] font-medium border border-primary/15"
-                            >
-                              <Icon className="h-3 w-3" />
-                              {ins.label}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
                   {/* CTA — pinned bottom, uniform alignment */}
                   <div className="mt-auto pt-5">
                     <Button
