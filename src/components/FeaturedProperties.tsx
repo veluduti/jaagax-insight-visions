@@ -196,7 +196,6 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {properties.map((property: any, index: number) => {
             const attributes = pickAttributes(property);
-            const insights = deriveInsights(property);
             const price = formatPrice(property.price);
             const hasImage =
               Array.isArray(property.images) && property.images[0];
