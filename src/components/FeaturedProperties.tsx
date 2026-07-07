@@ -9,7 +9,6 @@ import {
   Maximize,
   MapPin,
   ShieldCheck,
-  Sparkles,
   Image as ImageIcon,
   Compass,
   Building2,
@@ -19,8 +18,6 @@ import {
   Car,
   Droplet,
   Route,
-  TrendingUp,
-  Train,
   Home as HomeIcon,
 } from "lucide-react";
 import MatchBadge from "@/components/home/MatchBadge";
