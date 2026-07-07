@@ -9,7 +9,6 @@ import {
   Maximize,
   MapPin,
   ShieldCheck,
-  Sparkles,
   Image as ImageIcon,
   Compass,
   Building2,
@@ -19,8 +18,6 @@ import {
   Car,
   Droplet,
   Route,
-  TrendingUp,
-  Train,
   Home as HomeIcon,
 } from "lucide-react";
 import MatchBadge from "@/components/home/MatchBadge";
@@ -113,7 +110,7 @@ const pickAttributes = (p: any): Attr[] => {
     // residential default: apartment / villa / house
     push(Bed, beds);
     push(Bath, baths);
-    push(Maximize, area);
+    push(Maximize, area || areaYd || acres);
   }
 
   // Fallback: ensure at least area appears if nothing matched
@@ -125,26 +122,6 @@ const pickAttributes = (p: any): Attr[] => {
   return out;
 };
 
-/**
- * Derive 2-3 short AI insights from available data — no hardcoded fake content.
- */
-const deriveInsights = (p: any): { icon: React.ComponentType<{ className?: string }>; label: string }[] => {
-  const insights: { icon: any; label: string }[] = [];
-  const score = p.trust_score ?? 0;
-
-  if (p.near_metro || /metro/i.test(p.description || "")) {
-    insights.push({ icon: Train, label: "Near Metro" });
-  }
-  if (score >= 80) {
-    insights.push({ icon: TrendingUp, label: "High Demand Locality" });
-  } else if (p.locality) {
-    insights.push({ icon: TrendingUp, label: "Growing Locality" });
-  }
-  if (p.verified) {
-    insights.push({ icon: ShieldCheck, label: "JaagaX Verified" });
-  }
-  return insights.slice(0, 3);
-};
 
 const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
   const navigate = useNavigate();
@@ -219,7 +196,6 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {properties.map((property: any, index: number) => {
             const attributes = pickAttributes(property);
-            const insights = deriveInsights(property);
             const price = formatPrice(property.price);
             const hasImage =
               Array.isArray(property.images) && property.images[0];
@@ -351,30 +327,6 @@ const FeaturedProperties = ({ detectedCity }: FeaturedPropertiesProps) => {
                           </div>
                         );
                       })}
-                    </div>
-                  )}
-
-                  {/* AI Insights — always-visible, no collapsed link */}
-                  {insights.length > 0 && (
-                    <div className="mt-4 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary/80">
-                        <Sparkles className="h-3 w-3" />
-                        AI Insight
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {insights.map((ins, i) => {
-                          const Icon = ins.icon;
-                          return (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 rounded-md bg-primary/8 text-primary/90 px-2 py-1 text-[11px] font-medium border border-primary/15"
-                            >
-                              <Icon className="h-3 w-3" />
-                              {ins.label}
-                            </span>
-                          );
-                        })}
-                      </div>
                     </div>
                   )}
 
