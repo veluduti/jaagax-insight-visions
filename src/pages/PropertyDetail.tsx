@@ -453,24 +453,16 @@ const PropertyDetail = () => {
           brand: { "@type": "Brand", name: "JAAGA X" },
         }}
       />
-      {/* Back Button & Breadcrumb */}
+      {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="gap-2 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
         <PropertyBreadcrumb
           city={property.city}
           locality={property.locality}
           title={property.title}
         />
-        
+
         {/* Property Reference */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
           <Hash className="h-4 w-4" />
           <span>Property Ref: <span className="font-semibold text-foreground">JX{property.id.slice(0, 8)}</span></span>
         </div>
@@ -638,10 +630,6 @@ const PropertyDetail = () => {
               <EMICalculator propertyPrice={property.price} />
             </AuthGate>
 
-            {/* Payment Plans */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
-              <PaymentPlans propertyPrice={property.price} status={property.status} />
-            </AuthGate>
             
             {/* Agents Listing — strict: only the assigned agent handles this property */}
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact your agent">
