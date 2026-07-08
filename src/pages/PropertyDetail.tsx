@@ -630,10 +630,6 @@ const PropertyDetail = () => {
               <EMICalculator propertyPrice={property.price} />
             </AuthGate>
 
-            {/* Payment Plans */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
-              <PaymentPlans propertyPrice={property.price} status={property.status} />
-            </AuthGate>
             
             {/* Agents Listing — strict: only the assigned agent handles this property */}
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to contact your agent">
