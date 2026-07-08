@@ -28,6 +28,7 @@ import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
 import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import PropertyActions from "@/components/property/PropertyActions";
+import Navigation from "@/components/Navigation";
 import PaymentPlans from "@/components/property/PaymentPlans";
 import PropertyStats from "@/components/property/PropertyStats";
 import MediaHub from "@/components/property/MediaHub";
@@ -342,42 +343,48 @@ const PropertyDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen">
+        <Navigation />
+        <div className="flex items-center justify-center py-32">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   if (!property) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
-          <div className="glass-panel rounded-2xl p-8 space-y-6">
-            <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-              <Building2 className="h-10 w-10 text-destructive" />
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-md"
+          >
+            <div className="glass-panel rounded-2xl p-8 space-y-6">
+              <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+                <Building2 className="h-10 w-10 text-destructive" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Property Not Found</h2>
+                <p className="text-muted-foreground">
+                  The property you're looking for doesn't exist or has been removed.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button onClick={() => navigate("/map")} className="flex-1 gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Browse Properties
+                </Button>
+                <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                  Go Home
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Property Not Found</h2>
-              <p className="text-muted-foreground">
-                The property you're looking for doesn't exist or has been removed.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button onClick={() => navigate("/map")} className="flex-1 gap-2">
-                <MapPin className="h-4 w-4" />
-                Browse Properties
-              </Button>
-              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
-                Go Home
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </>
     );
   }
 
@@ -386,41 +393,45 @@ const PropertyDetail = () => {
   const isNotLive = !property.is_live;
   if (isExpired) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
-          <div className="glass-panel rounded-2xl p-8 space-y-6">
-            <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
-              <Building2 className="h-10 w-10 text-amber-500" />
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-md"
+          >
+            <div className="glass-panel rounded-2xl p-8 space-y-6">
+              <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+                <Building2 className="h-10 w-10 text-amber-500" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">
+                  Listing Expired
+                </h2>
+                <p className="text-muted-foreground">
+                  This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button onClick={() => navigate("/search")} className="flex-1 gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Browse Live Listings
+                </Button>
+                <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
+                  Go Home
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">
-                Listing Expired
-              </h2>
-              <p className="text-muted-foreground">
-                This listing has expired and is no longer accepting enquiries. The owner can renew it from their dashboard.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button onClick={() => navigate("/search")} className="flex-1 gap-2">
-                <MapPin className="h-4 w-4" />
-                Browse Live Listings
-              </Button>
-              <Button onClick={() => navigate("/")} variant="outline" className="flex-1">
-                Go Home
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <SEO
         title={`${property.title} in ${property.locality}, ${property.city}`}
         description={(property.description || `${property.bhk ? property.bhk + ' BHK ' : ''}${property.type || 'Property'} in ${property.locality}, ${property.city}. ${property.area ? property.area + ' sqft. ' : ''}Verified by JAAGA X.`).slice(0, 160)}
