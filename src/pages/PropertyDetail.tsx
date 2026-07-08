@@ -28,6 +28,7 @@ import LoanAssistanceDialog from "@/components/financial/LoanAssistanceDialog";
 import { useState as useLoanState } from "react";
 import NearbyPOI from "@/components/property/NearbyPOI";
 import PropertyActions from "@/components/property/PropertyActions";
+import Navigation from "@/components/Navigation";
 import PaymentPlans from "@/components/property/PaymentPlans";
 import PropertyStats from "@/components/property/PropertyStats";
 import MediaHub from "@/components/property/MediaHub";
