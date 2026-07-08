@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Calculator, FileText } from "lucide-react";
+import { TrendingUp, FileText } from "lucide-react";
 
 interface PropertyTabsProps {
   description: string;
@@ -17,104 +17,73 @@ const formatPrice = (price: number) => {
 
 const PropertyTabs = ({ description, price, area, locality, city }: PropertyTabsProps) => {
   const pricePerSqft = price && area ? Math.round(price / area) : null;
-  const loanAmount = price ? price * 0.8 : null;
-  const interestRate = 8.5;
-  const tenureYears = 20;
-  
-  // Calculate EMI using standard formula
-  let emi: number | null = null;
-  if (loanAmount) {
-    const r = interestRate / 12 / 100;
-    const n = tenureYears * 12;
-    emi = Math.round(loanAmount * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
-  }
+
+  // Only show Trends tab when we have at least one real data point.
+  const hasTrendData = !!(pricePerSqft || area || price || locality);
 
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 bg-secondary/50">
+      <TabsList className={`grid w-full ${hasTrendData ? 'grid-cols-2' : 'grid-cols-1'} bg-secondary/50`}>
         <TabsTrigger value="overview" className="gap-2">
           <FileText className="h-4 w-4" />
           Overview
         </TabsTrigger>
-        <TabsTrigger value="trends" className="gap-2">
-          <TrendingUp className="h-4 w-4" />
-          Trends
-        </TabsTrigger>
-        <TabsTrigger value="mortgage" className="gap-2">
-          <Calculator className="h-4 w-4" />
-          Mortgage
-        </TabsTrigger>
+        {hasTrendData && (
+          <TabsTrigger value="trends" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Details
+          </TabsTrigger>
+        )}
       </TabsList>
 
       <TabsContent value="overview" className="mt-6">
-        <div className="prose prose-sm max-w-none">
-          <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-            {description}
-          </p>
-        </div>
+        {description?.trim() ? (
+          <div className="prose prose-sm max-w-none">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+              {description}
+            </p>
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-sm">No description provided by the owner.</p>
+        )}
       </TabsContent>
 
-      <TabsContent value="trends" className="mt-6">
-        <div className="glass-panel p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4">Market Trends</h3>
-          {pricePerSqft ? (
+      {hasTrendData && (
+        <TabsContent value="trends" className="mt-6">
+          <div className="glass-panel p-6 rounded-xl">
+            <h3 className="text-lg font-semibold mb-4">Listing Details</h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Price per sq.ft</span>
-                <span className="font-semibold">₹{pricePerSqft.toLocaleString('en-IN')}</span>
-              </div>
+              {pricePerSqft && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Price per sq.ft</span>
+                  <span className="font-semibold">₹{pricePerSqft.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               {locality && (
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Location</span>
-                  <span className="font-semibold">{locality}, {city}</span>
+                  <span className="font-semibold">{locality}{city ? `, ${city}` : ''}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Total Area</span>
-                <span className="font-semibold">{area?.toLocaleString('en-IN')} sq.ft</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Listed Price</span>
-                <span className="font-semibold">{price ? formatPrice(price) : '—'}</span>
-              </div>
+              {area && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Total Area</span>
+                  <span className="font-semibold">{area.toLocaleString('en-IN')} sq.ft</span>
+                </div>
+              )}
+              {price && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Listed Price</span>
+                  <span className="font-semibold">{formatPrice(price)}</span>
+                </div>
+              )}
             </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">Market trend data is not available for this property.</p>
-          )}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="mortgage" className="mt-6">
-        <div className="glass-panel p-6 rounded-xl">
-          <h3 className="text-lg font-semibold mb-4">Mortgage Estimate</h3>
-          {price && loanAmount && emi ? (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Property Price</span>
-                <span className="font-semibold">{formatPrice(price)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Loan Amount (80%)</span>
-                <span className="font-semibold">{formatPrice(loanAmount)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Interest Rate</span>
-                <span className="font-semibold">{interestRate}% p.a.</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Loan Tenure</span>
-                <span className="font-semibold">{tenureYears} years</span>
-              </div>
-              <div className="flex justify-between items-center border-t pt-4">
-                <span className="text-muted-foreground font-medium">Monthly EMI</span>
-                <span className="font-bold text-primary text-xl">₹{emi.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">Mortgage details are not available for this property.</p>
-          )}
-        </div>
-      </TabsContent>
+            <p className="text-xs text-muted-foreground mt-6">
+              Only fields provided by the owner are shown. Mortgage &amp; market projections will appear once verified market data is available.
+            </p>
+          </div>
+        </TabsContent>
+      )}
     </Tabs>
   );
 };
