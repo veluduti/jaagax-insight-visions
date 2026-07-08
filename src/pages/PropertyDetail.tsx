@@ -431,6 +431,7 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <SEO
         title={`${property.title} in ${property.locality}, ${property.city}`}
         description={(property.description || `${property.bhk ? property.bhk + ' BHK ' : ''}${property.type || 'Property'} in ${property.locality}, ${property.city}. ${property.area ? property.area + ' sqft. ' : ''}Verified by JAAGA X.`).slice(0, 160)}
