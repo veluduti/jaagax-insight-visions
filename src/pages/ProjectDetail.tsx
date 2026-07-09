@@ -707,14 +707,8 @@ const ProjectDetail = () => {
               <EMICalculator propertyPrice={project.avg_price || 0} />
             </AuthGate>
 
-            {/* Payment Plans */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
-              <PaymentPlans
-                propertyPrice={project.avg_price || 0}
-                status={project.status || "Ready"}
-              />
-            </AuthGate>
           </div>
+
         </div>
       </div>
 
