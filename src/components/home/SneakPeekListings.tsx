@@ -37,12 +37,14 @@ const SneakPeekListings = () => {
 
   const fetchUnverifiedProperties = async () => {
     try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await (supabase
         .from("properties" as any)
         .select("*") as any)
         .or("verified.eq.false,verified.is.null")
         .not("title", "is", null)
         .not("city", "is", null)
+        .gte("created_at", thirtyDaysAgo)
         .order("created_at", { ascending: false })
         .limit(6);
 
@@ -54,6 +56,7 @@ const SneakPeekListings = () => {
       setLoading(false);
     }
   };
+
 
   const getVerificationProgress = (p: UnverifiedProperty) => {
     let score = 0;
@@ -99,17 +102,14 @@ const SneakPeekListings = () => {
           viewport={{ once: true }}
           className="text-center mb-xl"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/50 border border-accent mb-md">
-            <Eye className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Sneak Peek</span>
-          </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Fresh <span className="text-gradient">Arrivals</span>
           </h2>
           <p className="text-foreground/60 text-base max-w-xl mx-auto">
-            New listings awaiting verification — get early access before they go live
+            New listings from the last 30 days — get early access before they go live
           </p>
         </motion.div>
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md">
           {properties.map((property, index) => {
@@ -223,7 +223,7 @@ const SneakPeekListings = () => {
           <Button
             variant="outline"
             className="border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
-            onClick={() => navigate("/search?verified=false")}
+            onClick={() => navigate("/search?posted=30")}
           >
             <Sparkles className="h-4 w-4" />
             Explore All New Arrivals

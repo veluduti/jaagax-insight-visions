@@ -352,16 +352,8 @@ const ProjectDetail = () => {
       />
       <Navigation />
 
-      {/* Back Button & Breadcrumb */}
+      {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4 pt-24">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="gap-2 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
         <PropertyBreadcrumb
           city={project.city}
           locality={project.locality}
@@ -369,7 +361,7 @@ const ProjectDetail = () => {
         />
 
         {/* Project Reference */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
           <Hash className="h-4 w-4" />
           <span>Project Ref: <span className="font-semibold text-foreground">JX{project.id.slice(0, 8)}</span></span>
         </div>
@@ -715,14 +707,8 @@ const ProjectDetail = () => {
               <EMICalculator propertyPrice={project.avg_price || 0} />
             </AuthGate>
 
-            {/* Payment Plans */}
-            <AuthGate isAuthenticated={isAuthenticated} label="Sign in to view payment plans">
-              <PaymentPlans
-                propertyPrice={project.avg_price || 0}
-                status={project.status || "Ready"}
-              />
-            </AuthGate>
           </div>
+
         </div>
       </div>
 
