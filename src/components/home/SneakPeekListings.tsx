@@ -102,17 +102,14 @@ const SneakPeekListings = () => {
           viewport={{ once: true }}
           className="text-center mb-xl"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/50 border border-accent mb-md">
-            <Eye className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Sneak Peek</span>
-          </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-md">
             Fresh <span className="text-gradient">Arrivals</span>
           </h2>
           <p className="text-foreground/60 text-base max-w-xl mx-auto">
-            New listings awaiting verification — get early access before they go live
+            New listings from the last 30 days — get early access before they go live
           </p>
         </motion.div>
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md">
           {properties.map((property, index) => {
