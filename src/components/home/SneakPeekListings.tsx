@@ -223,7 +223,7 @@ const SneakPeekListings = () => {
           <Button
             variant="outline"
             className="border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 gap-2"
-            onClick={() => navigate("/search?verified=false")}
+            onClick={() => navigate("/search?posted=30")}
           >
             <Sparkles className="h-4 w-4" />
             Explore All New Arrivals
