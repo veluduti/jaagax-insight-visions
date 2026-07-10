@@ -763,6 +763,24 @@ const App = () => (
                   />
 
                   <Route path="/coming-soon" element={<ComingSoon />} />
+
+                  {/* Static / Info Pages */}
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/careers" element={<CareersPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/for-builders" element={<ForBuilders />} />
+                  <Route path="/for-agents" element={<ForAgents />} />
+                  <Route path="/advertise" element={<Advertise />} />
+                  <Route path="/api-access" element={<ApiAccess />} />
+                  <Route path="/partner-program" element={<PartnerProgram />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<ContactUs />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
