@@ -151,7 +151,8 @@ const Hero = ({
               </p>
               </div>
 
-              {/* Stats Cards - Desktop Only */}
+              {/* Stats Cards - Desktop Only (only real DB-backed metrics) */}
+              {statCards.length > 0 && (
               <motion.div initial={{
               opacity: 0,
               y: 20
@@ -160,7 +161,7 @@ const Hero = ({
               y: 0
             }} transition={{
               delay: 0.4
-            }} className="hidden lg:grid grid-cols-4 gap-4 pt-4">
+            }} className={`hidden lg:grid gap-4 pt-4 ${statCards.length >= 4 ? "grid-cols-4" : statCards.length === 3 ? "grid-cols-3" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
                 {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return <motion.div key={index} initial={{
@@ -178,6 +179,7 @@ const Hero = ({
                     </motion.div>;
               })}
               </motion.div>
+              )}
             </motion.div>
 
             {/* Right Content - Search Bar */}
