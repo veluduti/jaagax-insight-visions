@@ -1,34 +1,102 @@
 import PropertySearchBar from "./PropertySearchBar";
 import { motion } from "framer-motion";
-import { Building2, TrendingUp, Shield, Sparkles } from "lucide-react";
+import { Building2, TrendingUp, Users, MapPin, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-cityscape.jpg";
+import { supabase } from "@/integrations/supabase/client";
+
 interface HeroProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   showSearchBar?: boolean;
 }
+
+const LIVE_STATUSES = ["LIVE_VERIFIED", "live_verified", "LIVE", "live"];
+
+const formatCount = (n: number) => {
+  if (n >= 10_000_000) return `${(n / 10_000_000).toFixed(1)}Cr+`;
+  if (n >= 100_000) return `${(n / 100_000).toFixed(1)}L+`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K+`;
+  return `${n}`;
+};
+
+const formatValue = (n: number) => {
+  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(1)} Cr`;
+  if (n >= 100_000) return `₹${(n / 100_000).toFixed(1)} L`;
+  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)} K`;
+  return `₹${n}`;
+};
+
 const Hero = ({
   activeTab,
   onTabChange,
   showSearchBar = true,
 }: HeroProps) => {
-  const statCards = [{
-    icon: Building2,
-    value: "50K+",
-    label: "Verified Properties"
-  }, {
-    icon: TrendingUp,
-    value: "₹2.5L Cr",
-    label: "Property Value"
-  }, {
-    icon: Shield,
-    value: "100%",
-    label: "Trust Score"
-  }, {
-    icon: Sparkles,
-    value: "AI",
-    label: "Powered Insights"
-  }];
+  const [stats, setStats] = useState<{ icon: any; value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [verifiedRes, valueRes, agentsRes, citiesRes] = await Promise.all([
+          (supabase as any)
+            .from("properties")
+            .select("id", { count: "exact", head: true })
+            .in("status", LIVE_STATUSES),
+          (supabase as any)
+            .from("properties")
+            .select("price")
+            .in("status", LIVE_STATUSES)
+            .not("price", "is", null),
+          (supabase as any)
+            .from("agents")
+            .select("id", { count: "exact", head: true })
+            .eq("verified", true),
+          (supabase as any)
+            .from("properties")
+            .select("city")
+            .in("status", LIVE_STATUSES)
+            .not("city", "is", null),
+        ]);
+
+        if (cancelled) return;
+
+        const cards: { icon: any; value: string; label: string }[] = [];
+        const verifiedCount = verifiedRes?.count ?? 0;
+        if (verifiedCount > 0) {
+          cards.push({ icon: Building2, value: formatCount(verifiedCount), label: "Verified Properties" });
+        }
+        const totalValue = (valueRes?.data ?? []).reduce(
+          (sum: number, r: any) => sum + (Number(r?.price) || 0),
+          0
+        );
+        if (totalValue > 0) {
+          cards.push({ icon: TrendingUp, value: formatValue(totalValue), label: "Total Property Value" });
+        }
+        const agentsCount = agentsRes?.count ?? 0;
+        if (agentsCount > 0) {
+          cards.push({ icon: Users, value: formatCount(agentsCount), label: "Verified Agents" });
+        }
+        const cities = new Set(
+          (citiesRes?.data ?? [])
+            .map((r: any) => (r?.city ? String(r.city).trim().toLowerCase() : ""))
+            .filter(Boolean)
+        );
+        if (cities.size > 0) {
+          cards.push({ icon: MapPin, value: `${cities.size}+`, label: "Cities Covered" });
+        }
+
+        setStats(cards);
+      } catch {
+        if (!cancelled) setStats([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const statCards = stats;
   return <div className="relative min-h-[560px] sm:min-h-[640px] lg:min-h-[80vh] flex items-center overflow-hidden py-10 sm:py-14 lg:py-0">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
@@ -83,7 +151,8 @@ const Hero = ({
               </p>
               </div>
 
-              {/* Stats Cards - Desktop Only */}
+              {/* Stats Cards - Desktop Only (only real DB-backed metrics) */}
+              {statCards.length > 0 && (
               <motion.div initial={{
               opacity: 0,
               y: 20
@@ -92,7 +161,7 @@ const Hero = ({
               y: 0
             }} transition={{
               delay: 0.4
-            }} className="hidden lg:grid grid-cols-4 gap-4 pt-4">
+            }} className={`hidden lg:grid gap-4 pt-4 ${statCards.length >= 4 ? "grid-cols-4" : statCards.length === 3 ? "grid-cols-3" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
                 {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return <motion.div key={index} initial={{
@@ -110,6 +179,7 @@ const Hero = ({
                     </motion.div>;
               })}
               </motion.div>
+              )}
             </motion.div>
 
             {/* Right Content - Search Bar */}
@@ -130,6 +200,7 @@ const Hero = ({
           </div>
 
           {/* Stats Cards - Mobile Only */}
+          {statCards.length > 0 && (
           <motion.div initial={{
           opacity: 0,
           y: 20
@@ -148,6 +219,7 @@ const Hero = ({
                 </div>;
           })}
           </motion.div>
+          )}
         </div>
       </div>
     </div>;
