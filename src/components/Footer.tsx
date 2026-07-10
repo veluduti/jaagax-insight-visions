@@ -1,7 +1,49 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Linkedin, Instagram, Twitter } from "lucide-react";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
+
+type FooterLink = { label: string; to: string };
+
+const quickLinks: FooterLink[] = [
+  { label: "About Us", to: "/about" },
+  { label: "How It Works", to: "/how-it-works" },
+  { label: "Pricing", to: "/pricing" },
+  { label: "Careers", to: "/careers" },
+  { label: "Blog", to: "/blog" },
+];
+
+const businessLinks: FooterLink[] = [
+  { label: "For Builders", to: "/for-builders" },
+  { label: "For Agents", to: "/for-agents" },
+  { label: "Advertise", to: "/advertise" },
+  { label: "API Access", to: "/api-access" },
+  { label: "Partner Program", to: "/partner-program" },
+];
+
+const legalLinks: FooterLink[] = [
+  { label: "Privacy Policy", to: "/privacy" },
+  { label: "Terms of Service", to: "/terms" },
+  { label: "Cookie Policy", to: "/cookies" },
+  { label: "Help Center", to: "/help" },
+  { label: "Contact Us", to: "/contact" },
+];
+
+const LinkColumn = ({ title, links }: { title: string; links: FooterLink[] }) => (
+  <div>
+    <h4 className="font-bold mb-4">{title}</h4>
+    <ul className="space-y-3 text-sm text-foreground/70">
+      {links.map((l) => (
+        <li key={l.to}>
+          <Link to={l.to} className="hover:text-primary transition-colors">
+            {l.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
 const Footer = () => {
   return (
@@ -24,140 +66,30 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-primary">
               <Shield className="h-5 w-5" />
-              <span className="text-sm font-semibold">10,000+ Verified Properties</span>
+              <span className="text-sm font-semibold">100% Verified Listings</span>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-bold mb-4">Quick Links</h4>
-            <ul className="space-y-3 text-sm text-foreground/70">
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Blog
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* For Businesses */}
-          <div>
-            <h4 className="font-bold mb-4">For Businesses</h4>
-            <ul className="space-y-3 text-sm text-foreground/70">
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  For Builders
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  For Agents
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Advertise
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  API Access
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Partner Program
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal & Support */}
-          <div>
-            <h4 className="font-bold mb-4">Legal & Support</h4>
-            <ul className="space-y-3 text-sm text-foreground/70">
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Cookie Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Contact Us
-                </a>
-              </li>
-            </ul>
-          </div>
+          <LinkColumn title="Quick Links" links={quickLinks} />
+          <LinkColumn title="For Businesses" links={businessLinks} />
+          <LinkColumn title="Legal & Support" links={legalLinks} />
         </div>
 
         <Separator className="mb-8" />
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-foreground/70">© 2025 JaagaX. All rights reserved. Made with ❤️ in India.</p>
+          <p className="text-sm text-foreground/70">© {new Date().getFullYear()} JaagaX. All rights reserved. Made with ❤️ in India.</p>
 
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <motion.a
-              href="#"
-              whileHover={{
-                scale: 1.1,
-              }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{ scale: 1.1 }} aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Linkedin className="h-5 w-5" />
             </motion.a>
-            <motion.a
-              href="#"
-              whileHover={{
-                scale: 1.1,
-              }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{ scale: 1.1 }} aria-label="Instagram" className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Instagram className="h-5 w-5" />
             </motion.a>
-            <motion.a
-              href="#"
-              whileHover={{
-                scale: 1.1,
-              }}
-              className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all"
-            >
+            <motion.a href="#" whileHover={{ scale: 1.1 }} aria-label="Twitter" className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-all">
               <Twitter className="h-5 w-5" />
             </motion.a>
           </div>
@@ -166,17 +98,9 @@ const Footer = () => {
 
       {/* JaagaX Verified Badge */}
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 20,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: true,
-        }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         className="absolute top-8 right-8 glass-panel px-4 py-2 rounded-full hidden lg:flex items-center gap-2"
       >
         <Shield className="h-4 w-4 text-primary" />

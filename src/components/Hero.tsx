@@ -1,6 +1,6 @@
 import PropertySearchBar from "./PropertySearchBar";
 import { motion } from "framer-motion";
-import { Building2, TrendingUp, Users, MapPin, Sparkles } from "lucide-react";
+import { Building2, Users, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-cityscape.jpg";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,75 +20,47 @@ const formatCount = (n: number) => {
   return `${n}`;
 };
 
-const formatValue = (n: number) => {
-  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(1)} Cr`;
-  if (n >= 100_000) return `₹${(n / 100_000).toFixed(1)} L`;
-  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)} K`;
-  return `₹${n}`;
-};
 
 const Hero = ({
   activeTab,
   onTabChange,
   showSearchBar = true,
 }: HeroProps) => {
-  const [stats, setStats] = useState<{ icon: any; value: string; label: string }[]>([]);
+  const [stats, setStats] = useState<{ icon: any; value: string; label: string }[]>([
+    { icon: Building2, value: "—", label: "Verified Properties" },
+    { icon: Users, value: "—", label: "Verified Agents" },
+    { icon: ShieldCheck, value: "100%", label: "Trust Score" },
+    { icon: Sparkles, value: "AI", label: "Powered Insights" },
+  ]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [verifiedRes, valueRes, agentsRes, citiesRes] = await Promise.all([
+        const [verifiedRes, agentsRes] = await Promise.all([
           (supabase as any)
             .from("properties")
             .select("id", { count: "exact", head: true })
             .in("status", LIVE_STATUSES),
           (supabase as any)
-            .from("properties")
-            .select("price")
-            .in("status", LIVE_STATUSES)
-            .not("price", "is", null),
-          (supabase as any)
             .from("agents")
             .select("id", { count: "exact", head: true })
             .eq("verified", true),
-          (supabase as any)
-            .from("properties")
-            .select("city")
-            .in("status", LIVE_STATUSES)
-            .not("city", "is", null),
         ]);
 
         if (cancelled) return;
 
-        const cards: { icon: any; value: string; label: string }[] = [];
         const verifiedCount = verifiedRes?.count ?? 0;
-        if (verifiedCount > 0) {
-          cards.push({ icon: Building2, value: formatCount(verifiedCount), label: "Verified Properties" });
-        }
-        const totalValue = (valueRes?.data ?? []).reduce(
-          (sum: number, r: any) => sum + (Number(r?.price) || 0),
-          0
-        );
-        if (totalValue > 0) {
-          cards.push({ icon: TrendingUp, value: formatValue(totalValue), label: "Total Property Value" });
-        }
         const agentsCount = agentsRes?.count ?? 0;
-        if (agentsCount > 0) {
-          cards.push({ icon: Users, value: formatCount(agentsCount), label: "Verified Agents" });
-        }
-        const cities = new Set(
-          (citiesRes?.data ?? [])
-            .map((r: any) => (r?.city ? String(r.city).trim().toLowerCase() : ""))
-            .filter(Boolean)
-        );
-        if (cities.size > 0) {
-          cards.push({ icon: MapPin, value: `${cities.size}+`, label: "Cities Covered" });
-        }
 
-        setStats(cards);
+        setStats([
+          { icon: Building2, value: formatCount(verifiedCount), label: "Verified Properties" },
+          { icon: Users, value: formatCount(agentsCount), label: "Verified Agents" },
+          { icon: ShieldCheck, value: "100%", label: "Trust Score" },
+          { icon: Sparkles, value: "AI", label: "Powered Insights" },
+        ]);
       } catch {
-        if (!cancelled) setStats([]);
+        // keep default placeholders
       }
     })();
     return () => {

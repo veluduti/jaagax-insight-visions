@@ -18,6 +18,23 @@ import AppErrorBoundary from "./components/shared/AppErrorBoundary";
 import { RequireAuthProvider } from "./components/auth/RequireAuthProvider";
 const SelectProfile = lazy(() => import("./pages/SelectProfile"));
 
+// Static info pages
+const AboutUs = lazy(() => import("./pages/staticPages").then(m => ({ default: m.AboutUs })));
+const HowItWorks = lazy(() => import("./pages/staticPages").then(m => ({ default: m.HowItWorks })));
+const PricingPage = lazy(() => import("./pages/staticPages").then(m => ({ default: m.Pricing })));
+const CareersPage = lazy(() => import("./pages/staticPages").then(m => ({ default: m.Careers })));
+const BlogPage = lazy(() => import("./pages/staticPages").then(m => ({ default: m.Blog })));
+const ForBuilders = lazy(() => import("./pages/staticPages").then(m => ({ default: m.ForBuilders })));
+const ForAgents = lazy(() => import("./pages/staticPages").then(m => ({ default: m.ForAgents })));
+const Advertise = lazy(() => import("./pages/staticPages").then(m => ({ default: m.Advertise })));
+const ApiAccess = lazy(() => import("./pages/staticPages").then(m => ({ default: m.ApiAccess })));
+const PartnerProgram = lazy(() => import("./pages/staticPages").then(m => ({ default: m.PartnerProgram })));
+const PrivacyPolicy = lazy(() => import("./pages/staticPages").then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import("./pages/staticPages").then(m => ({ default: m.TermsOfService })));
+const CookiePolicy = lazy(() => import("./pages/staticPages").then(m => ({ default: m.CookiePolicy })));
+const HelpCenter = lazy(() => import("./pages/staticPages").then(m => ({ default: m.HelpCenter })));
+const ContactUs = lazy(() => import("./pages/staticPages").then(m => ({ default: m.ContactUs })));
+
 // Lazy-load all non-landing routes
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -763,6 +780,24 @@ const App = () => (
                   />
 
                   <Route path="/coming-soon" element={<ComingSoon />} />
+
+                  {/* Static / Info Pages */}
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/careers" element={<CareersPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/for-builders" element={<ForBuilders />} />
+                  <Route path="/for-agents" element={<ForAgents />} />
+                  <Route path="/advertise" element={<Advertise />} />
+                  <Route path="/api-access" element={<ApiAccess />} />
+                  <Route path="/partner-program" element={<PartnerProgram />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/cookies" element={<CookiePolicy />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<ContactUs />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
