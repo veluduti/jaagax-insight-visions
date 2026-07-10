@@ -200,6 +200,7 @@ const Hero = ({
           </div>
 
           {/* Stats Cards - Mobile Only */}
+          {statCards.length > 0 && (
           <motion.div initial={{
           opacity: 0,
           y: 20
@@ -218,6 +219,7 @@ const Hero = ({
                 </div>;
           })}
           </motion.div>
+          )}
         </div>
       </div>
     </div>;
