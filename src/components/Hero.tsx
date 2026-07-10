@@ -1,6 +1,6 @@
 import PropertySearchBar from "./PropertySearchBar";
 import { motion } from "framer-motion";
-import { Building2, TrendingUp, Users, MapPin, Sparkles } from "lucide-react";
+import { Building2, Users, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-cityscape.jpg";
 import { supabase } from "@/integrations/supabase/client";
