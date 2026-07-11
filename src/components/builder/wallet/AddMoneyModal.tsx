@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Loader2, Wallet as WalletIcon, CreditCard } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Wallet as WalletIcon, ShieldCheck } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { walletService, formatCurrency } from "@/services/walletService";
+import { formatCurrency, walletService } from "@/services/walletService";
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddMoneyModalProps {
   open: boolean;
@@ -20,41 +22,47 @@ interface AddMoneyModalProps {
   onSuccess?: (newBalance: number) => void;
 }
 
-const QUICK_AMOUNTS = [500, 1000, 2500, 5000, 10000, 25000];
+const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
 
 export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMoneyModalProps) {
   const [amount, setAmount] = useState<string>("1000");
-  const [method, setMethod] = useState<"upi" | "card" | "netbanking">("upi");
+  const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string; contact?: string }>({});
 
   const numericAmount = Number(amount || 0);
   const isValid = Number.isFinite(numericAmount) && numericAmount >= 100;
 
+  useEffect(() => {
+    if (!open) return;
+    walletService.getWalletBalance().then(setBalance).catch(() => {});
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      setUser({
+        name: (u?.user_metadata as any)?.full_name || (u?.user_metadata as any)?.name,
+        email: u?.email ?? undefined,
+        contact: u?.phone || (u?.user_metadata as any)?.phone,
+      });
+    });
+  }, [open]);
+
   const handleSubmit = async () => {
     if (!isValid) {
-      toast.error("Invalid amount", {
-        description: "Minimum top-up is ₹100.",
-      });
+      toast.error("Invalid amount", { description: "Minimum top-up is ₹100." });
       return;
     }
-
     setLoading(true);
     try {
-      const newBalance = await walletService.addMoney({
-        amount: numericAmount,
-        description: `Wallet top-up via ${method.toUpperCase()}`,
-        reference: `${method}_${Date.now()}`,
-      });
-
+      const res = await startWalletTopUp(numericAmount, user);
       toast.success("Money added", {
-        description: `${formatCurrency(numericAmount)} credited. New balance: ${formatCurrency(newBalance)}.`,
+        description: `${formatCurrency(res.amount)} credited. New balance: ${formatCurrency(res.new_balance)}.`,
       });
-      onSuccess?.(newBalance);
+      onSuccess?.(res.new_balance);
       onOpenChange(false);
       setAmount("1000");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to add money";
-      toast.error("Top-up failed", { description: message });
+      if (message !== "Payment cancelled") toast.error("Top-up failed", { description: message });
     } finally {
       setLoading(false);
     }
@@ -69,15 +77,18 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
             Add money to wallet
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Top-up your wallet to run promotions, purchase leads, and unlock premium boosts.
+            Secure top-up powered by Razorpay. Balance is credited after payment verification.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
+          <div className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-800/50 p-3">
+            <span className="text-sm text-slate-400">Current balance</span>
+            <span className="text-lg font-semibold text-emerald-300">{formatCurrency(balance)}</span>
+          </div>
+
           <div>
-            <Label htmlFor="amount" className="text-slate-300">
-              Amount (₹)
-            </Label>
+            <Label htmlFor="amount" className="text-slate-300">Amount (₹)</Label>
             <Input
               id="amount"
               type="number"
@@ -110,40 +121,9 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
             </div>
           </div>
 
-          <div>
-            <Label className="text-slate-300">Payment method</Label>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {(["upi", "card", "netbanking"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMethod(m)}
-                  className={`flex items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs uppercase tracking-wide transition ${
-                    method === m
-                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
-                      : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600"
-                  }`}
-                >
-                  <CreditCard className="h-3.5 w-3.5" />
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-md border border-slate-800 bg-slate-800/50 p-3 text-sm">
-            <div className="flex justify-between text-slate-400">
-              <span>Top-up amount</span>
-              <span>{formatCurrency(numericAmount || 0)}</span>
-            </div>
-            <div className="mt-1 flex justify-between text-slate-400">
-              <span>GST (18%)</span>
-              <span>{formatCurrency(Math.round(numericAmount * 0.18))}</span>
-            </div>
-            <div className="mt-2 flex justify-between border-t border-slate-700 pt-2 font-semibold text-slate-100">
-              <span>Total payable</span>
-              <span>{formatCurrency(Math.round(numericAmount * 1.18))}</span>
-            </div>
+          <div className="rounded-md border border-slate-800 bg-slate-800/50 p-3 text-xs text-slate-400 flex items-start gap-2">
+            <ShieldCheck className="h-4 w-4 text-emerald-400 mt-0.5" />
+            <span>UPI, Cards, Net Banking &amp; Wallets accepted via Razorpay Checkout.</span>
           </div>
         </div>
 
@@ -167,7 +147,7 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
                 Processing...
               </>
             ) : (
-              `Pay ${formatCurrency(Math.round(numericAmount * 1.18))}`
+              `Continue to Pay ${formatCurrency(numericAmount)}`
             )}
           </Button>
         </DialogFooter>

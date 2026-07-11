@@ -41,5 +41,11 @@ otp_expiry = 3600
     verify_jwt = false
   [functions.nl-farmer-assistant]
     verify_jwt = true
+  [functions.wallet-create-order]
+    verify_jwt = true
+  [functions.wallet-verify-payment]
+    verify_jwt = true
+
+
 
 

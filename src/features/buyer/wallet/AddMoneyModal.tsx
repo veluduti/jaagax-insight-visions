@@ -1,75 +1,122 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Smartphone, CreditCard, Building2, Wallet, Loader2 } from "lucide-react";
-import { useWallet } from "@/contexts/WalletContext";
+import { Wallet as WalletIcon, Loader2, ShieldCheck } from "lucide-react";
+import { useWallet, formatINR } from "@/contexts/WalletContext";
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const QUICK = [500, 1000, 2000, 5000, 10000];
-const METHODS = [
-  { id: "upi", label: "UPI", icon: Smartphone },
-  { id: "card", label: "Card", icon: CreditCard },
-  { id: "netbanking", label: "Net Banking", icon: Building2 },
-  { id: "wallet", label: "Wallet", icon: Wallet },
-];
+const QUICK = [100, 500, 1000, 2000];
 
-export function AddMoneyModal({ open, onOpenChange, initialAmount }: { open: boolean; onOpenChange: (o: boolean) => void; initialAmount?: number }) {
-  const { addMoney } = useWallet();
-  const [amount, setAmount] = useState<number>(initialAmount ?? 1000);
-  const [method, setMethod] = useState("upi");
+export function AddMoneyModal({
+  open,
+  onOpenChange,
+  initialAmount,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  initialAmount?: number;
+}) {
+  const { balance, refreshWallet } = useWallet();
+  const [amount, setAmount] = useState<number>(initialAmount ?? 500);
   const [busy, setBusy] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string; contact?: string }>({});
+
+  useEffect(() => {
+    if (!open) return;
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      setUser({
+        name: (u?.user_metadata as any)?.full_name || (u?.user_metadata as any)?.name,
+        email: u?.email ?? undefined,
+        contact: u?.phone || (u?.user_metadata as any)?.phone,
+      });
+    });
+  }, [open]);
+
+  const valid = amount >= 100;
 
   const submit = async () => {
-    if (!(amount > 0)) return;
+    if (!valid) {
+      toast.error("Minimum top-up is ₹100");
+      return;
+    }
     setBusy(true);
     try {
-      await addMoney(amount, { paymentMethod: method, description: `Added via ${method.toUpperCase()}` });
+      const res = await startWalletTopUp(amount, user);
+      toast.success(`₹${res.amount.toLocaleString("en-IN")} credited to wallet`);
+      await refreshWallet();
       onOpenChange(false);
-    } catch {} finally { setBusy(false); }
+    } catch (e: any) {
+      const msg = e?.message || "Payment failed";
+      if (msg !== "Payment cancelled") toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Money to Wallet</DialogTitle>
-          <DialogDescription>Top up your wallet to use across the platform.</DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <WalletIcon className="h-5 w-5 text-primary" />
+            Add Money to Wallet
+          </DialogTitle>
+          <DialogDescription>Secure top-up powered by Razorpay.</DialogDescription>
         </DialogHeader>
+
         <div className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3 flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Current Balance</span>
+            <span className="text-lg font-semibold">{formatINR(balance)}</span>
+          </div>
+
           <div className="space-y-2">
             <Label>Amount (₹)</Label>
-            <Input type="number" min={1} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+            <Input
+              type="number"
+              min={100}
+              value={amount || ""}
+              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              placeholder="Enter amount"
+            />
             <div className="flex flex-wrap gap-2 pt-1">
-              {QUICK.map(q => (
-                <Button key={q} type="button" variant={amount === q ? "default" : "outline"} size="sm" onClick={() => setAmount(q)}>
+              {QUICK.map((q) => (
+                <Button
+                  key={q}
+                  type="button"
+                  variant={amount === q ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setAmount(q)}
+                >
                   ₹{q.toLocaleString("en-IN")}
                 </Button>
               ))}
             </div>
+            <p className="text-xs text-muted-foreground">Minimum ₹100</p>
           </div>
 
-          <div className="space-y-2">
-            <Label>Payment Method</Label>
-            <RadioGroup value={method} onValueChange={setMethod} className="grid grid-cols-2 gap-2">
-              {METHODS.map(m => {
-                const Icon = m.icon;
-                return (
-                  <Label key={m.id} htmlFor={m.id} className={`flex items-center gap-2 border rounded-md p-3 cursor-pointer ${method === m.id ? "border-primary bg-primary/5" : "border-border"}`}>
-                    <RadioGroupItem value={m.id} id={m.id} />
-                    <Icon className="h-4 w-4" />
-                    <span className="text-sm">{m.label}</span>
-                  </Label>
-                );
-              })}
-            </RadioGroup>
+          <div className="rounded-md border p-3 text-xs text-muted-foreground flex items-start gap-2">
+            <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5" />
+            <span>
+              You'll be redirected to Razorpay Checkout. UPI, Cards, Net Banking &amp; Wallets are supported. Your
+              balance is credited only after successful payment verification.
+            </span>
           </div>
 
-          <Button className="w-full" onClick={submit} disabled={busy || !(amount > 0)}>
-            {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing…</> : `Add ₹${(amount || 0).toLocaleString("en-IN")}`}
+          <Button className="w-full" onClick={submit} disabled={busy || !valid}>
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing…
+              </>
+            ) : (
+              `Continue to Pay ₹${(amount || 0).toLocaleString("en-IN")}`
+            )}
           </Button>
-          <p className="text-xs text-muted-foreground text-center">Demo gateway — funds credited instantly for testing.</p>
         </div>
       </DialogContent>
     </Dialog>
