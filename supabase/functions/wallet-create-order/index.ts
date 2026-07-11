@@ -36,8 +36,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const amount = Number(body?.amount);
-    if (!Number.isFinite(amount) || amount < 100) {
-      return json({ error: "Minimum top-up is ₹100" }, 400);
+    if (!Number.isFinite(amount) || amount < 500) {
+      return json({ error: "Minimum top-up is ₹500" }, 400);
     }
     if (amount > 200000) {
       return json({ error: "Maximum top-up per transaction is ₹2,00,000" }, 400);

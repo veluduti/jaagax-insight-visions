@@ -49,7 +49,7 @@ export async function startWalletTopUp(
   amount: number,
   user?: TopUpUserInfo,
 ): Promise<TopUpResult> {
-  if (!(amount >= 100)) throw new Error("Minimum top-up is ₹100");
+  if (!(amount >= 500)) throw new Error("Minimum top-up is ₹500");
 
   await loadRazorpayScript();
 

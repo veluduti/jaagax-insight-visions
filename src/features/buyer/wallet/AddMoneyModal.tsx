@@ -9,7 +9,7 @@ import { startWalletTopUp } from "@/lib/razorpayCheckout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const QUICK = [100, 500, 1000, 2000];
+const QUICK = [500, 1000, 2000, 5000];
 
 export function AddMoneyModal({
   open,
@@ -37,11 +37,11 @@ export function AddMoneyModal({
     });
   }, [open]);
 
-  const valid = amount >= 100;
+  const valid = amount >= 500;
 
   const submit = async () => {
     if (!valid) {
-      toast.error("Minimum top-up is ₹100");
+      toast.error("Minimum top-up is ₹500");
       return;
     }
     setBusy(true);
@@ -79,7 +79,7 @@ export function AddMoneyModal({
             <Label>Amount (₹)</Label>
             <Input
               type="number"
-              min={100}
+              min={500}
               value={amount || ""}
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               placeholder="Enter amount"
@@ -97,7 +97,7 @@ export function AddMoneyModal({
                 </Button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">Minimum ₹100</p>
+            <p className="text-xs text-muted-foreground">Minimum ₹500</p>
           </div>
 
           <div className="rounded-md border p-3 text-xs text-muted-foreground flex items-start gap-2">
