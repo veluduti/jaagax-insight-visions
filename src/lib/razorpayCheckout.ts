@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay?: any;
   }
 }
+
 
 let scriptPromise: Promise<void> | null = null;
 
