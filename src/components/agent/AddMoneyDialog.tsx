@@ -14,7 +14,7 @@ import { Loader2, Zap, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { startWalletTopUp } from "@/lib/razorpayCheckout";
 
-const PRESETS = [100, 500, 1000, 2000, 5000];
+const PRESETS = [500, 1000, 2000, 5000, 10000];
 
 interface AddMoneyDialogProps {
   userId: string;
@@ -45,8 +45,8 @@ export default function AddMoneyDialog({ userId, open, onOpenChange, onSuccess }
   }, [open, userId]);
 
   const handleAdd = async () => {
-    if (amount < 100) {
-      toast.error("Minimum top-up is ₹100");
+    if (amount < 500) {
+      toast.error("Minimum top-up is ₹500");
       return;
     }
     setLoading(true);
@@ -104,13 +104,13 @@ export default function AddMoneyDialog({ userId, open, onOpenChange, onSuccess }
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Custom Amount</label>
             <Input
               type="number"
-              min={100}
+              min={500}
               step={100}
               value={amount === 0 ? "" : amount}
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               placeholder="Enter amount"
             />
-            <p className="text-xs text-muted-foreground mt-1">Minimum ₹100</p>
+            <p className="text-xs text-muted-foreground mt-1">Minimum ₹500</p>
           </div>
 
           <div className="rounded-lg border p-3 text-xs text-muted-foreground flex items-start gap-2">
@@ -123,7 +123,7 @@ export default function AddMoneyDialog({ userId, open, onOpenChange, onSuccess }
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleAdd} disabled={loading || amount < 100}>
+          <Button onClick={handleAdd} disabled={loading || amount < 500}>
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

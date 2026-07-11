@@ -22,7 +22,7 @@ interface AddMoneyModalProps {
   onSuccess?: (newBalance: number) => void;
 }
 
-const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
+const QUICK_AMOUNTS = [500, 1000, 2000, 5000, 10000, 25000];
 
 export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMoneyModalProps) {
   const [amount, setAmount] = useState<string>("1000");
@@ -31,7 +31,7 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
   const [user, setUser] = useState<{ name?: string; email?: string; contact?: string }>({});
 
   const numericAmount = Number(amount || 0);
-  const isValid = Number.isFinite(numericAmount) && numericAmount >= 100;
+  const isValid = Number.isFinite(numericAmount) && numericAmount >= 500;
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +48,7 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
 
   const handleSubmit = async () => {
     if (!isValid) {
-      toast.error("Invalid amount", { description: "Minimum top-up is ₹100." });
+      toast.error("Invalid amount", { description: "Minimum top-up is ₹500." });
       return;
     }
     setLoading(true);
@@ -92,13 +92,13 @@ export default function AddMoneyModal({ open, onOpenChange, onSuccess }: AddMone
             <Input
               id="amount"
               type="number"
-              min={100}
+              min={500}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
               className="mt-1 bg-slate-800 border-slate-700 text-slate-100"
             />
-            <p className="mt-1 text-xs text-slate-500">Minimum ₹100</p>
+            <p className="mt-1 text-xs text-slate-500">Minimum ₹500</p>
           </div>
 
           <div>
