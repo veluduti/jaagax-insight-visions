@@ -7225,6 +7225,48 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          error_message: string | null
+          id: string
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          id?: string
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error_message?: string | null
+          id?: string
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -7636,6 +7678,16 @@ export type Database = {
         Returns: number
       }
       create_wallet_for_user: { Args: { _user_id: string }; Returns: string }
+      credit_wallet_from_razorpay: {
+        Args: {
+          _amount: number
+          _order_id: string
+          _payment_id: string
+          _signature: string
+          _user_id: string
+        }
+        Returns: number
+      }
       debit_from_wallet: {
         Args: {
           _amount: number
