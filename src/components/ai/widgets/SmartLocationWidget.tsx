@@ -3,6 +3,9 @@ import { FC, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
+import MapLocationModal from "@/components/location/MapLocationModal";
+import { MapPin } from "lucide-react";
+
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
@@ -36,7 +39,11 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     pincode: value?.pincode || "",
     latitude: value?.latitude ?? null,
     longitude: value?.longitude ?? null,
+    place_id: value?.place_id || "",
   });
+
+  const [mapOpen, setMapOpen] = useState(false);
+
 
   useEffect(() => {
     if (!value) return;
@@ -51,7 +58,9 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       pincode: value?.pincode || "",
       latitude: value?.latitude ?? null,
       longitude: value?.longitude ?? null,
+      place_id: value?.place_id || "",
     });
+
   }, [value]);
 
   const update = (patch: Partial<typeof form>) => {
@@ -68,6 +77,25 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
           Start typing a city or locality — pick a suggestion to auto-fill the rest.
         </p>
       </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full justify-center gap-2 border-primary/40 text-primary hover:bg-primary/10"
+        onClick={() => setMapOpen(true)}
+      >
+        <MapPin className="h-4 w-4" />
+        Select Location from Map
+      </Button>
+
+      <MapLocationModal
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        initial={form}
+        onConfirm={(loc) => update(loc)}
+      />
+
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* CITY — Google Places */}
