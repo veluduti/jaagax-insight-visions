@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2 } from "lucide-react";
 import InlineLocationSearch from "./InlineLocationSearch";
 import GoogleMapPicker from "./GoogleMapPicker";
-import { loadGoogleMaps } from "@/lib/googleMaps";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 
 export interface MapPickedLocation {
   country: string;
@@ -54,33 +55,29 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
   }, [open]);
 
   const reverseGeocode = async (la: number, ln: number): Promise<MapPickedLocation | null> => {
-    const google = await loadGoogleMaps();
-    const geocoder = new google.maps.Geocoder();
-    const res: any = await geocoder.geocode({ location: { lat: la, lng: ln } });
-    const first = res?.results?.[0];
-    if (!first) return null;
-    const comps: any[] = first.address_components || [];
+    const { data, error } = await supabase.functions.invoke("reverse-geocode", {
+      body: { latitude: la, longitude: ln },
+    });
+    if (error || !data || (data as any).error) {
+      console.error("[MapLocationModal] reverse-geocode edge failed", error, data);
+      return null;
+    }
+    const d: any = data;
     return {
-      country: pick(comps, "country") || "India",
-      state_name: pick(comps, "administrative_area_level_1"),
-      city:
-        pick(comps, "locality") ||
-        pick(comps, "administrative_area_level_2") ||
-        pick(comps, "administrative_area_level_3"),
-      locality:
-        pick(comps, "sublocality_level_1") ||
-        pick(comps, "sublocality") ||
-        pick(comps, "neighborhood"),
-      sub_locality:
-        pick(comps, "sublocality_level_2") || pick(comps, "sublocality_level_3") || "",
-      landmark: pick(comps, "point_of_interest") || pick(comps, "premise") || "",
-      address: first.formatted_address || "",
-      pincode: pick(comps, "postal_code"),
+      country: d.country || "India",
+      state_name: d.state || "",
+      city: d.city || "",
+      locality: d.locality || "",
+      sub_locality: d.sub_locality || "",
+      landmark: d.landmark || "",
+      address: d.formattedAddress || "",
+      pincode: d.pincode || "",
       latitude: la,
       longitude: ln,
-      place_id: first.place_id,
+      place_id: d.place_id,
     };
   };
+
 
   const handleConfirm = async () => {
     if (lat === null || lng === null) {

@@ -49,16 +49,29 @@ Deno.serve(async (req) => {
       pick(comps, "sublocality") ||
       pick(comps, "neighborhood") ||
       pick(comps, "locality");
+    const sub_locality =
+      pick(comps, "sublocality_level_2") ||
+      pick(comps, "sublocality_level_3") ||
+      "";
+    const state = pick(comps, "administrative_area_level_1");
+    const country = pick(comps, "country");
+    const landmark = pick(comps, "point_of_interest") || pick(comps, "premise") || "";
     const pincode = pick(comps, "postal_code");
     return new Response(
       JSON.stringify({
         city,
         locality,
+        sub_locality,
+        state,
+        country,
+        landmark,
         pincode,
         formattedAddress: best.formatted_address,
+        place_id: best.place_id,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
