@@ -161,7 +161,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Add Money to Wallet</DialogTitle>
-            <DialogDescription>Choose a quick amount or enter your own. Minimum ₹100.</DialogDescription>
+            <DialogDescription>Choose a quick amount or enter your own. Minimum ₹500.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
