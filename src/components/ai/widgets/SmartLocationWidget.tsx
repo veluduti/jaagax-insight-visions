@@ -39,7 +39,11 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     pincode: value?.pincode || "",
     latitude: value?.latitude ?? null,
     longitude: value?.longitude ?? null,
+    place_id: value?.place_id || "",
   });
+
+  const [mapOpen, setMapOpen] = useState(false);
+
 
   useEffect(() => {
     if (!value) return;
