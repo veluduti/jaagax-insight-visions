@@ -53,6 +53,7 @@ import {
   RefreshCw,
   Megaphone,
   Rocket,
+  Trash2,
 } from "lucide-react";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
@@ -127,6 +128,7 @@ interface VisitBooking {
   created_at: string;
   city?: string | null;
   locality?: string | null;
+  deleted_from_dashboard?: boolean; // Soft delete flag
 }
 
 interface Lead {
@@ -160,6 +162,11 @@ interface Task {
   due_date: string;
   done: boolean;
   related_lead?: string;
+}
+
+// Interface for hotel booking with soft delete
+interface HotelBookingWithDelete extends VisitBooking {
+  deleted_from_dashboard?: boolean;
 }
 
 /* ============================================================
@@ -201,6 +208,9 @@ export default function AgentDashboard() {
     viewsThisMonth: 0,
     savedByUsers: 0,
   });
+
+  // Soft delete tracking for visits (hotel bookings)
+  const [deletedVisitIds, setDeletedVisitIds] = useState<Set<string>>(new Set());
 
   // CRM local data
   const [leadOverrides, setLeadOverrides] = useState<Record<string, Partial<Lead>>>({});
@@ -249,6 +259,21 @@ export default function AgentDashboard() {
 
     void fetchUserAndProfile(authUser);
   }, [authLoading, authUser, role, navigate]);
+
+  // Load soft-deleted visit IDs from localStorage
+  useEffect(() => {
+    if (user?.id) {
+      const saved = lsGet(user.id, "deletedVisitIds", []);
+      setDeletedVisitIds(new Set(saved));
+    }
+  }, [user?.id]);
+
+  // Save soft-deleted visit IDs to localStorage
+  useEffect(() => {
+    if (user?.id) {
+      lsSet(user.id, "deletedVisitIds", Array.from(deletedVisitIds));
+    }
+  }, [deletedVisitIds, user?.id]);
 
   // Realtime
   useEffect(() => {
@@ -304,6 +329,10 @@ export default function AgentDashboard() {
       setLeadOverrides(lsGet(authenticatedUser.id, "leadOverrides", {}));
       setDeals(lsGet(authenticatedUser.id, "deals", []));
       setTasks(lsGet(authenticatedUser.id, "tasks", []));
+
+      // Load deleted visit IDs
+      const savedDeleted = lsGet(authenticatedUser.id, "deletedVisitIds", []);
+      setDeletedVisitIds(new Set(savedDeleted));
 
       const { data: agentData, error: agentError } = await supabase
         .from("agents")
@@ -467,11 +496,16 @@ export default function AgentDashboard() {
     });
   }, [visits, leadOverrides]);
 
+  // Filter out soft-deleted visits for display
+  const visibleVisits = useMemo(() => {
+    return visits.filter((v) => !deletedVisitIds.has(v.id));
+  }, [visits, deletedVisitIds]);
+
   const propertyTitleById = (id: string | null) => properties.find((p) => p.id === id)?.title || "Property";
 
   const today = new Date().toISOString().split("T")[0];
   const todaysTasks = tasks.filter((t) => !t.done && t.due_date <= today);
-  const todaysVisits = visits.filter((v) => v.visit_date === today);
+  const todaysVisits = visibleVisits.filter((v) => v.visit_date === today);
 
   const activeAssignedTasks = assignedTasks.filter((t) => t.status !== "completed" && t.status !== "cancelled");
   const completedAssignedTasks = assignedTasks.filter((t) => t.status === "completed");
@@ -482,7 +516,7 @@ export default function AgentDashboard() {
   const metrics = {
     totalLeads: leads.length + assignedTasks.length,
     upcomingVisits:
-      visits.filter((v) =>
+      visibleVisits.filter((v) =>
         ["confirmed", "pending_builder", "pending_agent", "pending", "in_progress"].includes(v.status),
       ).length + scheduledAssignedVisits.length,
     activeDeals: deals.filter((d) => d.status === "negotiation").length + activeAssignedTasks.length,
@@ -502,6 +536,31 @@ export default function AgentDashboard() {
     if (error) return toast.error("Failed to update visit");
     toast.success(`Visit ${status}`);
     if (agentProfile?.id) fetchVisits(agentProfile.id);
+  };
+
+  // Soft delete visit (hide from dashboard only)
+  const softDeleteVisit = (id: string) => {
+    const visit = visits.find((v) => v.id === id);
+    if (!visit) return;
+
+    // Confirm deletion
+    const confirmed = window.confirm(
+      `Delete "${visit.buyer_name || "Booking"}" from your dashboard? This will only hide it from your view.`,
+    );
+    if (!confirmed) return;
+
+    setDeletedVisitIds((prev) => new Set([...prev, id]));
+    toast.success("Booking removed from dashboard");
+  };
+
+  // Restore soft-deleted visit
+  const restoreVisit = (id: string) => {
+    setDeletedVisitIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    toast.success("Booking restored to dashboard");
   };
 
   const addTask = () => {
@@ -809,10 +868,16 @@ export default function AgentDashboard() {
           </div>
         )}
 
-        {/* ===== Hotel Bookings (Excel Section 6.4) ===== */}
+        {/* ===== Hotel Bookings (Excel Section 6.4) with Delete ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 gap-6">
-            <HotelBookingsManager userId={user.id} agentId={agentProfile.id} />
+            <HotelBookingsManager
+              userId={user.id}
+              agentId={agentProfile.id}
+              onDeleteBooking={softDeleteVisit}
+              deletedIds={deletedVisitIds}
+              onRestoreBooking={restoreVisit}
+            />
           </div>
         )}
 
@@ -1256,7 +1321,7 @@ export default function AgentDashboard() {
                 { key: "completed", filter: (v: VisitBooking) => v.status === "completed" },
                 { key: "cancelled", filter: (v: VisitBooking) => v.status === "cancelled" },
               ].map(({ key, filter }) => {
-                const list = visits.filter(filter);
+                const list = visibleVisits.filter(filter);
                 return (
                   <TabsContent key={key} value={key} className="mt-4 space-y-2">
                     {list.length === 0 ? (
@@ -1308,7 +1373,27 @@ export default function AgentDashboard() {
                                 <Button size="sm" className="h-8" onClick={() => updateVisitStatus(v.id, "completed")}>
                                   Mark Done
                                 </Button>
+                                {/* Delete button for completed visits */}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => softDeleteVisit(v.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </>
+                            )}
+                            {key === "completed" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                onClick={() => softDeleteVisit(v.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                Remove
+                              </Button>
                             )}
                             <Button
                               size="sm"
