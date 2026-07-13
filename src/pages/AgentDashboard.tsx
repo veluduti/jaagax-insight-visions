@@ -871,7 +871,7 @@ export default function AgentDashboard() {
         {/* ===== Hotel Bookings (Excel Section 6.4) with Delete ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 gap-6">
-            <HotelBookingsManager userId={user.id} agentId={agentProfile.id} deletedVisitIds={deletedVisitIds} />
+            <HotelBookingsManager userId={user.id} agentId={agentProfile.id} />
           </div>
         )}
 
