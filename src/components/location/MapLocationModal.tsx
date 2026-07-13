@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2 } from "lucide-react";
 import InlineLocationSearch from "./InlineLocationSearch";
 import GoogleMapPicker from "./GoogleMapPicker";
-import { loadGoogleMaps } from "@/lib/googleMaps";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 
 export interface MapPickedLocation {
   country: string;
