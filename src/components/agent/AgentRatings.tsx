@@ -27,9 +27,11 @@ import {
   CheckCircle2,
   Loader2,
   Shield,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface AgentRatingsProps {
   agentId: string;
