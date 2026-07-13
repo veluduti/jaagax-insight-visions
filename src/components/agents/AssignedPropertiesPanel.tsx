@@ -20,6 +20,8 @@ import PropertyChat from "@/components/chat/PropertyChat";
 import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { AgentAssignmentActions } from "@/components/agent/AgentAssignmentActions";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
+import { Trash2 } from "lucide-react";
 
 interface AssignedTask {
   // task
