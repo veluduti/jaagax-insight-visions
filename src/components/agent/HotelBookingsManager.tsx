@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Hotel, Search, RefreshCw, Plus, Calendar, MapPin, Users } from "lucide-react";
+import { Hotel, Search, RefreshCw, Plus, Calendar, MapPin, Users, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import HotelBookingDetails from "./HotelBookingDetails";
 import HotelBookingDialog from "./HotelBookingDialog";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface Booking {
   id: string;
