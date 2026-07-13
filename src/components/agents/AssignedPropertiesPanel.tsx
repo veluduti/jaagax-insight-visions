@@ -478,6 +478,20 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                       <Badge variant="outline" className="text-[10px]">Pending Visit</Badge>
                     )}
                     {p.verified && <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600"><BadgeCheck className="h-3 w-3 mr-0.5" />Verified</Badge>}
+                    {isCompleted && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 ml-auto text-muted-foreground hover:text-red-500"
+                        title="Remove from my dashboard"
+                        onClick={() => {
+                          hide(p.id);
+                          toast.success("Removed from your dashboard");
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="flex gap-3">
