@@ -39,15 +39,6 @@ export default function WalletBalance({ userId }: { userId: string }) {
       setBalance(Number(w.balance) || 0);
       setAutoRecharge(!!w.auto_recharge);
     }
-    const { data: cb } = await sb
-      .from("cashback_earnings")
-      .select("amount,status")
-      .eq("user_id", userId);
-    const total = (cb || []).reduce(
-      (s: number, r: any) => s + (r.status !== "redeemed" ? Number(r.amount) || 0 : 0),
-      0,
-    );
-    setCashback(total);
   };
 
   useEffect(() => {
