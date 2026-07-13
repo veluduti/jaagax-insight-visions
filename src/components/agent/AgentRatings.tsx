@@ -145,7 +145,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
   }, [agentId]);
 
   useEffect(() => {
-    let rows = [...ratings];
+    let rows = ratings.filter((r) => !isHidden(r.id));
     if (filterStar !== null) {
       rows = rows.filter((r) => Math.round(r.rating) === filterStar);
     }
