@@ -11,7 +11,7 @@ interface HeroProps {
   showSearchBar?: boolean;
 }
 
-const LIVE_STATUSES = ["LIVE_VERIFIED", "live_verified", "LIVE", "live"];
+
 
 const formatCount = (n: number) => {
   if (n >= 10_000_000) return `${(n / 10_000_000).toFixed(1)}Cr+`;
@@ -41,7 +41,7 @@ const Hero = ({
           (supabase as any)
             .from("properties")
             .select("id", { count: "exact", head: true })
-            .in("status", LIVE_STATUSES),
+            .eq("verified", true),
           (supabase as any)
             .from("agents")
             .select("id", { count: "exact", head: true })
