@@ -1202,46 +1202,25 @@ export default function AgentDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="team" className="w-full">
-                <TabsList className="grid grid-cols-2 md:grid-cols-6 mb-6 h-auto gap-2">
-                  <TabsTrigger value="team" className="text-xs md:text-sm">
-                    Team
-                  </TabsTrigger>
+              <Tabs defaultValue="referral" className="w-full">
+                <TabsList className="grid grid-cols-3 mb-6 h-auto gap-2">
                   <TabsTrigger value="referral" className="text-xs md:text-sm">
                     Referral
                   </TabsTrigger>
-                  <TabsTrigger value="promotion" className="text-xs md:text-sm">
-                    Promotion
-                  </TabsTrigger>
                   <TabsTrigger value="ai" className="text-xs md:text-sm">
                     AI
-                  </TabsTrigger>
-                  <TabsTrigger value="route" className="text-xs md:text-sm">
-                    Route
                   </TabsTrigger>
                   <TabsTrigger value="analytics" className="text-xs md:text-sm">
                     Analytics
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="team">
-                  <AgentTeamManagement />
-                </TabsContent>
-
                 <TabsContent value="referral">
                   <AgentReferralProgram />
                 </TabsContent>
 
-                <TabsContent value="promotion">
-                  <AgentPremiumPromotion />
-                </TabsContent>
-
                 <TabsContent value="ai">
                   <AgentAIRecommendations />
-                </TabsContent>
-
-                <TabsContent value="route">
-                  <AgentRouteOptimization />
                 </TabsContent>
 
                 <TabsContent value="analytics">
