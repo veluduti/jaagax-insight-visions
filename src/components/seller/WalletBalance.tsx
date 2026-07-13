@@ -56,44 +56,26 @@ export default function WalletBalance({ userId }: { userId: string }) {
   };
 
   const handleAdd = async () => {
-    if (amount < 100) return toast.error("Minimum top-up is ₹100");
+    if (amount < 500) return toast.error("Minimum top-up is ₹500");
     setLoading(true);
-    const sb: any = supabase;
-
-    // Get wallet first
-    const { data: wallet } = await sb.from("wallets").select("id").eq("user_id", userId).single();
-
-    const { error } = await sb.rpc("increment_wallet_balance", {
-      _user_id: userId,
-      _amount: amount,
-      _description: `Wallet top-up`,
-      _reference: `topup:${Date.now()}`,
-    });
-
-    if (error) {
-      toast.error(error.message);
+    try {
+      const sb: any = supabase;
+      const { data: authData } = await supabase.auth.getUser();
+      const u = authData?.user;
+      const result = await startWalletTopUp(amount, {
+        name: (u?.user_metadata as any)?.full_name || u?.email,
+        email: u?.email,
+        contact: (u?.user_metadata as any)?.phone,
+      });
+      toast.success(`₹${result.amount.toLocaleString("en-IN")} added to wallet successfully!`);
+      setOpen(false);
+      await load();
+      window.dispatchEvent(new Event("walletUpdated"));
+    } catch (e: any) {
+      toast.error(e?.message || "Payment failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Create transaction record
-    await sb.from("wallet_transactions").insert({
-      user_id: userId,
-      wallet_id: wallet.id,
-      amount: amount,
-      type: "credit",
-      category: "add_money",
-      description: `Wallet top-up ₹${amount}`,
-      status: "completed",
-    });
-
-    toast.success(`₹${amount} added to wallet successfully!`);
-    setOpen(false);
-    setLoading(false);
-    await load();
-
-    // Trigger refresh for subscription manager and transactions
-    window.dispatchEvent(new Event("walletUpdated"));
   };
 
   const toggleAuto = async (v: boolean) => {
