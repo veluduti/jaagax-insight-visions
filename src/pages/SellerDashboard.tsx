@@ -64,7 +64,6 @@ import SwitchAgentDialog from "@/components/seller/SwitchAgentDialog";
 import AgentRating from "@/components/seller/AgentRating";
 import HotelBookings from "@/components/seller/HotelBookings";
 import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
-// REMOVED: import PreferredLocations from "@/components/seller/PreferredLocations";
 import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
 import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
 import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
@@ -1124,10 +1123,10 @@ export default function SellerDashboard() {
             {/* Financial Enquiries */}
             <FinancialEnquiries userId={user.id} />
 
-            {/* MODIFIED: Removed PreferredLocations, now using ActivityTimeline and AlertChannelsSettings side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ActivityTimeline userId={user.id} />
+            {/* Alert Channels and Activity Timeline side by side - Activity Timeline on the right */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <AlertChannelsSettings userId={user.id} />
+              <ActivityTimeline userId={user.id} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
