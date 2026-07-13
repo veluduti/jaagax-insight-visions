@@ -825,12 +825,6 @@ export default function AgentDashboard() {
           </div>
         )}
 
-        {/* ===== Preferred Locations (Excel Section 6.6) ===== */}
-        {agentProfile.id && user?.id && (
-          <div className="grid grid-cols-1 gap-6">
-            <PreferredLocations userId={user.id} compact={true} />
-          </div>
-        )}
 
         {/* ===== Ratings & Reviews (Excel Section 13) ===== */}
         {agentProfile.id && user?.id && (
