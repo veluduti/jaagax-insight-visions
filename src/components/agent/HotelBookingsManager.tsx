@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Hotel, Search, RefreshCw, Plus, Calendar, MapPin, Users } from "lucide-react";
+import { Hotel, Search, RefreshCw, Plus, Calendar, MapPin, Users, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import HotelBookingDetails from "./HotelBookingDetails";
 import HotelBookingDialog from "./HotelBookingDialog";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface Booking {
   id: string;
@@ -47,6 +48,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
   const [selected, setSelected] = useState<Booking | null>(null);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending" | "cancelled">("all");
+  const { hide, isHidden } = useHiddenIds("hotel_bookings", agentId || userId);
 
   const goToHotels = () => navigate("/hotels");
 
@@ -89,6 +91,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
   }, [agentId, userId]);
 
   const filtered = bookings.filter((b) => {
+    if (isHidden(b.id)) return false;
     if (activeTab !== "all" && b.status !== activeTab) return false;
     if (!query) return true;
     const q = query.toLowerCase();
@@ -232,11 +235,26 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                           )}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
-                        </p>
+                      <div className="text-right flex items-start gap-2">
+                        <div>
+                          <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                          title="Remove from my dashboard"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            hide(b.id);
+                            toast.success("Removed from your dashboard");
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">

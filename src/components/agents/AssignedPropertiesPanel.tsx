@@ -20,6 +20,8 @@ import PropertyChat from "@/components/chat/PropertyChat";
 import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { AgentAssignmentActions } from "@/components/agent/AgentAssignmentActions";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
+import { Trash2 } from "lucide-react";
 
 interface AssignedTask {
   // task
@@ -93,6 +95,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [filter, setFilter] = useState<"active" | "completed" | "all">("active");
+  const { hide, isHidden } = useHiddenIds("assigned_tasks", agentId);
 
   // Submit-verification dialog state
   const [verifyTarget, setVerifyTarget] = useState<AssignedTask | null>(null);
@@ -412,9 +415,10 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     load();
   };
 
-  const filtered = tasks.filter((t) =>
-    filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed"
-  );
+  const filtered = tasks.filter((t) => {
+    if (isHidden(t.id)) return false;
+    return filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed";
+  });
 
   return (
     <Card className="border-primary/20">
@@ -474,6 +478,20 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                       <Badge variant="outline" className="text-[10px]">Pending Visit</Badge>
                     )}
                     {p.verified && <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600"><BadgeCheck className="h-3 w-3 mr-0.5" />Verified</Badge>}
+                    {isCompleted && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 ml-auto text-muted-foreground hover:text-red-500"
+                        title="Remove from my dashboard"
+                        onClick={() => {
+                          hide(p.id);
+                          toast.success("Removed from your dashboard");
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
 
                   <div className="flex gap-3">

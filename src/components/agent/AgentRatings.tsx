@@ -27,9 +27,11 @@ import {
   CheckCircle2,
   Loader2,
   Shield,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface AgentRatingsProps {
   agentId: string;
@@ -77,6 +79,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
   const [selectedRating, setSelectedRating] = useState<RatingRow | null>(null);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { hide, isHidden } = useHiddenIds("agent_ratings", agentId);
 
   const load = async () => {
     if (!agentId) return;
@@ -142,7 +145,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
   }, [agentId]);
 
   useEffect(() => {
-    let rows = [...ratings];
+    let rows = ratings.filter((r) => !isHidden(r.id));
     if (filterStar !== null) {
       rows = rows.filter((r) => Math.round(r.rating) === filterStar);
     }
@@ -156,7 +159,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
       );
     }
     setFiltered(rows);
-  }, [search, filterStar, ratings]);
+  }, [search, filterStar, ratings, isHidden]);
 
   const handleReply = async () => {
     if (!selectedRating || !replyText.trim()) return;
@@ -407,11 +410,25 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
                           </p>
                         </div>
                       </div>
-                      {r.property_id && (
-                        <Badge variant="outline" className="text-[10px]">
-                          Property
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {r.property_id && (
+                          <Badge variant="outline" className="text-[10px]">
+                            Property
+                          </Badge>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-red-500"
+                          title="Remove from my dashboard"
+                          onClick={() => {
+                            hide(r.id);
+                            toast.success("Removed from your dashboard");
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                     {(r.comment || r.review) && (
                       <p className="text-xs text-foreground/80 mt-2 pl-10 leading-relaxed">{r.review || r.comment}</p>
