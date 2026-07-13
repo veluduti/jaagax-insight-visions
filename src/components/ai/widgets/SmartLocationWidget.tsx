@@ -78,6 +78,25 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
         </p>
       </div>
 
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full justify-center gap-2 border-primary/40 text-primary hover:bg-primary/10"
+        onClick={() => setMapOpen(true)}
+      >
+        <MapPin className="h-4 w-4" />
+        Select Location from Map
+      </Button>
+
+      <MapLocationModal
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        initial={form}
+        onConfirm={(loc) => update(loc)}
+      />
+
+
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* CITY — Google Places */}
         <div className="space-y-1">
