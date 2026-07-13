@@ -235,11 +235,26 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
                           )}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
-                        </p>
+                      <div className="text-right flex items-start gap-2">
+                        <div>
+                          <p className="font-bold text-primary">{formatCurrency(b.total_amount)}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {b.room_type || "Standard"} · {b.num_guests || 1} guest{(b.num_guests || 1) > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                          title="Remove from my dashboard"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            hide(b.id);
+                            toast.success("Removed from your dashboard");
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
