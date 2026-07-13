@@ -17,11 +17,12 @@ import { Wallet, Plus, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
+
 const PRESETS = [500, 1000, 2000, 5000];
 
 export default function WalletBalance({ userId }: { userId: string }) {
   const [balance, setBalance] = useState(0);
-  const [cashback, setCashback] = useState(0);
   const [autoRecharge, setAutoRecharge] = useState(false);
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(500);
@@ -38,15 +39,6 @@ export default function WalletBalance({ userId }: { userId: string }) {
       setBalance(Number(w.balance) || 0);
       setAutoRecharge(!!w.auto_recharge);
     }
-    const { data: cb } = await sb
-      .from("cashback_earnings")
-      .select("amount,status")
-      .eq("user_id", userId);
-    const total = (cb || []).reduce(
-      (s: number, r: any) => s + (r.status !== "redeemed" ? Number(r.amount) || 0 : 0),
-      0,
-    );
-    setCashback(total);
   };
 
   useEffect(() => {
@@ -64,44 +56,26 @@ export default function WalletBalance({ userId }: { userId: string }) {
   };
 
   const handleAdd = async () => {
-    if (amount < 100) return toast.error("Minimum top-up is ₹100");
+    if (amount < 500) return toast.error("Minimum top-up is ₹500");
     setLoading(true);
-    const sb: any = supabase;
-
-    // Get wallet first
-    const { data: wallet } = await sb.from("wallets").select("id").eq("user_id", userId).single();
-
-    const { error } = await sb.rpc("increment_wallet_balance", {
-      _user_id: userId,
-      _amount: amount,
-      _description: `Wallet top-up`,
-      _reference: `topup:${Date.now()}`,
-    });
-
-    if (error) {
-      toast.error(error.message);
+    try {
+      const sb: any = supabase;
+      const { data: authData } = await supabase.auth.getUser();
+      const u = authData?.user;
+      const result = await startWalletTopUp(amount, {
+        name: (u?.user_metadata as any)?.full_name || u?.email,
+        email: u?.email,
+        contact: (u?.user_metadata as any)?.phone,
+      });
+      toast.success(`₹${result.amount.toLocaleString("en-IN")} added to wallet successfully!`);
+      setOpen(false);
+      await load();
+      window.dispatchEvent(new Event("walletUpdated"));
+    } catch (e: any) {
+      toast.error(e?.message || "Payment failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Create transaction record
-    await sb.from("wallet_transactions").insert({
-      user_id: userId,
-      wallet_id: wallet.id,
-      amount: amount,
-      type: "credit",
-      category: "add_money",
-      description: `Wallet top-up ₹${amount}`,
-      status: "completed",
-    });
-
-    toast.success(`₹${amount} added to wallet successfully!`);
-    setOpen(false);
-    setLoading(false);
-    await load();
-
-    // Trigger refresh for subscription manager and transactions
-    window.dispatchEvent(new Event("walletUpdated"));
   };
 
   const toggleAuto = async (v: boolean) => {
@@ -164,17 +138,6 @@ export default function WalletBalance({ userId }: { userId: string }) {
             </Button>
           </div>
 
-          {/* Cash Back Section */}
-          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                Cash Back Earned
-              </p>
-              <p className="text-lg font-bold text-foreground">₹{cashback.toLocaleString("en-IN")}</p>
-              <p className="text-[10px] text-muted-foreground">From referrals, postings & promos</p>
-            </div>
-            <Sparkles className="h-6 w-6 text-amber-500 opacity-70" />
-          </div>
 
           {/* Auto-recharge Section */}
           <div className="mt-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
@@ -198,7 +161,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Add Money to Wallet</DialogTitle>
-            <DialogDescription>Choose a quick amount or enter your own. Minimum ₹100.</DialogDescription>
+            <DialogDescription>Choose a quick amount or enter your own. Minimum ₹500.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
@@ -223,10 +186,10 @@ export default function WalletBalance({ userId }: { userId: string }) {
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Custom Amount</label>
               <Input
                 type="number"
-                min={100}
+                min={500}
                 value={amount === 0 ? "" : amount}
                 onChange={(e) => setAmount(Number(e.target.value) || 0)}
-                placeholder="Enter amount"
+                placeholder="Enter amount (min ₹500)"
                 className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
@@ -234,7 +197,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
 
           <div className="bg-emerald-500/5 rounded-lg p-3 border border-emerald-500/10">
             <p className="text-xs text-muted-foreground text-center">
-              💳 Demo mode: Balance updates instantly. Razorpay/PhonePe integration coming soon.
+              🔒 Secure payment via Razorpay (UPI, Cards, Net Banking). Minimum ₹500.
             </p>
           </div>
 
@@ -244,7 +207,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
             </Button>
             <Button
               onClick={handleAdd}
-              disabled={loading || amount < 100}
+              disabled={loading || amount < 500}
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/20"
             >
               {loading ? (
