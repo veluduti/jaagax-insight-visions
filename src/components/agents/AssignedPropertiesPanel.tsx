@@ -415,9 +415,10 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     load();
   };
 
-  const filtered = tasks.filter((t) =>
-    filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed"
-  );
+  const filtered = tasks.filter((t) => {
+    if (isHidden(t.id)) return false;
+    return filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed";
+  });
 
   return (
     <Card className="border-primary/20">
