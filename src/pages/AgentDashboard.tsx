@@ -823,7 +823,6 @@ export default function AgentDashboard() {
           </div>
         )}
 
-
         {/* ===== Ratings & Reviews (Excel Section 13) ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 gap-6">
@@ -1229,84 +1228,6 @@ export default function AgentDashboard() {
           </Card>
         )}
 
-        {/* ===== Leads Management ===== */}
-        <Card className="border-primary/20">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Leads Pipeline
-              </CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">
-                {leads.length} total · {leads.filter((l) => l.status === "new").length} new
-              </p>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {leads.length === 0 ? (
-              <div className="text-center py-10">
-                <Users className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground">No leads yet. Buyers booking visits will appear here.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {leads.slice(0, 8).map((lead) => (
-                  <div
-                    key={lead.id}
-                    className="p-4 rounded-xl border border-border/60 hover:border-primary/40 hover:shadow-md transition-all bg-gradient-to-r from-card to-accent/20"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center gap-3">
-                      <Avatar className="h-10 w-10 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {lead.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold truncate">{lead.name}</p>
-                          <LeadStatusBadge status={lead.status} />
-                          <span className="text-xs text-muted-foreground">· {lead.source}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">
-                          {propertyTitleById(lead.property_id)}
-                        </p>
-                        <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-muted-foreground">
-                          {lead.phone && (
-                            <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {lead.phone}
-                            </span>
-                          )}
-                          {lead.email && (
-                            <span className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
-                              {lead.email}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {lead.phone && (
-                          <Button asChild size="sm" variant="outline" className="h-8">
-                            <a href={`tel:${lead.phone}`}>
-                              <PhoneCall className="h-3.5 w-3.5 mr-1" />
-                              Call
-                            </a>
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="h-8" onClick={() => setActiveLead(lead)}>
-                          <FileText className="h-3.5 w-3.5 mr-1" />
-                          Manage
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* ===== Visit Management Tabs ===== */}
         <Card className="border-primary/20">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -1405,73 +1326,6 @@ export default function AgentDashboard() {
                 );
               })}
             </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* ===== Deals & Closures ===== */}
-        <Card className="border-primary/20">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-primary" />
-                Deals & Closures
-              </CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">
-                {metrics.activeDeals} negotiating · {metrics.closedDeals} closed
-              </p>
-            </div>
-            <Button size="sm" onClick={() => setDealDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" />
-              New Deal
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {deals.length === 0 ? (
-              <div className="text-center py-10">
-                <Briefcase className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground">No deals yet. Add one once a buyer enters negotiation.</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {deals.map((d) => (
-                  <div
-                    key={d.id}
-                    className="p-3 rounded-lg border border-border/60 flex flex-col md:flex-row md:items-center gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium">{d.buyer_name}</p>
-                        <Badge
-                          className={
-                            d.status === "closed"
-                              ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30"
-                              : "bg-orange-500/15 text-orange-700 border-orange-500/30"
-                          }
-                        >
-                          {d.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{d.property_title}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-primary flex items-center">
-                        <IndianRupee className="h-4 w-4" />
-                        {(d.value / 100000).toFixed(1)}L
-                      </span>
-                      <Select value={d.status} onValueChange={(s) => updateDealStatus(d.id, s as Deal["status"])}>
-                        <SelectTrigger className="w-[140px] h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="negotiation">Negotiation</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
