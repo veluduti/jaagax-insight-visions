@@ -871,7 +871,7 @@ export default function AgentDashboard() {
         {/* ===== Hotel Bookings (Excel Section 6.4) with Delete ===== */}
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 gap-6">
-            <HotelBookingsManager userId={user.id} agentId={agentProfile.id} />
+            <HotelBookingsManager userId={user.id} agentId={agentProfile.id} deletedVisitIds={deletedVisitIds} />
           </div>
         )}
 
@@ -1367,7 +1367,7 @@ export default function AgentDashboard() {
                                 <Button size="sm" className="h-8" onClick={() => updateVisitStatus(v.id, "completed")}>
                                   Mark Done
                                 </Button>
-                                {/* Delete button for completed visits */}
+                                {/* Delete button for scheduled visits */}
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -1379,15 +1379,30 @@ export default function AgentDashboard() {
                               </>
                             )}
                             {key === "completed" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={() => softDeleteVisit(v.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5 mr-1" />
-                                Remove
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => softDeleteVisit(v.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  Remove
+                                </Button>
+                              </>
+                            )}
+                            {key === "cancelled" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => softDeleteVisit(v.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  Remove
+                                </Button>
+                              </>
                             )}
                             <Button
                               size="sm"
