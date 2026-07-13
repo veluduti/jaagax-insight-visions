@@ -58,7 +58,9 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       pincode: value?.pincode || "",
       latitude: value?.latitude ?? null,
       longitude: value?.longitude ?? null,
+      place_id: value?.place_id || "",
     });
+
   }, [value]);
 
   const update = (patch: Partial<typeof form>) => {
