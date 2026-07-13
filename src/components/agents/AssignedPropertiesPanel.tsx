@@ -95,6 +95,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [filter, setFilter] = useState<"active" | "completed" | "all">("active");
+  const { hide, isHidden } = useHiddenIds("assigned_tasks", agentId);
 
   // Submit-verification dialog state
   const [verifyTarget, setVerifyTarget] = useState<AssignedTask | null>(null);
