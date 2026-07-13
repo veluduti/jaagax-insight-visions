@@ -64,7 +64,7 @@ import SwitchAgentDialog from "@/components/seller/SwitchAgentDialog";
 import AgentRating from "@/components/seller/AgentRating";
 import HotelBookings from "@/components/seller/HotelBookings";
 import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
-import PreferredLocations from "@/components/seller/PreferredLocations";
+// REMOVED: import PreferredLocations from "@/components/seller/PreferredLocations";
 import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
 import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
 import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
@@ -1012,7 +1012,9 @@ export default function SellerDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="mb-6"><OwnerPropertyStatusPanel /></div>
+            <div className="mb-6">
+              <OwnerPropertyStatusPanel />
+            </div>
             <Tabs defaultValue="all">
               <TabsList className="flex flex-wrap h-auto">
                 <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
@@ -1122,9 +1124,9 @@ export default function SellerDashboard() {
             {/* Financial Enquiries */}
             <FinancialEnquiries userId={user.id} />
 
-            {/* Preferred Locations + Alert Channels */}
+            {/* MODIFIED: Removed PreferredLocations, now using ActivityTimeline and AlertChannelsSettings side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PreferredLocations userId={user.id} />
+              <ActivityTimeline userId={user.id} />
               <AlertChannelsSettings userId={user.id} />
             </div>
 
