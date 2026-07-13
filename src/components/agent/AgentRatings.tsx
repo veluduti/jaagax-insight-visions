@@ -79,6 +79,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
   const [selectedRating, setSelectedRating] = useState<RatingRow | null>(null);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { hide, isHidden } = useHiddenIds("agent_ratings", agentId);
 
   const load = async () => {
     if (!agentId) return;
