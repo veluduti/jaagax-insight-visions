@@ -3716,86 +3716,70 @@ export default function SellProperty() {
                     pincode: state.pincode || "",
                   }}
                   onSubmit={async (data) => {
-                    // ============================================
-                    // MERGE LOCATION FIELDS
-                    // ============================================
-
+                    // Save only fields that have a real value; never overwrite
+                    // existing state with empty strings/nulls. Missing optional
+                    // fields must not fail submission.
                     const locationFieldId = field?.id || "location";
+
+                    const hasVal = (v: any) =>
+                      v !== undefined && v !== null && !(typeof v === "string" && v.trim() === "");
+
+                    const partial: Record<string, any> = {};
+                    [
+                      "country",
+                      "state_name",
+                      "city",
+                      "locality",
+                      "sub_locality",
+                      "landmark",
+                      "address",
+                      "pincode",
+                      "latitude",
+                      "longitude",
+                      "place_id",
+                    ].forEach((k) => {
+                      if (hasVal((data as any)[k])) partial[k] = (data as any)[k];
+                    });
 
                     const merged = {
                       ...state,
-                      country: data.country,
-                      state_name: data.state_name,
-                      city: data.city,
-                      locality: data.locality,
-                      sub_locality: data.sub_locality,
-                      landmark: data.landmark,
-                      address: data.address,
-                      pincode: data.pincode,
-                      // Mark the composite location field itself as answered
-                      // so the engine doesn't re-ask the same widget forever.
+                      ...partial,
                       [locationFieldId]: {
-                        country: data.country,
-                        state_name: data.state_name,
-                        city: data.city,
-                        locality: data.locality,
-                        sub_locality: data.sub_locality,
-                        landmark: data.landmark,
-                        address: data.address,
-                        pincode: data.pincode,
+                        ...(state?.[locationFieldId] || {}),
+                        ...partial,
                       },
                     };
 
-                    // ============================================
-                    // SAVE STATE
-                    // ============================================
-
                     setState(merged);
-
-                    // ============================================
-                    // APPLY TO ENGINE
-                    // ============================================
 
                     try {
                       engineRef.current?.applyExtractedFields(
                         {
-                          country: data.country,
-                          state_name: data.state_name,
-                          city: data.city,
-                          locality: data.locality,
-                          sub_locality: data.sub_locality,
-                          landmark: data.landmark,
-                          address: data.address,
-                          pincode: data.pincode,
+                          ...partial,
                           [locationFieldId]: merged[locationFieldId],
                         },
-                        {
-                          overwrite: true,
-                        },
+                        { overwrite: true },
                       );
                     } catch {}
 
-                    // ============================================
-                    // USER MESSAGE
-                    // ============================================
+                    // Short summary from whatever's available.
+                    const summary =
+                      [data.locality, data.city, data.state_name]
+                        .filter((s) => hasVal(s))
+                        .join(", ") ||
+                      data.address ||
+                      data.pincode ||
+                      "Location saved";
 
                     setMessages((m) => [
                       ...m,
-
                       {
                         id: uid(),
-
                         role: "user",
-
                         kind: "text",
-
-                        text: `${data.locality}, ${data.city}`,
+                        text: `📍 ${summary}`,
                       },
                     ]);
-
-                    // ============================================
-                    // CONTINUE FLOW
-                    // ============================================
 
                     await fetchNext(merged);
                   }}
