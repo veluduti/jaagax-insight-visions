@@ -138,17 +138,6 @@ export default function WalletBalance({ userId }: { userId: string }) {
             </Button>
           </div>
 
-          {/* Cash Back Section */}
-          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                Cash Back Earned
-              </p>
-              <p className="text-lg font-bold text-foreground">₹{cashback.toLocaleString("en-IN")}</p>
-              <p className="text-[10px] text-muted-foreground">From referrals, postings & promos</p>
-            </div>
-            <Sparkles className="h-6 w-6 text-amber-500 opacity-70" />
-          </div>
 
           {/* Auto-recharge Section */}
           <div className="mt-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
