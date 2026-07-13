@@ -69,7 +69,7 @@ import AgentAnalytics from "@/components/agent/AgentAnalytics";
 import AgentWallet from "@/components/agent/AgentWallet";
 import HotelBookingsManager from "@/components/agent/HotelBookingsManager";
 import FinancialEnquiriesManager from "@/components/agent/FinancialEnquiriesManager";
-import PreferredLocations from "@/components/agent/PreferredLocations";
+
 import AgentRatings from "@/components/agent/AgentRatings";
 
 // Lazy-load heavy panels
