@@ -17,6 +17,8 @@ import { Wallet, Plus, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
+
 const PRESETS = [500, 1000, 2000, 5000];
 
 export default function WalletBalance({ userId }: { userId: string }) {
