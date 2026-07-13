@@ -159,7 +159,7 @@ export default function AgentRatings({ agentId, trustScore = 0 }: AgentRatingsPr
       );
     }
     setFiltered(rows);
-  }, [search, filterStar, ratings]);
+  }, [search, filterStar, ratings, isHidden]);
 
   const handleReply = async () => {
     if (!selectedRating || !replyText.trim()) return;
