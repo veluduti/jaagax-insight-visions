@@ -23,7 +23,6 @@ const PRESETS = [500, 1000, 2000, 5000];
 
 export default function WalletBalance({ userId }: { userId: string }) {
   const [balance, setBalance] = useState(0);
-  const [cashback, setCashback] = useState(0);
   const [autoRecharge, setAutoRecharge] = useState(false);
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(500);
