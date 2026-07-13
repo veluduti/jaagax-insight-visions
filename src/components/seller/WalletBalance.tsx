@@ -186,10 +186,10 @@ export default function WalletBalance({ userId }: { userId: string }) {
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Custom Amount</label>
               <Input
                 type="number"
-                min={100}
+                min={500}
                 value={amount === 0 ? "" : amount}
                 onChange={(e) => setAmount(Number(e.target.value) || 0)}
-                placeholder="Enter amount"
+                placeholder="Enter amount (min ₹500)"
                 className="focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
@@ -197,7 +197,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
 
           <div className="bg-emerald-500/5 rounded-lg p-3 border border-emerald-500/10">
             <p className="text-xs text-muted-foreground text-center">
-              💳 Demo mode: Balance updates instantly. Razorpay/PhonePe integration coming soon.
+              🔒 Secure payment via Razorpay (UPI, Cards, Net Banking). Minimum ₹500.
             </p>
           </div>
 
@@ -207,7 +207,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
             </Button>
             <Button
               onClick={handleAdd}
-              disabled={loading || amount < 100}
+              disabled={loading || amount < 500}
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/20"
             >
               {loading ? (
