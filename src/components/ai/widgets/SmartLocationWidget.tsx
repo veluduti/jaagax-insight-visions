@@ -3,6 +3,9 @@ import { FC, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
+import MapLocationModal from "@/components/location/MapLocationModal";
+import { MapPin } from "lucide-react";
+
 
 interface SmartLocationWidgetProps {
   value?: Record<string, any>;
