@@ -91,6 +91,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
   }, [agentId, userId]);
 
   const filtered = bookings.filter((b) => {
+    if (isHidden(b.id)) return false;
     if (activeTab !== "all" && b.status !== activeTab) return false;
     if (!query) return true;
     const q = query.toLowerCase();
