@@ -48,6 +48,7 @@ export default function HotelBookingsManager({ userId, agentId }: HotelBookingsM
   const [selected, setSelected] = useState<Booking | null>(null);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending" | "cancelled">("all");
+  const { hide, isHidden } = useHiddenIds("hotel_bookings", agentId || userId);
 
   const goToHotels = () => navigate("/hotels");
 
