@@ -62,16 +62,14 @@ import AgentKYCVerification from "@/components/agent/AgentKYCVerification";
 import AgentSubscriptionManager from "@/components/agent/AgentSubscriptionManager";
 import AgentBadgeLevel from "@/components/agent/AgentBadgeLevel";
 import AgentSuccessScore from "@/components/agent/AgentSuccessScore";
-import AgentTeamManagement from "@/components/agent/AgentTeamManagement";
 import AgentReferralProgram from "@/components/agent/AgentReferralProgram";
 import AgentPremiumPromotion from "@/components/agent/AgentPremiumPromotion";
 import AgentAIRecommendations from "@/components/agent/AgentAIRecommendations";
-import AgentRouteOptimization from "@/components/agent/AgentRouteOptimization";
 import AgentAnalytics from "@/components/agent/AgentAnalytics";
 import AgentWallet from "@/components/agent/AgentWallet";
 import HotelBookingsManager from "@/components/agent/HotelBookingsManager";
 import FinancialEnquiriesManager from "@/components/agent/FinancialEnquiriesManager";
-import PreferredLocations from "@/components/agent/PreferredLocations";
+
 import AgentRatings from "@/components/agent/AgentRatings";
 
 // Lazy-load heavy panels
@@ -825,12 +823,6 @@ export default function AgentDashboard() {
           </div>
         )}
 
-        {/* ===== Preferred Locations (Excel Section 6.6) ===== */}
-        {agentProfile.id && user?.id && (
-          <div className="grid grid-cols-1 gap-6">
-            <PreferredLocations userId={user.id} compact={true} />
-          </div>
-        )}
 
         {/* ===== Ratings & Reviews (Excel Section 13) ===== */}
         {agentProfile.id && user?.id && (
@@ -1208,46 +1200,25 @@ export default function AgentDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="team" className="w-full">
-                <TabsList className="grid grid-cols-2 md:grid-cols-6 mb-6 h-auto gap-2">
-                  <TabsTrigger value="team" className="text-xs md:text-sm">
-                    Team
-                  </TabsTrigger>
+              <Tabs defaultValue="referral" className="w-full">
+                <TabsList className="grid grid-cols-3 mb-6 h-auto gap-2">
                   <TabsTrigger value="referral" className="text-xs md:text-sm">
                     Referral
                   </TabsTrigger>
-                  <TabsTrigger value="promotion" className="text-xs md:text-sm">
-                    Promotion
-                  </TabsTrigger>
                   <TabsTrigger value="ai" className="text-xs md:text-sm">
                     AI
-                  </TabsTrigger>
-                  <TabsTrigger value="route" className="text-xs md:text-sm">
-                    Route
                   </TabsTrigger>
                   <TabsTrigger value="analytics" className="text-xs md:text-sm">
                     Analytics
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="team">
-                  <AgentTeamManagement />
-                </TabsContent>
-
                 <TabsContent value="referral">
                   <AgentReferralProgram />
                 </TabsContent>
 
-                <TabsContent value="promotion">
-                  <AgentPremiumPromotion />
-                </TabsContent>
-
                 <TabsContent value="ai">
                   <AgentAIRecommendations />
-                </TabsContent>
-
-                <TabsContent value="route">
-                  <AgentRouteOptimization />
                 </TabsContent>
 
                 <TabsContent value="analytics">
