@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import AdminHierarchyPanel from "@/components/admin/AdminHierarchyPanel";
 import {
   Shield,
   CheckCircle,
@@ -157,6 +158,13 @@ export default function AdminPanel() {
       items: [
         { value: "weekend", label: "Weekend Explorer", icon: MapPinned },
         { value: "quick-visits", label: "Quick Visits", icon: Zap },
+      ],
+    },
+    {
+      label: "Admins",
+      icon: Shield,
+      items: [
+        { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
       ],
     },
   ];
@@ -850,6 +858,11 @@ export default function AdminPanel() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* ADMIN HIERARCHY */}
+          <TabsContent value="admin-hierarchy" className="mt-4">
+            <AdminHierarchyPanel />
           </TabsContent>
         </Tabs>
       </div>

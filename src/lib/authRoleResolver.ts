@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppUserRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager" | "financial";
+export type AppUserRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager" | "financial" | "country_admin" | "state_admin" | "district_admin";
 
 type SignupSnapshot = {
   status: string;

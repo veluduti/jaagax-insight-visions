@@ -74,6 +74,9 @@ const BuilderPromotions = lazy(() => import("./pages/BuilderPromotions"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const AgentAddProperty = lazy(() => import("./pages/AgentAddProperty"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const CountryAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.CountryAdminDashboard })));
+const StateAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.StateAdminDashboard })));
+const DistrictAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.DistrictAdminDashboard })));
 const AIAdvisor = lazy(() => import("./pages/AIAdvisor"));
 const AIAdvisorResults = lazy(() => import("./pages/AIAdvisorResults"));
 const AIAdvisorProperty = lazy(() => import("./pages/AIAdvisorProperty"));
@@ -660,6 +663,30 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="admin">
                         <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/country"
+                    element={
+                      <ProtectedRoute allowedRole="country_admin">
+                        <CountryAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/state"
+                    element={
+                      <ProtectedRoute allowedRole="state_admin">
+                        <StateAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/district"
+                    element={
+                      <ProtectedRoute allowedRole="district_admin">
+                        <DistrictAdminDashboard />
                       </ProtectedRoute>
                     }
                   />
