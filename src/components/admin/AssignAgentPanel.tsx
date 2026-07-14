@@ -99,7 +99,7 @@ interface SubmitterAgent {
   verified: boolean;
 }
 
-export default function AssignAgentPanel() {
+export default function AssignAgentPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
   const [submitterAgents, setSubmitterAgents] = useState<Record<string, SubmitterAgent>>({});
