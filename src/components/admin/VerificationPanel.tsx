@@ -34,7 +34,7 @@ interface PendingProject {
   verified: boolean | null;
 }
 
-export default function VerificationPanel() {
+export default function VerificationPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [projects, setProjects] = useState<PendingProject[]>([]);
   const [loading, setLoading] = useState(true);
