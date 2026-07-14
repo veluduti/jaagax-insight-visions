@@ -165,6 +165,7 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "activity", label: "Activity Timeline", icon: Activity },
       ],
     },
   ];
