@@ -1996,8 +1996,11 @@ export type Database = {
           city: string | null
           contact_email: string | null
           contact_phone: string | null
+          country: string | null
           created_at: string
           customer_name: string
+          district: string | null
+          district_admin_id: string | null
           documents: Json | null
           full_details: Json | null
           id: string
@@ -2009,14 +2012,18 @@ export type Database = {
           purchased_by_provider_id: string | null
           requirement: string | null
           source_user_id: string | null
+          state: string | null
         }
         Insert: {
           budget?: number | null
           city?: string | null
           contact_email?: string | null
           contact_phone?: string | null
+          country?: string | null
           created_at?: string
           customer_name: string
+          district?: string | null
+          district_admin_id?: string | null
           documents?: Json | null
           full_details?: Json | null
           id?: string
@@ -2028,14 +2035,18 @@ export type Database = {
           purchased_by_provider_id?: string | null
           requirement?: string | null
           source_user_id?: string | null
+          state?: string | null
         }
         Update: {
           budget?: number | null
           city?: string | null
           contact_email?: string | null
           contact_phone?: string | null
+          country?: string | null
           created_at?: string
           customer_name?: string
+          district?: string | null
+          district_admin_id?: string | null
           documents?: Json | null
           full_details?: Json | null
           id?: string
@@ -2047,6 +2058,7 @@ export type Database = {
           purchased_by_provider_id?: string | null
           requirement?: string | null
           source_user_id?: string | null
+          state?: string | null
         }
         Relationships: [
           {
@@ -2624,8 +2636,11 @@ export type Database = {
           check_out: string
           checked_in_at: string | null
           checkin_info: Json | null
+          country: string | null
           created_at: string | null
           currency: string
+          district: string | null
+          district_admin_id: string | null
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
@@ -2652,6 +2667,7 @@ export type Database = {
           room_type: string | null
           source: string
           special_requests: string | null
+          state: string | null
           status: string
           total_amount: number
           updated_at: string | null
@@ -2672,8 +2688,11 @@ export type Database = {
           check_out: string
           checked_in_at?: string | null
           checkin_info?: Json | null
+          country?: string | null
           created_at?: string | null
           currency?: string
+          district?: string | null
+          district_admin_id?: string | null
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
@@ -2700,6 +2719,7 @@ export type Database = {
           room_type?: string | null
           source?: string
           special_requests?: string | null
+          state?: string | null
           status?: string
           total_amount?: number
           updated_at?: string | null
@@ -2720,8 +2740,11 @@ export type Database = {
           check_out?: string
           checked_in_at?: string | null
           checkin_info?: Json | null
+          country?: string | null
           created_at?: string | null
           currency?: string
+          district?: string | null
+          district_admin_id?: string | null
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
@@ -2748,6 +2771,7 @@ export type Database = {
           room_type?: string | null
           source?: string
           special_requests?: string | null
+          state?: string | null
           status?: string
           total_amount?: number
           updated_at?: string | null
@@ -3019,6 +3043,8 @@ export type Database = {
           company_name: string | null
           country: string | null
           created_at: string
+          district: string | null
+          district_admin_id: string | null
           email: string
           front_desk_24h: boolean
           gst_certificate_url: string | null
@@ -3073,6 +3099,8 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           email: string
           front_desk_24h?: boolean
           gst_certificate_url?: string | null
@@ -3127,6 +3155,8 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           email?: string
           front_desk_24h?: boolean
           gst_certificate_url?: string | null
@@ -5318,9 +5348,12 @@ export type Database = {
           city: string
           contact_email: string | null
           contact_phone: string | null
+          country: string | null
           created_at: string | null
           description: string | null
           discount_percentage: number | null
+          district: string | null
+          district_admin_id: string | null
           id: string
           images: string[] | null
           is_active: boolean | null
@@ -5334,6 +5367,7 @@ export type Database = {
           price_per_night: number
           room_types: Json | null
           star_rating: number | null
+          state: string | null
           total_rooms: number | null
           updated_at: string | null
         }
@@ -5345,9 +5379,12 @@ export type Database = {
           city: string
           contact_email?: string | null
           contact_phone?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           discount_percentage?: number | null
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -5361,6 +5398,7 @@ export type Database = {
           price_per_night?: number
           room_types?: Json | null
           star_rating?: number | null
+          state?: string | null
           total_rooms?: number | null
           updated_at?: string | null
         }
@@ -5372,9 +5410,12 @@ export type Database = {
           city?: string
           contact_email?: string | null
           contact_phone?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
           discount_percentage?: number | null
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -5388,6 +5429,7 @@ export type Database = {
           price_per_night?: number
           room_types?: Json | null
           star_rating?: number | null
+          state?: string | null
           total_rooms?: number | null
           updated_at?: string | null
         }
@@ -5602,8 +5644,11 @@ export type Database = {
           builder_name: string | null
           builder_profile_id: string | null
           city: string | null
+          country: string | null
           created_at: string | null
           description: string | null
+          district: string | null
+          district_admin_id: string | null
           environmental_clearance_url: string | null
           floors: string | null
           floors_per_tower: number | null
@@ -5630,6 +5675,7 @@ export type Database = {
           rera_id: string | null
           size_range: string | null
           slug: string | null
+          state: string | null
           status: string | null
           submitted_by: string | null
           subtitle: string | null
@@ -5637,6 +5683,7 @@ export type Database = {
           total_units: number | null
           towers: number | null
           trust_score: number | null
+          updated_at: string
           verified: boolean | null
           videos: string[] | null
           virtual_tour_url: string | null
@@ -5651,8 +5698,11 @@ export type Database = {
           builder_name?: string | null
           builder_profile_id?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           environmental_clearance_url?: string | null
           floors?: string | null
           floors_per_tower?: number | null
@@ -5679,6 +5729,7 @@ export type Database = {
           rera_id?: string | null
           size_range?: string | null
           slug?: string | null
+          state?: string | null
           status?: string | null
           submitted_by?: string | null
           subtitle?: string | null
@@ -5686,6 +5737,7 @@ export type Database = {
           total_units?: number | null
           towers?: number | null
           trust_score?: number | null
+          updated_at?: string
           verified?: boolean | null
           videos?: string[] | null
           virtual_tour_url?: string | null
@@ -5700,8 +5752,11 @@ export type Database = {
           builder_name?: string | null
           builder_profile_id?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           environmental_clearance_url?: string | null
           floors?: string | null
           floors_per_tower?: number | null
@@ -5728,6 +5783,7 @@ export type Database = {
           rera_id?: string | null
           size_range?: string | null
           slug?: string | null
+          state?: string | null
           status?: string | null
           submitted_by?: string | null
           subtitle?: string | null
@@ -5735,6 +5791,7 @@ export type Database = {
           total_units?: number | null
           towers?: number | null
           trust_score?: number | null
+          updated_at?: string
           verified?: boolean | null
           videos?: string[] | null
           virtual_tour_url?: string | null
@@ -6562,40 +6619,52 @@ export type Database = {
       property_reports: {
         Row: {
           admin_notes: string | null
+          country: string | null
           created_at: string
           details: string | null
+          district: string | null
+          district_admin_id: string | null
           id: string
           property_id: string
           reason: string
           reported_by: string
           resolved_at: string | null
           resolved_by: string | null
+          state: string | null
           status: string
           updated_at: string
         }
         Insert: {
           admin_notes?: string | null
+          country?: string | null
           created_at?: string
           details?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           property_id: string
           reason: string
           reported_by: string
           resolved_at?: string | null
           resolved_by?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           admin_notes?: string | null
+          country?: string | null
           created_at?: string
           details?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           property_id?: string
           reason?: string
           reported_by?: string
           resolved_at?: string | null
           resolved_by?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
         }
@@ -6944,7 +7013,10 @@ export type Database = {
       signup_requests: {
         Row: {
           city: string | null
+          country: string | null
           created_at: string
+          district: string | null
+          district_admin_id: string | null
           email: string
           full_name: string | null
           id: string
@@ -6953,13 +7025,17 @@ export type Database = {
           requested_role: string
           reviewed_at: string | null
           reviewed_by: string | null
+          state: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           email: string
           full_name?: string | null
           id?: string
@@ -6968,13 +7044,17 @@ export type Database = {
           requested_role: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           email?: string
           full_name?: string | null
           id?: string
@@ -6983,6 +7063,7 @@ export type Database = {
           requested_role?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -7317,12 +7398,16 @@ export type Database = {
           buyer_name: string | null
           buyer_phone: string | null
           city: string | null
+          country: string | null
           created_at: string
+          district: string | null
+          district_admin_id: string | null
           id: string
           locality: string | null
           notes: string | null
           property_id: string | null
           scheduled_at: string | null
+          state: string | null
           status: string
           updated_at: string
           visit_date: string
@@ -7335,12 +7420,16 @@ export type Database = {
           buyer_name?: string | null
           buyer_phone?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           locality?: string | null
           notes?: string | null
           property_id?: string | null
           scheduled_at?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           visit_date: string
@@ -7353,12 +7442,16 @@ export type Database = {
           buyer_name?: string | null
           buyer_phone?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
+          district_admin_id?: string | null
           id?: string
           locality?: string | null
           notes?: string | null
           property_id?: string | null
           scheduled_at?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           visit_date?: string
@@ -7677,10 +7770,13 @@ export type Database = {
           buyer_notes: string | null
           buyer_phone: string
           city: string | null
+          country: string | null
           created_at: string
           deal_amount: number | null
           deal_closed_at: string | null
           deal_property_id: string | null
+          district: string | null
+          district_admin_id: string | null
           end_date: string
           estimated_total: number | null
           final_paid_at: string | null
@@ -7702,6 +7798,7 @@ export type Database = {
           rejection_reason: string | null
           selected_property_ids: string[] | null
           start_date: string
+          state: string | null
           status: string
           updated_at: string
         }
@@ -7733,10 +7830,13 @@ export type Database = {
           buyer_notes?: string | null
           buyer_phone: string
           city?: string | null
+          country?: string | null
           created_at?: string
           deal_amount?: number | null
           deal_closed_at?: string | null
           deal_property_id?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           end_date: string
           estimated_total?: number | null
           final_paid_at?: string | null
@@ -7758,6 +7858,7 @@ export type Database = {
           rejection_reason?: string | null
           selected_property_ids?: string[] | null
           start_date: string
+          state?: string | null
           status?: string
           updated_at?: string
         }
@@ -7789,10 +7890,13 @@ export type Database = {
           buyer_notes?: string | null
           buyer_phone?: string
           city?: string | null
+          country?: string | null
           created_at?: string
           deal_amount?: number | null
           deal_closed_at?: string | null
           deal_property_id?: string | null
+          district?: string | null
+          district_admin_id?: string | null
           end_date?: string
           estimated_total?: number | null
           final_paid_at?: string | null
@@ -7814,6 +7918,7 @@ export type Database = {
           rejection_reason?: string | null
           selected_property_ids?: string[] | null
           start_date?: string
+          state?: string | null
           status?: string
           updated_at?: string
         }
