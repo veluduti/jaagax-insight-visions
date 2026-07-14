@@ -45,7 +45,7 @@ interface PendingProperty {
 const fmtPrice = (n: number | null | undefined) =>
   n == null ? "—" : n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(2)} L` : `₹${Number(n).toLocaleString("en-IN")}`;
 
-export default function AgentVerifiedReviewPanel() {
+export default function AgentVerifiedReviewPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [items, setItems] = useState<PendingProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState<PendingProperty | null>(null);
