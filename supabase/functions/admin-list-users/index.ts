@@ -22,10 +22,24 @@ serve(async (req) => {
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    const { data: roleRow } = await admin
-      .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!roleRow) {
+    const { data: myRoles } = await admin
+      .from("user_roles").select("role").eq("user_id", user.id);
+    const roleSet = new Set((myRoles ?? []).map((r: any) => r.role));
+    const isGlobal = roleSet.has("admin");
+    const isCountry = roleSet.has("country_admin");
+    const isState = roleSet.has("state_admin");
+    const isDistrict = roleSet.has("district_admin");
+    if (!isGlobal && !isCountry && !isState && !isDistrict) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Load caller scope for hierarchical admins
+    let scope: any = null;
+    if (!isGlobal) {
+      const { data: scopes } = await admin
+        .from("admin_scopes").select("*").eq("user_id", user.id).eq("is_active", true);
+      const order = ["country_admin", "state_admin", "district_admin"];
+      scope = (scopes ?? []).sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role))[0] ?? null;
     }
 
     // Page through auth.users
