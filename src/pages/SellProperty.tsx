@@ -3163,6 +3163,13 @@ export default function SellProperty() {
 
         pincode: editForm.pincode || state.pincode || null,
 
+        // Territory (auto-assigns responsible district admin via DB trigger)
+        country: editForm.country || state.country || null,
+
+        state: editForm.state_name || state.state_name || state.state || null,
+
+        district: editForm.district || state.district || null,
+
         // ============================================
         // FEATURES (facing/ownership/highlights/payment_options/etc. preserved in document_urls)
         // ============================================
