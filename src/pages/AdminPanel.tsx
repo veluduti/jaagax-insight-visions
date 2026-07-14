@@ -767,7 +767,7 @@ export default function AdminPanel() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <AssignAgentPanel />
+                      <AssignAgentPanel readOnly />
                     </CardContent>
                   </Card>
 
