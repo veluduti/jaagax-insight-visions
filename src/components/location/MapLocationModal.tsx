@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export interface MapPickedLocation {
   country: string;
   state_name: string;
+  district: string;
   city: string;
   locality: string;
   sub_locality: string;
