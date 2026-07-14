@@ -859,6 +859,11 @@ export default function AdminPanel() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* ADMIN HIERARCHY */}
+          <TabsContent value="admin-hierarchy" className="mt-4">
+            <AdminHierarchyPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
