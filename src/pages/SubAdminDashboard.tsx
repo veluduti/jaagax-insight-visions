@@ -83,6 +83,7 @@ import AdminPanel from "@/pages/AdminPanel";
 
 export const CountryAdminDashboard = () => (
   <AdminPanel
+    readOnly
     title="Country Admin Dashboard"
     subtitle="Monitor property activity across your country. Operational actions are performed by District Admins."
   />
@@ -90,6 +91,7 @@ export const CountryAdminDashboard = () => (
 
 export const StateAdminDashboard = () => (
   <AdminPanel
+    readOnly
     title="State Admin Dashboard"
     subtitle="Monitor property activity across your state. Operational actions are performed by District Admins."
   />

@@ -87,7 +87,7 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
   </button>
 );
 
-export default function AdminPanel({ title, subtitle }: { title?: string; subtitle?: string } = {}) {
+export default function AdminPanel({ title, subtitle, readOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean } = {}) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -435,6 +435,21 @@ export default function AdminPanel({ title, subtitle }: { title?: string; subtit
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
+        {readOnly && (
+          <Card className="border-primary/40 bg-primary/5">
+            <CardContent className="p-4 text-sm flex items-start gap-3">
+              <Eye className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Monitor-only mode</p>
+                <p className="text-muted-foreground">
+                  You have <strong>view, reports and monitoring</strong> access for your scope. All operational actions —
+                  Assign Agent, Approve, Reject, Verify — are performed by the responsible <strong>District Admin</strong>.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Grid - 3x2 or 6 columns */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
