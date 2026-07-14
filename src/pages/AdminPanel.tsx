@@ -562,7 +562,7 @@ export default function AdminPanel() {
 
           {/* Agent Verified */}
           <TabsContent value="agent-verified" className="mt-4">
-            <AgentVerifiedReviewPanel />
+            <AgentVerifiedReviewPanel readOnly />
           </TabsContent>
 
           {/* All Listings */}
@@ -577,7 +577,7 @@ export default function AdminPanel() {
 
           {/* Projects Review */}
           <TabsContent value="projects-review" className="mt-4">
-            <VerificationPanel />
+            <VerificationPanel readOnly />
           </TabsContent>
 
           {/* RERA */}
