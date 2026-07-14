@@ -87,16 +87,26 @@ export default function RegisteredUsersPanel() {
 
   useEffect(() => { load(); }, []);
 
+  const ADMIN_ROLES = ["admin", "country_admin", "state_admin", "district_admin"];
+  const normalizedUsers = useMemo(() => {
+    return users.map((u) => {
+      const adminRole = u.roles.find((r) => ADMIN_ROLES.includes(r));
+      // Admin users should only display their admin role — hide implicit buyer/customer profiles.
+      const roles = adminRole ? [adminRole] : u.roles;
+      return { ...u, roles };
+    });
+  }, [users]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((u) =>
+    if (!q) return normalizedUsers;
+    return normalizedUsers.filter((u) =>
       (u.full_name ?? "").toLowerCase().includes(q) ||
       (u.email ?? "").toLowerCase().includes(q) ||
       (u.city ?? "").toLowerCase().includes(q) ||
       u.roles.some((r) => r.toLowerCase().includes(q))
     );
-  }, [users, query]);
+  }, [normalizedUsers, query]);
 
   return (
     <Card>
