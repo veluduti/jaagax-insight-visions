@@ -237,7 +237,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   };
 
   const fetchStats = async () => {
-    const scoped = <T extends { eq: (c: string, v: any) => T }>(q: T) => applyAdminScope(q, scope);
+    const scoped = (q: any) => applyAdminScope<any>(q, scope);
     const [
       { count: propertiesCount },
       { count: projectsCount },
@@ -247,13 +247,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
       { count: buildersCount },
       { count: pendingPropertiesCount },
     ] = await Promise.all([
-      scoped(supabase.from("properties").select("*", { count: "exact", head: true })),
-      scoped(supabase.from("projects").select("*", { count: "exact", head: true })),
-      supabase.from("agents").select("*", { count: "exact", head: true }),
-      scoped(supabase.from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending")),
-      scoped(supabase.from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending")),
-      supabase.from("builder_profiles").select("*", { count: "exact", head: true }),
-      scoped(supabase.from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending")),
+      scoped((supabase as any).from("properties").select("*", { count: "exact", head: true })),
+      scoped((supabase as any).from("projects").select("*", { count: "exact", head: true })),
+      (supabase as any).from("agents").select("*", { count: "exact", head: true }),
+      scoped((supabase as any).from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending")),
+      scoped((supabase as any).from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending")),
+      (supabase as any).from("builder_profiles").select("*", { count: "exact", head: true }),
+      scoped((supabase as any).from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending")),
     ]);
     setStats({
       totalProperties: propertiesCount || 0,
@@ -267,16 +267,16 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   };
 
   const fetchSignupRequests = async () => {
-    const { data } = await applyAdminScope(
-      supabase.from("signup_requests").select("*").order("created_at", { ascending: false }),
+    const { data } = await applyAdminScope<any>(
+      (supabase as any).from("signup_requests").select("*").order("created_at", { ascending: false }),
       scope,
     );
     setSignupRequests(data || []);
   };
 
   const fetchVisitBookings = async () => {
-    const { data } = await applyAdminScope(
-      supabase
+    const { data } = await applyAdminScope<any>(
+      (supabase as any)
         .from("visit_bookings")
         .select("*, agents(name, phone)")
         .order("created_at", { ascending: false })
@@ -287,13 +287,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   };
 
   const fetchAgents = async () => {
-    const { data } = await supabase.from("agents").select("*").order("created_at", { ascending: false });
+    const { data } = await (supabase as any).from("agents").select("*").order("created_at", { ascending: false });
     setAgents(data || []);
   };
 
   const fetchProperties = async () => {
-    const { data } = await applyAdminScope(
-      supabase
+    const { data } = await applyAdminScope<any>(
+      (supabase as any)
         .from("properties")
         .select(
           "id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft, document_urls, listing_type, images",
@@ -306,12 +306,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   };
 
   const fetchBuilders = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("builder_profiles")
       .select("id, builder_name, type, phone, email, operating_cities, created_at")
       .order("created_at", { ascending: false });
     setBuilders(data || []);
   };
+
 
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
     let reason: string | null = null;
