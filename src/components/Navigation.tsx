@@ -43,6 +43,14 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role } = useAuth();
+  const isAdminRole = role === "admin" || role === "country_admin" || role === "state_admin" || role === "district_admin";
+  const dashboardPath =
+    role === "admin" ? "/dashboard/admin"
+      : role === "country_admin" ? "/dashboard/admin/country"
+      : role === "state_admin" ? "/dashboard/admin/state"
+      : role === "district_admin" ? "/dashboard/admin/district"
+      : role === "hotel_manager" ? "/partners/dashboard"
+      : `/dashboard/${role || "buyer"}`;
   const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
 
   useEffect(() => {
