@@ -921,6 +921,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
             <AdminHierarchyPanel />
           </TabsContent>
 
+          {/* LOCATION MASTER */}
+          <TabsContent value="location-master" className="mt-4">
+            <LocationMasterPanel />
+          </TabsContent>
+
+
           {/* ACTIVITY TIMELINE */}
           <TabsContent value="activity" className="mt-4">
             <AdminActivityTimeline />
