@@ -5,6 +5,8 @@ otp_length = 6
 otp_expiry = 3600
 
 [functions]
+  [functions.create-sub-admin]
+    verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
   [functions.process-email-queue]
