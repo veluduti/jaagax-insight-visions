@@ -91,14 +91,18 @@ serve(async (req) => {
       email_confirm: true,
       user_metadata: { full_name: fullName, phone, role: targetRole },
     });
-    if (createErr || !created?.user) return json({ error: createErr?.message ?? "Failed to create user" }, 400);
+    if (createErr || !created?.user) {
+      console.error("createUser error:", createErr);
+      return json({ error: createErr?.message ?? "Failed to create user" }, 400);
+    }
     const newUserId = created.user.id;
 
     // Insert user_roles + admin_scopes
     const { error: roleErr } = await admin.from("user_roles").insert({ user_id: newUserId, role: targetRole });
     if (roleErr && !roleErr.message.toLowerCase().includes("duplicate")) {
+      console.error("user_roles insert error:", roleErr);
       await admin.auth.admin.deleteUser(newUserId).catch(() => {});
-      return json({ error: roleErr.message }, 400);
+      return json({ error: `user_roles: ${roleErr.message}` }, 400);
     }
 
     const { error: scopeErr } = await admin.from("admin_scopes").insert({
@@ -111,9 +115,11 @@ serve(async (req) => {
       created_by: user.id,
     });
     if (scopeErr) {
+      console.error("admin_scopes insert error:", scopeErr);
       await admin.auth.admin.deleteUser(newUserId).catch(() => {});
-      return json({ error: scopeErr.message }, 400);
+      return json({ error: `admin_scopes: ${scopeErr.message}` }, 400);
     }
+
 
     // Optional: mirror phone into signup_requests / profile? Keep minimal — non-blocking.
     if (phone) {
