@@ -9,6 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { ExternalLink, EyeOff, Trash2, Ban, Flag, Search, Loader2 } from "lucide-react";
+import { useAdminScopeFilter, applyAdminScope } from "@/contexts/AdminScopeFilterContext";
 import { toast } from "sonner";
 
 type FilterKey = "all" | "active" | "expired" | "reported" | "rejected" | "blocked";
