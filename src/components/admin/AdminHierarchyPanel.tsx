@@ -111,12 +111,24 @@ export default function AdminHierarchyPanel() {
       toast({ title: "Missing details", description: "Full name, email and password are required.", variant: "destructive" });
       return;
     }
-    for (const f of requiredFields) {
-      if (!(form as any)[f]) {
-        toast({ title: `Missing ${f}`, variant: "destructive" });
-        return;
-      }
+    // Derive text values from master selection, falling back to inherited form
+    const country = loc.country ?? form.country ?? null;
+    const state = loc.state ?? form.state ?? null;
+    const district = loc.district ?? form.district ?? null;
+
+    if (requiredFields.includes("country") && !country) {
+      toast({ title: "Missing country", variant: "destructive" });
+      return;
     }
+    if (requiredFields.includes("state") && !state) {
+      toast({ title: "Missing state", variant: "destructive" });
+      return;
+    }
+    if (requiredFields.includes("district") && !district) {
+      toast({ title: "Missing district", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     let errMsg: string | null = null;
     try {
@@ -126,14 +138,14 @@ export default function AdminHierarchyPanel() {
           email: form.email,
           phone: form.phone,
           password: form.password,
-          country: form.country || null,
-          state: form.state || null,
-          district: form.district || null,
+          country, state, district,
+          country_id: loc.country_id,
+          state_id: loc.state_id,
+          district_id: loc.district_id,
           isActive: form.isActive,
         },
       });
       if (error) {
-        // Try to read the JSON error body from the FunctionsHttpError context
         try {
           const body = await (error as any).context?.json?.();
           errMsg = body?.error ?? error.message;
@@ -153,9 +165,11 @@ export default function AdminHierarchyPanel() {
       return;
     }
     toast({ title: `${ROLE_LABEL[targetRole]} created` });
-    setForm((f) => ({ ...f, fullName: "", email: "", phone: "", password: "", district: "" }));
+    setForm((f) => ({ ...f, fullName: "", email: "", phone: "", password: "" }));
+    setLoc(emptyMasterLocation);
     void loadAll();
   };
+
 
   if (loading) {
     return (
