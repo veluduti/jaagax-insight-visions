@@ -43,6 +43,14 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role } = useAuth();
+  const isAdminRole = role === "admin" || role === "country_admin" || role === "state_admin" || role === "district_admin";
+  const dashboardPath =
+    role === "admin" ? "/dashboard/admin"
+      : role === "country_admin" ? "/dashboard/admin/country"
+      : role === "state_admin" ? "/dashboard/admin/state"
+      : role === "district_admin" ? "/dashboard/admin/district"
+      : role === "hotel_manager" ? "/partners/dashboard"
+      : `/dashboard/${role || "buyer"}`;
   const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
 
   useEffect(() => {
@@ -297,9 +305,9 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  <ProfileSwitcher />
+                  {!isAdminRole && <ProfileSwitcher />}
                   <Button
-                    onClick={() => navigate(`/dashboard/${role || "buyer"}`)}
+                    onClick={() => navigate(dashboardPath)}
                     variant="default"
                     size="sm"
                     className="text-sm"
@@ -341,8 +349,8 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  <ProfileSwitcher />
-                  <Button onClick={() => navigate(`/dashboard/${role || "buyer"}`)} variant="ghost" size="sm">
+                  {!isAdminRole && <ProfileSwitcher />}
+                  <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm">
                     Dashboard
                   </Button>
                 </>

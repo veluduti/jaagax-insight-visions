@@ -138,17 +138,19 @@ function ReadOnlyMonitoringDashboard({ title, subtitle }: { title: string; subti
   );
 }
 
+import AdminPanel from "@/pages/AdminPanel";
+
 export const CountryAdminDashboard = () => (
-  <ReadOnlyMonitoringDashboard
+  <AdminPanel
     title="Country Admin Dashboard"
-    subtitle="Monitor property activity across your country and manage State Admins."
+    subtitle="Monitor property activity across your country. Operational actions are performed by District Admins."
   />
 );
 
 export const StateAdminDashboard = () => (
-  <ReadOnlyMonitoringDashboard
+  <AdminPanel
     title="State Admin Dashboard"
-    subtitle="Monitor property activity across your state and manage District Admins."
+    subtitle="Monitor property activity across your state. Operational actions are performed by District Admins."
   />
 );
 

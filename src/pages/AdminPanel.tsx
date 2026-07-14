@@ -87,7 +87,7 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
   </button>
 );
 
-export default function AdminPanel() {
+export default function AdminPanel({ title, subtitle }: { title?: string; subtitle?: string } = {}) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -419,9 +419,9 @@ export default function AdminPanel() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Shield className="h-6 w-6 text-primary" />
-              Admin Control Panel
+              {title || "Admin Control Panel"}
             </h1>
-            <p className="text-sm text-muted-foreground">Manage users, properties, agents & platform</p>
+            <p className="text-sm text-muted-foreground">{subtitle || "Manage users, properties, agents & platform"}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={() => loadAllData()}>
