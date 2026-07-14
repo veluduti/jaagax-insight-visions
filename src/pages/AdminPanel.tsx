@@ -99,6 +99,7 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
 
 function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean }) {
   const navigate = useNavigate();
+  const { effective: scope } = useAdminScopeFilter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("signups");
