@@ -329,12 +329,20 @@ export default function AgentVerifiedReviewPanel({ readOnly = false }: { readOnl
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
-              <XCircle className="h-4 w-4 mr-1" />Reject
-            </Button>
-            <Button onClick={() => reviewTarget && handleApprove(reviewTarget)} className="bg-emerald-600 hover:bg-emerald-700">
-              <CheckCircle className="h-4 w-4 mr-1" />Approve & Publish
-            </Button>
+            {readOnly ? (
+              <p className="text-xs text-muted-foreground italic">
+                View only — approvals handled by the District Admin.
+              </p>
+            ) : (
+              <>
+                <Button variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
+                  <XCircle className="h-4 w-4 mr-1" />Reject
+                </Button>
+                <Button onClick={() => reviewTarget && handleApprove(reviewTarget)} className="bg-emerald-600 hover:bg-emerald-700">
+                  <CheckCircle className="h-4 w-4 mr-1" />Approve & Publish
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
