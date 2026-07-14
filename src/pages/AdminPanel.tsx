@@ -41,6 +41,8 @@ import {
   MapPinned,
   FolderOpen,
   UserPlus,
+  Activity,
+  BellRing,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import BookingsPanel from "@/components/admin/BookingsPanel";
@@ -56,6 +58,8 @@ import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
 import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
 import PriceDropQueue from "@/components/admin/PriceDropQueue";
+import { RemindAdminDialog } from "@/components/admin/RemindAdminDialog";
+import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 import {
@@ -108,6 +112,7 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
   const [properties, setProperties] = useState<any[]>([]);
   const [builders, setBuilders] = useState<any[]>([]);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [remindOpen, setRemindOpen] = useState(false);
 
   // ============================================================================
   // NAVIGATION GROUPS - DROPDOWN BASED
@@ -165,6 +170,7 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "activity", label: "Activity Timeline", icon: Activity },
       ],
     },
   ];
@@ -424,6 +430,9 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
             <p className="text-sm text-muted-foreground">{subtitle || "Manage users, properties, agents & platform"}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Button size="sm" variant="outline" onClick={() => setRemindOpen(true)}>
+              <BellRing className="h-4 w-4 mr-1" /> Remind Admin
+            </Button>
             <Button size="sm" variant="outline" onClick={() => loadAllData()}>
               <RefreshCw className="h-4 w-4 mr-1" /> Refresh
             </Button>
@@ -879,8 +888,15 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
           <TabsContent value="admin-hierarchy" className="mt-4">
             <AdminHierarchyPanel />
           </TabsContent>
+
+          {/* ACTIVITY TIMELINE */}
+          <TabsContent value="activity" className="mt-4">
+            <AdminActivityTimeline />
+          </TabsContent>
         </Tabs>
       </div>
+
+      <RemindAdminDialog open={remindOpen} onOpenChange={setRemindOpen} />
     </div>
   );
 }
