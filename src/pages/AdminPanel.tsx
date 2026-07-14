@@ -159,6 +159,13 @@ export default function AdminPanel() {
         { value: "quick-visits", label: "Quick Visits", icon: Zap },
       ],
     },
+    {
+      label: "Admins",
+      icon: Shield,
+      items: [
+        { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+      ],
+    },
   ];
 
   // ============================================================================
