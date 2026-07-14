@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Shield, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import LocationMasterSelector from "@/components/location/LocationMasterSelector";
+import { emptyMasterLocation, type MasterLocationSelection } from "@/hooks/useLocationMaster";
+
 
 type AdminRole = "global_admin" | "country_admin" | "state_admin" | "district_admin";
 
