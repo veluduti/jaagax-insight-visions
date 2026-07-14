@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import AdminHierarchyPanel from "@/components/admin/AdminHierarchyPanel";
+import LocationMasterPanel from "@/components/admin/LocationMasterPanel";
 import {
   Shield,
   CheckCircle,
@@ -177,6 +178,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "location-master", label: "Location Master", icon: MapPin },
         { value: "activity", label: "Activity Timeline", icon: Activity },
       ],
     },
@@ -918,6 +920,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           <TabsContent value="admin-hierarchy" className="mt-4">
             <AdminHierarchyPanel />
           </TabsContent>
+
+          {/* LOCATION MASTER */}
+          <TabsContent value="location-master" className="mt-4">
+            <LocationMasterPanel />
+          </TabsContent>
+
 
           {/* ACTIVITY TIMELINE */}
           <TabsContent value="activity" className="mt-4">
