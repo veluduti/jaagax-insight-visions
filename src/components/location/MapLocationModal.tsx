@@ -67,6 +67,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
     return {
       country: d.country || "India",
       state_name: d.state || "",
+      district: d.district || "",
       city: d.city || "",
       locality: d.locality || "",
       sub_locality: d.sub_locality || "",
