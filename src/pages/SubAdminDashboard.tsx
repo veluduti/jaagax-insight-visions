@@ -37,72 +37,13 @@ function DashboardShell({ title, subtitle, children }: Props) {
 
 /**
  * DISTRICT ADMIN — operational owner for property workflow.
- * Full capabilities: assign agents, approve, reject, publish, review verified.
- * RLS scopes visibility to their district automatically.
+ * Full capabilities identical to Global Admin, RLS auto-scopes to their district.
  */
 export const DistrictAdminDashboard = () => (
-  <DashboardShell
+  <AdminPanel
     title="District Admin Dashboard"
     subtitle="You are the operational owner for properties in your district."
-  >
-    <Tabs defaultValue="pending" className="w-full">
-      <TabsList className="flex-wrap h-auto">
-        <TabsTrigger value="pending" className="gap-1.5"><AlertCircle className="h-4 w-4" />New Requests</TabsTrigger>
-        <TabsTrigger value="agent-verified" className="gap-1.5"><CheckCircle className="h-4 w-4" />Agent-Verified</TabsTrigger>
-        <TabsTrigger value="projects" className="gap-1.5"><Home className="h-4 w-4" />Projects</TabsTrigger>
-        <TabsTrigger value="documents" className="gap-1.5"><FileText className="h-4 w-4" />Documents</TabsTrigger>
-        <TabsTrigger value="price-drops" className="gap-1.5"><TrendingDown className="h-4 w-4" />Price Drops</TabsTrigger>
-        <TabsTrigger value="all" className="gap-1.5"><List className="h-4 w-4" />All Listings</TabsTrigger>
-        <TabsTrigger value="reports" className="gap-1.5"><FileText className="h-4 w-4" />Reports</TabsTrigger>
-        <TabsTrigger value="admins" className="gap-1.5"><Users className="h-4 w-4" />Admins</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="pending" className="mt-4">
-        <Card className="border-orange-500/40">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-500">
-              <AlertCircle className="h-5 w-5" />
-              Pending Property Verifications
-            </CardTitle>
-            <CardDescription>
-              Review new submissions in your district. Assign a nearby agent for verification or approve directly for builder listings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AssignAgentPanel />
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="agent-verified" className="mt-4">
-        <AgentVerifiedReviewPanel />
-      </TabsContent>
-
-      <TabsContent value="projects" className="mt-4">
-        <VerificationPanel />
-      </TabsContent>
-
-      <TabsContent value="documents" className="mt-4">
-        <PropertyDocumentsPanel />
-      </TabsContent>
-
-      <TabsContent value="price-drops" className="mt-4">
-        <PriceDropQueue />
-      </TabsContent>
-
-      <TabsContent value="all" className="mt-4">
-        <AllListingsPanel />
-      </TabsContent>
-
-      <TabsContent value="reports" className="mt-4">
-        <ReportedListingsPanel />
-      </TabsContent>
-
-      <TabsContent value="admins" className="mt-4">
-        <AdminHierarchyPanel />
-      </TabsContent>
-    </Tabs>
-  </DashboardShell>
+  />
 );
 
 /**
