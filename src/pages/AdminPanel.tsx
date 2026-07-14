@@ -194,7 +194,15 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
 
   useEffect(() => {
     checkAdminAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-fetch whenever the location scope filter changes
+  useEffect(() => {
+    if (!isAdmin) return;
+    void loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope.country, scope.state, scope.district, isAdmin]);
 
   useRealtimeTableSubscription({
     channelName: "admin-panel-live-updates",
