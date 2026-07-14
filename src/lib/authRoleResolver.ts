@@ -15,7 +15,7 @@ export type AccessResolution = {
   hasAssignedRole: boolean;
 };
 
-const ROLE_PRIORITY = ["admin", "hotel_manager", "builder", "agent", "financial", "customer", "buyer", "driver"] as const;
+const ROLE_PRIORITY = ["admin", "country_admin", "state_admin", "district_admin", "hotel_manager", "builder", "agent", "financial", "customer", "buyer", "driver"] as const;
 const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer", "agent", "builder", "financial", "hotel_manager"]);
 
 export const mapDbRoleToAppRole = (dbRole: string, requestedRole?: string | null): AppUserRole => {
