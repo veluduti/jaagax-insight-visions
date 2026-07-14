@@ -178,6 +178,15 @@ export const useAuth = () => {
       case "admin":
         navigate("/dashboard/admin");
         break;
+      case "country_admin":
+        navigate("/dashboard/admin/country");
+        break;
+      case "state_admin":
+        navigate("/dashboard/admin/state");
+        break;
+      case "district_admin":
+        navigate("/dashboard/admin/district");
+        break;
       case "hotel_manager":
         navigate("/partners/dashboard");
         break;
