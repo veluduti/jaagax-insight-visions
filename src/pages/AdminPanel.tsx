@@ -485,8 +485,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           </Card>
         )}
 
+        {/* Hierarchical Location Filter — respects RBAC bounds */}
+        <AdminScopeFilterBar />
+
         {/* Stats Grid - 3x2 or 6 columns */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
           {[
             { label: "Properties", value: stats.totalProperties, icon: Home, color: "text-blue-500" },
             { label: "Projects", value: stats.totalProjects, icon: Building2, color: "text-green-500" },
