@@ -123,9 +123,13 @@ serve(async (req) => {
 
     // Optional: mirror phone into signup_requests / profile? Keep minimal — non-blocking.
     if (phone) {
-      await admin.from("signup_requests").upsert({
-        user_id: newUserId, email, full_name: fullName, phone, requested_role: targetRole, status: "approved",
-      } as any, { onConflict: "user_id" }).catch(() => {});
+      try {
+        await admin.from("signup_requests").upsert({
+          user_id: newUserId, email, full_name: fullName, phone, requested_role: targetRole, status: "approved",
+        } as any, { onConflict: "user_id" });
+      } catch (e) {
+        console.warn("signup_requests upsert skipped:", (e as any)?.message);
+      }
     }
 
     return json({ success: true, user_id: newUserId, role: targetRole });
