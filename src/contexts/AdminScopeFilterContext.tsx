@@ -191,17 +191,17 @@ export const useAdminScopeFilter = () => {
  * Usage:
  *   applyAdminScope(supabase.from("properties").select("*"), effective)
  */
-export function applyAdminScope<T extends { eq: (col: string, val: any) => T }>(
+export function applyAdminScope<T = any>(
   query: T,
   scope: AdminScopeSelection,
   cols: { country?: string; state?: string; district?: string } = {},
 ): T {
-  let q = query;
+  let q: any = query;
   const cCol = cols.country ?? "country";
   const sCol = cols.state ?? "state";
   const dCol = cols.district ?? "district";
   if (scope.country) q = q.eq(cCol, scope.country);
   if (scope.state) q = q.eq(sCol, scope.state);
   if (scope.district) q = q.eq(dCol, scope.district);
-  return q;
+  return q as T;
 }
