@@ -888,8 +888,15 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
           <TabsContent value="admin-hierarchy" className="mt-4">
             <AdminHierarchyPanel />
           </TabsContent>
+
+          {/* ACTIVITY TIMELINE */}
+          <TabsContent value="activity" className="mt-4">
+            <AdminActivityTimeline />
+          </TabsContent>
         </Tabs>
       </div>
+
+      <RemindAdminDialog open={remindOpen} onOpenChange={setRemindOpen} />
     </div>
   );
 }
