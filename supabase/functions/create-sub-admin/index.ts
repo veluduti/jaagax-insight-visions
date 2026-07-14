@@ -35,13 +35,17 @@ serve(async (req) => {
     if (authErr || !user) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
-    const { fullName, phone, email, password, country, state, district, isActive = true } = body ?? {};
+    const {
+      fullName, phone, email, password,
+      country, state, district,
+      country_id, state_id, district_id,
+      isActive = true,
+    } = body ?? {};
     if (!email || !password || !fullName) return json({ error: "fullName, email and password are required" }, 400);
 
     // Resolve caller's admin role & scope
     const { data: callerScopes } = await admin
       .from("admin_scopes").select("*").eq("user_id", user.id).eq("is_active", true);
-    // Global admin fallback via user_roles
     const { data: globalRow } = await admin
       .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
 
@@ -63,12 +67,16 @@ serve(async (req) => {
     let finalCountry: string | null = null;
     let finalState: string | null = null;
     let finalDistrict: string | null = null;
+    let finalCountryId: string | null = country_id ?? null;
+    let finalStateId: string | null = state_id ?? null;
+    let finalDistrictId: string | null = district_id ?? null;
 
     if (targetRole === "country_admin") {
-      if (!country) return json({ error: "Country is required" }, 400);
+      if (!country && !country_id) return json({ error: "Country is required" }, 400);
       finalCountry = country;
     } else if (targetRole === "state_admin") {
       finalCountry = callerScope?.country ?? country;
+      finalCountryId = callerScope?.country_id ?? country_id ?? null;
       if (!finalCountry || !state) return json({ error: "Country and State are required" }, 400);
       if (callerScope?.country && country && country !== callerScope.country) {
         return json({ error: "Country must match your assigned country" }, 403);
@@ -77,6 +85,8 @@ serve(async (req) => {
     } else if (targetRole === "district_admin") {
       finalCountry = callerScope?.country ?? country;
       finalState = callerScope?.state ?? state;
+      finalCountryId = callerScope?.country_id ?? country_id ?? null;
+      finalStateId = callerScope?.state_id ?? state_id ?? null;
       if (!finalCountry || !finalState || !district) return json({ error: "Country, State and District are required" }, 400);
       if (callerScope?.state && state && state !== callerScope.state) {
         return json({ error: "State must match your assigned state" }, 403);
@@ -84,11 +94,20 @@ serve(async (req) => {
       finalDistrict = district;
     }
 
+    // If IDs weren't provided by client, resolve via master
+    if (!finalDistrictId && finalDistrict) {
+      const { data: resolved } = await admin.rpc("resolve_location_ids", {
+        _country: finalCountry, _state: finalState, _district: finalDistrict, _city: null, _locality: null,
+      });
+      const r = Array.isArray(resolved) ? resolved[0] : resolved;
+      finalCountryId = finalCountryId ?? r?.country_id ?? null;
+      finalStateId   = finalStateId   ?? r?.state_id   ?? null;
+      finalDistrictId = finalDistrictId ?? r?.district_id ?? null;
+    }
+
     // Create auth user
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
+      email, password, email_confirm: true,
       user_metadata: { full_name: fullName, phone, role: targetRole },
     });
     if (createErr || !created?.user) {
@@ -97,7 +116,6 @@ serve(async (req) => {
     }
     const newUserId = created.user.id;
 
-    // Insert user_roles + admin_scopes
     const { error: roleErr } = await admin.from("user_roles").insert({ user_id: newUserId, role: targetRole });
     if (roleErr && !roleErr.message.toLowerCase().includes("duplicate")) {
       console.error("user_roles insert error:", roleErr);
@@ -111,6 +129,9 @@ serve(async (req) => {
       country: finalCountry,
       state: finalState,
       district: finalDistrict,
+      country_id: finalCountryId,
+      state_id: finalStateId,
+      district_id: finalDistrictId,
       is_active: !!isActive,
       created_by: user.id,
     });
@@ -119,6 +140,8 @@ serve(async (req) => {
       await admin.auth.admin.deleteUser(newUserId).catch(() => {});
       return json({ error: `admin_scopes: ${scopeErr.message}` }, 400);
     }
+
+
 
 
     // Optional: mirror phone into signup_requests / profile? Keep minimal — non-blocking.
