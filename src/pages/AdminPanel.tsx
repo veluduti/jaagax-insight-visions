@@ -906,3 +906,12 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
     </div>
   );
 }
+
+export default function AdminPanel(props: { title?: string; subtitle?: string; readOnly?: boolean } = {}) {
+  return (
+    <AdminScopeFilterProvider>
+      <AdminPanelInner {...props} />
+    </AdminScopeFilterProvider>
+  );
+}
+
