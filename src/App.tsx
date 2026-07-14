@@ -667,6 +667,30 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/dashboard/admin/country"
+                    element={
+                      <ProtectedRoute allowedRole="country_admin">
+                        <CountryAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/state"
+                    element={
+                      <ProtectedRoute allowedRole="state_admin">
+                        <StateAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/admin/district"
+                    element={
+                      <ProtectedRoute allowedRole="district_admin">
+                        <DistrictAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/dashboard/admin/frm"
                     element={
                       <ProtectedRoute allowedRole="admin">
