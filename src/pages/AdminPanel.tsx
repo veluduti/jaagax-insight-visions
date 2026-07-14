@@ -112,6 +112,7 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
   const [properties, setProperties] = useState<any[]>([]);
   const [builders, setBuilders] = useState<any[]>([]);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [remindOpen, setRemindOpen] = useState(false);
 
   // ============================================================================
   // NAVIGATION GROUPS - DROPDOWN BASED
