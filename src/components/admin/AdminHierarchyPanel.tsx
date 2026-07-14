@@ -235,32 +235,25 @@ export default function AdminHierarchyPanel() {
                 <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
 
-              {requiredFields.includes("country") && (
-                <div>
-                  <Label>Country</Label>
-                  <Input
-                    value={form.country}
-                    disabled={effectiveRole !== "global_admin"}
-                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Location Assignment (from Master)</Label>
+                <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <LocationMasterSelector
+                    value={loc}
+                    onChange={setLoc}
+                    showLocality={false}
+                    fixedCountry={effectiveRole !== "global_admin"}
                   />
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    {targetRole === "district_admin"
+                      ? "Pick the exact District — this admin will own all properties, agents and bookings in it."
+                      : targetRole === "state_admin"
+                      ? "Pick the State — this admin oversees every district in it."
+                      : "Pick the Country — this admin oversees every state in it."}
+                  </p>
                 </div>
-              )}
-              {requiredFields.includes("state") && (
-                <div>
-                  <Label>State</Label>
-                  <Input
-                    value={form.state}
-                    disabled={effectiveRole === "state_admin"}
-                    onChange={(e) => setForm({ ...form, state: e.target.value })}
-                  />
-                </div>
-              )}
-              {requiredFields.includes("district") && (
-                <div>
-                  <Label>District</Label>
-                  <Input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} />
-                </div>
-              )}
+              </div>
+
 
               <div className="flex items-center gap-2">
                 <Switch checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} />
