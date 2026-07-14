@@ -87,7 +87,7 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
   </button>
 );
 
-export default function AdminPanel() {
+export default function AdminPanel({ title, subtitle }: { title?: string; subtitle?: string } = {}) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
