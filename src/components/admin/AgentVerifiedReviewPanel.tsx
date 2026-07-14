@@ -244,7 +244,7 @@ export default function AgentVerifiedReviewPanel({ readOnly = false }: { readOnl
                       </p>
                     )}
                     <Button size="sm" className="w-full" onClick={() => setReviewTarget(p)}>
-                      Compare & Review
+                      {readOnly ? "View Details" : "Compare & Review"}
                     </Button>
                   </CardContent>
                 </Card>
