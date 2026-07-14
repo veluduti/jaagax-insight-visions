@@ -124,6 +124,8 @@ serve(async (req) => {
 
     return json({ success: true, user_id: newUserId, role: targetRole });
   } catch (e: any) {
+    console.error("create-sub-admin failed:", e?.message, e?.stack);
     return json({ error: e?.message ?? "Server error" }, 500);
   }
 });
+
