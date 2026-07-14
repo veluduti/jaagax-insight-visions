@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import MapLocationModal from "@/components/location/MapLocationModal";
+import LocationMasterSelector from "@/components/location/LocationMasterSelector";
+import type { MasterLocationSelection } from "@/hooks/useLocationMaster";
 import { MapPin } from "lucide-react";
+
 
 
 interface SmartLocationWidgetProps {
@@ -40,6 +43,12 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     latitude: value?.latitude ?? null,
     longitude: value?.longitude ?? null,
     place_id: value?.place_id || "",
+    // Master location IDs — single source of truth for routing
+    country_id: value?.country_id ?? null,
+    state_id: value?.state_id ?? null,
+    district_id: value?.district_id ?? null,
+    city_id: value?.city_id ?? null,
+    locality_id: value?.locality_id ?? null,
   });
 
   const [mapOpen, setMapOpen] = useState(false);
@@ -59,6 +68,11 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       latitude: value?.latitude ?? null,
       longitude: value?.longitude ?? null,
       place_id: value?.place_id || "",
+      country_id: value?.country_id ?? null,
+      state_id: value?.state_id ?? null,
+      district_id: value?.district_id ?? null,
+      city_id: value?.city_id ?? null,
+      locality_id: value?.locality_id ?? null,
     });
 
   }, [value]);
@@ -74,9 +88,46 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       <div>
         <h3 className="text-sm font-semibold">Property Location</h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Start typing a city or locality — pick a suggestion to auto-fill the rest.
+          Pick from the location hierarchy — this determines which District Admin
+          reviews your listing.
         </p>
       </div>
+
+      {/* Master Location Hierarchy — single source of truth */}
+      <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
+        <LocationMasterSelector
+          value={{
+            country_id: form.country_id,
+            state_id: form.state_id,
+            district_id: form.district_id,
+            city_id: form.city_id,
+            locality_id: form.locality_id,
+            country: form.country,
+            state: form.state_name,
+            district: null,
+            city: form.city,
+            locality: form.locality,
+          } as MasterLocationSelection}
+          onChange={(v) =>
+            update({
+              country_id: v.country_id,
+              state_id: v.state_id,
+              district_id: v.district_id,
+              city_id: v.city_id,
+              locality_id: v.locality_id,
+              country: v.country ?? form.country,
+              state_name: v.state ?? form.state_name,
+              city: v.city ?? form.city,
+              locality: v.locality ?? form.locality,
+            })
+          }
+        />
+      </div>
+
+      <p className="text-[11px] text-muted-foreground text-center">
+        — or refine with map / autocomplete —
+      </p>
+
 
       <Button
         type="button"
