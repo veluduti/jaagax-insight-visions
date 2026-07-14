@@ -37,6 +37,7 @@ const TAB_LABEL: Record<FilterKey, string> = {
 };
 
 const AllListingsPanel = () => {
+  const { effective: scope } = useAdminScopeFilter();
   const [rows, setRows] = useState<PropertyRow[]>([]);
   const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -47,11 +48,14 @@ const AllListingsPanel = () => {
   const load = async () => {
     setLoading(true);
     const [{ data: props }, { data: reports }] = await Promise.all([
-      (supabase as any)
-        .from("properties")
-        .select("id, title, city, locality, verification_status, is_live, expiry_date, submitted_by, is_featured, created_at")
-        .order("created_at", { ascending: false })
-        .limit(500),
+      applyAdminScope<any>(
+        (supabase as any)
+          .from("properties")
+          .select("id, title, city, locality, verification_status, is_live, expiry_date, submitted_by, is_featured, created_at")
+          .order("created_at", { ascending: false })
+          .limit(500),
+        scope,
+      ),
       (supabase as any)
         .from("property_reports")
         .select("property_id")
@@ -62,7 +66,7 @@ const AllListingsPanel = () => {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [scope.country, scope.state, scope.district]);
 
   const filtered = useMemo(() => {
     const now = Date.now();
