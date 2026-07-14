@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequireAuth } from "@/components/auth/RequireAuthProvider";
 import { Button } from "@/components/ui/button";
 
-type AppRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager" | "financial";
+type AppRole = "buyer" | "seller" | "agent" | "builder" | "admin" | "customer" | "driver" | "hotel_manager" | "financial" | "country_admin" | "state_admin" | "district_admin";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
