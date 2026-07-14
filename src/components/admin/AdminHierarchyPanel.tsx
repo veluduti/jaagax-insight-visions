@@ -58,6 +58,8 @@ export default function AdminHierarchyPanel() {
     district: "",
     isActive: true,
   });
+  const [loc, setLoc] = useState<MasterLocationSelection>(emptyMasterLocation);
+
 
   const effectiveRole: AdminRole | null = myScope?.role ?? (isGlobalFallback ? "global_admin" : null);
   const targetRole = effectiveRole ? CHILD_ROLE[effectiveRole] : null;
