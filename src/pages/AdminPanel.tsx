@@ -60,6 +60,12 @@ import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
 import PriceDropQueue from "@/components/admin/PriceDropQueue";
 import { RemindAdminDialog } from "@/components/admin/RemindAdminDialog";
 import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
+import AdminScopeFilterBar from "@/components/admin/AdminScopeFilterBar";
+import {
+  AdminScopeFilterProvider,
+  useAdminScopeFilter,
+  applyAdminScope,
+} from "@/contexts/AdminScopeFilterContext";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 import {
@@ -91,8 +97,9 @@ const FilterChip = ({ label, icon: Icon, active, onClick, count }: any) => (
   </button>
 );
 
-export default function AdminPanel({ title, subtitle, readOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean } = {}) {
+function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string; subtitle?: string; readOnly?: boolean }) {
   const navigate = useNavigate();
+  const { effective: scope } = useAdminScopeFilter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("signups");
@@ -187,7 +194,15 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
 
   useEffect(() => {
     checkAdminAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-fetch whenever the location scope filter changes
+  useEffect(() => {
+    if (!isAdmin) return;
+    void loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope.country, scope.state, scope.district, isAdmin]);
 
   useRealtimeTableSubscription({
     channelName: "admin-panel-live-updates",
@@ -222,6 +237,7 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
   };
 
   const fetchStats = async () => {
+    const scoped = (q: any) => applyAdminScope<any>(q, scope);
     const [
       { count: propertiesCount },
       { count: projectsCount },
@@ -231,13 +247,13 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
       { count: buildersCount },
       { count: pendingPropertiesCount },
     ] = await Promise.all([
-      supabase.from("properties").select("*", { count: "exact", head: true }),
-      supabase.from("projects").select("*", { count: "exact", head: true }),
-      supabase.from("agents").select("*", { count: "exact", head: true }),
-      supabase.from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("builder_profiles").select("*", { count: "exact", head: true }),
-      supabase.from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending"),
+      scoped((supabase as any).from("properties").select("*", { count: "exact", head: true })),
+      scoped((supabase as any).from("projects").select("*", { count: "exact", head: true })),
+      (supabase as any).from("agents").select("*", { count: "exact", head: true }),
+      scoped((supabase as any).from("visit_bookings").select("*", { count: "exact", head: true }).eq("status", "pending")),
+      scoped((supabase as any).from("signup_requests").select("*", { count: "exact", head: true }).eq("status", "pending")),
+      (supabase as any).from("builder_profiles").select("*", { count: "exact", head: true }),
+      scoped((supabase as any).from("properties").select("*", { count: "exact", head: true }).eq("verification_status", "pending")),
     ]);
     setStats({
       totalProperties: propertiesCount || 0,
@@ -251,42 +267,52 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
   };
 
   const fetchSignupRequests = async () => {
-    const { data } = await supabase.from("signup_requests").select("*").order("created_at", { ascending: false });
+    const { data } = await applyAdminScope<any>(
+      (supabase as any).from("signup_requests").select("*").order("created_at", { ascending: false }),
+      scope,
+    );
     setSignupRequests(data || []);
   };
 
   const fetchVisitBookings = async () => {
-    const { data } = await supabase
-      .from("visit_bookings")
-      .select("*, agents(name, phone)")
-      .order("created_at", { ascending: false })
-      .limit(100);
+    const { data } = await applyAdminScope<any>(
+      (supabase as any)
+        .from("visit_bookings")
+        .select("*, agents(name, phone)")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      scope,
+    );
     setVisitBookings(data || []);
   };
 
   const fetchAgents = async () => {
-    const { data } = await supabase.from("agents").select("*").order("created_at", { ascending: false });
+    const { data } = await (supabase as any).from("agents").select("*").order("created_at", { ascending: false });
     setAgents(data || []);
   };
 
   const fetchProperties = async () => {
-    const { data } = await supabase
-      .from("properties")
-      .select(
-        "id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft, document_urls, listing_type, images",
-      )
-      .order("created_at", { ascending: false })
-      .limit(200);
+    const { data } = await applyAdminScope<any>(
+      (supabase as any)
+        .from("properties")
+        .select(
+          "id, title, city, locality, price, verified, type, created_at, verification_status, rera_id, rera_document_url, submitted_by, bhk, area_sqft, document_urls, listing_type, images",
+        )
+        .order("created_at", { ascending: false })
+        .limit(200),
+      scope,
+    );
     setProperties(data || []);
   };
 
   const fetchBuilders = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("builder_profiles")
       .select("id, builder_name, type, phone, email, operating_cities, created_at")
       .order("created_at", { ascending: false });
     setBuilders(data || []);
   };
+
 
   const handleReviewProperty = async (propertyId: string, decision: "approved" | "rejected") => {
     let reason: string | null = null;
@@ -459,8 +485,12 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
           </Card>
         )}
 
+        {/* Hierarchical Location Filter — respects RBAC bounds */}
+        <AdminScopeFilterBar />
+
         {/* Stats Grid - 3x2 or 6 columns */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
           {[
             { label: "Properties", value: stats.totalProperties, icon: Home, color: "text-blue-500" },
             { label: "Projects", value: stats.totalProjects, icon: Building2, color: "text-green-500" },
@@ -900,3 +930,12 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
     </div>
   );
 }
+
+export default function AdminPanel(props: { title?: string; subtitle?: string; readOnly?: boolean } = {}) {
+  return (
+    <AdminScopeFilterProvider>
+      <AdminPanelInner {...props} />
+    </AdminScopeFilterProvider>
+  );
+}
+
