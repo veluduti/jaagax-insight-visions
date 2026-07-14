@@ -41,6 +41,8 @@ import {
   MapPinned,
   FolderOpen,
   UserPlus,
+  Activity,
+  BellRing,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import BookingsPanel from "@/components/admin/BookingsPanel";
