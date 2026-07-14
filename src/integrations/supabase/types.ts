@@ -46,6 +46,90 @@ export type Database = {
           },
         ]
       }
+      admin_activity_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          country: string | null
+          created_at: string
+          district: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          state: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          state?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          state?: string | null
+        }
+        Relationships: []
+      }
+      admin_reminders: {
+        Row: {
+          country: string | null
+          created_at: string
+          district: string | null
+          entity_id: string | null
+          entity_type: string | null
+          from_admin_id: string
+          id: string
+          message: string
+          read_at: string | null
+          state: string | null
+          status: string
+          to_admin_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          from_admin_id: string
+          id?: string
+          message: string
+          read_at?: string | null
+          state?: string | null
+          status?: string
+          to_admin_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          from_admin_id?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          state?: string | null
+          status?: string
+          to_admin_id?: string
+        }
+        Relationships: []
+      }
       admin_scopes: {
         Row: {
           country: string | null
@@ -7792,6 +7876,7 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: undefined
       }
+      can_remind_admin: { Args: { _target_user_id: string }; Returns: boolean }
       check_and_consume_posting_quota: {
         Args: { _user_id: string }
         Returns: Json
@@ -7947,6 +8032,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_reminder_targets: {
+        Args: never
+        Returns: {
+          country: string
+          district: string
+          email: string
+          role: string
+          state: string
+          user_id: string
+        }[]
+      }
       mark_property_featured: {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
         Returns: undefined
@@ -8081,6 +8177,15 @@ export type Database = {
           type: string
           verified: boolean
         }[]
+      }
+      send_admin_reminder: {
+        Args: {
+          _entity_id?: string
+          _entity_type?: string
+          _message: string
+          _to_admin_id: string
+        }
+        Returns: string
       }
       slugify: { Args: { _input: string }; Returns: string }
       submit_kyc: {
