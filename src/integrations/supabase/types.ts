@@ -46,6 +46,45 @@ export type Database = {
           },
         ]
       }
+      admin_scopes: {
+        Row: {
+          country: string | null
+          created_at: string
+          created_by: string | null
+          district: string | null
+          id: string
+          is_active: boolean
+          role: string
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          district?: string | null
+          id?: string
+          is_active?: boolean
+          role: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          district?: string | null
+          id?: string
+          is_active?: boolean
+          role?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       advertisements: {
         Row: {
           ad_type: string
@@ -7744,6 +7783,7 @@ export type Database = {
         Returns: string
       }
       get_active_profile_type: { Args: { _user_id: string }; Returns: string }
+      get_admin_role: { Args: { _user_id: string }; Returns: string }
       get_hotel_application_status: {
         Args: { _id: string }
         Returns: {
