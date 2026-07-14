@@ -60,6 +60,12 @@ import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
 import PriceDropQueue from "@/components/admin/PriceDropQueue";
 import { RemindAdminDialog } from "@/components/admin/RemindAdminDialog";
 import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
+import AdminScopeFilterBar from "@/components/admin/AdminScopeFilterBar";
+import {
+  AdminScopeFilterProvider,
+  useAdminScopeFilter,
+  applyAdminScope,
+} from "@/contexts/AdminScopeFilterContext";
 import { motion } from "framer-motion";
 import { useRealtimeTableSubscription } from "@/hooks/useRealtimeTableSubscription";
 import {
