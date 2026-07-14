@@ -11,6 +11,7 @@ import { toast } from "sonner";
 export interface MapPickedLocation {
   country: string;
   state_name: string;
+  district: string;
   city: string;
   locality: string;
   sub_locality: string;
@@ -66,6 +67,7 @@ const MapLocationModal = ({ open, onOpenChange, initial, onConfirm }: Props) => 
     return {
       country: d.country || "India",
       state_name: d.state || "",
+      district: d.district || "",
       city: d.city || "",
       locality: d.locality || "",
       sub_locality: d.sub_locality || "",

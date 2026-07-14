@@ -54,6 +54,10 @@ Deno.serve(async (req) => {
       pick(comps, "sublocality_level_3") ||
       "";
     const state = pick(comps, "administrative_area_level_1");
+    const district =
+      pick(comps, "administrative_area_level_2") ||
+      pick(comps, "administrative_area_level_3") ||
+      "";
     const country = pick(comps, "country");
     const landmark = pick(comps, "point_of_interest") || pick(comps, "premise") || "";
     const pincode = pick(comps, "postal_code");
@@ -63,6 +67,7 @@ Deno.serve(async (req) => {
         locality,
         sub_locality,
         state,
+        district,
         country,
         landmark,
         pincode,

@@ -5823,8 +5823,10 @@ export type Database = {
           building_name: string | null
           city: string | null
           completion_stage: string | null
+          country: string | null
           created_at: string | null
           description: string | null
+          district: string | null
           document_urls: Json | null
           edit_locked: boolean
           elevators: number | null
@@ -5876,9 +5878,11 @@ export type Database = {
           reschedule_preferred_time: string | null
           reschedule_reason: string | null
           reschedule_requested_at: string | null
+          responsible_district_admin_id: string | null
           retail_centres: number | null
           slug: string | null
           sold_at: string | null
+          state: string | null
           submitted_by: string | null
           title: string | null
           total_floors: number | null
@@ -5924,8 +5928,10 @@ export type Database = {
           building_name?: string | null
           city?: string | null
           completion_stage?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          district?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
@@ -5977,9 +5983,11 @@ export type Database = {
           reschedule_preferred_time?: string | null
           reschedule_reason?: string | null
           reschedule_requested_at?: string | null
+          responsible_district_admin_id?: string | null
           retail_centres?: number | null
           slug?: string | null
           sold_at?: string | null
+          state?: string | null
           submitted_by?: string | null
           title?: string | null
           total_floors?: number | null
@@ -6025,8 +6033,10 @@ export type Database = {
           building_name?: string | null
           city?: string | null
           completion_stage?: string | null
+          country?: string | null
           created_at?: string | null
           description?: string | null
+          district?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
@@ -6078,9 +6088,11 @@ export type Database = {
           reschedule_preferred_time?: string | null
           reschedule_reason?: string | null
           reschedule_requested_at?: string | null
+          responsible_district_admin_id?: string | null
           retail_centres?: number | null
           slug?: string | null
           sold_at?: string | null
+          state?: string | null
           submitted_by?: string | null
           title?: string | null
           total_floors?: number | null
@@ -7698,6 +7710,15 @@ export type Database = {
         Args: { _property_id: string; _reason: string }
         Returns: undefined
       }
+      admin_can_view_scope: {
+        Args: {
+          _country: string
+          _district: string
+          _state: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       admin_temp_approve_no_agent: {
         Args: { _property_id: string }
         Returns: undefined
@@ -7896,6 +7917,10 @@ export type Database = {
       renew_property_listing_v2: {
         Args: { _property_id: string }
         Returns: Database["public"]["Enums"]["property_lifecycle_status"]
+      }
+      resolve_district_admin: {
+        Args: { _country: string; _district: string; _state: string }
+        Returns: string
       }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
