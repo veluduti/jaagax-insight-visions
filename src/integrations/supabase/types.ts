@@ -5884,6 +5884,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           district: string | null
+          district_admin_id: string | null
           document_urls: Json | null
           edit_locked: boolean
           elevators: number | null
@@ -5989,6 +5990,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           district?: string | null
+          district_admin_id?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
@@ -6094,6 +6096,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           district?: string | null
+          district_admin_id?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
