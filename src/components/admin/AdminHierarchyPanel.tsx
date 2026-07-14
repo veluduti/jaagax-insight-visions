@@ -113,20 +113,36 @@ export default function AdminHierarchyPanel() {
       }
     }
     setSubmitting(true);
-    const { data, error } = await supabase.functions.invoke("create-sub-admin", {
-      body: {
-        fullName: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        password: form.password,
-        country: form.country || null,
-        state: form.state || null,
-        district: form.district || null,
-        isActive: form.isActive,
-      },
-    });
+    let errMsg: string | null = null;
+    try {
+      const { data, error } = await supabase.functions.invoke("create-sub-admin", {
+        body: {
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+          country: form.country || null,
+          state: form.state || null,
+          district: form.district || null,
+          isActive: form.isActive,
+        },
+      });
+      if (error) {
+        // Try to read the JSON error body from the FunctionsHttpError context
+        try {
+          const body = await (error as any).context?.json?.();
+          errMsg = body?.error ?? error.message;
+        } catch {
+          errMsg = error.message;
+        }
+      } else if ((data as any)?.error) {
+        errMsg = (data as any).error;
+      }
+    } catch (e: any) {
+      errMsg = e?.message ?? "Request failed";
+    }
     setSubmitting(false);
-    const errMsg = (error as any)?.message || (data as any)?.error;
+
     if (errMsg) {
       toast({ title: "Failed to create admin", description: errMsg, variant: "destructive" });
       return;
