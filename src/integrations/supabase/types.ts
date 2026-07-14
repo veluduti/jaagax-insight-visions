@@ -737,7 +737,10 @@ export type Database = {
           avg_rating: number | null
           bio: string | null
           cities_served: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          district: string | null
           email: string | null
           experience_years: number | null
           id: string
@@ -748,6 +751,7 @@ export type Database = {
           photo_url: string | null
           sales_count: number | null
           specializations: string[] | null
+          state: string | null
           total_ratings: number | null
           trust_score: number | null
           updated_at: string
@@ -759,7 +763,10 @@ export type Database = {
           avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           email?: string | null
           experience_years?: number | null
           id?: string
@@ -770,6 +777,7 @@ export type Database = {
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
+          state?: string | null
           total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
@@ -781,7 +789,10 @@ export type Database = {
           avg_rating?: number | null
           bio?: string | null
           cities_served?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           email?: string | null
           experience_years?: number | null
           id?: string
@@ -792,6 +803,7 @@ export type Database = {
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
+          state?: string | null
           total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
@@ -3908,6 +3920,39 @@ export type Database = {
           },
         ]
       }
+      location_hierarchy: {
+        Row: {
+          city_display: string
+          city_normalized: string
+          country: string
+          created_at: string
+          district: string
+          id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          city_display: string
+          city_normalized: string
+          country?: string
+          created_at?: string
+          district: string
+          id?: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          city_display?: string
+          city_normalized?: string
+          country?: string
+          created_at?: string
+          district?: string
+          id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       monthly_posting_limits: {
         Row: {
           created_at: string
@@ -5349,10 +5394,14 @@ export type Database = {
         Row: {
           banned_at: string | null
           banned_reason: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          district: string | null
           id: string
           is_banned: boolean
           location_data: Json | null
+          state: string | null
           status: string
           type: string
           updated_at: string
@@ -5361,10 +5410,14 @@ export type Database = {
         Insert: {
           banned_at?: string | null
           banned_reason?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           id?: string
           is_banned?: boolean
           location_data?: Json | null
+          state?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -5373,10 +5426,14 @@ export type Database = {
         Update: {
           banned_at?: string | null
           banned_reason?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           id?: string
           is_banned?: boolean
           location_data?: Json | null
+          state?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -7710,6 +7767,10 @@ export type Database = {
         Args: { _property_id: string; _reason: string }
         Returns: undefined
       }
+      admin_can_view: {
+        Args: { _country: string; _district: string; _state: string }
+        Returns: boolean
+      }
       admin_can_view_scope: {
         Args: {
           _country: string
@@ -7805,6 +7866,10 @@ export type Database = {
       }
       get_active_profile_type: { Args: { _user_id: string }; Returns: string }
       get_admin_role: { Args: { _user_id: string }; Returns: string }
+      get_district_admin_for: {
+        Args: { _country: string; _district: string; _state: string }
+        Returns: string
+      }
       get_hotel_application_status: {
         Args: { _id: string }
         Returns: {
@@ -7930,6 +7995,14 @@ export type Database = {
       resolve_district_admin: {
         Args: { _country: string; _district: string; _state: string }
         Returns: string
+      }
+      resolve_location_hierarchy: {
+        Args: { _city: string }
+        Returns: {
+          country: string
+          district: string
+          state: string
+        }[]
       }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
