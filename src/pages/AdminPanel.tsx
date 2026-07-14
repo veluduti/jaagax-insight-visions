@@ -430,6 +430,9 @@ export default function AdminPanel({ title, subtitle, readOnly = false }: { titl
             <p className="text-sm text-muted-foreground">{subtitle || "Manage users, properties, agents & platform"}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Button size="sm" variant="outline" onClick={() => setRemindOpen(true)}>
+              <BellRing className="h-4 w-4 mr-1" /> Remind Admin
+            </Button>
             <Button size="sm" variant="outline" onClick={() => loadAllData()}>
               <RefreshCw className="h-4 w-4 mr-1" /> Refresh
             </Button>
