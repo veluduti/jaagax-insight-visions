@@ -349,8 +349,8 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  <ProfileSwitcher />
-                  <Button onClick={() => navigate(`/dashboard/${role || "buyer"}`)} variant="ghost" size="sm">
+                  {!isAdminRole && <ProfileSwitcher />}
+                  <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm">
                     Dashboard
                   </Button>
                 </>
