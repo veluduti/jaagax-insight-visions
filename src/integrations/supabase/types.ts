@@ -133,41 +133,72 @@ export type Database = {
       admin_scopes: {
         Row: {
           country: string | null
+          country_id: string | null
           created_at: string
           created_by: string | null
           district: string | null
+          district_id: string | null
           id: string
           is_active: boolean
           role: string
           state: string | null
+          state_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           country?: string | null
+          country_id?: string | null
           created_at?: string
           created_by?: string | null
           district?: string | null
+          district_id?: string | null
           id?: string
           is_active?: boolean
           role: string
           state?: string | null
+          state_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           country?: string | null
+          country_id?: string | null
           created_at?: string
           created_by?: string | null
           district?: string | null
+          district_id?: string | null
           id?: string
           is_active?: boolean
           role?: string
           state?: string | null
+          state_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_scopes_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_scopes_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_scopes_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       advertisements: {
         Row: {
@@ -822,20 +853,25 @@ export type Database = {
           bio: string | null
           cities_served: string | null
           city: string | null
+          city_id: string | null
           country: string | null
+          country_id: string | null
           created_at: string
           district: string | null
+          district_id: string | null
           email: string | null
           experience_years: number | null
           id: string
           languages: string | null
           localities_served: string | null
+          locality_id: string | null
           name: string
           phone: string
           photo_url: string | null
           sales_count: number | null
           specializations: string[] | null
           state: string | null
+          state_id: string | null
           total_ratings: number | null
           trust_score: number | null
           updated_at: string
@@ -848,20 +884,25 @@ export type Database = {
           bio?: string | null
           cities_served?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           email?: string | null
           experience_years?: number | null
           id?: string
           languages?: string | null
           localities_served?: string | null
+          locality_id?: string | null
           name: string
           phone: string
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
           state?: string | null
+          state_id?: string | null
           total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
@@ -874,27 +915,68 @@ export type Database = {
           bio?: string | null
           cities_served?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           email?: string | null
           experience_years?: number | null
           id?: string
           languages?: string | null
           localities_served?: string | null
+          locality_id?: string | null
           name?: string
           phone?: string
           photo_url?: string | null
           sales_count?: number | null
           specializations?: string[] | null
           state?: string | null
+          state_id?: string | null
           total_ratings?: number | null
           trust_score?: number | null
           updated_at?: string
           user_id?: string | null
           verified?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agents_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       alert_preferences: {
         Row: {
@@ -1065,13 +1147,16 @@ export type Database = {
           brochure_url: string | null
           builder_name: string
           certifications: string | null
+          city_id: string | null
           clubhouse_description: string | null
           clubhouse_images: string[] | null
           company_registration_number: string | null
           completed_projects_count: number | null
+          country_id: string | null
           created_at: string
           customer_rating: number | null
           description: string | null
+          district_id: string | null
           email: string | null
           established_year: number | null
           floor_plans_data: Json | null
@@ -1084,6 +1169,7 @@ export type Database = {
           land_area: string | null
           latitude: number | null
           live_stats_data: Json | null
+          locality_id: string | null
           locations: string[] | null
           logo: string | null
           longitude: number | null
@@ -1102,6 +1188,7 @@ export type Database = {
           slug: string | null
           social_links: Json | null
           specializations: string[] | null
+          state_id: string | null
           tagline: string | null
           timeline_data: Json | null
           total_floors_count: string | null
@@ -1131,13 +1218,16 @@ export type Database = {
           brochure_url?: string | null
           builder_name: string
           certifications?: string | null
+          city_id?: string | null
           clubhouse_description?: string | null
           clubhouse_images?: string[] | null
           company_registration_number?: string | null
           completed_projects_count?: number | null
+          country_id?: string | null
           created_at?: string
           customer_rating?: number | null
           description?: string | null
+          district_id?: string | null
           email?: string | null
           established_year?: number | null
           floor_plans_data?: Json | null
@@ -1150,6 +1240,7 @@ export type Database = {
           land_area?: string | null
           latitude?: number | null
           live_stats_data?: Json | null
+          locality_id?: string | null
           locations?: string[] | null
           logo?: string | null
           longitude?: number | null
@@ -1168,6 +1259,7 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
+          state_id?: string | null
           tagline?: string | null
           timeline_data?: Json | null
           total_floors_count?: string | null
@@ -1197,13 +1289,16 @@ export type Database = {
           brochure_url?: string | null
           builder_name?: string
           certifications?: string | null
+          city_id?: string | null
           clubhouse_description?: string | null
           clubhouse_images?: string[] | null
           company_registration_number?: string | null
           completed_projects_count?: number | null
+          country_id?: string | null
           created_at?: string
           customer_rating?: number | null
           description?: string | null
+          district_id?: string | null
           email?: string | null
           established_year?: number | null
           floor_plans_data?: Json | null
@@ -1216,6 +1311,7 @@ export type Database = {
           land_area?: string | null
           latitude?: number | null
           live_stats_data?: Json | null
+          locality_id?: string | null
           locations?: string[] | null
           logo?: string | null
           longitude?: number | null
@@ -1234,6 +1330,7 @@ export type Database = {
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
+          state_id?: string | null
           tagline?: string | null
           timeline_data?: Json | null
           total_floors_count?: string | null
@@ -1252,7 +1349,43 @@ export type Database = {
           whatsapp?: string | null
           years_of_experience?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "builder_profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_profiles_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_profiles_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_profiles_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "builder_profiles_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       builder_profiles_data: {
         Row: {
@@ -4034,6 +4167,203 @@ export type Database = {
           },
         ]
       }
+      loc_cities: {
+        Row: {
+          created_at: string
+          district_id: string
+          id: string
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          district_id: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          district_id?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loc_cities_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loc_countries: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          iso2: string | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          iso2?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          iso2?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loc_districts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          state_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          state_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          state_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loc_districts_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loc_localities: {
+        Row: {
+          city_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          pincode: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          city_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          pincode?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          city_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          pincode?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loc_localities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loc_states: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loc_states_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_hierarchy: {
         Row: {
           city_display: string
@@ -5521,13 +5851,18 @@ export type Database = {
           banned_at: string | null
           banned_reason: string | null
           city: string | null
+          city_id: string | null
           country: string | null
+          country_id: string | null
           created_at: string
           district: string | null
+          district_id: string | null
           id: string
           is_banned: boolean
+          locality_id: string | null
           location_data: Json | null
           state: string | null
+          state_id: string | null
           status: string
           type: string
           updated_at: string
@@ -5537,13 +5872,18 @@ export type Database = {
           banned_at?: string | null
           banned_reason?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           id?: string
           is_banned?: boolean
+          locality_id?: string | null
           location_data?: Json | null
           state?: string | null
+          state_id?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -5553,19 +5893,60 @@ export type Database = {
           banned_at?: string | null
           banned_reason?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           id?: string
           is_banned?: boolean
+          locality_id?: string | null
           location_data?: Json | null
           state?: string | null
+          state_id?: string | null
           status?: string
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_units: {
         Row: {
@@ -5644,11 +6025,14 @@ export type Database = {
           builder_name: string | null
           builder_profile_id: string | null
           city: string | null
+          city_id: string | null
           country: string | null
+          country_id: string | null
           created_at: string | null
           description: string | null
           district: string | null
           district_admin_id: string | null
+          district_id: string | null
           environmental_clearance_url: string | null
           floors: string | null
           floors_per_tower: number | null
@@ -5662,6 +6046,7 @@ export type Database = {
           launch_date: string | null
           layout_plan_url: string | null
           locality: string | null
+          locality_id: string | null
           longitude: number | null
           master_plan_url: string | null
           name: string | null
@@ -5676,6 +6061,7 @@ export type Database = {
           size_range: string | null
           slug: string | null
           state: string | null
+          state_id: string | null
           status: string | null
           submitted_by: string | null
           subtitle: string | null
@@ -5698,11 +6084,14 @@ export type Database = {
           builder_name?: string | null
           builder_profile_id?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           environmental_clearance_url?: string | null
           floors?: string | null
           floors_per_tower?: number | null
@@ -5716,6 +6105,7 @@ export type Database = {
           launch_date?: string | null
           layout_plan_url?: string | null
           locality?: string | null
+          locality_id?: string | null
           longitude?: number | null
           master_plan_url?: string | null
           name?: string | null
@@ -5730,6 +6120,7 @@ export type Database = {
           size_range?: string | null
           slug?: string | null
           state?: string | null
+          state_id?: string | null
           status?: string | null
           submitted_by?: string | null
           subtitle?: string | null
@@ -5752,11 +6143,14 @@ export type Database = {
           builder_name?: string | null
           builder_profile_id?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           environmental_clearance_url?: string | null
           floors?: string | null
           floors_per_tower?: number | null
@@ -5770,6 +6164,7 @@ export type Database = {
           launch_date?: string | null
           layout_plan_url?: string | null
           locality?: string | null
+          locality_id?: string | null
           longitude?: number | null
           master_plan_url?: string | null
           name?: string | null
@@ -5784,6 +6179,7 @@ export type Database = {
           size_range?: string | null
           slug?: string | null
           state?: string | null
+          state_id?: string | null
           status?: string | null
           submitted_by?: string | null
           subtitle?: string | null
@@ -5802,6 +6198,41 @@ export type Database = {
             columns: ["builder_profile_id"]
             isOneToOne: false
             referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
             referencedColumns: ["id"]
           },
         ]
@@ -6020,12 +6451,15 @@ export type Database = {
           building_area_sqft: number | null
           building_name: string | null
           city: string | null
+          city_id: string | null
           completion_stage: string | null
           country: string | null
+          country_id: string | null
           created_at: string | null
           description: string | null
           district: string | null
           district_admin_id: string | null
+          district_id: string | null
           document_urls: Json | null
           edit_locked: boolean
           elevators: number | null
@@ -6054,6 +6488,7 @@ export type Database = {
           listing_status: string
           listing_type: string | null
           locality: string | null
+          locality_id: string | null
           longitude: number | null
           maintenance_charges: number | null
           original_snapshot: Json | null
@@ -6082,6 +6517,7 @@ export type Database = {
           slug: string | null
           sold_at: string | null
           state: string | null
+          state_id: string | null
           submitted_by: string | null
           title: string | null
           total_floors: number | null
@@ -6126,12 +6562,15 @@ export type Database = {
           building_area_sqft?: number | null
           building_name?: string | null
           city?: string | null
+          city_id?: string | null
           completion_stage?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
@@ -6160,6 +6599,7 @@ export type Database = {
           listing_status?: string
           listing_type?: string | null
           locality?: string | null
+          locality_id?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
           original_snapshot?: Json | null
@@ -6188,6 +6628,7 @@ export type Database = {
           slug?: string | null
           sold_at?: string | null
           state?: string | null
+          state_id?: string | null
           submitted_by?: string | null
           title?: string | null
           total_floors?: number | null
@@ -6232,12 +6673,15 @@ export type Database = {
           building_area_sqft?: number | null
           building_name?: string | null
           city?: string | null
+          city_id?: string | null
           completion_stage?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string | null
           description?: string | null
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           document_urls?: Json | null
           edit_locked?: boolean
           elevators?: number | null
@@ -6266,6 +6710,7 @@ export type Database = {
           listing_status?: string
           listing_type?: string | null
           locality?: string | null
+          locality_id?: string | null
           longitude?: number | null
           maintenance_charges?: number | null
           original_snapshot?: Json | null
@@ -6294,6 +6739,7 @@ export type Database = {
           slug?: string | null
           sold_at?: string | null
           state?: string | null
+          state_id?: string | null
           submitted_by?: string | null
           title?: string | null
           total_floors?: number | null
@@ -6319,6 +6765,41 @@ export type Database = {
             columns: ["assigned_agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
             referencedColumns: ["id"]
           },
         ]
@@ -7398,16 +7879,21 @@ export type Database = {
           buyer_name: string | null
           buyer_phone: string | null
           city: string | null
+          city_id: string | null
           country: string | null
+          country_id: string | null
           created_at: string
           district: string | null
           district_admin_id: string | null
+          district_id: string | null
           id: string
           locality: string | null
+          locality_id: string | null
           notes: string | null
           property_id: string | null
           scheduled_at: string | null
           state: string | null
+          state_id: string | null
           status: string
           updated_at: string
           visit_date: string
@@ -7420,16 +7906,21 @@ export type Database = {
           buyer_name?: string | null
           buyer_phone?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           id?: string
           locality?: string | null
+          locality_id?: string | null
           notes?: string | null
           property_id?: string | null
           scheduled_at?: string | null
           state?: string | null
+          state_id?: string | null
           status?: string
           updated_at?: string
           visit_date: string
@@ -7442,16 +7933,21 @@ export type Database = {
           buyer_name?: string | null
           buyer_phone?: string | null
           city?: string | null
+          city_id?: string | null
           country?: string | null
+          country_id?: string | null
           created_at?: string
           district?: string | null
           district_admin_id?: string | null
+          district_id?: string | null
           id?: string
           locality?: string | null
+          locality_id?: string | null
           notes?: string | null
           property_id?: string | null
           scheduled_at?: string | null
           state?: string | null
+          state_id?: string | null
           status?: string
           updated_at?: string
           visit_date?: string
@@ -7466,10 +7962,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "visit_bookings_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "loc_cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "loc_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "loc_districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "visit_bookings_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_bookings_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "loc_states"
             referencedColumns: ["id"]
           },
         ]
@@ -8206,6 +8737,22 @@ export type Database = {
           country: string
           district: string
           state: string
+        }[]
+      }
+      resolve_location_ids: {
+        Args: {
+          _city: string
+          _country: string
+          _district: string
+          _locality: string
+          _state: string
+        }
+        Returns: {
+          city_id: string
+          country_id: string
+          district_id: string
+          locality_id: string
+          state_id: string
         }[]
       }
       review_kyc: {

@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InlineLocationSearch from "@/components/location/InlineLocationSearch";
 import MapLocationModal from "@/components/location/MapLocationModal";
+import LocationMasterSelector from "@/components/location/LocationMasterSelector";
+import type { MasterLocationSelection } from "@/hooks/useLocationMaster";
 import { MapPin } from "lucide-react";
+
 
 
 interface SmartLocationWidgetProps {
@@ -40,6 +43,12 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
     latitude: value?.latitude ?? null,
     longitude: value?.longitude ?? null,
     place_id: value?.place_id || "",
+    // Master location IDs — single source of truth for routing
+    country_id: value?.country_id ?? null,
+    state_id: value?.state_id ?? null,
+    district_id: value?.district_id ?? null,
+    city_id: value?.city_id ?? null,
+    locality_id: value?.locality_id ?? null,
   });
 
   const [mapOpen, setMapOpen] = useState(false);
@@ -59,6 +68,11 @@ const SmartLocationWidget: FC<SmartLocationWidgetProps> = ({
       latitude: value?.latitude ?? null,
       longitude: value?.longitude ?? null,
       place_id: value?.place_id || "",
+      country_id: value?.country_id ?? null,
+      state_id: value?.state_id ?? null,
+      district_id: value?.district_id ?? null,
+      city_id: value?.city_id ?? null,
+      locality_id: value?.locality_id ?? null,
     });
 
   }, [value]);

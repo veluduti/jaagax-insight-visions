@@ -77,12 +77,14 @@ export const AdminScopeFilterProvider = ({ children }: { children: ReactNode }) 
           .eq("is_active", true)
           .maybeSingle();
 
-        // Fetch distinct location tuples from properties (RLS will already
-        // restrict to what this admin can see, so options never leak scope).
-        const { data: locRows } = await (supabase as any)
-          .from("properties")
-          .select("country, state, district")
-          .limit(2000);
+        // Source cascading options from the Location Master (single source of truth).
+        // Joining districts → states → countries gives every valid combination
+        // regardless of what data currently exists in transactional tables.
+        const { data: masterRows } = await (supabase as any)
+          .from("loc_districts")
+          .select("name, loc_states!inner(name, loc_countries!inner(name))")
+          .eq("is_active", true)
+          .limit(5000);
 
         if (!alive) return;
         setBounds({
@@ -92,10 +94,10 @@ export const AdminScopeFilterProvider = ({ children }: { children: ReactNode }) 
           district: scopeRow?.district ?? null,
         });
         setRawScopeRows(
-          (locRows || []).map((r: any) => ({
-            country: r.country ?? null,
-            state: r.state ?? null,
-            district: r.district ?? null,
+          (masterRows || []).map((r: any) => ({
+            country: r.loc_states?.loc_countries?.name ?? null,
+            state: r.loc_states?.name ?? null,
+            district: r.name ?? null,
           })),
         );
       } finally {
