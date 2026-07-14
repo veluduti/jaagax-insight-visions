@@ -3728,6 +3728,7 @@ export default function SellProperty() {
                     [
                       "country",
                       "state_name",
+                      "district",
                       "city",
                       "locality",
                       "sub_locality",
