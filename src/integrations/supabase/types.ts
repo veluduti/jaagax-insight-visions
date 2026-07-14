@@ -8731,6 +8731,10 @@ export type Database = {
         Args: { _country: string; _district: string; _state: string }
         Returns: string
       }
+      resolve_district_admin_by_id: {
+        Args: { _district_id: string }
+        Returns: string
+      }
       resolve_location_hierarchy: {
         Args: { _city: string }
         Returns: {

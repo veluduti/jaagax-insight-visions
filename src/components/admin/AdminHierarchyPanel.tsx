@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Shield, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import LocationMasterSelector from "@/components/location/LocationMasterSelector";
+import { emptyMasterLocation, type MasterLocationSelection } from "@/hooks/useLocationMaster";
+
 
 type AdminRole = "global_admin" | "country_admin" | "state_admin" | "district_admin";
 
@@ -55,6 +58,8 @@ export default function AdminHierarchyPanel() {
     district: "",
     isActive: true,
   });
+  const [loc, setLoc] = useState<MasterLocationSelection>(emptyMasterLocation);
+
 
   const effectiveRole: AdminRole | null = myScope?.role ?? (isGlobalFallback ? "global_admin" : null);
   const targetRole = effectiveRole ? CHILD_ROLE[effectiveRole] : null;
@@ -106,12 +111,24 @@ export default function AdminHierarchyPanel() {
       toast({ title: "Missing details", description: "Full name, email and password are required.", variant: "destructive" });
       return;
     }
-    for (const f of requiredFields) {
-      if (!(form as any)[f]) {
-        toast({ title: `Missing ${f}`, variant: "destructive" });
-        return;
-      }
+    // Derive text values from master selection, falling back to inherited form
+    const country = loc.country ?? form.country ?? null;
+    const state = loc.state ?? form.state ?? null;
+    const district = loc.district ?? form.district ?? null;
+
+    if (requiredFields.includes("country") && !country) {
+      toast({ title: "Missing country", variant: "destructive" });
+      return;
     }
+    if (requiredFields.includes("state") && !state) {
+      toast({ title: "Missing state", variant: "destructive" });
+      return;
+    }
+    if (requiredFields.includes("district") && !district) {
+      toast({ title: "Missing district", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     let errMsg: string | null = null;
     try {
@@ -121,14 +138,14 @@ export default function AdminHierarchyPanel() {
           email: form.email,
           phone: form.phone,
           password: form.password,
-          country: form.country || null,
-          state: form.state || null,
-          district: form.district || null,
+          country, state, district,
+          country_id: loc.country_id,
+          state_id: loc.state_id,
+          district_id: loc.district_id,
           isActive: form.isActive,
         },
       });
       if (error) {
-        // Try to read the JSON error body from the FunctionsHttpError context
         try {
           const body = await (error as any).context?.json?.();
           errMsg = body?.error ?? error.message;
@@ -148,9 +165,11 @@ export default function AdminHierarchyPanel() {
       return;
     }
     toast({ title: `${ROLE_LABEL[targetRole]} created` });
-    setForm((f) => ({ ...f, fullName: "", email: "", phone: "", password: "", district: "" }));
+    setForm((f) => ({ ...f, fullName: "", email: "", phone: "", password: "" }));
+    setLoc(emptyMasterLocation);
     void loadAll();
   };
+
 
   if (loading) {
     return (
@@ -216,32 +235,25 @@ export default function AdminHierarchyPanel() {
                 <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
 
-              {requiredFields.includes("country") && (
-                <div>
-                  <Label>Country</Label>
-                  <Input
-                    value={form.country}
-                    disabled={effectiveRole !== "global_admin"}
-                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+              <div className="md:col-span-2">
+                <Label className="mb-2 block">Location Assignment (from Master)</Label>
+                <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <LocationMasterSelector
+                    value={loc}
+                    onChange={setLoc}
+                    showLocality={false}
+                    fixedCountry={effectiveRole !== "global_admin"}
                   />
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    {targetRole === "district_admin"
+                      ? "Pick the exact District — this admin will own all properties, agents and bookings in it."
+                      : targetRole === "state_admin"
+                      ? "Pick the State — this admin oversees every district in it."
+                      : "Pick the Country — this admin oversees every state in it."}
+                  </p>
                 </div>
-              )}
-              {requiredFields.includes("state") && (
-                <div>
-                  <Label>State</Label>
-                  <Input
-                    value={form.state}
-                    disabled={effectiveRole === "state_admin"}
-                    onChange={(e) => setForm({ ...form, state: e.target.value })}
-                  />
-                </div>
-              )}
-              {requiredFields.includes("district") && (
-                <div>
-                  <Label>District</Label>
-                  <Input value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} />
-                </div>
-              )}
+              </div>
+
 
               <div className="flex items-center gap-2">
                 <Switch checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} />
