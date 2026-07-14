@@ -99,7 +99,7 @@ interface SubmitterAgent {
   verified: boolean;
 }
 
-export default function AssignAgentPanel() {
+export default function AssignAgentPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [properties, setProperties] = useState<PendingProperty[]>([]);
   const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
   const [submitterAgents, setSubmitterAgents] = useState<Record<string, SubmitterAgent>>({});
@@ -523,28 +523,36 @@ export default function AssignAgentPanel() {
                     Require verification
                   </label>
                 )}
-                {showApproveReject && (
+                {readOnly ? (
+                  <span className="text-[11px] text-muted-foreground italic px-2 py-1.5">
+                    View only — approvals & agent assignment handled by the District Admin.
+                  </span>
+                ) : (
                   <>
-                    <Button variant="destructive" onClick={rejectProperty} disabled={working}>
-                      <XCircle className="h-4 w-4 mr-1.5" />Reject
-                    </Button>
-                    <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
-                      {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                      Approve
-                    </Button>
+                    {showApproveReject && (
+                      <>
+                        <Button variant="destructive" onClick={rejectProperty} disabled={working}>
+                          <XCircle className="h-4 w-4 mr-1.5" />Reject
+                        </Button>
+                        <Button onClick={approveOnly} disabled={working} className="bg-emerald-600 hover:bg-emerald-700">
+                          {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                          Approve
+                        </Button>
+                      </>
+                    )}
+                    {showAssignAgent && (
+                      <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
+                        <UserCheck className="h-4 w-4 mr-1.5" />
+                        {showAgents ? "Refresh Agents" : "Assign Agent"}
+                      </Button>
+                    )}
+                    {showAssignAgent && noAgentsFound && (
+                      <Button onClick={tempApprove} disabled={working} className="bg-amber-600 hover:bg-amber-700">
+                        {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                        Temporary Approve (No agent available)
+                      </Button>
+                    )}
                   </>
-                )}
-                {showAssignAgent && (
-                  <Button variant="outline" onClick={loadSuggestions} disabled={working || loadingAgents}>
-                    <UserCheck className="h-4 w-4 mr-1.5" />
-                    {showAgents ? "Refresh Agents" : "Assign Agent"}
-                  </Button>
-                )}
-                {showAssignAgent && noAgentsFound && (
-                  <Button onClick={tempApprove} disabled={working} className="bg-amber-600 hover:bg-amber-700">
-                    {working ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-                    Temporary Approve (No agent available)
-                  </Button>
                 )}
               </>
             }

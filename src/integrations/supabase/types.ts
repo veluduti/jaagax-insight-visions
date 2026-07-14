@@ -7863,6 +7863,15 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_property_operator: {
+        Args: {
+          _country: string
+          _district: string
+          _state: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_valid_property_transition: {
         Args: {
           _from: Database["public"]["Enums"]["property_lifecycle_status"]

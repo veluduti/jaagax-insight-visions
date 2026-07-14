@@ -45,7 +45,7 @@ interface PendingProperty {
 const fmtPrice = (n: number | null | undefined) =>
   n == null ? "—" : n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(2)} L` : `₹${Number(n).toLocaleString("en-IN")}`;
 
-export default function AgentVerifiedReviewPanel() {
+export default function AgentVerifiedReviewPanel({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [items, setItems] = useState<PendingProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState<PendingProperty | null>(null);
@@ -244,7 +244,7 @@ export default function AgentVerifiedReviewPanel() {
                       </p>
                     )}
                     <Button size="sm" className="w-full" onClick={() => setReviewTarget(p)}>
-                      Compare & Review
+                      {readOnly ? "View Details" : "Compare & Review"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -329,12 +329,20 @@ export default function AgentVerifiedReviewPanel() {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
-              <XCircle className="h-4 w-4 mr-1" />Reject
-            </Button>
-            <Button onClick={() => reviewTarget && handleApprove(reviewTarget)} className="bg-emerald-600 hover:bg-emerald-700">
-              <CheckCircle className="h-4 w-4 mr-1" />Approve & Publish
-            </Button>
+            {readOnly ? (
+              <p className="text-xs text-muted-foreground italic">
+                View only — approvals handled by the District Admin.
+              </p>
+            ) : (
+              <>
+                <Button variant="destructive" onClick={() => reviewTarget && setRejectTarget(reviewTarget)}>
+                  <XCircle className="h-4 w-4 mr-1" />Reject
+                </Button>
+                <Button onClick={() => reviewTarget && handleApprove(reviewTarget)} className="bg-emerald-600 hover:bg-emerald-700">
+                  <CheckCircle className="h-4 w-4 mr-1" />Approve & Publish
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
