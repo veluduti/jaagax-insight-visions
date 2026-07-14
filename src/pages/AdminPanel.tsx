@@ -178,6 +178,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
       icon: Shield,
       items: [
         { value: "admin-hierarchy", label: "Admin Hierarchy", icon: Shield },
+        { value: "location-master", label: "Location Master", icon: MapPin },
         { value: "activity", label: "Activity Timeline", icon: Activity },
       ],
     },
