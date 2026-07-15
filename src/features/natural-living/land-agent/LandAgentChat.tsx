@@ -93,19 +93,19 @@ export default function LandAgentChat() {
     setInput("");
     setSending(true);
 
-    const { error: userMessageError } = await (supabase as any).from("nl_land_conversations").insert({
-      registration_id: registrationId,
-      user_id: user.id,
-      role: "user",
-      content: text,
-    });
-    if (userMessageError) throw new Error(`DB insert failed in LandAgentChat.send user message: ${userMessageError.message}`);
-
     const schemaSummary = LAND_SCHEMA.map(
       (f) => `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
     ).join("\n");
 
     try {
+      const { error: userMessageError } = await (supabase as any).from("nl_land_conversations").insert({
+        registration_id: registrationId,
+        user_id: user.id,
+        role: "user",
+        content: text,
+      });
+      if (userMessageError) throw new Error(`DB insert failed in LandAgentChat.send user message: ${userMessageError.message}`);
+
       const { data, error } = await supabase.functions.invoke("nl-land-agent", {
         body: {
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
