@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
-import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById, type FieldDef } from "./schema";
-import { Leaf, Send, CheckCircle2, Loader2 } from "lucide-react";
+import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
+import { Edit3, Leaf, Send, CheckCircle2, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +23,7 @@ export default function LandAgentChat() {
   const [sending, setSending] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const completion = useMemo(() => computeCompletion(state), [state]);
   const nextField = useMemo(() => nextMissingField(state), [state]);
@@ -80,6 +81,7 @@ export default function LandAgentChat() {
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    if (!sending) inputRef.current?.focus();
   }, [messages, sending]);
 
   async function send() {
@@ -91,50 +93,55 @@ export default function LandAgentChat() {
     setInput("");
     setSending(true);
 
-    // Persist user message
-    (supabase as any).from("nl_land_conversations").insert({
-      registration_id: registrationId,
-      user_id: user.id,
-      role: "user",
-      content: text,
-    });
-
     const schemaSummary = LAND_SCHEMA.map(
-      (f) => `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""} — ${f.label}`,
+      (f) => `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
     ).join("\n");
 
     try {
+      const { error: userMessageError } = await (supabase as any).from("nl_land_conversations").insert({
+        registration_id: registrationId,
+        user_id: user.id,
+        role: "user",
+        content: text,
+      });
+      if (userMessageError) throw new Error(`DB insert failed in LandAgentChat.send user message: ${userMessageError.message}`);
+
       const { data, error } = await supabase.functions.invoke("nl-land-agent", {
         body: {
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
           state,
           schemaSummary,
+          schema: LAND_SCHEMA.map((f) => ({ id: f.id, label: f.label, type: f.type, options: f.options, required: f.required, adminOnly: f.adminOnly })),
           nextField: nextField ? { id: nextField.id, label: nextField.label, type: nextField.type, options: nextField.options } : null,
         },
       });
-      if (error) throw error;
+      if (error) throw await buildInvokeError("nl-land-agent", error);
+      if (data?.ok === false) throw new Error(formatAgentDebug(data.debug, data.reply));
 
       const reply = data?.reply ?? "Could you tell me more?";
       const extracted: Record<string, any> = data?.extracted ?? {};
+      const replaceFields: string[] = Array.isArray(data?.replace_fields) ? data.replace_fields : [];
 
       // Merge & persist state
       if (Object.keys(extracted).length > 0) {
-        const merged = mergeState(state, extracted);
+        const merged = mergeState(state, extracted, replaceFields);
         setState(merged);
         await persistState(registrationId, merged);
       }
 
       const asstMsg: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply };
       setMessages((m) => [...m, asstMsg]);
-      (supabase as any).from("nl_land_conversations").insert({
+      const { error: assistantMessageError } = await (supabase as any).from("nl_land_conversations").insert({
         registration_id: registrationId,
         user_id: user.id,
         role: "assistant",
         content: reply,
         extracted_fields: extracted,
       });
+      if (assistantMessageError) throw new Error(`DB insert failed in LandAgentChat.send assistant message: ${assistantMessageError.message}`);
     } catch (e: any) {
-      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: "Sorry, I hit a hiccup. Could you say that again?" }]);
+      console.error("LandAgentChat.send runtime failure", e);
+      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: formatRuntimeError(e) }]);
     } finally {
       setSending(false);
     }
@@ -170,6 +177,36 @@ export default function LandAgentChat() {
       <div className="h-1 w-full rounded-full mb-6" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${completion}%`, background: "hsl(var(--nl-forest))" }} />
       </div>
+
+      {Object.keys(state).length > 0 && (
+        <details className="mb-4 rounded-2xl border px-4 py-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream-deep) / 0.35)" }}>
+          <summary className="cursor-pointer text-sm font-medium" style={{ color: "hsl(var(--nl-forest))" }}>
+            Review / edit captured answers
+          </summary>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {LAND_SCHEMA.filter((f) => !f.adminOnly && state[f.id] !== undefined && state[f.id] !== null && state[f.id] !== "").map((f) => (
+              <div key={f.id} className="flex items-start justify-between gap-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.12)", background: "hsl(var(--nl-cream))" }}>
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
+                  <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Edit ${f.label}`}
+                  className="shrink-0 p-1.5 rounded-full"
+                  style={{ color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-forest) / 0.08)" }}
+                  onClick={() => {
+                    setInput(`Correction: ${f.label} should be `);
+                    requestAnimationFrame(() => inputRef.current?.focus());
+                  }}
+                >
+                  <Edit3 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {/* Message list */}
       <div
@@ -223,6 +260,7 @@ export default function LandAgentChat() {
       {/* Composer */}
       <div className="flex items-end gap-2 rounded-2xl border p-2" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}>
         <textarea
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -254,17 +292,16 @@ export default function LandAgentChat() {
 
 // ------- helpers -------
 
-function mergeState(prev: Record<string, any>, patch: Record<string, any>) {
+function mergeState(prev: Record<string, any>, patch: Record<string, any>, replaceFields: string[] = []) {
   const next = { ...prev };
   for (const [k, v] of Object.entries(patch)) {
     const f = fieldById(k);
     if (!f) continue;
     if (f.type === "multi") {
       const arr = Array.isArray(v) ? v : [v];
-      const merged = Array.from(new Set([...(Array.isArray(prev[k]) ? prev[k] : []), ...arr]));
-      next[k] = merged;
+      next[k] = replaceFields.includes(k) ? arr : Array.from(new Set([...(Array.isArray(prev[k]) ? prev[k] : []), ...arr]));
     } else if (f.type === "stars" && typeof v === "object" && v) {
-      next[k] = { ...(prev[k] ?? {}), ...v };
+      next[k] = replaceFields.includes(k) ? v : { ...(prev[k] ?? {}), ...v };
     } else {
       next[k] = v;
     }
@@ -274,13 +311,20 @@ function mergeState(prev: Record<string, any>, patch: Record<string, any>) {
 
 async function persistState(registrationId: string, state: Record<string, any>) {
   const row: Record<string, any> = { completion_pct: computeCompletion(state) };
+  const extra: Record<string, any> = {};
   for (const f of LAND_SCHEMA) {
     if (f.type === "upload") continue; // handled via uploads table
     const v = state[f.id];
     if (v === undefined) continue;
+    if (f.column.startsWith("extra.")) {
+      extra[f.column.slice("extra.".length)] = v;
+      continue;
+    }
     row[f.column] = v;
   }
-  await (supabase as any).from("nl_land_registrations").update(row).eq("id", registrationId);
+  if (Object.keys(extra).length > 0) row.extra = extra;
+  const { error } = await (supabase as any).from("nl_land_registrations").update(row).eq("id", registrationId);
+  if (error) throw new Error(`DB update failed in persistState: ${error.message}`);
 }
 
 function draftToState(draft: any): Record<string, any> {
@@ -288,7 +332,49 @@ function draftToState(draft: any): Record<string, any> {
   for (const f of LAND_SCHEMA) {
     if (f.type === "upload") continue;
     const v = draft?.[f.column];
-    if (v !== undefined && v !== null && v !== "") s[f.id] = v;
+    const value = f.column.startsWith("extra.") ? draft?.extra?.[f.column.slice("extra.".length)] : v;
+    if (value !== undefined && value !== null && value !== "") s[f.id] = value;
   }
   return s;
+}
+
+function formatValue(value: any) {
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value === "object" && value) return Object.entries(value).map(([k, v]) => `${k}: ${v}`).join(", ");
+  return String(value);
+}
+
+async function buildInvokeError(functionName: string, error: any) {
+  let details = error?.message ?? String(error);
+  if (error?.context?.text) {
+    try { details = await error.context.text(); } catch { /* keep original */ }
+  }
+  return new Error(`Edge Function ${functionName} failed in LandAgentChat.send: ${details}`);
+}
+
+function formatAgentDebug(debug: any, fallback?: string) {
+  return [
+    fallback || "AI agent runtime failure.",
+    "",
+    "Runtime debug:",
+    "```json",
+    JSON.stringify(debug ?? {}, null, 2),
+    "```",
+  ].join("\n");
+}
+
+function formatRuntimeError(error: any) {
+  const payload = {
+    file: "src/features/natural-living/land-agent/LandAgentChat.tsx",
+    function: "send",
+    message: error?.message ?? String(error),
+    stack: error?.stack ?? null,
+  };
+  return [
+    "The land assistant hit a runtime error. Here is the real failure instead of a generic fallback:",
+    "",
+    "```json",
+    JSON.stringify(payload, null, 2),
+    "```",
+  ].join("\n");
 }

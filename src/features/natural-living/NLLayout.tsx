@@ -87,21 +87,21 @@ export default function NLLayout({ children }: PropsWithChildren) {
           borderColor: "hsl(var(--border))",
         }}
       >
-        <div className="nl-container flex items-center justify-between h-16 md:h-20">
-          <Link to="/natural-living" className="flex items-center gap-2">
+        <div className="nl-container flex items-center justify-between h-16 md:h-20 gap-3">
+          <Link to="/natural-living" className="flex items-center gap-2 min-w-0">
             <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
-            <span className="nl-serif text-lg md:text-xl" style={{ color: "hsl(var(--nl-forest))" }}>
+            <span className="nl-serif text-base md:text-xl truncate" style={{ color: "hsl(var(--nl-forest))" }}>
               JAGAA <span style={{ fontStyle: "italic" }}>Natural Living</span>
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+          <nav className="hidden xl:flex items-center gap-3 2xl:gap-6 min-w-0">
             {NAV.slice(0, 7).map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `text-[12px] xl:text-[13px] tracking-wide transition-colors whitespace-nowrap ${
+                    `text-[12px] 2xl:text-[13px] tracking-wide transition-colors whitespace-nowrap ${
                     item.highlight
                       ? "px-3 py-1.5 rounded-full font-medium"
                       : isActive
@@ -120,7 +120,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-2 xl:gap-3">
+          <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
             <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
               Sign in
             </Link>
@@ -134,7 +134,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
 
           <button
             aria-label="Menu"
-            className="lg:hidden p-2 -mr-2"
+            className="xl:hidden p-2 -mr-2"
             onClick={() => setOpen((v) => !v)}
             style={{ color: "hsl(var(--nl-forest))" }}
           >
@@ -144,7 +144,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
 
         {open && (
           <div
-            className="lg:hidden border-t"
+            className="xl:hidden border-t"
             style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--border))" }}
           >
             <div className="nl-container py-4 flex flex-col gap-1">
