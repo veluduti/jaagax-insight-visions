@@ -129,7 +129,7 @@ export const LAND_SCHEMA: FieldDef[] = [
   { id: "stay_experience", column: "stay_experience", label: "Farm stay experiences", type: "multi", group: "Farm Stay", options: ["Sunrise View", "Sunset View", "Star Gazing", "Campfire", "Organic Food", "Local Cuisine"] },
 
   // Project framing
-  { id: "nearby_facilities", column: "nearby_facilities", label: "Nearby facilities", type: "text", group: "Environment", hint: "Known nearby facilities such as schools, hospitals, markets, roads, transport, tourist points or utilities." },
+  { id: "nearby_facilities", column: "extra.nearby_facilities", label: "Nearby facilities", type: "text", group: "Environment", hint: "Known nearby facilities such as schools, hospitals, markets, roads, transport, tourist points or utilities." },
   { id: "best_opportunities", column: "extra.best_opportunities", label: "Best opportunities for this land", type: "multi", group: "Opportunities", options: ["Commercial Farming", "Organic Farming", "Fruit Orchards", "Dairy", "Poultry", "Fish Farming", "Goat Farming", "Beekeeping", "Herbal Farming", "Agro Forestry", "Greenhouse", "Polyhouse", "Tourism", "Weekend Farming", "Farm Stay", "School Visits"] },
 
   // Project framing
