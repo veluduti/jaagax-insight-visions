@@ -95,17 +95,24 @@ export default function NLLayout({ children }: PropsWithChildren) {
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
             {NAV.slice(0, 7).map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `text-[13px] tracking-wide transition-colors ${
-                    isActive
+                  `text-[12px] xl:text-[13px] tracking-wide transition-colors whitespace-nowrap ${
+                    item.highlight
+                      ? "px-3 py-1.5 rounded-full font-medium"
+                      : isActive
                       ? "text-[hsl(var(--nl-forest))] font-medium"
                       : "text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))]"
                   }`
+                }
+                style={
+                  item.highlight
+                    ? { background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }
+                    : undefined
                 }
               >
                 {item.label}
@@ -113,14 +120,14 @@ export default function NLLayout({ children }: PropsWithChildren) {
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <Link to="/natural-living/auth" className="text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))]">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3">
+            <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
               Sign in
             </Link>
-            <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary">
+            <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary text-[12px] xl:text-[13px]">
               Join
             </Link>
-            <Link to="/" className="text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))]">
+            <Link to="/" className="text-[10px] xl:text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
               JAAGA X →
             </Link>
           </div>
