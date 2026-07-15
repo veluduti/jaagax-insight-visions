@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
-import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById, type FieldDef } from "./schema";
+import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
 import { Edit3, Leaf, Send, CheckCircle2, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
