@@ -1,47 +1,82 @@
 
-## Scope
+# JAAGA Land Posting — AI Registration Agent
 
-Phases 1–4 only: public listing → hotel details → availability search → room selection card. No payment / guest info / summary yet (those come in the next iteration; Razorpay integration will be a separate step where I request keys).
+## Goal
+Replace the traditional land listing form with a ChatGPT-style AI agent that collects every field from Sheet 1 through natural conversation, silently persisting structured data to the DB with auto-save, resume, and edit support.
 
-## What changes (user-visible)
+## Scope of this build
 
-**Hotels.tsx**
-- Fetches only approved + active hotels that have at least one active room (via a room-count check).
-- Each card's "Starts From ₹X" is computed from the cheapest active room's `base_price` (not the legacy `partner_hotels.price_per_night`), with discount badge.
-- Existing search/filters/hero UI kept as-is.
+### 1. Navigation (Natural Living)
+- Add **"List Your Land"** (JAAGA Land Posting) as a primary item in `NLLayout.tsx` desktop nav + mobile drawer.
+- Reflow nav for narrow widths: collapse extra items into an overflow menu on `< lg`; keep logo, primary CTA, and menu icon on mobile. Tighten spacing so all fields fit at ≥360px screens.
+- Route: `/natural-living/list-land` → new chat UI.
 
-**HotelDetail.tsx**
-- New "Search Rooms" bar at the top of the page: check-in date, check-out date, adults, children, rooms → routes to the Rooms tab and triggers availability check.
-- The "Room Types" tab is replaced with a real, DB-driven MMT-style room-list component.
-- Replaces the hardcoded `HotelRoomTypes.tsx` mock data.
+### 2. Master Schema (single source of truth)
+Encode Sheet 1 as `src/features/natural-living/land-agent/schema.ts`:
+- Field groups: Owner & Contact, Location (Village/Mandal/District/State + GPS/Map), Land Details (area, survey #s, soil, terrain), Status & History (current status, availability, current/last crop, 5yr history), Lease Reason, Water (sources multi, availability), Infrastructure (multi), Access (road, electricity, vehicle), Local Environment, Nearby Attractions, Nearby Facilities (Google Places), Farming Readiness, Opportunity Ratings (multi + 1–5 stars per potential), Farm Experience / Suitable For, School Visit Activities, Farm Stay Assessment (accommodation, facilities, experience), Project Framing (tenure, duration, project age), Uploads (land photos, ownership docs).
+- Each field: `id, label, type (text|number|enum|multi|stars|gps|upload|date), options?, required?, group, dependsOn?, extractionHints`.
 
-**New `HotelRoomList.tsx` (MMT-style card)**
-Per room, from DB:
-- Gallery (`hotel_rooms.photos`), name, size, bed type, max occupancy, amenities, description
-- Base price × nights + pricing rules (reuses existing `booking-engine-quote` edge fn per room)
-- Discount, taxes (12% GST placeholder for now — flagged in code for real config later), final price
-- Policies: free breakfast, cancellation policy, min-nights
-- "Only N rooms left" from live inventory
-- "Select Room" CTA — currently opens existing `HotelBookingModal` with the selected room pre-filled (fully replaced in Phase 5+)
+### 3. Database (Lovable Cloud)
+New tables (migration in follow-up turn):
+- `nl_land_registrations` — one row per draft/submission. Columns for every scalar field + JSONB for arrays/nested (crop_history, water_sources, infrastructure, opportunity_ratings, stay_assessment, etc.), `status` (draft/submitted/verified), `completion_pct`, `missing_fields jsonb`, owner `user_id`, master location IDs (country_id/state_id/district_id/city_id/locality_id), timestamps.
+- `nl_land_conversations` — message log per registration (role, content, extracted_fields jsonb, created_at).
+- `nl_land_uploads` — file references (kind: photo|document, url, meta).
+- RLS: owner can CRUD own; admins via existing `is_admin()`; auto-fill master IDs via existing `resolve_location_ids` trigger. GRANTs to authenticated + service_role.
 
-## Database
+### 4. AI Agent Architecture (modular)
+Directory: `src/features/natural-living/land-agent/`
+- `schema.ts` — Sheet 1 field definitions.
+- `state.ts` — `LandRegistrationState` type + reducer; single source of truth in-memory, hydrated from DB.
+- `extractor.ts` — client-side helper that calls edge function `nl-land-extract` for structured JSON extraction from a user message given current state + schema.
+- `validator.ts` — validates phone, survey #s, GPS, area, required uploads.
+- `missingFields.ts` — computes remaining required fields and priority order (Owner → Location → Land → Water → Infra → Ratings → Uploads → Framing).
+- `questionPlanner.ts` — picks next best question, phrases it naturally, supports conditional branching (borewell count only if borewell selected; farm-house rooms only if selected; skip crop qs if status=Vacant/None; infer village/mandal from GPS+master lookup).
+- `autosave.ts` — debounced upsert to `nl_land_registrations`; each extraction step persists diffs + completion %.
+- `resume.ts` — on mount, loads latest draft for user, returns greeting with progress ("We completed 72% — shall we continue?").
+- `uploader.ts` — file upload manager into Supabase Storage bucket `nl-land`.
+- `summary.ts` — final review summary before submit.
+- `LandAgentChat.tsx` — ChatGPT-style UI (message list, streaming assistant bubbles, subtle progress bar top-right, inline chips for enum answers, upload dropzone when requested, "Edit" affordance on any prior answer).
 
-New table `hotel_room_inventory` (date × room_id × available_units) with:
-- One row per (room_id, date), default `available_units = hotel_rooms.total_units`
-- RLS: public SELECT, owner + admin write
-- Availability helper RPC `check_room_availability(room_id, check_in, check_out)` → returns `min_available` across the range and computes it from `total_units - (confirmed booking overlap count)` when no explicit inventory row exists (so it works before backfill).
-- Trigger on `hotel_bookings` insert/cancel that decrements/restores inventory for the date range when `status = 'confirmed'`.
+### 5. Edge Functions (server-side AI)
+- `nl-land-extract`: takes `{ state, userMessage }`; calls Lovable AI Gateway (`google/gemini-3-flash-preview`) with tool/`Output.object` schema mirroring Sheet 1 to return **only fields confidently extracted** + `clarifications[]`. Never invents.
+- `nl-land-next-question`: takes `{ state, missingFields }`; returns `{ question, targetFieldIds[], tone }` — natural human-consultant phrasing, no repetition, conditional branching aware.
+- `nl-land-summary`: generates final human-readable review.
+- All keep `LOVABLE_API_KEY` server-side; stream `nl-land-next-question` for ChatGPT feel via `toUIMessageStreamResponse`.
 
-No changes to existing tables' structure.
+### 6. Conversation Loop (per user message)
+1. Append user msg → conversation log.
+2. `nl-land-extract` → structured diff.
+3. Validate; if ambiguous → ask clarification (do not save).
+4. Merge into state; autosave to DB (upsert diff + recompute completion %).
+5. Recompute missing fields.
+6. If uploads needed at this natural point, prompt for them.
+7. `nl-land-next-question` → stream assistant reply.
+8. When completion = 100% and all required uploads present → produce summary + `Confirm & Submit` action → sets `status=submitted`.
 
-## Files touched
+### 7. UX
+- Full-screen ChatGPT-style layout inside NL theme (cream + forest tokens already in `theme.css`).
+- Sticky top: JAAGA logo, subtle "Registration 62%" pill, "Save & exit" link.
+- Composer: textarea + send + upload icon + mic (voice input best-effort via `useVoiceSynthesis` pattern — future).
+- Chip suggestions for enum questions (Black/Red/Sandy…) below composer; typing free-form also accepted.
+- No visible form fields, no wizard, no step indicator beyond a single % bar.
 
-- `supabase/migrations/*` — new inventory table, RPC, trigger, grants + RLS
-- `src/pages/Hotels.tsx` — swap fetch to filter by "has active rooms", compute min price from `hotel_rooms`
-- `src/pages/HotelDetail.tsx` — add availability search bar, wire selected dates to rooms tab
-- `src/components/hotels/HotelRoomList.tsx` — NEW, real room cards
-- `src/components/hotels/HotelRoomTypes.tsx` — thin wrapper delegating to `HotelRoomList` (keeps existing imports working)
+### 8. Reusability
+`land-agent/` is generic — `schema.ts` is the only thing swapped for future workflows (Admin Inspection, Labour Registration, Farm Stay, Investment). Rename to `src/features/ai-agent/` in a later phase if we spawn a second flow.
 
-## Out of scope this round
+## Technical details
 
-Phases 5–15 (guest info, add-ons, summary, payment, check-in flow, cancellation, reviews). Razorpay integration will be requested in the next iteration once you're ready to share the key_id/key_secret.
+- **Model**: `google/gemini-3-flash-preview` via Lovable AI Gateway. Extraction uses `Output.object` with a lean Zod schema (no bounds, no long enums — enums enumerated in prompt only, validated in code).
+- **Streaming**: AI SDK `streamText` + `toUIMessageStreamResponse`; client uses `useChat` with `DefaultChatTransport` pointing to `${VITE_SUPABASE_URL}/functions/v1/nl-land-next-question` with `Authorization: Bearer ${VITE_SUPABASE_PUBLISHABLE_KEY}`.
+- **State persistence**: `useChat` `onFinish` writes to `nl_land_conversations`; extractor writes to `nl_land_registrations`.
+- **Auth gate**: reuses `NLProtectedRoute` — user must be signed in to persist. Anonymous can preview intro card.
+- **Storage bucket**: `nl-land` (private, owner-read/write via RLS).
+
+## Build order (this turn = phases 1–3; follow-up turns = 4+)
+1. Header nav update + responsive fixes + new route + placeholder chat page.
+2. Schema + state + missing-field/question-planner (pure TS, no AI yet) → works as a client-side deterministic flow.
+3. Migration for `nl_land_registrations`, `nl_land_conversations`, `nl_land_uploads`, storage bucket.
+4. Edge functions `nl-land-extract`, `nl-land-next-question`, `nl-land-summary` + wire AI SDK streaming.
+5. Uploader + final summary + submit.
+6. Admin view (list submissions filtered by district scope, reuse existing `AdminScopeFilterContext`).
+
+Do you want me to proceed with phases 1–3 now (nav + route + schema + DB migration), and layer the live AI streaming (phase 4+) after the migration is approved?
