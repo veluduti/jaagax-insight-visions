@@ -5002,6 +5002,44 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_land_conversations: {
+        Row: {
+          content: string
+          created_at: string
+          extracted_fields: Json | null
+          id: string
+          registration_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          extracted_fields?: Json | null
+          id?: string
+          registration_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          extracted_fields?: Json | null
+          id?: string
+          registration_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_land_conversations_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "nl_land_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_land_parcels: {
         Row: {
           area_acres: number
@@ -5117,6 +5155,221 @@ export type Database = {
             columns: ["parcel_id"]
             isOneToOne: false
             referencedRelation: "nl_land_parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_land_registrations: {
+        Row: {
+          area_unit: string | null
+          available_from: string | null
+          borewell_count: number | null
+          city_id: string | null
+          completion_pct: number
+          country: string | null
+          country_id: string | null
+          created_at: string
+          crop_history: Json | null
+          current_crop: string | null
+          current_status: string | null
+          district: string | null
+          district_id: string | null
+          electricity: string | null
+          extra: Json | null
+          farming_readiness: string | null
+          google_map_url: string | null
+          id: string
+          infrastructure: Json | null
+          last_crop: string | null
+          latitude: number | null
+          lease_reason: string | null
+          local_environment: Json | null
+          locality_id: string | null
+          longitude: number | null
+          mandal: string | null
+          missing_fields: Json | null
+          nearby_attractions: Json | null
+          nearby_facilities: Json | null
+          opportunity_ratings: Json | null
+          owner_email: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          project_age: string | null
+          project_duration: string | null
+          project_tenure: string | null
+          road_access: string | null
+          school_activities: Json | null
+          soil: string | null
+          state: string | null
+          state_id: string | null
+          status: string
+          stay_accommodation: Json | null
+          stay_experience: Json | null
+          stay_facilities: Json | null
+          suitable_for: Json | null
+          survey_numbers: string | null
+          terrain: string | null
+          total_area: number | null
+          updated_at: string
+          user_id: string
+          vehicle_access: Json | null
+          village: string | null
+          water_availability: string | null
+          water_sources: Json | null
+        }
+        Insert: {
+          area_unit?: string | null
+          available_from?: string | null
+          borewell_count?: number | null
+          city_id?: string | null
+          completion_pct?: number
+          country?: string | null
+          country_id?: string | null
+          created_at?: string
+          crop_history?: Json | null
+          current_crop?: string | null
+          current_status?: string | null
+          district?: string | null
+          district_id?: string | null
+          electricity?: string | null
+          extra?: Json | null
+          farming_readiness?: string | null
+          google_map_url?: string | null
+          id?: string
+          infrastructure?: Json | null
+          last_crop?: string | null
+          latitude?: number | null
+          lease_reason?: string | null
+          local_environment?: Json | null
+          locality_id?: string | null
+          longitude?: number | null
+          mandal?: string | null
+          missing_fields?: Json | null
+          nearby_attractions?: Json | null
+          nearby_facilities?: Json | null
+          opportunity_ratings?: Json | null
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          project_age?: string | null
+          project_duration?: string | null
+          project_tenure?: string | null
+          road_access?: string | null
+          school_activities?: Json | null
+          soil?: string | null
+          state?: string | null
+          state_id?: string | null
+          status?: string
+          stay_accommodation?: Json | null
+          stay_experience?: Json | null
+          stay_facilities?: Json | null
+          suitable_for?: Json | null
+          survey_numbers?: string | null
+          terrain?: string | null
+          total_area?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_access?: Json | null
+          village?: string | null
+          water_availability?: string | null
+          water_sources?: Json | null
+        }
+        Update: {
+          area_unit?: string | null
+          available_from?: string | null
+          borewell_count?: number | null
+          city_id?: string | null
+          completion_pct?: number
+          country?: string | null
+          country_id?: string | null
+          created_at?: string
+          crop_history?: Json | null
+          current_crop?: string | null
+          current_status?: string | null
+          district?: string | null
+          district_id?: string | null
+          electricity?: string | null
+          extra?: Json | null
+          farming_readiness?: string | null
+          google_map_url?: string | null
+          id?: string
+          infrastructure?: Json | null
+          last_crop?: string | null
+          latitude?: number | null
+          lease_reason?: string | null
+          local_environment?: Json | null
+          locality_id?: string | null
+          longitude?: number | null
+          mandal?: string | null
+          missing_fields?: Json | null
+          nearby_attractions?: Json | null
+          nearby_facilities?: Json | null
+          opportunity_ratings?: Json | null
+          owner_email?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          project_age?: string | null
+          project_duration?: string | null
+          project_tenure?: string | null
+          road_access?: string | null
+          school_activities?: Json | null
+          soil?: string | null
+          state?: string | null
+          state_id?: string | null
+          status?: string
+          stay_accommodation?: Json | null
+          stay_experience?: Json | null
+          stay_facilities?: Json | null
+          suitable_for?: Json | null
+          survey_numbers?: string | null
+          terrain?: string | null
+          total_area?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_access?: Json | null
+          village?: string | null
+          water_availability?: string | null
+          water_sources?: Json | null
+        }
+        Relationships: []
+      }
+      nl_land_uploads: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string
+          id: string
+          kind: string
+          meta: Json | null
+          registration_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          kind: string
+          meta?: Json | null
+          registration_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          kind?: string
+          meta?: Json | null
+          registration_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_land_uploads_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "nl_land_registrations"
             referencedColumns: ["id"]
           },
         ]
