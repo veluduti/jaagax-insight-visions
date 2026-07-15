@@ -116,7 +116,7 @@ export const LAND_SCHEMA: FieldDef[] = [
     label: "Opportunity ratings (1-5 stars each)",
     type: "stars",
     group: "Opportunities",
-    options: ["Tourism", "Weekend Farming", "Orchard", "Organic Farming", "Dairy", "Poultry", "Fish Farming", "Commercial Farming", "Beekeeping", "Herbal Farming", "Agro Forestry", "Greenhouse"],
+    options: ["Tourism", "Weekend Farming", "Orchard", "Organic Farming", "Dairy", "Poultry", "Fish Farming", "Commercial Farming", "Fruit Orchards", "Goat Farming", "Beekeeping", "Herbal Farming", "Agro Forestry", "Greenhouse", "Polyhouse"],
   },
 
   // Experience
