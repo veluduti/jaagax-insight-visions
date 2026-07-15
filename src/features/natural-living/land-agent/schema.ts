@@ -21,6 +21,7 @@ export interface FieldDef {
   required?: boolean;
   options?: string[];
   dependsOn?: (state: Record<string, any>) => boolean;
+  adminOnly?: boolean;
   hint?: string;
 }
 
@@ -128,9 +129,28 @@ export const LAND_SCHEMA: FieldDef[] = [
   { id: "stay_experience", column: "stay_experience", label: "Farm stay experiences", type: "multi", group: "Farm Stay", options: ["Sunrise View", "Sunset View", "Star Gazing", "Campfire", "Organic Food", "Local Cuisine"] },
 
   // Project framing
-  { id: "project_tenure", column: "project_tenure", label: "Expected project tenure", type: "text", group: "Project" },
+  { id: "nearby_facilities", column: "nearby_facilities", label: "Nearby facilities", type: "text", group: "Environment", hint: "Known nearby facilities such as schools, hospitals, markets, roads, transport, tourist points or utilities." },
+  { id: "best_opportunities", column: "extra.best_opportunities", label: "Best opportunities for this land", type: "multi", group: "Opportunities", options: ["Commercial Farming", "Organic Farming", "Fruit Orchards", "Dairy", "Poultry", "Fish Farming", "Goat Farming", "Beekeeping", "Herbal Farming", "Agro Forestry", "Greenhouse", "Polyhouse", "Tourism", "Weekend Farming", "Farm Stay", "School Visits"] },
+
+  // Project framing
+  { id: "project_tenure", column: "project_tenure", label: "Expected tenure of the project", type: "text", group: "Project" },
   { id: "project_duration", column: "project_duration", label: "Project duration", type: "text", group: "Project" },
   { id: "project_age", column: "project_age", label: "How old is the project", type: "text", group: "Project" },
+  { id: "project_size", column: "extra.project_size", label: "Project size", type: "text", group: "Project", hint: "Example: 100 Acres." },
+  { id: "current_participation", column: "extra.current_participation", label: "Current participation", type: "text", group: "Project", hint: "Example: 40 Acres reserved, 60 Acres available." },
+  { id: "minimum_participation", column: "extra.minimum_participation", label: "Minimum participation", type: "text", group: "Project", hint: "Example: 5 Acres." },
+  { id: "maximum_participation", column: "extra.maximum_participation", label: "Maximum participation", type: "text", group: "Project", hint: "Example: 20 Acres." },
+  { id: "recommended_crop", column: "extra.recommended_crop", label: "JAAGA recommended / finalized crop", type: "text", group: "Project", hint: "Example: Mango Orchard." },
+  { id: "recommended_crop_reason", column: "extra.recommended_crop_reason", label: "Why is that crop recommended?", type: "text", group: "Project" },
+  { id: "budget_per_acre", column: "extra.budget_per_acre", label: "Budget per acre", type: "text", group: "Project", hint: "Projected cost per acre with phase-wise investment details." },
+  { id: "school_schedule_date", column: "extra.school_schedule_date", label: "Date of schedule for schools", type: "date", group: "Experience" },
+
+  // Admin inspection fields are in the Excel sheet, but they are not asked to landowners.
+  { id: "verification_date", column: "extra.verification_date", label: "Verification date", type: "date", group: "Admin Inspection", adminOnly: true },
+  { id: "gps_verified", column: "extra.gps_verified", label: "GPS verified", type: "enum", group: "Admin Inspection", options: ["Yes", "No", "Pending"], adminOnly: true },
+  { id: "ownership_verified", column: "extra.ownership_verified", label: "Ownership verified", type: "enum", group: "Admin Inspection", options: ["Yes", "No", "Pending"], adminOnly: true },
+  { id: "documents_verified", column: "extra.documents_verified", label: "Documents verified", type: "enum", group: "Admin Inspection", options: ["Yes", "No", "Pending"], adminOnly: true },
+  { id: "duplicate_check", column: "extra.duplicate_check", label: "Duplicate check", type: "enum", group: "Admin Inspection", options: ["Clear", "Duplicate Found", "Pending"], adminOnly: true },
 
   // Uploads
   { id: "land_photos", column: "land_photos", label: "Land photos", type: "upload", group: "Uploads", required: true },
@@ -143,6 +163,7 @@ export function fieldById(id: string) {
 
 export function requiredFieldsRemaining(state: Record<string, any>): FieldDef[] {
   return LAND_SCHEMA.filter((f) => {
+    if (f.adminOnly) return false;
     if (!f.required) return false;
     if (f.dependsOn && !f.dependsOn(state)) return false;
     const v = state[f.id];
@@ -157,6 +178,7 @@ export function nextMissingField(state: Record<string, any>): FieldDef | null {
   const req = requiredFieldsRemaining(state);
   if (req.length) return req[0];
   for (const f of LAND_SCHEMA) {
+    if (f.adminOnly) continue;
     if (f.dependsOn && !f.dependsOn(state)) continue;
     const v = state[f.id];
     if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) return f;
@@ -165,7 +187,7 @@ export function nextMissingField(state: Record<string, any>): FieldDef | null {
 }
 
 export function computeCompletion(state: Record<string, any>): number {
-  const applicable = LAND_SCHEMA.filter((f) => !f.dependsOn || f.dependsOn(state));
+  const applicable = LAND_SCHEMA.filter((f) => !f.adminOnly && (!f.dependsOn || f.dependsOn(state)));
   const filled = applicable.filter((f) => {
     const v = state[f.id];
     if (v === undefined || v === null || v === "") return false;
