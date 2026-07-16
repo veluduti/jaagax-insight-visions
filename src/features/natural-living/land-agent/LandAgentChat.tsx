@@ -24,6 +24,7 @@ export default function LandAgentChat() {
   const [bootstrapping, setBootstrapping] = useState(true);
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -182,14 +183,36 @@ export default function LandAgentChat() {
         });
         uploaded.push(file.name);
       }
-      const label = nextField?.id === "ownership_docs" ? "ownership document(s)" : "land photo(s)";
-      await send(`I've uploaded ${uploaded.length} ${label}: ${uploaded.join(", ")}`);
+      setPendingUploads((p) => [...p, ...uploaded]);
     } catch (e: any) {
       setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: `Upload failed: ${e?.message ?? String(e)}` }]);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  async function finalizeUploads() {
+    if (!pendingUploads.length || !nextField) return;
+    const label = nextField.id === "ownership_docs" ? "ownership document(s)" : "land photo(s)";
+    const files = pendingUploads;
+    setPendingUploads([]);
+    // Mark this upload field as complete in state so the resolver advances.
+    const merged = { ...state, [nextField.id]: files };
+    setState(merged);
+    if (registrationId) await persistState(registrationId, merged).catch(() => {});
+    await send(`I've uploaded ${files.length} ${label}: ${files.join(", ")}`);
+  }
+
+  async function requestReask(fieldId: string) {
+    const f = fieldById(fieldId);
+    if (!f) return;
+    // Clear the value so resolver treats it as missing again.
+    const next = { ...state };
+    delete next[fieldId];
+    setState(next);
+    if (registrationId) await persistState(registrationId, next).catch(() => {});
+    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
   }
 
   const chipSuggestions: string[] = nextField?.options?.slice(0, 12) ?? [];
@@ -238,15 +261,12 @@ export default function LandAgentChat() {
                   <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
                   <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
                 </div>
-                <button
+              <button
                   type="button"
                   aria-label={`Edit ${f.label}`}
                   className="shrink-0 p-1.5 rounded-full"
                   style={{ color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-forest) / 0.08)" }}
-                  onClick={() => {
-                    setInput(`Correction: ${f.label} should be `);
-                    requestAnimationFrame(() => inputRef.current?.focus());
-                  }}
+                  onClick={() => requestReask(f.id)}
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
@@ -291,19 +311,45 @@ export default function LandAgentChat() {
 
       {/* Upload prompt when current field is an upload */}
       {isUploadField && (
-        <div className="mb-3 rounded-xl border p-3 flex items-center justify-between gap-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
-          <div className="text-sm" style={{ color: "hsl(var(--nl-ink))" }}>
-            📎 <strong>{nextField?.label}</strong> — attach files below.
+        <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-sm flex items-center gap-2" style={{ color: "hsl(var(--nl-ink))" }}>
+              <Paperclip className="h-4 w-4" style={{ color: "hsl(var(--nl-forest))" }} />
+              <strong>{nextField?.label}</strong>
+              <span className="text-[hsl(var(--nl-muted))]">— attach one or more files.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="text-xs px-3 py-1.5 rounded-full font-medium border disabled:opacity-50"
+                style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}
+              >
+                {uploading ? "Uploading…" : pendingUploads.length ? "Add more" : "Choose files"}
+              </button>
+              {pendingUploads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => finalizeUploads()}
+                  disabled={uploading || sending}
+                  className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+                  style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                >
+                  Done ({pendingUploads.length})
+                </button>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
-            style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
-          >
-            {uploading ? "Uploading…" : "Choose files"}
-          </button>
+          {pendingUploads.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {pendingUploads.map((name, i) => (
+                <li key={i} className="text-[11px] px-2 py-1 rounded-full border" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}>
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -363,17 +409,6 @@ export default function LandAgentChat() {
           className="hidden"
           onChange={(e) => handleFileUpload(e.target.files)}
         />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading || sending}
-          className="p-2.5 rounded-full disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
-          style={{ color: "hsl(var(--nl-forest))" }}
-          aria-label="Attach photos or documents"
-          title="Attach photos or documents"
-        >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-        </button>
         <textarea
           ref={inputRef}
           value={input}
