@@ -25,6 +25,7 @@ export default function LandAgentChat() {
   const [sending, setSending] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
+  const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
   const [view, setView] = useState<"picker" | "chat">("picker");
