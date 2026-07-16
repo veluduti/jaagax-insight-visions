@@ -22,8 +22,11 @@ export default function LandAgentChat() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
+  const [multiPicks, setMultiPicks] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const completion = useMemo(() => computeCompletion(state), [state]);
   const nextField = useMemo(() => nextMissingField(state), [state]);
