@@ -161,6 +161,14 @@ export default function LandAgentChat() {
     if (!sending) inputRef.current?.focus();
   }, [messages, sending]);
 
+  // Lock body scroll while in chat view — ChatGPT-style full-viewport UX.
+  useEffect(() => {
+    if (view !== "chat") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [view]);
+
   async function send(overrideText?: string) {
     const text = (overrideText ?? input).trim();
     if (!text || sending || !registrationId || !user) return;
