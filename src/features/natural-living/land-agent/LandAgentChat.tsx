@@ -25,6 +25,7 @@ export default function LandAgentChat() {
   const [sending, setSending] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
+  const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
   const [view, setView] = useState<"picker" | "chat">("picker");
@@ -150,7 +151,7 @@ export default function LandAgentChat() {
     setState({});
     setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
     setPendingUploads([]);
-    setMultiPicks([]);
+    setMultiPicks([]); setActiveFieldId(null);
     setInput("");
     if (user) loadDrafts(user.id);
   }
@@ -176,7 +177,7 @@ export default function LandAgentChat() {
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
-    setMultiPicks([]);
+    setMultiPicks([]); setActiveFieldId(null);
     setSending(true);
 
     const schemaSummary = LAND_SCHEMA.map(
@@ -207,6 +208,9 @@ export default function LandAgentChat() {
       const reply = data?.reply ?? "Could you tell me more?";
       const extracted: Record<string, any> = data?.extracted ?? {};
       const replaceFields: string[] = Array.isArray(data?.replace_fields) ? data.replace_fields : [];
+      const returnedActive: string | null = typeof data?.active_field === "string" ? data.active_field : null;
+      setActiveFieldId(returnedActive && fieldById(returnedActive) ? returnedActive : null);
+      setMultiPicks([]);
 
       if (Object.keys(extracted).length > 0) {
         const merged = mergeState(state, extracted, replaceFields);
@@ -296,10 +300,16 @@ export default function LandAgentChat() {
     await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
   }
 
-  const chipSuggestions: string[] = nextField?.options?.slice(0, 12) ?? [];
-  const isMultiField = nextField?.type === "multi";
-  const isUploadField = nextField?.type === "upload";
-  const canSkip = !!nextField && !nextField.required;
+  // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
+  // Chips ALWAYS reflect the field the AI is asking about — never a stale/other field.
+  const activeField = useMemo(() => {
+    const byAI = activeFieldId ? fieldById(activeFieldId) : null;
+    return byAI ?? nextField ?? null;
+  }, [activeFieldId, nextField]);
+  const chipSuggestions: string[] = activeField?.options?.slice(0, 24) ?? [];
+  const isMultiField = activeField?.type === "multi";
+  const isUploadField = activeField?.type === "upload";
+  const canSkip = !!activeField && !activeField.required;
 
   if (bootstrapping) {
     return (
@@ -557,7 +567,7 @@ export default function LandAgentChat() {
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
                   <Paperclip className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
-                  <strong className="truncate">{nextField?.label}</strong>
+                  <strong className="truncate">{activeField?.label}</strong>
                   <span className="text-[hsl(var(--nl-muted))] hidden sm:inline">— attach one or more files.</span>
                 </div>
                 <div className="flex items-center gap-2">
