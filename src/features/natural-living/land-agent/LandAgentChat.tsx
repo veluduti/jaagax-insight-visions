@@ -301,6 +301,146 @@ export default function LandAgentChat() {
     );
   }
 
+  if (view === "picker") {
+    return (
+      <div className="nl-container py-6 md:py-10 max-w-3xl">
+        <div className="flex items-center gap-2 mb-2">
+          <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
+          <h1 className="nl-serif text-xl md:text-2xl" style={{ color: "hsl(var(--nl-forest))" }}>
+            List Your Land
+          </h1>
+        </div>
+        <p className="text-sm mb-6" style={{ color: "hsl(var(--nl-muted))" }}>
+          You can register multiple lands. Continue an existing draft, or start a fresh registration.
+        </p>
+
+        <button
+          type="button"
+          onClick={startNewDraft}
+          disabled={creatingNew}
+          className="w-full mb-4 flex items-center justify-between gap-3 rounded-2xl border-2 border-dashed p-4 transition-colors hover:bg-[hsl(var(--nl-forest)/0.04)] disabled:opacity-60"
+          style={{ borderColor: "hsl(var(--nl-forest) / 0.4)", color: "hsl(var(--nl-forest))" }}
+        >
+          <span className="flex items-center gap-3">
+            <span className="p-2 rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
+              <Plus className="h-4 w-4" />
+            </span>
+            <span className="text-left">
+              <span className="block font-medium">Start New Registration</span>
+              <span className="block text-xs" style={{ color: "hsl(var(--nl-muted))" }}>
+                Register another land — begin the conversation from scratch.
+              </span>
+            </span>
+          </span>
+          {creatingNew ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+
+        {drafts.length > 0 && (
+          <>
+            <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "hsl(var(--nl-muted))" }}>
+              Your drafts ({drafts.length})
+            </div>
+            <ul className="space-y-3">
+              {drafts.map((d) => {
+                const loc = [d.village, d.district, d.state].filter(Boolean).join(", ");
+                const area = d.total_area ? `${d.total_area} ${d.area_unit ?? "acres"}` : null;
+                const pct = d.completion_pct ?? 0;
+                return (
+                  <li
+                    key={d.id}
+                    className="rounded-2xl border p-4"
+                    style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream))" }}
+                  >
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "hsl(var(--nl-forest) / 0.1)", color: "hsl(var(--nl-forest))" }}>
+                            {pct}% complete
+                          </span>
+                          <span className="text-[11px]" style={{ color: "hsl(var(--nl-muted))" }}>
+                            <Clock className="inline h-3 w-3 mr-1" />
+                            Updated {formatWhen(d.updated_at)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 text-sm" style={{ color: "hsl(var(--nl-ink))" }}>
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5" style={{ color: "hsl(var(--nl-forest))" }} />
+                            {loc || <em style={{ color: "hsl(var(--nl-muted))" }}>Location not captured yet</em>}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Ruler className="h-3.5 w-3.5" style={{ color: "hsl(var(--nl-forest))" }} />
+                            {area || <em style={{ color: "hsl(var(--nl-muted))" }}>Area not captured yet</em>}
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1 w-full rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "hsl(var(--nl-forest))" }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openDraft(d.id)}
+                          className="text-xs px-3 py-2 rounded-full font-medium"
+                          style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                        >
+                          Continue
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(d.id)}
+                          disabled={deletingId === d.id}
+                          className="p-2 rounded-full border disabled:opacity-40"
+                          style={{ borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))" }}
+                          aria-label="Delete draft"
+                          title="Delete draft"
+                        >
+                          {deletingId === d.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {confirmDeleteId === d.id && (
+                      <div className="mt-3 rounded-xl border p-3 text-sm" style={{ borderColor: "hsl(0 70% 55% / 0.35)", background: "hsl(0 70% 55% / 0.06)", color: "hsl(var(--nl-ink))" }}>
+                        Delete this draft permanently? This cannot be undone.
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => deleteDraft(d.id)}
+                            disabled={deletingId === d.id}
+                            className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+                            style={{ background: "hsl(0 70% 45%)", color: "white" }}
+                          >
+                            Yes, delete
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs px-3 py-1.5 rounded-full border"
+                            style={{ borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))" }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+
+        {drafts.length === 0 && (
+          <p className="text-sm text-center py-6" style={{ color: "hsl(var(--nl-muted))" }}>
+            No drafts yet — click <strong>Start New Registration</strong> to begin.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+
+
   return (
     <div className="nl-container py-6 md:py-10 max-w-3xl">
       {/* Header */}
