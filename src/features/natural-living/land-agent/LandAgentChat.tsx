@@ -567,7 +567,7 @@ export default function LandAgentChat() {
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
                   <Paperclip className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
-                  <strong className="truncate">{nextField?.label}</strong>
+                  <strong className="truncate">{activeField?.label}</strong>
                   <span className="text-[hsl(var(--nl-muted))] hidden sm:inline">— attach one or more files.</span>
                 </div>
                 <div className="flex items-center gap-2">
