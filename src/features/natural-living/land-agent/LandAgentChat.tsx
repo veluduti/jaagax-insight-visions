@@ -27,6 +27,11 @@ export default function LandAgentChat() {
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
+  const [view, setView] = useState<"picker" | "chat">("picker");
+  const [drafts, setDrafts] = useState<DraftRow[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [creatingNew, setCreatingNew] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -34,7 +39,18 @@ export default function LandAgentChat() {
   const completion = useMemo(() => computeCompletion(state), [state]);
   const nextField = useMemo(() => nextMissingField(state), [state]);
 
-  // Bootstrap: load or create a draft registration.
+  const loadDrafts = useCallback(async (uid: string) => {
+    const { data } = await (supabase as any)
+      .from("nl_land_registrations")
+      .select("id, village, district, state, total_area, area_unit, completion_pct, updated_at, created_at")
+      .eq("user_id", uid)
+      .eq("status", "draft")
+      .order("updated_at", { ascending: false });
+    setDrafts((data as DraftRow[]) ?? []);
+    return (data as DraftRow[]) ?? [];
+  }, []);
+
+  // Bootstrap: fetch drafts, show picker (never auto-resume).
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -42,48 +58,103 @@ export default function LandAgentChat() {
       return;
     }
     (async () => {
-      const { data: draft } = await (supabase as any)
-        .from("nl_land_registrations")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "draft")
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (draft) {
-        setRegistrationId(draft.id);
-        setState(draftToState(draft));
-        // Load recent conversation
-        const { data: convo } = await (supabase as any)
-          .from("nl_land_conversations")
-          .select("id, role, content")
-          .eq("registration_id", draft.id)
-          .order("created_at", { ascending: true })
-          .limit(200);
-        if (convo && convo.length) {
-          setMessages(convo.map((m: any) => ({ id: m.id, role: m.role, content: m.content })));
-        } else {
-          const pct = computeCompletion(draftToState(draft));
-          setMessages([
-            {
-              id: "welcome-back",
-              role: "assistant",
-              content: `Welcome back! We're **${pct}%** through your land registration. Shall we continue where we left off?`,
-            },
-          ]);
-        }
-      } else {
-        const { data: created, error } = await (supabase as any)
-          .from("nl_land_registrations")
-          .insert({ user_id: user.id, status: "draft" })
-          .select()
-          .single();
-        if (!error && created) setRegistrationId(created.id);
-      }
+      await loadDrafts(user.id);
       setBootstrapping(false);
     })();
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, loadDrafts]);
+
+  async function openDraft(draftId: string) {
+    if (!user) return;
+    setBootstrapping(true);
+    const { data: draft } = await (supabase as any)
+      .from("nl_land_registrations")
+      .select("*")
+      .eq("id", draftId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!draft) {
+      setBootstrapping(false);
+      return;
+    }
+    setRegistrationId(draft.id);
+    const s = draftToState(draft);
+    setState(s);
+    const { data: convo } = await (supabase as any)
+      .from("nl_land_conversations")
+      .select("id, role, content")
+      .eq("registration_id", draft.id)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (convo && convo.length) {
+      setMessages(convo.map((m: any) => ({ id: m.id, role: m.role, content: m.content })));
+    } else {
+      const pct = computeCompletion(s);
+      setMessages([
+        {
+          id: "welcome-back",
+          role: "assistant",
+          content: `Welcome back! We're **${pct}%** through this land registration. Shall we continue where we left off?`,
+        },
+      ]);
+    }
+    setView("chat");
+    setBootstrapping(false);
+  }
+
+  async function startNewDraft() {
+    if (!user || creatingNew) return;
+    setCreatingNew(true);
+    try {
+      const { data: created, error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .insert({ user_id: user.id, status: "draft" })
+        .select()
+        .single();
+      if (error || !created) throw new Error(error?.message ?? "Failed to create draft");
+      setRegistrationId(created.id);
+      setState({});
+      setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
+      setView("chat");
+    } catch (e: any) {
+      alert(`Could not start a new registration: ${e?.message ?? String(e)}`);
+    } finally {
+      setCreatingNew(false);
+    }
+  }
+
+  async function deleteDraft(draftId: string) {
+    if (!user) return;
+    setDeletingId(draftId);
+    try {
+      // Clean up child rows first (in case FKs are not ON DELETE CASCADE).
+      await (supabase as any).from("nl_land_conversations").delete().eq("registration_id", draftId);
+      await (supabase as any).from("nl_land_uploads").delete().eq("registration_id", draftId);
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .delete()
+        .eq("id", draftId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      setConfirmDeleteId(null);
+      await loadDrafts(user.id);
+    } catch (e: any) {
+      alert(`Could not delete draft: ${e?.message ?? String(e)}`);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  function backToPicker() {
+    setView("picker");
+    setRegistrationId(null);
+    setState({});
+    setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
+    setPendingUploads([]);
+    setMultiPicks([]);
+    setInput("");
+    if (user) loadDrafts(user.id);
+  }
+
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
