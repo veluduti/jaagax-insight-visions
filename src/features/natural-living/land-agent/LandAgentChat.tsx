@@ -2,25 +2,48 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
 import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
-import { Edit3, Leaf, Send, CheckCircle2, Loader2, Paperclip, SkipForward, Check, Plus, Trash2, MapPin, Ruler, Clock, ChevronRight, ArrowLeft } from "lucide-react";
+import {
+  Edit3,
+  Leaf,
+  Send,
+  CheckCircle2,
+  Loader2,
+  Paperclip,
+  SkipForward,
+  Check,
+  Plus,
+  Trash2,
+  MapPin,
+  Ruler,
+  Clock,
+  ChevronRight,
+  ArrowLeft,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
-type DraftRow = { id: string; village?: string | null; district?: string | null; state?: string | null; total_area?: number | null; area_unit?: string | null; completion_pct?: number | null; updated_at: string; created_at: string };
-
+type DraftRow = {
+  id: string;
+  village?: string | null;
+  district?: string | null;
+  state?: string | null;
+  total_area?: number | null;
+  area_unit?: string | null;
+  completion_pct?: number | null;
+  updated_at: string;
+  created_at: string;
+};
 
 const GREETING =
-  "Namaste! I'm JAAGA, your agriculture consultant. I'll help you register your land — no forms, just a conversation. To start, may I know your name?";
+  "Namaste! I'm JAAGA, your agriculture consultant. I'll help you register your land — no forms, just a conversation. Lets start.";
 
 export default function LandAgentChat() {
   const { user, loading: authLoading } = useNLAuth();
   const navigate = useNavigate();
   const [registrationId, setRegistrationId] = useState<string | null>(null);
   const [state, setState] = useState<Record<string, any>>({});
-  const [messages, setMessages] = useState<Msg[]>([
-    { id: "welcome", role: "assistant", content: GREETING },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>([{ id: "welcome", role: "assistant", content: GREETING }]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(true);
@@ -151,11 +174,11 @@ export default function LandAgentChat() {
     setState({});
     setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
     setPendingUploads([]);
-    setMultiPicks([]); setActiveFieldId(null);
+    setMultiPicks([]);
+    setActiveFieldId(null);
     setInput("");
     if (user) loadDrafts(user.id);
   }
-
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -167,7 +190,9 @@ export default function LandAgentChat() {
     if (view !== "chat") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [view]);
 
   async function send(overrideText?: string) {
@@ -177,11 +202,13 @@ export default function LandAgentChat() {
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
-    setMultiPicks([]); setActiveFieldId(null);
+    setMultiPicks([]);
+    setActiveFieldId(null);
     setSending(true);
 
     const schemaSummary = LAND_SCHEMA.map(
-      (f) => `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
+      (f) =>
+        `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
     ).join("\n");
 
     try {
@@ -191,15 +218,25 @@ export default function LandAgentChat() {
         role: "user",
         content: text,
       });
-      if (userMessageError) throw new Error(`DB insert failed in LandAgentChat.send user message: ${userMessageError.message}`);
+      if (userMessageError)
+        throw new Error(`DB insert failed in LandAgentChat.send user message: ${userMessageError.message}`);
 
       const { data, error } = await supabase.functions.invoke("nl-land-agent", {
         body: {
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
           state,
           schemaSummary,
-          schema: LAND_SCHEMA.map((f) => ({ id: f.id, label: f.label, type: f.type, options: f.options, required: f.required, adminOnly: f.adminOnly })),
-          nextField: nextField ? { id: nextField.id, label: nextField.label, type: nextField.type, options: nextField.options } : null,
+          schema: LAND_SCHEMA.map((f) => ({
+            id: f.id,
+            label: f.label,
+            type: f.type,
+            options: f.options,
+            required: f.required,
+            adminOnly: f.adminOnly,
+          })),
+          nextField: nextField
+            ? { id: nextField.id, label: nextField.label, type: nextField.type, options: nextField.options }
+            : null,
         },
       });
       if (error) throw await buildInvokeError("nl-land-agent", error);
@@ -227,7 +264,8 @@ export default function LandAgentChat() {
         content: reply,
         extracted_fields: extracted,
       });
-      if (assistantMessageError) throw new Error(`DB insert failed in LandAgentChat.send assistant message: ${assistantMessageError.message}`);
+      if (assistantMessageError)
+        throw new Error(`DB insert failed in LandAgentChat.send assistant message: ${assistantMessageError.message}`);
     } catch (e: any) {
       console.error("LandAgentChat.send runtime failure", e);
       setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: formatRuntimeError(e) }]);
@@ -264,13 +302,16 @@ export default function LandAgentChat() {
           file_name: file.name,
           mime_type: file.type,
           size_bytes: file.size,
-          kind: (nextField?.id === "ownership_docs" ? "ownership_doc" : "land_photo"),
+          kind: nextField?.id === "ownership_docs" ? "ownership_doc" : "land_photo",
         });
         uploaded.push(file.name);
       }
       setPendingUploads((p) => [...p, ...uploaded]);
     } catch (e: any) {
-      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: `Upload failed: ${e?.message ?? String(e)}` }]);
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), role: "assistant", content: `Upload failed: ${e?.message ?? String(e)}` },
+      ]);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -372,7 +413,10 @@ export default function LandAgentChat() {
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "hsl(var(--nl-forest) / 0.1)", color: "hsl(var(--nl-forest))" }}>
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{ background: "hsl(var(--nl-forest) / 0.1)", color: "hsl(var(--nl-forest))" }}
+                          >
                             {pct}% complete
                           </span>
                           <span className="text-[11px]" style={{ color: "hsl(var(--nl-muted))" }}>
@@ -390,8 +434,14 @@ export default function LandAgentChat() {
                             {area || <em style={{ color: "hsl(var(--nl-muted))" }}>Area not captured yet</em>}
                           </span>
                         </div>
-                        <div className="mt-2 h-1 w-full rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "hsl(var(--nl-forest))" }} />
+                        <div
+                          className="mt-2 h-1 w-full rounded-full"
+                          style={{ background: "hsl(var(--nl-forest) / 0.1)" }}
+                        >
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${pct}%`, background: "hsl(var(--nl-forest))" }}
+                          />
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -412,13 +462,24 @@ export default function LandAgentChat() {
                           aria-label="Delete draft"
                           title="Delete draft"
                         >
-                          {deletingId === d.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          {deletingId === d.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
                         </button>
                       </div>
                     </div>
 
                     {confirmDeleteId === d.id && (
-                      <div className="mt-3 rounded-xl border p-3 text-sm" style={{ borderColor: "hsl(0 70% 55% / 0.35)", background: "hsl(0 70% 55% / 0.06)", color: "hsl(var(--nl-ink))" }}>
+                      <div
+                        className="mt-3 rounded-xl border p-3 text-sm"
+                        style={{
+                          borderColor: "hsl(0 70% 55% / 0.35)",
+                          background: "hsl(0 70% 55% / 0.06)",
+                          color: "hsl(var(--nl-ink))",
+                        }}
+                      >
                         Delete this draft permanently? This cannot be undone.
                         <div className="mt-2 flex gap-2">
                           <button
@@ -457,13 +518,8 @@ export default function LandAgentChat() {
     );
   }
 
-
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: "hsl(var(--nl-cream))", height: "100dvh" }}
-    >
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "hsl(var(--nl-cream))", height: "100dvh" }}>
       {/* Fixed top: title + progress */}
       <div
         className="shrink-0 border-b"
@@ -483,17 +539,26 @@ export default function LandAgentChat() {
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <Leaf className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
-              <h1 className="nl-serif text-base sm:text-lg md:text-xl truncate" style={{ color: "hsl(var(--nl-forest))" }}>
+              <h1
+                className="nl-serif text-base sm:text-lg md:text-xl truncate"
+                style={{ color: "hsl(var(--nl-forest))" }}
+              >
                 List Your Land
               </h1>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1 rounded-full shrink-0" style={{ background: "hsl(var(--nl-forest) / 0.08)", color: "hsl(var(--nl-forest))" }}>
+            <div
+              className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1 rounded-full shrink-0"
+              style={{ background: "hsl(var(--nl-forest) / 0.08)", color: "hsl(var(--nl-forest))" }}
+            >
               <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               {completion}%
             </div>
           </div>
           <div className="h-1 w-full rounded-full mt-2" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
-            <div className="h-full rounded-full transition-all" style={{ width: `${completion}%`, background: "hsl(var(--nl-forest))" }} />
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${completion}%`, background: "hsl(var(--nl-forest))" }}
+            />
           </div>
         </div>
       </div>
@@ -502,16 +567,29 @@ export default function LandAgentChat() {
       <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
           {Object.keys(state).length > 0 && (
-            <details className="mb-4 rounded-2xl border px-4 py-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream-deep) / 0.35)" }}>
+            <details
+              className="mb-4 rounded-2xl border px-4 py-3"
+              style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream-deep) / 0.35)" }}
+            >
               <summary className="cursor-pointer text-sm font-medium" style={{ color: "hsl(var(--nl-forest))" }}>
                 Review / edit captured answers
               </summary>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {LAND_SCHEMA.filter((f) => !f.adminOnly && state[f.id] !== undefined && state[f.id] !== null && state[f.id] !== "").map((f) => (
-                  <div key={f.id} className="flex items-start justify-between gap-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.12)", background: "hsl(var(--nl-cream))" }}>
+                {LAND_SCHEMA.filter(
+                  (f) => !f.adminOnly && state[f.id] !== undefined && state[f.id] !== null && state[f.id] !== "",
+                ).map((f) => (
+                  <div
+                    key={f.id}
+                    className="flex items-start justify-between gap-3 rounded-xl border p-3"
+                    style={{ borderColor: "hsl(var(--nl-forest) / 0.12)", background: "hsl(var(--nl-cream))" }}
+                  >
                     <div className="min-w-0">
-                      <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
-                      <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
+                      <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>
+                        {f.label}
+                      </div>
+                      <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>
+                        {formatValue(state[f.id])}
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -535,7 +613,11 @@ export default function LandAgentChat() {
                 style={
                   m.role === "user"
                     ? { background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }
-                    : { background: "hsl(var(--nl-cream-deep) / 0.5)", color: "hsl(var(--nl-ink))", borderColor: "hsl(var(--nl-forest) / 0.15)" }
+                    : {
+                        background: "hsl(var(--nl-cream-deep) / 0.5)",
+                        color: "hsl(var(--nl-ink))",
+                        borderColor: "hsl(var(--nl-forest) / 0.15)",
+                      }
                 }
               >
                 {m.role === "assistant" ? (
@@ -563,7 +645,10 @@ export default function LandAgentChat() {
       >
         <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-3 safe-bottom">
           {isUploadField && (
-            <div className="mb-2 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
+            <div
+              className="mb-2 rounded-xl border p-3"
+              style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}
+            >
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
                   <Paperclip className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
@@ -576,7 +661,11 @@ export default function LandAgentChat() {
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
                     className="text-xs px-3 py-1.5 rounded-full font-medium border disabled:opacity-50"
-                    style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}
+                    style={{
+                      borderColor: "hsl(var(--nl-forest))",
+                      color: "hsl(var(--nl-forest))",
+                      background: "hsl(var(--nl-cream))",
+                    }}
                   >
                     {uploading ? "Uploading…" : pendingUploads.length ? "Add more" : "Choose files"}
                   </button>
@@ -596,7 +685,15 @@ export default function LandAgentChat() {
               {pendingUploads.length > 0 && (
                 <ul className="mt-2 flex flex-wrap gap-1.5">
                   {pendingUploads.map((name, i) => (
-                    <li key={i} className="text-[11px] px-2 py-1 rounded-full border" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}>
+                    <li
+                      key={i}
+                      className="text-[11px] px-2 py-1 rounded-full border"
+                      style={{
+                        borderColor: "hsl(var(--nl-forest) / 0.25)",
+                        color: "hsl(var(--nl-forest))",
+                        background: "hsl(var(--nl-cream))",
+                      }}
+                    >
                       {name}
                     </li>
                   ))}
@@ -627,8 +724,16 @@ export default function LandAgentChat() {
                       className="text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1 whitespace-nowrap shrink-0"
                       style={
                         selected
-                          ? { borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))", background: "hsl(var(--nl-forest))" }
-                          : { borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream-deep) / 0.4)" }
+                          ? {
+                              borderColor: "hsl(var(--nl-forest))",
+                              color: "hsl(var(--nl-cream))",
+                              background: "hsl(var(--nl-forest))",
+                            }
+                          : {
+                              borderColor: "hsl(var(--nl-forest) / 0.3)",
+                              color: "hsl(var(--nl-forest))",
+                              background: "hsl(var(--nl-cream-deep) / 0.4)",
+                            }
                       }
                     >
                       {selected && <Check className="h-3 w-3" />}
@@ -650,7 +755,10 @@ export default function LandAgentChat() {
             </div>
           )}
 
-          <div className="flex items-end gap-2 rounded-2xl border p-2" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}>
+          <div
+            className="flex items-end gap-2 rounded-2xl border p-2"
+            style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}
+          >
             <input
               ref={fileRef}
               type="file"
@@ -664,7 +772,10 @@ export default function LandAgentChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
               }}
               placeholder="Answer naturally — you can share multiple details in one message."
               rows={1}
@@ -702,7 +813,6 @@ export default function LandAgentChat() {
   );
 }
 
-
 // ------- helpers -------
 
 function mergeState(prev: Record<string, any>, patch: Record<string, any>, replaceFields: string[] = []) {
@@ -712,7 +822,9 @@ function mergeState(prev: Record<string, any>, patch: Record<string, any>, repla
     if (!f) continue;
     if (f.type === "multi") {
       const arr = Array.isArray(v) ? v : [v];
-      next[k] = replaceFields.includes(k) ? arr : Array.from(new Set([...(Array.isArray(prev[k]) ? prev[k] : []), ...arr]));
+      next[k] = replaceFields.includes(k)
+        ? arr
+        : Array.from(new Set([...(Array.isArray(prev[k]) ? prev[k] : []), ...arr]));
     } else if (f.type === "stars" && typeof v === "object" && v) {
       next[k] = replaceFields.includes(k) ? v : { ...(prev[k] ?? {}), ...v };
     } else {
@@ -767,14 +879,21 @@ function formatWhen(iso: string) {
 
 function formatValue(value: any) {
   if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "object" && value) return Object.entries(value).map(([k, v]) => `${k}: ${v}`).join(", ");
+  if (typeof value === "object" && value)
+    return Object.entries(value)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(", ");
   return String(value);
 }
 
 async function buildInvokeError(functionName: string, error: any) {
   let details = error?.message ?? String(error);
   if (error?.context?.text) {
-    try { details = await error.context.text(); } catch { /* keep original */ }
+    try {
+      details = await error.context.text();
+    } catch {
+      /* keep original */
+    }
   }
   return new Error(`Edge Function ${functionName} failed in LandAgentChat.send: ${details}`);
 }
