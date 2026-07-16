@@ -51,6 +51,7 @@ export default function LandAgentChat() {
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [view, setView] = useState<"picker" | "chat">("picker");
   const [drafts, setDrafts] = useState<DraftRow[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
