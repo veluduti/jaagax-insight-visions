@@ -161,6 +161,14 @@ export default function LandAgentChat() {
     if (!sending) inputRef.current?.focus();
   }, [messages, sending]);
 
+  // Lock body scroll while in chat view — ChatGPT-style full-viewport UX.
+  useEffect(() => {
+    if (view !== "chat") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [view]);
+
   async function send(overrideText?: string) {
     const text = (overrideText ?? input).trim();
     if (!text || sending || !registrationId || !user) return;
@@ -442,238 +450,244 @@ export default function LandAgentChat() {
 
 
   return (
-    <div className="nl-container py-6 md:py-10 max-w-3xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={backToPicker}
-            className="p-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)]"
-            style={{ color: "hsl(var(--nl-forest))" }}
-            aria-label="Back to drafts"
-            title="Back to drafts"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
-          <h1 className="nl-serif text-xl md:text-2xl" style={{ color: "hsl(var(--nl-forest))" }}>
-            List Your Land
-          </h1>
-        </div>
-        <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.08)", color: "hsl(var(--nl-forest))" }}>
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          {completion}% complete
-        </div>
-      </div>
-
-
-      {/* Progress bar */}
-      <div className="h-1 w-full rounded-full mb-6" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
-        <div className="h-full rounded-full transition-all" style={{ width: `${completion}%`, background: "hsl(var(--nl-forest))" }} />
-      </div>
-
-      {Object.keys(state).length > 0 && (
-        <details className="mb-4 rounded-2xl border px-4 py-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream-deep) / 0.35)" }}>
-          <summary className="cursor-pointer text-sm font-medium" style={{ color: "hsl(var(--nl-forest))" }}>
-            Review / edit captured answers
-          </summary>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {LAND_SCHEMA.filter((f) => !f.adminOnly && state[f.id] !== undefined && state[f.id] !== null && state[f.id] !== "").map((f) => (
-              <div key={f.id} className="flex items-start justify-between gap-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.12)", background: "hsl(var(--nl-cream))" }}>
-                <div className="min-w-0">
-                  <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
-                  <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
-                </div>
-              <button
-                  type="button"
-                  aria-label={`Edit ${f.label}`}
-                  className="shrink-0 p-1.5 rounded-full"
-                  style={{ color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-forest) / 0.08)" }}
-                  onClick={() => requestReask(f.id)}
-                >
-                  <Edit3 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
-
-      {/* Message list */}
+    <div
+      className="fixed inset-0 z-50 flex flex-col"
+      style={{ background: "hsl(var(--nl-cream))", height: "100dvh" }}
+    >
+      {/* Fixed top: title + progress */}
       <div
-        ref={listRef}
-        className="rounded-2xl border p-4 md:p-6 mb-4 overflow-y-auto"
-        style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))", height: "60vh", minHeight: 420 }}
+        className="shrink-0 border-b"
+        style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-forest) / 0.15)" }}
       >
-        {messages.map((m) => (
-          <div key={m.id} className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.role === "user" ? "" : "border"}`}
-              style={
-                m.role === "user"
-                  ? { background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }
-                  : { background: "hsl(var(--nl-cream-deep) / 0.5)", color: "hsl(var(--nl-ink))", borderColor: "hsl(var(--nl-forest) / 0.15)" }
-              }
-            >
-              {m.role === "assistant" ? (
-                <div className="prose prose-sm max-w-none">
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
-                </div>
-              ) : (
-                m.content
-              )}
-            </div>
-          </div>
-        ))}
-        {sending && (
-          <div className="flex items-center gap-2 text-sm text-[hsl(var(--nl-muted))]">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> JAAGA is thinking…
-          </div>
-        )}
-      </div>
-
-      {/* Upload prompt when current field is an upload */}
-      {isUploadField && (
-        <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-sm flex items-center gap-2" style={{ color: "hsl(var(--nl-ink))" }}>
-              <Paperclip className="h-4 w-4" style={{ color: "hsl(var(--nl-forest))" }} />
-              <strong>{nextField?.label}</strong>
-              <span className="text-[hsl(var(--nl-muted))]">— attach one or more files.</span>
-            </div>
-            <div className="flex items-center gap-2">
+        <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-2.5 sm:py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="text-xs px-3 py-1.5 rounded-full font-medium border disabled:opacity-50"
-                style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}
+                onClick={backToPicker}
+                className="p-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)] shrink-0"
+                style={{ color: "hsl(var(--nl-forest))" }}
+                aria-label="Back to drafts"
+                title="Back to drafts"
               >
-                {uploading ? "Uploading…" : pendingUploads.length ? "Add more" : "Choose files"}
+                <ArrowLeft className="h-4 w-4" />
               </button>
-              {pendingUploads.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => finalizeUploads()}
-                  disabled={uploading || sending}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
-                  style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
-                >
-                  Done ({pendingUploads.length})
-                </button>
-              )}
+              <Leaf className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
+              <h1 className="nl-serif text-base sm:text-lg md:text-xl truncate" style={{ color: "hsl(var(--nl-forest))" }}>
+                List Your Land
+              </h1>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs px-2.5 py-1 rounded-full shrink-0" style={{ background: "hsl(var(--nl-forest) / 0.08)", color: "hsl(var(--nl-forest))" }}>
+              <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              {completion}%
             </div>
           </div>
-          {pendingUploads.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {pendingUploads.map((name, i) => (
-                <li key={i} className="text-[11px] px-2 py-1 rounded-full border" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}>
-                  {name}
-                </li>
-              ))}
-            </ul>
+          <div className="h-1 w-full rounded-full mt-2" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
+            <div className="h-full rounded-full transition-all" style={{ width: `${completion}%`, background: "hsl(var(--nl-forest))" }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable messages — only this scrolls */}
+      <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
+          {Object.keys(state).length > 0 && (
+            <details className="mb-4 rounded-2xl border px-4 py-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream-deep) / 0.35)" }}>
+              <summary className="cursor-pointer text-sm font-medium" style={{ color: "hsl(var(--nl-forest))" }}>
+                Review / edit captured answers
+              </summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {LAND_SCHEMA.filter((f) => !f.adminOnly && state[f.id] !== undefined && state[f.id] !== null && state[f.id] !== "").map((f) => (
+                  <div key={f.id} className="flex items-start justify-between gap-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.12)", background: "hsl(var(--nl-cream))" }}>
+                    <div className="min-w-0">
+                      <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
+                      <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Edit ${f.label}`}
+                      className="shrink-0 p-1.5 rounded-full"
+                      style={{ color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-forest) / 0.08)" }}
+                      onClick={() => requestReask(f.id)}
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {messages.map((m) => (
+            <div key={m.id} className={`mb-4 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${m.role === "user" ? "" : "border"}`}
+                style={
+                  m.role === "user"
+                    ? { background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }
+                    : { background: "hsl(var(--nl-cream-deep) / 0.5)", color: "hsl(var(--nl-ink))", borderColor: "hsl(var(--nl-forest) / 0.15)" }
+                }
+              >
+                {m.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  m.content
+                )}
+              </div>
+            </div>
+          ))}
+          {sending && (
+            <div className="flex items-center gap-2 text-sm text-[hsl(var(--nl-muted))]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> JAAGA is thinking…
+            </div>
           )}
         </div>
-      )}
-
-      {/* Smart suggestions */}
-      {chipSuggestions.length > 0 && (
-        <div className="mb-3">
-          <div className="text-[11px] uppercase tracking-wide mb-1.5" style={{ color: "hsl(var(--nl-muted))" }}>
-            {isMultiField ? "Tap to select multiple, then Send" : "Smart suggestions"}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {chipSuggestions.map((opt) => {
-              const selected = isMultiField && multiPicks.includes(opt);
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    if (isMultiField) {
-                      setMultiPicks((p) => (p.includes(opt) ? p.filter((x) => x !== opt) : [...p, opt]));
-                    } else {
-                      send(opt);
-                    }
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1"
-                  style={
-                    selected
-                      ? { borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))", background: "hsl(var(--nl-forest))" }
-                      : { borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream-deep) / 0.4)" }
-                  }
-                >
-                  {selected && <Check className="h-3 w-3" />}
-                  {opt}
-                </button>
-              );
-            })}
-            {isMultiField && multiPicks.length > 0 && (
-              <button
-                type="button"
-                onClick={() => send(multiPicks.join(", "))}
-                className="text-xs px-3 py-1.5 rounded-full font-medium"
-                style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
-              >
-                Send {multiPicks.length} selection{multiPicks.length > 1 ? "s" : ""}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Composer */}
-      <div className="flex items-end gap-2 rounded-2xl border p-2" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}>
-        <input
-          ref={fileRef}
-          type="file"
-          multiple
-          accept="image/*,application/pdf"
-          className="hidden"
-          onChange={(e) => handleFileUpload(e.target.files)}
-        />
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-          }}
-          placeholder="Answer naturally — you can share multiple details in one message."
-          rows={1}
-          className="flex-1 resize-none bg-transparent outline-none text-[15px] px-3 py-2 max-h-40"
-          style={{ color: "hsl(var(--nl-ink))" }}
-          autoFocus
-        />
-        {canSkip && (
-          <button
-            type="button"
-            onClick={() => skipCurrent()}
-            disabled={sending}
-            className="p-2.5 rounded-full text-xs flex items-center gap-1 disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
-            style={{ color: "hsl(var(--nl-forest))" }}
-            aria-label="Skip this question"
-            title="Skip this question"
-          >
-            <SkipForward className="h-4 w-4" />
-            <span className="hidden sm:inline">Skip</span>
-          </button>
-        )}
-        <button
-          onClick={() => send()}
-          disabled={sending || !input.trim()}
-          className="p-2.5 rounded-full disabled:opacity-40"
-          style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
-          aria-label="Send"
-        >
-          <Send className="h-4 w-4" />
-        </button>
       </div>
 
-      <p className="text-xs text-[hsl(var(--nl-muted))] mt-3">
-        JAAGA saves your progress automatically. You can leave and come back anytime.
-      </p>
+      {/* Fixed bottom: upload prompt + chips + composer */}
+      <div
+        className="shrink-0 border-t"
+        style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-forest) / 0.15)" }}
+      >
+        <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-3 safe-bottom">
+          {isUploadField && (
+            <div className="mb-2 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
+                  <Paperclip className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
+                  <strong className="truncate">{nextField?.label}</strong>
+                  <span className="text-[hsl(var(--nl-muted))] hidden sm:inline">— attach one or more files.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="text-xs px-3 py-1.5 rounded-full font-medium border disabled:opacity-50"
+                    style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}
+                  >
+                    {uploading ? "Uploading…" : pendingUploads.length ? "Add more" : "Choose files"}
+                  </button>
+                  {pendingUploads.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => finalizeUploads()}
+                      disabled={uploading || sending}
+                      className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+                      style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                    >
+                      Done ({pendingUploads.length})
+                    </button>
+                  )}
+                </div>
+              </div>
+              {pendingUploads.length > 0 && (
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {pendingUploads.map((name, i) => (
+                    <li key={i} className="text-[11px] px-2 py-1 rounded-full border" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}>
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {chipSuggestions.length > 0 && (
+            <div className="mb-2">
+              <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "hsl(var(--nl-muted))" }}>
+                {isMultiField ? "Tap to select multiple, then Send" : "Smart suggestions"}
+              </div>
+              <div className="flex flex-nowrap gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                {chipSuggestions.map((opt) => {
+                  const selected = isMultiField && multiPicks.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        if (isMultiField) {
+                          setMultiPicks((p) => (p.includes(opt) ? p.filter((x) => x !== opt) : [...p, opt]));
+                        } else {
+                          send(opt);
+                        }
+                      }}
+                      className="text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1 whitespace-nowrap shrink-0"
+                      style={
+                        selected
+                          ? { borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))", background: "hsl(var(--nl-forest))" }
+                          : { borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream-deep) / 0.4)" }
+                      }
+                    >
+                      {selected && <Check className="h-3 w-3" />}
+                      {opt}
+                    </button>
+                  );
+                })}
+                {isMultiField && multiPicks.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => send(multiPicks.join(", "))}
+                    className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0"
+                    style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                  >
+                    Send {multiPicks.length}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-end gap-2 rounded-2xl border p-2" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,application/pdf"
+              className="hidden"
+              onChange={(e) => handleFileUpload(e.target.files)}
+            />
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+              }}
+              placeholder="Answer naturally — you can share multiple details in one message."
+              rows={1}
+              className="flex-1 resize-none bg-transparent outline-none text-[15px] px-3 py-2 max-h-32"
+              style={{ color: "hsl(var(--nl-ink))" }}
+              autoFocus
+            />
+            {canSkip && (
+              <button
+                type="button"
+                onClick={() => skipCurrent()}
+                disabled={sending}
+                className="p-2.5 rounded-full text-xs flex items-center gap-1 disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                style={{ color: "hsl(var(--nl-forest))" }}
+                aria-label="Skip this question"
+                title="Skip this question"
+              >
+                <SkipForward className="h-4 w-4" />
+                <span className="hidden sm:inline">Skip</span>
+              </button>
+            )}
+            <button
+              onClick={() => send()}
+              disabled={sending || !input.trim()}
+              className="p-2.5 rounded-full disabled:opacity-40"
+              style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+              aria-label="Send"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
