@@ -183,14 +183,36 @@ export default function LandAgentChat() {
         });
         uploaded.push(file.name);
       }
-      const label = nextField?.id === "ownership_docs" ? "ownership document(s)" : "land photo(s)";
-      await send(`I've uploaded ${uploaded.length} ${label}: ${uploaded.join(", ")}`);
+      setPendingUploads((p) => [...p, ...uploaded]);
     } catch (e: any) {
       setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: `Upload failed: ${e?.message ?? String(e)}` }]);
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  async function finalizeUploads() {
+    if (!pendingUploads.length || !nextField) return;
+    const label = nextField.id === "ownership_docs" ? "ownership document(s)" : "land photo(s)";
+    const files = pendingUploads;
+    setPendingUploads([]);
+    // Mark this upload field as complete in state so the resolver advances.
+    const merged = { ...state, [nextField.id]: files };
+    setState(merged);
+    if (registrationId) await persistState(registrationId, merged).catch(() => {});
+    await send(`I've uploaded ${files.length} ${label}: ${files.join(", ")}`);
+  }
+
+  async function requestReask(fieldId: string) {
+    const f = fieldById(fieldId);
+    if (!f) return;
+    // Clear the value so resolver treats it as missing again.
+    const next = { ...state };
+    delete next[fieldId];
+    setState(next);
+    if (registrationId) await persistState(registrationId, next).catch(() => {});
+    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
   }
 
   const chipSuggestions: string[] = nextField?.options?.slice(0, 12) ?? [];
