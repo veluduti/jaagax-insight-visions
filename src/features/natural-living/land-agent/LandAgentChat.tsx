@@ -311,19 +311,45 @@ export default function LandAgentChat() {
 
       {/* Upload prompt when current field is an upload */}
       {isUploadField && (
-        <div className="mb-3 rounded-xl border p-3 flex items-center justify-between gap-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
-          <div className="text-sm" style={{ color: "hsl(var(--nl-ink))" }}>
-            📎 <strong>{nextField?.label}</strong> — attach files below.
+        <div className="mb-3 rounded-xl border p-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-sm flex items-center gap-2" style={{ color: "hsl(var(--nl-ink))" }}>
+              <Paperclip className="h-4 w-4" style={{ color: "hsl(var(--nl-forest))" }} />
+              <strong>{nextField?.label}</strong>
+              <span className="text-[hsl(var(--nl-muted))]">— attach one or more files.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="text-xs px-3 py-1.5 rounded-full font-medium border disabled:opacity-50"
+                style={{ borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}
+              >
+                {uploading ? "Uploading…" : pendingUploads.length ? "Add more" : "Choose files"}
+              </button>
+              {pendingUploads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => finalizeUploads()}
+                  disabled={uploading || sending}
+                  className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+                  style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                >
+                  Done ({pendingUploads.length})
+                </button>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
-            style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
-          >
-            {uploading ? "Uploading…" : "Choose files"}
-          </button>
+          {pendingUploads.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {pendingUploads.map((name, i) => (
+                <li key={i} className="text-[11px] px-2 py-1 rounded-full border" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream))" }}>
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
