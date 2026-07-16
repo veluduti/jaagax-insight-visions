@@ -24,6 +24,7 @@ export default function LandAgentChat() {
   const [bootstrapping, setBootstrapping] = useState(true);
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
