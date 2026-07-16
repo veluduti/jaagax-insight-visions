@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       return debugResponse(requestId, "env_api_key", new Error("LOVABLE_API_KEY missing"));
     }
 
-    const { messages = [], state = {}, schemaSummary = "", schema = [], nextField = null } = await req.json();
+    const { messages = [], state = {}, skippedFields = [], schemaSummary = "", schema = [], nextField = null } = await req.json();
     const fieldMap = new Map<string, FieldSchema>((schema as FieldSchema[]).map((field) => [field.id, field]));
     const latestUserMessage = [...messages].reverse().find((message: any) => message?.role === "user")?.content ?? "";
 
@@ -62,8 +62,11 @@ ${schemaSummary}
 COLLECTED SO FAR:
 ${JSON.stringify(state, null, 2)}
 
+SKIPPED FIELDS (user chose to skip — NEVER ask these again, do not mention them):
+${Array.isArray(skippedFields) && skippedFields.length ? skippedFields.join(", ") : "(none)"}
+
 NEXT MOST-IMPORTANT MISSING FIELD:
-${nextField ? `${nextField.id} — ${nextField.label}${nextField.options ? ` (options: ${nextField.options.join(", ")})` : ""}` : "None — all required fields captured; move toward wrap-up."}
+${nextField ? `${nextField.id} — ${nextField.label}${nextField.options ? ` (options: ${nextField.options.join(", ")})` : ""}` : "None — all required fields captured. Congratulate the user briefly (1 sentence) and tell them to review their answers above and tap 'Review & Submit'. Do NOT ask any more questions."}
 
 RESPONSE FORMAT — return STRICT JSON only, no prose outside the JSON:
 {

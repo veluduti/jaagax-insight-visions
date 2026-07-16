@@ -51,6 +51,7 @@ export default function LandAgentChat() {
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [view, setView] = useState<"picker" | "chat">("picker");
   const [drafts, setDrafts] = useState<DraftRow[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -195,9 +196,12 @@ export default function LandAgentChat() {
     };
   }, [view]);
 
-  async function send(overrideText?: string) {
+  async function send(overrideText?: string, stateOverride?: Record<string, any>) {
     const text = (overrideText ?? input).trim();
     if (!text || sending || !registrationId || !user) return;
+
+    const effectiveState = stateOverride ?? state;
+    const effectiveNext = nextMissingField(effectiveState);
 
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
@@ -206,6 +210,7 @@ export default function LandAgentChat() {
     setActiveFieldId(null);
     setSending(true);
 
+    const skippedList: string[] = Array.isArray(effectiveState.__skipped) ? effectiveState.__skipped : [];
     const schemaSummary = LAND_SCHEMA.map(
       (f) =>
         `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
@@ -224,7 +229,8 @@ export default function LandAgentChat() {
       const { data, error } = await supabase.functions.invoke("nl-land-agent", {
         body: {
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
-          state,
+          state: effectiveState,
+          skippedFields: skippedList,
           schemaSummary,
           schema: LAND_SCHEMA.map((f) => ({
             id: f.id,
@@ -234,8 +240,8 @@ export default function LandAgentChat() {
             required: f.required,
             adminOnly: f.adminOnly,
           })),
-          nextField: nextField
-            ? { id: nextField.id, label: nextField.label, type: nextField.type, options: nextField.options }
+          nextField: effectiveNext
+            ? { id: effectiveNext.id, label: effectiveNext.label, type: effectiveNext.type, options: effectiveNext.options }
             : null,
         },
       });
@@ -250,9 +256,17 @@ export default function LandAgentChat() {
       setMultiPicks([]);
 
       if (Object.keys(extracted).length > 0) {
-        const merged = mergeState(state, extracted, replaceFields);
+        const merged = mergeState(effectiveState, extracted, replaceFields);
+        // Un-skip any field the user just provided answers for.
+        if (Array.isArray(merged.__skipped)) {
+          merged.__skipped = (merged.__skipped as string[]).filter((id) => !(id in extracted));
+        }
         setState(merged);
         await persistState(registrationId, merged);
+      } else if (stateOverride) {
+        // Persist skip-only updates.
+        setState(effectiveState);
+        await persistState(registrationId, effectiveState);
       }
 
       const asstMsg: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply };
@@ -276,14 +290,11 @@ export default function LandAgentChat() {
 
   async function skipCurrent() {
     if (!nextField || sending) return;
-    // Mark skipped locally so the resolver moves on; persist as null so we don't re-ask.
-    const merged = { ...state, [nextField.id]: nextField.type === "multi" ? [] : "__skipped__" };
-    // For nicer UX, actually just mark it in a __skipped set stored in extra
-    const skipped = new Set<string>((state.__skipped as string[]) ?? []);
+    const skipped = new Set<string>(Array.isArray(state.__skipped) ? (state.__skipped as string[]) : []);
     skipped.add(nextField.id);
     const next = { ...state, __skipped: Array.from(skipped) };
     setState(next);
-    await send(`Skip — I don't have info for "${nextField.label}" right now.`);
+    await send(`Skip — I don't have info for "${nextField.label}" right now.`, next);
   }
 
   async function handleFileUpload(files: FileList | null) {
@@ -333,12 +344,32 @@ export default function LandAgentChat() {
   async function requestReask(fieldId: string) {
     const f = fieldById(fieldId);
     if (!f) return;
-    // Clear the value so resolver treats it as missing again.
+    // Clear the value and un-skip so resolver treats it as missing again.
     const next = { ...state };
     delete next[fieldId];
+    if (Array.isArray(next.__skipped)) next.__skipped = (next.__skipped as string[]).filter((id) => id !== fieldId);
     setState(next);
     if (registrationId) await persistState(registrationId, next).catch(() => {});
-    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
+    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`, next);
+  }
+
+  async function submitRegistration() {
+    if (!registrationId || !user || submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .update({ status: "submitted" })
+        .eq("id", registrationId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      alert("Your land registration has been submitted for review. Thank you!");
+      backToPicker();
+    } catch (e: any) {
+      alert(`Could not submit: ${e?.message ?? String(e)}`);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
@@ -644,6 +675,29 @@ export default function LandAgentChat() {
         style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-forest) / 0.15)" }}
       >
         <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-3 safe-bottom">
+          {!nextField && !isUploadField && (
+            <div
+              className="mb-2 rounded-xl border p-3 flex items-center justify-between gap-3 flex-wrap"
+              style={{ borderColor: "hsl(var(--nl-forest) / 0.35)", background: "hsl(var(--nl-forest) / 0.06)" }}
+            >
+              <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
+                <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
+                <span>
+                  <strong>All questions answered.</strong> Review your details above and submit when ready.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={submitRegistration}
+                disabled={submitting}
+                className="text-sm px-4 py-2 rounded-full font-medium disabled:opacity-50 flex items-center gap-1.5"
+                style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+              >
+                {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                {submitting ? "Submitting…" : "Review & Submit"}
+              </button>
+            </div>
+          )}
           {isUploadField && (
             <div
               className="mb-2 rounded-xl border p-3"
@@ -847,6 +901,7 @@ async function persistState(registrationId: string, state: Record<string, any>) 
     }
     row[f.column] = v;
   }
+  if (Array.isArray(state.__skipped)) extra.__skipped = state.__skipped;
   if (Object.keys(extra).length > 0) row.extra = extra;
   const { error } = await (supabase as any).from("nl_land_registrations").update(row).eq("id", registrationId);
   if (error) throw new Error(`DB update failed in persistState: ${error.message}`);
@@ -860,6 +915,7 @@ function draftToState(draft: any): Record<string, any> {
     const value = f.column.startsWith("extra.") ? draft?.extra?.[f.column.slice("extra.".length)] : v;
     if (value !== undefined && value !== null && value !== "") s[f.id] = value;
   }
+  if (Array.isArray(draft?.extra?.__skipped)) s.__skipped = draft.extra.__skipped;
   return s;
 }
 
