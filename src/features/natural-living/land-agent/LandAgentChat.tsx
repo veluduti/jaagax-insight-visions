@@ -195,9 +195,12 @@ export default function LandAgentChat() {
     };
   }, [view]);
 
-  async function send(overrideText?: string) {
+  async function send(overrideText?: string, stateOverride?: Record<string, any>) {
     const text = (overrideText ?? input).trim();
     if (!text || sending || !registrationId || !user) return;
+
+    const effectiveState = stateOverride ?? state;
+    const effectiveNext = nextMissingField(effectiveState);
 
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
@@ -206,6 +209,7 @@ export default function LandAgentChat() {
     setActiveFieldId(null);
     setSending(true);
 
+    const skippedList: string[] = Array.isArray(effectiveState.__skipped) ? effectiveState.__skipped : [];
     const schemaSummary = LAND_SCHEMA.map(
       (f) =>
         `${f.id} (${f.type}${f.options ? ": " + f.options.join("|") : ""})${f.required ? " *" : ""}${f.adminOnly ? " [admin-only]" : ""} — ${f.label}${f.hint ? ` — ${f.hint}` : ""}`,
@@ -224,7 +228,8 @@ export default function LandAgentChat() {
       const { data, error } = await supabase.functions.invoke("nl-land-agent", {
         body: {
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
-          state,
+          state: effectiveState,
+          skippedFields: skippedList,
           schemaSummary,
           schema: LAND_SCHEMA.map((f) => ({
             id: f.id,
@@ -234,8 +239,8 @@ export default function LandAgentChat() {
             required: f.required,
             adminOnly: f.adminOnly,
           })),
-          nextField: nextField
-            ? { id: nextField.id, label: nextField.label, type: nextField.type, options: nextField.options }
+          nextField: effectiveNext
+            ? { id: effectiveNext.id, label: effectiveNext.label, type: effectiveNext.type, options: effectiveNext.options }
             : null,
         },
       });
@@ -250,9 +255,17 @@ export default function LandAgentChat() {
       setMultiPicks([]);
 
       if (Object.keys(extracted).length > 0) {
-        const merged = mergeState(state, extracted, replaceFields);
+        const merged = mergeState(effectiveState, extracted, replaceFields);
+        // Un-skip any field the user just provided answers for.
+        if (Array.isArray(merged.__skipped)) {
+          merged.__skipped = (merged.__skipped as string[]).filter((id) => !(id in extracted));
+        }
         setState(merged);
         await persistState(registrationId, merged);
+      } else if (stateOverride) {
+        // Persist skip-only updates.
+        setState(effectiveState);
+        await persistState(registrationId, effectiveState);
       }
 
       const asstMsg: Msg = { id: crypto.randomUUID(), role: "assistant", content: reply };
@@ -276,14 +289,11 @@ export default function LandAgentChat() {
 
   async function skipCurrent() {
     if (!nextField || sending) return;
-    // Mark skipped locally so the resolver moves on; persist as null so we don't re-ask.
-    const merged = { ...state, [nextField.id]: nextField.type === "multi" ? [] : "__skipped__" };
-    // For nicer UX, actually just mark it in a __skipped set stored in extra
-    const skipped = new Set<string>((state.__skipped as string[]) ?? []);
+    const skipped = new Set<string>(Array.isArray(state.__skipped) ? (state.__skipped as string[]) : []);
     skipped.add(nextField.id);
     const next = { ...state, __skipped: Array.from(skipped) };
     setState(next);
-    await send(`Skip — I don't have info for "${nextField.label}" right now.`);
+    await send(`Skip — I don't have info for "${nextField.label}" right now.`, next);
   }
 
   async function handleFileUpload(files: FileList | null) {
