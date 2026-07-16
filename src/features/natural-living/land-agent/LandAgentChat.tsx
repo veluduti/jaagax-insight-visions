@@ -344,12 +344,32 @@ export default function LandAgentChat() {
   async function requestReask(fieldId: string) {
     const f = fieldById(fieldId);
     if (!f) return;
-    // Clear the value so resolver treats it as missing again.
+    // Clear the value and un-skip so resolver treats it as missing again.
     const next = { ...state };
     delete next[fieldId];
+    if (Array.isArray(next.__skipped)) next.__skipped = (next.__skipped as string[]).filter((id) => id !== fieldId);
     setState(next);
     if (registrationId) await persistState(registrationId, next).catch(() => {});
-    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
+    await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`, next);
+  }
+
+  async function submitRegistration() {
+    if (!registrationId || !user || submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .update({ status: "submitted", submitted_at: new Date().toISOString() })
+        .eq("id", registrationId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      alert("Your land registration has been submitted for review. Thank you!");
+      backToPicker();
+    } catch (e: any) {
+      alert(`Could not submit: ${e?.message ?? String(e)}`);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
