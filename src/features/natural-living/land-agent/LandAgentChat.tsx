@@ -359,7 +359,7 @@ export default function LandAgentChat() {
     try {
       const { error } = await (supabase as any)
         .from("nl_land_registrations")
-        .update({ status: "submitted", submitted_at: new Date().toISOString() })
+        .update({ status: "submitted" })
         .eq("id", registrationId)
         .eq("user_id", user.id);
       if (error) throw new Error(error.message);
