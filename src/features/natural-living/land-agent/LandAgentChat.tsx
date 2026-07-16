@@ -208,6 +208,9 @@ export default function LandAgentChat() {
       const reply = data?.reply ?? "Could you tell me more?";
       const extracted: Record<string, any> = data?.extracted ?? {};
       const replaceFields: string[] = Array.isArray(data?.replace_fields) ? data.replace_fields : [];
+      const returnedActive: string | null = typeof data?.active_field === "string" ? data.active_field : null;
+      setActiveFieldId(returnedActive && fieldById(returnedActive) ? returnedActive : null);
+      setMultiPicks([]);
 
       if (Object.keys(extracted).length > 0) {
         const merged = mergeState(state, extracted, replaceFields);
