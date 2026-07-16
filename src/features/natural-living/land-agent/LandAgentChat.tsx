@@ -300,10 +300,16 @@ export default function LandAgentChat() {
     await send(`I'd like to change my answer for "${f.label}". Please ask me that question again.`);
   }
 
-  const chipSuggestions: string[] = nextField?.options?.slice(0, 12) ?? [];
-  const isMultiField = nextField?.type === "multi";
-  const isUploadField = nextField?.type === "upload";
-  const canSkip = !!nextField && !nextField.required;
+  // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
+  // Chips ALWAYS reflect the field the AI is asking about — never a stale/other field.
+  const activeField = useMemo(() => {
+    const byAI = activeFieldId ? fieldById(activeFieldId) : null;
+    return byAI ?? nextField ?? null;
+  }, [activeFieldId, nextField]);
+  const chipSuggestions: string[] = activeField?.options?.slice(0, 24) ?? [];
+  const isMultiField = activeField?.type === "multi";
+  const isUploadField = activeField?.type === "upload";
+  const canSkip = !!activeField && !activeField.required;
 
   if (bootstrapping) {
     return (
