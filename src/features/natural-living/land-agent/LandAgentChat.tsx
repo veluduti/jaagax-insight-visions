@@ -727,6 +727,20 @@ function draftToState(draft: any): Record<string, any> {
   return s;
 }
 
+function formatWhen(iso: string) {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
 function formatValue(value: any) {
   if (Array.isArray(value)) return value.join(", ");
   if (typeof value === "object" && value) return Object.entries(value).map(([k, v]) => `${k}: ${v}`).join(", ");
