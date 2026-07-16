@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
 import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
-import { Edit3, Leaf, Send, CheckCircle2, Loader2, Paperclip, SkipForward, Check } from "lucide-react";
+import { Edit3, Leaf, Send, CheckCircle2, Loader2, Paperclip, SkipForward, Check, Plus, Trash2, MapPin, Ruler, Clock, ChevronRight, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
+type DraftRow = { id: string; village?: string | null; district?: string | null; state?: string | null; total_area?: number | null; area_unit?: string | null; completion_pct?: number | null; updated_at: string; created_at: string };
+
 
 const GREETING =
   "Namaste! I'm JAAGA, your agriculture consultant. I'll help you register your land — no forms, just a conversation. To start, may I know your name?";
