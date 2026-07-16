@@ -261,15 +261,12 @@ export default function LandAgentChat() {
                   <div className="text-[11px] uppercase tracking-wide" style={{ color: "hsl(var(--nl-muted))" }}>{f.label}</div>
                   <div className="text-sm break-words" style={{ color: "hsl(var(--nl-ink))" }}>{formatValue(state[f.id])}</div>
                 </div>
-                <button
+              <button
                   type="button"
                   aria-label={`Edit ${f.label}`}
                   className="shrink-0 p-1.5 rounded-full"
                   style={{ color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-forest) / 0.08)" }}
-                  onClick={() => {
-                    setInput(`Correction: ${f.label} should be `);
-                    requestAnimationFrame(() => inputRef.current?.focus());
-                  }}
+                  onClick={() => requestReask(f.id)}
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
