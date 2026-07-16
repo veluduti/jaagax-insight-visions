@@ -695,11 +695,17 @@ export function fieldById(id: string): FieldDef | undefined {
   return LAND_SCHEMA.find((f) => f.id === id);
 }
 
+function isSkipped(state: Record<string, any>, id: string): boolean {
+  const s = state.__skipped;
+  return Array.isArray(s) && s.includes(id);
+}
+
 export function requiredFieldsRemaining(state: Record<string, any>): FieldDef[] {
   return LAND_SCHEMA.filter((f) => {
     if (f.adminOnly) return false;
     if (!f.required) return false;
     if (f.dependsOn && !f.dependsOn(state)) return false;
+    if (isSkipped(state, f.id)) return false;
     const v = state[f.id];
     if (v === undefined || v === null || v === "") return true;
     if (Array.isArray(v) && v.length === 0) return true;
@@ -714,6 +720,7 @@ export function nextMissingField(state: Record<string, any>): FieldDef | null {
   for (const f of LAND_SCHEMA) {
     if (f.adminOnly) continue;
     if (f.dependsOn && !f.dependsOn(state)) continue;
+    if (isSkipped(state, f.id)) continue;
     const v = state[f.id];
     if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) return f;
   }
@@ -723,6 +730,7 @@ export function nextMissingField(state: Record<string, any>): FieldDef | null {
 export function computeCompletion(state: Record<string, any>): number {
   const applicable = LAND_SCHEMA.filter((f) => !f.adminOnly && (!f.dependsOn || f.dependsOn(state)));
   const filled = applicable.filter((f) => {
+    if (isSkipped(state, f.id)) return true;
     const v = state[f.id];
     if (v === undefined || v === null || v === "") return false;
     if (Array.isArray(v) && v.length === 0) return false;
