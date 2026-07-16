@@ -289,24 +289,91 @@ export default function LandAgentChat() {
         )}
       </div>
 
-      {/* Chip suggestions */}
+      {/* Upload prompt when current field is an upload */}
+      {isUploadField && (
+        <div className="mb-3 rounded-xl border p-3 flex items-center justify-between gap-3" style={{ borderColor: "hsl(var(--nl-forest) / 0.25)", background: "hsl(var(--nl-cream-deep) / 0.4)" }}>
+          <div className="text-sm" style={{ color: "hsl(var(--nl-ink))" }}>
+            📎 <strong>{nextField?.label}</strong> — attach files below.
+          </div>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+            style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+          >
+            {uploading ? "Uploading…" : "Choose files"}
+          </button>
+        </div>
+      )}
+
+      {/* Smart suggestions */}
       {chipSuggestions.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {chipSuggestions.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setInput((v) => (v ? `${v}, ${opt}` : opt))}
-              className="text-xs px-3 py-1.5 rounded-full border transition-colors"
-              style={{ borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream-deep) / 0.4)" }}
-            >
-              {opt}
-            </button>
-          ))}
+        <div className="mb-3">
+          <div className="text-[11px] uppercase tracking-wide mb-1.5" style={{ color: "hsl(var(--nl-muted))" }}>
+            {isMultiField ? "Tap to select multiple, then Send" : "Smart suggestions"}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {chipSuggestions.map((opt) => {
+              const selected = isMultiField && multiPicks.includes(opt);
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    if (isMultiField) {
+                      setMultiPicks((p) => (p.includes(opt) ? p.filter((x) => x !== opt) : [...p, opt]));
+                    } else {
+                      send(opt);
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1"
+                  style={
+                    selected
+                      ? { borderColor: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))", background: "hsl(var(--nl-forest))" }
+                      : { borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))", background: "hsl(var(--nl-cream-deep) / 0.4)" }
+                  }
+                >
+                  {selected && <Check className="h-3 w-3" />}
+                  {opt}
+                </button>
+              );
+            })}
+            {isMultiField && multiPicks.length > 0 && (
+              <button
+                type="button"
+                onClick={() => send(multiPicks.join(", "))}
+                className="text-xs px-3 py-1.5 rounded-full font-medium"
+                style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+              >
+                Send {multiPicks.length} selection{multiPicks.length > 1 ? "s" : ""}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* Composer */}
       <div className="flex items-end gap-2 rounded-2xl border p-2" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--nl-cream))" }}>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*,application/pdf"
+          className="hidden"
+          onChange={(e) => handleFileUpload(e.target.files)}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading || sending}
+          className="p-2.5 rounded-full disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
+          style={{ color: "hsl(var(--nl-forest))" }}
+          aria-label="Attach photos or documents"
+          title="Attach photos or documents"
+        >
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+        </button>
         <textarea
           ref={inputRef}
           value={input}
@@ -320,8 +387,22 @@ export default function LandAgentChat() {
           style={{ color: "hsl(var(--nl-ink))" }}
           autoFocus
         />
+        {canSkip && (
+          <button
+            type="button"
+            onClick={() => skipCurrent()}
+            disabled={sending}
+            className="p-2.5 rounded-full text-xs flex items-center gap-1 disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
+            style={{ color: "hsl(var(--nl-forest))" }}
+            aria-label="Skip this question"
+            title="Skip this question"
+          >
+            <SkipForward className="h-4 w-4" />
+            <span className="hidden sm:inline">Skip</span>
+          </button>
+        )}
         <button
-          onClick={send}
+          onClick={() => send()}
           disabled={sending || !input.trim()}
           className="p-2.5 rounded-full disabled:opacity-40"
           style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
@@ -337,6 +418,7 @@ export default function LandAgentChat() {
     </div>
   );
 }
+
 
 // ------- helpers -------
 
