@@ -444,8 +444,18 @@ export default function LandAgentChat() {
   return (
     <div className="nl-container py-6 md:py-10 max-w-3xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={backToPicker}
+            className="p-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)]"
+            style={{ color: "hsl(var(--nl-forest))" }}
+            aria-label="Back to drafts"
+            title="Back to drafts"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
           <h1 className="nl-serif text-xl md:text-2xl" style={{ color: "hsl(var(--nl-forest))" }}>
             List Your Land
@@ -456,6 +466,7 @@ export default function LandAgentChat() {
           {completion}% complete
         </div>
       </div>
+
 
       {/* Progress bar */}
       <div className="h-1 w-full rounded-full mb-6" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
