@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
 import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
-import { Edit3, Leaf, Send, CheckCircle2, Loader2, Paperclip, SkipForward, Check } from "lucide-react";
+import { Edit3, Leaf, Send, CheckCircle2, Loader2, Paperclip, SkipForward, Check, Plus, Trash2, MapPin, Ruler, Clock, ChevronRight, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
+type DraftRow = { id: string; village?: string | null; district?: string | null; state?: string | null; total_area?: number | null; area_unit?: string | null; completion_pct?: number | null; updated_at: string; created_at: string };
+
 
 const GREETING =
   "Namaste! I'm JAAGA, your agriculture consultant. I'll help you register your land — no forms, just a conversation. To start, may I know your name?";
@@ -25,6 +27,11 @@ export default function LandAgentChat() {
   const [multiPicks, setMultiPicks] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState<string[]>([]);
+  const [view, setView] = useState<"picker" | "chat">("picker");
+  const [drafts, setDrafts] = useState<DraftRow[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [creatingNew, setCreatingNew] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -32,7 +39,18 @@ export default function LandAgentChat() {
   const completion = useMemo(() => computeCompletion(state), [state]);
   const nextField = useMemo(() => nextMissingField(state), [state]);
 
-  // Bootstrap: load or create a draft registration.
+  const loadDrafts = useCallback(async (uid: string) => {
+    const { data } = await (supabase as any)
+      .from("nl_land_registrations")
+      .select("id, village, district, state, total_area, area_unit, completion_pct, updated_at, created_at")
+      .eq("user_id", uid)
+      .eq("status", "draft")
+      .order("updated_at", { ascending: false });
+    setDrafts((data as DraftRow[]) ?? []);
+    return (data as DraftRow[]) ?? [];
+  }, []);
+
+  // Bootstrap: fetch drafts, show picker (never auto-resume).
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -40,48 +58,103 @@ export default function LandAgentChat() {
       return;
     }
     (async () => {
-      const { data: draft } = await (supabase as any)
-        .from("nl_land_registrations")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "draft")
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (draft) {
-        setRegistrationId(draft.id);
-        setState(draftToState(draft));
-        // Load recent conversation
-        const { data: convo } = await (supabase as any)
-          .from("nl_land_conversations")
-          .select("id, role, content")
-          .eq("registration_id", draft.id)
-          .order("created_at", { ascending: true })
-          .limit(200);
-        if (convo && convo.length) {
-          setMessages(convo.map((m: any) => ({ id: m.id, role: m.role, content: m.content })));
-        } else {
-          const pct = computeCompletion(draftToState(draft));
-          setMessages([
-            {
-              id: "welcome-back",
-              role: "assistant",
-              content: `Welcome back! We're **${pct}%** through your land registration. Shall we continue where we left off?`,
-            },
-          ]);
-        }
-      } else {
-        const { data: created, error } = await (supabase as any)
-          .from("nl_land_registrations")
-          .insert({ user_id: user.id, status: "draft" })
-          .select()
-          .single();
-        if (!error && created) setRegistrationId(created.id);
-      }
+      await loadDrafts(user.id);
       setBootstrapping(false);
     })();
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, loadDrafts]);
+
+  async function openDraft(draftId: string) {
+    if (!user) return;
+    setBootstrapping(true);
+    const { data: draft } = await (supabase as any)
+      .from("nl_land_registrations")
+      .select("*")
+      .eq("id", draftId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!draft) {
+      setBootstrapping(false);
+      return;
+    }
+    setRegistrationId(draft.id);
+    const s = draftToState(draft);
+    setState(s);
+    const { data: convo } = await (supabase as any)
+      .from("nl_land_conversations")
+      .select("id, role, content")
+      .eq("registration_id", draft.id)
+      .order("created_at", { ascending: true })
+      .limit(200);
+    if (convo && convo.length) {
+      setMessages(convo.map((m: any) => ({ id: m.id, role: m.role, content: m.content })));
+    } else {
+      const pct = computeCompletion(s);
+      setMessages([
+        {
+          id: "welcome-back",
+          role: "assistant",
+          content: `Welcome back! We're **${pct}%** through this land registration. Shall we continue where we left off?`,
+        },
+      ]);
+    }
+    setView("chat");
+    setBootstrapping(false);
+  }
+
+  async function startNewDraft() {
+    if (!user || creatingNew) return;
+    setCreatingNew(true);
+    try {
+      const { data: created, error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .insert({ user_id: user.id, status: "draft" })
+        .select()
+        .single();
+      if (error || !created) throw new Error(error?.message ?? "Failed to create draft");
+      setRegistrationId(created.id);
+      setState({});
+      setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
+      setView("chat");
+    } catch (e: any) {
+      alert(`Could not start a new registration: ${e?.message ?? String(e)}`);
+    } finally {
+      setCreatingNew(false);
+    }
+  }
+
+  async function deleteDraft(draftId: string) {
+    if (!user) return;
+    setDeletingId(draftId);
+    try {
+      // Clean up child rows first (in case FKs are not ON DELETE CASCADE).
+      await (supabase as any).from("nl_land_conversations").delete().eq("registration_id", draftId);
+      await (supabase as any).from("nl_land_uploads").delete().eq("registration_id", draftId);
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .delete()
+        .eq("id", draftId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      setConfirmDeleteId(null);
+      await loadDrafts(user.id);
+    } catch (e: any) {
+      alert(`Could not delete draft: ${e?.message ?? String(e)}`);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  function backToPicker() {
+    setView("picker");
+    setRegistrationId(null);
+    setState({});
+    setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
+    setPendingUploads([]);
+    setMultiPicks([]);
+    setInput("");
+    if (user) loadDrafts(user.id);
+  }
+
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -228,11 +301,161 @@ export default function LandAgentChat() {
     );
   }
 
+  if (view === "picker") {
+    return (
+      <div className="nl-container py-6 md:py-10 max-w-3xl">
+        <div className="flex items-center gap-2 mb-2">
+          <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
+          <h1 className="nl-serif text-xl md:text-2xl" style={{ color: "hsl(var(--nl-forest))" }}>
+            List Your Land
+          </h1>
+        </div>
+        <p className="text-sm mb-6" style={{ color: "hsl(var(--nl-muted))" }}>
+          You can register multiple lands. Continue an existing draft, or start a fresh registration.
+        </p>
+
+        <button
+          type="button"
+          onClick={startNewDraft}
+          disabled={creatingNew}
+          className="w-full mb-4 flex items-center justify-between gap-3 rounded-2xl border-2 border-dashed p-4 transition-colors hover:bg-[hsl(var(--nl-forest)/0.04)] disabled:opacity-60"
+          style={{ borderColor: "hsl(var(--nl-forest) / 0.4)", color: "hsl(var(--nl-forest))" }}
+        >
+          <span className="flex items-center gap-3">
+            <span className="p-2 rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
+              <Plus className="h-4 w-4" />
+            </span>
+            <span className="text-left">
+              <span className="block font-medium">Start New Registration</span>
+              <span className="block text-xs" style={{ color: "hsl(var(--nl-muted))" }}>
+                Register another land — begin the conversation from scratch.
+              </span>
+            </span>
+          </span>
+          {creatingNew ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+
+        {drafts.length > 0 && (
+          <>
+            <div className="text-[11px] uppercase tracking-wide mb-2" style={{ color: "hsl(var(--nl-muted))" }}>
+              Your drafts ({drafts.length})
+            </div>
+            <ul className="space-y-3">
+              {drafts.map((d) => {
+                const loc = [d.village, d.district, d.state].filter(Boolean).join(", ");
+                const area = d.total_area ? `${d.total_area} ${d.area_unit ?? "acres"}` : null;
+                const pct = d.completion_pct ?? 0;
+                return (
+                  <li
+                    key={d.id}
+                    className="rounded-2xl border p-4"
+                    style={{ borderColor: "hsl(var(--nl-forest) / 0.18)", background: "hsl(var(--nl-cream))" }}
+                  >
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "hsl(var(--nl-forest) / 0.1)", color: "hsl(var(--nl-forest))" }}>
+                            {pct}% complete
+                          </span>
+                          <span className="text-[11px]" style={{ color: "hsl(var(--nl-muted))" }}>
+                            <Clock className="inline h-3 w-3 mr-1" />
+                            Updated {formatWhen(d.updated_at)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 text-sm" style={{ color: "hsl(var(--nl-ink))" }}>
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5" style={{ color: "hsl(var(--nl-forest))" }} />
+                            {loc || <em style={{ color: "hsl(var(--nl-muted))" }}>Location not captured yet</em>}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Ruler className="h-3.5 w-3.5" style={{ color: "hsl(var(--nl-forest))" }} />
+                            {area || <em style={{ color: "hsl(var(--nl-muted))" }}>Area not captured yet</em>}
+                          </span>
+                        </div>
+                        <div className="mt-2 h-1 w-full rounded-full" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "hsl(var(--nl-forest))" }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openDraft(d.id)}
+                          className="text-xs px-3 py-2 rounded-full font-medium"
+                          style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                        >
+                          Continue
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(d.id)}
+                          disabled={deletingId === d.id}
+                          className="p-2 rounded-full border disabled:opacity-40"
+                          style={{ borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))" }}
+                          aria-label="Delete draft"
+                          title="Delete draft"
+                        >
+                          {deletingId === d.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {confirmDeleteId === d.id && (
+                      <div className="mt-3 rounded-xl border p-3 text-sm" style={{ borderColor: "hsl(0 70% 55% / 0.35)", background: "hsl(0 70% 55% / 0.06)", color: "hsl(var(--nl-ink))" }}>
+                        Delete this draft permanently? This cannot be undone.
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => deleteDraft(d.id)}
+                            disabled={deletingId === d.id}
+                            className="text-xs px-3 py-1.5 rounded-full font-medium disabled:opacity-50"
+                            style={{ background: "hsl(0 70% 45%)", color: "white" }}
+                          >
+                            Yes, delete
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs px-3 py-1.5 rounded-full border"
+                            style={{ borderColor: "hsl(var(--nl-forest) / 0.3)", color: "hsl(var(--nl-forest))" }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+
+        {drafts.length === 0 && (
+          <p className="text-sm text-center py-6" style={{ color: "hsl(var(--nl-muted))" }}>
+            No drafts yet — click <strong>Start New Registration</strong> to begin.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+
+
   return (
     <div className="nl-container py-6 md:py-10 max-w-3xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={backToPicker}
+            className="p-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)]"
+            style={{ color: "hsl(var(--nl-forest))" }}
+            aria-label="Back to drafts"
+            title="Back to drafts"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
           <h1 className="nl-serif text-xl md:text-2xl" style={{ color: "hsl(var(--nl-forest))" }}>
             List Your Land
@@ -243,6 +466,7 @@ export default function LandAgentChat() {
           {completion}% complete
         </div>
       </div>
+
 
       {/* Progress bar */}
       <div className="h-1 w-full rounded-full mb-6" style={{ background: "hsl(var(--nl-forest) / 0.1)" }}>
@@ -501,6 +725,20 @@ function draftToState(draft: any): Record<string, any> {
     if (value !== undefined && value !== null && value !== "") s[f.id] = value;
   }
   return s;
+}
+
+function formatWhen(iso: string) {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 function formatValue(value: any) {
