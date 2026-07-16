@@ -87,13 +87,14 @@ export default function LandAgentChat() {
     if (!sending) inputRef.current?.focus();
   }, [messages, sending]);
 
-  async function send() {
-    const text = input.trim();
+  async function send(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if (!text || sending || !registrationId || !user) return;
 
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
+    setMultiPicks([]);
     setSending(true);
 
     const schemaSummary = LAND_SCHEMA.map(
@@ -125,7 +126,6 @@ export default function LandAgentChat() {
       const extracted: Record<string, any> = data?.extracted ?? {};
       const replaceFields: string[] = Array.isArray(data?.replace_fields) ? data.replace_fields : [];
 
-      // Merge & persist state
       if (Object.keys(extracted).length > 0) {
         const merged = mergeState(state, extracted, replaceFields);
         setState(merged);
@@ -150,7 +150,52 @@ export default function LandAgentChat() {
     }
   }
 
-  const chipSuggestions: string[] = nextField?.options?.slice(0, 8) ?? [];
+  async function skipCurrent() {
+    if (!nextField || sending) return;
+    // Mark skipped locally so the resolver moves on; persist as null so we don't re-ask.
+    const merged = { ...state, [nextField.id]: nextField.type === "multi" ? [] : "__skipped__" };
+    // For nicer UX, actually just mark it in a __skipped set stored in extra
+    const skipped = new Set<string>((state.__skipped as string[]) ?? []);
+    skipped.add(nextField.id);
+    const next = { ...state, __skipped: Array.from(skipped) };
+    setState(next);
+    await send(`Skip — I don't have info for "${nextField.label}" right now.`);
+  }
+
+  async function handleFileUpload(files: FileList | null) {
+    if (!files || !files.length || !registrationId || !user) return;
+    setUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const path = `${user.id}/${registrationId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("nl-land-uploads").upload(path, file, { upsert: false });
+        if (upErr) throw new Error(`Storage upload failed: ${upErr.message}`);
+        await (supabase as any).from("nl_land_uploads").insert({
+          registration_id: registrationId,
+          user_id: user.id,
+          storage_path: path,
+          file_name: file.name,
+          mime_type: file.type,
+          size_bytes: file.size,
+          kind: (nextField?.id === "ownership_docs" ? "ownership_doc" : "land_photo"),
+        });
+        uploaded.push(file.name);
+      }
+      const label = nextField?.id === "ownership_docs" ? "ownership document(s)" : "land photo(s)";
+      await send(`I've uploaded ${uploaded.length} ${label}: ${uploaded.join(", ")}`);
+    } catch (e: any) {
+      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: `Upload failed: ${e?.message ?? String(e)}` }]);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  const chipSuggestions: string[] = nextField?.options?.slice(0, 12) ?? [];
+  const isMultiField = nextField?.type === "multi";
+  const isUploadField = nextField?.type === "upload";
+  const canSkip = !!nextField && !nextField.required;
 
   if (bootstrapping) {
     return (
