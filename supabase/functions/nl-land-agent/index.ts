@@ -135,6 +135,7 @@ The "extracted" values must use these formats:
         reply: parsed.reply ?? "Could you tell me a little more?",
         extracted: validation.extracted,
         replace_fields: Array.isArray(parsed.replace_fields) ? parsed.replace_fields.filter((id: string) => fieldMap.has(id)) : [],
+        active_field: typeof parsed.active_field === "string" && fieldMap.has(parsed.active_field) ? parsed.active_field : (nextField?.id ?? null),
         clarification: parsed.clarification,
         debug: {
           requestId,
