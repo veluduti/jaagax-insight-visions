@@ -151,7 +151,7 @@ export default function LandAgentChat() {
     setState({});
     setMessages([{ id: "welcome", role: "assistant", content: GREETING }]);
     setPendingUploads([]);
-    setMultiPicks([]);
+    setMultiPicks([]); setActiveFieldId(null);
     setInput("");
     if (user) loadDrafts(user.id);
   }
@@ -177,7 +177,7 @@ export default function LandAgentChat() {
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
-    setMultiPicks([]);
+    setMultiPicks([]); setActiveFieldId(null);
     setSending(true);
 
     const schemaSummary = LAND_SCHEMA.map(
@@ -210,7 +210,7 @@ export default function LandAgentChat() {
       const replaceFields: string[] = Array.isArray(data?.replace_fields) ? data.replace_fields : [];
       const returnedActive: string | null = typeof data?.active_field === "string" ? data.active_field : null;
       setActiveFieldId(returnedActive && fieldById(returnedActive) ? returnedActive : null);
-      setMultiPicks([]);
+      setMultiPicks([]); setActiveFieldId(null);
 
       if (Object.keys(extracted).length > 0) {
         const merged = mergeState(state, extracted, replaceFields);
