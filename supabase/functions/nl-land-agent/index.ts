@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       return debugResponse(requestId, "env_api_key", new Error("LOVABLE_API_KEY missing"));
     }
 
-    const { messages = [], state = {}, schemaSummary = "", schema = [], nextField = null } = await req.json();
+    const { messages = [], state = {}, skippedFields = [], schemaSummary = "", schema = [], nextField = null } = await req.json();
     const fieldMap = new Map<string, FieldSchema>((schema as FieldSchema[]).map((field) => [field.id, field]));
     const latestUserMessage = [...messages].reverse().find((message: any) => message?.role === "user")?.content ?? "";
 
