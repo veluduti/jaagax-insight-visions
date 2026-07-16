@@ -857,6 +857,7 @@ async function persistState(registrationId: string, state: Record<string, any>) 
     }
     row[f.column] = v;
   }
+  if (Array.isArray(state.__skipped)) extra.__skipped = state.__skipped;
   if (Object.keys(extra).length > 0) row.extra = extra;
   const { error } = await (supabase as any).from("nl_land_registrations").update(row).eq("id", registrationId);
   if (error) throw new Error(`DB update failed in persistState: ${error.message}`);
@@ -870,6 +871,7 @@ function draftToState(draft: any): Record<string, any> {
     const value = f.column.startsWith("extra.") ? draft?.extra?.[f.column.slice("extra.".length)] : v;
     if (value !== undefined && value !== null && value !== "") s[f.id] = value;
   }
+  if (Array.isArray(draft?.extra?.__skipped)) s.__skipped = draft.extra.__skipped;
   return s;
 }
 
