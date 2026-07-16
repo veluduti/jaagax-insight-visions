@@ -409,17 +409,6 @@ export default function LandAgentChat() {
           className="hidden"
           onChange={(e) => handleFileUpload(e.target.files)}
         />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading || sending}
-          className="p-2.5 rounded-full disabled:opacity-40 hover:bg-[hsl(var(--nl-forest)/0.08)]"
-          style={{ color: "hsl(var(--nl-forest))" }}
-          aria-label="Attach photos or documents"
-          title="Attach photos or documents"
-        >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-        </button>
         <textarea
           ref={inputRef}
           value={input}
