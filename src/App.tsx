@@ -734,6 +734,11 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/admin/land-registrations"
+                    element={<AdminLandRegistrations />}
+                  />
+
+                  <Route
                     path="/partners/dashboard"
                     element={
                       <ProtectedRoute allowedRole="hotel_manager">
