@@ -209,6 +209,12 @@ export default function AdminLandRegistrations() {
           })}
         </div>
       )}
+
+      <LandRegistrationDetailDialog
+        registrationId={viewId}
+        open={!!viewId}
+        onOpenChange={(v) => !v && setViewId(null)}
+      />
     </div>
   );
 }
