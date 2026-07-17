@@ -25,6 +25,7 @@ export default function AdminLandRegistrations() {
   const [filter, setFilter] = useState<"pending" | "mine" | "all">("pending");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [viewId, setViewId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
