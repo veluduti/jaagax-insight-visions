@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +58,8 @@ import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
 import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
+import AdminNLKycReview from "@/pages/AdminNLKycReview";
+import AdminLandRegistrations from "@/pages/AdminLandRegistrations";
 import PriceDropQueue from "@/components/admin/PriceDropQueue";
 import { RemindAdminDialog } from "@/components/admin/RemindAdminDialog";
 import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
@@ -103,7 +105,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   const { effective: scope } = useAdminScopeFilter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("signups");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "signups");
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [stats, setStats] = useState({
     totalProperties: 0,
@@ -154,6 +162,8 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
         { value: "rera", label: "RERA Verifications", icon: Shield },
         { value: "documents", label: "Documents", icon: FileText },
         { value: "kyc", label: "KYC", icon: FileCheck },
+        { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
+        { value: "nl-land", label: "Land Registrations", icon: MapPinned },
         { value: "price-drops", label: "Price Drops", icon: TrendingDown },
       ],
     },
@@ -610,6 +620,18 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           <TabsContent value="kyc" className="mt-4">
             <KYCReviewQueue />
           </TabsContent>
+
+          {/* Natural Living KYC */}
+          <TabsContent value="nl-kyc" className="mt-4">
+            <AdminNLKycReview />
+          </TabsContent>
+
+          {/* Natural Living Land Registrations */}
+          <TabsContent value="nl-land" className="mt-4">
+            <AdminLandRegistrations />
+          </TabsContent>
+
+
 
           {/* Price Drops */}
           <TabsContent value="price-drops" className="mt-4">
