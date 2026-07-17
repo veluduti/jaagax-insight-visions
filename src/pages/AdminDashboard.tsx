@@ -431,7 +431,20 @@ export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview");
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    setSearchParams(next, { replace: true });
+  };
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [stats, setStats] = useState({
     totalUsers: 0,
