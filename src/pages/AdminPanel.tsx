@@ -615,6 +615,18 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
             <KYCReviewQueue />
           </TabsContent>
 
+          {/* Natural Living KYC */}
+          <TabsContent value="nl-kyc" className="mt-4">
+            <AdminNLKycReview />
+          </TabsContent>
+
+          {/* Natural Living Land Registrations */}
+          <TabsContent value="nl-land" className="mt-4">
+            <AdminLandRegistrations />
+          </TabsContent>
+
+
+
           {/* Price Drops */}
           <TabsContent value="price-drops" className="mt-4">
             <PriceDropQueue />
