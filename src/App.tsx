@@ -186,6 +186,7 @@ const AdminPropertiesPipeline = lazy(() => import("./pages/AdminPropertiesPipeli
 const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications"));
 const AdminPriceDrops = lazy(() => import("./pages/AdminPriceDrops"));
 const AdminLeadsCRM = lazy(() => import("./pages/AdminLeadsCRM"));
+const AdminLandRegistrations = lazy(() => import("./pages/AdminLandRegistrations"));
 
 // ============================================
 // BUILDER PROJECT COMPONENTS
@@ -732,6 +733,11 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/admin/land-registrations"
+                    element={<AdminLandRegistrations />}
+                  />
+
                   <Route
                     path="/partners/dashboard"
                     element={
