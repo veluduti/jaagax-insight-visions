@@ -127,23 +127,20 @@ export default function AdminNLKycReview() {
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-        <Navigation />
-        <div className="container mx-auto max-w-2xl px-4 pt-16 text-center">
-          <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-40" />
-          <h1 className="text-xl font-semibold">Admin access required</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            This page is restricted to district, state, country, and global admins.
-          </p>
-        </div>
+      <div className="max-w-2xl mx-auto text-center py-10">
+        <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-40" />
+        <h1 className="text-xl font-semibold">Admin access required</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          This section is restricted to district, state, country, and global admins.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">
-      <Navigation />
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-12">
+    <div>
+      <div>
+
         <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">KYC Verifications</h1>
