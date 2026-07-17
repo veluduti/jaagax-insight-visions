@@ -499,6 +499,8 @@ export default function AdminDashboard() {
         { value: "frm", label: "FRM Dashboard", icon: ClipboardList },
         { value: "events", label: "Events", icon: Calendar },
         { value: "whatsapp", label: "WhatsApp Logs", icon: MessageSquare },
+        { value: "nl-land", label: "Land Registrations", icon: MapPinned },
+        { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
       ],
     },
     {
@@ -512,6 +514,7 @@ export default function AdminDashboard() {
       ],
     },
   ];
+
 
   // ============================================================================
   // FILTER OPTIONS - SEPARATE FROM NAVIGATION
