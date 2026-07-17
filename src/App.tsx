@@ -532,6 +532,8 @@ const App = () => (
                   <Route path="/natural-living/my-orders" element={<NLMyOrders />} />
                   <Route path="/natural-living/farm-orders" element={<NLFarmOrders />} />
                   <Route path="/natural-living/list-land" element={<NLListLand />} />
+                  <Route path="/natural-living/lands" element={<NLLands />} />
+                  <Route path="/natural-living/lands/:id" element={<NLLandDetail />} />
                   <Route path="/hotels" element={<Hotels />} />
                   <Route path="/hotels/partner" element={<Navigate to="/partners/register" replace />} />
                   <Route path="/hotels/partner/status" element={<Navigate to="/partners/status" replace />} />
