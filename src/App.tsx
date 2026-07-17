@@ -738,6 +738,10 @@ const App = () => (
                     path="/admin/land-registrations"
                     element={<AdminLandRegistrations />}
                   />
+                  <Route
+                    path="/admin/nl-kyc"
+                    element={<AdminNLKycReview />}
+                  />
 
                   <Route
                     path="/partners/dashboard"
