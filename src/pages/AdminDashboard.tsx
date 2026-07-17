@@ -871,7 +871,7 @@ export default function AdminDashboard() {
         {/* ====================================================================== */}
         {/* MAIN TABS */}
         {/* ====================================================================== */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* ================================================================== */}
           {/* SECTION 1: DROPDOWN NAVIGATION */}
           {/* ================================================================== */}
