@@ -77,6 +77,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Lazy-loaded heavy panels
 const VerificationPanel = lazy(() => import("@/components/admin/VerificationPanel"));
 const AgentVerifiedReviewPanel = lazy(() => import("@/components/admin/AgentVerifiedReviewPanel"));
+const KYCReviewQueue = lazy(() => import("@/components/admin/KYCReviewQueue"));
+const AdminLandRegistrationsPanel = lazy(() => import("@/pages/AdminLandRegistrations"));
+const AdminNLKycPanel = lazy(() => import("@/pages/AdminNLKycReview"));
+
 const DataImportPanel = lazy(() =>
   import("@/components/admin/DataImportPanel").then((m) => ({ default: m.DataImportPanel })),
 );
