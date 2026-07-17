@@ -4960,43 +4960,70 @@ export type Database = {
       nl_kyc: {
         Row: {
           address_proof_url: string | null
+          approval_level: number | null
+          assigned_admin_id: string | null
+          assigned_admin_role: string | null
+          city: string | null
+          country: string | null
           created_at: string
+          district: string | null
           id: string
           id_document_url: string | null
           id_number: string
           id_type: string
+          rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           reviewer_notes: string | null
+          state: string | null
           status: Database["public"]["Enums"]["nl_kyc_status"]
+          submitted_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address_proof_url?: string | null
+          approval_level?: number | null
+          assigned_admin_id?: string | null
+          assigned_admin_role?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           id?: string
           id_document_url?: string | null
           id_number: string
           id_type: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["nl_kyc_status"]
+          submitted_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address_proof_url?: string | null
+          approval_level?: number | null
+          assigned_admin_id?: string | null
+          assigned_admin_role?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
+          district?: string | null
           id?: string
           id_document_url?: string | null
           id_number?: string
           id_type?: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["nl_kyc_status"]
+          submitted_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -5161,6 +5188,7 @@ export type Database = {
       }
       nl_land_registrations: {
         Row: {
+          approval_level: number | null
           area_unit: string | null
           assigned_admin_id: string | null
           assigned_admin_role: string | null
@@ -5227,6 +5255,7 @@ export type Database = {
           water_sources: Json | null
         }
         Insert: {
+          approval_level?: number | null
           area_unit?: string | null
           assigned_admin_id?: string | null
           assigned_admin_role?: string | null
@@ -5293,6 +5322,7 @@ export type Database = {
           water_sources?: Json | null
         }
         Update: {
+          approval_level?: number | null
           area_unit?: string | null
           assigned_admin_id?: string | null
           assigned_admin_role?: string | null
@@ -8793,6 +8823,16 @@ export type Database = {
         Returns: undefined
       }
       can_remind_admin: { Args: { _target_user_id: string }; Returns: boolean }
+      can_review_scope: {
+        Args: {
+          _assigned_admin_id: string
+          _country: string
+          _district: string
+          _state: string
+          _uid: string
+        }
+        Returns: boolean
+      }
       check_and_consume_posting_quota: {
         Args: { _user_id: string }
         Returns: Json
@@ -9014,6 +9054,14 @@ export type Database = {
         Args: { _property_id: string }
         Returns: Database["public"]["Enums"]["property_lifecycle_status"]
       }
+      resolve_approver: {
+        Args: { _country: string; _district: string; _state: string }
+        Returns: {
+          level: number
+          role: string
+          user_id: string
+        }[]
+      }
       resolve_district_admin: {
         Args: { _country: string; _district: string; _state: string }
         Returns: string
@@ -9052,6 +9100,10 @@ export type Database = {
       }
       review_land_registration: {
         Args: { _decision: string; _reason?: string; _registration_id: string }
+        Returns: undefined
+      }
+      review_nl_kyc: {
+        Args: { _decision: string; _kyc_id: string; _reason?: string }
         Returns: undefined
       }
       review_price_drop: {
