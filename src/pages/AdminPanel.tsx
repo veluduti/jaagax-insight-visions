@@ -105,7 +105,13 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
   const { effective: scope } = useAdminScopeFilter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState("signups");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "signups");
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [stats, setStats] = useState({
     totalProperties: 0,
