@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CheckCircle2, XCircle, MessageSquare, MapPin, Ruler } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, MessageSquare, MapPin, Ruler, Eye } from "lucide-react";
 import { toast } from "sonner";
+import LandRegistrationDetailDialog from "@/components/admin/LandRegistrationDetailDialog";
 
 type Reg = any;
 
