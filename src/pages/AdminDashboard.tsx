@@ -1624,27 +1624,33 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* KYC TAB */}
+              {/* KYC TAB (seller identity) */}
               {activeTab === "kyc" && (
                 <TabsContent value="kyc" className="space-y-6 mt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileCheck className="h-5 w-5 text-primary" />
-                        KYC Verification Queue
-                      </CardTitle>
-                      <CardDescription>Approve or reject seller identity submissions</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-12">
-                        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
-                        <p className="text-lg font-medium">No KYC submissions awaiting review</p>
-                        <p className="text-sm text-muted-foreground mt-1">All submissions have been processed</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Suspense fallback={<ListSkeleton />}>
+                    <KYCReviewQueue />
+                  </Suspense>
                 </TabsContent>
               )}
+
+              {/* NATURAL LIVING — LAND REGISTRATIONS */}
+              {activeTab === "nl-land" && (
+                <TabsContent value="nl-land" className="space-y-6 mt-6">
+                  <Suspense fallback={<ListSkeleton />}>
+                    <AdminLandRegistrationsPanel />
+                  </Suspense>
+                </TabsContent>
+              )}
+
+              {/* NATURAL LIVING — KYC */}
+              {activeTab === "nl-kyc" && (
+                <TabsContent value="nl-kyc" className="space-y-6 mt-6">
+                  <Suspense fallback={<ListSkeleton />}>
+                    <AdminNLKycPanel />
+                  </Suspense>
+                </TabsContent>
+              )}
+
 
               {/* SETTINGS TAB */}
               {activeTab === "settings" && (
