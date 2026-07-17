@@ -734,14 +734,9 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/admin/land-registrations"
-                    element={<AdminLandRegistrations />}
-                  />
-                  <Route
-                    path="/admin/nl-kyc"
-                    element={<AdminNLKycReview />}
-                  />
+                  <Route path="/admin/land-registrations" element={<Navigate to="/admin?tab=nl-land" replace />} />
+                  <Route path="/admin/nl-kyc" element={<Navigate to="/admin?tab=nl-kyc" replace />} />
+
 
                   <Route
                     path="/partners/dashboard"
