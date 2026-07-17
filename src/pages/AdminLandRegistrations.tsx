@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CheckCircle2, XCircle, MessageSquare, MapPin, Ruler } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, MessageSquare, MapPin, Ruler, Eye } from "lucide-react";
 import { toast } from "sonner";
+import LandRegistrationDetailDialog from "@/components/admin/LandRegistrationDetailDialog";
 
 type Reg = any;
 
@@ -24,6 +25,7 @@ export default function AdminLandRegistrations() {
   const [filter, setFilter] = useState<"pending" | "mine" | "all">("pending");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [viewId, setViewId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -145,7 +147,12 @@ export default function AdminLandRegistrations() {
                     {r.change_request_notes && (
                       <div className="text-xs text-blue-600">Change request: {r.change_request_notes}</div>
                     )}
-                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setViewId(r.id)} className="gap-1 shrink-0">
+                    <Eye className="h-3.5 w-3.5" /> View
+                  </Button>
+                </div>
+
+
                 </div>
 
                 {canAct ? (
@@ -202,6 +209,12 @@ export default function AdminLandRegistrations() {
           })}
         </div>
       )}
+
+      <LandRegistrationDetailDialog
+        registrationId={viewId}
+        open={!!viewId}
+        onOpenChange={(v) => !v && setViewId(null)}
+      />
     </div>
   );
 }
