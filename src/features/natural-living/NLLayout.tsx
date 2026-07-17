@@ -58,12 +58,25 @@ const FOOTER_COLS = [
 
 export default function NLLayout({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useNLAuth();
+  const isAuthed = !!user;
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Account";
+  const initial = (displayName?.[0] || "A").toUpperCase();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     setOpen(false);
+    setMenuOpen(false);
   }, [location.pathname]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMenuOpen(false);
+    navigate("/natural-living");
+  };
 
   return (
     <div className="nl-scope min-h-screen flex flex-col">
