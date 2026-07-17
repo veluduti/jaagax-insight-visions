@@ -154,6 +154,8 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
         { value: "rera", label: "RERA Verifications", icon: Shield },
         { value: "documents", label: "Documents", icon: FileText },
         { value: "kyc", label: "KYC", icon: FileCheck },
+        { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
+        { value: "nl-land", label: "Land Registrations", icon: MapPinned },
         { value: "price-drops", label: "Price Drops", icon: TrendingDown },
       ],
     },
