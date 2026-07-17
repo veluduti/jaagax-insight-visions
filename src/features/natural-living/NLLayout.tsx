@@ -1,7 +1,7 @@
-import { PropsWithChildren, useEffect } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Leaf, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Leaf, Menu, X, LayoutDashboard, LogOut, UserCircle2 } from "lucide-react";
+import { useNLAuth } from "./useNLAuth";
 import "./theme.css";
 
 const NAV = [
