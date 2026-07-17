@@ -5162,8 +5162,11 @@ export type Database = {
       nl_land_registrations: {
         Row: {
           area_unit: string | null
+          assigned_admin_id: string | null
+          assigned_admin_role: string | null
           available_from: string | null
           borewell_count: number | null
+          change_request_notes: string | null
           city_id: string | null
           completion_pct: number
           country: string | null
@@ -5180,6 +5183,7 @@ export type Database = {
           google_map_url: string | null
           id: string
           infrastructure: Json | null
+          is_published: boolean
           last_crop: string | null
           latitude: number | null
           lease_reason: string | null
@@ -5197,6 +5201,10 @@ export type Database = {
           project_age: string | null
           project_duration: string | null
           project_tenure: string | null
+          published_at: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           road_access: string | null
           school_activities: Json | null
           soil: string | null
@@ -5206,6 +5214,7 @@ export type Database = {
           stay_accommodation: Json | null
           stay_experience: Json | null
           stay_facilities: Json | null
+          submitted_at: string | null
           suitable_for: Json | null
           survey_numbers: string | null
           terrain: string | null
@@ -5219,8 +5228,11 @@ export type Database = {
         }
         Insert: {
           area_unit?: string | null
+          assigned_admin_id?: string | null
+          assigned_admin_role?: string | null
           available_from?: string | null
           borewell_count?: number | null
+          change_request_notes?: string | null
           city_id?: string | null
           completion_pct?: number
           country?: string | null
@@ -5237,6 +5249,7 @@ export type Database = {
           google_map_url?: string | null
           id?: string
           infrastructure?: Json | null
+          is_published?: boolean
           last_crop?: string | null
           latitude?: number | null
           lease_reason?: string | null
@@ -5254,6 +5267,10 @@ export type Database = {
           project_age?: string | null
           project_duration?: string | null
           project_tenure?: string | null
+          published_at?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           road_access?: string | null
           school_activities?: Json | null
           soil?: string | null
@@ -5263,6 +5280,7 @@ export type Database = {
           stay_accommodation?: Json | null
           stay_experience?: Json | null
           stay_facilities?: Json | null
+          submitted_at?: string | null
           suitable_for?: Json | null
           survey_numbers?: string | null
           terrain?: string | null
@@ -5276,8 +5294,11 @@ export type Database = {
         }
         Update: {
           area_unit?: string | null
+          assigned_admin_id?: string | null
+          assigned_admin_role?: string | null
           available_from?: string | null
           borewell_count?: number | null
+          change_request_notes?: string | null
           city_id?: string | null
           completion_pct?: number
           country?: string | null
@@ -5294,6 +5315,7 @@ export type Database = {
           google_map_url?: string | null
           id?: string
           infrastructure?: Json | null
+          is_published?: boolean
           last_crop?: string | null
           latitude?: number | null
           lease_reason?: string | null
@@ -5311,6 +5333,10 @@ export type Database = {
           project_age?: string | null
           project_duration?: string | null
           project_tenure?: string | null
+          published_at?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           road_access?: string | null
           school_activities?: Json | null
           soil?: string | null
@@ -5320,6 +5346,7 @@ export type Database = {
           stay_accommodation?: Json | null
           stay_experience?: Json | null
           stay_facilities?: Json | null
+          submitted_at?: string | null
           suitable_for?: Json | null
           survey_numbers?: string | null
           terrain?: string | null
@@ -8861,6 +8888,13 @@ export type Database = {
           status: string
         }[]
       }
+      get_land_approver: {
+        Args: { _country: string; _district: string; _state: string }
+        Returns: {
+          role: string
+          user_id: string
+        }[]
+      }
       get_nearby_agents_for_property: {
         Args: { _limit?: number; _property_id: string; _radius_km?: number }
         Returns: {
@@ -9014,6 +9048,10 @@ export type Database = {
       }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
+        Returns: undefined
+      }
+      review_land_registration: {
+        Args: { _decision: string; _reason?: string; _registration_id: string }
         Returns: undefined
       }
       review_price_drop: {
