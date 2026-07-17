@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import NLLayout from "@/features/natural-living/NLLayout";
 import NLProtectedRoute from "@/features/natural-living/NLProtectedRoute";
+import MyLandSubmissions from "@/features/natural-living/MyLandSubmissions";
 import { useNLAuth, NLRole } from "@/features/natural-living/useNLAuth";
 import { Eyebrow, H1, Lede } from "@/features/natural-living/ui";
 import {
@@ -33,11 +34,11 @@ const TILES: Record<NLRole, { icon: any; title: string; desc: string; to: string
     { icon: ClipboardCheck, title: "Documents", desc: "Agreements, records, KYC.", to: "/natural-living/kyc" },
   ],
   admin: [
-    { icon: ClipboardCheck, title: "Approvals", desc: "Farmers, villages, farms, KYC.", to: "/natural-living/dashboard" },
+    { icon: ClipboardCheck, title: "Land Registration Approvals", desc: "Review land listings routed to your district / state / country.", to: "/admin/land-registrations" },
+    { icon: ShieldCheck, title: "KYC Approvals", desc: "Verify Aadhaar & documents for farmers and land owners.", to: "/admin/nl-kyc" },
     { icon: ShoppingBag, title: "All Orders", desc: "Platform-wide marketplace orders.", to: "/natural-living/farm-orders" },
     { icon: Users, title: "Users", desc: "Manage community members.", to: "/natural-living/dashboard" },
     { icon: BarChart3, title: "Analytics", desc: "Revenue, orders, growth.", to: "/natural-living/dashboard" },
-    { icon: Package, title: "Orders", desc: "Platform-wide orders view.", to: "/natural-living/dashboard" },
   ],
 };
 
@@ -118,6 +119,9 @@ function DashboardInner() {
             );
           })}
         </div>
+
+        {/* Land submissions — visible to every non-admin so users can track approval */}
+        {user?.id && role !== "admin" && <MyLandSubmissions userId={user.id} />}
 
         <p className="mt-16 text-xs text-[hsl(var(--nl-muted))]">Signed in as {user?.email}</p>
       </div>
