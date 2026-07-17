@@ -1,7 +1,7 @@
-import { PropsWithChildren, useEffect } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Leaf, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Leaf, Menu, X, LayoutDashboard, LogOut, UserCircle2 } from "lucide-react";
+import { useNLAuth } from "./useNLAuth";
 import "./theme.css";
 
 const NAV = [
@@ -58,12 +58,25 @@ const FOOTER_COLS = [
 
 export default function NLLayout({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useNLAuth();
+  const isAuthed = !!user;
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Account";
+  const initial = (displayName?.[0] || "A").toUpperCase();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
     setOpen(false);
+    setMenuOpen(false);
   }, [location.pathname]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMenuOpen(false);
+    navigate("/natural-living");
+  };
 
   return (
     <div className="nl-scope min-h-screen flex flex-col">
@@ -121,12 +134,60 @@ export default function NLLayout({ children }: PropsWithChildren) {
           </nav>
 
           <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
-            <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
-              Sign in
-            </Link>
-            <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary text-[12px] xl:text-[13px]">
-              Join
-            </Link>
+            {!isAuthed ? (
+              <>
+                <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
+                  Sign in
+                </Link>
+                <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary text-[12px] xl:text-[13px]">
+                  Join
+                </Link>
+              </>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                >
+                  <span
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                    style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                  >
+                    {initial}
+                  </span>
+                  <span className="text-[12px] xl:text-[13px] font-medium text-[hsl(var(--nl-forest))] max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                </button>
+                {menuOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-56 rounded-lg border shadow-lg py-1 z-50"
+                    style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--border))" }}
+                  >
+                    <Link
+                      to="/natural-living/land-owner"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </Link>
+                    <Link
+                      to="/natural-living/onboarding"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <UserCircle2 className="h-4 w-4" /> Profile
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <Link to="/" className="text-[10px] xl:text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
               JAAGA X →
             </Link>
@@ -163,12 +224,37 @@ export default function NLLayout({ children }: PropsWithChildren) {
                   {item.label}
                 </NavLink>
               ))}
-              <Link to="/natural-living/auth" className="nl-btn nl-btn-outline mt-3 justify-center">
-                Sign in
-              </Link>
-              <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary mt-2 justify-center">
-                Join Natural Living
-              </Link>
+              {!isAuthed ? (
+                <>
+                  <Link to="/natural-living/auth" className="nl-btn nl-btn-outline mt-3 justify-center">
+                    Sign in
+                  </Link>
+                  <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary mt-2 justify-center">
+                    Join Natural Living
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="mt-3 flex items-center gap-2 px-1">
+                    <span
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                      style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                    >
+                      {initial}
+                    </span>
+                    <span className="text-sm font-medium text-[hsl(var(--nl-forest))] truncate">{displayName}</span>
+                  </div>
+                  <Link to="/natural-living/land-owner" className="nl-btn nl-btn-outline mt-2 justify-center">
+                    Dashboard
+                  </Link>
+                  <Link to="/natural-living/onboarding" className="nl-btn nl-btn-outline mt-2 justify-center">
+                    Profile
+                  </Link>
+                  <button onClick={handleSignOut} className="nl-btn nl-btn-primary mt-2 justify-center">
+                    Sign out
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
