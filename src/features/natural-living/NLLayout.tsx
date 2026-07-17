@@ -134,12 +134,60 @@ export default function NLLayout({ children }: PropsWithChildren) {
           </nav>
 
           <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
-            <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
-              Sign in
-            </Link>
-            <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary text-[12px] xl:text-[13px]">
-              Join
-            </Link>
+            {!isAuthed ? (
+              <>
+                <Link to="/natural-living/auth" className="text-[12px] xl:text-[13px] tracking-wide text-[hsl(var(--nl-ink)/0.7)] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
+                  Sign in
+                </Link>
+                <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary text-[12px] xl:text-[13px]">
+                  Join
+                </Link>
+              </>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-full hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                >
+                  <span
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                    style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                  >
+                    {initial}
+                  </span>
+                  <span className="text-[12px] xl:text-[13px] font-medium text-[hsl(var(--nl-forest))] max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                </button>
+                {menuOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-56 rounded-lg border shadow-lg py-1 z-50"
+                    style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--border))" }}
+                  >
+                    <Link
+                      to="/natural-living/land-owner"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </Link>
+                    <Link
+                      to="/natural-living/onboarding"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <UserCircle2 className="h-4 w-4" /> Profile
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--nl-ink))] hover:bg-[hsl(var(--nl-forest)/0.08)]"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <Link to="/" className="text-[10px] xl:text-[11px] tracking-[0.2em] uppercase text-[hsl(var(--nl-muted))] hover:text-[hsl(var(--nl-forest))] whitespace-nowrap">
               JAAGA X →
             </Link>
