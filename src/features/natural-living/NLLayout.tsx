@@ -224,12 +224,37 @@ export default function NLLayout({ children }: PropsWithChildren) {
                   {item.label}
                 </NavLink>
               ))}
-              <Link to="/natural-living/auth" className="nl-btn nl-btn-outline mt-3 justify-center">
-                Sign in
-              </Link>
-              <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary mt-2 justify-center">
-                Join Natural Living
-              </Link>
+              {!isAuthed ? (
+                <>
+                  <Link to="/natural-living/auth" className="nl-btn nl-btn-outline mt-3 justify-center">
+                    Sign in
+                  </Link>
+                  <Link to="/natural-living/auth?next=/natural-living/onboarding" className="nl-btn nl-btn-primary mt-2 justify-center">
+                    Join Natural Living
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="mt-3 flex items-center gap-2 px-1">
+                    <span
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                      style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                    >
+                      {initial}
+                    </span>
+                    <span className="text-sm font-medium text-[hsl(var(--nl-forest))] truncate">{displayName}</span>
+                  </div>
+                  <Link to="/natural-living/land-owner" className="nl-btn nl-btn-outline mt-2 justify-center">
+                    Dashboard
+                  </Link>
+                  <Link to="/natural-living/onboarding" className="nl-btn nl-btn-outline mt-2 justify-center">
+                    Profile
+                  </Link>
+                  <button onClick={handleSignOut} className="nl-btn nl-btn-primary mt-2 justify-center">
+                    Sign out
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
