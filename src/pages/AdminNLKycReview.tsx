@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, CheckCircle2, XCircle, ShieldCheck, MapPin, ExternalLink, RefreshCw, FileText, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import Navigation from "@/components/Navigation";
+
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 type KycRow = any;
