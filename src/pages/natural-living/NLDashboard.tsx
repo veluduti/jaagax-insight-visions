@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import NLLayout from "@/features/natural-living/NLLayout";
 import NLProtectedRoute from "@/features/natural-living/NLProtectedRoute";
+import MyLandSubmissions from "@/features/natural-living/MyLandSubmissions";
 import { useNLAuth, NLRole } from "@/features/natural-living/useNLAuth";
 import { Eyebrow, H1, Lede } from "@/features/natural-living/ui";
 import {
