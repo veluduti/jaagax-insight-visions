@@ -187,6 +187,7 @@ const AdminKYCVerifications = lazy(() => import("./pages/AdminKYCVerifications")
 const AdminPriceDrops = lazy(() => import("./pages/AdminPriceDrops"));
 const AdminLeadsCRM = lazy(() => import("./pages/AdminLeadsCRM"));
 const AdminLandRegistrations = lazy(() => import("./pages/AdminLandRegistrations"));
+const AdminNLKycReview = lazy(() => import("./pages/AdminNLKycReview"));
 
 // ============================================
 // BUILDER PROJECT COMPONENTS
