@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Shield,
   CheckCircle,
@@ -77,6 +77,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Lazy-loaded heavy panels
 const VerificationPanel = lazy(() => import("@/components/admin/VerificationPanel"));
 const AgentVerifiedReviewPanel = lazy(() => import("@/components/admin/AgentVerifiedReviewPanel"));
+const KYCReviewQueue = lazy(() => import("@/components/admin/KYCReviewQueue"));
+const AdminLandRegistrationsPanel = lazy(() => import("@/pages/AdminLandRegistrations"));
+const AdminNLKycPanel = lazy(() => import("@/pages/AdminNLKycReview"));
+
 const DataImportPanel = lazy(() =>
   import("@/components/admin/DataImportPanel").then((m) => ({ default: m.DataImportPanel })),
 );
@@ -427,7 +431,20 @@ export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "overview");
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    setSearchParams(next, { replace: true });
+  };
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -499,6 +516,8 @@ export default function AdminDashboard() {
         { value: "frm", label: "FRM Dashboard", icon: ClipboardList },
         { value: "events", label: "Events", icon: Calendar },
         { value: "whatsapp", label: "WhatsApp Logs", icon: MessageSquare },
+        { value: "nl-land", label: "Land Registrations", icon: MapPinned },
+        { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
       ],
     },
     {
@@ -512,6 +531,7 @@ export default function AdminDashboard() {
       ],
     },
   ];
+
 
   // ============================================================================
   // FILTER OPTIONS - SEPARATE FROM NAVIGATION
@@ -851,7 +871,7 @@ export default function AdminDashboard() {
         {/* ====================================================================== */}
         {/* MAIN TABS */}
         {/* ====================================================================== */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* ================================================================== */}
           {/* SECTION 1: DROPDOWN NAVIGATION */}
           {/* ================================================================== */}
@@ -1617,27 +1637,33 @@ export default function AdminDashboard() {
                 </TabsContent>
               )}
 
-              {/* KYC TAB */}
+              {/* KYC TAB (seller identity) */}
               {activeTab === "kyc" && (
                 <TabsContent value="kyc" className="space-y-6 mt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileCheck className="h-5 w-5 text-primary" />
-                        KYC Verification Queue
-                      </CardTitle>
-                      <CardDescription>Approve or reject seller identity submissions</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-12">
-                        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
-                        <p className="text-lg font-medium">No KYC submissions awaiting review</p>
-                        <p className="text-sm text-muted-foreground mt-1">All submissions have been processed</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Suspense fallback={<ListSkeleton />}>
+                    <KYCReviewQueue />
+                  </Suspense>
                 </TabsContent>
               )}
+
+              {/* NATURAL LIVING — LAND REGISTRATIONS */}
+              {activeTab === "nl-land" && (
+                <TabsContent value="nl-land" className="space-y-6 mt-6">
+                  <Suspense fallback={<ListSkeleton />}>
+                    <AdminLandRegistrationsPanel />
+                  </Suspense>
+                </TabsContent>
+              )}
+
+              {/* NATURAL LIVING — KYC */}
+              {activeTab === "nl-kyc" && (
+                <TabsContent value="nl-kyc" className="space-y-6 mt-6">
+                  <Suspense fallback={<ListSkeleton />}>
+                    <AdminNLKycPanel />
+                  </Suspense>
+                </TabsContent>
+              )}
+
 
               {/* SETTINGS TAB */}
               {activeTab === "settings" && (
