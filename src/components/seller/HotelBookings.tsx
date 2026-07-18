@@ -37,6 +37,7 @@ export default function HotelBookings({ userId }: { userId: string }) {
   const [editing, setEditing] = useState<Booking | null>(null);
   const [cancelling, setCancelling] = useState<Booking | null>(null);
   const [form, setForm] = useState({ check_in_date: "", check_out_date: "", guests: 1, room_type: "" });
+  const { hide, isHidden } = useHiddenIds("hotel_bookings_seller", userId);
 
   const load = async () => {
     const sb: any = supabase;
