@@ -154,7 +154,7 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
             <p className="text-sm text-muted-foreground">No hotel bookings yet</p>
           </div>
         ) : (
-          bookings.map((b) => (
+          bookings.filter((b) => !isHidden(b.id)).map((b) => (
             <div key={b.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
