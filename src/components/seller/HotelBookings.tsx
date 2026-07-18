@@ -12,9 +12,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Hotel, Calendar, Download, X, RotateCcw } from "lucide-react";
+import { Hotel, Calendar, Download, X, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface Booking {
   id: string;
