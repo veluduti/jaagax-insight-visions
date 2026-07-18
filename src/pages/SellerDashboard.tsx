@@ -1106,13 +1106,6 @@ export default function SellerDashboard() {
         {/* Seller Hub: AI, Activity, Visits, Referral */}
         {user?.id && (
           <>
-            <AIRecommendations
-              propertyCount={properties.length}
-              topCity={properties[0]?.city || null}
-              avgPrice={
-                properties.length ? properties.reduce((s, p) => s + (p.price || 0), 0) / properties.length : undefined
-              }
-            />
 
 
             {/* Hotel Bookings */}
