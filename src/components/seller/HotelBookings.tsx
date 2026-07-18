@@ -12,9 +12,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Hotel, Calendar, Download, X, RotateCcw } from "lucide-react";
+import { Hotel, Calendar, Download, X, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useHiddenIds } from "@/hooks/useHiddenIds";
 
 interface Booking {
   id: string;
@@ -36,6 +37,7 @@ export default function HotelBookings({ userId }: { userId: string }) {
   const [editing, setEditing] = useState<Booking | null>(null);
   const [cancelling, setCancelling] = useState<Booking | null>(null);
   const [form, setForm] = useState({ check_in_date: "", check_out_date: "", guests: 1, room_type: "" });
+  const { hide, isHidden } = useHiddenIds("hotel_bookings_seller", userId);
 
   const load = async () => {
     const sb: any = supabase;
@@ -152,7 +154,7 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
             <p className="text-sm text-muted-foreground">No hotel bookings yet</p>
           </div>
         ) : (
-          bookings.map((b) => (
+          bookings.filter((b) => !isHidden(b.id)).map((b) => (
             <div key={b.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div>
@@ -197,6 +199,18 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => rebook(b)}>
                   <RotateCcw className="h-3 w-3 mr-1" /> Rebook
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  onClick={() => {
+                    hide(b.id);
+                    toast.success("Removed from your dashboard");
+                  }}
+                  title="Remove from my dashboard"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" /> Delete
                 </Button>
               </div>
             </div>

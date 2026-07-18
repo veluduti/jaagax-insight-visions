@@ -1114,8 +1114,6 @@ export default function SellerDashboard() {
               }
             />
 
-            {/* Loan Offers Alert */}
-            <LoanOffersAlert />
 
             {/* Hotel Bookings */}
             <HotelBookings userId={user.id} />
