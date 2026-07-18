@@ -18,7 +18,7 @@ export default function ActivityTimeline({ userId }: { userId: string }) {
       .then(({ data }: any) => setItems(data || []));
   }, [userId]);
 
-  if (items.length === 0) return null;
+  
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -27,15 +27,21 @@ export default function ActivityTimeline({ userId }: { userId: string }) {
           <div className="flex items-center gap-2 mb-3 text-sm font-semibold">
             <Activity className="h-4 w-4 text-emerald-400" /> Activity Timeline
           </div>
-          <ol className="relative border-l border-border/60 pl-4 space-y-3">
-            {items.map((it) => (
-              <li key={it.id}>
-                <span className="absolute -left-[5px] mt-1 h-2 w-2 rounded-full bg-emerald-500" />
-                <p className="text-xs font-medium capitalize">{it.activity_type.replace(/_/g, " ")}</p>
-                <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(it.created_at), { addSuffix: true })}</p>
-              </li>
-            ))}
-          </ol>
+          {items.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-6 text-center">
+              No recent activity yet. Your listing updates and buyer interactions will appear here.
+            </p>
+          ) : (
+            <ol className="relative border-l border-border/60 pl-4 space-y-3">
+              {items.map((it) => (
+                <li key={it.id}>
+                  <span className="absolute -left-[5px] mt-1 h-2 w-2 rounded-full bg-emerald-500" />
+                  <p className="text-xs font-medium capitalize">{it.activity_type.replace(/_/g, " ")}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(it.created_at), { addSuffix: true })}</p>
+                </li>
+              ))}
+            </ol>
+          )}
         </CardContent>
       </Card>
     </motion.div>
