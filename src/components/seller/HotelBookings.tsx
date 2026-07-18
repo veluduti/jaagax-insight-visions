@@ -200,6 +200,18 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 <Button size="sm" variant="outline" onClick={() => rebook(b)}>
                   <RotateCcw className="h-3 w-3 mr-1" /> Rebook
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  onClick={() => {
+                    hide(b.id);
+                    toast.success("Removed from your dashboard");
+                  }}
+                  title="Remove from my dashboard"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" /> Delete
+                </Button>
               </div>
             </div>
           ))
