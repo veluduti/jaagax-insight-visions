@@ -54,7 +54,7 @@ import SubscriptionManager from "@/components/seller/SubscriptionManager";
 import KYCVerification from "@/components/seller/KYCVerification";
 import NotificationCenter from "@/components/seller/NotificationCenter";
 import AIRecommendations from "@/components/seller/AIRecommendations";
-import ActivityTimeline from "@/components/seller/ActivityTimeline";
+
 import VisitManagement from "@/components/seller/VisitManagement";
 import ReferralLink from "@/components/seller/ReferralLink";
 import MarkAsSoldButton from "@/components/seller/MarkAsSoldButton";
@@ -1114,16 +1114,13 @@ export default function SellerDashboard() {
             {/* Financial Enquiries */}
             <FinancialEnquiries userId={user.id} />
 
-            {/* Alert Channels and Activity Timeline side by side - Activity Timeline on the right */}
+            {/* Alert Channels and Activity Timeline side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <AlertChannelsSettings userId={user.id} />
-              <ActivityTimeline userId={user.id} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <VisitManagement sellerId={user.id} />
               <ActivityTimelineEnhanced userId={user.id} />
             </div>
+
+            <VisitManagement sellerId={user.id} />
             <ReferralLink userId={user.id} />
           </>
         )}
