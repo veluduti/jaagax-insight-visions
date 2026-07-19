@@ -790,13 +790,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Saved Searches */}
-          <TabsContent value="searches">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <SavedSearchesPanel />
-            </Suspense>
-          </TabsContent>
-
           {/* Alerts */}
           <TabsContent value="alerts">
             <Suspense fallback={<ListSkeleton rows={4} />}>
