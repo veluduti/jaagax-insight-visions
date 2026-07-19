@@ -695,20 +695,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Weekend Property Explorer */}
-          <TabsContent value="weekend">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <WeekendBookingsList scope="buyer" userId={user?.id} kind="weekend" />
-            </Suspense>
-          </TabsContent>
-
-          {/* Quick Visit Package */}
-          <TabsContent value="quick-visits">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <WeekendBookingsList scope="buyer" userId={user?.id} kind="quick_visit" />
-            </Suspense>
-          </TabsContent>
-
           {/* Favorites */}
           <TabsContent value="favorites">
             <Card>
