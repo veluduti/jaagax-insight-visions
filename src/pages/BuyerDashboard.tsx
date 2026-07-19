@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ import Navigation from "@/components/Navigation";
 import {
   Heart,
   MapPin,
-  Search,
   Bell,
   Calculator,
   TrendingUp,
@@ -26,20 +25,11 @@ import {
   Star,
   ChevronRight,
   GitCompare,
-  DollarSign,
-  Eye,
-  Clock,
-  Share2,
   Route,
   Hotel,
-  Sparkles,
   ShieldCheck,
   PiggyBank,
   Wallet as WalletIcon,
-  Gift,
-  MapPinned,
-  Sparkles as SparklesIcon,
-  Clock as ClockIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
@@ -53,27 +43,12 @@ const KYCVerification = lazy(() =>
 const FinancialEnquiries = lazy(() =>
   import("@/features/buyer/FinancialEnquiries").then((m) => ({ default: m.FinancialEnquiries })),
 );
-const ReferralDashboard = lazy(() =>
-  import("@/features/buyer/referrals/ReferralDashboard").then((m) => ({ default: m.ReferralDashboard })),
-);
-const PreferredLocations = lazy(() =>
-  import("@/features/buyer/locations/PreferredLocations").then((m) => ({ default: m.PreferredLocations })),
-);
-const AIRecommendations = lazy(() =>
-  import("@/features/buyer/AIRecommendations").then((m) => ({ default: m.AIRecommendations })),
-);
-const ActivityTimeline = lazy(() =>
-  import("@/features/buyer/ActivityTimeline").then((m) => ({ default: m.ActivityTimeline })),
-);
-
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
-const WeekendBookingsList = lazy(() => import("@/components/weekend/WeekendBookingsList"));
 const MyVisits = lazy(() => import("@/components/buyer/MyVisits"));
 const MyFavorites = lazy(() => import("@/components/buyer/MyFavorites"));
 const AlertsPanel = lazy(() => import("@/components/buyer/AlertsPanel"));
-const SavedSearchesPanel = lazy(() => import("@/components/buyer/SavedSearchesPanel"));
 import { ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
@@ -103,9 +78,6 @@ const BuyerDashboard = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
 
@@ -120,44 +92,7 @@ const BuyerDashboard = () => {
     fetchProperties();
     fetchAvailableCities();
     fetchFavorites();
-    fetchVisitBookings();
-
-    // Subscribe to real-time visit updates
-    const channel = supabase
-      .channel("buyer-visit-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "visit_bookings",
-        },
-        (payload) => {
-          console.log("Visit booking updated:", payload);
-          fetchVisitBookings();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    // Defer AI suggestions to idle so dashboard renders instantly.
-    const ric = (globalThis as any).requestIdleCallback;
-    const handle =
-      typeof ric === "function"
-        ? ric(() => fetchAISuggestions(), { timeout: 1500 })
-        : (setTimeout(() => fetchAISuggestions(), 1) as unknown as number);
-    return () => {
-      const cic = (globalThis as any).cancelIdleCallback;
-      if (typeof cic === "function") cic(handle);
-      else clearTimeout(handle as any);
-    };
-  }, [user]);
 
   useEffect(() => {
     calculateEMI();
@@ -215,24 +150,6 @@ const BuyerDashboard = () => {
     }
   };
 
-  const fetchVisitBookings = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from("visit_bookings")
-        .select("*, properties(title, locality, city)")
-        .eq("user_id", user.id)
-        .order("visit_date", { ascending: true })
-        .limit(3);
-
-      if (data) {
-        setVisitBookings(data);
-      }
-    }
-  };
-
   const toggleFavorite = async (propertyId: string) => {
     const {
       data: { user },
@@ -250,35 +167,6 @@ const BuyerDashboard = () => {
       await supabase.from("favorites").insert({ user_id: user.id, property_id: propertyId });
       setFavorites([...favorites, propertyId]);
       toast.success("Added to favorites");
-    }
-  };
-
-  const fetchAISuggestions = async () => {
-    setLoadingAI(true);
-    try {
-      const { aiService } = await import("@/services/aiService");
-      const data: any = await aiService
-        .suggestProperties({
-          userId: user.id,
-          city: user.city || "Hyderabad",
-          minPrice: 3000000,
-          maxPrice: 10000000,
-          bhk: 3,
-        })
-        .catch(() => null);
-
-      if (data?.suggestions?.length) {
-        const { data: suggestedProps } = await supabase
-          .from("properties")
-          .select("id,slug,title,city,locality,price,area_sqft,bedrooms,bathrooms,bhk,images,verified,trust_score")
-          .in("id", data.suggestions);
-
-        if (suggestedProps) setAiSuggestions(suggestedProps as any);
-      }
-    } catch (error) {
-      console.error("AI Suggestions error:", error);
-    } finally {
-      setLoadingAI(false);
     }
   };
 
@@ -472,30 +360,6 @@ const BuyerDashboard = () => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "locations" })}
-            >
-              <CardContent className="p-6 text-center">
-                <MapPinned className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Locations</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "referrals" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Gift className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Referrals</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
               onClick={() => setSearchParams({ tab: "wallet" })}
             >
               <CardContent className="p-6 text-center">
@@ -504,70 +368,10 @@ const BuyerDashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "ai" })}
-            >
-              <CardContent className="p-6 text-center">
-                <SparklesIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">AI</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
 
         {/* Quick Actions - Row 4 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "activity" })}
-            >
-              <CardContent className="p-6 text-center">
-                <ClockIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Activity</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "weekend" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Sparkles className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Weekend</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "quick-visits" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Quick Visits</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "searches" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Search className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Searches</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all"
@@ -594,14 +398,6 @@ const BuyerDashboard = () => {
                   <Star className="h-4 w-4 mr-2" />
                   For You
                 </TabsTrigger>
-                <TabsTrigger value="ai">
-                  <SparklesIcon className="h-4 w-4 mr-2" />
-                  AI
-                </TabsTrigger>
-                <TabsTrigger value="activity">
-                  <ClockIcon className="h-4 w-4 mr-2" />
-                  Activity
-                </TabsTrigger>
                 <TabsTrigger value="journey">
                   <Route className="h-4 w-4 mr-2" />
                   Journey
@@ -613,14 +409,6 @@ const BuyerDashboard = () => {
                 <TabsTrigger value="bookings">
                   <Hotel className="h-4 w-4 mr-2" />
                   Bookings
-                </TabsTrigger>
-                <TabsTrigger value="weekend">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Weekend
-                </TabsTrigger>
-                <TabsTrigger value="quick-visits">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Quick Visits
                 </TabsTrigger>
                 <TabsTrigger value="favorites">
                   <Heart className="h-4 w-4 mr-2" />
@@ -642,21 +430,9 @@ const BuyerDashboard = () => {
                   <Calculator className="h-4 w-4 mr-2" />
                   EMI
                 </TabsTrigger>
-                <TabsTrigger value="searches">
-                  <Search className="h-4 w-4 mr-2" />
-                  Searches
-                </TabsTrigger>
                 <TabsTrigger value="alerts">
                   <Bell className="h-4 w-4 mr-2" />
                   Alerts
-                </TabsTrigger>
-                <TabsTrigger value="locations">
-                  <MapPinned className="h-4 w-4 mr-2" />
-                  Locations
-                </TabsTrigger>
-                <TabsTrigger value="referrals">
-                  <Gift className="h-4 w-4 mr-2" />
-                  Referrals
                 </TabsTrigger>
                 <TabsTrigger value="wallet">
                   <WalletIcon className="h-4 w-4 mr-2" />
@@ -668,48 +444,6 @@ const BuyerDashboard = () => {
 
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
-            {aiSuggestions.length > 0 && (
-              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-primary" />
-                    AI-Powered Recommendations
-                  </CardTitle>
-                  <CardDescription>Smart suggestions tailored to your preferences using AI analysis</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {aiSuggestions.slice(0, 3).map((property) => (
-                      <motion.div
-                        key={property.id}
-                        whileHover={{ y: -5 }}
-                        className="cursor-pointer"
-                        onClick={() => openInNewTab(propertyPath(property))}
-                      >
-                        <Card className="overflow-hidden hover:shadow-xl transition-all">
-                          <div className="relative h-32">
-                            <img
-                              src={property.images[0] || ""}
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                            <Badge className="absolute top-2 left-2 bg-primary">AI Match</Badge>
-                          </div>
-                          <CardContent className="p-3">
-                            <h4 className="font-semibold text-sm mb-1 line-clamp-1">{property.title}</h4>
-                            <p className="text-xs text-muted-foreground mb-2">{property.locality}</p>
-                            <p className="text-lg font-bold text-primary">{formatPrice(property.price)}</p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             <Card>
               <CardHeader>
                 <CardTitle>All Recommended Properties</CardTitle>
@@ -832,20 +566,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Weekend Property Explorer */}
-          <TabsContent value="weekend">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <WeekendBookingsList scope="buyer" userId={user?.id} kind="weekend" />
-            </Suspense>
-          </TabsContent>
-
-          {/* Quick Visit Package */}
-          <TabsContent value="quick-visits">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <WeekendBookingsList scope="buyer" userId={user?.id} kind="quick_visit" />
-            </Suspense>
-          </TabsContent>
-
           {/* Favorites */}
           <TabsContent value="favorites">
             <Card>
@@ -941,13 +661,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Saved Searches */}
-          <TabsContent value="searches">
-            <Suspense fallback={<ListSkeleton rows={3} />}>
-              <SavedSearchesPanel />
-            </Suspense>
-          </TabsContent>
-
           {/* Alerts */}
           <TabsContent value="alerts">
             <Suspense fallback={<ListSkeleton rows={4} />}>
@@ -983,33 +696,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Locations */}
-          <TabsContent value="locations">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <PreferredLocations />
-            </Suspense>
-          </TabsContent>
-
-          {/* Referrals */}
-          <TabsContent value="referrals">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <ReferralDashboard />
-            </Suspense>
-          </TabsContent>
-
-          {/* AI Recommendations */}
-          <TabsContent value="ai">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <AIRecommendations />
-            </Suspense>
-          </TabsContent>
-
-          {/* Activity Timeline */}
-          <TabsContent value="activity">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <ActivityTimeline />
-            </Suspense>
-          </TabsContent>
         </Tabs>
 
         {/* Market Insights */}
