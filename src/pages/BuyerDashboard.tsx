@@ -211,35 +211,6 @@ const BuyerDashboard = () => {
     }
   };
 
-  const fetchAISuggestions = async () => {
-    setLoadingAI(true);
-    try {
-      const { aiService } = await import("@/services/aiService");
-      const data: any = await aiService
-        .suggestProperties({
-          userId: user.id,
-          city: user.city || "Hyderabad",
-          minPrice: 3000000,
-          maxPrice: 10000000,
-          bhk: 3,
-        })
-        .catch(() => null);
-
-      if (data?.suggestions?.length) {
-        const { data: suggestedProps } = await supabase
-          .from("properties")
-          .select("id,slug,title,city,locality,price,area_sqft,bedrooms,bathrooms,bhk,images,verified,trust_score")
-          .in("id", data.suggestions);
-
-        if (suggestedProps) setAiSuggestions(suggestedProps as any);
-      }
-    } catch (error) {
-      console.error("AI Suggestions error:", error);
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
   const calculateEMI = () => {
     const principal = loanAmount;
     const ratePerMonth = interestRate / 12 / 100;
