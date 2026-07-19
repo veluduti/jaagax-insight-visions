@@ -43,27 +43,12 @@ const KYCVerification = lazy(() =>
 const FinancialEnquiries = lazy(() =>
   import("@/features/buyer/FinancialEnquiries").then((m) => ({ default: m.FinancialEnquiries })),
 );
-const ReferralDashboard = lazy(() =>
-  import("@/features/buyer/referrals/ReferralDashboard").then((m) => ({ default: m.ReferralDashboard })),
-);
-const PreferredLocations = lazy(() =>
-  import("@/features/buyer/locations/PreferredLocations").then((m) => ({ default: m.PreferredLocations })),
-);
-const AIRecommendations = lazy(() =>
-  import("@/features/buyer/AIRecommendations").then((m) => ({ default: m.AIRecommendations })),
-);
-const ActivityTimeline = lazy(() =>
-  import("@/features/buyer/ActivityTimeline").then((m) => ({ default: m.ActivityTimeline })),
-);
-
 // Heavy tab modules — code-split so they only download when their tab is opened.
 const MyJourneyTimeline = lazy(() => import("@/components/buyer/MyJourneyTimeline"));
 const MyBookings = lazy(() => import("@/components/buyer/MyBookings"));
-const WeekendBookingsList = lazy(() => import("@/components/weekend/WeekendBookingsList"));
 const MyVisits = lazy(() => import("@/components/buyer/MyVisits"));
 const MyFavorites = lazy(() => import("@/components/buyer/MyFavorites"));
 const AlertsPanel = lazy(() => import("@/components/buyer/AlertsPanel"));
-const SavedSearchesPanel = lazy(() => import("@/components/buyer/SavedSearchesPanel"));
 import { ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { openInNewTab, propertyPath } from "@/lib/openInNewTab";
