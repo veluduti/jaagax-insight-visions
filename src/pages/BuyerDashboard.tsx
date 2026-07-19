@@ -485,48 +485,6 @@ const BuyerDashboard = () => {
 
           {/* Recommended Properties */}
           <TabsContent value="recommended" className="space-y-6">
-            {aiSuggestions.length > 0 && (
-              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-primary" />
-                    AI-Powered Recommendations
-                  </CardTitle>
-                  <CardDescription>Smart suggestions tailored to your preferences using AI analysis</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {aiSuggestions.slice(0, 3).map((property) => (
-                      <motion.div
-                        key={property.id}
-                        whileHover={{ y: -5 }}
-                        className="cursor-pointer"
-                        onClick={() => openInNewTab(propertyPath(property))}
-                      >
-                        <Card className="overflow-hidden hover:shadow-xl transition-all">
-                          <div className="relative h-32">
-                            <img
-                              src={property.images[0] || ""}
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                            <Badge className="absolute top-2 left-2 bg-primary">AI Match</Badge>
-                          </div>
-                          <CardContent className="p-3">
-                            <h4 className="font-semibold text-sm mb-1 line-clamp-1">{property.title}</h4>
-                            <p className="text-xs text-muted-foreground mb-2">{property.locality}</p>
-                            <p className="text-lg font-bold text-primary">{formatPrice(property.price)}</p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             <Card>
               <CardHeader>
                 <CardTitle>All Recommended Properties</CardTitle>
