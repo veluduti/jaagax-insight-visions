@@ -92,28 +92,6 @@ const BuyerDashboard = () => {
     fetchProperties();
     fetchAvailableCities();
     fetchFavorites();
-    fetchVisitBookings();
-
-    // Subscribe to real-time visit updates
-    const channel = supabase
-      .channel("buyer-visit-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "visit_bookings",
-        },
-        (payload) => {
-          console.log("Visit booking updated:", payload);
-          fetchVisitBookings();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   useEffect(() => {
