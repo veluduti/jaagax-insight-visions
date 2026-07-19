@@ -150,24 +150,6 @@ const BuyerDashboard = () => {
     }
   };
 
-  const fetchVisitBookings = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from("visit_bookings")
-        .select("*, properties(title, locality, city)")
-        .eq("user_id", user.id)
-        .order("visit_date", { ascending: true })
-        .limit(3);
-
-      if (data) {
-        setVisitBookings(data);
-      }
-    }
-  };
-
   const toggleFavorite = async (propertyId: string) => {
     const {
       data: { user },
