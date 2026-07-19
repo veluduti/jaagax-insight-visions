@@ -500,14 +500,6 @@ const BuyerDashboard = () => {
                   <Star className="h-4 w-4 mr-2" />
                   For You
                 </TabsTrigger>
-                <TabsTrigger value="ai">
-                  <SparklesIcon className="h-4 w-4 mr-2" />
-                  AI
-                </TabsTrigger>
-                <TabsTrigger value="activity">
-                  <ClockIcon className="h-4 w-4 mr-2" />
-                  Activity
-                </TabsTrigger>
                 <TabsTrigger value="journey">
                   <Route className="h-4 w-4 mr-2" />
                   Journey
@@ -519,14 +511,6 @@ const BuyerDashboard = () => {
                 <TabsTrigger value="bookings">
                   <Hotel className="h-4 w-4 mr-2" />
                   Bookings
-                </TabsTrigger>
-                <TabsTrigger value="weekend">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Weekend
-                </TabsTrigger>
-                <TabsTrigger value="quick-visits">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Quick Visits
                 </TabsTrigger>
                 <TabsTrigger value="favorites">
                   <Heart className="h-4 w-4 mr-2" />
@@ -548,21 +532,9 @@ const BuyerDashboard = () => {
                   <Calculator className="h-4 w-4 mr-2" />
                   EMI
                 </TabsTrigger>
-                <TabsTrigger value="searches">
-                  <Search className="h-4 w-4 mr-2" />
-                  Searches
-                </TabsTrigger>
                 <TabsTrigger value="alerts">
                   <Bell className="h-4 w-4 mr-2" />
                   Alerts
-                </TabsTrigger>
-                <TabsTrigger value="locations">
-                  <MapPinned className="h-4 w-4 mr-2" />
-                  Locations
-                </TabsTrigger>
-                <TabsTrigger value="referrals">
-                  <Gift className="h-4 w-4 mr-2" />
-                  Referrals
                 </TabsTrigger>
                 <TabsTrigger value="wallet">
                   <WalletIcon className="h-4 w-4 mr-2" />
