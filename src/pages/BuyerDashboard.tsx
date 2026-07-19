@@ -825,33 +825,6 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Locations */}
-          <TabsContent value="locations">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <PreferredLocations />
-            </Suspense>
-          </TabsContent>
-
-          {/* Referrals */}
-          <TabsContent value="referrals">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <ReferralDashboard />
-            </Suspense>
-          </TabsContent>
-
-          {/* AI Recommendations */}
-          <TabsContent value="ai">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <AIRecommendations />
-            </Suspense>
-          </TabsContent>
-
-          {/* Activity Timeline */}
-          <TabsContent value="activity">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <ActivityTimeline />
-            </Suspense>
-          </TabsContent>
         </Tabs>
 
         {/* Market Insights */}
