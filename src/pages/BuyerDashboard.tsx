@@ -78,8 +78,6 @@ const BuyerDashboard = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [aiSuggestions, setAiSuggestions] = useState<Property[]>([]);
-  const [loadingAI, setLoadingAI] = useState(false);
   const [visitBookings, setVisitBookings] = useState<any[]>([]);
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
