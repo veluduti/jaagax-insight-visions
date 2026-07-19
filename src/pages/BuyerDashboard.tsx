@@ -13,7 +13,6 @@ import Navigation from "@/components/Navigation";
 import {
   Heart,
   MapPin,
-  Search,
   Bell,
   Calculator,
   TrendingUp,
@@ -26,20 +25,11 @@ import {
   Star,
   ChevronRight,
   GitCompare,
-  DollarSign,
-  Eye,
-  Clock,
-  Share2,
   Route,
   Hotel,
-  Sparkles,
   ShieldCheck,
   PiggyBank,
   Wallet as WalletIcon,
-  Gift,
-  MapPinned,
-  Sparkles as SparklesIcon,
-  Clock as ClockIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWallet, formatINR } from "@/contexts/WalletContext";
