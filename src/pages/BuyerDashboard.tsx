@@ -462,47 +462,11 @@ const BuyerDashboard = () => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "locations" })}
-            >
-              <CardContent className="p-6 text-center">
-                <MapPinned className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Locations</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "referrals" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Gift className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Referrals</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
               onClick={() => setSearchParams({ tab: "wallet" })}
             >
               <CardContent className="p-6 text-center">
                 <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <h3 className="font-semibold text-sm">Wallet</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "ai" })}
-            >
-              <CardContent className="p-6 text-center">
-                <SparklesIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">AI</h3>
               </CardContent>
             </Card>
           </motion.div>
