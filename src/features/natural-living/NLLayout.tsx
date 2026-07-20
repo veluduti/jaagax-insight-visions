@@ -2,7 +2,7 @@ import { PropsWithChildren, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Leaf, FileEdit, Eye, Sprout, Store, Landmark, TreePine } from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { useNLAuth } from "./useNLAuth";
+
 import { cn } from "@/lib/utils";
 import "./theme.css";
 
