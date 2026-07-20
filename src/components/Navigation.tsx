@@ -51,6 +51,7 @@ const Navigation = () => {
       : role === "hotel_manager" ? "/partners/dashboard"
       : `/dashboard/${role || "buyer"}`;
   const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
+  const isNaturalLivingRoute = location.pathname.startsWith("/natural-living");
 
   useEffect(() => {
     const fetchFeatureFlag = async () => {
