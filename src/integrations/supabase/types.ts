@@ -4466,6 +4466,163 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_ai_profile_fields: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          description: string | null
+          field_type: string
+          id: string
+          is_active: boolean
+          label: string
+          max_value: number | null
+          metadata: Json
+          min_value: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          field_type?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          max_value?: number | null
+          metadata?: Json
+          min_value?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          field_type?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_value?: number | null
+          metadata?: Json
+          min_value?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nl_ai_profile_versions: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          reason: string | null
+          snapshot: Json
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          reason?: string | null
+          snapshot?: Json
+          user_id: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          reason?: string | null
+          snapshot?: Json
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_ai_profile_versions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "nl_ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_ai_profiles: {
+        Row: {
+          created_at: string
+          generated_at: string
+          id: string
+          intent_score: number | null
+          model: string | null
+          persona: string | null
+          raw_output: Json
+          readiness_score: number | null
+          risk_score: number | null
+          risks: string[]
+          scores: Json
+          session_id: string | null
+          strengths: string[]
+          summary: string | null
+          tags: string[]
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          generated_at?: string
+          id?: string
+          intent_score?: number | null
+          model?: string | null
+          persona?: string | null
+          raw_output?: Json
+          readiness_score?: number | null
+          risk_score?: number | null
+          risks?: string[]
+          scores?: Json
+          session_id?: string | null
+          strengths?: string[]
+          summary?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          generated_at?: string
+          id?: string
+          intent_score?: number | null
+          model?: string | null
+          persona?: string | null
+          raw_output?: Json
+          readiness_score?: number | null
+          risk_score?: number | null
+          risks?: string[]
+          scores?: Json
+          session_id?: string | null
+          strengths?: string[]
+          summary?: string | null
+          tags?: string[]
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_ai_profiles_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "nl_interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_crops: {
         Row: {
           created_at: string
@@ -4941,6 +5098,218 @@ export type Database = {
             columns: ["village_id"]
             isOneToOne: false
             referencedRelation: "nl_villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_goals: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          interview_pack_code: string | null
+          is_active: boolean
+          metadata: Json
+          persona_tags: string[]
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          interview_pack_code?: string | null
+          is_active?: boolean
+          metadata?: Json
+          persona_tags?: string[]
+          sort_order?: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          interview_pack_code?: string | null
+          is_active?: boolean
+          metadata?: Json
+          persona_tags?: string[]
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nl_interview_packs: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          estimated_minutes: number
+          goal_codes: string[]
+          id: string
+          is_active: boolean
+          metadata: Json
+          persona_tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number
+          goal_codes?: string[]
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          persona_tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number
+          goal_codes?: string[]
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          persona_tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nl_interview_sessions: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          created_at: string
+          current_question_code: string | null
+          derived_tags: string[]
+          id: string
+          metadata: Json
+          pack_id: string | null
+          progress_pct: number
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_question_code?: string | null
+          derived_tags?: string[]
+          id?: string
+          metadata?: Json
+          pack_id?: string | null
+          progress_pct?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_question_code?: string | null
+          derived_tags?: string[]
+          id?: string
+          metadata?: Json
+          pack_id?: string | null
+          progress_pct?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_interview_sessions_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "nl_interview_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_interview_turns: {
+        Row: {
+          answer: Json | null
+          answer_text: string | null
+          confidence: number | null
+          created_at: string
+          id: string
+          question_code: string | null
+          question_id: string | null
+          question_snapshot: Json
+          role: string
+          session_id: string
+          skipped: boolean
+          turn_index: number
+          user_id: string
+        }
+        Insert: {
+          answer?: Json | null
+          answer_text?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          question_code?: string | null
+          question_id?: string | null
+          question_snapshot?: Json
+          role?: string
+          session_id: string
+          skipped?: boolean
+          turn_index?: number
+          user_id: string
+        }
+        Update: {
+          answer?: Json | null
+          answer_text?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          question_code?: string | null
+          question_id?: string | null
+          question_snapshot?: Json
+          role?: string
+          session_id?: string
+          skipped?: boolean
+          turn_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_interview_turns_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "nl_question_bank"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nl_interview_turns_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "nl_interview_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -5470,6 +5839,84 @@ export type Database = {
           },
         ]
       }
+      nl_landing_signals_view: {
+        Row: {
+          created_at: string
+          device: Json
+          goal_code: string | null
+          id: string
+          metadata: Json
+          section: string | null
+          session_key: string | null
+          signal_type: string
+          user_id: string | null
+          utm: Json
+        }
+        Insert: {
+          created_at?: string
+          device?: Json
+          goal_code?: string | null
+          id?: string
+          metadata?: Json
+          section?: string | null
+          session_key?: string | null
+          signal_type: string
+          user_id?: string | null
+          utm?: Json
+        }
+        Update: {
+          created_at?: string
+          device?: Json
+          goal_code?: string | null
+          id?: string
+          metadata?: Json
+          section?: string | null
+          session_key?: string | null
+          signal_type?: string
+          user_id?: string | null
+          utm?: Json
+        }
+        Relationships: []
+      }
+      nl_onboarding_state: {
+        Row: {
+          completed_at: string | null
+          context: Json
+          created_at: string
+          id: string
+          last_step: string | null
+          progress_pct: number
+          stage: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          id?: string
+          last_step?: string | null
+          progress_pct?: number
+          stage?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          id?: string
+          last_step?: string | null
+          progress_pct?: number
+          stage?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nl_order_items: {
         Row: {
           created_at: string
@@ -5678,6 +6125,183 @@ export type Database = {
         }
         Relationships: []
       }
+      nl_question_bank: {
+        Row: {
+          applies_when: Json
+          category: string | null
+          code: string
+          created_at: string
+          helper_text: string | null
+          id: string
+          is_active: boolean
+          is_required: boolean
+          metadata: Json
+          options: Json
+          pack_id: string | null
+          question: string
+          question_type: string
+          sort_order: number
+          tags: string[]
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          applies_when?: Json
+          category?: string | null
+          code: string
+          created_at?: string
+          helper_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          metadata?: Json
+          options?: Json
+          pack_id?: string | null
+          question: string
+          question_type?: string
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          applies_when?: Json
+          category?: string | null
+          code?: string
+          created_at?: string
+          helper_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          metadata?: Json
+          options?: Json
+          pack_id?: string | null
+          question?: string
+          question_type?: string
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_question_bank_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "nl_interview_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_recommendation_feedback: {
+        Row: {
+          action: string
+          comment: string | null
+          created_at: string
+          id: string
+          item_id: string | null
+          item_type: string | null
+          metadata: Json
+          rating: number | null
+          recommendation_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          metadata?: Json
+          rating?: number | null
+          recommendation_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          item_type?: string | null
+          metadata?: Json
+          rating?: number | null
+          recommendation_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_recommendation_feedback_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "nl_recommendations_cache"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_recommendations_cache: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          item_id: string | null
+          item_ref: string | null
+          item_type: string
+          matched_tags: string[]
+          payload: Json
+          profile_id: string | null
+          rank: number
+          reason: string | null
+          score: number
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_ref?: string | null
+          item_type: string
+          matched_tags?: string[]
+          payload?: Json
+          profile_id?: string | null
+          rank?: number
+          reason?: string | null
+          score?: number
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          item_id?: string | null
+          item_ref?: string | null
+          item_type?: string
+          matched_tags?: string[]
+          payload?: Json
+          profile_id?: string | null
+          rank?: number
+          reason?: string | null
+          score?: number
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_recommendations_cache_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "nl_ai_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nl_states: {
         Row: {
           created_at: string
@@ -5857,6 +6481,50 @@ export type Database = {
             columns: ["plot_id"]
             isOneToOne: false
             referencedRelation: "nl_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nl_user_goals: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          intent_level: string
+          notes: string | null
+          priority: number
+          selected_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          intent_level?: string
+          notes?: string | null
+          priority?: number
+          selected_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          intent_level?: string
+          notes?: string | null
+          priority?: number
+          selected_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nl_user_goals_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "nl_goals"
             referencedColumns: ["id"]
           },
         ]
