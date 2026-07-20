@@ -5839,7 +5839,7 @@ export type Database = {
           },
         ]
       }
-      nl_landing_signals_view: {
+      nl_landing_signals: {
         Row: {
           created_at: string
           device: Json
