@@ -1,9 +1,20 @@
 import { PropsWithChildren, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Leaf } from "lucide-react";
+import { Leaf, FileEdit, Eye, Sprout, Store, Landmark, TreePine } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { useNLAuth } from "./useNLAuth";
+import { cn } from "@/lib/utils";
 import "./theme.css";
+
+const NL_NAV_ITEMS: Array<{ label: string; path: string; icon: any; highlight?: boolean }> = [
+  { label: "List Your Land", path: "/natural-living/list-land", icon: FileEdit, highlight: true },
+  { label: "Lands", path: "/natural-living/lands", icon: Eye },
+  { label: "Vision", path: "/natural-living/vision", icon: Leaf },
+  { label: "Digital Farm", path: "/natural-living/digital-farm", icon: Sprout },
+  { label: "Marketplace", path: "/natural-living/marketplace", icon: Store },
+  { label: "Villages", path: "/natural-living/villages", icon: Landmark },
+  { label: "Farms", path: "/natural-living/farms", icon: TreePine },
+];
 
 const FOOTER_COLS = [
   {
@@ -51,27 +62,59 @@ export default function NLLayout({ children }: PropsWithChildren) {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
 
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(path + "/");
+
   return (
     <div className="nl-scope min-h-screen flex flex-col bg-background">
-      {/* Shared JAAGAX Header (center nav swaps to Natural Living items automatically) */}
+      {/* Shared JAAGAX Header */}
       <Navigation />
 
-      {/* Natural Living Identity Bar — persistent thin bar (40-48px) */}
-      <div
-        className="sticky top-16 xl:top-[68px] z-30 border-b border-border/50 bg-background/85 backdrop-blur-md"
-      >
+      {/* Natural Living Identity + Sub-Nav Bar */}
+      <div className="sticky top-16 xl:top-[68px] z-30 border-b border-border/50 bg-background/90 backdrop-blur-md">
         <div className="container-padding">
-          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center justify-between h-11">
-            <Link to="/natural-living" className="flex items-center gap-2 min-w-0">
-              <Leaf className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span className="text-sm font-medium text-foreground truncate">
-                JAGAA <span className="italic text-emerald-600 dark:text-emerald-400">Natural Living</span>
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center gap-4 h-12 min-w-0">
+            {/* Left: NL identity */}
+            <Link to="/natural-living" className="flex items-center gap-2 shrink-0">
+              <Leaf className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+                JAGAA <span className="italic text-primary">Natural Living</span>
               </span>
             </Link>
+
+            {/* Center: NL nav items (scrollable on small screens) */}
+            <nav className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
+              <ul className="flex items-center gap-1">
+                {NL_NAV_ITEMS.map((item) => {
+                  const active = isActive(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.path} className="shrink-0">
+                      <Link
+                        to={item.path}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
+                          item.highlight
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : active
+                              ? "bg-accent text-accent-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Right: user chip */}
             {user && (
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
                 <span
-                  className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold bg-primary/15 text-primary"
                   aria-hidden
                 >
                   {initial}
@@ -87,54 +130,54 @@ export default function NLLayout({ children }: PropsWithChildren) {
 
       <main className="flex-1">{children}</main>
 
-      {/* Footer */}
-      <footer
-        className="mt-24 pt-20 pb-10 border-t"
-        style={{
-          background: "hsl(var(--nl-cream-deep))",
-          borderColor: "hsl(var(--nl-forest) / 0.2)",
-        }}
-      >
-        <div className="nl-container">
-          <div className="grid gap-12 md:grid-cols-4">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Leaf className="h-5 w-5" style={{ color: "hsl(var(--nl-forest))" }} />
-                <span className="nl-serif text-lg" style={{ color: "hsl(var(--nl-forest))" }}>
-                  JAGAA
-                </span>
+      {/* Footer — JAAGAX tokens */}
+      <footer className="mt-24 pt-16 pb-10 border-t border-border/50 bg-muted/30">
+        <div className="container-padding">
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto">
+            <div className="grid gap-12 md:grid-cols-4">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Leaf className="h-5 w-5 text-primary" />
+                  <span className="text-lg font-semibold text-foreground">JAGAA</span>
+                </div>
+                <p className="italic text-lg leading-snug text-foreground">
+                  Return to the land. Slowly, deliberately, together.
+                </p>
+                <p className="text-sm mt-4 text-muted-foreground leading-relaxed">
+                  A community-owned ecosystem for organic farming, village tourism, farm stays,
+                  and mindful living — rooted in India.
+                </p>
               </div>
-              <p className="nl-serif italic text-lg leading-snug" style={{ color: "hsl(var(--nl-forest))" }}>
-                Return to the land. Slowly, deliberately, together.
-              </p>
-              <p className="text-sm mt-4 text-[hsl(var(--nl-ink)/0.7)] leading-relaxed">
-                A community-owned ecosystem for organic farming, village tourism, farm stays, and mindful living — rooted in India.
-              </p>
+
+              {FOOTER_COLS.map((col) => (
+                <div key={col.heading}>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">
+                    {col.heading}
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {col.items.map((it) => (
+                      <li key={it.to}>
+                        <Link
+                          to={it.to}
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {it.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
 
-            {FOOTER_COLS.map((col) => (
-              <div key={col.heading}>
-                <h4 className="nl-eyebrow mb-4">{col.heading}</h4>
-                <ul className="space-y-2.5">
-                  {col.items.map((it) => (
-                    <li key={it.to}>
-                      <Link to={it.to} className="text-sm text-[hsl(var(--nl-ink)/0.75)] hover:text-[hsl(var(--nl-forest))] transition-colors">
-                        {it.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+            <div className="h-px bg-border my-10" />
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-muted-foreground">
+              <div>© {new Date().getFullYear()} JAGAA Natural Living · A JAAGA X initiative</div>
+              <div className="flex gap-6">
+                <Link to="/natural-living/faq" className="hover:text-foreground">FAQ</Link>
+                <Link to="/natural-living/contact" className="hover:text-foreground">Contact</Link>
+                <Link to="/" className="hover:text-foreground">Back to JAAGA X</Link>
               </div>
-            ))}
-          </div>
-
-          <div className="nl-rule my-10" />
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-[hsl(var(--nl-ink)/0.6)]">
-            <div>© {new Date().getFullYear()} JAGAA Natural Living · A JAAGA X initiative</div>
-            <div className="flex gap-6">
-              <Link to="/natural-living/faq" className="hover:text-[hsl(var(--nl-forest))]">FAQ</Link>
-              <Link to="/natural-living/contact" className="hover:text-[hsl(var(--nl-forest))]">Contact</Link>
-              <Link to="/" className="hover:text-[hsl(var(--nl-forest))]">Back to JAAGA X</Link>
             </div>
           </div>
         </div>
