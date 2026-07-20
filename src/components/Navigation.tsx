@@ -16,6 +16,7 @@ import {
   Hotel,
   TrendingUp,
   DollarSign,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
