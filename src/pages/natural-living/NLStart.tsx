@@ -14,11 +14,14 @@
 import { useEffect, useRef } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { useProfileBoot } from "@/features/natural-living/onboarding/ProfileBootProvider";
+import {
+  ProfileBootProvider,
+  useProfileBoot,
+} from "@/features/natural-living/onboarding/ProfileBootProvider";
 import * as EventBus from "@/platform/events/EventBus";
 import * as Analytics from "@/platform/analytics/analytics";
 
-export default function NLStart() {
+function NLStartInner() {
   const { loading, user, snapshot, error } = useProfileBoot();
   const navigate = useNavigate();
   const location = useLocation();
