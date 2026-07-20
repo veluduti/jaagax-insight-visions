@@ -135,17 +135,6 @@ const Navigation = () => {
   const isPropertiesActive = propertiesItems.some((item) => isActive(item.path));
   const isExploreActive = exploreItems.some((item) => isActive(item.path));
 
-  const inNaturalLiving = location.pathname.startsWith("/natural-living");
-
-  const nlNavItems: Array<{ label: string; path: string; icon: any; highlight?: boolean }> = [
-    { label: "List Your Land", path: "/natural-living/list-land", icon: FileEdit, highlight: true },
-    { label: "Lands", path: "/natural-living/lands", icon: Eye },
-    { label: "Vision", path: "/natural-living/vision", icon: Leaf },
-    { label: "Digital Farm", path: "/natural-living/digital-farm", icon: Sprout },
-    { label: "Marketplace", path: "/natural-living/marketplace", icon: Store },
-    { label: "Villages", path: "/natural-living/villages", icon: Landmark },
-    { label: "Farms", path: "/natural-living/farms", icon: TreePine },
-  ];
 
   return (
     <>
