@@ -978,6 +978,45 @@ export type Database = {
           },
         ]
       }
+      ai_memory: {
+        Row: {
+          agent_key: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          key: string
+          module_key: string | null
+          scope: string
+          updated_at: string
+          user_id: string
+          value: Json
+        }
+        Insert: {
+          agent_key?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key: string
+          module_key?: string | null
+          scope: string
+          updated_at?: string
+          user_id: string
+          value?: Json
+        }
+        Update: {
+          agent_key?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key?: string
+          module_key?: string | null
+          scope?: string
+          updated_at?: string
+          user_id?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       alert_preferences: {
         Row: {
           created_at: string
@@ -5926,6 +5965,62 @@ export type Database = {
           },
         ]
       }
+      notification_channels: {
+        Row: {
+          created_at: string
+          enabled_globally: boolean
+          key: string
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          enabled_globally?: boolean
+          key: string
+          label: string
+        }
+        Update: {
+          created_at?: string
+          enabled_globally?: boolean
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          category: string
+          channel_key: string
+          created_at: string
+          enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          channel_key: string
+          created_at?: string
+          enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          channel_key?: string
+          created_at?: string
+          enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_channel_key_fkey"
+            columns: ["channel_key"]
+            isOneToOne: false
+            referencedRelation: "notification_channels"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           builder_profile_id: string | null
@@ -6075,6 +6170,33 @@ export type Database = {
         }
         Relationships: []
       }
+      permissions: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          resource: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          resource: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          resource?: string
+        }
+        Relationships: []
+      }
       phone_login_otps: {
         Row: {
           attempts: number
@@ -6108,6 +6230,111 @@ export type Database = {
           phone?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_events: {
+        Row: {
+          actor_user_id: string | null
+          id: string
+          module_key: string | null
+          occurred_at: string
+          payload: Json
+          subject_id: string | null
+          subject_type: string | null
+          topic: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          id?: string
+          module_key?: string | null
+          occurred_at?: string
+          payload?: Json
+          subject_id?: string | null
+          subject_type?: string | null
+          topic: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          id?: string
+          module_key?: string | null
+          occurred_at?: string
+          payload?: Json
+          subject_id?: string | null
+          subject_type?: string | null
+          topic?: string
+        }
+        Relationships: []
+      }
+      platform_media: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: string
+          kind: string
+          meta: Json
+          mime: string | null
+          module_key: string | null
+          owner_user_id: string
+          path: string
+          size_bytes: number | null
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: string
+          kind: string
+          meta?: Json
+          mime?: string | null
+          module_key?: string | null
+          owner_user_id: string
+          path: string
+          size_bytes?: number | null
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          mime?: string | null
+          module_key?: string | null
+          owner_user_id?: string
+          path?: string
+          size_bytes?: number | null
+        }
+        Relationships: []
+      }
+      platform_timeline: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          meta: Json
+          module_key: string | null
+          subject_id: string | null
+          subject_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          module_key?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json
+          module_key?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
         }
         Relationships: []
       }
@@ -7657,6 +7884,72 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          key: string
+          label: string
+          legacy_app_role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key: string
+          label: string
+          legacy_app_role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key?: string
+          label?: string
+          legacy_app_role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_searches: {
         Row: {
           alerts_enabled: boolean
@@ -8067,6 +8360,50 @@ export type Database = {
             columns: ["builder_profile_id"]
             isOneToOne: false
             referencedRelation: "builder_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_role_assignments: {
+        Row: {
+          created_at: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          revoked_at: string | null
+          role_id: string
+          scope: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          role_id: string
+          scope?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          role_id?: string
+          scope?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_role_assignments_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]
@@ -8961,6 +9298,10 @@ export type Database = {
         }[]
       }
       get_wallet_balance: { Args: { _user_id: string }; Returns: number }
+      has_permission: {
+        Args: { _action: string; _resource: string; _user_id: string }
+        Returns: boolean
+      }
       increment_balance: {
         Args: { _amount: number; _wallet_id: string }
         Returns: number
@@ -9094,6 +9435,7 @@ export type Database = {
           state_id: string
         }[]
       }
+      resolve_roles: { Args: { _user_id: string }; Returns: string[] }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
         Returns: undefined
@@ -9207,6 +9549,10 @@ export type Database = {
       }
       user_has_hotel_access: {
         Args: { _hotel_id: string; _min_role?: string }
+        Returns: boolean
+      }
+      user_has_scope: {
+        Args: { _level: string; _location_id: string; _user_id: string }
         Returns: boolean
       }
       user_owns_hotel: { Args: { _hotel_id: string }; Returns: boolean }
