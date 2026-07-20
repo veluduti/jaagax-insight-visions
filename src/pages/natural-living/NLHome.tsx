@@ -40,18 +40,6 @@ export default function NLHome() {
                   wellness retreats and farm stays across India — built with farmers, land owners
                   and families who believe in slower, rooted living.
                 </p>
-                <div className="mt-10 flex flex-wrap gap-3">
-                  <Link to="/natural-living/vision" className="nl-btn nl-btn-primary">
-                    Read our vision
-                  </Link>
-                  <Link
-                    to="/natural-living/farm-stay"
-                    className="nl-btn nl-btn-outline"
-                    style={{ color: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-cream))" }}
-                  >
-                    Plan a farm stay
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
