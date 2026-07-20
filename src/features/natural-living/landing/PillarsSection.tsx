@@ -52,7 +52,7 @@ export default function PillarsSection() {
               return (
                 <Link
                   key={g.id}
-                  to={`/natural-living/goals?goal=${g.code}`}
+                  to={`/natural-living/start?goal=${g.code}`}
                   onClick={() => logLandingSignal("goal_hover", { section: "pillars", goal_code: g.code })}
                   className="group relative rounded-2xl p-6 md:p-7 bg-[hsl(var(--nl-cream))] border border-[hsl(var(--nl-ink)/0.08)] hover:border-[hsl(var(--primary)/0.4)] hover:-translate-y-1 hover:shadow-xl transition-all duration-300 animate-fade-in"
                   style={{ animationDelay: `${i * 40}ms` }}
