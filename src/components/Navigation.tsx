@@ -18,6 +18,12 @@ import {
   TrendingUp,
   DollarSign,
   Zap,
+  Sprout,
+  TreePine,
+  Store,
+  Landmark,
+  FileEdit,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
