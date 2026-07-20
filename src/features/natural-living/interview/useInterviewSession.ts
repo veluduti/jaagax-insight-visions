@@ -273,7 +273,7 @@ export function useInterviewSession(userId: string | null | undefined) {
   }, [userId, state.pack, state.session, state.currentQuestion]);
 
   const appendTurn = useCallback(
-    async (turn: Omit<TurnRow, "id" | "created_at" | "turn_index" | "session_id"> & { session_id: string }) => {
+    async (turn: Record<string, any> & { session_id: string }) => {
       turnIndexRef.current += 1;
       const row = { ...turn, turn_index: turnIndexRef.current };
       const res = await sb.from("nl_interview_turns").insert(row).select("*").single();
