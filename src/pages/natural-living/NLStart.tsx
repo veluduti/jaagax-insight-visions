@@ -108,3 +108,11 @@ function NLStartInner() {
 
   return <Navigate to={snapshot.nextRoute + forwardSearch} replace />;
 }
+
+export default function NLStart() {
+  return (
+    <ProfileBootProvider>
+      <NLStartInner />
+    </ProfileBootProvider>
+  );
+}
