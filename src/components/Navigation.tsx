@@ -159,7 +159,6 @@ const Navigation = () => {
             <NavigationMenu>
               <NavigationMenuList className="gap-1">
                 {(
-
                   <>
                     {/* Properties Dropdown — hidden for seller */}
                     {role !== "seller" && (
