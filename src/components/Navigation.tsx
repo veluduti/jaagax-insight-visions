@@ -169,137 +169,163 @@ const Navigation = () => {
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu>
               <NavigationMenuList className="gap-1">
-                {/* Properties Dropdown — hidden for seller */}
-                {role !== "seller" && (
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger
-                      className={cn(
-                        "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                        isPropertiesActive ? "text-foreground" : "text-muted-foreground",
-                      )}
-                    >
-                      <Building2 className="h-4 w-4 mr-1.5" />
-                      Properties
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[280px] gap-1 p-2">
-                        {propertiesItems.map((item) => (
-                          <li key={item.path}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                to={item.path}
-                                className={cn(
-                                  "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                  isActive(item.path) && "bg-accent",
-                                )}
-                              >
-                                <item.icon className="h-5 w-5 text-primary mt-0.5" />
-                                <div>
-                                  <div className="text-sm font-medium text-foreground">{item.label}</div>
-                                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                )}
+                {inNaturalLiving ? (
+                  <>
+                    {nlNavItems.map((item) => (
+                      <NavigationMenuItem key={item.path}>
+                        <Link to={item.path}>
+                          <Button
+                            variant={item.highlight ? "default" : "ghost"}
+                            className={cn(
+                              "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
+                              !item.highlight &&
+                                (isActive(item.path)
+                                  ? "text-foreground"
+                                  : "text-muted-foreground hover:text-foreground"),
+                            )}
+                          >
+                            <item.icon className={cn("h-4 w-4", !item.highlight && "text-emerald-500")} />
+                            {item.label}
+                          </Button>
+                        </Link>
+                      </NavigationMenuItem>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {/* Properties Dropdown — hidden for seller */}
+                    {role !== "seller" && (
+                      <NavigationMenuItem>
+                        <NavigationMenuTrigger
+                          className={cn(
+                            "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                            isPropertiesActive ? "text-foreground" : "text-muted-foreground",
+                          )}
+                        >
+                          <Building2 className="h-4 w-4 mr-1.5" />
+                          Properties
+                        </NavigationMenuTrigger>
+                        <NavigationMenuContent>
+                          <ul className="grid w-[280px] gap-1 p-2">
+                            {propertiesItems.map((item) => (
+                              <li key={item.path}>
+                                <NavigationMenuLink asChild>
+                                  <Link
+                                    to={item.path}
+                                    className={cn(
+                                      "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                      isActive(item.path) && "bg-accent",
+                                    )}
+                                  >
+                                    <item.icon className="h-5 w-5 text-primary mt-0.5" />
+                                    <div>
+                                      <div className="text-sm font-medium text-foreground">{item.label}</div>
+                                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                                    </div>
+                                  </Link>
+                                </NavigationMenuLink>
+                              </li>
+                            ))}
+                          </ul>
+                        </NavigationMenuContent>
+                      </NavigationMenuItem>
+                    )}
 
-                {/* Seller top-level Sell Your Property link */}
-                {role === "seller" && (
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        to="/sell-property"
+                    {/* Seller top-level Sell Your Property link */}
+                    {role === "seller" && (
+                      <NavigationMenuItem>
+                        <NavigationMenuLink asChild>
+                          <Link
+                            to="/sell-property"
+                            className={cn(
+                              "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
+                              isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
+                            )}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1.5" />
+                            Sell Your Property
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    )}
+
+                    {/* Explore Dropdown */}
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger
                         className={cn(
-                          "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
-                          isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
+                          "bg-transparent h-auto px-3 py-2 text-sm font-medium",
+                          isExploreActive ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        <DollarSign className="h-4 w-4 mr-1.5" />
-                        Sell Your Property
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                )}
+                        <Compass className="h-4 w-4 mr-1.5" />
+                        Explore
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[280px] gap-1 p-2">
+                          {exploreItems.map((item) => (
+                            <li key={item.path}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  to={item.path}
+                                  className={cn(
+                                    "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
+                                    isActive(item.path) && "bg-accent",
+                                  )}
+                                >
+                                  <item.icon className="h-5 w-5 text-primary mt-0.5" />
+                                  <div>
+                                    <div className="text-sm font-medium text-foreground">{item.label}</div>
+                                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
 
-                {/* Explore Dropdown */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger
-                    className={cn(
-                      "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                      isExploreActive ? "text-foreground" : "text-muted-foreground",
-                    )}
-                  >
-                    <Compass className="h-4 w-4 mr-1.5" />
-                    Explore
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[280px] gap-1 p-2">
-                      {exploreItems.map((item) => (
-                        <li key={item.path}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to={item.path}
-                              className={cn(
-                                "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                isActive(item.path) && "bg-accent",
-                              )}
-                            >
-                              <item.icon className="h-5 w-5 text-primary mt-0.5" />
-                              <div>
-                                <div className="text-sm font-medium text-foreground">{item.label}</div>
-                                <p className="text-xs text-muted-foreground">{item.description}</p>
-                              </div>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                {/* Hotels - Direct Link */}
-                <NavigationMenuItem>
-                  <Link to="/hotels">
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium h-auto",
-                        isActive("/hotels") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <Hotel className="h-4 w-4 mr-1.5" />
-                      Hotels
-                    </Button>
-                  </Link>
-                </NavigationMenuItem>
-
-                {/* Natural Living - Direct Link */}
-                <NavigationMenuItem>
-                  <Link to="/natural-living">
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
-                        isActive("/natural-living") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <Leaf className="h-4 w-4 text-emerald-500" />
-                      Natural Living
-                      {!naturalLivingEnabled && (
-                        <Badge
-                          variant="outline"
-                          className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    {/* Hotels - Direct Link */}
+                    <NavigationMenuItem>
+                      <Link to="/hotels">
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "px-3 py-2 text-sm font-medium h-auto",
+                            isActive("/hotels") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                          )}
                         >
-                          Soon
-                        </Badge>
-                      )}
-                    </Button>
-                  </Link>
-                </NavigationMenuItem>
+                          <Hotel className="h-4 w-4 mr-1.5" />
+                          Hotels
+                        </Button>
+                      </Link>
+                    </NavigationMenuItem>
+
+                    {/* Natural Living - Direct Link */}
+                    <NavigationMenuItem>
+                      <Link to="/natural-living">
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
+                            isActive("/natural-living") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          <Leaf className="h-4 w-4 text-emerald-500" />
+                          Natural Living
+                          {!naturalLivingEnabled && (
+                            <Badge
+                              variant="outline"
+                              className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                            >
+                              Soon
+                            </Badge>
+                          )}
+                        </Button>
+                      </Link>
+                    </NavigationMenuItem>
+                  </>
+                )}
               </NavigationMenuList>
             </NavigationMenu>
 
