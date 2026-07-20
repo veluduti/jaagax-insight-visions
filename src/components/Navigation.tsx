@@ -158,29 +158,8 @@ const Navigation = () => {
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu>
               <NavigationMenuList className="gap-1">
-                {inNaturalLiving ? (
-                  <>
-                    {nlNavItems.map((item) => (
-                      <NavigationMenuItem key={item.path}>
-                        <Link to={item.path}>
-                          <Button
-                            variant={item.highlight ? "default" : "ghost"}
-                            className={cn(
-                              "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
-                              !item.highlight &&
-                                (isActive(item.path)
-                                  ? "text-foreground"
-                                  : "text-muted-foreground hover:text-foreground"),
-                            )}
-                          >
-                            <item.icon className={cn("h-4 w-4", !item.highlight && "text-emerald-500")} />
-                            {item.label}
-                          </Button>
-                        </Link>
-                      </NavigationMenuItem>
-                    ))}
-                  </>
-                ) : (
+                {(
+
                   <>
                     {/* Properties Dropdown — hidden for seller */}
                     {role !== "seller" && (
