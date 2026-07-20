@@ -21,7 +21,7 @@ export default function FinalCTASection() {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/natural-living/goals"
+            to="/natural-living/start"
             onClick={() => logLandingSignal("cta_click", { section: "final", metadata: { cta: "primary" } })}
             className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--nl-cream))] text-[hsl(var(--nl-ink))] px-7 py-3.5 text-sm md:text-base font-medium hover:scale-[1.03] transition-transform"
           >

@@ -36,7 +36,7 @@ export default function AICompanionSection() {
               to the land, people and experiences that match your natural-living intent.
             </p>
             <Link
-              to="/natural-living/goals"
+              to="/natural-living/start"
               onClick={() => logLandingSignal("cta_click", { section: "ai", metadata: { cta: "start_ai" } })}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[hsl(var(--nl-cream))] text-[hsl(var(--nl-ink))] px-6 py-3 text-sm font-medium hover:scale-[1.02] transition-transform"
             >
@@ -78,7 +78,7 @@ export default function AICompanionSection() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   logLandingSignal("cta_click", { section: "ai", metadata: { cta: "submit_prompt" } });
-                  window.location.href = "/natural-living/goals";
+                  window.location.href = "/natural-living/start";
                 }}
                 className="flex items-center gap-2 rounded-full border border-[hsl(var(--nl-cream)/0.2)] bg-[hsl(var(--nl-cream)/0.05)] px-4 py-2"
               >

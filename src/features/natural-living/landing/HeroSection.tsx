@@ -37,7 +37,7 @@ export default function HeroSection() {
               </p>
               <div className="mt-8 md:mt-10 flex flex-wrap items-center gap-3 md:gap-4">
                 <Link
-                  to="/natural-living/goals"
+                  to="/natural-living/start"
                   onClick={() => logLandingSignal("cta_click", { section: "hero", metadata: { cta: "primary" } })}
                   className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--nl-cream))] text-[hsl(var(--nl-ink))] px-6 py-3 md:px-7 md:py-3.5 text-sm md:text-base font-medium hover:scale-[1.02] transition-transform shadow-lg"
                 >
