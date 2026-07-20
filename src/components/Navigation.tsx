@@ -193,7 +193,7 @@ const Navigation = () => {
                     )}
 
                     {/* Seller top-level Sell Your Property link */}
-                    {!isNaturalLivingRoute && role === "seller" && (
+                    {role === "seller" && (
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
                           <Link
@@ -211,7 +211,6 @@ const Navigation = () => {
                     )}
 
                     {/* Explore Dropdown */}
-                    {!isNaturalLivingRoute && (
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
                         className={cn(
@@ -246,10 +245,8 @@ const Navigation = () => {
                         </ul>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
-                    )}
 
                     {/* Hotels - Direct Link */}
-                    {!isNaturalLivingRoute && (
                     <NavigationMenuItem>
                       <Link to="/hotels">
                         <Button
@@ -264,10 +261,8 @@ const Navigation = () => {
                         </Button>
                       </Link>
                     </NavigationMenuItem>
-                    )}
 
-                    {/* Natural Living - Direct Link (hidden when inside NL module) */}
-                    {!isNaturalLivingRoute && (
+                    {/* Natural Living - Direct Link */}
                     <NavigationMenuItem>
                       <Link to="/natural-living">
                         <Button
@@ -290,7 +285,6 @@ const Navigation = () => {
                         </Button>
                       </Link>
                     </NavigationMenuItem>
-                    )}
 
                   </>
                 )}
