@@ -415,7 +415,7 @@ export function useInterviewSession(userId: string | null | undefined) {
           user_id: userId,
           question_id: question.id,
           question_code: question.code,
-          question_snapshot: null,
+          question_snapshot: {},
           role: "assistant",
           answer: null,
           answer_text: aiAck,

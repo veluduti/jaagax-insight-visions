@@ -224,7 +224,7 @@ export default function InterviewChat() {
 
   if (loading) {
     return (
-      <div className="nl-scope h-[100dvh] flex items-center justify-center" style={{ background: "hsl(var(--nl-cream))" }}>
+      <div className="nl-scope h-full min-h-0 flex items-center justify-center" style={{ background: "hsl(var(--nl-cream))" }}>
         <Loader2 className="h-6 w-6 animate-spin" style={{ color: "hsl(var(--nl-forest))" }} />
       </div>
     );
@@ -232,7 +232,7 @@ export default function InterviewChat() {
 
   if (error) {
     return (
-      <div className="nl-scope h-[100dvh] flex items-center justify-center text-center p-8" style={{ background: "hsl(var(--nl-cream))" }}>
+      <div className="nl-scope h-full min-h-0 flex items-center justify-center text-center p-8" style={{ background: "hsl(var(--nl-cream))" }}>
         <div>
           <p className="text-[hsl(var(--nl-ink))] mb-3">We couldn't load your interview.</p>
           <p className="text-sm text-[hsl(var(--nl-ink)/0.7)] mb-4">{error}</p>
@@ -246,7 +246,7 @@ export default function InterviewChat() {
 
   return (
     <div
-      className="nl-scope h-[100dvh] flex flex-col"
+      className="nl-scope h-full min-h-0 flex flex-col"
       style={{ background: "hsl(var(--nl-cream))" }}
     >
       {/* Header + progress */}

@@ -1,8 +1,8 @@
 /**
  * NLInterview — Route: /natural-living/interview
- * Replaces the Phase 1D placeholder with the full AI Interview experience.
- * The engine ensures resume works via the existing onboarding resolver.
+ * Renders JAAGAX platform navbar above the ChatGPT-style interview surface.
  */
+import Navigation from "@/components/Navigation";
 import {
   ProfileBootProvider,
 } from "@/features/natural-living/onboarding/ProfileBootProvider";
@@ -14,8 +14,14 @@ export default function NLInterview() {
   return (
     <ProfileBootProvider>
       <RequireNLAuth allowStages={["needs_interview", "resume_interview", "needs_profile", "dashboard_ready"]}>
-        <InterviewChat />
+        <div className="nl-scope flex flex-col min-h-[100dvh] bg-background">
+          <Navigation />
+          <div className="flex-1 min-h-0">
+            <InterviewChat />
+          </div>
+        </div>
       </RequireNLAuth>
     </ProfileBootProvider>
   );
 }
+
