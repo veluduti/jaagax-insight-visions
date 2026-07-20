@@ -266,7 +266,8 @@ const Navigation = () => {
                     </NavigationMenuItem>
                     )}
 
-                    {/* Natural Living - Direct Link */}
+                    {/* Natural Living - Direct Link (hidden when inside NL module) */}
+                    {!isNaturalLivingRoute && (
                     <NavigationMenuItem>
                       <Link to="/natural-living">
                         <Button
@@ -289,6 +290,8 @@ const Navigation = () => {
                         </Button>
                       </Link>
                     </NavigationMenuItem>
+                    )}
+
                   </>
                 )}
               </NavigationMenuList>
