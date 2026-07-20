@@ -10,20 +10,12 @@ import {
   Home,
   Building2,
   Compass,
-  ChevronDown,
   Users,
   MapPin,
   Calendar,
   Hotel,
   TrendingUp,
   DollarSign,
-  Zap,
-  Sprout,
-  TreePine,
-  Store,
-  Landmark,
-  FileEdit,
-  Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
