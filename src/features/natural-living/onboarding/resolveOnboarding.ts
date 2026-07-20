@@ -85,21 +85,21 @@ export async function resolveOnboarding(userId: string): Promise<OnboardingSnaps
   const hasProfile = !!profileRes.data;
   const hasGoals = goalsCount > 0;
 
-  let stage: OnboardingStage = "welcome";
+  let stage: OnboardingStage = "needs_welcome";
 
   if (hasProfile) {
-    stage = "dashboard";
+    stage = "dashboard_ready";
   } else if (session && session.status === "completed") {
-    stage = "profile";
+    stage = "needs_profile";
   } else if (session && (session.status === "in_progress" || session.status === "paused")) {
-    stage = "interview_resume";
+    stage = "resume_interview";
   } else if (hasGoals) {
-    stage = "interview";
+    stage = "needs_interview";
   } else if (state?.stage && state.stage !== "welcome" && state.last_step) {
     // welcome flagged as completed via state.last_step
-    stage = "goals";
+    stage = "needs_goal";
   } else {
-    stage = "welcome";
+    stage = "needs_welcome";
   }
 
   return {
