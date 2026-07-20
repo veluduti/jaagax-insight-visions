@@ -54,9 +54,6 @@ const FOOTER_COLS = [
 
 export default function NLLayout({ children }: PropsWithChildren) {
   const location = useLocation();
-  const { user, profile } = useNLAuth();
-  const displayName = profile?.full_name || user?.email?.split("@")[0] || "";
-  const initial = (displayName?.[0] || "A").toUpperCase();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -70,10 +67,13 @@ export default function NLLayout({ children }: PropsWithChildren) {
       {/* Shared JAAGAX Header */}
       <Navigation />
 
-      {/* Natural Living Identity + Sub-Nav Bar */}
-      <div className="sticky top-16 xl:top-[68px] z-30 border-b border-border/50 bg-background/90 backdrop-blur-md">
+      {/* Thin light-green divider between platform header and module header */}
+      <div className="sticky top-16 xl:top-[68px] z-30 h-px bg-primary/25" aria-hidden />
+
+      {/* Natural Living Module Nav Bar */}
+      <div className="sticky top-[calc(4rem+1px)] xl:top-[69px] z-30 border-b border-border/50 bg-background/90 backdrop-blur-md">
         <div className="container-padding">
-          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto flex items-center gap-4 h-12 min-w-0">
+          <div className="max-w-7xl 3xl:max-w-[1680px] mx-auto relative flex items-center h-12 min-w-0">
             {/* Left: NL identity */}
             <Link to="/natural-living" className="flex items-center gap-2 shrink-0">
               <Leaf className="h-4 w-4 text-primary" />
@@ -82,9 +82,9 @@ export default function NLLayout({ children }: PropsWithChildren) {
               </span>
             </Link>
 
-            {/* Center: NL nav items (scrollable on small screens) */}
-            <nav className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
-              <ul className="flex items-center gap-1">
+            {/* Center: NL nav items — perfectly centered */}
+            <nav className="absolute left-1/2 -translate-x-1/2 max-w-full overflow-x-auto no-scrollbar">
+              <ul className="flex items-center gap-5 md:gap-6 lg:gap-7">
                 {NL_NAV_ITEMS.map((item) => {
                   const active = isActive(item.path);
                   const Icon = item.icon;
@@ -93,7 +93,7 @@ export default function NLLayout({ children }: PropsWithChildren) {
                       <Link
                         to={item.path}
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
+                          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap leading-none",
                           item.highlight
                             ? "bg-primary text-primary-foreground hover:bg-primary/90"
                             : active
@@ -109,21 +109,6 @@ export default function NLLayout({ children }: PropsWithChildren) {
                 })}
               </ul>
             </nav>
-
-            {/* Right: user chip */}
-            {user && (
-              <div className="hidden sm:flex items-center gap-2 shrink-0">
-                <span
-                  className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold bg-primary/15 text-primary"
-                  aria-hidden
-                >
-                  {initial}
-                </span>
-                <span className="text-xs font-medium text-muted-foreground truncate max-w-[140px]">
-                  {displayName}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>
