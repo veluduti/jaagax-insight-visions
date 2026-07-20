@@ -123,6 +123,7 @@ const NLResetPassword = lazy(() => import("./pages/natural-living/NLResetPasswor
 const NLOnboarding = lazy(() => import("./pages/natural-living/NLOnboarding"));
 const NLKyc = lazy(() => import("./pages/natural-living/NLKyc"));
 const NLDashboard = lazy(() => import("./pages/natural-living/NLDashboard"));
+const NLProfile = lazy(() => import("./pages/natural-living/NLProfile"));
 const NLDigitalFarm = lazy(() => import("./pages/natural-living/NLDigitalFarm"));
 const NLFarmDetail = lazy(() => import("./pages/natural-living/NLFarmDetail"));
 const NLSubscribe = lazy(() => import("./pages/natural-living/NLSubscribe"));
@@ -530,6 +531,7 @@ const App = () => (
                   <Route path="/natural-living/onboarding" element={<NLOnboarding />} />
                   <Route path="/natural-living/kyc" element={<NLKyc />} />
                   <Route path="/natural-living/dashboard" element={<NLDashboard />} />
+                  <Route path="/natural-living/profile" element={<NLProfile />} />
                   <Route path="/natural-living/digital-farm" element={<NLDigitalFarm />} />
                   <Route path="/natural-living/digital-farm/farms/:farmId" element={<NLFarmDetail />} />
                   <Route path="/natural-living/subscribe/:planId" element={<NLSubscribe />} />
