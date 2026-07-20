@@ -11,13 +11,18 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Stage names describe the NEXT required action for the user,
+ * not the current page. This makes downstream logic (guards,
+ * analytics, EventBus payloads) read as explicit workflow states.
+ */
 export type OnboardingStage =
-  | "welcome"        // no state row yet, or welcome not seen
-  | "goals"          // welcome done, no goals selected
-  | "interview"      // goals selected, no active/completed interview
-  | "interview_resume" // an interview session is in_progress
-  | "profile"        // interview complete, no AI profile yet
-  | "dashboard";     // profile generated → ready
+  | "needs_welcome"      // no state row yet, or welcome not seen
+  | "needs_goal"         // welcome done, no goals selected
+  | "needs_interview"    // goals selected, no active/completed interview
+  | "resume_interview"   // an interview session is in_progress / paused
+  | "needs_profile"      // interview complete, no AI profile yet
+  | "dashboard_ready";   // profile generated → ready
 
 export interface OnboardingSnapshot {
   stage: OnboardingStage;
@@ -40,12 +45,12 @@ export interface OnboardingSnapshot {
 }
 
 const ROUTES: Record<OnboardingStage, string> = {
-  welcome: "/natural-living/welcome",
-  goals: "/natural-living/goals",
-  interview: "/natural-living/interview",
-  interview_resume: "/natural-living/interview",
-  profile: "/natural-living/profile",
-  dashboard: "/natural-living/dashboard",
+  needs_welcome: "/natural-living/welcome",
+  needs_goal: "/natural-living/goals",
+  needs_interview: "/natural-living/interview",
+  resume_interview: "/natural-living/interview",
+  needs_profile: "/natural-living/profile",
+  dashboard_ready: "/natural-living/dashboard",
 };
 
 const sb = supabase as any;
