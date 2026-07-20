@@ -116,6 +116,9 @@ const NLCorporate = lazy(() => import("./pages/natural-living/NLCorporate"));
 const NLSchools = lazy(() => import("./pages/natural-living/NLSchools"));
 const NLAuthPage = lazy(() => import("./pages/natural-living/NLAuth"));
 const NLStart = lazy(() => import("./pages/natural-living/NLStart"));
+const NLWelcome = lazy(() => import("./pages/natural-living/NLWelcome"));
+const NLGoals = lazy(() => import("./pages/natural-living/NLGoals"));
+const NLInterviewPlaceholder = lazy(() => import("./pages/natural-living/NLInterviewPlaceholder"));
 const NLResetPassword = lazy(() => import("./pages/natural-living/NLResetPassword"));
 const NLOnboarding = lazy(() => import("./pages/natural-living/NLOnboarding"));
 const NLKyc = lazy(() => import("./pages/natural-living/NLKyc"));
@@ -520,6 +523,9 @@ const App = () => (
                   <Route path="/natural-living/schools" element={<NLSchools />} />
                   <Route path="/natural-living/auth" element={<NLAuthPage />} />
                   <Route path="/natural-living/start" element={<NLStart />} />
+                  <Route path="/natural-living/welcome" element={<NLWelcome />} />
+                  <Route path="/natural-living/goals" element={<NLGoals />} />
+                  <Route path="/natural-living/interview" element={<NLInterviewPlaceholder />} />
                   <Route path="/natural-living/reset-password" element={<NLResetPassword />} />
                   <Route path="/natural-living/onboarding" element={<NLOnboarding />} />
                   <Route path="/natural-living/kyc" element={<NLKyc />} />
