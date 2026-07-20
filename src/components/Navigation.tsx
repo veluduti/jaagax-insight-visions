@@ -51,6 +51,7 @@ const Navigation = () => {
       : role === "hotel_manager" ? "/partners/dashboard"
       : `/dashboard/${role || "buyer"}`;
   const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
+  const isNaturalLivingRoute = location.pathname.startsWith("/natural-living");
 
   useEffect(() => {
     const fetchFeatureFlag = async () => {
@@ -192,7 +193,7 @@ const Navigation = () => {
                     )}
 
                     {/* Seller top-level Sell Your Property link */}
-                    {role === "seller" && (
+                    {!isNaturalLivingRoute && role === "seller" && (
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
                           <Link
@@ -210,6 +211,7 @@ const Navigation = () => {
                     )}
 
                     {/* Explore Dropdown */}
+                    {!isNaturalLivingRoute && (
                     <NavigationMenuItem>
                       <NavigationMenuTrigger
                         className={cn(
@@ -244,8 +246,10 @@ const Navigation = () => {
                         </ul>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
+                    )}
 
                     {/* Hotels - Direct Link */}
+                    {!isNaturalLivingRoute && (
                     <NavigationMenuItem>
                       <Link to="/hotels">
                         <Button
@@ -260,6 +264,7 @@ const Navigation = () => {
                         </Button>
                       </Link>
                     </NavigationMenuItem>
+                    )}
 
                     {/* Natural Living - Direct Link */}
                     <NavigationMenuItem>
