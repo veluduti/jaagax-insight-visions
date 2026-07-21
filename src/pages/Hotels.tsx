@@ -336,6 +336,21 @@ const Hotels = () => {
     return result;
   }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
 
+  // After a Search click, report result count once the filter memo has resettled.
+  useEffect(() => {
+    if (searchSubmitToken === 0) return;
+    const count = filteredAndSortedHotels.length;
+    const q = searchQuery.trim();
+    if (count === 0) {
+      toast.info(`No hotels found${q ? ` for "${q}"` : ""}. Try different filters.`);
+    } else {
+      toast.success(`${count} hotel${count === 1 ? "" : "s"} match your search`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchSubmitToken]);
+
+
+
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
