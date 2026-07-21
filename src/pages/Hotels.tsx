@@ -390,7 +390,7 @@ const Hotels = () => {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navigation />
-        <main className="flex-1 pt-20">
+        <main className="flex-1 pt-2">
           <div className="container mx-auto max-w-7xl px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
