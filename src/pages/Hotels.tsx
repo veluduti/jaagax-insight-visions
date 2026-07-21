@@ -388,13 +388,10 @@ const Hotels = () => {
     if (selectedPriceRange !== "all") params.set("price", selectedPriceRange);
     navigate(`/hotels${params.toString() ? `?${params.toString()}` : ""}`);
 
-    // Feedback based on the criteria the user just submitted
-    setTimeout(() => {
-      const count = filteredAndSortedHotelsRef.current?.length ?? 0;
-      if (count === 0) toast.info(`No hotels found${q ? ` for "${q}"` : ""}. Try different filters.`);
-      else toast.success(`${count} hotel${count === 1 ? "" : "s"} match your search`);
-    }, 0);
+    // Signal a search was submitted so a toast with the result count can fire once the memo settles.
+    setSearchSubmitToken((n) => n + 1);
   };
+
 
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
