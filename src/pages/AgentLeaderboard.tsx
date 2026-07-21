@@ -77,7 +77,7 @@ const AgentLeaderboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-24 pb-2">
+      <div className="pt-2 pb-2">
         <div className="container-padding max-w-6xl mx-auto">
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
