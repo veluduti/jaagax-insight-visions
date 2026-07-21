@@ -416,7 +416,7 @@ const Hotels = () => {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
       <Navigation />
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-2">
         {/* Hero Section */}
         <div className="relative bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
           <div
