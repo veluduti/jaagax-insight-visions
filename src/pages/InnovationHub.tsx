@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LiveCommunityPulse from "@/components/community/LiveCommunityPulse";
+import Navigation from "@/components/Navigation";
 import PredictivePriceAlerts from "@/components/alerts/PredictivePriceAlerts";
 import SmartVisitCluster from "@/components/visit/SmartVisitCluster";
 import VoiceSearch from "@/components/search/VoiceSearch";
