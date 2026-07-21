@@ -132,6 +132,12 @@ const Hotels = () => {
   const [searchSubmitToken, setSearchSubmitToken] = useState(0);
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
+  // Temporary states for guest selector
+  const [tempRooms, setTempRooms] = useState(1);
+  const [tempAdults, setTempAdults] = useState(2);
+  const [tempChildren, setTempChildren] = useState(0);
+  const [tempChildAges, setTempChildAges] = useState<ChildAge[]>([]);
+
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
 
@@ -186,6 +192,23 @@ const Hotels = () => {
 
     setChildAges(newAges);
   }, [children]);
+
+  // Update temp child ages when temp children count changes
+  useEffect(() => {
+    const currentAges = tempChildAges.map((a) => a.id);
+    const newAges: ChildAge[] = [];
+
+    for (let i = 0; i < tempChildren; i++) {
+      const existing = tempChildAges.find((a) => a.id === i);
+      if (existing) {
+        newAges.push(existing);
+      } else {
+        newAges.push({ id: i, age: "Select" });
+      }
+    }
+
+    setTempChildAges(newAges);
+  }, [tempChildren]);
 
   // Fetch approved + active hotels that have at least one active room; compute
   // "starts from" price from the cheapest active room (not the legacy field).
@@ -713,7 +736,7 @@ const Hotels = () => {
                   />
                 </div>
 
-                {/* Rooms & Guests - Enhanced with Children Ages */}
+                {/* Rooms & Guests - Enhanced with Children Ages and Apply Button */}
                 <div ref={guestSelectorRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <Users className="h-3 w-3 inline mr-1 text-gray-600" />
@@ -721,6 +744,11 @@ const Hotels = () => {
                   </label>
                   <div
                     onClick={() => {
+                      // Populate temp values with current values
+                      setTempRooms(rooms);
+                      setTempAdults(adults);
+                      setTempChildren(children);
+                      setTempChildAges(childAges);
                       setShowGuestSelector(!showGuestSelector);
                       setShowChildAgeSelector(false);
                     }}
@@ -732,7 +760,7 @@ const Hotels = () => {
                     />
                   </div>
 
-                  {/* Guest Selector Popup - Enhanced with Children Ages */}
+                  {/* Guest Selector Popup - Enhanced with Children Ages and Apply Button */}
                   {showGuestSelector && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] p-4 min-w-[320px] max-h-[80vh] overflow-y-auto">
                       {/* Rooms */}
@@ -743,14 +771,14 @@ const Hotels = () => {
                         </div>
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => setRooms(Math.max(1, rooms - 1))}
+                            onClick={() => setTempRooms(Math.max(1, tempRooms - 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Minus className="h-4 w-4 text-gray-600" />
                           </button>
-                          <span className="text-sm font-medium w-6 text-center">{rooms}</span>
+                          <span className="text-sm font-medium w-6 text-center">{tempRooms}</span>
                           <button
-                            onClick={() => setRooms(Math.min(4, rooms + 1))}
+                            onClick={() => setTempRooms(Math.min(4, tempRooms + 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Plus className="h-4 w-4 text-gray-600" />
@@ -766,14 +794,14 @@ const Hotels = () => {
                         </div>
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                            onClick={() => setTempAdults(Math.max(1, tempAdults - 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Minus className="h-4 w-4 text-gray-600" />
                           </button>
-                          <span className="text-sm font-medium w-6 text-center">{adults}</span>
+                          <span className="text-sm font-medium w-6 text-center">{tempAdults}</span>
                           <button
-                            onClick={() => setAdults(Math.min(10, adults + 1))}
+                            onClick={() => setTempAdults(Math.min(10, tempAdults + 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Plus className="h-4 w-4 text-gray-600" />
@@ -790,18 +818,18 @@ const Hotels = () => {
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => {
-                              setChildren(Math.max(0, children - 1));
-                              if (children <= 1) setShowChildAgeSelector(false);
+                              setTempChildren(Math.max(0, tempChildren - 1));
+                              if (tempChildren <= 1) setShowChildAgeSelector(false);
                             }}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Minus className="h-4 w-4 text-gray-600" />
                           </button>
-                          <span className="text-sm font-medium w-6 text-center">{children}</span>
+                          <span className="text-sm font-medium w-6 text-center">{tempChildren}</span>
                           <button
                             onClick={() => {
-                              setChildren(Math.min(6, children + 1));
-                              if (children + 1 > 0) setShowChildAgeSelector(true);
+                              setTempChildren(Math.min(6, tempChildren + 1));
+                              if (tempChildren + 1 > 0) setShowChildAgeSelector(true);
                             }}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
@@ -811,19 +839,19 @@ const Hotels = () => {
                       </div>
 
                       {/* Children Age Selector */}
-                      {showChildAgeSelector && children > 0 && (
+                      {showChildAgeSelector && tempChildren > 0 && (
                         <div className="py-3 border-b border-gray-100">
                           <p className="text-sm font-medium text-gray-900 mb-2">Age of Children</p>
                           <div className="space-y-2">
-                            {childAges.map((child, index) => (
+                            {tempChildAges.map((child, index) => (
                               <div key={child.id} className="flex items-center gap-2">
                                 <span className="text-xs text-gray-500 w-16">Child {index + 1}</span>
                                 <select
                                   value={child.age}
                                   onChange={(e) => {
-                                    const newAges = [...childAges];
+                                    const newAges = [...tempChildAges];
                                     newAges[index] = { ...child, age: e.target.value };
-                                    setChildAges(newAges);
+                                    setTempChildAges(newAges);
                                   }}
                                   className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 >
@@ -840,11 +868,29 @@ const Hotels = () => {
                       )}
 
                       {/* Note */}
-                      <div className="mt-3 pt-3">
+                      <div className="mt-3 pt-3 border-t border-gray-100">
                         <p className="text-[10px] text-gray-400 text-center">
                           Please provide right number of children along with their right age for best options and
                           prices.
                         </p>
+                      </div>
+
+                      {/* Apply Button */}
+                      <div className="mt-4 pt-3 border-t border-gray-200">
+                        <Button
+                          onClick={() => {
+                            // Apply the temporary values to the main state
+                            setRooms(tempRooms);
+                            setAdults(tempAdults);
+                            setChildren(tempChildren);
+                            setChildAges(tempChildAges);
+                            setShowGuestSelector(false);
+                            setShowChildAgeSelector(false);
+                          }}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium py-2.5 rounded-lg transition-all"
+                        >
+                          Apply
+                        </Button>
                       </div>
                     </div>
                   )}
