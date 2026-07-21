@@ -30,6 +30,9 @@ import {
   Building2,
   Clock,
   TrendingUp as TrendingUpIcon,
+  Calendar,
+  Users,
+  Home,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,6 +46,7 @@ import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBa
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { format } from "date-fns";
 
 interface PartnerHotel {
   id: string;
@@ -107,6 +111,17 @@ const Hotels = () => {
   const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // New search states for advanced search
+  const [checkIn, setCheckIn] = useState<Date>(new Date());
+  const [checkOut, setCheckOut] = useState<Date>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date;
+  });
+  const [rooms, setRooms] = useState(1);
+  const [adults, setAdults] = useState(2);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
@@ -321,6 +336,23 @@ const Hotels = () => {
     setShowSuggestions(false);
   };
 
+  // Advanced search handler
+  const handleAdvancedSearch = () => {
+    if (searchQuery.trim()) {
+      // Check if it's a city
+      const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
+      if (matchedCity) {
+        setSelectedCity(matchedCity);
+        navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
+      } else {
+        // Apply filter by search query
+        // The filter will handle it via the matchesSearch condition
+        navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
+      }
+    }
+    setShowSuggestions(false);
+  };
+
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (suggestion.type === "city") {
       setSelectedCity(suggestion.name);
@@ -417,7 +449,7 @@ const Hotels = () => {
       <Navigation />
 
       <main className="flex-1 pt-2">
-        {/* Hero Section */}
+        {/* Hero Section with Advanced Search */}
         <div className="relative bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 text-white">
           <div
             className="absolute inset-0 opacity-20"
@@ -427,13 +459,17 @@ const Hotels = () => {
             }}
           />
 
-          <div className="container mx-auto max-w-7xl px-4 py-5 relative">
+          <div className="container mx-auto max-w-7xl px-4 py-6 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Badge className="bg-white/20 text-white border-0 text-xs px-3 py-1">
                     <Trophy className="h-3 w-3 mr-1" />
                     Premium Partner Hotels
+                  </Badge>
+                  <Badge className="bg-yellow-400/20 text-yellow-200 border-0 text-xs px-3 py-1">
+                    <Users className="h-3 w-3 mr-1" />
+                    Upto 4 Rooms
                   </Badge>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
@@ -446,109 +482,226 @@ const Hotels = () => {
                 </p>
               </div>
 
-              <Button
-                variant="default"
-                size="default"
-                onClick={() => navigate("/partners")}
-                className="group bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-2xl transition-all duration-300 font-semibold px-5 py-2.5 rounded-xl border-2 border-white/30 flex items-center gap-2 relative overflow-hidden"
-              >
-                <span className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <Handshake className="h-4 w-4 relative z-10" />
-                <span className="relative z-10">Connect with Us</span>
-                <span className="relative z-10 ml-1 text-[10px] bg-gradient-to-r from-green-600 to-emerald-600 text-white px-2.5 py-0.5 rounded-full animate-pulse">
-                  NEW
-                </span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="default"
+                  size="default"
+                  onClick={() => navigate("/partners")}
+                  className="group bg-white text-green-700 hover:bg-green-50 hover:text-green-800 shadow-lg hover:shadow-2xl transition-all duration-300 font-semibold px-5 py-2.5 rounded-xl border-2 border-white/30 flex items-center gap-2 relative overflow-hidden"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <Handshake className="h-4 w-4 relative z-10" />
+                  <span className="relative z-10">Connect with Us</span>
+                  <span className="relative z-10 ml-1 text-[10px] bg-gradient-to-r from-green-600 to-emerald-600 text-white px-2.5 py-0.5 rounded-full animate-pulse">
+                    NEW
+                  </span>
+                </Button>
+              </div>
             </div>
 
-            {/* Search Bar - Real-world hotel search behavior */}
-            <div
-              ref={searchRef}
-              className="mt-3 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-1.5 flex flex-col md:flex-row gap-1.5 border border-white/20 relative z-50"
-            >
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-                <Input
-                  ref={inputRef}
-                  placeholder="Search by city, hotel name, or locality..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-9 border-0 focus-visible:ring-2 focus-visible:ring-green-500 h-10 text-sm bg-transparent text-gray-900 placeholder:text-gray-400"
-                />
-
-                {/* Suggestions Dropdown - Real-world hotel search style */}
-                {showSuggestions && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl shadow-2xl border z-[100] max-h-80 overflow-y-auto">
-                    {isSearching ? (
-                      <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
-                        Searching...
-                      </div>
-                    ) : suggestions.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-gray-500">No results found for "{searchQuery}"</div>
-                    ) : (
-                      <>
-                        {/* Group suggestions by type */}
-                        {suggestions.map((suggestion, index) => (
-                          <button
-                            key={`${suggestion.type}-${suggestion.name}-${index}`}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 border-b last:border-b-0 group"
-                          >
-                            <div
-                              className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
+            {/* Advanced Search Bar */}
+            <div className="mt-4 bg-white rounded-2xl shadow-2xl p-4 relative z-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                {/* Location */}
+                <div className="relative">
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    <MapPin className="h-3 w-3 inline mr-1" />
+                    City, Property Name Or Location
+                  </label>
+                  <div className="relative">
+                    <Input
+                      ref={inputRef}
+                      placeholder="Search city or hotel..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAdvancedSearch()}
+                      className="pl-3 border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                    />
+                    {/* Suggestions dropdown */}
+                    {showSuggestions && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border z-[100] max-h-60 overflow-y-auto">
+                        {isSearching ? (
+                          <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
+                            Searching...
+                          </div>
+                        ) : suggestions.length === 0 ? (
+                          <div className="px-4 py-3 text-sm text-gray-500">No results found for "{searchQuery}"</div>
+                        ) : (
+                          suggestions.map((suggestion, index) => (
+                            <button
+                              key={`${suggestion.type}-${suggestion.name}-${index}`}
+                              onClick={() => {
+                                setSearchQuery(suggestion.name);
+                                setShowSuggestions(false);
+                                if (suggestion.type === "city") {
+                                  setSelectedCity(suggestion.name);
+                                  navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
+                                }
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors flex items-center gap-2 border-b last:border-b-0"
                             >
-                              {getSuggestionIcon(suggestion.type)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{suggestion.name}</span>
-                                {suggestion.type === "popular" && (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[8px] px-1.5 py-0 bg-orange-50 text-orange-600 border-orange-200"
-                                  >
-                                    Popular
-                                  </Badge>
-                                )}
+                              <div
+                                className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
+                              >
+                                {getSuggestionIcon(suggestion.type)}
                               </div>
-                              {suggestion.subtitle && <p className="text-xs text-gray-400">{suggestion.subtitle}</p>}
-                              {suggestion.count !== undefined &&
-                                suggestion.count > 0 &&
-                                suggestion.type !== "popular" && (
+                              <div className="flex-1">
+                                <span className="text-sm font-medium">{suggestion.name}</span>
+                                {suggestion.subtitle && <p className="text-xs text-gray-400">{suggestion.subtitle}</p>}
+                                {suggestion.count !== undefined && suggestion.count > 0 && (
                                   <span className="text-xs text-green-600">
                                     {suggestion.count} {suggestion.count === 1 ? "hotel" : "hotels"}
                                   </span>
                                 )}
-                            </div>
-                            <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </button>
-                        ))}
-
-                        {/* View all results option */}
-                        <button
-                          onClick={handleSearch}
-                          className="w-full px-4 py-2.5 text-center bg-green-50 hover:bg-green-100 transition-colors text-sm font-medium text-green-700 border-t"
-                        >
-                          View all results for "{searchQuery}"
-                        </button>
-                      </>
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* Check-in */}
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    <Calendar className="h-3 w-3 inline mr-1" />
+                    Check-In
+                  </label>
+                  <Input
+                    type="date"
+                    value={format(checkIn, "yyyy-MM-dd")}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : undefined;
+                      if (date) setCheckIn(date);
+                    }}
+                    className="border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                    min={format(new Date(), "yyyy-MM-dd")}
+                  />
+                </div>
+
+                {/* Check-out */}
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    <Calendar className="h-3 w-3 inline mr-1" />
+                    Check-Out
+                  </label>
+                  <Input
+                    type="date"
+                    value={format(checkOut, "yyyy-MM-dd")}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : undefined;
+                      if (date) setCheckOut(date);
+                    }}
+                    className="border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                    min={format(checkIn, "yyyy-MM-dd")}
+                  />
+                </div>
+
+                {/* Rooms & Guests */}
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    <Users className="h-3 w-3 inline mr-1" />
+                    Rooms & Guests
+                  </label>
+                  <div className="flex gap-1">
+                    <select
+                      value={rooms}
+                      onChange={(e) => setRooms(parseInt(e.target.value))}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                    >
+                      {[1, 2, 3, 4].map((num) => (
+                        <option key={num} value={num}>
+                          {num} Room{num > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={adults}
+                      onChange={(e) => setAdults(parseInt(e.target.value))}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map((num) => (
+                        <option key={num} value={num}>
+                          {num} Adult{num > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Price Per Night & Search */}
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1">
+                    <Home className="h-3 w-3 inline mr-1" />
+                    Price Per Night
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedPriceRange}
+                      onChange={(e) => setSelectedPriceRange(e.target.value)}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                    >
+                      <option value="all">All Prices</option>
+                      <option value="0-1500">₹0-₹1500</option>
+                      <option value="1500-2500">₹1500-₹2500</option>
+                      <option value="2500-5000">₹2500-₹5000</option>
+                      <option value="5000-10000">₹5000-₹10000</option>
+                      <option value="10000+">₹10000+</option>
+                    </select>
+                    <Button
+                      onClick={handleAdvancedSearch}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 shadow-md hover:shadow-lg transition-all flex-shrink-0"
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Button
-                onClick={handleSearch}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 h-10 text-sm shadow-md hover:shadow-lg transition-all flex-shrink-0"
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
+
+              {/* Last Search & Quick Links */}
+              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <span className="font-medium text-gray-700">Last Search:</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {searchQuery || "Not set"}
+                  </span>
+                  {checkIn && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {format(checkIn, "dd MMM' yy")} - {checkOut && format(checkOut, "dd MMM' yy")}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] bg-gray-50">
+                    Group Deals
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-200">
+                    NEW
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick booking banner */}
+            <div className="mt-3 text-center">
+              <p className="text-green-100 text-xs">
+                Book Domestic and International Property Online.
+                <button
+                  onClick={() => navigate("/partners")}
+                  className="underline font-medium hover:text-white transition-colors ml-1"
+                >
+                  To list your property Click Here
+                </button>
+              </p>
             </div>
           </div>
         </div>
