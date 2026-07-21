@@ -268,7 +268,7 @@ const PropertyValuation = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      <div className="pt-24 pb-2">
+      <div className="pt-2 pb-2">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
             <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
