@@ -122,7 +122,9 @@ const Hotels = () => {
   const [children, setChildren] = useState(0);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
   const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [searchSubmitToken, setSearchSubmitToken] = useState(0);
   const guestSelectorRef = useRef<HTMLDivElement>(null);
+
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
