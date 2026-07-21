@@ -88,6 +88,11 @@ interface SearchSuggestion {
   icon?: React.ReactNode;
 }
 
+interface ChildAge {
+  id: number;
+  age: string;
+}
+
 const Hotels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -120,25 +125,67 @@ const Hotels = () => {
   const [rooms, setRooms] = useState(1);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [childAges, setChildAges] = useState<ChildAge[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
   const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [showChildAgeSelector, setShowChildAgeSelector] = useState(false);
   const [searchSubmitToken, setSearchSubmitToken] = useState(0);
   const guestSelectorRef = useRef<HTMLDivElement>(null);
 
-
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
+
+  // Age options for children
+  const ageOptions = [
+    "Select",
+    "Under 1",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+  ];
 
   // Click outside handler for guest selector
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (guestSelectorRef.current && !guestSelectorRef.current.contains(event.target as Node)) {
         setShowGuestSelector(false);
+        setShowChildAgeSelector(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Update child ages when children count changes
+  useEffect(() => {
+    const currentAges = childAges.map((a) => a.id);
+    const newAges: ChildAge[] = [];
+
+    for (let i = 0; i < children; i++) {
+      const existing = childAges.find((a) => a.id === i);
+      if (existing) {
+        newAges.push(existing);
+      } else {
+        newAges.push({ id: i, age: "Select" });
+      }
+    }
+
+    setChildAges(newAges);
+  }, [children]);
 
   // Fetch approved + active hotels that have at least one active room; compute
   // "starts from" price from the cheapest active room (not the legacy field).
@@ -349,9 +396,6 @@ const Hotels = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchSubmitToken]);
 
-
-
-
   const handleSearch = () => {
     if (searchQuery.trim()) {
       // Check if it's a city
@@ -408,8 +452,6 @@ const Hotels = () => {
     // Signal a search was submitted so a toast with the result count can fire once the memo settles.
     setSearchSubmitToken((n) => n + 1);
   };
-
-
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (suggestion.type === "city") {
@@ -474,6 +516,16 @@ const Hotels = () => {
       default:
         return "bg-gray-50";
     }
+  };
+
+  // Helper function to get the guest display text
+  const getGuestDisplayText = () => {
+    let text = `${rooms} Room${rooms > 1 ? "s" : ""}`;
+    text += `, ${adults} Adult${adults > 1 ? "s" : ""}`;
+    if (children > 0) {
+      text += `, ${children} Child${children > 1 ? "ren" : ""}`;
+    }
+    return text;
   };
 
   if (loading) {
@@ -661,27 +713,28 @@ const Hotels = () => {
                   />
                 </div>
 
-                {/* Rooms & Guests - New Modal Style */}
+                {/* Rooms & Guests - Enhanced with Children Ages */}
                 <div ref={guestSelectorRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <Users className="h-3 w-3 inline mr-1 text-gray-600" />
                     Rooms & Guests
                   </label>
                   <div
-                    onClick={() => setShowGuestSelector(!showGuestSelector)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 cursor-pointer hover:border-green-500 transition-colors h-10 flex items-center justify-between"
+                    onClick={() => {
+                      setShowGuestSelector(!showGuestSelector);
+                      setShowChildAgeSelector(false);
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 cursor-pointer hover:border-green-500 transition-colors min-h-10 flex items-center justify-between"
                   >
-                    <span>
-                      {rooms} Room{rooms > 1 ? "s" : ""}, {adults + children} Guest{adults + children > 1 ? "s" : ""}
-                    </span>
+                    <span className="truncate text-xs md:text-sm">{getGuestDisplayText()}</span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform ${showGuestSelector ? "rotate-180" : ""}`}
+                      className={`h-4 w-4 text-gray-500 transition-transform flex-shrink-0 ml-2 ${showGuestSelector ? "rotate-180" : ""}`}
                     />
                   </div>
 
-                  {/* Guest Selector Popup */}
+                  {/* Guest Selector Popup - Enhanced with Children Ages */}
                   {showGuestSelector && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] p-4 min-w-[280px]">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] p-4 min-w-[320px] max-h-[80vh] overflow-y-auto">
                       {/* Rooms */}
                       <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <div>
@@ -729,21 +782,27 @@ const Hotels = () => {
                       </div>
 
                       {/* Children */}
-                      <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <div>
                           <p className="text-sm font-medium text-gray-900">Children</p>
                           <p className="text-xs text-gray-500">0 - 17 Years Old</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            onClick={() => {
+                              setChildren(Math.max(0, children - 1));
+                              if (children <= 1) setShowChildAgeSelector(false);
+                            }}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Minus className="h-4 w-4 text-gray-600" />
                           </button>
                           <span className="text-sm font-medium w-6 text-center">{children}</span>
                           <button
-                            onClick={() => setChildren(Math.min(6, children + 1))}
+                            onClick={() => {
+                              setChildren(Math.min(6, children + 1));
+                              if (children + 1 > 0) setShowChildAgeSelector(true);
+                            }}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
                           >
                             <Plus className="h-4 w-4 text-gray-600" />
@@ -751,8 +810,37 @@ const Hotels = () => {
                         </div>
                       </div>
 
+                      {/* Children Age Selector */}
+                      {showChildAgeSelector && children > 0 && (
+                        <div className="py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900 mb-2">Age of Children</p>
+                          <div className="space-y-2">
+                            {childAges.map((child, index) => (
+                              <div key={child.id} className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 w-16">Child {index + 1}</span>
+                                <select
+                                  value={child.age}
+                                  onChange={(e) => {
+                                    const newAges = [...childAges];
+                                    newAges[index] = { ...child, age: e.target.value };
+                                    setChildAges(newAges);
+                                  }}
+                                  className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                >
+                                  {ageOptions.map((age) => (
+                                    <option key={age} value={age}>
+                                      {age}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Note */}
-                      <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="mt-3 pt-3">
                         <p className="text-[10px] text-gray-400 text-center">
                           Please provide right number of children along with their right age for best options and
                           prices.
