@@ -301,13 +301,18 @@ const Hotels = () => {
 
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     let result = hotels.filter((hotel) => {
-      const matchesCity = selectedCity === "all" || hotel.city.toLowerCase() === selectedCity.toLowerCase();
+      const matchesCity =
+        selectedCity === "all" ||
+        hotel.city.toLowerCase() === selectedCity.toLowerCase() ||
+        hotel.city.toLowerCase().includes(selectedCity.toLowerCase());
       const matchesSearch =
-        !searchQuery ||
-        hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hotel.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hotel.locality.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        hotel.name.toLowerCase().includes(q) ||
+        hotel.city.toLowerCase().includes(q) ||
+        hotel.locality.toLowerCase().includes(q) ||
+        (hotel.address || "").toLowerCase().includes(q);
 
       // Apply price range filter from advanced search
       let matchesPrice = true;
@@ -328,6 +333,7 @@ const Hotels = () => {
 
     return result;
   }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
+
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
