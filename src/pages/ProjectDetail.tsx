@@ -5,12 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Building2,
   MapPin,
@@ -136,13 +131,12 @@ const ProjectDetail = () => {
     try {
       setLoading(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       let isPrivileged = false;
       if (user) {
-        const { data: roleRows } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id);
+        const { data: roleRows } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
         isPrivileged = (roleRows || []).some((r: any) => r.role === "admin");
       }
 
@@ -190,19 +184,33 @@ const ProjectDetail = () => {
 
       if (projectData.amenities && projectData.amenities.length > 0) {
         const amenityIconMap: Record<string, string> = {
-          'Swimming Pool': 'pool', 'Infinity Pool': 'pool', 'Olympic Pool': 'pool', 'Rooftop Pool': 'pool',
-          'Gymnasium': 'gym', 'Fitness Center': 'gym',
-          'Clubhouse': 'clubhouse', 'Party Hall': 'clubhouse', 'Community Hall': 'clubhouse', 'Banquet Hall': 'clubhouse',
-          'Landscaped Gardens': 'park', 'Garden': 'park', 'Rooftop Garden': 'park', 'Pet Park': 'park', 'Senior Citizen Park': 'park',
-          'Covered Parking': 'parking', 'Valet Parking': 'parking',
-          '24/7 Security': 'security',
+          "Swimming Pool": "pool",
+          "Infinity Pool": "pool",
+          "Olympic Pool": "pool",
+          "Rooftop Pool": "pool",
+          Gymnasium: "gym",
+          "Fitness Center": "gym",
+          Clubhouse: "clubhouse",
+          "Party Hall": "clubhouse",
+          "Community Hall": "clubhouse",
+          "Banquet Hall": "clubhouse",
+          "Landscaped Gardens": "park",
+          Garden: "park",
+          "Rooftop Garden": "park",
+          "Pet Park": "park",
+          "Senior Citizen Park": "park",
+          "Covered Parking": "parking",
+          "Valet Parking": "parking",
+          "24/7 Security": "security",
         };
-        setAmenities(projectData.amenities.map((name: string, i: number) => ({
-          id: String(i),
-          type: amenityIconMap[name] || 'default',
-          name,
-          status: 'Available',
-        })));
+        setAmenities(
+          projectData.amenities.map((name: string, i: number) => ({
+            id: String(i),
+            type: amenityIconMap[name] || "default",
+            name,
+            status: "Available",
+          })),
+        );
       }
 
       const autoHighlights: string[] = [];
@@ -210,20 +218,19 @@ const ProjectDetail = () => {
       if (projectData.area_range) autoHighlights.push(`Unit sizes: ${projectData.area_range}`);
       if (projectData.status) autoHighlights.push(`Status: ${projectData.status}`);
       if (projectData.possession_date) autoHighlights.push(`Possession: ${projectData.possession_date}`);
-      if (projectData.rera_id) autoHighlights.push('RERA approved project');
+      if (projectData.rera_id) autoHighlights.push("RERA approved project");
       if (projectData.builder_name) autoHighlights.push(`Developed by ${projectData.builder_name}`);
-      autoHighlights.push('Premium location with excellent connectivity');
+      autoHighlights.push("Premium location with excellent connectivity");
       if (projectData.amenities?.length) autoHighlights.push(`${projectData.amenities.length}+ world-class amenities`);
       setHighlights(autoHighlights);
 
       try {
-        const { data: webData, error: webError } = await supabase.functions.invoke(
-          "fetch-project-web-data",
-          { body: { projectId: projectData.id } }
-        );
+        const { data: webData, error: webError } = await supabase.functions.invoke("fetch-project-web-data", {
+          body: { projectId: projectData.id },
+        });
         if (!webError && webData?.success) {
           if (webData.data.overview) {
-            setProject((prev) => prev ? { ...prev, overview: webData.data.overview } : prev);
+            setProject((prev) => (prev ? { ...prev, overview: webData.data.overview } : prev));
           }
           if (webData.data.floorPlans?.length > 0) {
             setUnits(webData.data.floorPlans);
@@ -261,10 +268,10 @@ const ProjectDetail = () => {
       if (data?.fallback) {
         setAiSummary(
           `${project.name} is a premium ${project.city}-based development by ${project.builder_name || "a renowned builder"}. ` +
-          `Located in ${project.locality}, this project offers modern living spaces with world-class amenities. ` +
-          `With a trust score of ${project.trust_score}/100 and ${project.rera_id ? "RERA certification" : "ongoing verification"}, ` +
-          `this project represents excellent value starting from ₹${((project.avg_price || 0) / 10000000).toFixed(2)} Crores. ` +
-          `The development features ${amenities.length} premium amenities including modern fitness facilities, landscaped gardens, and 24/7 security.`
+            `Located in ${project.locality}, this project offers modern living spaces with world-class amenities. ` +
+            `With a trust score of ${project.trust_score}/100 and ${project.rera_id ? "RERA certification" : "ongoing verification"}, ` +
+            `this project represents excellent value starting from ₹${((project.avg_price || 0) / 10000000).toFixed(2)} Crores. ` +
+            `The development features ${amenities.length} premium amenities including modern fitness facilities, landscaped gardens, and 24/7 security.`,
         );
         toast.info(data.error || "Using fallback summary");
       } else {
@@ -296,11 +303,7 @@ const ProjectDetail = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md">
           <div className="glass-panel rounded-2xl p-8 space-y-6">
             <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
               <Building2 className="h-10 w-10 text-destructive" />
@@ -332,7 +335,10 @@ const ProjectDetail = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title={`${project.name} by ${project.builder_name} in ${project.locality}, ${project.city}`}
-        description={(project.description || `${project.name} — ${project.bhk_types || ''} ${project.area_range ? '· ' + project.area_range : ''} in ${project.locality}, ${project.city}. Starting ${startingPrice}. By ${project.builder_name}.`).slice(0, 160)}
+        description={(
+          project.description ||
+          `${project.name} — ${project.bhk_types || ""} ${project.area_range ? "· " + project.area_range : ""} in ${project.locality}, ${project.city}. Starting ${startingPrice}. By ${project.builder_name}.`
+        ).slice(0, 160)}
         canonicalPath={`/project/${slug}`}
         image={project.image || project.images?.[0] || undefined}
         type="product"
@@ -343,27 +349,27 @@ const ProjectDetail = () => {
           description: project.description,
           image: project.image || project.images?.[0],
           brand: { "@type": "Organization", name: project.builder_name },
-          offers: project.avg_price ? {
-            "@type": "Offer",
-            price: project.avg_price,
-            priceCurrency: "INR",
-          } : undefined,
+          offers: project.avg_price
+            ? {
+                "@type": "Offer",
+                price: project.avg_price,
+                priceCurrency: "INR",
+              }
+            : undefined,
         }}
       />
       <Navigation />
 
       {/* Breadcrumb */}
-      <div className="container mx-auto px-4 py-4 pt-24">
-        <PropertyBreadcrumb
-          city={project.city}
-          locality={project.locality}
-          title={project.name}
-        />
+      <div className="container mx-auto px-4 py-4 pt-2">
+        <PropertyBreadcrumb city={project.city} locality={project.locality} title={project.name} />
 
         {/* Project Reference */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
           <Hash className="h-4 w-4" />
-          <span>Project Ref: <span className="font-semibold text-foreground">JX{project.id.slice(0, 8)}</span></span>
+          <span>
+            Project Ref: <span className="font-semibold text-foreground">JX{project.id.slice(0, 8)}</span>
+          </span>
         </div>
       </div>
 
@@ -405,12 +411,7 @@ const ProjectDetail = () => {
               <Calendar className="h-4 w-4" />
               Book Visit
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2"
-              onClick={() => setInterestModalOpen(true)}
-            >
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => setInterestModalOpen(true)}>
               <Heart className="h-4 w-4" />
               Express Interest
             </Button>
@@ -436,7 +437,9 @@ const ProjectDetail = () => {
                   <h1 className="text-3xl md:text-4xl font-bold mb-2">{project.name}</h1>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-5 w-5" />
-                    <span>{project.locality}, {project.city}</span>
+                    <span>
+                      {project.locality}, {project.city}
+                    </span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -525,7 +528,7 @@ const ProjectDetail = () => {
                         {Object.entries(specifications).map(([key, value]) => (
                           <div key={key} className="p-3 rounded-lg bg-accent/10 border border-border/50">
                             <p className="text-sm text-muted-foreground capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                              {key.replace(/([A-Z])/g, " $1").trim()}
                             </p>
                             <p className="font-medium mt-1">{value as string}</p>
                           </div>
@@ -537,10 +540,7 @@ const ProjectDetail = () => {
 
                 <TabsContent value="builder">
                   {project.builder_id ? (
-                    <BuilderTrustProgram
-                      builderId={project.builder_id}
-                      builderName={project.builder_name}
-                    />
+                    <BuilderTrustProgram builderId={project.builder_id} builderName={project.builder_name} />
                   ) : project.builder_name ? (
                     <Card className="border-border/50">
                       <CardHeader>
@@ -551,7 +551,8 @@ const ProjectDetail = () => {
                       </CardHeader>
                       <CardContent>
                         <p className="text-muted-foreground">
-                          {project.builder_name} is the developer of {project.name}, located in {project.locality}, {project.city}.
+                          {project.builder_name} is the developer of {project.name}, located in {project.locality},{" "}
+                          {project.city}.
                         </p>
                       </CardContent>
                     </Card>
@@ -569,7 +570,7 @@ const ProjectDetail = () => {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {amenities.map((amenity, index) => {
-                        const amenityType = amenity.type?.toLowerCase() || 'default';
+                        const amenityType = amenity.type?.toLowerCase() || "default";
                         const Icon = amenityIcons[amenityType] || amenityIcons.default;
                         return (
                           <div
@@ -581,7 +582,9 @@ const ProjectDetail = () => {
                             </div>
                             <div>
                               <p className="font-semibold capitalize">{amenity.name || amenity.type}</p>
-                              <p className="text-sm text-muted-foreground capitalize">{amenity.status || 'Available'}</p>
+                              <p className="text-sm text-muted-foreground capitalize">
+                                {amenity.status || "Available"}
+                              </p>
                             </div>
                           </div>
                         );
@@ -605,11 +608,19 @@ const ProjectDetail = () => {
                               src={plan}
                               alt={`Floor Plan ${idx + 1}`}
                               className="w-full h-full object-contain hover:scale-105 transition-transform cursor-zoom-in"
-                              onClick={() => window.open(plan, '_blank')} loading="lazy" decoding="async" />
+                              onClick={() => window.open(plan, "_blank")}
+                              loading="lazy"
+                              decoding="async"
+                            />
                           </div>
                           <div className="p-4">
                             <h3 className="font-semibold text-base capitalize">
-                              {plan.split('/').pop()?.replace(/^floor-plan-/i, '').replace(/\.(jpg|jpeg|png|webp)$/i, '').replace(/-/g, ' ') || `Plan ${idx + 1}`}
+                              {plan
+                                .split("/")
+                                .pop()
+                                ?.replace(/^floor-plan-/i, "")
+                                .replace(/\.(jpg|jpeg|png|webp)$/i, "")
+                                .replace(/-/g, " ") || `Plan ${idx + 1}`}
                             </h3>
                             <p className="text-xs text-muted-foreground mt-1">Click image to view full size</p>
                           </div>
@@ -629,9 +640,7 @@ const ProjectDetail = () => {
                           </div>
                           <div className="mb-4">
                             <p className="text-sm text-muted-foreground mb-1">Price</p>
-                            <p className="text-2xl font-bold text-primary">
-                              ₹{(unit.price / 10000000).toFixed(2)}Cr
-                            </p>
+                            <p className="text-2xl font-bold text-primary">₹{(unit.price / 10000000).toFixed(2)}Cr</p>
                           </div>
                           {unit.facing && (
                             <div className="mb-4">
@@ -659,9 +668,7 @@ const ProjectDetail = () => {
                   {!aiSummary ? (
                     <div className="text-center py-8">
                       <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
-                      <p className="text-muted-foreground mb-4">
-                        Generate an AI-powered summary of this project
-                      </p>
+                      <p className="text-muted-foreground mb-4">Generate an AI-powered summary of this project</p>
                       <Button onClick={generateAISummary} disabled={aiLoading}>
                         {aiLoading ? (
                           <>
@@ -706,9 +713,7 @@ const ProjectDetail = () => {
             <AuthGate isAuthenticated={isAuthenticated} label="Sign in to use EMI calculator">
               <EMICalculator propertyPrice={project.avg_price || 0} />
             </AuthGate>
-
           </div>
-
         </div>
       </div>
 
@@ -722,11 +727,7 @@ const ProjectDetail = () => {
           </DialogHeader>
           <div className="aspect-video bg-accent/10 rounded-lg flex items-center justify-center">
             {selected3DPlan ? (
-              <iframe
-                src={selected3DPlan}
-                className="w-full h-full rounded-lg"
-                title="3D Floor Plan"
-              />
+              <iframe src={selected3DPlan} className="w-full h-full rounded-lg" title="3D Floor Plan" />
             ) : (
               <p className="text-muted-foreground">3D viewer loading...</p>
             )}
@@ -759,12 +760,7 @@ const ProjectDetail = () => {
             <Calendar className="h-4 w-4" />
             Book Visit
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={() => setInterestModalOpen(true)}
-          >
+          <Button size="lg" variant="outline" className="flex-1 gap-2" onClick={() => setInterestModalOpen(true)}>
             <Heart className="h-4 w-4" />
             Interest
           </Button>
