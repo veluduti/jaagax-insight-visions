@@ -965,7 +965,7 @@ const Hotels = () => {
                   onClick={() => navigate("/partners")}
                   className="underline font-medium hover:text-white transition-colors ml-1"
                 >
-                  To list your property Online Click Here
+                  To list your property Click Here
                 </button>
               </p>
             </div>
