@@ -15,9 +15,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBuyerContext } from "@/hooks/useBuyerContext";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useInView } from "@/hooks/useInView";
-import { 
-  Sparkles, MapPin, SlidersHorizontal, Building2, Shield, 
-  TrendingUp, ChevronRight, Users, Home, BarChart3, Star, Info, Loader2
+import {
+  Sparkles,
+  MapPin,
+  SlidersHorizontal,
+  Building2,
+  Shield,
+  TrendingUp,
+  ChevronRight,
+  Users,
+  Home,
+  BarChart3,
+  Star,
+  Info,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AdvancedFilters } from "@/components/search/AdvancedFiltersSheet";
@@ -135,24 +146,24 @@ const Search = () => {
   const { user, role } = useAuth();
   const { buyerContext, hasBuyerContext } = useBuyerContext();
   const { detectedLocation, savedLocation, hasLocation } = useLocationContext();
-  
+
   // Tab state
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "properties");
-  
+
   // Search state - default to saved/detected city if no search param
   const [location, setLocation] = useState(
-    searchParams.get("city") || searchParams.get("q") || savedLocation?.city || detectedLocation?.city || ""
+    searchParams.get("city") || searchParams.get("q") || savedLocation?.city || detectedLocation?.city || "",
   );
   const [searchType, setSearchType] = useState(searchParams.get("type") || "buy");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
-  
+
   // Data states
   const [properties, setProperties] = useState<Property[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [decisions, setDecisions] = useState<Map<string, PropertyDecision>>(new Map());
-  
+
   // Loading states
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -160,7 +171,7 @@ const Search = () => {
   const [page, setPage] = useState(1);
   const [loadingAI, setLoadingAI] = useState(false);
   const [total, setTotal] = useState(0);
-  
+
   // Advanced filters initialised from URL
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(() => ({
     ...DEFAULT_FILTERS,
@@ -186,17 +197,11 @@ const Search = () => {
     handoverBy: searchParams.get("handoverBy") || "any",
     paymentPlan: searchParams.get("paymentPlan") || "any",
   }));
-  
-  const lastSearchKey = useRef<string>("");
-  const popularLocations = useMemo(
-    () => ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"],
-    []
-  );
 
-  const navItems = useMemo(
-    () => [{ label: "Properties", value: "properties", icon: Home }],
-    []
-  );
+  const lastSearchKey = useRef<string>("");
+  const popularLocations = useMemo(() => ["Hyderabad", "Vijayawada", "Vizag", "Guntur", "Bangalore"], []);
+
+  const navItems = useMemo(() => [{ label: "Properties", value: "properties", icon: Home }], []);
 
   // Debounced filter inputs to avoid refetching on every keystroke / slider tick (Phase 5)
   const debouncedLocation = useDebouncedValue(location, 350);
@@ -333,9 +338,7 @@ const Search = () => {
         const R = 6371;
         const dLat = toRad(lat - uLat);
         const dLng = toRad(lng - uLng);
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
         return 2 * R * Math.asin(Math.sqrt(a));
       };
       const RADIUS_KM = 10;
@@ -390,9 +393,7 @@ const Search = () => {
           const R = 6371;
           const dLat = toRad(lat - uLat);
           const dLng = toRad(lng - uLng);
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(uLat)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
           return 2 * R * Math.asin(Math.sqrt(a));
         };
         const RADIUS_KM = 10;
@@ -404,7 +405,7 @@ const Search = () => {
           .sort((a, b) => haversine(a.latitude, a.longitude) - haversine(b.latitude, b.longitude));
       }
 
-      setProjects((prev) => append ? [...prev, ...strict] : strict);
+      setProjects((prev) => (append ? [...prev, ...strict] : strict));
       setTotal(count || strict.length);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
@@ -417,7 +418,7 @@ const Search = () => {
     if (location) queryBuilder = queryBuilder.or(`name.ilike.%${location}%,cities_served.ilike.%${location}%`);
     const { data, error, count } = await queryBuilder.order("sales_count", { ascending: false }).range(from, to);
     if (!error) {
-      setAgents((prev) => append ? [...prev, ...((data as Agent[]) || [])] : (data as Agent[]) || []);
+      setAgents((prev) => (append ? [...prev, ...((data as Agent[]) || [])] : (data as Agent[]) || []));
       setTotal(count || 0);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
@@ -431,7 +432,7 @@ const Search = () => {
     const { data, error, count } = await qb.order("price", { ascending: false }).range(from, to);
     if (!error) {
       const rows = ((data as any[]) || []).map(toPublicRow);
-      setProperties((prev) => append ? [...prev, ...rows] : rows);
+      setProperties((prev) => (append ? [...prev, ...rows] : rows));
       setTotal(count || 0);
       setHasMore((data?.length || 0) >= PAGE_SIZE);
     }
@@ -440,7 +441,10 @@ const Search = () => {
   const fetchAIDecisions = async () => {
     if (!buyerContext) return;
 
-    const propertyIds = properties.map((p) => p.id).sort().join(",");
+    const propertyIds = properties
+      .map((p) => p.id)
+      .sort()
+      .join(",");
     const cacheKey = `${user?.id}-${propertyIds}`;
 
     if (decisionCache.has(cacheKey)) {
@@ -497,7 +501,7 @@ const Search = () => {
     const params = new URLSearchParams();
     params.set("tab", activeTab);
     if (location) params.set("city", location);
-    
+
     if (searchType !== "buy") params.set("type", searchType);
     const f = advancedFilters;
     if (f.propertyType !== "any") params.set("propertyType", f.propertyType);
@@ -525,7 +529,7 @@ const Search = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -543,10 +547,14 @@ const Search = () => {
     switch (activeTab) {
       case "properties":
         return "Featured Properties";
-      case "new-projects": return "New Projects";
-      case "transactions": return "Transactions";
-      case "agents": return "Agents";
-      default: return "Search";
+      case "new-projects":
+        return "New Projects";
+      case "transactions":
+        return "Transactions";
+      case "agents":
+        return "Agents";
+      default:
+        return "Search";
     }
   };
 
@@ -571,22 +579,29 @@ const Search = () => {
   };
 
   const renderTransactionTabs = () => {
-    if (activeTab === 'agents') return null;
-    
-    const tabs = activeTab === 'transactions' 
-      ? [{ value: 'sold', label: 'Sold' }, { value: 'rented', label: 'Rented' }]
-      : [{ value: 'buy', label: 'Buy' }, { value: 'rent', label: 'Rent' }];
+    if (activeTab === "agents") return null;
+
+    const tabs =
+      activeTab === "transactions"
+        ? [
+            { value: "sold", label: "Sold" },
+            { value: "rented", label: "Rented" },
+          ]
+        : [
+            { value: "buy", label: "Buy" },
+            { value: "rent", label: "Rent" },
+          ];
 
     return (
       <>
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setSearchType(tab.value)}
             className={`py-2.5 px-6 text-sm font-medium rounded-lg transition-all ${
               searchType === tab.value
-                ? 'bg-primary/10 text-primary border border-primary/30'
-                : 'bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "bg-background border border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
             }`}
           >
             {tab.label}
@@ -618,7 +633,9 @@ const Search = () => {
     switch (activeTab) {
       case "properties":
         return properties.length === 0 ? (
-          <EmptyState message={savedLocation?.city ? "No properties in this city or locality" : "No properties found"} />
+          <EmptyState
+            message={savedLocation?.city ? "No properties in this city or locality" : "No properties found"}
+          />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -665,7 +682,7 @@ const Search = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-                    
+
                     {project.rera_id && (
                       <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground border-0">
                         <Shield className="h-3 w-3 mr-1" />
@@ -696,15 +713,15 @@ const Search = () => {
 
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
                       <MapPin className="h-4 w-4 flex-shrink-0" />
-                      <span className="line-clamp-1">{project.locality}, {project.city}</span>
+                      <span className="line-clamp-1">
+                        {project.locality}, {project.city}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-border/30">
                       <div>
                         <span className="text-xs text-muted-foreground">Starting from</span>
-                        <p className="text-xl font-bold text-primary">
-                          {formatPrice(project.avg_price)}
-                        </p>
+                        <p className="text-xl font-bold text-primary">{formatPrice(project.avg_price)}</p>
                       </div>
                       <Button variant="ghost" size="sm" className="gap-1 group-hover:text-primary">
                         View <ChevronRight className="h-4 w-4" />
@@ -749,8 +766,7 @@ const Search = () => {
                       {searchType === "rented" ? "Rented" : "Sold"}
                     </Badge>
                     <Badge className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm">
-                      <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                      +{(5 + Math.random() * 10).toFixed(1)}%
+                      <TrendingUp className="h-3 w-3 mr-1 text-green-500" />+{(5 + Math.random() * 10).toFixed(1)}%
                     </Badge>
                   </div>
 
@@ -758,15 +774,13 @@ const Search = () => {
                     <h3 className="font-semibold mb-1 line-clamp-1">{property.title}</h3>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                       <MapPin className="h-3 w-3" />
-                      <span>{property.locality}, {property.city}</span>
+                      <span>
+                        {property.locality}, {property.city}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-primary">
-                        {formatPrice(property.price)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {property.area_sqft} sq.ft
-                      </span>
+                      <span className="text-lg font-bold text-primary">{formatPrice(property.price)}</span>
+                      <span className="text-xs text-muted-foreground">{property.area_sqft} sq.ft</span>
                     </div>
                   </div>
                 </Card>
@@ -798,8 +812,8 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="pt-24 pb-16">
+
+      <div className="pt-24 pb-2">
         <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Location selection screen — shown when the user has no saved location */}
           {!hasLocation && activeTab === "properties" && (
@@ -809,20 +823,16 @@ const Search = () => {
           )}
 
           {/* Search Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-              <h1 className="text-4xl font-bold text-gradient">
-                Search {getTabTitle()}
-              </h1>
+              <h1 className="text-4xl font-bold text-gradient">Search {getTabTitle()}</h1>
               <LocationPill />
             </div>
             <div className="flex items-center gap-4 mb-6 flex-wrap">
               <p className="text-muted-foreground">
-                {getResultCount() > 0 ? `Found ${getResultCount()} ${getTabTitle().toLowerCase()}` : `Search for ${getTabTitle().toLowerCase()}`}
+                {getResultCount() > 0
+                  ? `Found ${getResultCount()} ${getTabTitle().toLowerCase()}`
+                  : `Search for ${getTabTitle().toLowerCase()}`}
               </p>
               {showAIFeatures && (
                 <Badge variant="secondary" className="flex items-center gap-1">
@@ -836,7 +846,7 @@ const Search = () => {
                 </Badge>
               )}
             </div>
-            
+
             {/* Search Card */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -850,14 +860,12 @@ const Search = () => {
                 <div className="bg-card/95 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden border border-border/50">
                   {/* Navigation Tabs */}
                   <div className="flex justify-center gap-6 px-4 pt-3 pb-2.5 bg-background/50 border-b border-border/30">
-                    {navItems.map(item => (
+                    {navItems.map((item) => (
                       <button
                         key={item.value}
                         onClick={() => handleTabChange(item.value)}
                         className={`text-sm font-medium transition-colors relative pb-1.5 flex items-center gap-1.5 ${
-                          activeTab === item.value 
-                            ? 'text-primary' 
-                            : 'text-muted-foreground hover:text-foreground'
+                          activeTab === item.value ? "text-primary" : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         <item.icon className="h-4 w-4" />
@@ -875,8 +883,6 @@ const Search = () => {
 
                   {/* Search Form */}
                   <div className="p-4 space-y-3">
-
-
                     {/* Transaction Type + Location + Search Row */}
                     <div className="flex gap-2 items-center flex-wrap">
                       {renderTransactionTabs()}
@@ -905,7 +911,7 @@ const Search = () => {
                     </div>
 
                     {/* Filters Row */}
-                    {(activeTab === 'properties' || activeTab === 'transactions' || activeTab === 'new-projects') && (
+                    {(activeTab === "properties" || activeTab === "transactions" || activeTab === "new-projects") && (
                       <div className="flex gap-2 items-center flex-wrap">
                         <Button
                           variant="outline"
@@ -933,7 +939,7 @@ const Search = () => {
                   className="mt-3 text-center"
                 >
                   <button
-                    onClick={() => navigate('/ai-advisor')}
+                    onClick={() => navigate("/ai-advisor")}
                     className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
                   >
                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -991,16 +997,10 @@ const Search = () => {
 
 // Empty state component
 const EmptyState = ({ message }: { message: string }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="text-center py-16"
-  >
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
     <div className="glass-card p-12 max-w-md mx-auto">
       <p className="text-xl text-muted-foreground mb-4">{message}</p>
-      <p className="text-sm text-muted-foreground mb-6">
-        Try adjusting your search criteria
-      </p>
+      <p className="text-sm text-muted-foreground mb-6">Try adjusting your search criteria</p>
     </div>
   </motion.div>
 );
