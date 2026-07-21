@@ -123,7 +123,9 @@ const Promotions = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-neutral-950 relative flex items-center justify-center py-4 sm:py-6">
+    <div className="min-h-screen w-full bg-neutral-950 relative">
+      <Navigation />
+      <div className="flex items-center justify-center py-4 sm:py-6 relative">
       {/* Back button (fixed overlay) */}
       <div className="fixed top-4 left-4 z-40">
         <Button
