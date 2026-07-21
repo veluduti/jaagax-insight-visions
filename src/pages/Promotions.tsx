@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PropertyReelCard from "@/components/reels/PropertyReelCard";
 import { useLocation as useLocationContext } from "@/contexts/LocationContext";
 import { getCityAliases, isSameCity } from "@/lib/cityNormalizer";
+import Navigation from "@/components/Navigation";
 
 interface Property {
   id: string;
