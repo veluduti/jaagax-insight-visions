@@ -9,13 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Sparkles, TrendingUp, MapPin, Loader2, ArrowRight,
-  Building2, BedDouble, Bath, Ruler, Compass, Sofa, Calendar,
-  Users, Clock, CheckCircle2,
+  Sparkles,
+  TrendingUp,
+  MapPin,
+  Loader2,
+  ArrowRight,
+  Building2,
+  BedDouble,
+  Bath,
+  Ruler,
+  Compass,
+  Sofa,
+  Calendar,
+  Users,
+  Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
@@ -57,14 +67,23 @@ const FACINGS = ["North", "South", "East", "West", "North-East", "North-West", "
 const FURNISHINGS = ["Fully Furnished", "Semi-Furnished", "Unfurnished"];
 
 const BASE_PSF: Record<string, number> = {
-  Apartment: 5500, Villa: 8500, "Independent House": 6500, Plot: 3200, Commercial: 9500,
+  Apartment: 5500,
+  Villa: 8500,
+  "Independent House": 6500,
+  Plot: 3200,
+  Commercial: 9500,
 };
 const AGE_MULT: Record<string, number> = {
-  "Under 1 year": 1.10, "1-5 years": 1.05, "5-10 years": 0.95,
-  "10-20 years": 0.85, "20+ years": 0.72,
+  "Under 1 year": 1.1,
+  "1-5 years": 1.05,
+  "5-10 years": 0.95,
+  "10-20 years": 0.85,
+  "20+ years": 0.72,
 };
 const FURN_MULT: Record<string, number> = {
-  "Fully Furnished": 1.12, "Semi-Furnished": 1.05, "Unfurnished": 1.0,
+  "Fully Furnished": 1.12,
+  "Semi-Furnished": 1.05,
+  Unfurnished: 1.0,
 };
 
 export default function ValuationPage() {
@@ -104,11 +123,7 @@ export default function ValuationPage() {
       await new Promise((r) => setTimeout(r, 1400));
 
       const sqft = Number(area);
-      const psf = Math.round(
-        (BASE_PSF[propType] || 5000) *
-        (AGE_MULT[age] || 1) *
-        (FURN_MULT[furnishing] || 1),
-      );
+      const psf = Math.round((BASE_PSF[propType] || 5000) * (AGE_MULT[age] || 1) * (FURN_MULT[furnishing] || 1));
       const estimated = psf * sqft;
       const min_price = Math.round(estimated * 0.92);
       const max_price = Math.round(estimated * 1.08);
@@ -158,11 +173,13 @@ export default function ValuationPage() {
     navigate(`/sell-property?${params.toString()}`);
   };
 
-  const confLabel = result
-    ? result.confidence >= 80 ? "High" : result.confidence >= 65 ? "Medium" : "Low"
-    : "—";
+  const confLabel = result ? (result.confidence >= 80 ? "High" : result.confidence >= 65 ? "Medium" : "Low") : "—";
   const confColor = result
-    ? result.confidence >= 80 ? "text-emerald-400" : result.confidence >= 65 ? "text-amber-400" : "text-rose-400"
+    ? result.confidence >= 80
+      ? "text-emerald-400"
+      : result.confidence >= 65
+        ? "text-amber-400"
+        : "text-rose-400"
     : "";
 
   return (
@@ -170,7 +187,7 @@ export default function ValuationPage() {
       <Navigation />
 
       {/* HERO */}
-      <section className="relative pt-28 pb-12 px-4 overflow-hidden">
+      <section className="relative pt-14 pb-12 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.15),_transparent_60%)] pointer-events-none" />
         <div className="max-w-5xl mx-auto text-center relative">
           <Badge className="mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
@@ -229,20 +246,44 @@ export default function ValuationPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Field label="Property Type" icon={<Building2 className="w-3.5 h-3.5" />}>
               <Select value={propType} onValueChange={setPropType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PROPERTY_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPERTY_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Bedrooms" icon={<BedDouble className="w-3.5 h-3.5" />}>
               <Select value={bedrooms} onValueChange={setBedrooms}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{BEDROOMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BEDROOMS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Bathrooms" icon={<Bath className="w-3.5 h-3.5" />}>
               <Select value={bathrooms} onValueChange={setBathrooms}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{BATHROOMS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BATHROOMS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Area (sqft)" icon={<Ruler className="w-3.5 h-3.5" />}>
@@ -250,26 +291,58 @@ export default function ValuationPage() {
             </Field>
             <Field label="Floor" icon={<Building2 className="w-3.5 h-3.5" />}>
               <Select value={floor} onValueChange={setFloor}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{FLOORS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FLOORS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Age of Property" icon={<Calendar className="w-3.5 h-3.5" />}>
               <Select value={age} onValueChange={setAge}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{AGES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AGES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Facing" icon={<Compass className="w-3.5 h-3.5" />}>
               <Select value={facing} onValueChange={setFacing}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{FACINGS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FACINGS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
             <Field label="Furnishing" icon={<Sofa className="w-3.5 h-3.5" />}>
               <Select value={furnishing} onValueChange={setFurnishing}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{FURNISHINGS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FURNISHINGS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </Field>
           </div>
@@ -281,20 +354,20 @@ export default function ValuationPage() {
             className="w-full mt-8 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/20"
           >
             {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing market data…</>
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing market data…
+              </>
             ) : (
-              <><Sparkles className="w-4 h-4 mr-2" /> Calculate Valuation</>
+              <>
+                <Sparkles className="w-4 h-4 mr-2" /> Calculate Valuation
+              </>
             )}
           </Button>
         </Card>
 
         {/* RESULT */}
         {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             {/* Price card */}
             <Card className="p-6 md:p-8 bg-gradient-to-br from-emerald-500/10 via-card/60 to-card/60 backdrop-blur-xl border-emerald-500/20 shadow-2xl shadow-emerald-500/10">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -308,9 +381,7 @@ export default function ValuationPage() {
               <div className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-emerald-400 to-teal-300 bg-clip-text text-transparent mb-2">
                 {fmtINR(result.min_price)} – {fmtINR(result.max_price)}
               </div>
-              <p className="text-sm text-muted-foreground">
-                ₹{result.price_per_sqft.toLocaleString("en-IN")} per sqft
-              </p>
+              <p className="text-sm text-muted-foreground">₹{result.price_per_sqft.toLocaleString("en-IN")} per sqft</p>
               <Progress value={result.confidence} className="mt-4 h-1.5" />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
@@ -325,9 +396,24 @@ export default function ValuationPage() {
 
             {/* Market insights */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Insight icon={<TrendingUp className="w-4 h-4" />} label="Locality trend" value={result.locality_trend} accent="emerald" />
-              <Insight icon={<Users className="w-4 h-4" />} label="Demand score" value={`${result.demand_score} / 100`} accent="amber" />
-              <Insight icon={<Clock className="w-4 h-4" />} label="Avg days on market" value={`${result.avg_days_on_market} days`} accent="sky" />
+              <Insight
+                icon={<TrendingUp className="w-4 h-4" />}
+                label="Locality trend"
+                value={result.locality_trend}
+                accent="emerald"
+              />
+              <Insight
+                icon={<Users className="w-4 h-4" />}
+                label="Demand score"
+                value={`${result.demand_score} / 100`}
+                accent="amber"
+              />
+              <Insight
+                icon={<Clock className="w-4 h-4" />}
+                label="Avg days on market"
+                value={`${result.avg_days_on_market} days`}
+                accent="sky"
+              />
             </div>
 
             {/* Comparables */}
@@ -347,7 +433,12 @@ export default function ValuationPage() {
                         <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 mt-1">
                           {p.bedrooms && <span>{p.bedrooms} BHK</span>}
                           {p.area_sqft && <span>{p.area_sqft} sqft</span>}
-                          {p.locality && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{p.locality}</span>}
+                          {p.locality && (
+                            <span className="flex items-center gap-0.5">
+                              <MapPin className="w-3 h-3" />
+                              {p.locality}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-right ml-3 shrink-0">
@@ -376,13 +467,26 @@ export default function ValuationPage() {
 function Field({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground flex items-center gap-1">{icon}{label}</Label>
+      <Label className="text-xs text-muted-foreground flex items-center gap-1">
+        {icon}
+        {label}
+      </Label>
       {children}
     </div>
   );
 }
 
-function Insight({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: "emerald" | "amber" | "sky" }) {
+function Insight({
+  icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  accent: "emerald" | "amber" | "sky";
+}) {
   const accentMap = {
     emerald: "from-emerald-500/10 text-emerald-400 border-emerald-500/20",
     amber: "from-amber-500/10 text-amber-400 border-amber-500/20",
@@ -390,7 +494,10 @@ function Insight({ icon, label, value, accent }: { icon: React.ReactNode; label:
   } as const;
   return (
     <Card className={`p-4 bg-gradient-to-br ${accentMap[accent]} backdrop-blur-xl`}>
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wide opacity-80">{icon}{label}</div>
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide opacity-80">
+        {icon}
+        {label}
+      </div>
       <div className="mt-2 text-lg font-semibold text-foreground">{value}</div>
     </Card>
   );
