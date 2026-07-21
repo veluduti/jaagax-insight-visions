@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LiveCommunityPulse from "@/components/community/LiveCommunityPulse";
+import Navigation from "@/components/Navigation";
 import PredictivePriceAlerts from "@/components/alerts/PredictivePriceAlerts";
 import SmartVisitCluster from "@/components/visit/SmartVisitCluster";
 import VoiceSearch from "@/components/search/VoiceSearch";
@@ -67,6 +68,7 @@ const InnovationHub = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background" />
