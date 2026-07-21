@@ -18,7 +18,6 @@ import {
   Tv,
   Snowflake,
   Search,
-  SlidersHorizontal,
   X,
   ChevronDown,
   Heart,
@@ -28,11 +27,15 @@ import {
   TrendingUp,
   Shield,
   Building2,
-  Clock,
   TrendingUp as TrendingUpIcon,
   Calendar,
   Users,
   Home,
+  Plus,
+  Minus,
+  User,
+  UserPlus,
+  Baby,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,11 +104,6 @@ const Hotels = () => {
   const [weekendPackage, setWeekendPackage] = useState<VisitPackage | null>(null);
   const [quickVisitPackage, setQuickVisitPackage] = useState<VisitPackage | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [starRating, setStarRating] = useState(0);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState<"price" | "rating" | "popularity">("rating");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -121,10 +119,24 @@ const Hotels = () => {
   });
   const [rooms, setRooms] = useState(1);
   const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
+  const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const guestSelectorRef = useRef<HTMLDivElement>(null);
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
+
+  // Click outside handler for guest selector
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (guestSelectorRef.current && !guestSelectorRef.current.contains(event.target as Node)) {
+        setShowGuestSelector(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch approved + active hotels that have at least one active room; compute
   // "starts from" price from the cheapest active room (not the legacy field).
@@ -180,7 +192,7 @@ const Hotels = () => {
     }
   }, [detectedLocation]);
 
-  // Click outside handler
+  // Click outside handler for suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -291,27 +303,31 @@ const Hotels = () => {
   const filteredAndSortedHotels = useMemo(() => {
     let result = hotels.filter((hotel) => {
       const matchesCity = selectedCity === "all" || hotel.city.toLowerCase() === selectedCity.toLowerCase();
-      const matchesRating = starRating === 0 || (hotel.star_rating && hotel.star_rating >= starRating);
-      const matchesPrice = hotel.price_per_night >= priceRange[0] && hotel.price_per_night <= priceRange[1];
       const matchesSearch =
         !searchQuery ||
         hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         hotel.locality.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCity && matchesRating && matchesPrice && matchesSearch;
+
+      // Apply price range filter from advanced search
+      let matchesPrice = true;
+      if (selectedPriceRange !== "all") {
+        const [min, max] = selectedPriceRange.split("-").map(Number);
+        if (selectedPriceRange === "10000+") {
+          matchesPrice = hotel.price_per_night >= 10000;
+        } else {
+          matchesPrice = hotel.price_per_night >= min && hotel.price_per_night <= max;
+        }
+      }
+
+      return matchesCity && matchesSearch && matchesPrice;
     });
 
-    // Sort
-    if (sortBy === "price") {
-      result.sort((a, b) => a.price_per_night - b.price_per_night);
-    } else if (sortBy === "rating") {
-      result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
-    } else if (sortBy === "popularity") {
-      result.sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0));
-    }
+    // Sort by rating (default)
+    result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, starRating, priceRange, searchQuery, sortBy]);
+  }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -346,7 +362,6 @@ const Hotels = () => {
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
       } else {
         // Apply filter by search query
-        // The filter will handle it via the matchesSearch condition
         navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
       }
     }
@@ -603,36 +618,105 @@ const Hotels = () => {
                   />
                 </div>
 
-                {/* Rooms & Guests */}
-                <div>
+                {/* Rooms & Guests - New Modal Style */}
+                <div ref={guestSelectorRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <Users className="h-3 w-3 inline mr-1 text-gray-600" />
                     Rooms & Guests
                   </label>
-                  <div className="flex gap-1">
-                    <select
-                      value={rooms}
-                      onChange={(e) => setRooms(parseInt(e.target.value))}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
-                    >
-                      {[1, 2, 3, 4].map((num) => (
-                        <option key={num} value={num}>
-                          {num} Room{num > 1 ? "s" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={adults}
-                      onChange={(e) => setAdults(parseInt(e.target.value))}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
-                    >
-                      {[1, 2, 3, 4, 5, 6].map((num) => (
-                        <option key={num} value={num}>
-                          {num} Adult{num > 1 ? "s" : ""}
-                        </option>
-                      ))}
-                    </select>
+                  <div
+                    onClick={() => setShowGuestSelector(!showGuestSelector)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 cursor-pointer hover:border-green-500 transition-colors h-10 flex items-center justify-between"
+                  >
+                    <span>
+                      {rooms} Room{rooms > 1 ? "s" : ""}, {adults + children} Guest{adults + children > 1 ? "s" : ""}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-gray-500 transition-transform ${showGuestSelector ? "rotate-180" : ""}`}
+                    />
                   </div>
+
+                  {/* Guest Selector Popup */}
+                  {showGuestSelector && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] p-4 min-w-[280px]">
+                      {/* Rooms */}
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Rooms</p>
+                          <p className="text-xs text-gray-500">Upto 4 rooms</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setRooms(Math.max(1, rooms - 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Minus className="h-4 w-4 text-gray-600" />
+                          </button>
+                          <span className="text-sm font-medium w-6 text-center">{rooms}</span>
+                          <button
+                            onClick={() => setRooms(Math.min(4, rooms + 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Plus className="h-4 w-4 text-gray-600" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Adults */}
+                      <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Adults</p>
+                          <p className="text-xs text-gray-500">Age 18+</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setAdults(Math.max(1, adults - 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Minus className="h-4 w-4 text-gray-600" />
+                          </button>
+                          <span className="text-sm font-medium w-6 text-center">{adults}</span>
+                          <button
+                            onClick={() => setAdults(Math.min(10, adults + 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Plus className="h-4 w-4 text-gray-600" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Children */}
+                      <div className="flex items-center justify-between py-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Children</p>
+                          <p className="text-xs text-gray-500">0 - 17 Years Old</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Minus className="h-4 w-4 text-gray-600" />
+                          </button>
+                          <span className="text-sm font-medium w-6 text-center">{children}</span>
+                          <button
+                            onClick={() => setChildren(Math.min(6, children + 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-green-500 hover:bg-green-50 transition-colors"
+                          >
+                            <Plus className="h-4 w-4 text-gray-600" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Note */}
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-[10px] text-gray-400 text-center">
+                          Please provide right number of children along with their right age for best options and
+                          prices.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Price Per Night & Search */}
@@ -760,160 +844,6 @@ const Hotels = () => {
             </div>
           )}
 
-          {/* Filters and Sort Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="gap-1.5 h-8 text-xs border-gray-200 hover:border-green-400 hover:bg-green-50 transition-colors"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                Filters
-                {showFilters ? <ChevronDown className="h-3 w-3" /> : null}
-              </Button>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="text-xs font-medium">Sort by:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border-0 bg-transparent focus:outline-none text-xs font-medium text-green-600 cursor-pointer"
-                >
-                  <option value="rating">⭐ Top Rated</option>
-                  <option value="price">💰 Price: Low to High</option>
-                  <option value="popularity">🔥 Most Popular</option>
-                </select>
-              </div>
-
-              {selectedCity !== "all" && (
-                <Badge
-                  variant="secondary"
-                  className="text-xs bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
-                >
-                  {selectedCity}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-red-500"
-                    onClick={() => {
-                      setSelectedCity("all");
-                      setSearchQuery("");
-                    }}
-                  />
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex border rounded-lg overflow-hidden shadow-sm">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-1.5 px-3 text-xs transition-all ${
-                    viewMode === "grid"
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  Grid
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-1.5 px-3 text-xs transition-all ${
-                    viewMode === "list"
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  List
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters Panel */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-3">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1.5">📍 City</label>
-                      <select
-                        value={selectedCity}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      >
-                        <option value="all">All Cities</option>
-                        {popularLocations.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1.5">⭐ Min Rating</label>
-                      <select
-                        value={starRating}
-                        onChange={(e) => setStarRating(parseInt(e.target.value))}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      >
-                        <option value="0">Any Rating</option>
-                        <option value="3">3+ Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="5">5 Stars</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 block mb-1.5">💰 Max Price</label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="20000"
-                        step="500"
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                        className="w-full mt-1 accent-green-600"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                        <span>₹0</span>
-                        <span className="font-medium text-green-600">₹{priceRange[1].toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedCity("all");
-                          setStarRating(0);
-                          setPriceRange([0, 20000]);
-                          setSearchQuery("");
-                        }}
-                        className="flex-1 h-9 text-xs border-gray-200 hover:border-red-400 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <X className="h-3 w-3 mr-1" />
-                        Clear All
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => setShowFilters(false)}
-                        className="flex-1 h-9 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                      >
-                        Apply Filters
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Hotels Grid */}
           {filteredAndSortedHotels.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -932,22 +862,15 @@ const Hotels = () => {
                 className="mt-4 border-green-200 text-green-600 hover:bg-green-50"
                 onClick={() => {
                   setSelectedCity("all");
-                  setStarRating(0);
-                  setPriceRange([0, 20000]);
                   setSearchQuery("");
+                  setSelectedPriceRange("all");
                 }}
               >
                 Clear all filters
               </Button>
             </div>
           ) : (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                  : "space-y-3"
-              }
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedHotels.map((hotel, index) => (
                 <motion.div
                   key={hotel.id}
@@ -958,17 +881,9 @@ const Hotels = () => {
                   className="cursor-pointer h-full"
                   onClick={() => handleHotelClick(hotel)}
                 >
-                  <Card
-                    className={`overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col ${
-                      viewMode === "list" ? "flex-row" : ""
-                    }`}
-                  >
+                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 shadow-md rounded-2xl h-full flex flex-col">
                     {/* Image Section */}
-                    <div
-                      className={`relative flex-shrink-0 ${
-                        viewMode === "list" ? "w-52 h-52" : "h-52 w-full"
-                      } bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden`}
-                    >
+                    <div className="relative h-52 w-full bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex-shrink-0">
                       {hotel.images && hotel.images[0] ? (
                         <img
                           src={hotel.images[0]}
@@ -1008,28 +923,10 @@ const Hotels = () => {
                           }`}
                         />
                       </button>
-
-                      {viewMode === "list" && (
-                        <div className="absolute bottom-3 left-3 right-3 flex gap-1.5">
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-white text-gray-700 text-xs h-8 rounded-xl shadow-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedHotel(hotel);
-                              setShowHotelOnlyModal(true);
-                            }}
-                          >
-                            Quick Book
-                          </Button>
-                        </div>
-                      )}
                     </div>
 
                     {/* Content */}
-                    <CardContent
-                      className={`p-3.5 flex-1 flex flex-col ${viewMode === "list" ? "justify-between" : ""}`}
-                    >
+                    <CardContent className="p-3.5 flex-1 flex flex-col">
                       <div>
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-semibold text-sm line-clamp-1 hover:text-green-600 transition-colors">
@@ -1045,7 +942,7 @@ const Hotels = () => {
                           </span>
                         </div>
 
-                        {hotel.amenities && hotel.amenities.length > 0 && viewMode !== "list" && (
+                        {hotel.amenities && hotel.amenities.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {hotel.amenities.slice(0, 3).map((amenity) => (
                               <Badge
@@ -1065,21 +962,6 @@ const Hotels = () => {
                                 +{hotel.amenities.length - 3}
                               </Badge>
                             )}
-                          </div>
-                        )}
-
-                        {viewMode === "list" && hotel.amenities && hotel.amenities.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-2.5">
-                            {hotel.amenities.slice(0, 5).map((amenity) => (
-                              <Badge
-                                key={amenity}
-                                variant="outline"
-                                className="text-[9px] px-2 py-0.5 bg-gray-50 border-gray-200 gap-1 rounded-full"
-                              >
-                                {getAmenityIcon(amenity)}
-                                <span className="ml-0.5 truncate max-w-[60px]">{amenity}</span>
-                              </Badge>
-                            ))}
                           </div>
                         )}
                       </div>
@@ -1108,7 +990,7 @@ const Hotels = () => {
                             setShowHotelOnlyModal(true);
                           }}
                         >
-                          {viewMode === "list" ? "Book Now" : "Book"}
+                          Book
                         </Button>
                       </div>
                     </CardContent>
