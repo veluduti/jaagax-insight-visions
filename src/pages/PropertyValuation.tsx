@@ -8,13 +8,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Sparkles, TrendingUp, MapPin, Home, Calendar, Sofa, Building2,
-  Train, School, Hospital, ArrowRight, Loader2, GitCompare, CalendarCheck,
-  Search, CheckCircle2, AlertCircle, Info,
+  Sparkles,
+  TrendingUp,
+  MapPin,
+  Home,
+  Calendar,
+  Sofa,
+  Building2,
+  Train,
+  School,
+  Hospital,
+  ArrowRight,
+  Loader2,
+  GitCompare,
+  CalendarCheck,
+  Search,
+  CheckCircle2,
+  AlertCircle,
+  Info,
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,8 +35,31 @@ import { toast } from "sonner";
 
 // ---- Localities knowledge base ----
 const LOCALITIES: Record<string, string[]> = {
-  Hyderabad: ["Gachibowli", "Banjara Hills", "Jubilee Hills", "Hitech City", "Madhapur", "Kondapur", "Kukatpally", "Manikonda", "Financial District", "Miyapur", "Begumpet", "Secunderabad"],
-  Vijayawada: ["Benz Circle", "MG Road", "Bhavanipuram", "Auto Nagar", "Patamata", "Gunadala", "Tadepalli", "Mangalagiri", "Penamaluru"],
+  Hyderabad: [
+    "Gachibowli",
+    "Banjara Hills",
+    "Jubilee Hills",
+    "Hitech City",
+    "Madhapur",
+    "Kondapur",
+    "Kukatpally",
+    "Manikonda",
+    "Financial District",
+    "Miyapur",
+    "Begumpet",
+    "Secunderabad",
+  ],
+  Vijayawada: [
+    "Benz Circle",
+    "MG Road",
+    "Bhavanipuram",
+    "Auto Nagar",
+    "Patamata",
+    "Gunadala",
+    "Tadepalli",
+    "Mangalagiri",
+    "Penamaluru",
+  ],
   Bengaluru: ["Whitefield", "Koramangala", "Indiranagar", "HSR Layout", "Electronic City", "Marathahalli", "Sarjapur"],
   Guntur: ["Brodipet", "Arundelpet", "Lakshmipuram", "Pattabhipuram"],
 };
@@ -75,9 +111,12 @@ const PropertyValuation = () => {
   const localityOptions = useMemo(() => LOCALITIES[form.city] || [], [form.city]);
 
   useEffect(() => {
-    if (!form.locality) { setLocalitySuggest([]); return; }
+    if (!form.locality) {
+      setLocalitySuggest([]);
+      return;
+    }
     const q = form.locality.toLowerCase();
-    setLocalitySuggest(localityOptions.filter(l => l.toLowerCase().includes(q)).slice(0, 6));
+    setLocalitySuggest(localityOptions.filter((l) => l.toLowerCase().includes(q)).slice(0, 6));
   }, [form.locality, localityOptions]);
 
   const validate = () => {
@@ -109,21 +148,23 @@ const PropertyValuation = () => {
       if (error) throw error;
 
       const all = cityProps || [];
-      const localityMatch = all.filter(p => p.locality?.toLowerCase().includes(form.locality.toLowerCase()));
-      const typeMatch = (form.propertyType
-        ? localityMatch.filter(p => (p.type || "").toLowerCase() === form.propertyType.toLowerCase())
-        : localityMatch);
+      const localityMatch = all.filter((p) => p.locality?.toLowerCase().includes(form.locality.toLowerCase()));
+      const typeMatch = form.propertyType
+        ? localityMatch.filter((p) => (p.type || "").toLowerCase() === form.propertyType.toLowerCase())
+        : localityMatch;
 
       // pick best comparable set
-      const baseSet = typeMatch.length >= 3 ? typeMatch : (localityMatch.length >= 3 ? localityMatch : all);
+      const baseSet = typeMatch.length >= 3 ? typeMatch : localityMatch.length >= 3 ? localityMatch : all;
 
       const validPsf = baseSet
-        .map(p => (Number(p.price) || 0) / (Number(p.area_sqft) || 1))
-        .filter(v => v > 500 && v < 50000);
+        .map((p) => (Number(p.price) || 0) / (Number(p.area_sqft) || 1))
+        .filter((v) => v > 500 && v < 50000);
 
       const marketAvgPsf = validPsf.length
         ? validPsf.reduce((a, b) => a + b, 0) / validPsf.length
-        : (form.city.toLowerCase() === "vijayawada" ? 5000 : 8000);
+        : form.city.toLowerCase() === "vijayawada"
+          ? 5000
+          : 8000;
 
       // Apply multipliers
       const mult =
@@ -152,10 +193,10 @@ const PropertyValuation = () => {
 
       // Comparables (top 5 nearest by price)
       const comparables = baseSet
-        .filter(p => p.area_sqft && p.price)
-        .map(p => ({
+        .filter((p) => p.area_sqft && p.price)
+        .map((p) => ({
           ...p,
-          _diff: Math.abs((Number(p.price) / Number(p.area_sqft)) - adjPsf),
+          _diff: Math.abs(Number(p.price) / Number(p.area_sqft) - adjPsf),
         }))
         .sort((a, b) => a._diff - b._diff)
         .slice(0, 5);
@@ -169,23 +210,43 @@ const PropertyValuation = () => {
       if (validPsf.length >= 3) {
         const userPsf = adjPsf;
         const diffPct = ((userPsf - marketAvgPsf) / marketAvgPsf) * 100;
-        if (Math.abs(diffPct) < 8) insights.push({ type: "positive", text: "Fairly priced compared to nearby market average" });
-        else if (diffPct > 0) insights.push({ type: "warning", text: `Estimate is ${diffPct.toFixed(0)}% above area average — premium feature pricing` });
-        else insights.push({ type: "positive", text: `Estimate is ${Math.abs(diffPct).toFixed(0)}% below area average — potential good deal` });
+        if (Math.abs(diffPct) < 8)
+          insights.push({ type: "positive", text: "Fairly priced compared to nearby market average" });
+        else if (diffPct > 0)
+          insights.push({
+            type: "warning",
+            text: `Estimate is ${diffPct.toFixed(0)}% above area average — premium feature pricing`,
+          });
+        else
+          insights.push({
+            type: "positive",
+            text: `Estimate is ${Math.abs(diffPct).toFixed(0)}% below area average — potential good deal`,
+          });
       }
-      if (growthPct > 10) insights.push({ type: "positive", text: `Prices up ~${growthPct.toFixed(1)}% in last 12 months — strong appreciation` });
+      if (growthPct > 10)
+        insights.push({
+          type: "positive",
+          text: `Prices up ~${growthPct.toFixed(1)}% in last 12 months — strong appreciation`,
+        });
       if (demand === "High") insights.push({ type: "positive", text: "High buyer demand — good liquidity for resale" });
-      if (form.propertyAge === "New") insights.push({ type: "positive", text: "New construction commands ~8% premium" });
-      if (form.furnishing === "Fully-furnished") insights.push({ type: "neutral", text: "Furnishing adds ~12% to base value" });
+      if (form.propertyAge === "New")
+        insights.push({ type: "positive", text: "New construction commands ~8% premium" });
+      if (form.furnishing === "Fully-furnished")
+        insights.push({ type: "neutral", text: "Furnishing adds ~12% to base value" });
 
       setValuation({
-        estimated, min, max,
+        estimated,
+        min,
+        max,
         pricePerSqft: Math.round(adjPsf),
         marketAvgPsf: Math.round(marketAvgPsf),
         confidence,
         sampleSize: validPsf.length,
-        trend, growthPct,
-        comparables, insights, demand,
+        trend,
+        growthPct,
+        comparables,
+        insights,
+        demand,
       });
       toast.success("Valuation ready");
     } catch (err) {
@@ -196,14 +257,18 @@ const PropertyValuation = () => {
     }
   };
 
-  const fieldError = (k: string) => errors[k] && (
-    <p className="text-xs text-destructive mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{errors[k]}</p>
-  );
+  const fieldError = (k: string) =>
+    errors[k] && (
+      <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+        <AlertCircle className="h-3 w-3" />
+        {errors[k]}
+      </p>
+    );
 
   return (
     <div className="min-h-screen">
       <Navigation />
-      <div className="pt-24 pb-16">
+      <div className="pt-24 pb-2">
         <div className="container mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
             <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
@@ -226,10 +291,16 @@ const PropertyValuation = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Label>City *</Label>
-                    <Select value={form.city} onValueChange={v => setForm({ ...form, city: v, locality: "" })}>
-                      <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v, locality: "" })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select city" />
+                      </SelectTrigger>
                       <SelectContent>
-                        {Object.keys(LOCALITIES).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {Object.keys(LOCALITIES).map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     {fieldError("city")}
@@ -241,17 +312,27 @@ const PropertyValuation = () => {
                       placeholder={form.city ? "Type or pick from list" : "Select city first"}
                       value={form.locality}
                       disabled={!form.city}
-                      onChange={e => { setForm({ ...form, locality: e.target.value }); setShowSuggest(true); }}
+                      onChange={(e) => {
+                        setForm({ ...form, locality: e.target.value });
+                        setShowSuggest(true);
+                      }}
                       onFocus={() => setShowSuggest(true)}
                       onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
                     />
                     {showSuggest && localitySuggest.length > 0 && (
                       <div className="absolute z-20 mt-1 w-full bg-popover border border-border rounded-md shadow-lg max-h-48 overflow-auto">
-                        {localitySuggest.map(l => (
-                          <button type="button" key={l}
+                        {localitySuggest.map((l) => (
+                          <button
+                            type="button"
+                            key={l}
                             className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
-                            onMouseDown={() => { setForm({ ...form, locality: l }); setShowSuggest(false); }}>
-                            <MapPin className="inline h-3 w-3 mr-2" />{l}
+                            onMouseDown={() => {
+                              setForm({ ...form, locality: l });
+                              setShowSuggest(false);
+                            }}
+                          >
+                            <MapPin className="inline h-3 w-3 mr-2" />
+                            {l}
                           </button>
                         ))}
                       </div>
@@ -261,8 +342,10 @@ const PropertyValuation = () => {
 
                   <div>
                     <Label>Property Type *</Label>
-                    <Select value={form.propertyType} onValueChange={v => setForm({ ...form, propertyType: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <Select value={form.propertyType} onValueChange={(v) => setForm({ ...form, propertyType: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Apartment">Apartment</SelectItem>
                         <SelectItem value="Villa">Villa</SelectItem>
@@ -275,8 +358,10 @@ const PropertyValuation = () => {
                   {form.propertyType !== "Plot" && (
                     <div>
                       <Label>Bedrooms *</Label>
-                      <Select value={form.bedrooms} onValueChange={v => setForm({ ...form, bedrooms: v })}>
-                        <SelectTrigger><SelectValue placeholder="Select BHK" /></SelectTrigger>
+                      <Select value={form.bedrooms} onValueChange={(v) => setForm({ ...form, bedrooms: v })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select BHK" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1">1 BHK</SelectItem>
                           <SelectItem value="2">2 BHK</SelectItem>
@@ -290,15 +375,21 @@ const PropertyValuation = () => {
 
                   <div>
                     <Label>Area (sqft) *</Label>
-                    <Input type="number" placeholder="e.g., 1500" value={form.area}
-                      onChange={e => setForm({ ...form, area: e.target.value })} />
+                    <Input
+                      type="number"
+                      placeholder="e.g., 1500"
+                      value={form.area}
+                      onChange={(e) => setForm({ ...form, area: e.target.value })}
+                    />
                     {fieldError("area")}
                   </div>
 
                   <div>
                     <Label>Property Age *</Label>
-                    <Select value={form.propertyAge} onValueChange={v => setForm({ ...form, propertyAge: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select age" /></SelectTrigger>
+                    <Select value={form.propertyAge} onValueChange={(v) => setForm({ ...form, propertyAge: v })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select age" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="New">New (under construction / ready)</SelectItem>
                         <SelectItem value="1-5">1–5 years</SelectItem>
@@ -311,8 +402,10 @@ const PropertyValuation = () => {
                   {form.propertyType !== "Plot" && (
                     <div>
                       <Label>Furnishing *</Label>
-                      <Select value={form.furnishing} onValueChange={v => setForm({ ...form, furnishing: v })}>
-                        <SelectTrigger><SelectValue placeholder="Select furnishing" /></SelectTrigger>
+                      <Select value={form.furnishing} onValueChange={(v) => setForm({ ...form, furnishing: v })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select furnishing" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Unfurnished">Unfurnished</SelectItem>
                           <SelectItem value="Semi-furnished">Semi-furnished</SelectItem>
@@ -325,12 +418,24 @@ const PropertyValuation = () => {
 
                   <div>
                     <Label>Floor (optional)</Label>
-                    <Input type="number" placeholder="e.g., 5" value={form.floor}
-                      onChange={e => setForm({ ...form, floor: e.target.value })} />
+                    <Input
+                      type="number"
+                      placeholder="e.g., 5"
+                      value={form.floor}
+                      onChange={(e) => setForm({ ...form, floor: e.target.value })}
+                    />
                   </div>
 
                   <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                    {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Calculating...</> : <><Sparkles className="h-4 w-4 mr-2" /> Get Valuation</>}
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Calculating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" /> Get Valuation
+                      </>
+                    )}
                   </Button>
                 </form>
               </Card>
@@ -347,7 +452,8 @@ const PropertyValuation = () => {
                       </div>
                       <h3 className="text-2xl font-bold mb-2">Get an instant valuation</h3>
                       <p className="text-muted-foreground max-w-md">
-                        Fill in the property details on the left to receive a detailed valuation with market trends, comparables and smart insights.
+                        Fill in the property details on the left to receive a detailed valuation with market trends,
+                        comparables and smart insights.
                       </p>
                     </Card>
                   </motion.div>
@@ -364,7 +470,12 @@ const PropertyValuation = () => {
                 )}
 
                 {valuation && !loading && (
-                  <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-5"
+                  >
                     {/* 1. PRICE ESTIMATION */}
                     <Card className="glass-panel p-6 border-primary/30">
                       <div className="flex items-center justify-between mb-4">
@@ -382,7 +493,8 @@ const PropertyValuation = () => {
                           {fmtINR(valuation.min)} – {fmtINR(valuation.max)}
                         </p>
                         <p className="text-sm text-muted-foreground mt-2">
-                          Most likely: <span className="font-semibold text-foreground">{fmtINR(valuation.estimated)}</span>
+                          Most likely:{" "}
+                          <span className="font-semibold text-foreground">{fmtINR(valuation.estimated)}</span>
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-3 mt-4">
@@ -416,13 +528,26 @@ const PropertyValuation = () => {
                           <LineChart data={valuation.trend}>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                             <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11}
-                              tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+                            <YAxis
+                              stroke="hsl(var(--muted-foreground))"
+                              fontSize={11}
+                              tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                            />
                             <Tooltip
-                              contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                              contentStyle={{
+                                background: "hsl(var(--popover))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: 8,
+                              }}
                               formatter={(v: any) => [`₹${Number(v).toLocaleString("en-IN")}/sqft`, "Avg Price"]}
                             />
-                            <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} />
+                            <Line
+                              type="monotone"
+                              dataKey="price"
+                              stroke="hsl(var(--primary))"
+                              strokeWidth={2.5}
+                              dot={{ r: 3 }}
+                            />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
@@ -436,17 +561,26 @@ const PropertyValuation = () => {
                         </h3>
                         <div className="space-y-3">
                           {valuation.comparables.map((p) => (
-                            <div key={p.id}
+                            <div
+                              key={p.id}
                               onClick={() => window.open(`/property/${p.id}`, "_blank")}
-                              className="flex gap-3 p-3 rounded-lg bg-background/50 border border-border hover:border-primary/50 cursor-pointer transition-all">
+                              className="flex gap-3 p-3 rounded-lg bg-background/50 border border-border hover:border-primary/50 cursor-pointer transition-all"
+                            >
                               <img
                                 src={p.images?.[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"}
                                 alt={p.title}
-                                onError={(e: any) => { e.target.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200"; }}
-                                className="w-20 h-20 object-cover rounded-md flex-shrink-0" loading="lazy" decoding="async" />
+                                onError={(e: any) => {
+                                  e.target.src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200";
+                                }}
+                                className="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                                loading="lazy"
+                                decoding="async"
+                              />
                               <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm truncate">{p.title}</p>
-                                <p className="text-xs text-muted-foreground truncate">{p.locality}, {p.city}</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {p.locality}, {p.city}
+                                </p>
                                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                                   <span>{p.area_sqft} sqft</span>
                                   {p.bedrooms && <span>• {p.bedrooms} BHK</span>}
@@ -455,7 +589,9 @@ const PropertyValuation = () => {
                               </div>
                               <div className="text-right flex-shrink-0">
                                 <p className="font-bold text-primary">{fmtINR(Number(p.price))}</p>
-                                <p className="text-xs text-muted-foreground">₹{Math.round(Number(p.price) / Number(p.area_sqft)).toLocaleString("en-IN")}/sqft</p>
+                                <p className="text-xs text-muted-foreground">
+                                  ₹{Math.round(Number(p.price) / Number(p.area_sqft)).toLocaleString("en-IN")}/sqft
+                                </p>
                               </div>
                             </div>
                           ))}
@@ -475,16 +611,24 @@ const PropertyValuation = () => {
                         </div>
                         <div className="p-3 rounded-lg bg-background/50 border border-border">
                           <p className="text-xs text-muted-foreground">Demand</p>
-                          <p className={`text-lg font-bold ${valuation.demand === "High" ? "text-green-500" : valuation.demand === "Medium" ? "text-yellow-500" : "text-orange-500"}`}>
+                          <p
+                            className={`text-lg font-bold ${valuation.demand === "High" ? "text-green-500" : valuation.demand === "Medium" ? "text-yellow-500" : "text-orange-500"}`}
+                          >
                             {valuation.demand}
                           </p>
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">Nearby infrastructure</p>
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="gap-1"><Train className="h-3 w-3" /> Metro 1.2 km</Badge>
-                        <Badge variant="outline" className="gap-1"><School className="h-3 w-3" /> 8+ Schools</Badge>
-                        <Badge variant="outline" className="gap-1"><Hospital className="h-3 w-3" /> 5+ Hospitals</Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <Train className="h-3 w-3" /> Metro 1.2 km
+                        </Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <School className="h-3 w-3" /> 8+ Schools
+                        </Badge>
+                        <Badge variant="outline" className="gap-1">
+                          <Hospital className="h-3 w-3" /> 5+ Hospitals
+                        </Badge>
                       </div>
                     </Card>
 
@@ -497,8 +641,12 @@ const PropertyValuation = () => {
                         <div className="space-y-2">
                           {valuation.insights.map((ins, i) => (
                             <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-background/50">
-                              {ins.type === "positive" && <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />}
-                              {ins.type === "warning" && <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />}
+                              {ins.type === "positive" && (
+                                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              )}
+                              {ins.type === "warning" && (
+                                <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                              )}
                               {ins.type === "neutral" && <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />}
                               <p className="text-sm">{ins.text}</p>
                             </div>
@@ -511,15 +659,22 @@ const PropertyValuation = () => {
                     <Card className="glass-panel p-6">
                       <h3 className="text-lg font-bold mb-4">Take action</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <Button variant="outline" onClick={() => navigate(`/search?city=${form.city}&locality=${form.locality}`)}>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/search?city=${form.city}&locality=${form.locality}`)}
+                        >
                           <Search className="h-4 w-4 mr-2" /> Similar Properties
                         </Button>
                         <Button variant="outline" onClick={() => navigate("/compare")}>
                           <GitCompare className="h-4 w-4 mr-2" /> Add to Compare
                         </Button>
-                        <Button onClick={() => valuation.comparables[0]
-                          ? navigate(`/visit/schedule/${valuation.comparables[0].id}`)
-                          : navigate("/search")}>
+                        <Button
+                          onClick={() =>
+                            valuation.comparables[0]
+                              ? navigate(`/visit/schedule/${valuation.comparables[0].id}`)
+                              : navigate("/search")
+                          }
+                        >
                           <CalendarCheck className="h-4 w-4 mr-2" /> Schedule Visit
                         </Button>
                       </div>
