@@ -1081,16 +1081,16 @@ const Hotels = () => {
 
                       {/* Badges */}
                       <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-                        {hotel.discount_percentage && (
+                        {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
                           <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
                             🔥 {hotel.discount_percentage}% OFF
                           </Badge>
-                        )}
-                        {hotel.star_rating && hotel.star_rating >= 4.5 && (
+                        ) : null}
+                        {hotel.star_rating && hotel.star_rating >= 4.5 ? (
                           <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-black border-0 text-[10px] px-2.5 py-1 shadow-lg">
                             ⭐ Premium
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
 
                       <button
@@ -1117,10 +1117,12 @@ const Hotels = () => {
                           {renderStars(hotel.star_rating)}
                         </div>
 
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                          <MapPin className="h-3 w-3 flex-shrink-0 text-green-500" />
-                          <span className="line-clamp-1">
-                            {hotel.locality}, {hotel.city}
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                          <MapPin className="h-3 w-3 flex-shrink-0 text-primary" />
+                          <span className="line-clamp-1 capitalize">
+                            {hotel.locality && hotel.city && hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
+                              ? `${hotel.locality}, ${hotel.city}`
+                              : (hotel.city || hotel.locality || "")}
                           </span>
                         </div>
 
@@ -1148,24 +1150,24 @@ const Hotels = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 mt-auto">
+                      <div className="flex items-center justify-between pt-2.5 border-t border-border mt-auto">
                         <div>
                           <div className="flex items-baseline gap-1.5">
-                            <span className="text-[10px] text-gray-500">Starts from</span>
-                            <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            <span className="text-[10px] text-muted-foreground">Starts from</span>
+                            <span className="text-lg font-bold text-primary">
                               ₹{hotel.price_per_night.toLocaleString()}
                             </span>
-                            <span className="text-[10px] text-gray-500">/night</span>
+                            <span className="text-[10px] text-muted-foreground">/night</span>
                           </div>
-                          {hotel.discount_percentage && (
-                            <span className="text-[10px] text-green-600 font-medium">
+                          {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
+                            <span className="text-[10px] text-primary font-medium">
                               Save {hotel.discount_percentage}%
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <Button
                           size="sm"
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
+                          className="text-xs h-8 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedHotel(hotel);
