@@ -969,14 +969,7 @@ const Hotels = () => {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700 border-gray-300">
-                    Group Deals
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-200">
-                    NEW
-                  </Badge>
-                </div>
+                <div className="flex items-center gap-2"></div>
               </div>
             </div>
 
