@@ -36,6 +36,7 @@ import {
   User,
   UserPlus,
   Baby,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -81,11 +82,13 @@ interface VisitPackage {
 }
 
 interface SearchSuggestion {
-  type: "city" | "hotel" | "locality" | "popular";
+  type: "city" | "hotel" | "locality" | "popular" | "recent";
   name: string;
   subtitle?: string;
   count?: number;
   icon?: React.ReactNode;
+  date?: string;
+  guests?: string;
 }
 
 interface ChildAge {
@@ -138,6 +141,12 @@ const Hotels = () => {
   const [tempChildren, setTempChildren] = useState(0);
   const [tempChildAges, setTempChildAges] = useState<ChildAge[]>([]);
 
+  // Recent searches
+  const [recentSearches] = useState<SearchSuggestion[]>([
+    { type: "recent", name: "Goa", date: "22 Jul - 23 Jul", guests: "2 Guests | 1 Room" },
+    { type: "recent", name: "Goa", date: "30 Jun - 01 Jul", guests: "2 Guests | 1 Room" },
+  ]);
+
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
 
@@ -170,6 +179,17 @@ const Hotels = () => {
       if (guestSelectorRef.current && !guestSelectorRef.current.contains(event.target as Node)) {
         setShowGuestSelector(false);
         setShowChildAgeSelector(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Click outside handler for suggestions - IMPROVED
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -264,36 +284,23 @@ const Hotels = () => {
     }
   }, [detectedLocation]);
 
-  // Click outside handler for suggestions
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Get suggestions based on search query - Real-world hotel search behavior
+  // Get suggestions based on search query - IMPROVED to match image 1 style
   useEffect(() => {
     if (searchQuery.length === 0) {
-      // Show popular suggestions when empty
-      const popularSuggestions: SearchSuggestion[] = [
-        { type: "popular", name: "Popular Cities", subtitle: "Trending destinations" },
+      // Show recent searches and popular suggestions when empty
+      const emptySuggestions: SearchSuggestion[] = [
+        ...recentSearches.map((recent) => ({
+          ...recent,
+          type: "recent" as const,
+        })),
+        { type: "popular", name: "SUGGESTIONS", subtitle: "" },
         ...popularLocations.slice(0, 3).map((city) => ({
           type: "city" as const,
           name: city,
           count: hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length,
         })),
-        { type: "popular", name: "Popular Hotels", subtitle: "Most booked properties" },
-        ...popularHotels.slice(0, 3).map((hotel) => ({
-          type: "hotel" as const,
-          name: hotel,
-          subtitle: "Popular chain",
-        })),
       ];
-      setSuggestions(popularSuggestions);
+      setSuggestions(emptySuggestions);
       return;
     }
 
@@ -302,7 +309,7 @@ const Hotels = () => {
 
     const newSuggestions: SearchSuggestion[] = [];
 
-    // 1. City suggestions (exact match priority)
+    // 1. City suggestions (exact match priority) - with better formatting
     const cityMatches = popularLocations.filter((city) => city.toLowerCase().includes(query));
     cityMatches.forEach((city) => {
       const count = hotels.filter((h) => h.city.toLowerCase() === city.toLowerCase()).length;
@@ -314,12 +321,11 @@ const Hotels = () => {
       });
     });
 
-    // 2. Hotel name suggestions
+    // 2. Hotel name suggestions - with location and count
     const hotelMatches = hotels.filter(
       (hotel) => hotel.name.toLowerCase().includes(query) || hotel.locality.toLowerCase().includes(query),
     );
 
-    // Remove duplicates and limit
     const uniqueHotelMatches = hotelMatches.filter(
       (hotel, index, self) => index === self.findIndex((h) => h.name === hotel.name),
     );
@@ -348,7 +354,7 @@ const Hotels = () => {
     // Limit total suggestions
     setSuggestions(newSuggestions.slice(0, 12));
     setIsSearching(false);
-  }, [searchQuery, hotels]);
+  }, [searchQuery, hotels, recentSearches]);
 
   // Get amenity icon with colors
   const getAmenityIcon = (amenity: string) => {
@@ -386,7 +392,6 @@ const Hotels = () => {
         hotel.locality.toLowerCase().includes(q) ||
         (hotel.address || "").toLowerCase().includes(q);
 
-      // Apply price range filter from advanced search
       let matchesPrice = true;
       if (selectedPriceRange !== "all") {
         const [min, max] = selectedPriceRange.split("-").map(Number);
@@ -400,7 +405,6 @@ const Hotels = () => {
       return matchesCity && matchesSearch && matchesPrice;
     });
 
-    // Sort by rating (default)
     result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
@@ -416,35 +420,19 @@ const Hotels = () => {
     } else {
       toast.success(`${count} hotel${count === 1 ? "" : "s"} match your search`);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchSubmitToken]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      // Check if it's a city
       const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
       if (matchedCity) {
         setSelectedCity(matchedCity);
         navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
-      } else {
-        // Search by hotel name or locality
-        const matchedHotel = hotels.find(
-          (h) =>
-            h.name.toLowerCase() === searchQuery.toLowerCase() ||
-            h.locality.toLowerCase() === searchQuery.toLowerCase(),
-        );
-        if (matchedHotel) {
-          // Filter hotels by the search query
-          // The filter will handle it via the matchesSearch condition
-        }
       }
     }
     setShowSuggestions(false);
   };
 
-  // Advanced search handler — always applies the search inputs to the filter,
-  // matches against any hotel city (not just the popular seed list), and
-  // updates the URL so the search is shareable/back-navigable.
   const handleAdvancedSearch = () => {
     setShowSuggestions(false);
     const q = searchQuery.trim();
@@ -453,8 +441,6 @@ const Hotels = () => {
     if (!q) {
       setSelectedCity("all");
     } else {
-      // Prefer an exact city match from the loaded hotel data,
-      // then fall back to popular seed list, then to a substring city match.
       const exactCityHotel = hotels.find((h) => h.city.toLowerCase() === q.toLowerCase());
       const popularCity = popularLocations.find((c) => c.toLowerCase() === q.toLowerCase());
       const partialCityHotel = hotels.find((h) => h.city.toLowerCase().includes(q.toLowerCase()));
@@ -471,8 +457,6 @@ const Hotels = () => {
 
     if (selectedPriceRange !== "all") params.set("price", selectedPriceRange);
     navigate(`/hotels${params.toString() ? `?${params.toString()}` : ""}`);
-
-    // Signal a search was submitted so a toast with the result count can fire once the memo settles.
     setSearchSubmitToken((n) => n + 1);
   };
 
@@ -483,9 +467,15 @@ const Hotels = () => {
       navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
     } else if (suggestion.type === "hotel" || suggestion.type === "locality") {
       setSearchQuery(suggestion.name);
-      // Focus on the search input after selecting
       if (inputRef.current) {
         inputRef.current.focus();
+      }
+    } else if (suggestion.type === "recent") {
+      setSearchQuery(suggestion.name);
+      const matchedCity = popularLocations.find((c) => c.toLowerCase() === suggestion.name.toLowerCase());
+      if (matchedCity) {
+        setSelectedCity(matchedCity);
+        navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
       }
     }
     setShowSuggestions(false);
@@ -521,6 +511,8 @@ const Hotels = () => {
         return <MapPin className="h-4 w-4 text-purple-600" />;
       case "popular":
         return <TrendingUpIcon className="h-4 w-4 text-orange-600" />;
+      case "recent":
+        return <Clock className="h-4 w-4 text-gray-400" />;
       default:
         return <Search className="h-4 w-4 text-gray-400" />;
     }
@@ -536,12 +528,13 @@ const Hotels = () => {
         return "bg-purple-50";
       case "popular":
         return "bg-orange-50";
+      case "recent":
+        return "bg-gray-50";
       default:
         return "bg-gray-50";
     }
   };
 
-  // Helper function to get the guest display text
   const getGuestDisplayText = () => {
     let text = `${rooms} Room${rooms > 1 ? "s" : ""}`;
     text += `, ${adults} Adult${adults > 1 ? "s" : ""}`;
@@ -632,7 +625,7 @@ const Hotels = () => {
             <div className="mt-4 bg-white rounded-2xl shadow-2xl p-4 relative z-50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Location */}
-                <div className="relative">
+                <div ref={searchRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <MapPin className="h-3 w-3 inline mr-1 text-gray-600" />
                     City, Property Name Or Location
@@ -640,7 +633,7 @@ const Hotels = () => {
                   <div className="relative">
                     <Input
                       ref={inputRef}
-                      placeholder="Search city or hotel..."
+                      placeholder="Where do you want to stay?"
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -650,9 +643,10 @@ const Hotels = () => {
                       onKeyPress={(e) => e.key === "Enter" && handleAdvancedSearch()}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     />
-                    {/* Suggestions dropdown */}
+
+                    {/* Suggestions Dropdown - IMPROVED to match image 1 */}
                     {showSuggestions && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border z-[100] max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-[100] max-h-80 overflow-y-auto">
                         {isSearching ? (
                           <div className="px-4 py-3 text-sm text-gray-500 flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-500 border-t-transparent" />
@@ -661,35 +655,70 @@ const Hotels = () => {
                         ) : suggestions.length === 0 ? (
                           <div className="px-4 py-3 text-sm text-gray-500">No results found for "{searchQuery}"</div>
                         ) : (
-                          suggestions.map((suggestion, index) => (
-                            <button
-                              key={`${suggestion.type}-${suggestion.name}-${index}`}
-                              onClick={() => {
-                                setSearchQuery(suggestion.name);
-                                setShowSuggestions(false);
-                                if (suggestion.type === "city") {
-                                  setSelectedCity(suggestion.name);
-                                  navigate(`/hotels?city=${encodeURIComponent(suggestion.name)}`);
-                                }
-                              }}
-                              className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors flex items-center gap-2 border-b last:border-b-0"
-                            >
-                              <div
-                                className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
+                          suggestions.map((suggestion, index) => {
+                            // Skip rendering "SUGGESTIONS" as a separate item, we'll render it as a header
+                            if (suggestion.type === "popular" && suggestion.name === "SUGGESTIONS") {
+                              return (
+                                <div
+                                  key={`header-${index}`}
+                                  className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100"
+                                >
+                                  {suggestion.name}
+                                </div>
+                              );
+                            }
+
+                            // Recent search item
+                            if (suggestion.type === "recent") {
+                              return (
+                                <button
+                                  key={`${suggestion.type}-${suggestion.name}-${index}`}
+                                  onClick={() => handleSuggestionClick(suggestion)}
+                                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-start gap-3 border-b border-gray-100 last:border-b-0 group"
+                                >
+                                  <div className="p-1.5 bg-gray-100 rounded-full flex-shrink-0 mt-0.5">
+                                    <Clock className="h-4 w-4 text-gray-400" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-medium text-gray-900">{suggestion.name}</span>
+                                      <span className="text-xs text-gray-400">{suggestion.date}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-400">{suggestion.guests}</p>
+                                  </div>
+                                </button>
+                              );
+                            }
+
+                            // City, Hotel, Locality suggestions
+                            return (
+                              <button
+                                key={`${suggestion.type}-${suggestion.name}-${index}`}
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0 group"
                               >
-                                {getSuggestionIcon(suggestion.type)}
-                              </div>
-                              <div className="flex-1">
-                                <span className="text-sm font-medium text-gray-900">{suggestion.name}</span>
-                                {suggestion.subtitle && <p className="text-xs text-gray-500">{suggestion.subtitle}</p>}
-                                {suggestion.count !== undefined && suggestion.count > 0 && (
-                                  <span className="text-xs text-green-600">
-                                    {suggestion.count} {suggestion.count === 1 ? "hotel" : "hotels"}
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          ))
+                                <div
+                                  className={`p-1.5 ${getSuggestionBgColor(suggestion.type)} rounded-full flex-shrink-0`}
+                                >
+                                  {getSuggestionIcon(suggestion.type)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-900">{suggestion.name}</span>
+                                    {suggestion.count !== undefined && suggestion.count > 0 && (
+                                      <span className="text-xs text-green-600 font-medium">
+                                        {suggestion.count} {suggestion.count === 1 ? "hotel" : "hotels"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {suggestion.subtitle && (
+                                    <p className="text-xs text-gray-400 truncate">{suggestion.subtitle}</p>
+                                  )}
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-gray-300 rotate-[-90deg] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </button>
+                            );
+                          })
                         )}
                       </div>
                     )}
@@ -732,7 +761,7 @@ const Hotels = () => {
                   />
                 </div>
 
-                {/* Rooms & Guests - Enhanced with Children Ages and Apply Button */}
+                {/* Rooms & Guests */}
                 <div ref={guestSelectorRef} className="relative">
                   <label className="text-xs font-medium text-gray-700 block mb-1">
                     <Users className="h-3 w-3 inline mr-1 text-gray-600" />
@@ -740,7 +769,6 @@ const Hotels = () => {
                   </label>
                   <div
                     onClick={() => {
-                      // Populate temp values with current values
                       setTempRooms(rooms);
                       setTempAdults(adults);
                       setTempChildren(children);
@@ -756,7 +784,6 @@ const Hotels = () => {
                     />
                   </div>
 
-                  {/* Guest Selector Popup - Enhanced with Children Ages and Apply Button */}
                   {showGuestSelector && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] p-4 min-w-[320px] max-h-[80vh] overflow-y-auto">
                       {/* Rooms */}
@@ -881,7 +908,6 @@ const Hotels = () => {
                       <div className="mt-4 pt-3 border-t border-gray-200">
                         <Button
                           onClick={() => {
-                            // Apply the temporary values to the main state
                             setRooms(tempRooms);
                             setAdults(tempAdults);
                             setChildren(tempChildren);
