@@ -71,11 +71,11 @@ const HotelCard = ({ hotel, onViewDetails, onBookNow }: HotelCardProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
           
           {/* Discount Badge */}
-          {hotel.discount_percentage && hotel.discount_percentage > 0 && (
+          {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
             <Badge className="absolute top-3 left-3 bg-emerald-500 hover:bg-emerald-600 text-white border-0">
               {hotel.discount_percentage}% OFF
             </Badge>
-          )}
+          ) : null}
 
           {/* Partner Badge */}
           <Badge variant="secondary" className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm">
@@ -88,23 +88,29 @@ const HotelCard = ({ hotel, onViewDetails, onBookNow }: HotelCardProps) => {
           </div>
 
           {/* Location */}
-          <div className="absolute bottom-3 right-3">
-            <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-foreground border-0 gap-1">
-              <MapPin className="h-3 w-3" />
-              {hotel.locality}
-            </Badge>
-          </div>
+          {hotel.locality ? (
+            <div className="absolute bottom-3 right-3">
+              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-foreground border-0 gap-1">
+                <MapPin className="h-3 w-3" />
+                {hotel.locality}
+              </Badge>
+            </div>
+          ) : null}
         </div>
 
         <CardContent className="p-4 space-y-3">
           {/* Hotel Name & City */}
           <div>
-            <h3 className="font-semibold text-lg line-clamp-1">{hotel.name}</h3>
-            <p className="text-sm text-muted-foreground">{hotel.city}</p>
+            <h3 className="font-semibold text-lg line-clamp-1 capitalize">{hotel.name}</h3>
+            <p className="text-sm text-muted-foreground capitalize">
+              {hotel.locality && hotel.city && hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
+                ? `${hotel.locality}, ${hotel.city}`
+                : hotel.city}
+            </p>
           </div>
 
           {/* Amenities */}
-          {hotel.amenities && hotel.amenities.length > 0 && (
+          {hotel.amenities && hotel.amenities.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
               {hotel.amenities.slice(0, 4).map((amenity, idx) => (
                 <Badge key={idx} variant="outline" className="text-xs gap-1 py-0.5">
@@ -112,23 +118,24 @@ const HotelCard = ({ hotel, onViewDetails, onBookNow }: HotelCardProps) => {
                   {amenity}
                 </Badge>
               ))}
-              {hotel.amenities.length > 4 && (
+              {hotel.amenities.length > 4 ? (
                 <Badge variant="outline" className="text-xs py-0.5">
                   +{hotel.amenities.length - 4} more
                 </Badge>
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
 
           {/* Price Section */}
           <div className="flex items-end justify-between pt-2 border-t border-border/50">
             <div>
-              {hotel.discount_percentage && hotel.discount_percentage > 0 && (
+              <span className="text-xs text-muted-foreground mr-1">Starts from</span>
+              {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
                 <span className="text-sm text-muted-foreground line-through mr-2">
                   ₹{hotel.price_per_night.toLocaleString()}
                 </span>
-              )}
-              <span className="text-xl font-bold text-foreground">
+              ) : null}
+              <span className="text-xl font-bold text-primary">
                 ₹{Math.round(discountedPrice).toLocaleString()}
               </span>
               <span className="text-sm text-muted-foreground">/night</span>
