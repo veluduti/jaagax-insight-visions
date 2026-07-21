@@ -1117,10 +1117,12 @@ const Hotels = () => {
                           {renderStars(hotel.star_rating)}
                         </div>
 
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                          <MapPin className="h-3 w-3 flex-shrink-0 text-green-500" />
-                          <span className="line-clamp-1">
-                            {hotel.locality}, {hotel.city}
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                          <MapPin className="h-3 w-3 flex-shrink-0 text-primary" />
+                          <span className="line-clamp-1 capitalize">
+                            {hotel.locality && hotel.city && hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
+                              ? `${hotel.locality}, ${hotel.city}`
+                              : (hotel.city || hotel.locality || "")}
                           </span>
                         </div>
 
