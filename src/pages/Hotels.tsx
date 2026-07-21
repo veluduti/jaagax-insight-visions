@@ -961,12 +961,11 @@ const Hotels = () => {
             {/* Quick booking banner */}
             <div className="mt-3 text-center">
               <p className="text-green-100 text-xs">
-                Book Domestic and International Property Online.
                 <button
                   onClick={() => navigate("/partners")}
                   className="underline font-medium hover:text-white transition-colors ml-1"
                 >
-                  To list your property Click Here
+                  To list your property Online Click Here
                 </button>
               </p>
             </div>
