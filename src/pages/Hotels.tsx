@@ -122,7 +122,9 @@ const Hotels = () => {
   const [children, setChildren] = useState(0);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
   const [showGuestSelector, setShowGuestSelector] = useState(false);
+  const [searchSubmitToken, setSearchSubmitToken] = useState(0);
   const guestSelectorRef = useRef<HTMLDivElement>(null);
+
 
   const popularLocations = ["Hyderabad", "Vijayawada", "Bangalore", "Mumbai", "Chennai", "Delhi", "Pune"];
   const popularHotels = ["Taj", "ITC", "Marriott", "Hilton", "Radisson"];
@@ -301,13 +303,18 @@ const Hotels = () => {
 
   // Filter and sort hotels
   const filteredAndSortedHotels = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     let result = hotels.filter((hotel) => {
-      const matchesCity = selectedCity === "all" || hotel.city.toLowerCase() === selectedCity.toLowerCase();
+      const matchesCity =
+        selectedCity === "all" ||
+        hotel.city.toLowerCase() === selectedCity.toLowerCase() ||
+        hotel.city.toLowerCase().includes(selectedCity.toLowerCase());
       const matchesSearch =
-        !searchQuery ||
-        hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hotel.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        hotel.locality.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        hotel.name.toLowerCase().includes(q) ||
+        hotel.city.toLowerCase().includes(q) ||
+        hotel.locality.toLowerCase().includes(q) ||
+        (hotel.address || "").toLowerCase().includes(q);
 
       // Apply price range filter from advanced search
       let matchesPrice = true;
@@ -328,6 +335,22 @@ const Hotels = () => {
 
     return result;
   }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
+
+  // After a Search click, report result count once the filter memo has resettled.
+  useEffect(() => {
+    if (searchSubmitToken === 0) return;
+    const count = filteredAndSortedHotels.length;
+    const q = searchQuery.trim();
+    if (count === 0) {
+      toast.info(`No hotels found${q ? ` for "${q}"` : ""}. Try different filters.`);
+    } else {
+      toast.success(`${count} hotel${count === 1 ? "" : "s"} match your search`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchSubmitToken]);
+
+
+
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -352,21 +375,41 @@ const Hotels = () => {
     setShowSuggestions(false);
   };
 
-  // Advanced search handler
+  // Advanced search handler — always applies the search inputs to the filter,
+  // matches against any hotel city (not just the popular seed list), and
+  // updates the URL so the search is shareable/back-navigable.
   const handleAdvancedSearch = () => {
-    if (searchQuery.trim()) {
-      // Check if it's a city
-      const matchedCity = popularLocations.find((c) => c.toLowerCase() === searchQuery.toLowerCase());
-      if (matchedCity) {
-        setSelectedCity(matchedCity);
-        navigate(`/hotels?city=${encodeURIComponent(matchedCity)}`);
+    setShowSuggestions(false);
+    const q = searchQuery.trim();
+    const params = new URLSearchParams();
+
+    if (!q) {
+      setSelectedCity("all");
+    } else {
+      // Prefer an exact city match from the loaded hotel data,
+      // then fall back to popular seed list, then to a substring city match.
+      const exactCityHotel = hotels.find((h) => h.city.toLowerCase() === q.toLowerCase());
+      const popularCity = popularLocations.find((c) => c.toLowerCase() === q.toLowerCase());
+      const partialCityHotel = hotels.find((h) => h.city.toLowerCase().includes(q.toLowerCase()));
+
+      const resolvedCity = exactCityHotel?.city || popularCity || partialCityHotel?.city;
+      if (resolvedCity) {
+        setSelectedCity(resolvedCity);
+        params.set("city", resolvedCity);
       } else {
-        // Apply filter by search query
-        navigate(`/hotels?search=${encodeURIComponent(searchQuery)}`);
+        setSelectedCity("all");
+        params.set("search", q);
       }
     }
-    setShowSuggestions(false);
+
+    if (selectedPriceRange !== "all") params.set("price", selectedPriceRange);
+    navigate(`/hotels${params.toString() ? `?${params.toString()}` : ""}`);
+
+    // Signal a search was submitted so a toast with the result count can fire once the memo settles.
+    setSearchSubmitToken((n) => n + 1);
   };
+
+
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (suggestion.type === "city") {
