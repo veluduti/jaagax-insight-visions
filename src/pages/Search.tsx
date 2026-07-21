@@ -813,7 +813,7 @@ const Search = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-24 pb-2">
+      <div className="pt-2 pb-2">
         <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Location selection screen — shown when the user has no saved location */}
           {!hasLocation && activeTab === "properties" && (
