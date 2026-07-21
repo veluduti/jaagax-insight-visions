@@ -600,10 +600,6 @@ const Hotels = () => {
                     <Trophy className="h-3 w-3 mr-1" />
                     Premium Partner Hotels
                   </Badge>
-                  <Badge className="bg-yellow-400/20 text-yellow-200 border-0 text-xs px-3 py-1">
-                    <Users className="h-3 w-3 mr-1" />
-                    Upto 4 Rooms
-                  </Badge>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
                   Find Your Perfect Stay
@@ -1122,7 +1118,7 @@ const Hotels = () => {
                           <span className="line-clamp-1 capitalize">
                             {hotel.locality && hotel.city && hotel.locality.toLowerCase() !== hotel.city.toLowerCase()
                               ? `${hotel.locality}, ${hotel.city}`
-                              : (hotel.city || hotel.locality || "")}
+                              : hotel.city || hotel.locality || ""}
                           </span>
                         </div>
 
