@@ -766,7 +766,9 @@ const Hotels = () => {
                       {/* Rooms */}
                       <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Rooms</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            Rooms <span className="text-green-600 font-bold ml-1">{tempRooms}</span>
+                          </p>
                           <p className="text-xs text-gray-500">Upto 4 rooms</p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -789,7 +791,9 @@ const Hotels = () => {
                       {/* Adults */}
                       <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Adults</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            Adults <span className="text-green-600 font-bold ml-1">{tempAdults}</span>
+                          </p>
                           <p className="text-xs text-gray-500">Age 18+</p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -812,7 +816,9 @@ const Hotels = () => {
                       {/* Children */}
                       <div className="flex items-center justify-between py-3 border-b border-gray-100">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Children</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            Children <span className="text-green-600 font-bold ml-1">{tempChildren}</span>
+                          </p>
                           <p className="text-xs text-gray-500">0 - 17 Years Old</p>
                         </div>
                         <div className="flex items-center gap-3">
