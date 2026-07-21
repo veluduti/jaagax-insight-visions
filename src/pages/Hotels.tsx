@@ -504,8 +504,8 @@ const Hotels = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Location */}
                 <div className="relative">
-                  <label className="text-xs font-medium text-gray-600 block mb-1">
-                    <MapPin className="h-3 w-3 inline mr-1" />
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <MapPin className="h-3 w-3 inline mr-1 text-gray-600" />
                     City, Property Name Or Location
                   </label>
                   <div className="relative">
@@ -519,7 +519,7 @@ const Hotels = () => {
                       }}
                       onFocus={() => setShowSuggestions(true)}
                       onKeyPress={(e) => e.key === "Enter" && handleAdvancedSearch()}
-                      className="pl-3 border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     />
                     {/* Suggestions dropdown */}
                     {showSuggestions && (
@@ -551,8 +551,8 @@ const Hotels = () => {
                                 {getSuggestionIcon(suggestion.type)}
                               </div>
                               <div className="flex-1">
-                                <span className="text-sm font-medium">{suggestion.name}</span>
-                                {suggestion.subtitle && <p className="text-xs text-gray-400">{suggestion.subtitle}</p>}
+                                <span className="text-sm font-medium text-gray-900">{suggestion.name}</span>
+                                {suggestion.subtitle && <p className="text-xs text-gray-500">{suggestion.subtitle}</p>}
                                 {suggestion.count !== undefined && suggestion.count > 0 && (
                                   <span className="text-xs text-green-600">
                                     {suggestion.count} {suggestion.count === 1 ? "hotel" : "hotels"}
@@ -569,8 +569,8 @@ const Hotels = () => {
 
                 {/* Check-in */}
                 <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">
-                    <Calendar className="h-3 w-3 inline mr-1" />
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <Calendar className="h-3 w-3 inline mr-1 text-gray-600" />
                     Check-In
                   </label>
                   <Input
@@ -580,15 +580,15 @@ const Hotels = () => {
                       const date = e.target.value ? new Date(e.target.value) : undefined;
                       if (date) setCheckIn(date);
                     }}
-                    className="border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     min={format(new Date(), "yyyy-MM-dd")}
                   />
                 </div>
 
                 {/* Check-out */}
                 <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">
-                    <Calendar className="h-3 w-3 inline mr-1" />
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <Calendar className="h-3 w-3 inline mr-1 text-gray-600" />
                     Check-Out
                   </label>
                   <Input
@@ -598,22 +598,22 @@ const Hotels = () => {
                       const date = e.target.value ? new Date(e.target.value) : undefined;
                       if (date) setCheckOut(date);
                     }}
-                    className="border-gray-200 focus:ring-2 focus:ring-green-500 h-10 text-sm"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     min={format(checkIn, "yyyy-MM-dd")}
                   />
                 </div>
 
                 {/* Rooms & Guests */}
                 <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">
-                    <Users className="h-3 w-3 inline mr-1" />
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <Users className="h-3 w-3 inline mr-1 text-gray-600" />
                     Rooms & Guests
                   </label>
                   <div className="flex gap-1">
                     <select
                       value={rooms}
                       onChange={(e) => setRooms(parseInt(e.target.value))}
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
                     >
                       {[1, 2, 3, 4].map((num) => (
                         <option key={num} value={num}>
@@ -624,7 +624,7 @@ const Hotels = () => {
                     <select
                       value={adults}
                       onChange={(e) => setAdults(parseInt(e.target.value))}
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
                     >
                       {[1, 2, 3, 4, 5, 6].map((num) => (
                         <option key={num} value={num}>
@@ -637,15 +637,15 @@ const Hotels = () => {
 
                 {/* Price Per Night & Search */}
                 <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1">
-                    <Home className="h-3 w-3 inline mr-1" />
+                  <label className="text-xs font-medium text-gray-700 block mb-1">
+                    <Home className="h-3 w-3 inline mr-1 text-gray-600" />
                     Price Per Night
                   </label>
                   <div className="flex gap-2">
                     <select
                       value={selectedPriceRange}
                       onChange={(e) => setSelectedPriceRange(e.target.value)}
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 h-10"
                     >
                       <option value="all">All Prices</option>
                       <option value="0-1500">₹0-₹1500</option>
@@ -666,8 +666,8 @@ const Hotels = () => {
               </div>
 
               {/* Last Search & Quick Links */}
-              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-4 text-xs text-gray-500">
+              <div className="mt-3 pt-3 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-4 text-xs text-gray-600">
                   <span className="font-medium text-gray-700">Last Search:</span>
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
@@ -681,7 +681,7 @@ const Hotels = () => {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] bg-gray-50">
+                  <Badge variant="outline" className="text-[10px] bg-gray-100 text-gray-700 border-gray-300">
                     Group Deals
                   </Badge>
                   <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-200">
