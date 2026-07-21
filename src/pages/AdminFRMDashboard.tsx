@@ -9,10 +9,20 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
-import { 
-  Trophy, Users, MapPin, TrendingUp, DollarSign, 
-  Clock, CheckCircle2, XCircle, Star, Activity,
-  BarChart3, ArrowUp, ArrowDown
+import {
+  Trophy,
+  Users,
+  MapPin,
+  TrendingUp,
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Star,
+  Activity,
+  BarChart3,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -50,10 +60,16 @@ const AdminFRMDashboard = () => {
   const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentMetrics[]>([]);
   const [assignmentStats, setAssignmentStats] = useState<AssignmentStats>({
-    total: 0, accepted: 0, rejected: 0, timeout: 0, pending: 0
+    total: 0,
+    accepted: 0,
+    rejected: 0,
+    timeout: 0,
+    pending: 0,
   });
   const [verificationStats, setVerificationStats] = useState<VerificationStats>({
-    pending_review: 0, approved: 0, rejected: 0
+    pending_review: 0,
+    approved: 0,
+    rejected: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -79,12 +95,15 @@ const AdminFRMDashboard = () => {
         .eq("status", "paid");
 
       // Calculate total earnings per agent
-      const earningsMap = (earningsData || []).reduce((acc, e) => {
-        acc[e.agent_id] = (acc[e.agent_id] || 0) + Number(e.amount);
-        return acc;
-      }, {} as Record<string, number>);
+      const earningsMap = (earningsData || []).reduce(
+        (acc, e) => {
+          acc[e.agent_id] = (acc[e.agent_id] || 0) + Number(e.amount);
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
-      const agentsWithEarnings = (agentsData || []).map(agent => ({
+      const agentsWithEarnings = (agentsData || []).map((agent) => ({
         ...agent,
         cities_served: agent.cities_served || [],
         total_earnings: earningsMap[agent.id] || 0,
@@ -93,30 +112,26 @@ const AdminFRMDashboard = () => {
       setAgents(agentsWithEarnings);
 
       // Fetch assignment stats
-      const { data: assignments } = await supabase
-        .from("agent_assignment_requests")
-        .select("status");
+      const { data: assignments } = await supabase.from("agent_assignment_requests").select("status");
 
       if (assignments) {
         setAssignmentStats({
           total: assignments.length,
-          accepted: assignments.filter(a => a.status === "accepted").length,
-          rejected: assignments.filter(a => a.status === "rejected").length,
-          timeout: assignments.filter(a => a.status === "timeout").length,
-          pending: assignments.filter(a => a.status === "pending").length,
+          accepted: assignments.filter((a) => a.status === "accepted").length,
+          rejected: assignments.filter((a) => a.status === "rejected").length,
+          timeout: assignments.filter((a) => a.status === "timeout").length,
+          pending: assignments.filter((a) => a.status === "pending").length,
         });
       }
 
       // Fetch verification stats
-      const { data: verifications } = await supabase
-        .from("property_verifications")
-        .select("final_status");
+      const { data: verifications } = await supabase.from("property_verifications").select("final_status");
 
       if (verifications) {
         setVerificationStats({
-          pending_review: verifications.filter(v => v.final_status === "pending_review").length,
-          approved: verifications.filter(v => v.final_status === "approved").length,
-          rejected: verifications.filter(v => v.final_status === "rejected").length,
+          pending_review: verifications.filter((v) => v.final_status === "pending_review").length,
+          approved: verifications.filter((v) => v.final_status === "approved").length,
+          rejected: verifications.filter((v) => v.final_status === "rejected").length,
         });
       }
     } catch (error) {
@@ -149,17 +164,13 @@ const AdminFRMDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="pt-24 pb-16">
+      <div className="pt-24 pb-2">
         <div className="container-padding max-w-7xl 3xl:max-w-[1680px] mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2 text-gradient">
-                Field Relationship Manager
-              </h1>
-              <p className="text-muted-foreground">
-                Agent performance tracking, assignments, and earnings analytics
-              </p>
+              <h1 className="text-4xl font-bold mb-2 text-gradient">Field Relationship Manager</h1>
+              <p className="text-muted-foreground">Agent performance tracking, assignments, and earnings analytics</p>
             </div>
             <Button onClick={fetchFRMData} variant="outline">
               <Activity className="w-4 h-4 mr-2" />
@@ -175,9 +186,7 @@ const AdminFRMDashboard = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Total Agents</p>
                     <p className="text-3xl font-bold">{agents.length}</p>
-                    <p className="text-xs text-green-600">
-                      {agents.filter(a => a.is_online).length} online
-                    </p>
+                    <p className="text-xs text-green-600">{agents.filter((a) => a.is_online).length} online</p>
                   </div>
                   <Users className="h-10 w-10 text-primary" />
                 </div>
@@ -257,36 +266,28 @@ const AdminFRMDashboard = () => {
                     <Trophy className="w-5 h-5 text-yellow-500" />
                     Agent Leaderboard
                   </CardTitle>
-                  <CardDescription>
-                    Ranked by trust score and performance metrics
-                  </CardDescription>
+                  <CardDescription>Ranked by trust score and performance metrics</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {agents.map((agent, index) => (
-                      <div 
+                      <div
                         key={agent.id}
                         className={`flex items-center gap-4 p-4 rounded-lg border ${
-                          index < 3 ? 'bg-primary/5 border-primary/20' : ''
+                          index < 3 ? "bg-primary/5 border-primary/20" : ""
                         }`}
                       >
-                        <div className="flex-shrink-0">
-                          {getRankBadge(index)}
-                        </div>
-                        
+                        <div className="flex-shrink-0">{getRankBadge(index)}</div>
+
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={agent.photo_url || undefined} />
-                          <AvatarFallback>
-                            {agent.name?.charAt(0) || "A"}
-                          </AvatarFallback>
+                          <AvatarFallback>{agent.name?.charAt(0) || "A"}</AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold truncate">{agent.name}</h3>
-                            {agent.verified && (
-                              <CheckCircle2 className="w-4 h-4 text-primary" />
-                            )}
+                            {agent.verified && <CheckCircle2 className="w-4 h-4 text-primary" />}
                             <Badge variant={agent.is_online ? "default" : "secondary"}>
                               {agent.is_online ? "Online" : "Offline"}
                             </Badge>
@@ -333,48 +334,40 @@ const AdminFRMDashboard = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Accepted</span>
-                        <span className="font-medium text-green-600">
-                          {assignmentStats.accepted}
-                        </span>
+                        <span className="font-medium text-green-600">{assignmentStats.accepted}</span>
                       </div>
-                      <Progress 
-                        value={(assignmentStats.accepted / (assignmentStats.total || 1)) * 100} 
+                      <Progress
+                        value={(assignmentStats.accepted / (assignmentStats.total || 1)) * 100}
                         className="h-2"
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Rejected</span>
-                        <span className="font-medium text-red-600">
-                          {assignmentStats.rejected}
-                        </span>
+                        <span className="font-medium text-red-600">{assignmentStats.rejected}</span>
                       </div>
-                      <Progress 
-                        value={(assignmentStats.rejected / (assignmentStats.total || 1)) * 100} 
+                      <Progress
+                        value={(assignmentStats.rejected / (assignmentStats.total || 1)) * 100}
                         className="h-2 [&>div]:bg-red-500"
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Timeout</span>
-                        <span className="font-medium text-yellow-600">
-                          {assignmentStats.timeout}
-                        </span>
+                        <span className="font-medium text-yellow-600">{assignmentStats.timeout}</span>
                       </div>
-                      <Progress 
-                        value={(assignmentStats.timeout / (assignmentStats.total || 1)) * 100} 
+                      <Progress
+                        value={(assignmentStats.timeout / (assignmentStats.total || 1)) * 100}
                         className="h-2 [&>div]:bg-yellow-500"
                       />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Pending</span>
-                        <span className="font-medium text-blue-600">
-                          {assignmentStats.pending}
-                        </span>
+                        <span className="font-medium text-blue-600">{assignmentStats.pending}</span>
                       </div>
-                      <Progress 
-                        value={(assignmentStats.pending / (assignmentStats.total || 1)) * 100} 
+                      <Progress
+                        value={(assignmentStats.pending / (assignmentStats.total || 1)) * 100}
                         className="h-2 [&>div]:bg-blue-500"
                       />
                     </div>
@@ -388,15 +381,13 @@ const AdminFRMDashboard = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {agents
-                        .filter(a => a.avg_response_time_seconds > 0)
+                        .filter((a) => a.avg_response_time_seconds > 0)
                         .sort((a, b) => a.avg_response_time_seconds - b.avg_response_time_seconds)
                         .slice(0, 5)
                         .map((agent, idx) => (
                           <div key={agent.id} className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="text-sm text-muted-foreground">
-                                #{idx + 1}
-                              </span>
+                              <span className="text-sm text-muted-foreground">#{idx + 1}</span>
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={agent.photo_url || undefined} />
                                 <AvatarFallback>{agent.name?.charAt(0)}</AvatarFallback>
@@ -423,11 +414,7 @@ const AdminFRMDashboard = () => {
                     <Clock className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
                     <p className="text-4xl font-bold">{verificationStats.pending_review}</p>
                     <p className="text-muted-foreground">Pending Review</p>
-                    <Button 
-                      className="mt-4 w-full" 
-                      variant="outline"
-                      onClick={() => navigate("/dashboard/admin")}
-                    >
+                    <Button className="mt-4 w-full" variant="outline" onClick={() => navigate("/dashboard/admin")}>
                       Review Now
                     </Button>
                   </CardContent>
@@ -465,14 +452,9 @@ const AdminFRMDashboard = () => {
                     {agents
                       .sort((a, b) => (b.total_earnings || 0) - (a.total_earnings || 0))
                       .map((agent, index) => (
-                        <div 
-                          key={agent.id}
-                          className="flex items-center gap-4 p-4 rounded-lg border"
-                        >
-                          <span className="text-sm text-muted-foreground w-8">
-                            #{index + 1}
-                          </span>
-                          
+                        <div key={agent.id} className="flex items-center gap-4 p-4 rounded-lg border">
+                          <span className="text-sm text-muted-foreground w-8">#{index + 1}</span>
+
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={agent.photo_url || undefined} />
                             <AvatarFallback>{agent.name?.charAt(0)}</AvatarFallback>
