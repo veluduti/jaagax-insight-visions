@@ -115,15 +115,9 @@ const NLWellness = lazy(() => import("./pages/natural-living/NLWellness"));
 const NLCorporate = lazy(() => import("./pages/natural-living/NLCorporate"));
 const NLSchools = lazy(() => import("./pages/natural-living/NLSchools"));
 const NLAuthPage = lazy(() => import("./pages/natural-living/NLAuth"));
-const NLStart = lazy(() => import("./pages/natural-living/NLStart"));
-const NLWelcome = lazy(() => import("./pages/natural-living/NLWelcome"));
-const NLGoals = lazy(() => import("./pages/natural-living/NLGoals"));
-const NLInterview = lazy(() => import("./pages/natural-living/NLInterview"));
-const NLResetPassword = lazy(() => import("./pages/natural-living/NLResetPassword"));
 const NLOnboarding = lazy(() => import("./pages/natural-living/NLOnboarding"));
 const NLKyc = lazy(() => import("./pages/natural-living/NLKyc"));
 const NLDashboard = lazy(() => import("./pages/natural-living/NLDashboard"));
-const NLProfile = lazy(() => import("./pages/natural-living/NLProfile"));
 const NLDigitalFarm = lazy(() => import("./pages/natural-living/NLDigitalFarm"));
 const NLFarmDetail = lazy(() => import("./pages/natural-living/NLFarmDetail"));
 const NLSubscribe = lazy(() => import("./pages/natural-living/NLSubscribe"));
@@ -523,15 +517,9 @@ const App = () => (
                   <Route path="/natural-living/corporate" element={<NLCorporate />} />
                   <Route path="/natural-living/schools" element={<NLSchools />} />
                   <Route path="/natural-living/auth" element={<NLAuthPage />} />
-                  <Route path="/natural-living/start" element={<NLStart />} />
-                  <Route path="/natural-living/welcome" element={<NLWelcome />} />
-                  <Route path="/natural-living/goals" element={<NLGoals />} />
-                  <Route path="/natural-living/interview" element={<NLInterview />} />
-                  <Route path="/natural-living/reset-password" element={<NLResetPassword />} />
                   <Route path="/natural-living/onboarding" element={<NLOnboarding />} />
                   <Route path="/natural-living/kyc" element={<NLKyc />} />
                   <Route path="/natural-living/dashboard" element={<NLDashboard />} />
-                  <Route path="/natural-living/profile" element={<NLProfile />} />
                   <Route path="/natural-living/digital-farm" element={<NLDigitalFarm />} />
                   <Route path="/natural-living/digital-farm/farms/:farmId" element={<NLFarmDetail />} />
                   <Route path="/natural-living/subscribe/:planId" element={<NLSubscribe />} />

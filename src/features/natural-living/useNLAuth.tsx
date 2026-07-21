@@ -80,7 +80,7 @@ export function useNLAuth() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/natural-living/start`,
+        emailRedirectTo: `${window.location.origin}/natural-living/onboarding`,
         data: { nl_role: role },
       },
     });
@@ -90,30 +90,6 @@ export function useNLAuth() {
       .from("nl_profiles")
       .upsert({ user_id: data.user.id, role }, { onConflict: "user_id" });
     return { error: null };
-  };
-
-  const signInWithGoogle = async (next?: string) => {
-    const redirectTo = `${window.location.origin}/natural-living/start${
-      next ? `?next=${encodeURIComponent(next)}` : ""
-    }`;
-    return supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-  };
-
-  const resetPassword = async (email: string) => {
-    return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/natural-living/reset-password`,
-    });
-  };
-
-  const resendVerification = async (email: string) => {
-    return supabase.auth.resend({
-      type: "signup",
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/natural-living/start` },
-    });
   };
 
   const saveProfile = async (patch: Partial<NLProfile>) => {
@@ -161,9 +137,6 @@ export function useNLAuth() {
     loading,
     signIn,
     signUp,
-    signInWithGoogle,
-    resetPassword,
-    resendVerification,
     saveProfile,
     submitKyc,
     uploadKycFile,
