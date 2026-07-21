@@ -831,6 +831,7 @@ const Hotels = () => {
 
                       {/* Badges */}
                       <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+                        fgfgfg
                         {hotel.discount_percentage && (
                           <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
                             🔥 {hotel.discount_percentage}% OFF
