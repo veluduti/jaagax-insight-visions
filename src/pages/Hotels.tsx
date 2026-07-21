@@ -1081,16 +1081,16 @@ const Hotels = () => {
 
                       {/* Badges */}
                       <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-                        {hotel.discount_percentage && (
+                        {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
                           <Badge className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border-0 text-white text-[10px] px-2.5 py-1 shadow-lg">
                             🔥 {hotel.discount_percentage}% OFF
                           </Badge>
-                        )}
-                        {hotel.star_rating && hotel.star_rating >= 4.5 && (
+                        ) : null}
+                        {hotel.star_rating && hotel.star_rating >= 4.5 ? (
                           <Badge className="bg-gradient-to-r from-yellow-400 to-amber-400 text-black border-0 text-[10px] px-2.5 py-1 shadow-lg">
                             ⭐ Premium
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
 
                       <button
