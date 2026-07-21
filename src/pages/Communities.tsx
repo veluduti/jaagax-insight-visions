@@ -35,16 +35,13 @@ const Communities = () => {
   const fetchCommunityData = async () => {
     try {
       setLoading(true);
-      
-      const { data: properties, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("verified", true);
+
+      const { data: properties, error } = await supabase.from("properties").select("*").eq("verified", true);
 
       if (error) throw error;
 
       const cityData: any = {};
-      properties?.forEach(p => {
+      properties?.forEach((p) => {
         if (!cityData[p.city]) {
           cityData[p.city] = {
             city: p.city,
@@ -75,7 +72,7 @@ const Communities = () => {
       setInsights(cityInsights);
 
       const localityData: any = {};
-      properties?.forEach(p => {
+      properties?.forEach((p) => {
         const key = `${p.city}-${p.locality}`;
         if (!localityData[key]) {
           localityData[key] = {
@@ -104,9 +101,7 @@ const Communities = () => {
         .slice(0, 6);
       setTopGrowing(growing);
 
-      const trusted = localities
-        .sort((a: any, b: any) => b.trustScore - a.trustScore)
-        .slice(0, 6);
+      const trusted = localities.sort((a: any, b: any) => b.trustScore - a.trustScore).slice(0, 6);
       setMostTrusted(trusted);
 
       const affordableZones = localities
@@ -114,7 +109,6 @@ const Communities = () => {
         .sort((a: any, b: any) => b.growth - a.growth)
         .slice(0, 6);
       setAffordable(affordableZones);
-
     } catch (error) {
       console.error("Error fetching community data:", error);
       toast.error("Failed to load community data");
@@ -145,18 +139,17 @@ const Communities = () => {
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div
+          className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1.5s" }}
+        />
       </div>
 
       <Navigation />
-      
-      <div className="container mx-auto px-6 py-24 relative z-10">
+
+      <div className="container mx-auto px-6 py-2 relative z-10">
         {/* Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
           <h1 className="text-6xl font-bold mb-6">
             AI <span className="text-gradient">Community Explorer</span>
           </h1>
@@ -179,8 +172,9 @@ const Communities = () => {
                 <div>
                   <h3 className="text-xl font-bold mb-2">AI Market Insight</h3>
                   <p className="text-foreground leading-relaxed">
-                    Hyderabad's western corridor (Kokapet, Narsingi, Tellapur) shows 9.2% YoY appreciation driven by IT expansion and metro connectivity. 
-                    Vijayawada's Benz Circle and Kanuru emerging as investment hotspots with 11% growth potential.
+                    Hyderabad's western corridor (Kokapet, Narsingi, Tellapur) shows 9.2% YoY appreciation driven by IT
+                    expansion and metro connectivity. Vijayawada's Benz Circle and Kanuru emerging as investment
+                    hotspots with 11% growth potential.
                   </p>
                 </div>
               </div>
@@ -238,8 +232,9 @@ const Communities = () => {
                       </div>
                       <div>
                         <div className="text-sm text-muted-foreground mb-1">Growth Rate</div>
-                        <div className={`text-xl font-bold ${city.growth > 0 ? 'text-primary' : 'text-destructive'}`}>
-                          {city.growth > 0 ? '+' : ''}{city.growth.toFixed(1)}%
+                        <div className={`text-xl font-bold ${city.growth > 0 ? "text-primary" : "text-destructive"}`}>
+                          {city.growth > 0 ? "+" : ""}
+                          {city.growth.toFixed(1)}%
                         </div>
                       </div>
                       <div>
@@ -291,9 +286,7 @@ const Communities = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{area.locality}</span>
-                      <Badge className="bg-primary/20 text-primary border-primary">
-                        Hot 🔥
-                      </Badge>
+                      <Badge className="bg-primary/20 text-primary border-primary">Hot 🔥</Badge>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{area.city}</p>
                   </CardHeader>
@@ -369,11 +362,7 @@ const Communities = () => {
         </motion.div>
 
         {/* Affordable Investment Zones */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
           <div className="flex items-center gap-3 mb-6">
             <DollarSign className="h-8 w-8 text-primary" />
             <h2 className="text-4xl font-bold">
@@ -395,7 +384,9 @@ const Communities = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{area.locality}</span>
-                      <Badge variant="outline" className="border-primary/50">Value</Badge>
+                      <Badge variant="outline" className="border-primary/50">
+                        Value
+                      </Badge>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{area.city}</p>
                   </CardHeader>
