@@ -965,7 +965,7 @@ const Hotels = () => {
                   {checkIn && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {format(checkIn, "dd MMM yy")} - {checkOut && format(checkOut, "dd MMM' yy")}
+                      {format(checkIn, "dd MMM yy")} - {checkOut && format(checkOut, "dd MMM yy")}
                     </span>
                   )}
                 </div>
