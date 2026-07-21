@@ -36,10 +36,7 @@ const AgentLeaderboard = () => {
   const fetchAgents = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("agents")
-        .select("*")
-        .eq("verified", true);
+      let query = supabase.from("agents").select("*").eq("verified", true);
 
       // Sort based on filter
       if (filter === "sales") {
@@ -52,7 +49,7 @@ const AgentLeaderboard = () => {
       }
 
       const { data, error } = await query.limit(50);
-      
+
       if (error) throw error;
       setAgents(data || []);
     } catch (error) {
@@ -79,21 +76,15 @@ const AgentLeaderboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <div className="pt-24 pb-16">
+
+      <div className="pt-24 pb-2">
         <div className="container-padding max-w-6xl mx-auto">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
               <Trophy className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold mb-4 text-gradient">
-              Agent Leaderboard
-            </h1>
+            <h1 className="text-4xl font-bold mb-4 text-gradient">Agent Leaderboard</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Top-performing real estate agents ranked by sales, trust score, and customer satisfaction
             </p>
@@ -101,24 +92,15 @@ const AgentLeaderboard = () => {
 
           {/* Filters */}
           <div className="flex justify-center gap-3 mb-8">
-            <Button
-              variant={filter === "all" ? "default" : "outline"}
-              onClick={() => setFilter("all")}
-            >
+            <Button variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
               <Award className="w-4 h-4 mr-2" />
               Overall
             </Button>
-            <Button
-              variant={filter === "sales" ? "default" : "outline"}
-              onClick={() => setFilter("sales")}
-            >
+            <Button variant={filter === "sales" ? "default" : "outline"} onClick={() => setFilter("sales")}>
               <TrendingUp className="w-4 h-4 mr-2" />
               Top Sales
             </Button>
-            <Button
-              variant={filter === "trust" ? "default" : "outline"}
-              onClick={() => setFilter("trust")}
-            >
+            <Button variant={filter === "trust" ? "default" : "outline"} onClick={() => setFilter("trust")}>
               <Star className="w-4 h-4 mr-2" />
               Trust Score
             </Button>
@@ -141,11 +123,7 @@ const AgentLeaderboard = () => {
               ))}
             </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-4"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               {agents.map((agent, index) => (
                 <motion.div
                   key={agent.id}
@@ -162,7 +140,9 @@ const AgentLeaderboard = () => {
                     <div className="p-6">
                       <div className="flex items-center gap-6">
                         {/* Rank */}
-                        <div className={`flex items-center justify-center w-16 h-16 rounded-full ${getRankBadge(index)}`}>
+                        <div
+                          className={`flex items-center justify-center w-16 h-16 rounded-full ${getRankBadge(index)}`}
+                        >
                           {getRankIcon(index)}
                         </div>
 
@@ -175,29 +155,21 @@ const AgentLeaderboard = () => {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold truncate">
-                              {agent.name}
-                            </h3>
+                            <h3 className="text-lg font-semibold truncate">{agent.name}</h3>
                             {agent.verified && (
                               <Badge variant="default" className="shrink-0">
                                 Verified
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {agent.agency_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {agent.cities_served}
-                          </p>
+                          <p className="text-sm text-muted-foreground truncate">{agent.agency_name}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{agent.cities_served}</p>
                         </div>
 
                         {/* Stats */}
                         <div className="flex gap-6 items-center">
                           <div className="text-center">
-                            <div className="text-2xl font-bold text-primary">
-                              {agent.sales_count}
-                            </div>
+                            <div className="text-2xl font-bold text-primary">{agent.sales_count}</div>
                             <div className="text-xs text-muted-foreground">Sales</div>
                           </div>
                           <div className="text-center">
