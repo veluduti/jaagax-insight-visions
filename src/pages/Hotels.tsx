@@ -1159,11 +1159,11 @@ const Hotels = () => {
                             </span>
                             <span className="text-[10px] text-gray-500">/night</span>
                           </div>
-                          {hotel.discount_percentage && (
-                            <span className="text-[10px] text-green-600 font-medium">
+                          {!!hotel.discount_percentage && hotel.discount_percentage > 0 ? (
+                            <span className="text-[10px] text-primary font-medium">
                               Save {hotel.discount_percentage}%
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <Button
                           size="sm"
