@@ -21,15 +21,31 @@ interface HotelOnlyBookingProps {
   open: boolean;
   onClose: () => void;
   hotel: PartnerHotel;
+  initialCheckIn?: Date;
+  initialCheckOut?: Date;
+  initialGuests?: number;
+  initialRooms?: number;
 }
 
-export const HotelOnlyBooking = ({ open, onClose, hotel }: HotelOnlyBookingProps) => {
+export const HotelOnlyBooking = ({
+  open,
+  onClose,
+  hotel,
+  initialCheckIn,
+  initialCheckOut,
+  initialGuests,
+  initialRooms,
+}: HotelOnlyBookingProps) => {
   return (
     <HotelBookingModal
       open={open}
       onClose={onClose}
       hotel={hotel}
       bookingType="hotel_only"
+      initialCheckIn={initialCheckIn}
+      initialCheckOut={initialCheckOut}
+      initialGuests={initialGuests}
+      initialRooms={initialRooms}
     />
   );
 };

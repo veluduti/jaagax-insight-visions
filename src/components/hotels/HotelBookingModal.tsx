@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,20 +41,74 @@ interface HotelBookingModalProps {
     discount_percentage: number | null;
   };
   bookingType: "hotel_only" | "visit_stay";
+  initialCheckIn?: Date;
+  initialCheckOut?: Date;
+  initialGuests?: number;
+  initialRooms?: number;
 }
 
-const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingModalProps) => {
-  const [checkIn, setCheckIn] = useState<Date | undefined>(addDays(new Date(), 1));
-  const [checkOut, setCheckOut] = useState<Date | undefined>(addDays(new Date(), 2));
+const HotelBookingModal = ({
+  open,
+  onClose,
+  hotel,
+  bookingType,
+  initialCheckIn,
+  initialCheckOut,
+  initialGuests,
+  initialRooms,
+}: HotelBookingModalProps) => {
+  const [checkIn, setCheckIn] = useState<Date | undefined>(initialCheckIn ?? addDays(new Date(), 1));
+  const [checkOut, setCheckOut] = useState<Date | undefined>(initialCheckOut ?? addDays(new Date(), 2));
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
-  const [numGuests, setNumGuests] = useState("1");
-  const [numRooms, setNumRooms] = useState("1");
+  const [numGuests, setNumGuests] = useState(String(initialGuests ?? 1));
+  const [numRooms, setNumRooms] = useState(String(initialRooms ?? 1));
   const [roomType, setRoomType] = useState("Standard");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  // Sync when search filters change while modal reopens
+  useEffect(() => {
+    if (!open) return;
+    if (initialCheckIn) setCheckIn(initialCheckIn);
+    if (initialCheckOut) setCheckOut(initialCheckOut);
+    if (initialGuests) setNumGuests(String(initialGuests));
+    if (initialRooms) setNumRooms(String(initialRooms));
+  }, [open, initialCheckIn?.getTime(), initialCheckOut?.getTime(), initialGuests, initialRooms]);
+
+  // Autofill guest details from the logged-in user's profile
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+        if (user.email && !guestEmail) setGuestEmail(user.email);
+        const meta: any = user.user_metadata || {};
+        const metaName = meta.full_name || meta.name || "";
+        const metaPhone = meta.phone || user.phone || "";
+        if (metaName && !guestName) setGuestName(metaName);
+        if (metaPhone && !guestPhone) setGuestPhone(metaPhone);
+
+        const { data: prof } = await (supabase as any)
+          .from("profiles")
+          .select("full_name, phone, email")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cancelled || !prof) return;
+        setGuestName((v) => v || prof.full_name || "");
+        setGuestPhone((v) => v || prof.phone || "");
+        setGuestEmail((v) => v || prof.email || user.email || "");
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const discountPct = Number(hotel.discount_percentage) || 0;
   const discountedPrice = discountPct > 0 ? hotel.price_per_night * (1 - discountPct / 100) : hotel.price_per_night;
@@ -237,7 +291,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20].map((n) => (
                       <SelectItem key={n} value={String(n)}>
                         {n}
                       </SelectItem>
@@ -254,7 +308,7 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map((n) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                       <SelectItem key={n} value={String(n)}>
                         {n}
                       </SelectItem>
