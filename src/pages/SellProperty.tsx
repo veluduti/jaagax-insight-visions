@@ -5055,113 +5055,102 @@ export default function SellProperty() {
                 </div>
               </div>
             ) : showIntakeBar ? (
-  <>
-    <input
-      ref={imageRef}
-      type="file"
-      accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      className="hidden"
-      onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
-    />
+              <>
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleQuickImage(e.target.files)}
+                />
 
-    {/* Selected Category Badge - shows what user selected */}
-    {category && (
-      <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="text-xs text-muted-foreground">Selected:</span>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium">
-          {CATEGORY_OPTIONS.find((opt) => opt.id === category)?.emoji}
-          {CATEGORY_OPTIONS.find((opt) => opt.id === category)?.label}
-        </span>
-      </div>
-    )}
-
-    <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-      {/* ===================================================
+                <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+                  {/* ===================================================
     SUGGESTION HEADER
 =================================================== */}
 
-      <div className="px-4 pt-3 pb-2 border-b border-border/40 bg-muted/20">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          AI can detect property type, price, area, location, BHK and more
-        </div>
-      </div>
+                  <div className="px-4 pt-3 pb-2 border-b border-border/40 bg-muted/20">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      AI can detect property type, price, area, location, BHK and more
+                    </div>
+                  </div>
 
-      {/* ===================================================
+                  {/* ===================================================
     INPUT ROW
 =================================================== */}
 
-      <div className="flex items-end gap-2 p-3">
-        <button
-          type="button"
-          onClick={() => imageRef.current?.click()}
-          className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
-        >
-          <ImageIcon className="h-4 w-4" />
-        </button>
+                  <div className="flex items-end gap-2 p-3">
+                    <button
+                      type="button"
+                      onClick={() => imageRef.current?.click()}
+                      className="h-11 w-11 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
 
-        <div className="flex-1">
-          <Textarea
-            value={intakeText}
-            onChange={(e) => setIntakeText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
+                    <div className="flex-1">
+                      <Textarea
+                        value={intakeText}
+                        onChange={(e) => setIntakeText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
 
-                submitIntake();
-              }
-            }}
-            rows={2}
-            placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
-            className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
-            disabled={extracting}
-          />
-        </div>
+                            submitIntake();
+                          }
+                        }}
+                        rows={2}
+                        placeholder='Example: "3 BHK flat in Kondapur 1200 sqft for sale"'
+                        className="resize-none border-0 bg-transparent focus-visible:ring-0 shadow-none min-h-[52px]"
+                        disabled={extracting}
+                      />
+                    </div>
 
-        <button
-          type="button"
-          onClick={toggleVoice}
-          className={cn(
-            "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
-            isListening
-              ? "bg-destructive text-destructive-foreground animate-pulse"
-              : "border border-border bg-background hover:bg-muted text-muted-foreground",
-          )}
-        >
-          {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        </button>
+                    <button
+                      type="button"
+                      onClick={toggleVoice}
+                      className={cn(
+                        "h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition",
+                        isListening
+                          ? "bg-destructive text-destructive-foreground animate-pulse"
+                          : "border border-border bg-background hover:bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
 
-        <button
-          type="button"
-          onClick={submitIntake}
-          disabled={extracting || !intakeText.trim()}
-          className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
-        >
-          {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        </button>
-      </div>
+                    <button
+                      type="button"
+                      onClick={submitIntake}
+                      disabled={extracting || !intakeText.trim()}
+                      className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-br from-primary to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-primary/30 disabled:opacity-50"
+                    >
+                      {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  </div>
 
-      {/* ===================================================
+                  {/* ===================================================
     FOOTER
 =================================================== */}
 
-      <div className="flex items-center justify-between px-4 pb-3">
-        <span className="text-[11px] text-muted-foreground">
-          Upload image, brochure, PDF or type manually
-        </span>
+                  <div className="flex items-center justify-between px-4 pb-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      Upload image, brochure, PDF or type manually
+                    </span>
 
-        <button
-          type="button"
-          onClick={skipIntake}
-          disabled={extracting}
-          className="text-[11px] text-primary hover:underline"
-        >
-          Skip intake
-        </button>
-      </div>
-    </div>
-  </>
-) : (
+                    <button
+                      type="button"
+                      onClick={skipIntake}
+                      disabled={extracting}
+                      className="text-[11px] text-primary hover:underline"
+                    >
+                      Skip intake
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
               <>
                 {/* ===================================================
               FLOATING AI SUGGESTIONS
