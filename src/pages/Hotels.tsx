@@ -49,6 +49,7 @@ import { QuickVisitWizard } from "@/components/booking/QuickVisitWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { format } from "date-fns";
 
