@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { hotelService, type HotelBooking } from "@/services/hotelService";
 import BookingInvoice from "./BookingInvoice";
 import { Calendar, MapPin, Users, CreditCard, FileText, RefreshCw, XCircle, Pencil } from "lucide-react";
@@ -176,11 +178,11 @@ export default function BookingDetail({ booking, onClose, onRefresh }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Check-in</Label>
-                <Input type="date" value={form.check_in} onChange={(e) => setForm({ ...form, check_in: e.target.value })} />
+                <Input type="date" value={form.check_in} onChange={(e) => { const v = e.target.value; setForm((f: any) => ({ ...f, check_in: v, check_out: f.check_out && new Date(f.check_out) <= new Date(v) ? nextDayISO(v) : f.check_out })); }} />
               </div>
               <div>
                 <Label>Check-out</Label>
-                <Input type="date" value={form.check_out} onChange={(e) => setForm({ ...form, check_out: e.target.value })} />
+                <Input type="date" min={nextDayISO(form.check_in)} value={form.check_out} onChange={(e) => { const v = e.target.value; if (v && form.check_in && !isValidDateRangeISO(form.check_in, v)) { sonnerToast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setForm({ ...form, check_out: v }); }} />
               </div>
               <div>
                 <Label>Guests</Label>

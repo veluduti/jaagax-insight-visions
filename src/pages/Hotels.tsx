@@ -49,6 +49,7 @@ import { QuickVisitWizard } from "@/components/booking/QuickVisitWizard";
 import MyHotelApplicationsBanner from "@/components/hotels/MyHotelApplicationsBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import { format } from "date-fns";
 
@@ -736,7 +737,13 @@ const Hotels = () => {
                     value={format(checkIn, "yyyy-MM-dd")}
                     onChange={(e) => {
                       const date = e.target.value ? new Date(e.target.value) : undefined;
-                      if (date) setCheckIn(date);
+                      if (!date) return;
+                      setCheckIn(date);
+                      if (checkOut && checkOut.getTime() <= date.getTime()) {
+                        const next = new Date(date);
+                        next.setDate(next.getDate() + 1);
+                        setCheckOut(next);
+                      }
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
                     min={format(new Date(), "yyyy-MM-dd")}
@@ -754,10 +761,15 @@ const Hotels = () => {
                     value={format(checkOut, "yyyy-MM-dd")}
                     onChange={(e) => {
                       const date = e.target.value ? new Date(e.target.value) : undefined;
-                      if (date) setCheckOut(date);
+                      if (!date) return;
+                      if (checkIn && date.getTime() <= checkIn.getTime()) {
+                        toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                        return;
+                      }
+                      setCheckOut(date);
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent h-10"
-                    min={format(checkIn, "yyyy-MM-dd")}
+                    min={format(new Date(checkIn.getTime() + 86400000), "yyyy-MM-dd")}
                   />
                 </div>
 

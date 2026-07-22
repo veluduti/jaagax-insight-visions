@@ -19,6 +19,7 @@ import {
   Sun, Moon, Info, Banknote, BadgeCheck, Landmark, TreePine
 } from "lucide-react";
 import { toast } from "sonner";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
 import HotelSpecsGrid from "@/components/hotels/HotelSpecsGrid";
 import HotelRoomTypes from "@/components/hotels/HotelRoomTypes";
@@ -284,13 +285,13 @@ const HotelDetail = () => {
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
                       <input type="date" value={checkIn} min={todayISO()}
-                        onChange={(e) => { setCheckIn(e.target.value); if (e.target.value >= checkOut) setCheckOut(plusDaysISO(1)); }}
+                        onChange={(e) => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }}
                         className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
-                      <input type="date" value={checkOut} min={checkIn}
-                        onChange={(e) => setCheckOut(e.target.value)}
+                      <input type="date" value={checkOut} min={nextDayISO(checkIn) || todayISO()}
+                        onChange={(e) => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }}
                         className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
                     </div>
                     <div className="flex flex-col">

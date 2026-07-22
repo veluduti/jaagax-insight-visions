@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import {
   Calendar,
   CheckCircle2,
@@ -651,11 +652,11 @@ const PlanVisitStay = () => {
                       <div className="grid md:grid-cols-4 gap-4">
                         <div className="space-y-2">
                           <Label>Check-in</Label>
-                          <Input type="date" min={todayISO()} value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
+                          <Input type="date" min={todayISO()} value={checkIn} onChange={(e) => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }} />
                         </div>
                         <div className="space-y-2">
                           <Label>Check-out</Label>
-                          <Input type="date" min={checkIn} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
+                          <Input type="date" min={nextDayISO(checkIn) || todayISO()} value={checkOut} onChange={(e) => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast({ title: CHECKOUT_AFTER_CHECKIN_MSG, variant: "destructive" }); return; } setCheckOut(v); }} />
                         </div>
                         <div className="space-y-2">
                           <Label>Guests</Label>

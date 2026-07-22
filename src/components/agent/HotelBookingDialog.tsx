@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { Hotel, Users, Calendar, IndianRupee, Loader2 } from "lucide-react";
 
 interface HotelBookingDialogProps {
@@ -233,7 +234,14 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
               <Input
                 type="date"
                 value={form.check_in}
-                onChange={(e) => setForm({ ...form, check_in: e.target.value })}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({
+                    ...f,
+                    check_in: v,
+                    check_out: f.check_out && new Date(f.check_out) <= new Date(v) ? nextDayISO(v) : f.check_out,
+                  }));
+                }}
                 min={new Date().toISOString().split("T")[0]}
               />
             </div>
@@ -242,8 +250,15 @@ export default function HotelBookingDialog({ open, agentId, userId, onClose, onC
               <Input
                 type="date"
                 value={form.check_out}
-                onChange={(e) => setForm({ ...form, check_out: e.target.value })}
-                min={form.check_in || new Date().toISOString().split("T")[0]}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v && form.check_in && !isValidDateRangeISO(form.check_in, v)) {
+                    toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                    return;
+                  }
+                  setForm({ ...form, check_out: v });
+                }}
+                min={nextDayISO(form.check_in) || new Date(Date.now() + 86400000).toISOString().split("T")[0]}
               />
             </div>
           </div>
