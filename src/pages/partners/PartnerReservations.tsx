@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { Loader2, Plus, Search, CalendarRange, Phone, Mail, IndianRupee, LogIn, LogOut, XCircle, Save } from "lucide-react";
 import { addDays, differenceInDays, format, isAfter, isBefore } from "date-fns";
 
@@ -283,8 +284,8 @@ export default function PartnerReservations() {
                 <div><Label>Email</Label><Input value={draft.guest_email || ""} onChange={e => setDraft({ ...draft, guest_email: e.target.value })} /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Check-in *</Label><Input type="date" value={draft.check_in} onChange={e => setDraft({ ...draft, check_in: e.target.value })} /></div>
-                <div><Label>Check-out *</Label><Input type="date" value={draft.check_out} onChange={e => setDraft({ ...draft, check_out: e.target.value })} /></div>
+                <div><Label>Check-in *</Label><Input type="date" value={draft.check_in} onChange={e => { const v = e.target.value; setDraft({ ...draft, check_in: v, check_out: draft.check_out && new Date(draft.check_out) <= new Date(v) ? nextDayISO(v) : draft.check_out }); }} /></div>
+                <div><Label>Check-out *</Label><Input type="date" min={nextDayISO(draft.check_in)} value={draft.check_out} onChange={e => { const v = e.target.value; if (v && draft.check_in && !isValidDateRangeISO(draft.check_in, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setDraft({ ...draft, check_out: v }); }} /></div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div><Label>Rooms</Label><Input type="number" value={draft.num_rooms} onChange={e => setDraft({ ...draft, num_rooms: e.target.value })} /></div>

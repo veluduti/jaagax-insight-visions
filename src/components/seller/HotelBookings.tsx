@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Hotel, Calendar, Download, X, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
 import { useHiddenIds } from "@/hooks/useHiddenIds";
 
@@ -231,15 +232,30 @@ td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}.total{font-weigh
                 <Input
                   type="date"
                   value={form.check_in_date}
-                  onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setForm((f: any) => ({
+                      ...f,
+                      check_in_date: v,
+                      check_out_date: f.check_out_date && new Date(f.check_out_date) <= new Date(v) ? nextDayISO(v) : f.check_out_date,
+                    }));
+                  }}
                 />
               </div>
               <div>
                 <label className="text-xs">Check-out</label>
                 <Input
                   type="date"
+                  min={nextDayISO(form.check_in_date)}
                   value={form.check_out_date}
-                  onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v && form.check_in_date && !isValidDateRangeISO(form.check_in_date, v)) {
+                      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                      return;
+                    }
+                    setForm({ ...form, check_out_date: v });
+                  }}
                 />
               </div>
             </div>
