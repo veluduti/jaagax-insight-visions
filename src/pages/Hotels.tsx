@@ -1212,6 +1212,10 @@ const Hotels = () => {
             setSelectedHotel(null);
           }}
           hotel={selectedHotel}
+          initialCheckIn={checkIn}
+          initialCheckOut={checkOut}
+          initialGuests={adults + children}
+          initialRooms={rooms}
         />
       )}
 
