@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { hotelService, type HotelBooking } from "@/services/hotelService";
 import BookingDetail from "./BookingDetail";
 import { Hotel, Plus, Calendar, Users, FileText, XCircle, Eye, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -222,7 +222,7 @@ export default function HotelBookings() {
               <div className="col-span-2"><Label>Hotel name *</Label><Input value={form.hotel_name} onChange={(e) => setForm({ ...form, hotel_name: e.target.value })} /></div>
               <div className="col-span-2"><Label>Hotel address</Label><Input value={form.hotel_address} onChange={(e) => setForm({ ...form, hotel_address: e.target.value })} /></div>
               <div><Label>Check-in *</Label><Input type="date" value={form.check_in} onChange={(e) => { const v = e.target.value; setForm((f: any) => ({ ...f, check_in: v, check_out: f.check_out && new Date(f.check_out) <= new Date(v) ? nextDayISO(v) : f.check_out })); }} /></div>
-              <div><Label>Check-out *</Label><Input type="date" min={nextDayISO(form.check_in)} value={form.check_out} onChange={(e) => { const v = e.target.value; if (v && form.check_in && !isValidDateRangeISO(form.check_in, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setForm({ ...form, check_out: v }); }} /></div>
+              <div><Label>Check-out *</Label><Input type="date" min={nextDayISO(form.check_in)} value={form.check_out} onChange={(e) => { const v = e.target.value; if (v && form.check_in && !isValidDateRangeISO(form.check_in, v)) { sonnerToast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setForm({ ...form, check_out: v }); }} /></div>
               <div><Label>Room type</Label><Input value={form.room_type} onChange={(e) => setForm({ ...form, room_type: e.target.value })} /></div>
               <div><Label>Guests</Label><Input type="number" min={1} value={form.num_guests} onChange={(e) => setForm({ ...form, num_guests: Number(e.target.value) })} /></div>
               <div><Label>Rooms</Label><Input type="number" min={1} value={form.num_rooms} onChange={(e) => setForm({ ...form, num_rooms: Number(e.target.value) })} /></div>
