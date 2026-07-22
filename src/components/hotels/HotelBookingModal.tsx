@@ -13,6 +13,7 @@ import { format, differenceInDays, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
 
 declare global {
@@ -135,7 +136,7 @@ const HotelBookingModal = ({
       return;
     }
     if (checkOut <= checkIn) {
-      toast.error("Check-out must be after check-in");
+      toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
       return;
     }
 
@@ -222,7 +223,13 @@ const HotelBookingModal = ({
                   <Calendar
                     mode="single"
                     selected={checkIn}
-                    onSelect={setCheckIn}
+                    onSelect={(d) => {
+                      if (!d) return;
+                      setCheckIn(d);
+                      if (checkOut && checkOut.getTime() <= d.getTime()) {
+                        setCheckOut(addDays(d, 1));
+                      }
+                    }}
                     disabled={(d) => d < new Date()}
                     initialFocus
                     className="p-3 pointer-events-auto"
