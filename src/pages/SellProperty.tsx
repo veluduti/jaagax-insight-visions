@@ -2453,33 +2453,88 @@ export default function SellProperty() {
   };
 
   /* ===========================================================
-   BACK
+   BACK - UPDATED to go to category selector
 =========================================================== */
 
   const onBack = async () => {
+    // If we're in the review screen (done === true), go back to the last question
+    if (done) {
+      setDone(false);
+      // Remove the "review" messages
+      setMessages((m) => {
+        const copy = [...m];
+        while (copy.length && copy[copy.length - 1].role === "ai") {
+          copy.pop();
+        }
+        return copy;
+      });
+      if (history.length > 0) {
+        const last = history[history.length - 1];
+        setField(last.field);
+        setValue(last.value ?? "");
+      }
+      return;
+    }
+
+    // If we're in the intake bar (after category selected, before any questions answered)
+    if (intakeDone && history.length === 0 && !done) {
+      // Go back to category selection (2nd image)
+      setCategory(null);
+      setIntakeDone(false);
+      setDone(false);
+      setField(null);
+      setState({});
+      setHistory([]);
+      setMessages([
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: "👋 Hi! I'll help you list your property.",
+        },
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: "What type of property are you listing?",
+        },
+      ]);
+      engineRef.current = null;
+      return;
+    }
+
+    // If no history, go back to category selection
     if (history.length === 0) {
-      navigate("/dashboard");
+      setCategory(null);
+      setIntakeDone(false);
+      setDone(false);
+      setField(null);
+      setState({});
+      setHistory([]);
+      setMessages([
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: "👋 Hi! I'll help you list your property.",
+        },
+        {
+          id: uid(),
+          role: "ai",
+          kind: "text",
+          text: "What type of property are you listing?",
+        },
+      ]);
+      engineRef.current = null;
       return;
     }
 
     const prev = history[history.length - 1];
 
-    // =========================================================
-    // REMOVE HISTORY
-    // =========================================================
-
     setHistory(history.slice(0, -1));
 
-    // =========================================================
-    // CLEAR STATE
-    // =========================================================
-
-    const cleared = {
-      ...state,
-    };
-
+    const cleared = { ...state };
     const canonicalFieldId = canonId(prev.field.id);
-
     delete cleared[prev.field.id];
     delete cleared[canonicalFieldId];
 
@@ -2488,67 +2543,31 @@ export default function SellProperty() {
     }
 
     setState(cleared);
-
     setDone(false);
-
-    // =========================================================
-    // REMOVE CHAT PAIR
-    // =========================================================
 
     setMessages((m) => {
       const copy = [...m];
-
-      // -------------------------------------------------------
-      // remove trailing ai
-      // -------------------------------------------------------
-
       while (copy.length && copy[copy.length - 1].role === "ai") {
         copy.pop();
       }
-
-      // -------------------------------------------------------
-      // remove user answer
-      // -------------------------------------------------------
-
       if (copy.length && copy[copy.length - 1].role === "user") {
         copy.pop();
       }
-
       return copy;
     });
 
-    // =========================================================
-    // IMPORTANT
-    // REMOVE SKIPPED TOO
-    // =========================================================
-
     try {
       const engine = engineRef.current;
-
       if (engine) {
         const s = engine.getState();
-
         s.skipped = s.skipped.filter((id) => id !== prev.field.id);
       }
     } catch {}
 
-    // ============================================
-    // REBUILD ENGINE
-    // ============================================
-
     engineRef.current = createConversationEngine(category!);
-
-    // Reset duplicate-question guard on conversation restart.
     lastAskedFieldIdRef.current = null;
     fetchNextCallCountRef.current = {};
-
-    engineRef.current.applyExtractedFields(cleared, {
-      overwrite: true,
-    });
-
-    // =========================================================
-    // FETCH
-    // =========================================================
+    engineRef.current.applyExtractedFields(cleared, { overwrite: true });
 
     await fetchNext(cleared);
   };
@@ -3484,9 +3503,43 @@ export default function SellProperty() {
     <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
 
-      {/* Chat header */}
+      {/* Chat header - with Back button, without Draft/Progress */}
       <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          {/* BACK BUTTON - goes to category selector (2nd image) */}
+          <button
+            type="button"
+            onClick={() => {
+              // Reset to category selection
+              setCategory(null);
+              setIntakeDone(false);
+              setDone(false);
+              setField(null);
+              setState({});
+              setHistory([]);
+              setMessages([
+                {
+                  id: uid(),
+                  role: "ai",
+                  kind: "text",
+                  text: "👋 Hi! I'll help you list your property.",
+                },
+                {
+                  id: uid(),
+                  role: "ai",
+                  kind: "text",
+                  text: "What type of property are you listing?",
+                },
+              ]);
+              engineRef.current = null;
+            }}
+            className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
+            title="Back to categories"
+            aria-label="Back to categories"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
@@ -3499,22 +3552,6 @@ export default function SellProperty() {
               </span>
             </div>
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
-                    tierBadgeClasses[tier.label],
-                  )}
-                >
-                  {tier.label}
-                </span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
-              </div>
-              <Progress value={pct} className="h-1 w-24 mt-1" />
-            </div>
           </div>
         </div>
       </div>
