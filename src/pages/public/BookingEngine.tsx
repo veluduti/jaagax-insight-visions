@@ -122,8 +122,8 @@ export default function BookingEngine() {
         <div className="space-y-4">
           <Card>
             <CardContent className="p-4 grid grid-cols-3 gap-3">
-              <div><Label>Check-in</Label><Input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} /></div>
-              <div><Label>Check-out</Label><Input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} /></div>
+              <div><Label>Check-in</Label><Input type="date" min={new Date().toISOString().slice(0,10)} value={checkIn} onChange={e => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }} /></div>
+              <div><Label>Check-out</Label><Input type="date" min={nextDayISO(checkIn)} value={checkOut} onChange={e => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }} /></div>
               <div><Label>Guests</Label><Input type="number" min={1} value={guests} onChange={e => setGuests(Number(e.target.value))} /></div>
             </CardContent>
           </Card>
