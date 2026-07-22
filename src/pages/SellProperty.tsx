@@ -3555,6 +3555,15 @@ export default function SellProperty() {
             </div>
             <div className="text-xs text-muted-foreground">AI-guided property listing</div>
           </div>
+          {/* Selected Category Badge - shows what user selected */}
+          {category && !showCategoryPicker && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-medium">
+                <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.emoji}</span>
+                <span>{CATEGORY_OPTIONS.find((opt) => opt.id === category)?.label}</span>
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
