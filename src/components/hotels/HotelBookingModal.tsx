@@ -15,7 +15,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-declare global { interface Window { Razorpay?: any } }
+declare global {
+  interface Window {
+    Razorpay?: any;
+  }
+}
 function loadRazorpay(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
@@ -53,24 +57,39 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
   const navigate = useNavigate();
 
   const discountPct = Number(hotel.discount_percentage) || 0;
-  const discountedPrice = discountPct > 0
-    ? hotel.price_per_night * (1 - discountPct / 100)
-    : hotel.price_per_night;
+  const discountedPrice = discountPct > 0 ? hotel.price_per_night * (1 - discountPct / 100) : hotel.price_per_night;
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
   const totalAmount = Math.round(discountedPrice * nights * parseInt(numRooms || "1"));
   const originalAmount = Math.round(hotel.price_per_night * nights * parseInt(numRooms || "1"));
 
   const handleSubmit = async () => {
-    if (!guestName.trim()) { toast.error("Please enter guest name"); return; }
-    if (!guestEmail.trim() || !/^\S+@\S+\.\S+$/.test(guestEmail.trim())) { toast.error("Please enter a valid email"); return; }
-    if (!guestPhone.trim() || !/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) { toast.error("Please enter a valid phone"); return; }
-    if (!checkIn || !checkOut) { toast.error("Please select dates"); return; }
-    if (checkOut <= checkIn) { toast.error("Check-out must be after check-in"); return; }
+    if (!guestName.trim()) {
+      toast.error("Please enter guest name");
+      return;
+    }
+    if (!guestEmail.trim() || !/^\S+@\S+\.\S+$/.test(guestEmail.trim())) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+    if (!guestPhone.trim() || !/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) {
+      toast.error("Please enter a valid phone");
+      return;
+    }
+    if (!checkIn || !checkOut) {
+      toast.error("Please select dates");
+      return;
+    }
+    if (checkOut <= checkIn) {
+      toast.error("Check-out must be after check-in");
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please login to book", { description: "Redirecting to login..." });
         onClose();
@@ -137,13 +156,23 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
               <Label>Check-in</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !checkIn && "text-muted-foreground")}>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !checkIn && "text-muted-foreground")}
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {checkIn ? format(checkIn, "MMM dd, yyyy") : "Select"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} disabled={(d) => d < new Date()} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar
+                    mode="single"
+                    selected={checkIn}
+                    onSelect={setCheckIn}
+                    disabled={(d) => d < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -151,13 +180,23 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
               <Label>Check-out</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !checkOut && "text-muted-foreground")}>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !checkOut && "text-muted-foreground")}
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {checkOut ? format(checkOut, "MMM dd, yyyy") : "Select"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} disabled={(d) => d <= (checkIn || new Date())} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar
+                    mode="single"
+                    selected={checkOut}
+                    onSelect={setCheckOut}
+                    disabled={(d) => d <= (checkIn || new Date())}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -173,7 +212,12 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input type="email" placeholder="email@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
+              <Input
+                type="email"
+                placeholder="email@example.com"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Phone</Label>
@@ -182,25 +226,49 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           </div>
 
           {/* Room details */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1"><Users className="h-3 w-3" /> Guests</Label>
-              <Select value={numGuests} onValueChange={setNumGuests}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{[1,2,3,4,5,6].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1"><BedDouble className="h-3 w-3" /> Rooms</Label>
-              <Select value={numRooms} onValueChange={setNumRooms}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{[1,2,3,4,5].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
-              </Select>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1">
+                  <Users className="h-3 w-3" /> Guests
+                </Label>
+                <Select value={numGuests} onValueChange={setNumGuests}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1">
+                  <BedDouble className="h-3 w-3" /> Rooms
+                </Label>
+                <Select value={numRooms} onValueChange={setNumRooms}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Room Type</Label>
               <Select value={roomType} onValueChange={setRoomType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Standard">Standard</SelectItem>
                   <SelectItem value="Deluxe">Deluxe</SelectItem>
@@ -213,7 +281,12 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           {/* Special Requests */}
           <div className="space-y-1.5">
             <Label>Special Requests</Label>
-            <Textarea placeholder="Any special requirements..." value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)} rows={2} />
+            <Textarea
+              placeholder="Any special requirements..."
+              value={specialRequests}
+              onChange={(e) => setSpecialRequests(e.target.value)}
+              rows={2}
+            />
           </div>
 
           <Separator />
@@ -221,8 +294,12 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           {/* Price Summary */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span>₹{hotel.price_per_night.toLocaleString()} × {nights} night × {numRooms} room</span>
-              <span className={discountPct > 0 ? "line-through text-muted-foreground" : ""}>₹{originalAmount.toLocaleString()}</span>
+              <span>
+                ₹{hotel.price_per_night.toLocaleString()} × {nights} night × {numRooms} room
+              </span>
+              <span className={discountPct > 0 ? "line-through text-muted-foreground" : ""}>
+                ₹{originalAmount.toLocaleString()}
+              </span>
             </div>
             {discountPct > 0 && (
               <div className="flex justify-between text-sm text-emerald-600 font-medium">
@@ -238,7 +315,13 @@ const HotelBookingModal = ({ open, onClose, hotel, bookingType }: HotelBookingMo
           </div>
 
           <Button className="w-full h-12" onClick={handleSubmit} disabled={submitting}>
-            {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting...</> : `Continue to Payment • ₹${totalAmount.toLocaleString()}`}
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting...
+              </>
+            ) : (
+              `Continue to Payment • ₹${totalAmount.toLocaleString()}`
+            )}
           </Button>
         </div>
       </DialogContent>
