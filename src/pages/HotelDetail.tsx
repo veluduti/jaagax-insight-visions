@@ -441,6 +441,10 @@ const HotelDetail = () => {
           onClose={() => setBookingModalOpen(false)}
           hotel={hotel}
           bookingType={bookingType}
+          initialCheckIn={checkIn ? new Date(checkIn) : undefined}
+          initialCheckOut={checkOut ? new Date(checkOut) : undefined}
+          initialGuests={adults + childrenCount}
+          initialRooms={roomsWanted}
         />
       )}
     </div>
