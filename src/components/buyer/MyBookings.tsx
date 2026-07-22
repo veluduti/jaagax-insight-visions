@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import HotelReviewDialog from "@/components/hotels/HotelReviewDialog";
 import { Link } from "react-router-dom";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -397,7 +397,7 @@ const MyBookings = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={eCheckIn} onSelect={setECheckIn} disabled={(d) => d < new Date()} className="p-3 pointer-events-auto" />
+                    <Calendar mode="single" selected={eCheckIn} onSelect={(d) => { if (!d) return; setECheckIn(d); if (eCheckOut && eCheckOut.getTime() <= d.getTime()) setECheckOut(addDays(d, 1)); }} disabled={(d) => d < new Date()} className="p-3 pointer-events-auto" />
                   </PopoverContent>
                 </Popover>
               </div>
