@@ -3503,42 +3503,44 @@ export default function SellProperty() {
     <div className="h-[100dvh] bg-gradient-to-br from-background via-background to-primary/5 flex flex-col overflow-hidden">
       <Navigation />
 
-      {/* Chat header - with Back button, without Draft/Progress */}
+      {/* Chat header - with Back button (hidden on category selector) */}
       <div className="border-b border-border/40 bg-card/60 backdrop-blur sticky top-16 z-10">
         <div className="container max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          {/* BACK BUTTON - goes to category selector (2nd image) */}
-          <button
-            type="button"
-            onClick={() => {
-              // Reset to category selection
-              setCategory(null);
-              setIntakeDone(false);
-              setDone(false);
-              setField(null);
-              setState({});
-              setHistory([]);
-              setMessages([
-                {
-                  id: uid(),
-                  role: "ai",
-                  kind: "text",
-                  text: "👋 Hi! I'll help you list your property.",
-                },
-                {
-                  id: uid(),
-                  role: "ai",
-                  kind: "text",
-                  text: "What type of property are you listing?",
-                },
-              ]);
-              engineRef.current = null;
-            }}
-            className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
-            title="Back to categories"
-            aria-label="Back to categories"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
+          {/* BACK BUTTON - only show when NOT on category selector */}
+          {!showCategoryPicker && (
+            <button
+              type="button"
+              onClick={() => {
+                // Reset to category selection
+                setCategory(null);
+                setIntakeDone(false);
+                setDone(false);
+                setField(null);
+                setState({});
+                setHistory([]);
+                setMessages([
+                  {
+                    id: uid(),
+                    role: "ai",
+                    kind: "text",
+                    text: "👋 Hi! I'll help you list your property.",
+                  },
+                  {
+                    id: uid(),
+                    role: "ai",
+                    kind: "text",
+                    text: "What type of property are you listing?",
+                  },
+                ]);
+                engineRef.current = null;
+              }}
+              className="h-9 w-9 shrink-0 rounded-full border border-border bg-background hover:bg-muted flex items-center justify-center text-muted-foreground transition"
+              title="Back to categories"
+              aria-label="Back to categories"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
 
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-white" />
