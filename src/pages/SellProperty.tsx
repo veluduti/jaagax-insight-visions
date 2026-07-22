@@ -5054,7 +5054,7 @@ export default function SellProperty() {
                   ))}
                 </div>
               </div>
-            ) : {showIntakeBar ? (
+            ) : showIntakeBar ? (
   <>
     <input
       ref={imageRef}
