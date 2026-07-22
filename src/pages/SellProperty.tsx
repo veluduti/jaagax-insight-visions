@@ -2453,55 +2453,12 @@ export default function SellProperty() {
   };
 
   /* ===========================================================
-   BACK - FIXED
+   BACK
 =========================================================== */
 
   const onBack = async () => {
-    // If we're in the review screen (done === true), go back to the last question
-    if (done) {
-      setDone(false);
-      // Remove the "review" messages
-      setMessages((m) => {
-        const copy = [...m];
-        // Remove the last AI message (the "done" message)
-        while (copy.length && copy[copy.length - 1].role === "ai") {
-          copy.pop();
-        }
-        return copy;
-      });
-      // Restore the last field
-      if (history.length > 0) {
-        const last = history[history.length - 1];
-        setField(last.field);
-        setValue(last.value ?? "");
-      }
-      return;
-    }
-
-    // If no history, go back to category selection (show 2nd image)
     if (history.length === 0) {
-      // Reset to category selection
-      setCategory(null);
-      setIntakeDone(false);
-      setDone(false);
-      setField(null);
-      setState({});
-      setHistory([]);
-      setMessages([
-        {
-          id: uid(),
-          role: "ai",
-          kind: "text",
-          text: "👋 Hi! I'll help you list your property.",
-        },
-        {
-          id: uid(),
-          role: "ai",
-          kind: "text",
-          text: "What type of property are you listing?",
-        },
-      ]);
-      engineRef.current = null;
+      navigate("/dashboard");
       return;
     }
 
@@ -2965,9 +2922,7 @@ export default function SellProperty() {
     if (category === "financial") {
       setSubmitting(true);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           toast.error("Please sign in");
           navigate("/auth");
@@ -2985,14 +2940,10 @@ export default function SellProperty() {
         let phone: string | null = (user.user_metadata?.phone as string) || null;
         try {
           const { data: prof } = await (supabase.from as any)("profiles")
-            .select("full_name, phone")
-            .eq("id", user.id)
-            .maybeSingle();
+            .select("full_name, phone").eq("id", user.id).maybeSingle();
           if (prof?.full_name) customerName = prof.full_name;
           if (prof?.phone) phone = prof.phone;
-        } catch {
-          /* ignore */
-        }
+        } catch { /* ignore */ }
 
         const requirementText = [
           src.requirement_type && `Type: ${src.requirement_type}`,
@@ -3003,9 +2954,7 @@ export default function SellProperty() {
           src.preferred_finance_source && `Prefers: ${src.preferred_finance_source}`,
           src.property_information && `Property: ${src.property_information}`,
           src.example_description,
-        ]
-          .filter(Boolean)
-          .join(" • ");
+        ].filter(Boolean).join(" • ");
 
         const locationStr = [src.locality, src.city, src.state_name].filter(Boolean).join(", ") || null;
 
@@ -3073,41 +3022,28 @@ export default function SellProperty() {
       };
       const isRentListing = String(editForm.listing_type || state.listing_type || "").toLowerCase() === "rent";
       const rentCandidates = [
-        editForm.monthly_rent,
-        state.monthly_rent,
-        editForm.rent_amount,
-        state.rent_amount,
-        editForm.rental_price,
-        state.rental_price,
-        editForm.rent,
-        state.rent,
-        editForm.price_per_seat,
-        state.price_per_seat,
-        editForm.weekly_price,
-        state.weekly_price,
-        editForm.daily_pass_price,
-        state.daily_pass_price,
-        editForm.hourly_price,
-        state.hourly_price,
+        editForm.monthly_rent, state.monthly_rent,
+        editForm.rent_amount, state.rent_amount,
+        editForm.rental_price, state.rental_price,
+        editForm.rent, state.rent,
+        editForm.price_per_seat, state.price_per_seat,
+        editForm.weekly_price, state.weekly_price,
+        editForm.daily_pass_price, state.daily_pass_price,
+        editForm.hourly_price, state.hourly_price,
       ];
       const saleCandidates = [
-        editForm.total_price,
-        state.total_price,
-        editForm.property_price,
-        state.property_price,
-        editForm.price,
-        state.price,
-        editForm.amount,
-        state.amount,
+        editForm.total_price, state.total_price,
+        editForm.property_price, state.property_price,
+        editForm.price, state.price,
+        editForm.amount, state.amount,
       ];
-      const ordered = isRentListing ? [...rentCandidates, ...saleCandidates] : [...saleCandidates, ...rentCandidates];
+      const ordered = isRentListing
+        ? [...rentCandidates, ...saleCandidates]
+        : [...saleCandidates, ...rentCandidates];
       let totalPrice: number | null = null;
       for (const c of ordered) {
         const n = parseNum(c);
-        if (n) {
-          totalPrice = n;
-          break;
-        }
+        if (n) { totalPrice = n; break; }
       }
       const UNIT_TO_SQFT: Record<string, number> = {
         "sq ft": 1,
@@ -3669,25 +3605,29 @@ export default function SellProperty() {
               )}
 
             {/* Document upload widget — financial flow */}
-            {field?.id === "upload_documents" && !loadingNext && !done && Array.isArray(value) && value.length > 0 && (
-              <DocumentUploadWidget
-                docTypes={value as string[]}
-                onSubmit={async (uploaded) => {
-                  const types = value as string[];
-                  setEditForm((f: any) => ({
-                    ...f,
-                    upload_documents: types,
-                    documents: uploaded,
-                  }));
-                  // Commit the original multi-select array so engine validation passes;
-                  // file URLs are kept alongside in editForm + state.
-                  await commitAnswer(
-                    types,
-                    `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
-                  );
-                }}
-              />
-            )}
+            {field?.id === "upload_documents" &&
+              !loadingNext &&
+              !done &&
+              Array.isArray(value) &&
+              value.length > 0 && (
+                <DocumentUploadWidget
+                  docTypes={value as string[]}
+                  onSubmit={async (uploaded) => {
+                    const types = value as string[];
+                    setEditForm((f: any) => ({
+                      ...f,
+                      upload_documents: types,
+                      documents: uploaded,
+                    }));
+                    // Commit the original multi-select array so engine validation passes;
+                    // file URLs are kept alongside in editForm + state.
+                    await commitAnswer(
+                      types,
+                      `${uploaded.length} document(s) uploaded: ${uploaded.map((u) => u.type).join(", ")}`,
+                    );
+                  }}
+                />
+              )}
 
             {/* Quick-reply chips for NUMBER fields — never leave a blank input */}
             {field && !loadingNext && !done && field.input === "number" && NUMBER_QUICK_REPLIES[field.id] && (
@@ -3835,7 +3775,9 @@ export default function SellProperty() {
 
                     // Short summary from whatever's available.
                     const summary =
-                      [data.locality, data.city, data.state_name].filter((s) => hasVal(s)).join(", ") ||
+                      [data.locality, data.city, data.state_name]
+                        .filter((s) => hasVal(s))
+                        .join(", ") ||
                       data.address ||
                       data.pincode ||
                       "Location saved";
@@ -3928,16 +3870,7 @@ export default function SellProperty() {
                   total_floors: ["total_floors", "floors"],
                   built_up_area: ["built_up_area", "built_area", "builtup_area", "building_area_sqft", "flat_size"],
                   carpet_area: ["carpet_area"],
-                  area: [
-                    "area",
-                    "area_sqft",
-                    "total_area",
-                    "flat_size",
-                    "built_up_area",
-                    "built_area",
-                    "plot_area",
-                    "land_size",
-                  ],
+                  area: ["area", "area_sqft", "total_area", "flat_size", "built_up_area", "built_area", "plot_area", "land_size"],
                   plot_area: ["plot_area", "land_size", "land_area"],
                   facing: ["facing", "facing_direction"],
                   furnishing: ["furnishing", "furnishing_status"],
@@ -3974,7 +3907,8 @@ export default function SellProperty() {
                   0;
 
                 const propTypeRaw = pick("property_type");
-                const sub = (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
+                const sub =
+                  (Array.isArray(propTypeRaw) ? propTypeRaw[0] : propTypeRaw) || "Property";
                 const purpose = (pick("listing_type") || "sale").toString().toLowerCase();
                 const locLine = [editForm.locality || state.locality, editForm.city || state.city]
                   .filter(Boolean)
@@ -4465,73 +4399,71 @@ export default function SellProperty() {
 
                     {/* 7. AI TITLES — not for financial */}
                     {!isFinancial && (
-                      <SectionCard
-                        title="AI Suggested Titles"
-                        icon={<Wand2 className="h-4 w-4 text-primary" />}
-                        action={
-                          <button
-                            type="button"
-                            onClick={regenerateTitles}
-                            disabled={titlesLoading}
-                            className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
-                          >
-                            {titlesLoading ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Sparkles className="h-3 w-3" />
-                            )}
-                            Regenerate
-                          </button>
-                        }
-                      >
-                        {titlesLoading && aiTitles.length === 0 ? (
-                          <div className="text-xs text-muted-foreground flex items-center gap-2">
-                            <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {aiTitles.slice(0, 3).map((t, i) => {
-                              const active = selectedTitleIdx === i;
-                              return (
-                                <button
-                                  key={i}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedTitleIdx(i);
-                                    setEditForm((p) => ({ ...p, title: t.title }));
-                                  }}
+                    <SectionCard
+                      title="AI Suggested Titles"
+                      icon={<Wand2 className="h-4 w-4 text-primary" />}
+                      action={
+                        <button
+                          type="button"
+                          onClick={regenerateTitles}
+                          disabled={titlesLoading}
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {titlesLoading ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3" />
+                          )}
+                          Regenerate
+                        </button>
+                      }
+                    >
+                      {titlesLoading && aiTitles.length === 0 ? (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Crafting titles…
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {aiTitles.slice(0, 3).map((t, i) => {
+                            const active = selectedTitleIdx === i;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTitleIdx(i);
+                                  setEditForm((p) => ({ ...p, title: t.title }));
+                                }}
+                                className={cn(
+                                  "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
+                                  active
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border bg-background hover:border-primary/40",
+                                )}
+                              >
+                                <span
                                   className={cn(
-                                    "w-full text-left p-3 rounded-xl border transition flex items-start gap-3",
-                                    active
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border bg-background hover:border-primary/40",
+                                    "mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                                    active ? "border-primary bg-primary" : "border-muted-foreground/40",
                                   )}
                                 >
-                                  <span
-                                    className={cn(
-                                      "mt-1 h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
-                                      active ? "border-primary bg-primary" : "border-muted-foreground/40",
-                                    )}
-                                  >
-                                    {active && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
-                                  </span>
-                                  <div className="min-w-0">
-                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
-                                      {t.label}
-                                    </div>
-                                    <div className="text-sm">{t.title}</div>
+                                  {active && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                                    {t.label}
                                   </div>
-                                </button>
-                              );
-                            })}
-                            {aiTitles.length === 0 && (
-                              <div className="text-xs text-muted-foreground italic">
-                                No titles yet — tap Regenerate.
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </SectionCard>
+                                  <div className="text-sm">{t.title}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                          {aiTitles.length === 0 && (
+                            <div className="text-xs text-muted-foreground italic">No titles yet — tap Regenerate.</div>
+                          )}
+                        </div>
+                      )}
+                    </SectionCard>
                     )}
 
                     {/* 8. STICKY ACTION BAR */}
@@ -4544,32 +4476,11 @@ export default function SellProperty() {
                         )}
                         {!isFinancial && (
                           <div className="rounded-xl border border-border bg-card p-3 mb-1">
-                            <div className="text-sm font-semibold mb-1">
-                              Would you like a nearby JAAGA verification agent to verify your property?
-                            </div>
-                            <div className="text-[11px] text-muted-foreground mb-2">
-                              Verified listings get a trust badge and rank higher. You can skip this and list as
-                              unverified.
-                            </div>
+                            <div className="text-sm font-semibold mb-1">Would you like a nearby JAAGA verification agent to verify your property?</div>
+                            <div className="text-[11px] text-muted-foreground mb-2">Verified listings get a trust badge and rank higher. You can skip this and list as unverified.</div>
                             <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(true)}
-                                className="flex-1"
-                              >
-                                Yes, verify
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={!verificationRequested ? "default" : "outline"}
-                                onClick={() => setVerificationRequested(false)}
-                                className="flex-1"
-                              >
-                                No, list as unverified
-                              </Button>
+                              <Button type="button" size="sm" variant={verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(true)} className="flex-1">Yes, verify</Button>
+                              <Button type="button" size="sm" variant={!verificationRequested ? "default" : "outline"} onClick={() => setVerificationRequested(false)} className="flex-1">No, list as unverified</Button>
                             </div>
                           </div>
                         )}
@@ -4626,196 +4537,199 @@ export default function SellProperty() {
                           )}
 
                           {/* FINANCIAL: render only answered flow fields */}
-                          {isFinancial &&
-                            (() => {
-                              const ff: any = (financialRequirementFlow as any).fields || {};
-                              const src: any = { ...state, ...editForm };
-                              const entries = Object.entries(ff).filter(([k]) => {
-                                const v = src[k];
-                                if (v === null || v === undefined || v === "") return false;
-                                if (Array.isArray(v) && v.length === 0) return false;
-                                if (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0)
-                                  return false;
-                                return true;
-                              });
-                              if (entries.length === 0) {
-                                return (
-                                  <p className="text-sm text-muted-foreground italic">
-                                    No answers captured yet — go back and chat with the AI.
-                                  </p>
-                                );
-                              }
+                          {isFinancial && (() => {
+                            const ff: any = (financialRequirementFlow as any).fields || {};
+                            const src: any = { ...state, ...editForm };
+                            const entries = Object.entries(ff).filter(([k]) => {
+                              const v = src[k];
+                              if (v === null || v === undefined || v === "") return false;
+                              if (Array.isArray(v) && v.length === 0) return false;
+                              if (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0) return false;
+                              return true;
+                            });
+                            if (entries.length === 0) {
                               return (
-                                <div className="space-y-3">
-                                  {entries.map(([key, def]: [string, any]) => {
-                                    const v = (editForm as any)[key] ?? (state as any)[key];
-                                    const label = (def.question || key).replace(/:$/, "");
-                                    const isArr = Array.isArray(v);
-                                    const isObj = !isArr && v !== null && typeof v === "object";
-                                    const options: string[] = def.options || [];
-                                    const type = def.type;
-                                    const setVal = (nv: any) => setEditForm((p) => ({ ...p, [key]: nv }));
-                                    if (type === "single_select" && options.length > 0) {
-                                      return (
-                                        <div key={key}>
-                                          <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-                                          <select
-                                            value={String(v ?? "")}
-                                            onChange={(e) => setVal(e.target.value)}
-                                            className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
-                                          >
-                                            {options.map((o) => (
-                                              <option key={o} value={o}>
-                                                {o}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        </div>
-                                      );
-                                    }
-                                    if (type === "multi_select" && options.length > 0) {
-                                      const arr: string[] = isArr ? v : v ? [v] : [];
-                                      return (
-                                        <div key={key}>
-                                          <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-                                          <div className="flex flex-wrap gap-1.5">
-                                            {options.map((o) => {
-                                              const on = arr.includes(o);
-                                              return (
-                                                <button
-                                                  key={o}
-                                                  type="button"
-                                                  onClick={() => setVal(on ? arr.filter((x) => x !== o) : [...arr, o])}
-                                                  className={cn(
-                                                    "px-2.5 py-1 rounded-full text-xs border transition",
-                                                    on
-                                                      ? "bg-primary text-primary-foreground border-primary"
-                                                      : "bg-background border-border hover:border-primary/40",
-                                                  )}
-                                                >
-                                                  {o}
-                                                </button>
-                                              );
-                                            })}
-                                          </div>
-                                        </div>
-                                      );
-                                    }
-                                    if (def.inputMode === "textarea") {
-                                      return (
-                                        <div key={key}>
-                                          <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-                                          <Textarea value={String(v ?? "")} onChange={(e) => setVal(e.target.value)} />
-                                        </div>
-                                      );
-                                    }
-                                    // smart_location object — show editable summary fields
-                                    if (isObj) {
-                                      return (
-                                        <div key={key}>
-                                          <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-                                          <pre className="text-xs bg-muted/40 p-2 rounded-md whitespace-pre-wrap">
-                                            {JSON.stringify(v, null, 2)}
-                                          </pre>
-                                        </div>
-                                      );
-                                    }
+                                <p className="text-sm text-muted-foreground italic">
+                                  No answers captured yet — go back and chat with the AI.
+                                </p>
+                              );
+                            }
+                            return (
+                              <div className="space-y-3">
+                                {entries.map(([key, def]: [string, any]) => {
+                                  const v = (editForm as any)[key] ?? (state as any)[key];
+                                  const label = (def.question || key).replace(/:$/, "");
+                                  const isArr = Array.isArray(v);
+                                  const isObj = !isArr && v !== null && typeof v === "object";
+                                  const options: string[] = def.options || [];
+                                  const type = def.type;
+                                  const setVal = (nv: any) => setEditForm((p) => ({ ...p, [key]: nv }));
+                                  if (type === "single_select" && options.length > 0) {
                                     return (
                                       <div key={key}>
                                         <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
-                                        <Input value={String(v ?? "")} onChange={(e) => setVal(e.target.value)} />
+                                        <select
+                                          value={String(v ?? "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm"
+                                        >
+                                          {options.map((o) => (
+                                            <option key={o} value={o}>{o}</option>
+                                          ))}
+                                        </select>
                                       </div>
                                     );
-                                  })}
-                                </div>
-                              );
-                            })()}
+                                  }
+                                  if (type === "multi_select" && options.length > 0) {
+                                    const arr: string[] = isArr ? v : v ? [v] : [];
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {options.map((o) => {
+                                            const on = arr.includes(o);
+                                            return (
+                                              <button
+                                                key={o}
+                                                type="button"
+                                                onClick={() =>
+                                                  setVal(on ? arr.filter((x) => x !== o) : [...arr, o])
+                                                }
+                                                className={cn(
+                                                  "px-2.5 py-1 rounded-full text-xs border transition",
+                                                  on
+                                                    ? "bg-primary text-primary-foreground border-primary"
+                                                    : "bg-background border-border hover:border-primary/40",
+                                                )}
+                                              >
+                                                {o}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  if (def.inputMode === "textarea") {
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <Textarea
+                                          value={String(v ?? "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                  // smart_location object — show editable summary fields
+                                  if (isObj) {
+                                    return (
+                                      <div key={key}>
+                                        <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                        <pre className="text-xs bg-muted/40 p-2 rounded-md whitespace-pre-wrap">
+                                          {JSON.stringify(v, null, 2)}
+                                        </pre>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div key={key}>
+                                      <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                                      <Input
+                                        value={String(v ?? "")}
+                                        onChange={(e) => setVal(e.target.value)}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
 
                           {/* Config-driven sections — non-financial only */}
-                          {!isFinancial &&
-                            visibleSections.map((section) => (
-                              <div key={section.id} className="space-y-3">
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                  {section.title}
-                                </h4>
-                                <div className="grid grid-cols-2 gap-3">
-                                  {section.fields.map((f) => {
-                                    const span = f.colSpan === 2 ? "col-span-2" : "";
-                                    const rawVal = (editForm as any)[f.id];
-                                    const isArr = Array.isArray(rawVal);
-                                    const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
-                                    // Format a {value, unit} measurement object → "20 Ft"
-                                    const fmtMeasure = (m: any): string => {
-                                      if (m == null) return "";
-                                      if (typeof m !== "object") return String(m);
-                                      if ("value" in m || "unit" in m) {
-                                        const v = m.value ?? "";
-                                        const u = m.unit ?? "";
-                                        return [v, u].filter(Boolean).join(" ").trim();
-                                      }
-                                      return Object.entries(m)
-                                        .filter(([, v]) => v !== null && v !== undefined && v !== "")
-                                        .map(([k, v]) => `${k}: ${fmtMeasure(v)}`)
-                                        .join(", ");
-                                    };
-                                    // Display value: arrays -> "a, b, c", objects -> formatted
-                                    const val = isArr
-                                      ? (rawVal as any[])
-                                          .map((x) => (typeof x === "object" ? fmtMeasure(x) : x))
-                                          .join(", ")
-                                      : isObj
-                                        ? fmtMeasure(rawVal)
-                                        : (rawVal ?? "");
-                                    const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
-                                    const onTextChange = (raw: string) => {
-                                      if (isArr) {
-                                        setVal(
-                                          raw
-                                            .split(",")
-                                            .map((s) => s.trim())
-                                            .filter(Boolean),
-                                        );
-                                      } else {
-                                        setVal(raw);
-                                      }
-                                    };
-                                    return (
-                                      <div key={f.id} className={span}>
-                                        <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
-                                        {f.type === "select" ? (
-                                          <select
-                                            value={String(val || "")}
-                                            onChange={(e) => setVal(e.target.value)}
-                                            className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                                          >
-                                            {(f.options || []).map((o) => (
-                                              <option key={o} value={o}>
-                                                {o || "—"}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        ) : f.type === "textarea" ? (
-                                          <Textarea
-                                            value={val}
-                                            placeholder={f.placeholder}
-                                            onChange={(e) => onTextChange(e.target.value)}
-                                            rows={3}
-                                          />
-                                        ) : (
-                                          <Input
-                                            type={isArr || isObj ? "text" : f.type}
-                                            value={val}
-                                            placeholder={f.placeholder}
-                                            onChange={(e) => onTextChange(e.target.value)}
-                                            readOnly={isObj}
-                                          />
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
+                          {!isFinancial && visibleSections.map((section) => (
+                            <div key={section.id} className="space-y-3">
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                {section.title}
+                              </h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                {section.fields.map((f) => {
+                                  const span = f.colSpan === 2 ? "col-span-2" : "";
+                                  const rawVal = (editForm as any)[f.id];
+                                  const isArr = Array.isArray(rawVal);
+                                  const isObj = !isArr && rawVal !== null && typeof rawVal === "object";
+                                  // Format a {value, unit} measurement object → "20 Ft"
+                                  const fmtMeasure = (m: any): string => {
+                                    if (m == null) return "";
+                                    if (typeof m !== "object") return String(m);
+                                    if ("value" in m || "unit" in m) {
+                                      const v = m.value ?? "";
+                                      const u = m.unit ?? "";
+                                      return [v, u].filter(Boolean).join(" ").trim();
+                                    }
+                                    return Object.entries(m)
+                                      .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                                      .map(([k, v]) => `${k}: ${fmtMeasure(v)}`)
+                                      .join(", ");
+                                  };
+                                  // Display value: arrays -> "a, b, c", objects -> formatted
+                                  const val = isArr
+                                    ? (rawVal as any[])
+                                        .map((x) => (typeof x === "object" ? fmtMeasure(x) : x))
+                                        .join(", ")
+                                    : isObj
+                                      ? fmtMeasure(rawVal)
+                                      : (rawVal ?? "");
+                                  const setVal = (v: any) => setEditForm((p) => ({ ...p, [f.id]: v }));
+                                  const onTextChange = (raw: string) => {
+                                    if (isArr) {
+                                      setVal(
+                                        raw
+                                          .split(",")
+                                          .map((s) => s.trim())
+                                          .filter(Boolean),
+                                      );
+                                    } else {
+                                      setVal(raw);
+                                    }
+                                  };
+                                  return (
+                                    <div key={f.id} className={span}>
+                                      <label className="text-xs text-muted-foreground mb-1 block">{f.label}</label>
+                                      {f.type === "select" ? (
+                                        <select
+                                          value={String(val || "")}
+                                          onChange={(e) => setVal(e.target.value)}
+                                          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                        >
+                                          {(f.options || []).map((o) => (
+                                            <option key={o} value={o}>
+                                              {o || "—"}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      ) : f.type === "textarea" ? (
+                                        <Textarea
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => onTextChange(e.target.value)}
+                                          rows={3}
+                                        />
+                                      ) : (
+                                        <Input
+                                          type={isArr || isObj ? "text" : f.type}
+                                          value={val}
+                                          placeholder={f.placeholder}
+                                          onChange={(e) => onTextChange(e.target.value)}
+                                          readOnly={isObj}
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            ))}
+                            </div>
+                          ))}
 
                           {/* Area & Pricing */}
                           {(areaN > 0 || totalPrice > 0) && (
