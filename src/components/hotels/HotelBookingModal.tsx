@@ -327,6 +327,7 @@ const HotelBookingModal = ({
               >
                 <span className="text-sm">
                   {numRooms} Room{numRooms > 1 ? "s" : ""}, {numGuests} Adult{numGuests > 1 ? "s" : ""}
+                  {numChildren > 0 && `, ${numChildren} Child${numChildren > 1 ? "ren" : ""}`}
                 </span>
                 <ChevronDown
                   className={cn(
