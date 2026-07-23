@@ -65,6 +65,7 @@ const HotelBookingModal = ({
   const [guestPhone, setGuestPhone] = useState("");
   const [numGuests, setNumGuests] = useState(initialGuests ?? 1);
   const [numRooms, setNumRooms] = useState(initialRooms ?? 1);
+  const [numChildren, setNumChildren] = useState(0);
   const [roomType, setRoomType] = useState("Standard");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
