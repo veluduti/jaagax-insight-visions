@@ -68,6 +68,8 @@ const HotelBookingModal = ({
   const [roomType, setRoomType] = useState("Standard");
   const [specialRequests, setSpecialRequests] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // Sync when search filters change while modal reopens
