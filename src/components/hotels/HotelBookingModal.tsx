@@ -420,14 +420,24 @@ const HotelBookingModal = ({
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        className="h-8 w-8 rounded-full border flex items-center justify-center opacity-50 cursor-not-allowed"
+                        onClick={() => handleGuestDecrement("children")}
+                        disabled={numChildren <= 0}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numChildren <= 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
                       >
                         <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="text-sm font-medium w-6 text-center">0</span>
+                      <span className="text-sm font-medium w-6 text-center">{numChildren}</span>
                       <button
                         type="button"
-                        className="h-8 w-8 rounded-full border flex items-center justify-center hover:bg-muted"
+                        onClick={() => handleGuestIncrement("children")}
+                        disabled={numChildren >= 10}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numChildren >= 10 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </button>
