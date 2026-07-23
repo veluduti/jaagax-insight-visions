@@ -132,8 +132,8 @@ const HotelBookingModal = ({
   const discountedPrice = discountPct > 0 ? hotel.price_per_night * (1 - discountPct / 100) : hotel.price_per_night;
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
-  const totalAmount = Math.round(discountedPrice * nights * parseInt(numRooms || "1"));
-  const originalAmount = Math.round(hotel.price_per_night * nights * parseInt(numRooms || "1"));
+  const totalAmount = Math.round(discountedPrice * nights * (Number(numRooms) || 1));
+  const originalAmount = Math.round(hotel.price_per_night * nights * (Number(numRooms) || 1));
 
   const handleGuestDecrement = (type: "guests" | "rooms") => {
     if (type === "guests" && numGuests > 1) setNumGuests(numGuests - 1);
@@ -200,9 +200,9 @@ const HotelBookingModal = ({
         room: room.id,
         checkin: format(checkIn, "yyyy-MM-dd"),
         checkout: format(checkOut, "yyyy-MM-dd"),
-        adults: numGuests,
+        adults: String(numGuests),
         children: "0",
-        rooms: numRooms,
+        rooms: String(numRooms),
         name: guestName.trim(),
         email: guestEmail.trim(),
         phone: guestPhone.trim(),
@@ -320,7 +320,7 @@ const HotelBookingModal = ({
                 <Label className="flex items-center gap-1">
                   <Users className="h-3 w-3" /> Guests
                 </Label>
-                <Select value={numGuests} onValueChange={setNumGuests}>
+                <Select value={String(numGuests)} onValueChange={(v) => setNumGuests(Number(v))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -337,7 +337,7 @@ const HotelBookingModal = ({
                 <Label className="flex items-center gap-1">
                   <BedDouble className="h-3 w-3" /> Rooms
                 </Label>
-                <Select value={numRooms} onValueChange={setNumRooms}>
+                <Select value={String(numRooms)} onValueChange={(v) => setNumRooms(Number(v))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
