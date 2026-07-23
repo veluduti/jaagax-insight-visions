@@ -42,14 +42,20 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, role } = useAuth();
-  const isAdminRole = role === "admin" || role === "country_admin" || role === "state_admin" || role === "district_admin";
+  const isAdminRole =
+    role === "admin" || role === "country_admin" || role === "state_admin" || role === "district_admin";
   const dashboardPath =
-    role === "admin" ? "/dashboard/admin"
-      : role === "country_admin" ? "/dashboard/admin/country"
-      : role === "state_admin" ? "/dashboard/admin/state"
-      : role === "district_admin" ? "/dashboard/admin/district"
-      : role === "hotel_manager" ? "/partners/dashboard"
-      : `/dashboard/${role || "buyer"}`;
+    role === "admin"
+      ? "/dashboard/admin"
+      : role === "country_admin"
+        ? "/dashboard/admin/country"
+        : role === "state_admin"
+          ? "/dashboard/admin/state"
+          : role === "district_admin"
+            ? "/dashboard/admin/district"
+            : role === "hotel_manager"
+              ? "/partners/dashboard"
+              : `/dashboard/${role || "buyer"}`;
   const [naturalLivingEnabled, setNaturalLivingEnabled] = useState(false);
   const isNaturalLivingRoute = location.pathname.startsWith("/natural-living");
 
@@ -129,7 +135,6 @@ const Navigation = () => {
   const isPropertiesActive = propertiesItems.some((item) => isActive(item.path));
   const isExploreActive = exploreItems.some((item) => isActive(item.path));
 
-
   return (
     <>
       {/* Desktop Navigation */}
@@ -146,13 +151,15 @@ const Navigation = () => {
                 src={jaagaxLogo}
                 alt="JAAGA X"
                 className="h-8 w-auto max-h-8 object-contain shrink-0"
-                loading="lazy" decoding="async" />
+                loading="lazy"
+                decoding="async"
+              />
             </Link>
 
             {/* Center Nav Links - Smart Grouped */}
             <NavigationMenu>
               <NavigationMenuList className="gap-1">
-                {(
+                {
                   <>
                     {/* Sell Your Property - Direct Link (all roles) */}
                     <NavigationMenuItem>
@@ -169,7 +176,6 @@ const Navigation = () => {
                         </Link>
                       </NavigationMenuLink>
                     </NavigationMenuItem>
-
 
                     {/* Explore Dropdown */}
                     <NavigationMenuItem>
@@ -230,7 +236,9 @@ const Navigation = () => {
                           variant="ghost"
                           className={cn(
                             "px-3 py-2 text-sm font-medium h-auto flex items-center gap-1.5",
-                            isActive("/natural-living") ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                            isActive("/natural-living")
+                              ? "text-foreground"
+                              : "text-muted-foreground hover:text-foreground",
                           )}
                         >
                           <Leaf className="h-4 w-4 text-emerald-500" />
@@ -239,16 +247,13 @@ const Navigation = () => {
                             <Badge
                               variant="outline"
                               className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                            >
-                              Soon
-                            </Badge>
+                            ></Badge>
                           )}
                         </Button>
                       </Link>
                     </NavigationMenuItem>
-
                   </>
-                )}
+                }
               </NavigationMenuList>
             </NavigationMenu>
 
@@ -273,12 +278,7 @@ const Navigation = () => {
               {session ? (
                 <>
                   {!isAdminRole && <ProfileSwitcher />}
-                  <Button
-                    onClick={() => navigate(dashboardPath)}
-                    variant="default"
-                    size="sm"
-                    className="text-sm"
-                  >
+                  <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-sm">
                     Dashboard
                   </Button>
                 </>
@@ -305,7 +305,9 @@ const Navigation = () => {
                 src={jaagaxLogo}
                 alt="JAAGA X"
                 className="h-7 w-auto max-h-7 object-contain shrink-0"
-                loading="lazy" decoding="async" />
+                loading="lazy"
+                decoding="async"
+              />
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 min-w-0">
