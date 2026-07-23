@@ -243,12 +243,6 @@ const Navigation = () => {
                         >
                           <Leaf className="h-4 w-4 text-emerald-500" />
                           Natural Living
-                          {!naturalLivingEnabled && (
-                            <Badge
-                              variant="outline"
-                              className="ml-1 text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                            ></Badge>
-                          )}
                         </Button>
                       </Link>
                     </NavigationMenuItem>
