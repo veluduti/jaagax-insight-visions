@@ -88,8 +88,8 @@ const HotelBookingModal = ({
     if (!open) return;
     if (initialCheckIn) setCheckIn(initialCheckIn);
     if (initialCheckOut) setCheckOut(initialCheckOut);
-    if (initialGuests) setNumGuests(String(initialGuests));
-    if (initialRooms) setNumRooms(String(initialRooms));
+    if (initialGuests) setNumGuests(initialGuests);
+    if (initialRooms) setNumRooms(initialRooms);
   }, [open, initialCheckIn?.getTime(), initialCheckOut?.getTime(), initialGuests, initialRooms]);
 
   // Autofill guest details from the logged-in user's profile
