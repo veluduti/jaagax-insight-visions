@@ -135,6 +135,16 @@ const HotelBookingModal = ({
   const totalAmount = Math.round(discountedPrice * nights * parseInt(numRooms || "1"));
   const originalAmount = Math.round(hotel.price_per_night * nights * parseInt(numRooms || "1"));
 
+  const handleGuestDecrement = (type: "guests" | "rooms") => {
+    if (type === "guests" && numGuests > 1) setNumGuests(numGuests - 1);
+    if (type === "rooms" && numRooms > 1) setNumRooms(numRooms - 1);
+  };
+
+  const handleGuestIncrement = (type: "guests" | "rooms") => {
+    if (type === "guests" && numGuests < 20) setNumGuests(numGuests + 1);
+    if (type === "rooms" && numRooms < 10) setNumRooms(numRooms + 1);
+  };
+
   const handleSubmit = async () => {
     if (!guestName.trim()) {
       toast.error("Please enter guest name");
