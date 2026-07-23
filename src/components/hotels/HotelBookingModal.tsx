@@ -313,57 +313,149 @@ const HotelBookingModal = ({
             </div>
           </div>
 
-          {/* Room details */}
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1">
-                  <Users className="h-3 w-3" /> Guests
-                </Label>
-                <Select value={String(numGuests)} onValueChange={(v) => setNumGuests(Number(v))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20].map((n) => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1">
-                  <BedDouble className="h-3 w-3" /> Rooms
-                </Label>
-                <Select value={String(numRooms)} onValueChange={(v) => setNumRooms(Number(v))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Combined Rooms & Guests Dropdown */}
+          <div className="space-y-1.5" ref={dropdownRef}>
+            <Label>Rooms & Guests</Label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-input bg-background hover:bg-muted/50 transition-colors"
+              >
+                <span className="text-sm">
+                  {numRooms} Room{numRooms > 1 ? "s" : ""}, {numGuests} Adult{numGuests > 1 ? "s" : ""}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                    isGuestDropdownOpen && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {/* Dropdown Content */}
+              {isGuestDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover rounded-lg border shadow-lg z-50 p-4">
+                  {/* Rooms */}
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="text-sm font-medium">Rooms</span>
+                      <p className="text-xs text-muted-foreground">
+                        Upto {numRooms === 10 ? "10" : `${numRooms} rooms`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleGuestDecrement("rooms")}
+                        disabled={numRooms <= 1}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numRooms <= 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="text-sm font-medium w-6 text-center">{numRooms}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleGuestIncrement("rooms")}
+                        disabled={numRooms >= 10}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numRooms >= 10 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <Separator className="my-2" />
+
+                  {/* Adults */}
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="text-sm font-medium">Adults</span>
+                      <p className="text-xs text-muted-foreground">Age 18+</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleGuestDecrement("guests")}
+                        disabled={numGuests <= 1}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numGuests <= 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="text-sm font-medium w-6 text-center">{numGuests}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleGuestIncrement("guests")}
+                        disabled={numGuests >= 20}
+                        className={cn(
+                          "h-8 w-8 rounded-full border flex items-center justify-center",
+                          numGuests >= 20 ? "opacity-50 cursor-not-allowed" : "hover:bg-muted",
+                        )}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <Separator className="my-2" />
+
+                  {/* Children (Optional) */}
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <span className="text-sm font-medium">Children</span>
+                      <p className="text-xs text-muted-foreground">0 - 17 Years Old</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        className="h-8 w-8 rounded-full border flex items-center justify-center opacity-50 cursor-not-allowed"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="text-sm font-medium w-6 text-center">0</span>
+                      <button
+                        type="button"
+                        className="h-8 w-8 rounded-full border flex items-center justify-center hover:bg-muted"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground mt-3">
+                    Please provide right number of children along with their right age for best options and prices.
+                  </p>
+
+                  <Button variant="outline" className="w-full mt-3" onClick={() => setIsGuestDropdownOpen(false)}>
+                    Apply
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="space-y-1.5">
-              <Label>Room Type</Label>
-              <Select value={roomType} onValueChange={setRoomType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Standard">Standard</SelectItem>
-                  <SelectItem value="Deluxe">Deluxe</SelectItem>
-                  <SelectItem value="Suite">Suite</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+
+          {/* Room Type */}
+          <div className="space-y-1.5">
+            <Label>Room Type</Label>
+            <Select value={roomType} onValueChange={setRoomType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Standard">Standard</SelectItem>
+                <SelectItem value="Deluxe">Deluxe</SelectItem>
+                <SelectItem value="Suite">Suite</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Special Requests */}
