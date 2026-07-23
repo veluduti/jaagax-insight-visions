@@ -382,21 +382,6 @@ const BuyerDashboard = () => {
           </motion.div>
         </div>
 
-        {/* Quick Actions - Row 4 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "alerts" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Bell className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Alerts</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
         {/* Main Content Tabs - SCROLLABLE */}
         <Tabs
           value={searchParams.get("tab") || "recommended"}
