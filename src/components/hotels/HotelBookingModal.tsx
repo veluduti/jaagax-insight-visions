@@ -320,7 +320,7 @@ const HotelBookingModal = ({
                 <Label className="flex items-center gap-1">
                   <Users className="h-3 w-3" /> Guests
                 </Label>
-                <Select value={numGuests} onValueChange={setNumGuests}>
+                <Select value={String(numGuests)} onValueChange={(v) => setNumGuests(Number(v))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
