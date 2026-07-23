@@ -426,10 +426,6 @@ const BuyerDashboard = () => {
                   <PiggyBank className="h-4 w-4 mr-2" />
                   Financial
                 </TabsTrigger>
-                <TabsTrigger value="calculator">
-                  <Calculator className="h-4 w-4 mr-2" />
-                  EMI
-                </TabsTrigger>
                 <TabsTrigger value="alerts">
                   <Bell className="h-4 w-4 mr-2" />
                   Alerts
@@ -437,6 +433,10 @@ const BuyerDashboard = () => {
                 <TabsTrigger value="wallet">
                   <WalletIcon className="h-4 w-4 mr-2" />
                   Wallet
+                </TabsTrigger>
+                <TabsTrigger value="calculator">
+                  <Calculator className="h-4 w-4 mr-2" />
+                  EMI
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -695,7 +695,6 @@ const BuyerDashboard = () => {
               <FinancialEnquiries />
             </Suspense>
           </TabsContent>
-
         </Tabs>
 
         {/* Market Insights */}
