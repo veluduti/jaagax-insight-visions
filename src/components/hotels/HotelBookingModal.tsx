@@ -132,8 +132,8 @@ const HotelBookingModal = ({
   const discountedPrice = discountPct > 0 ? hotel.price_per_night * (1 - discountPct / 100) : hotel.price_per_night;
 
   const nights = checkIn && checkOut ? Math.max(differenceInDays(checkOut, checkIn), 1) : 1;
-  const totalAmount = Math.round(discountedPrice * nights * (Number(numRooms) || 1));
-  const originalAmount = Math.round(hotel.price_per_night * nights * (Number(numRooms) || 1));
+  const totalAmount = Math.round(discountedPrice * nights * numRooms);
+  const originalAmount = Math.round(hotel.price_per_night * nights * numRooms);
 
   const handleGuestDecrement = (type: "guests" | "rooms") => {
     if (type === "guests" && numGuests > 1) setNumGuests(numGuests - 1);
