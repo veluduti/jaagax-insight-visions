@@ -177,7 +177,7 @@ const HotelDetail = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-2">
         {/* Breadcrumb */}
         <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 py-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
