@@ -154,61 +154,22 @@ const Navigation = () => {
               <NavigationMenuList className="gap-1">
                 {(
                   <>
-                    {/* Properties Dropdown — hidden for seller */}
-                    {role !== "seller" && (
-                      <NavigationMenuItem>
-                        <NavigationMenuTrigger
+                    {/* Sell Your Property - Direct Link (all roles) */}
+                    <NavigationMenuItem>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          to="/sell-property"
                           className={cn(
-                            "bg-transparent h-auto px-3 py-2 text-sm font-medium",
-                            isPropertiesActive ? "text-foreground" : "text-muted-foreground",
+                            "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
+                            isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
                           )}
                         >
-                          <Building2 className="h-4 w-4 mr-1.5" />
-                          Properties
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                          <ul className="grid w-[280px] gap-1 p-2">
-                            {propertiesItems.map((item) => (
-                              <li key={item.path}>
-                                <NavigationMenuLink asChild>
-                                  <Link
-                                    to={item.path}
-                                    className={cn(
-                                      "flex items-start gap-3 rounded-md p-3 hover:bg-accent transition-colors",
-                                      isActive(item.path) && "bg-accent",
-                                    )}
-                                  >
-                                    <item.icon className="h-5 w-5 text-primary mt-0.5" />
-                                    <div>
-                                      <div className="text-sm font-medium text-foreground">{item.label}</div>
-                                      <p className="text-xs text-muted-foreground">{item.description}</p>
-                                    </div>
-                                  </Link>
-                                </NavigationMenuLink>
-                              </li>
-                            ))}
-                          </ul>
-                        </NavigationMenuContent>
-                      </NavigationMenuItem>
-                    )}
+                          <DollarSign className="h-4 w-4 mr-1.5" />
+                          Sell Your Property
+                        </Link>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
 
-                    {/* Seller top-level Sell Your Property link */}
-                    {role === "seller" && (
-                      <NavigationMenuItem>
-                        <NavigationMenuLink asChild>
-                          <Link
-                            to="/sell-property"
-                            className={cn(
-                              "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground",
-                              isActive("/sell-property") ? "text-foreground" : "text-muted-foreground",
-                            )}
-                          >
-                            <DollarSign className="h-4 w-4 mr-1.5" />
-                            Sell Your Property
-                          </Link>
-                        </NavigationMenuLink>
-                      </NavigationMenuItem>
-                    )}
 
                     {/* Explore Dropdown */}
                     <NavigationMenuItem>
