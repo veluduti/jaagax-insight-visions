@@ -204,7 +204,7 @@ const HotelBookingModal = ({
         checkin: format(checkIn, "yyyy-MM-dd"),
         checkout: format(checkOut, "yyyy-MM-dd"),
         adults: String(numGuests),
-        children: "0",
+        children: String(numChildren),
         rooms: String(numRooms),
         name: guestName.trim(),
         email: guestEmail.trim(),
