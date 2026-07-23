@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, BedDouble, Users, Loader2, Hotel } from "lucide-react";
+import { CalendarIcon, BedDouble, Users, Loader2, Hotel, ChevronDown, Plus, Minus } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,7 +85,9 @@ const HotelBookingModal = ({
     let cancelled = false;
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user || cancelled) return;
         if (user.email && !guestEmail) setGuestEmail(user.email);
         const meta: any = user.user_metadata || {};
@@ -107,7 +109,9 @@ const HotelBookingModal = ({
         /* ignore */
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
