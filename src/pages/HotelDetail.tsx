@@ -11,12 +11,49 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft, Star, MapPin, Phone, Mail, Calendar, Clock, Shield,
-  Wifi, Car, Coffee, Dumbbell, Waves, Utensils, Tv, Wind, ShieldCheck,
-  BedDouble, Users, Maximize, ChevronLeft, ChevronRight, Check, X,
-  Sparkles, Building2, Globe, CreditCard, ParkingCircle, Baby,
-  Accessibility, Cigarette, Dog, Heart, Share2, Navigation2,
-  Sun, Moon, Info, Banknote, BadgeCheck, Landmark, TreePine
+  ArrowLeft,
+  Star,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar,
+  Clock,
+  Shield,
+  Wifi,
+  Car,
+  Coffee,
+  Dumbbell,
+  Waves,
+  Utensils,
+  Tv,
+  Wind,
+  ShieldCheck,
+  BedDouble,
+  Users,
+  Maximize,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  X,
+  Sparkles,
+  Building2,
+  Globe,
+  CreditCard,
+  ParkingCircle,
+  Baby,
+  Accessibility,
+  Cigarette,
+  Dog,
+  Heart,
+  Share2,
+  Navigation2,
+  Sun,
+  Moon,
+  Info,
+  Banknote,
+  BadgeCheck,
+  Landmark,
+  TreePine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
@@ -54,7 +91,9 @@ interface HotelData {
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const plusDaysISO = (n: number) => {
-  const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
 };
 
 const HotelDetail = () => {
@@ -80,11 +119,7 @@ const HotelDetail = () => {
     if (!id) return;
     const fetchHotel = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("partner_hotels")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabase.from("partner_hotels").select("*").eq("id", id).single();
       if (error || !data) {
         console.error("Error fetching hotel:", error);
         setHotel(null);
@@ -109,7 +144,7 @@ const HotelDetail = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navigation />
-        <main className="flex-1 pt-20 flex items-center justify-center">
+        <main className="flex-1 pt-2 flex items-center justify-center">
           <div className="text-center space-y-4">
             <Building2 className="h-16 w-16 mx-auto text-muted-foreground" />
             <h1 className="text-2xl font-bold">Hotel Not Found</h1>
@@ -129,7 +164,10 @@ const HotelDetail = () => {
 
   const renderStars = (rating: number) =>
     Array.from({ length: 5 }, (_, i) => (
-      <Star key={i} className={`h-4 w-4 ${i < rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+      <Star
+        key={i}
+        className={`h-4 w-4 ${i < rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+      />
     ));
 
   const nextImage = () => setCurrentImageIndex((p) => (p + 1) % images.length);
@@ -143,7 +181,9 @@ const HotelDetail = () => {
         {/* Breadcrumb */}
         <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 py-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">Hotels</button>
+            <button onClick={() => navigate("/hotels")} className="hover:text-foreground transition-colors">
+              Hotels
+            </button>
             <span>/</span>
             <span className="hover:text-foreground transition-colors cursor-pointer">{hotel.city}</span>
             <span>/</span>
@@ -160,7 +200,9 @@ const HotelDetail = () => {
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={currentImageIndex}
-                    src={images[currentImageIndex] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"}
+                    src={
+                      images[currentImageIndex] || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
+                    }
                     alt={hotel.name}
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0, scale: 1.05 }}
@@ -170,30 +212,60 @@ const HotelDetail = () => {
                   />
                 </AnimatePresence>
                 {/* Nav arrows */}
-                <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background">
+                <button
+                  onClick={prevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background">
+                <button
+                  onClick={nextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                >
                   <ChevronRight className="h-5 w-5" />
                 </button>
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {images.map((_, i) => (
-                    <button key={i} onClick={() => setCurrentImageIndex(i)} className={`h-2 rounded-full transition-all ${i === currentImageIndex ? "w-6 bg-primary" : "w-2 bg-background/60"}`} />
+                    <button
+                      key={i}
+                      onClick={() => setCurrentImageIndex(i)}
+                      className={`h-2 rounded-full transition-all ${i === currentImageIndex ? "w-6 bg-primary" : "w-2 bg-background/60"}`}
+                    />
                   ))}
                 </div>
               </div>
               {/* Side images */}
               <div className="hidden md:flex flex-col gap-2 col-span-1">
                 {images.slice(1, 3).map((img, i) => (
-                  <div key={i} className="flex-1 overflow-hidden cursor-pointer" onClick={() => setCurrentImageIndex(i + 1)}>
-                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
+                  <div
+                    key={i}
+                    className="flex-1 overflow-hidden cursor-pointer"
+                    onClick={() => setCurrentImageIndex(i + 1)}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 ))}
               </div>
               <div className="hidden md:flex flex-col gap-2 col-span-1">
                 {images.slice(3, 5).map((img, i) => (
-                  <div key={i} className="flex-1 overflow-hidden cursor-pointer" onClick={() => setCurrentImageIndex(i + 3)}>
-                    <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"  loading="lazy" decoding="async" />
+                  <div
+                    key={i}
+                    className="flex-1 overflow-hidden cursor-pointer"
+                    onClick={() => setCurrentImageIndex(i + 3)}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                 ))}
                 {images.length <= 3 && (
@@ -210,7 +282,10 @@ const HotelDetail = () => {
                 {hotel.discount_percentage}% JaagaX Exclusive
               </Badge>
             )}
-            <Badge variant="secondary" className="absolute top-4 right-4 gap-1.5 bg-background/90 backdrop-blur-sm shadow-lg">
+            <Badge
+              variant="secondary"
+              className="absolute top-4 right-4 gap-1.5 bg-background/90 backdrop-blur-sm shadow-lg"
+            >
               <BadgeCheck className="h-3.5 w-3.5 text-primary" />
               Verified Partner
             </Badge>
@@ -243,18 +318,30 @@ const HotelDetail = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => { setLiked(!liked); toast.success(liked ? "Removed from wishlist" : "Added to wishlist"); }}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setLiked(!liked);
+                        toast.success(liked ? "Removed from wishlist" : "Added to wishlist");
+                      }}
+                    >
                       <Heart className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Link copied!"); }}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success("Link copied!");
+                      }}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
 
-                {hotel.description && (
-                  <p className="text-muted-foreground leading-relaxed">{hotel.description}</p>
-                )}
+                {hotel.description && <p className="text-muted-foreground leading-relaxed">{hotel.description}</p>}
               </div>
 
               <Separator />
@@ -264,12 +351,27 @@ const HotelDetail = () => {
                 {[
                   { icon: <Sun className="h-5 w-5" />, label: "Check-in", value: hotel.check_in_time || "14:00" },
                   { icon: <Moon className="h-5 w-5" />, label: "Check-out", value: hotel.check_out_time || "12:00" },
-                  { icon: <Globe className="h-5 w-5" />, label: "Languages", value: (hotel.languages_spoken || []).slice(0, 2).join(", ") },
-                  { icon: <CreditCard className="h-5 w-5" />, label: "Payment", value: hotel.accepts_cards ? "Cards Accepted" : "Cash Only" },
+                  {
+                    icon: <Globe className="h-5 w-5" />,
+                    label: "Languages",
+                    value: (hotel.languages_spoken || []).slice(0, 2).join(", "),
+                  },
+                  {
+                    icon: <CreditCard className="h-5 w-5" />,
+                    label: "Payment",
+                    value: hotel.accepts_cards ? "Cards Accepted" : "Cash Only",
+                  },
                 ].map((item, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">{item.icon}</div>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      {item.icon}
+                    </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{item.label}</p>
                       <p className="text-sm font-semibold">{item.value}</p>
@@ -284,38 +386,75 @@ const HotelDetail = () => {
                   <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Check-in</label>
-                      <input type="date" value={checkIn} min={todayISO()}
-                        onChange={(e) => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }}
-                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                      <input
+                        type="date"
+                        value={checkIn}
+                        min={todayISO()}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setCheckIn(v);
+                          if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v));
+                        }}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Check-out</label>
-                      <input type="date" value={checkOut} min={nextDayISO(checkIn) || todayISO()}
-                        onChange={(e) => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }}
-                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                      <input
+                        type="date"
+                        value={checkOut}
+                        min={nextDayISO(checkIn) || todayISO()}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v && checkIn && !isValidDateRangeISO(checkIn, v)) {
+                            toast.error(CHECKOUT_AFTER_CHECKIN_MSG);
+                            return;
+                          }
+                          setCheckOut(v);
+                        }}
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Adults</label>
-                      <input type="number" min={1} max={20} value={adults}
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={adults}
                         onChange={(e) => setAdults(Math.max(1, Number(e.target.value) || 1))}
-                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Children</label>
-                      <input type="number" min={0} max={10} value={childrenCount}
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={childrenCount}
                         onChange={(e) => setChildrenCount(Math.max(0, Number(e.target.value) || 0))}
-                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[11px] text-muted-foreground mb-1">Rooms</label>
-                      <input type="number" min={1} max={10} value={roomsWanted}
+                      <input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={roomsWanted}
                         onChange={(e) => setRoomsWanted(Math.max(1, Number(e.target.value) || 1))}
-                        className="h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                        className="h-10 px-3 rounded-md border border-input bg-background text-sm"
+                      />
                     </div>
                     <Button
                       className="h-10"
                       onClick={() => {
-                        if (checkOut <= checkIn) { toast.error("Check-out must be after check-in"); return; }
+                        if (checkOut <= checkIn) {
+                          toast.error("Check-out must be after check-in");
+                          return;
+                        }
                         setActiveTab("rooms");
                         setSearchNonce((n) => n + 1);
                       }}
@@ -329,10 +468,18 @@ const HotelDetail = () => {
               {/* Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="w-full grid grid-cols-4 h-12">
-                  <TabsTrigger value="specs" className="text-xs sm:text-sm">Specifications</TabsTrigger>
-                  <TabsTrigger value="rooms" className="text-xs sm:text-sm">Room Types</TabsTrigger>
-                  <TabsTrigger value="nearby" className="text-xs sm:text-sm">Nearby</TabsTrigger>
-                  <TabsTrigger value="policies" className="text-xs sm:text-sm">Policies</TabsTrigger>
+                  <TabsTrigger value="specs" className="text-xs sm:text-sm">
+                    Specifications
+                  </TabsTrigger>
+                  <TabsTrigger value="rooms" className="text-xs sm:text-sm">
+                    Room Types
+                  </TabsTrigger>
+                  <TabsTrigger value="nearby" className="text-xs sm:text-sm">
+                    Nearby
+                  </TabsTrigger>
+                  <TabsTrigger value="policies" className="text-xs sm:text-sm">
+                    Policies
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="specs" className="mt-6">
@@ -370,9 +517,13 @@ const HotelDetail = () => {
                   <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 space-y-4">
                     <div className="flex items-baseline gap-2">
                       {hotel.discount_percentage && hotel.discount_percentage > 0 && (
-                        <span className="text-lg text-muted-foreground line-through">₹{hotel.price_per_night.toLocaleString()}</span>
+                        <span className="text-lg text-muted-foreground line-through">
+                          ₹{hotel.price_per_night.toLocaleString()}
+                        </span>
                       )}
-                      <span className="text-4xl font-bold text-foreground">₹{Math.round(discountedPrice).toLocaleString()}</span>
+                      <span className="text-4xl font-bold text-foreground">
+                        ₹{Math.round(discountedPrice).toLocaleString()}
+                      </span>
                       <span className="text-muted-foreground">/night</span>
                     </div>
                     {hotel.discount_percentage && hotel.discount_percentage > 0 && (
@@ -382,24 +533,43 @@ const HotelDetail = () => {
                     )}
                   </div>
                   <CardContent className="p-6 space-y-4">
-                    <Button className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("visit_stay"); setBookingModalOpen(true); }}>
+                    <Button
+                      className="w-full h-12 text-base gap-2"
+                      onClick={() => {
+                        setBookingType("visit_stay");
+                        setBookingModalOpen(true);
+                      }}
+                    >
                       <Calendar className="h-5 w-5" />
                       Book with Site Visit
                     </Button>
-                    <Button variant="outline" className="w-full h-12 text-base gap-2" onClick={() => { setBookingType("hotel_only"); setBookingModalOpen(true); }}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 text-base gap-2"
+                      onClick={() => {
+                        setBookingType("hotel_only");
+                        setBookingModalOpen(true);
+                      }}
+                    >
                       <BedDouble className="h-5 w-5" />
                       Book Hotel Only
                     </Button>
                     <Separator />
                     <div className="space-y-3">
                       {hotel.contact_phone && (
-                        <a href={`tel:${hotel.contact_phone}`} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
+                        <a
+                          href={`tel:${hotel.contact_phone}`}
+                          className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
                           <Phone className="h-4 w-4 text-primary" />
                           <span className="text-sm">{hotel.contact_phone}</span>
                         </a>
                       )}
                       {hotel.contact_email && (
-                        <a href={`mailto:${hotel.contact_email}`} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
+                        <a
+                          href={`mailto:${hotel.contact_email}`}
+                          className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
                           <Mail className="h-4 w-4 text-primary" />
                           <span className="text-sm truncate">{hotel.contact_email}</span>
                         </a>
@@ -408,7 +578,8 @@ const HotelDetail = () => {
                     {hotel.partner_since && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/50">
                         <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-                        JaagaX Partner since {new Date(hotel.partner_since).toLocaleDateString("en-IN", { year: "numeric", month: "short" })}
+                        JaagaX Partner since{" "}
+                        {new Date(hotel.partner_since).toLocaleDateString("en-IN", { year: "numeric", month: "short" })}
                       </div>
                     )}
                   </CardContent>
@@ -421,8 +592,15 @@ const HotelDetail = () => {
                       <Sparkles className="h-5 w-5 text-primary" />
                       <h3 className="font-semibold text-sm">Exploring properties in {hotel.city}?</h3>
                     </div>
-                    <p className="text-xs text-muted-foreground">Browse nearby properties and book your visit + stay together for exclusive discounts.</p>
-                    <Button variant="outline" size="sm" className="w-full gap-1" onClick={() => navigate(`/search?city=${hotel.city}`)}>
+                    <p className="text-xs text-muted-foreground">
+                      Browse nearby properties and book your visit + stay together for exclusive discounts.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-1"
+                      onClick={() => navigate(`/search?city=${hotel.city}`)}
+                    >
                       <Navigation2 className="h-3.5 w-3.5" />
                       Explore Properties
                     </Button>
