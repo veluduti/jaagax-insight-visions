@@ -256,7 +256,7 @@ export default function PartnerLanding() {
       </section>
 
       {/* BENEFITS DETAIL */}
-      <section id="benefits" className="container mx-auto px-4 py-16">
+      <section id="benefits" className="container mx-auto px-4 py-6">
         <SectionHeader eyebrow="Built for growth" title="Powerful tools, zero complexity" />
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {detail.map((d) => (
