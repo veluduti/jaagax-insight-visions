@@ -144,7 +144,7 @@ export default function PartnerLanding() {
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
         </div>
-        <div className="container mx-auto grid gap-12 px-4 py-2 md:py-28 lg:grid-cols-2 lg:items-center">
+        <div className="container mx-auto grid gap-12 px-4 py-2 md:py-2 lg:grid-cols-2 lg:items-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge className="mb-4 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/10">
               JAAGA X Partner Hub · India's fastest-growing hotel network
