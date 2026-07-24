@@ -276,7 +276,7 @@ export default function PartnerLanding() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="container mx-auto px-4 py-20">
+      <section id="pricing" className="container mx-auto px-4 py-2">
         <SectionHeader
           eyebrow="Transparent pricing"
           title="Only pay when you get bookings"
