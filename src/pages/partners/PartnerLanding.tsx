@@ -226,7 +226,7 @@ export default function PartnerLanding() {
       </section>
 
       {/* WHY */}
-      <section id="why" className="container mx-auto px-4 py-20">
+      <section id="why" className="container mx-auto px-4 py-2">
         <SectionHeader
           eyebrow="Why partner with us"
           title="Everything you need to sell more nights"
