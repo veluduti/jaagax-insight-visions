@@ -336,7 +336,7 @@ export default function PartnerLanding() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="container mx-auto px-4 py-20">
+      <section id="contact" className="container mx-auto px-4 py-2">
         <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
           <div>
             <SectionHeader
