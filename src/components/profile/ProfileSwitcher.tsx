@@ -177,22 +177,6 @@ export default function ProfileSwitcher() {
               })}
             </div>
 
-            {/* Hotel role — always visible. Registers or opens dashboard. */}
-            {!hotelProfile && (
-              <button
-                onClick={handleHotelClick}
-                className="mt-2 w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-accent transition-colors"
-              >
-                <div className={cn("h-8 w-8 rounded-md bg-gradient-to-br flex items-center justify-center", roleMeta.hotel.gradient)}>
-                  <Building2 className={cn("h-4 w-4", roleMeta.hotel.iconColor)} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground">Hotel</div>
-                  <div className="text-[11px] text-muted-foreground">Partner with us to list your hotel</div>
-                </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Register</span>
-              </button>
-            )}
 
 
             {/* Add another role */}
