@@ -33,6 +33,7 @@ const dashboardRoute = (type: ProfileType) => {
 
 export default function ProfileSwitcher() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profiles, activeProfile, switchProfile, removeProfile, loading } = useProfile();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
@@ -40,6 +41,19 @@ export default function ProfileSwitcher() {
   const [addOpen, setAddOpen] = useState(false);
   const [removingProfile, setRemovingProfile] = useState<Profile | null>(null);
   const [removeBusy, setRemoveBusy] = useState(false);
+
+  const hotelProfile = profiles.find((p) => p.type === "hotel" || p.type === "hotel_manager");
+
+  // Auto-switch to Hotel role when navigating into the partner/hotel area,
+  // so users with multiple roles don't see stale "Buyer" while inside partners.
+  useEffect(() => {
+    if (!activeProfile || !hotelProfile) return;
+    const inPartners = location.pathname.startsWith("/partners");
+    const isHotelActive = activeProfile.type === "hotel" || activeProfile.type === "hotel_manager";
+    if (inPartners && !isHotelActive && hotelProfile.status === "active") {
+      void switchProfile(hotelProfile.id);
+    }
+  }, [location.pathname, activeProfile, hotelProfile, switchProfile]);
 
   if (loading || !user || !activeProfile) return null;
 
@@ -51,8 +65,20 @@ export default function ProfileSwitcher() {
     navigate(dashboardRoute(p.type));
   };
 
+  const handleHotelClick = async () => {
+    setOpen(false);
+    if (hotelProfile && hotelProfile.status === "active") {
+      if (hotelProfile.id !== activeProfile.id) await switchProfile(hotelProfile.id);
+      navigate("/partners/dashboard");
+    } else {
+      // No hotel role yet → send user to Partner With Us landing to register.
+      navigate("/partners");
+    }
+  };
+
   const activeMeta = roleMeta[activeProfile.type];
   const ActiveIcon = activeMeta.icon;
+
 
   return (
     <>
