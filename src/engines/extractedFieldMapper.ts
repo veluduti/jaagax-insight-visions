@@ -142,10 +142,17 @@ function normaliseFurnishing(input: any): string | undefined {
 export function mapExtractedToEngineFields(
   extracted: Record<string, any> | null | undefined,
   category?: PropertyCategory | null,
+  confidences?: Record<string, number> | null,
+  minConfidence = 0.5,
 ): Record<string, unknown> {
   if (!extracted) return {};
   const out: Record<string, unknown> = {};
   const e = extracted;
+  const conf = confidences || {};
+  const ok = (key: string) => {
+    const c = conf[key];
+    return c == null ? true : c >= minConfidence;
+  };
 
   // ---------------- Property type ----------------
   const subKey = String(e.sub_type || "").trim();
@@ -160,21 +167,36 @@ export function mapExtractedToEngineFields(
     else if (e.type === "COMMERCIAL") propertyType = "Office Space";
     else if (e.type === "LAND") propertyType = category === "agriculture" ? "Farm Land" : "Residential Plot";
   }
-  if (propertyType) out.property_type = propertyType;
+  if (propertyType && (ok("sub_type") || ok("type"))) out.property_type = propertyType;
 
   // ---------------- Listing type ----------------
-  if (e.purpose && PURPOSE_MAP[e.purpose]) {
+  if (e.purpose && PURPOSE_MAP[e.purpose] && ok("purpose")) {
     out.listing_type = PURPOSE_MAP[e.purpose];
   }
 
-  // ---------------- BHK ----------------
-  if (e.bhk) {
+  // ---------------- BHK / bedrooms / bathrooms / balconies ----------------
+  if (e.bhk && ok("bhk")) {
     const n = Number(e.bhk);
     if (Number.isFinite(n) && n > 0) out.bhk_type = `${n} BHK`;
   }
+  if (e.bedrooms && ok("bedrooms")) {
+    const n = Number(e.bedrooms);
+    if (Number.isFinite(n) && n > 0) {
+      out.bedroom_count = n;
+      if (!out.bhk_type) out.bhk_type = `${n} BHK`;
+    }
+  }
+  if (e.bathrooms && ok("bathrooms")) {
+    const n = Number(e.bathrooms);
+    if (Number.isFinite(n) && n > 0) out.bathroom_count = n;
+  }
+  if (e.balconies != null && ok("balconies")) {
+    const n = Number(e.balconies);
+    if (Number.isFinite(n) && n >= 0) out.balcony_count = n;
+  }
 
   // ---------------- Area ----------------
-  if (e.built_up_area && Number.isFinite(Number(e.built_up_area))) {
+  if (e.built_up_area && Number.isFinite(Number(e.built_up_area)) && ok("built_up_area")) {
     const area = Number(e.built_up_area);
     const unit = String(e.area_unit || "sq ft").toLowerCase();
     const isLandUnit = ["acre", "gunta", "cent", "sq yd"].includes(unit);
@@ -186,64 +208,82 @@ export function mapExtractedToEngineFields(
       out.built_area = area;
     }
   }
+  if (e.carpet_area && ok("carpet_area")) out.carpet_area = Number(e.carpet_area);
+  if (e.super_builtup_area && ok("super_builtup_area")) out.super_builtup_area = Number(e.super_builtup_area);
 
   // ---------------- Price ----------------
-  if (typeof e.price === "number" && e.price > 0) {
+  if (typeof e.price === "number" && e.price > 0 && ok("price")) {
     if (out.listing_type === "Rent") out.monthly_rent = e.price;
     else out.total_price = e.price;
   }
-  if (typeof e.price_per_unit === "number" && e.price_per_unit > 0) {
+  if (typeof e.price_per_unit === "number" && e.price_per_unit > 0 && ok("price_per_unit")) {
     out.price_per_unit = e.price_per_unit;
   }
 
   // ---------------- Furnishing / counts ----------------
   const furn = normaliseFurnishing(e.furnishing);
-  if (furn) out.furnishing_status = furn;
-  if (e.bathrooms && Number(e.bathrooms) > 0) out.bathroom_count = Number(e.bathrooms);
-  if (e.car_parking && Number(e.car_parking) > 0) out.parking_count = Number(e.car_parking);
+  if (furn && ok("furnishing")) out.furnishing_status = furn;
+  if (e.car_parking && Number(e.car_parking) > 0 && ok("car_parking")) out.parking_count = Number(e.car_parking);
 
   // ---------------- Facing ----------------
   const facing = normaliseFacing(e.facing);
-  if (facing) out.property_facing = facing;
+  if (facing && ok("facing")) out.property_facing = facing;
 
   // ---------------- Multi-select labels ----------------
   const amenities = normaliseAmenities(e.amenities);
-  if (amenities.length) out.amenities = amenities;
+  if (amenities.length && ok("amenities")) out.amenities = amenities;
   const approvals = normaliseApprovals(e.approval);
-  if (approvals.length) out.approvals = approvals;
+  if (approvals.length && ok("approval")) out.approvals = approvals;
 
-  // ---------------- Project / highlights ----------------
-  if (e.project_name) out.project_name = e.project_name;
-  if (e.title || e.project_name) out.property_highlights = e.title || e.project_name;
+  // ---------------- Project / highlights / builder / rera ----------------
+  if (e.project_name && ok("project_name")) out.project_name = e.project_name;
+  if ((e.title || e.project_name) && (ok("title") || ok("project_name"))) {
+    out.property_highlights = e.title || e.project_name;
+  }
+  if (e.description && ok("description")) out.description = e.description;
+  if (e.builder_name && ok("builder_name")) out.builder_name = e.builder_name;
+  if (e.rera_number && ok("rera_number")) {
+    out.rera_number = e.rera_number;
+    out.rera_id = e.rera_number;
+  }
 
   // ---------------- Location composite ----------------
-  // SmartLocationWidget stores answers under `location` as an object
-  // containing { country, state_name, city, locality, ... }.
   const loc: Record<string, any> = {};
-  if (e.city) loc.city = String(e.city).trim();
-  if (e.location) loc.locality = String(e.location).trim();
-  if (e.address) loc.address = String(e.address).trim();
-  if (e.pincode) loc.pincode = String(e.pincode).trim();
+  if (e.city && ok("city")) loc.city = String(e.city).trim();
+  if ((e.locality || e.location) && (ok("locality") || ok("location"))) {
+    loc.locality = String(e.locality || e.location).trim();
+  }
+  if (e.landmark && ok("landmark")) loc.landmark = String(e.landmark).trim();
+  if (e.address && ok("address")) loc.address = String(e.address).trim();
+  if (e.pincode && ok("pincode")) loc.pincode = String(e.pincode).trim();
+  if (e.district && ok("district")) loc.district = String(e.district).trim();
+  if (e.state && ok("state")) loc.state_name = String(e.state).trim();
+  if (typeof e.latitude === "number" && ok("latitude")) loc.latitude = e.latitude;
+  if (typeof e.longitude === "number" && ok("longitude")) loc.longitude = e.longitude;
   if (Object.keys(loc).length) {
-    loc.country = loc.country || "India";
+    loc.country = loc.country || e.country || "India";
     out.location = loc;
   }
 
   // ---------------- Contact ----------------
-  if (e.contact_phone) {
+  if (e.contact_phone && ok("contact_phone")) {
     const digits = String(e.contact_phone).replace(/\D/g, "");
     if (digits.length >= 10) out.mobile_number = digits.slice(-10);
   }
+  if (e.contact_name && ok("contact_name")) out.contact_name = e.contact_name;
 
-  // ---------------- Possession ----------------
-  if (e.possession_date) out.possession_date = e.possession_date;
-  if (e.property_age) out.property_age = e.property_age;
+  // ---------------- Possession / age / ownership ----------------
+  if (e.possession_date && ok("possession_date")) out.possession_date = e.possession_date;
+  if (e.possession_status && ok("possession_status")) out.possession_status = e.possession_status;
+  if (e.property_age && ok("property_age")) out.property_age = e.property_age;
+  if (e.ownership && ok("ownership")) out.ownership = e.ownership;
 
   // ---------------- Plot specifics ----------------
-  if (typeof e.road_width === "number") out.road_width = e.road_width;
-  if (typeof e.corner_plot === "boolean") out.corner_plot = e.corner_plot ? "Yes" : "No";
-  if (typeof e.water_connection === "boolean") out.water_connection = e.water_connection ? "Yes" : "No";
-  if (typeof e.electricity === "boolean") out.electricity = e.electricity ? "Yes" : "No";
+  if (typeof e.road_width === "number" && ok("road_width")) out.road_width = e.road_width;
+  if (typeof e.corner_plot === "boolean" && ok("corner_plot")) out.corner_plot = e.corner_plot ? "Yes" : "No";
+  if (typeof e.water_connection === "boolean" && ok("water_connection")) out.water_connection = e.water_connection ? "Yes" : "No";
+  if (typeof e.electricity === "boolean" && ok("electricity")) out.electricity = e.electricity ? "Yes" : "No";
 
   return out;
 }
+
