@@ -3716,6 +3716,71 @@ export default function SellProperty() {
                 <span className="text-[10px] text-muted-foreground self-center pl-1">or enter manually below</span>
               </motion.div>
             )}
+
+            {/* Unit/price/measurement chips for NUMBER fields — attached to the question bubble */}
+            {field && !loadingNext && !done && field.input === "number" && value && (() => {
+              const isCountField =
+                /^(total_(plots|units|towers|floors|flats|villas|shops|rooms|cabins|seats|desks|blocks|buildings|members)|no_of_|num_|number_of_|bedrooms|bathrooms|balconies|parking|floor_number)/i.test(
+                  field.id,
+                );
+              const fidCanon = canonId(field.id);
+              const HANDLED_BY_CUSTOM = new Set([
+                "price_per_unit",
+                "bhk",
+                "bathrooms",
+                "floor_number",
+                "total_plots",
+                "total_towers",
+                "towers",
+                "floors_per_tower",
+                "total_units",
+                "units",
+                ...Object.keys(COUNT_FIELD_LABELS),
+              ]);
+              if (HANDLED_BY_CUSTOM.has(fidCanon)) return null;
+              const sType =
+                field.suggestionType ||
+                (/rent/i.test(field.id)
+                  ? "rental_duration"
+                  : /price|amount|cost|budget/i.test(field.id)
+                    ? "price"
+                    : !isCountField && /area|size|sqft|sqyd|land|plot_(size|area)|built/i.test(field.id)
+                      ? "measurement_units"
+                      : undefined);
+
+              let chips: any[] = [];
+              if (sType === "rental_duration") {
+                chips = getRentSuggestions(value, field.durations);
+              } else if (sType === "price" || sType === "price_per_unit") {
+                chips = getPriceSuggestions(value);
+              } else if (sType === "measurement_units") {
+                chips = getUnitSuggestions(
+                  value,
+                  (field.units && field.units.length
+                    ? field.units
+                    : ["Sq Ft", "Sq Yard", "Acre", "Gunta", "Cent"]) as PriceUnit[],
+                );
+              }
+              if (!chips.length) return null;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-wrap gap-2 pt-1 pl-1"
+                >
+                  {chips.map((c: any, i: number) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => commitAnswer(c.value || c, c.label || String(c))}
+                      className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-primary/20 bg-primary/5 hover:bg-primary/10 transition shadow-sm"
+                    >
+                      {c.label || String(c)}
+                    </button>
+                  ))}
+                </motion.div>
+              );
+            })()}
             {field && smartHint && !loadingNext && !done && (
               <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="pl-1 pt-1">
                 <div className="inline-flex items-start gap-2 max-w-[85%] px-3 py-2 rounded-2xl rounded-bl-sm bg-amber-500/8 border border-amber-500/20 text-[11px]">
