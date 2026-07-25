@@ -1543,6 +1543,7 @@ export default function SellProperty() {
       const { data, error } = await supabase.functions.invoke<{
         extracted: Record<string, any>;
         listing_state: Record<string, any>;
+        confidences: Record<string, number>;
       }>("ai-extract-property", {
         body: { text: trimmedText, image_url: imageUrl },
       });
@@ -1550,19 +1551,25 @@ export default function SellProperty() {
 
       const incomingState = normalizeListingState(data?.listing_state || {});
       const ext = data?.extracted || {};
+      const confidences = data?.confidences || {};
 
-      // Translate raw AI extraction into the engine's canonical field IDs
-      // so the resolver can mark them answered and skip those questions.
-      const mappedEngine = mapExtractedToEngineFields(ext, category);
+      // High-confidence auto-fill (>= 0.80). Low-confidence (0.5-0.79) collected
+      // so the assistant can ask the user to confirm instead of silently filling.
+      const mappedHigh = mapExtractedToEngineFields(ext, category, confidences, 0.8);
+      const mappedLow = mapExtractedToEngineFields(ext, category, confidences, 0.5);
+      const lowOnly: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(mappedLow)) {
+        if (!(k in mappedHigh)) lowOnly[k] = v;
+      }
 
-      merged = { ...before, ...incomingState, ...mappedEngine };
+      merged = { ...before, ...incomingState, ...mappedHigh };
       setState(merged);
 
-      // Push mapped values into the engine immediately (overwrite=true)
-      // so already-known questions are skipped on the very next fetchNext().
+      // Push high-confidence values into the engine so already-known
+      // questions are skipped on the very next fetchNext().
       try {
-        if (engineRef.current && Object.keys(mappedEngine).length) {
-          engineRef.current.applyExtractedFields(mappedEngine, { overwrite: true });
+        if (engineRef.current && Object.keys(mappedHigh).length) {
+          engineRef.current.applyExtractedFields(mappedHigh, { overwrite: true });
         }
       } catch (err) {
         console.warn("[SellProperty] applyExtractedFields failed", err);
@@ -1571,28 +1578,80 @@ export default function SellProperty() {
       const detectedTitle = (ext.title || ext.project_name || "").toString().trim();
       if (detectedTitle && !posterTitle) setPosterTitle(detectedTitle);
 
-      // Count ONLY newly saved fields (not already in state, non-empty, non-duplicate)
-      const newlyFilled = Object.entries({ ...incomingState, ...mappedEngine }).filter(([k, v]) => {
-        if (v === "" || v === null || v === undefined) return false;
-        if (Array.isArray(v) && v.length === 0) return false;
+      // Build a friendly summary of what was auto-filled
+      const summaryPairs: string[] = [];
+      const pretty = (k: string) =>
+        k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const summaryOrder = [
+        "property_type","listing_type","bhk_type","bedroom_count","bathroom_count","balcony_count",
+        "flat_size","built_area","land_size","carpet_area","super_builtup_area",
+        "total_price","monthly_rent","price_per_unit","property_facing","furnishing_status",
+        "parking_count","project_name","builder_name","rera_number","possession_status",
+        "property_age","ownership","location","amenities","approvals",
+      ];
+      const seen = new Set<string>();
+      const pushPair = (k: string, v: any) => {
+        if (seen.has(k) || v == null || v === "") return;
+        seen.add(k);
+        let val: string;
+        if (Array.isArray(v)) val = v.slice(0, 4).join(", ");
+        else if (typeof v === "object") {
+          val = [v.locality, v.city, v.state_name].filter(Boolean).join(", ");
+        } else val = String(v);
+        if (!val.trim()) return;
+        summaryPairs.push(`• **${pretty(k)}**: ${val}`);
+      };
+      for (const k of summaryOrder) {
+        if (mappedHigh[k] !== undefined) pushPair(k, mappedHigh[k]);
+      }
+      for (const [k, v] of Object.entries(mappedHigh)) pushPair(k, v);
+
+      const newlyFilled = Object.keys(mappedHigh).filter((k) => {
         const prev = (before as any)[k];
-        const wasEmpty =
-          prev === undefined || prev === null || prev === "" || (Array.isArray(prev) && prev.length === 0);
-        return wasEmpty;
+        return prev === undefined || prev === null || prev === "" ||
+          (Array.isArray(prev) && prev.length === 0);
       }).length;
 
-      setMessages((m) => [
-        ...m.filter((x) => x.id !== typingId),
-        {
-          id: uid(),
-          role: "ai",
-          kind: "text",
-          text:
-            newlyFilled > 0
-              ? `✨ I understood ${newlyFilled} property detail${newlyFilled === 1 ? "" : "s"} automatically.`
-              : "Got it — let me ask a couple of quick questions.",
-        },
-      ]);
+      // Replace typing bubble with the extraction summary
+      setMessages((m) => {
+        const next = m.filter((x) => x.id !== typingId);
+        if (newlyFilled > 0 && summaryPairs.length) {
+          next.push({
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text:
+              `✨ I read your document and auto-filled ${newlyFilled} detail${newlyFilled === 1 ? "" : "s"}:\n\n` +
+              summaryPairs.slice(0, 12).join("\n") +
+              `\n\nI'll only ask for what's still missing.`,
+          });
+        } else {
+          next.push({
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: "Got it — let me ask a couple of quick questions.",
+          });
+        }
+        // For low-confidence detections, ask the user to confirm
+        const lowLabels = Object.keys(lowOnly).slice(0, 3);
+        if (lowLabels.length) {
+          const detail = lowLabels
+            .map((k) => {
+              const v = (lowOnly as any)[k];
+              const val = Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v);
+              return `• ${pretty(k)}: ${val}`;
+            })
+            .join("\n");
+          next.push({
+            id: uid(),
+            role: "ai",
+            kind: "text",
+            text: `I also spotted these but I'm not fully sure — I'll double-check with you as we go:\n${detail}`,
+          });
+        }
+        return next;
+      });
     } catch (e: any) {
       setMessages((m) => [
         ...m.filter((x) => x.id !== typingId),
@@ -1605,6 +1664,7 @@ export default function SellProperty() {
       await fetchNext(merged, true);
     }
   };
+
 
   const submitIntake = async () => {
     await runAiExtraction({ text: intakeText });
