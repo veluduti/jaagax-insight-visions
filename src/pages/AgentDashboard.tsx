@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
+import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
 
 import {
   Users,
