@@ -501,6 +501,10 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
         {/* Hierarchical Location Filter — respects RBAC bounds */}
         <AdminScopeFilterBar />
 
+        {/* Builder Profiles created by this Admin */}
+        <CreatedBuilderProfilesSection creatorRole="admin" title="Admin-Created Builder Profiles" />
+
+
         {/* Stats Grid - 3x2 or 6 columns */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
 
