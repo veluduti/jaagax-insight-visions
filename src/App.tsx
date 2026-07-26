@@ -288,23 +288,10 @@ const App = () => (
                     }
                   />
 
-                  {/* Builder Profile */}
-                  <Route
-                    path="/add-builder-profile"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <AddBuilderProfile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/edit-builder-profile/:id"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <EditBuilderProfile />
-                      </ProtectedRoute>
-                    }
-                  />
+                  {/* Builder Profile - accessible to builder, agent, admin */}
+                  <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
+                  <Route path="/edit-builder-profile/:id" element={<EditBuilderProfile />} />
+
 
                   {/* Builder Projects */}
                   <Route
