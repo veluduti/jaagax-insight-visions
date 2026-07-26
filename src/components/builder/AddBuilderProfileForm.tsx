@@ -123,6 +123,10 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
   const [isLoading, setIsLoading] = useState(!!editId);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const creatorRoleParam = (searchParams.get("as") || "").toLowerCase();
+  const createdByRole: "admin" | "agent" | "builder" =
+    creatorRoleParam === "admin" || creatorRoleParam === "agent" ? creatorRoleParam : "builder";
 
   const [form, setForm] = useState({
     builderName: "", tagline: "", description: "",
