@@ -1,0 +1,1 @@
+ALTER TABLE public.builder_profiles ADD COLUMN IF NOT EXISTS created_by_role text;

@@ -1193,6 +1193,7 @@ export type Database = {
           completed_projects_count: number | null
           country_id: string | null
           created_at: string
+          created_by_role: string | null
           customer_rating: number | null
           description: string | null
           district_id: string | null
@@ -1264,6 +1265,7 @@ export type Database = {
           completed_projects_count?: number | null
           country_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_rating?: number | null
           description?: string | null
           district_id?: string | null
@@ -1335,6 +1337,7 @@ export type Database = {
           completed_projects_count?: number | null
           country_id?: string | null
           created_at?: string
+          created_by_role?: string | null
           customer_rating?: number | null
           description?: string | null
           district_id?: string | null

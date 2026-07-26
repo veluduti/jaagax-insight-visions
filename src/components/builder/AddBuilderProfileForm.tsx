@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Building2, User, Briefcase, Image, Phone, Layers, Globe, Award, Users, Target,
   Check, Wifi, Car, Dumbbell, Trees, Shield, Waves, Wind, Droplets,
@@ -123,6 +123,10 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
   const [isLoading, setIsLoading] = useState(!!editId);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const creatorRoleParam = (searchParams.get("as") || "").toLowerCase();
+  const createdByRole: "admin" | "agent" | "builder" =
+    creatorRoleParam === "admin" || creatorRoleParam === "agent" ? creatorRoleParam : "builder";
 
   const [form, setForm] = useState({
     builderName: "", tagline: "", description: "",
@@ -345,6 +349,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
     const payload = {
       user_id: userData?.user?.id || null,
+      created_by_role: createdByRole,
       builder_name: form.builderName,
       tagline: form.tagline || null,
       description: form.description || null,

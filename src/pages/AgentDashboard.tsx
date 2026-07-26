@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
+import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
 
 import {
   Users,
@@ -1247,6 +1248,9 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* ===== Builder Profiles created by this Agent ===== */}
+        <CreatedBuilderProfilesSection creatorRole="agent" title="My Builder Profiles" />
 
         {/* ===== PHASE 1: Advanced Features Tabs ===== */}
         {agentProfile.id && user?.id && (
