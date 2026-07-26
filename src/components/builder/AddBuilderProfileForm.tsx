@@ -349,6 +349,7 @@ const AddBuilderProfileForm = ({ editId }: { editId?: string }) => {
 
     const payload = {
       user_id: userData?.user?.id || null,
+      created_by_role: createdByRole,
       builder_name: form.builderName,
       tagline: form.tagline || null,
       description: form.description || null,
