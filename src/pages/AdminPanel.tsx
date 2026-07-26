@@ -46,6 +46,7 @@ import {
   BellRing,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
 import BookingsPanel from "@/components/admin/BookingsPanel";
 import HotelPartnersPanel from "@/components/admin/HotelPartnersPanel";
 import AssignAgentPanel from "@/components/admin/AssignAgentPanel";
