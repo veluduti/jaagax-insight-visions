@@ -717,7 +717,43 @@ export default function LandAgentChat() {
         style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-forest) / 0.15)" }}
       >
         <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-3 safe-bottom">
-          {!nextField && !isUploadField && (
+          {profilePrompt ? (
+            <div
+              className="mb-2 rounded-xl border p-3"
+              style={{ borderColor: "hsl(var(--nl-forest) / 0.35)", background: "hsl(var(--nl-forest) / 0.06)" }}
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
+                  <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
+                  <span>
+                    Submitted. Create a public{" "}
+                    <strong className="uppercase">{profilePrompt.tier}</strong> profile for this listing so you can share it?
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={declineProfile}
+                    disabled={creatingProfile}
+                    className="text-sm px-3 py-2 rounded-full font-medium border disabled:opacity-50"
+                    style={{ borderColor: "hsl(var(--nl-forest) / 0.4)", color: "hsl(var(--nl-forest))" }}
+                  >
+                    No, later
+                  </button>
+                  <button
+                    type="button"
+                    onClick={createProfile}
+                    disabled={creatingProfile}
+                    className="text-sm px-4 py-2 rounded-full font-medium disabled:opacity-50 flex items-center gap-1.5"
+                    style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                  >
+                    {creatingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    {creatingProfile ? "Creating…" : "Yes, create profile"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : !nextField && !isUploadField ? (
             <div
               className="mb-2 rounded-xl border p-3 flex items-center justify-between gap-3 flex-wrap"
               style={{ borderColor: "hsl(var(--nl-forest) / 0.35)", background: "hsl(var(--nl-forest) / 0.06)" }}
@@ -739,7 +775,8 @@ export default function LandAgentChat() {
                 {submitting ? "Submitting…" : "Review & Submit"}
               </button>
             </div>
-          )}
+          ) : null}
+
           {isUploadField && (
             <div
               className="mb-2 rounded-xl border p-3"
