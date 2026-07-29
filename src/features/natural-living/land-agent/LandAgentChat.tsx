@@ -57,6 +57,8 @@ export default function LandAgentChat() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
+  const [profilePrompt, setProfilePrompt] = useState<null | { tier: LandProfileTier }>(null);
+  const [creatingProfile, setCreatingProfile] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
