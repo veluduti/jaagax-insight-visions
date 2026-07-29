@@ -13,14 +13,23 @@ export default function NLLandDetail() {
     if (!id) return;
     (async () => {
       setLoading(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData?.user?.id;
+      // Public: approved+published OR profile_created. Owner: always.
       const { data } = await (supabase as any)
         .from("nl_land_registrations")
         .select("*")
         .eq("id", id)
-        .eq("status", "approved")
-        .eq("is_published", true)
         .maybeSingle();
-      setLand(data);
+      if (data) {
+        const isOwner = uid && data.user_id === uid;
+        const isPublic =
+          data.profile_created === true ||
+          (data.status === "approved" && data.is_published === true);
+        setLand(isOwner || isPublic ? data : null);
+      } else {
+        setLand(null);
+      }
       setLoading(false);
     })();
   }, [id]);
