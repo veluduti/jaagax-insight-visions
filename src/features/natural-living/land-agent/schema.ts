@@ -759,3 +759,62 @@ export function getUploadFields(): FieldDef[] {
 export function getAdminFields(): FieldDef[] {
   return LAND_SCHEMA.filter((f) => f.adminOnly);
 }
+
+// Derive a public-facing profile tier from the collected answers.
+export type LandProfileTier = "luxury" | "standard" | "normal";
+
+export function computeLandTier(state: Record<string, any>): LandProfileTier {
+  let score = 0;
+
+  const area = Number(state.total_area) || 0;
+  const unit = String(state.area_unit || "Acres").toLowerCase();
+  const acres = unit.includes("hectare")
+    ? area * 2.47
+    : unit.includes("gunta")
+      ? area / 40
+      : unit.includes("cent")
+        ? area / 100
+        : area;
+  if (acres >= 5) score += 2;
+  else if (acres >= 1) score += 1;
+
+  const water = String(state.water_availability || "");
+  if (water === "Throughout Year") score += 2;
+  else if (water === "Seasonal") score += 1;
+
+  const infra = Array.isArray(state.infrastructure) ? state.infrastructure.length : 0;
+  if (infra >= 5) score += 2;
+  else if (infra >= 2) score += 1;
+
+  const stay = Array.isArray(state.stay_facilities) ? state.stay_facilities.length : 0;
+  if (stay >= 1) score += 1;
+
+  if (state.farming_readiness === "Ready to Cultivate" || state.farming_readiness === "Existing Orchard") score += 1;
+
+  const ratings =
+    state.opportunity_ratings && typeof state.opportunity_ratings === "object"
+      ? Object.values(state.opportunity_ratings as Record<string, number>)
+      : [];
+  if (ratings.length) {
+    const avg = ratings.reduce((a, b) => a + (Number(b) || 0), 0) / ratings.length;
+    if (avg >= 4) score += 2;
+    else if (avg >= 3) score += 1;
+  }
+
+  const env = Array.isArray(state.local_environment) ? state.local_environment.length : 0;
+  if (env >= 3) score += 1;
+
+  if (score >= 8) return "luxury";
+  if (score >= 4) return "standard";
+  return "normal";
+}
+
+export function slugifyLand(text: string, id: string): string {
+  const base = String(text || "land")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 40);
+  return `${base || "land"}-${id.slice(0, 8)}`;
+}
+
