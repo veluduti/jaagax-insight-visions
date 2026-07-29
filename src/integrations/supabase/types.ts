@@ -5637,6 +5637,10 @@ export type Database = {
           owner_email: string | null
           owner_name: string | null
           owner_phone: string | null
+          profile_created: boolean
+          profile_created_at: string | null
+          profile_slug: string | null
+          profile_tier: string | null
           project_age: string | null
           project_duration: string | null
           project_tenure: string | null
@@ -5704,6 +5708,10 @@ export type Database = {
           owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          profile_created?: boolean
+          profile_created_at?: string | null
+          profile_slug?: string | null
+          profile_tier?: string | null
           project_age?: string | null
           project_duration?: string | null
           project_tenure?: string | null
@@ -5771,6 +5779,10 @@ export type Database = {
           owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          profile_created?: boolean
+          profile_created_at?: string | null
+          profile_slug?: string | null
+          profile_tier?: string | null
           project_age?: string | null
           project_duration?: string | null
           project_tenure?: string | null
