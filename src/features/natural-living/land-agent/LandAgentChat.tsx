@@ -365,14 +365,54 @@ export default function LandAgentChat() {
         .eq("id", registrationId)
         .eq("user_id", user.id);
       if (error) throw new Error(error.message);
-      alert("Your land registration has been submitted for review. Thank you!");
-      backToPicker();
+      const tier = computeLandTier(state);
+      setProfilePrompt({ tier });
+      setMessages((m) => [
+        ...m,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `Your land registration has been submitted for admin review.\n\n**One last thing** — would you like me to create a public **${tier.toUpperCase()}** profile for this listing? A profile lets you share the land with buyers, partners and community members with a single link.`,
+        },
+      ]);
     } catch (e: any) {
       alert(`Could not submit: ${e?.message ?? String(e)}`);
     } finally {
       setSubmitting(false);
     }
   }
+
+  async function createProfile() {
+    if (!registrationId || !user || creatingProfile) return;
+    setCreatingProfile(true);
+    try {
+      const tier = profilePrompt?.tier ?? computeLandTier(state);
+      const slug = slugifyLand(state.village || state.district || "land", registrationId);
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .update({
+          profile_created: true,
+          profile_tier: tier,
+          profile_slug: slug,
+          profile_created_at: new Date().toISOString(),
+        })
+        .eq("id", registrationId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      setProfilePrompt(null);
+      navigate(`/natural-living/lands/${registrationId}`);
+    } catch (e: any) {
+      alert(`Could not create profile: ${e?.message ?? String(e)}`);
+    } finally {
+      setCreatingProfile(false);
+    }
+  }
+
+  function declineProfile() {
+    setProfilePrompt(null);
+    backToPicker();
+  }
+
 
   // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
   // Chips ALWAYS reflect the field the AI is asking about — never a stale/other field.
