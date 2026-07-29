@@ -124,6 +124,7 @@ function DashboardInner() {
 
         {/* Land submissions — visible to every non-admin so users can track approval */}
         {user?.id && role !== "admin" && <MyLandSubmissions userId={user.id} />}
+        {user?.id && role !== "admin" && <MyLandProfiles userId={user.id} />}
 
         <p className="mt-16 text-xs text-[hsl(var(--nl-muted))]">Signed in as {user?.email}</p>
       </div>
