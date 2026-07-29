@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
-import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
+import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById, computeLandTier, slugifyLand, type LandProfileTier } from "./schema";
 import {
   Edit3,
   Leaf,
@@ -57,6 +57,8 @@ export default function LandAgentChat() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [creatingNew, setCreatingNew] = useState(false);
+  const [profilePrompt, setProfilePrompt] = useState<null | { tier: LandProfileTier }>(null);
+  const [creatingProfile, setCreatingProfile] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -363,14 +365,54 @@ export default function LandAgentChat() {
         .eq("id", registrationId)
         .eq("user_id", user.id);
       if (error) throw new Error(error.message);
-      alert("Your land registration has been submitted for review. Thank you!");
-      backToPicker();
+      const tier = computeLandTier(state);
+      setProfilePrompt({ tier });
+      setMessages((m) => [
+        ...m,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `Your land registration has been submitted for admin review.\n\n**One last thing** — would you like me to create a public **${tier.toUpperCase()}** profile for this listing? A profile lets you share the land with buyers, partners and community members with a single link.`,
+        },
+      ]);
     } catch (e: any) {
       alert(`Could not submit: ${e?.message ?? String(e)}`);
     } finally {
       setSubmitting(false);
     }
   }
+
+  async function createProfile() {
+    if (!registrationId || !user || creatingProfile) return;
+    setCreatingProfile(true);
+    try {
+      const tier = profilePrompt?.tier ?? computeLandTier(state);
+      const slug = slugifyLand(state.village || state.district || "land", registrationId);
+      const { error } = await (supabase as any)
+        .from("nl_land_registrations")
+        .update({
+          profile_created: true,
+          profile_tier: tier,
+          profile_slug: slug,
+          profile_created_at: new Date().toISOString(),
+        })
+        .eq("id", registrationId)
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      setProfilePrompt(null);
+      navigate(`/natural-living/lands/${registrationId}`);
+    } catch (e: any) {
+      alert(`Could not create profile: ${e?.message ?? String(e)}`);
+    } finally {
+      setCreatingProfile(false);
+    }
+  }
+
+  function declineProfile() {
+    setProfilePrompt(null);
+    backToPicker();
+  }
+
 
   // Chip source-of-truth: prefer the AI-declared active field, fall back to the resolver.
   // Chips ALWAYS reflect the field the AI is asking about — never a stale/other field.
@@ -675,7 +717,43 @@ export default function LandAgentChat() {
         style={{ background: "hsl(var(--nl-cream))", borderColor: "hsl(var(--nl-forest) / 0.15)" }}
       >
         <div className="mx-auto w-full max-w-3xl px-3 sm:px-4 md:px-6 py-3 safe-bottom">
-          {!nextField && !isUploadField && (
+          {profilePrompt ? (
+            <div
+              className="mb-2 rounded-xl border p-3"
+              style={{ borderColor: "hsl(var(--nl-forest) / 0.35)", background: "hsl(var(--nl-forest) / 0.06)" }}
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="text-sm flex items-center gap-2 min-w-0" style={{ color: "hsl(var(--nl-ink))" }}>
+                  <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--nl-forest))" }} />
+                  <span>
+                    Submitted. Create a public{" "}
+                    <strong className="uppercase">{profilePrompt.tier}</strong> profile for this listing so you can share it?
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={declineProfile}
+                    disabled={creatingProfile}
+                    className="text-sm px-3 py-2 rounded-full font-medium border disabled:opacity-50"
+                    style={{ borderColor: "hsl(var(--nl-forest) / 0.4)", color: "hsl(var(--nl-forest))" }}
+                  >
+                    No, later
+                  </button>
+                  <button
+                    type="button"
+                    onClick={createProfile}
+                    disabled={creatingProfile}
+                    className="text-sm px-4 py-2 rounded-full font-medium disabled:opacity-50 flex items-center gap-1.5"
+                    style={{ background: "hsl(var(--nl-forest))", color: "hsl(var(--nl-cream))" }}
+                  >
+                    {creatingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    {creatingProfile ? "Creating…" : "Yes, create profile"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : !nextField && !isUploadField ? (
             <div
               className="mb-2 rounded-xl border p-3 flex items-center justify-between gap-3 flex-wrap"
               style={{ borderColor: "hsl(var(--nl-forest) / 0.35)", background: "hsl(var(--nl-forest) / 0.06)" }}
@@ -697,7 +775,8 @@ export default function LandAgentChat() {
                 {submitting ? "Submitting…" : "Review & Submit"}
               </button>
             </div>
-          )}
+          ) : null}
+
           {isUploadField && (
             <div
               className="mb-2 rounded-xl border p-3"

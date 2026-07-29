@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import NLLayout from "@/features/natural-living/NLLayout";
 import NLProtectedRoute from "@/features/natural-living/NLProtectedRoute";
 import MyLandSubmissions from "@/features/natural-living/MyLandSubmissions";
+import MyLandProfiles from "@/features/natural-living/MyLandProfiles";
 import { useNLAuth, NLRole } from "@/features/natural-living/useNLAuth";
 import { Eyebrow, H1, Lede } from "@/features/natural-living/ui";
 import {
@@ -123,6 +124,7 @@ function DashboardInner() {
 
         {/* Land submissions — visible to every non-admin so users can track approval */}
         {user?.id && role !== "admin" && <MyLandSubmissions userId={user.id} />}
+        {user?.id && role !== "admin" && <MyLandProfiles userId={user.id} />}
 
         <p className="mt-16 text-xs text-[hsl(var(--nl-muted))]">Signed in as {user?.email}</p>
       </div>

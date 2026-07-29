@@ -13,14 +13,23 @@ export default function NLLandDetail() {
     if (!id) return;
     (async () => {
       setLoading(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData?.user?.id;
+      // Public: approved+published OR profile_created. Owner: always.
       const { data } = await (supabase as any)
         .from("nl_land_registrations")
         .select("*")
         .eq("id", id)
-        .eq("status", "approved")
-        .eq("is_published", true)
         .maybeSingle();
-      setLand(data);
+      if (data) {
+        const isOwner = uid && data.user_id === uid;
+        const isPublic =
+          data.profile_created === true ||
+          (data.status === "approved" && data.is_published === true);
+        setLand(isOwner || isPublic ? data : null);
+      } else {
+        setLand(null);
+      }
       setLoading(false);
     })();
   }, [id]);
@@ -85,8 +94,27 @@ export default function NLLandDetail() {
           }}
         >
           <div className="p-8 md:p-12 text-[hsl(var(--nl-cream))]">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] tracking-[0.2em] uppercase bg-white/15">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Verified · Live
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] tracking-[0.2em] uppercase bg-white/15">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {land.status === "approved" && land.is_published ? "Verified · Live" : "Preview"}
+              </div>
+              {land.profile_tier && (
+                <div
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] tracking-[0.2em] uppercase font-semibold"
+                  style={{
+                    background:
+                      land.profile_tier === "luxury"
+                        ? "linear-gradient(90deg,#f5c451,#c8912b)"
+                        : land.profile_tier === "standard"
+                          ? "rgba(255,255,255,0.25)"
+                          : "rgba(255,255,255,0.15)",
+                    color: "#fff",
+                  }}
+                >
+                  {land.profile_tier} Profile
+                </div>
+              )}
             </div>
             <h1 className="nl-serif text-3xl md:text-5xl mt-4">
               {land.village || land.mandal || land.district || "Land parcel"}
