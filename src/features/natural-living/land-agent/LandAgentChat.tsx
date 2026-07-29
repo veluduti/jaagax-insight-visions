@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNLAuth } from "@/features/natural-living/useNLAuth";
-import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById } from "./schema";
+import { LAND_SCHEMA, nextMissingField, computeCompletion, fieldById, computeLandTier, slugifyLand, type LandProfileTier } from "./schema";
 import {
   Edit3,
   Leaf,
