@@ -51,6 +51,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { buildRoomCombinations, roomsFittingGuests, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
 
 interface PartnerHotel {
@@ -105,6 +106,7 @@ const Hotels = () => {
 
   const [hotels, setHotels] = useState<PartnerHotel[]>([]);
   const [packages, setPackages] = useState<VisitPackage[]>([]);
+  const [roomsByHotel, setRoomsByHotel] = useState<Record<string, OccupancyRoom[]>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState(searchParams.get("city") || "all");
@@ -239,17 +241,30 @@ const Hotels = () => {
       try {
         const [hotelsRes, roomsRes, packagesRes] = await Promise.all([
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
-          supabase.from("hotel_rooms").select("hotel_id, base_price, is_active").eq("is_active", true),
+          supabase
+            .from("hotel_rooms")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, total_units, is_active")
+            .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
 
         const minByHotel = new Map<string, number>();
+        const occByHotel: Record<string, OccupancyRoom[]> = {};
         (roomsRes.data || []).forEach((r: any) => {
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
+          (occByHotel[r.hotel_id] ||= []).push({
+            id: r.id,
+            room_type: r.room_type || "Room",
+            max_occupancy: Number(r.max_occupancy) || 0,
+            available: Number(r.total_units) || 1,
+            perNight: p,
+          });
           if (p <= 0) return;
           if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
         });
+        setRoomsByHotel(occByHotel);
+
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
@@ -403,13 +418,23 @@ const Hotels = () => {
         }
       }
 
-      return matchesCity && matchesSearch && matchesPrice;
+      // Occupancy: hotel must have room(s) that can actually host the guests
+      const totalGuests = adults + children;
+      const hotelRooms = roomsByHotel[hotel.id] || [];
+      const matchesOccupancy =
+        hotelRooms.length === 0
+          ? false
+          : roomsFittingGuests(hotelRooms, totalGuests, rooms).length > 0 ||
+            buildRoomCombinations(hotelRooms, totalGuests, { maxRooms: Math.max(rooms, 4), limit: 1 }).length > 0;
+
+      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
     });
 
     result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
+  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms]);
+
 
   // After a Search click, report result count once the filter memo has resettled.
   useEffect(() => {
