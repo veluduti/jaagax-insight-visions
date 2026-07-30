@@ -243,7 +243,7 @@ const Hotels = () => {
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
           supabase
             .from("hotel_rooms")
-            .select("id, hotel_id, room_type, base_price, max_occupancy, total_rooms, is_active")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, total_units, is_active")
             .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
@@ -257,7 +257,7 @@ const Hotels = () => {
             id: r.id,
             room_type: r.room_type || "Room",
             max_occupancy: Number(r.max_occupancy) || 0,
-            available: Number(r.total_rooms) || 1,
+            available: Number(r.total_units) || 1,
             perNight: p,
           });
           if (p <= 0) return;
