@@ -66,6 +66,20 @@ Deno.serve(async (req) => {
     const quote = await quoteRes.json();
     if (quote.error) return json({ error: quote.error }, 400);
 
+    // Verify occupancy (server-authoritative, guards against race/tampering)
+    const { data: roomOcc } = await supabase
+      .from("hotel_rooms").select("max_occupancy, is_active").eq("id", room_id).maybeSingle();
+    if (!roomOcc || roomOcc.is_active === false) {
+      return json({ error: "Room not available" }, 404);
+    }
+    const totalGuests = Number(adults) + Number(children);
+    const capacity = (Number(roomOcc.max_occupancy) || 0) * Number(num_rooms);
+    if (capacity > 0 && capacity < totalGuests) {
+      return json({
+        error: `This room type accommodates up to ${roomOcc.max_occupancy} guest(s) per room. Please select more rooms or a larger room type.`,
+      }, 400);
+    }
+
     // Verify availability
     const { data: avail } = await supabase.rpc("check_room_availability", {
       _room_id: room_id, _check_in: check_in, _check_out: check_out,
@@ -73,6 +87,7 @@ Deno.serve(async (req) => {
     if ((avail ?? 0) < num_rooms) {
       return json({ error: "Not enough rooms available for the selected dates" }, 409);
     }
+
 
     // Multiply per-room totals by num_rooms
     const nights = Math.max(1, Math.round(
