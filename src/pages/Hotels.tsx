@@ -418,13 +418,23 @@ const Hotels = () => {
         }
       }
 
-      return matchesCity && matchesSearch && matchesPrice;
+      // Occupancy: hotel must have room(s) that can actually host the guests
+      const totalGuests = adults + children;
+      const hotelRooms = roomsByHotel[hotel.id] || [];
+      const matchesOccupancy =
+        hotelRooms.length === 0
+          ? false
+          : roomsFittingGuests(hotelRooms, totalGuests, rooms).length > 0 ||
+            buildRoomCombinations(hotelRooms, totalGuests, { maxRooms: Math.max(rooms, 4), limit: 1 }).length > 0;
+
+      return matchesCity && matchesSearch && matchesPrice && matchesOccupancy;
     });
 
     result.sort((a, b) => (b.star_rating || 0) - (a.star_rating || 0));
 
     return result;
-  }, [hotels, selectedCity, searchQuery, selectedPriceRange]);
+  }, [hotels, selectedCity, searchQuery, selectedPriceRange, roomsByHotel, adults, children, rooms]);
+
 
   // After a Search click, report result count once the filter memo has resettled.
   useEffect(() => {
