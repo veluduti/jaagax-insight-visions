@@ -51,6 +51,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { buildRoomCombinations, roomsFittingGuests, type OccupancyRoom } from "@/lib/roomOccupancy";
 import { format } from "date-fns";
 
 interface PartnerHotel {
