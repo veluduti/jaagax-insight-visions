@@ -417,24 +417,11 @@ export default function HotelRoomList({
                   <Button
                     className="w-full"
                     disabled={!!soldOut}
-                    onClick={() => {
-                      if (!hasDates) {
-                        toast.info("Please select check-in and check-out dates first");
-                        return;
-                      }
-                      const params = new URLSearchParams({
-                        room: room.id,
-                        checkin: checkIn!,
-                        checkout: checkOut!,
-                        adults: String(adults ?? 2),
-                        children: String(children ?? 0),
-                        rooms: String(roomsWanted ?? 1),
-                      });
-                      navigate(`/hotels/${hotelId}/checkout?${params.toString()}`);
-                    }}
+                    onClick={() => goCheckout(room.id, roomsWanted ?? 1)}
                   >
                     {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
                   </Button>
+
                 </div>
               </div>
             </CardContent>
