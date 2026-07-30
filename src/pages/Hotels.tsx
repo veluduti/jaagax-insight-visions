@@ -241,17 +241,30 @@ const Hotels = () => {
       try {
         const [hotelsRes, roomsRes, packagesRes] = await Promise.all([
           supabase.from("partner_hotels").select("*").eq("is_active", true).order("star_rating", { ascending: false }),
-          supabase.from("hotel_rooms").select("hotel_id, base_price, is_active").eq("is_active", true),
+          supabase
+            .from("hotel_rooms")
+            .select("id, hotel_id, room_type, base_price, max_occupancy, total_rooms, is_active")
+            .eq("is_active", true),
           supabase.from("visit_packages").select("*").eq("is_active", true),
         ]);
 
         const minByHotel = new Map<string, number>();
+        const occByHotel: Record<string, OccupancyRoom[]> = {};
         (roomsRes.data || []).forEach((r: any) => {
           const cur = minByHotel.get(r.hotel_id);
           const p = Number(r.base_price) || 0;
+          (occByHotel[r.hotel_id] ||= []).push({
+            id: r.id,
+            room_type: r.room_type || "Room",
+            max_occupancy: Number(r.max_occupancy) || 0,
+            available: Number(r.total_rooms) || 1,
+            perNight: p,
+          });
           if (p <= 0) return;
           if (cur === undefined || p < cur) minByHotel.set(r.hotel_id, p);
         });
+        setRoomsByHotel(occByHotel);
+
 
         const enriched = await Promise.all(
           (hotelsRes.data || [])
