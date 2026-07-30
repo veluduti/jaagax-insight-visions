@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BedDouble, Users, Maximize, Check, Coffee, ShieldCheck,
-  ChevronLeft, ChevronRight, AlertCircle, Loader2,
+  ChevronLeft, ChevronRight, AlertCircle, Loader2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import { buildRoomCombinations, roomsFittingGuests, comboLabel, type OccupancyRoom } from "@/lib/roomOccupancy";
+
 
 // Assumed GST rate for hotel room tariff (12% for < ₹7500/night, 18% otherwise).
 // Real config should move to hotel_commission_config / a tax table later.
@@ -133,6 +135,41 @@ export default function HotelRoomList({
     });
   }, [rooms, checkIn, checkOut, adults, children, roomsWanted, hotelId]);
 
+  const hasDates = !!(checkIn && checkOut);
+  const guests = Math.max(1, (Number(adults) || 0) + (Number(children) || 0));
+
+  // Every room quoted (availability + price resolved)?
+  const quotesReady = hasDates && rooms.length > 0 && rooms.every((r) => quotes[r.id] && !quotes[r.id].loading);
+
+  const occupancyPool: OccupancyRoom[] = useMemo(
+    () => rooms.map((r) => ({
+      id: r.id,
+      room_type: r.room_type,
+      max_occupancy: Number(r.max_occupancy) || 0,
+      available: quotesReady ? Number(quotes[r.id]?.available ?? 0) : Number(r.total_units) || 0,
+      perNight: Number(quotes[r.id]?.perNight ?? r.base_price) || 0,
+    })),
+    [rooms, quotes, quotesReady],
+  );
+
+  // Rooms whose occupancy can host the party (given the requested room count)
+  const fittingRooms = useMemo(
+    () => roomsFittingGuests(rooms, guests, roomsWanted),
+    [rooms, guests, roomsWanted],
+  );
+
+  const bookableRooms = useMemo(() => {
+    if (!quotesReady) return fittingRooms;
+    return fittingRooms.filter((r) => Number(quotes[r.id]?.available ?? 0) >= roomsWanted);
+  }, [fittingRooms, quotes, quotesReady, roomsWanted]);
+
+  const combinations = useMemo(() => {
+    if (!quotesReady || bookableRooms.length > 0) return [];
+    return buildRoomCombinations(occupancyPool, guests);
+  }, [quotesReady, bookableRooms.length, occupancyPool, guests]);
+
+  const displayRooms = quotesReady ? bookableRooms : fittingRooms;
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -150,7 +187,18 @@ export default function HotelRoomList({
     );
   }
 
-  const hasDates = !!(checkIn && checkOut);
+  const goCheckout = (roomId: string, qty: number) => {
+    if (!hasDates) { toast.info("Please select check-in and check-out dates first"); return; }
+    const params = new URLSearchParams({
+      room: roomId,
+      checkin: checkIn!,
+      checkout: checkOut!,
+      adults: String(adults ?? 2),
+      children: String(children ?? 0),
+      rooms: String(qty),
+    });
+    navigate(`/hotels/${hotelId}/checkout?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-4">
@@ -161,7 +209,80 @@ export default function HotelRoomList({
         </div>
       )}
 
-      {rooms.map((room) => {
+      {displayRooms.length > 0 && fittingRooms.length < rooms.length && (
+        <p className="text-xs text-muted-foreground">
+          Showing room types that can accommodate {guests} guest{guests > 1 ? "s" : ""}.
+        </p>
+      )}
+
+      {/* No single room type fits — suggest combinations */}
+      {quotesReady && bookableRooms.length === 0 && combinations.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 text-sm bg-muted/40 border border-border rounded-lg p-3">
+            <Layers className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+            <span>
+              No single room fits {guests} guests. These available room combinations do:
+            </span>
+          </div>
+          {combinations.map((combo) => (
+            <Card key={combo.key}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="font-semibold">{comboLabel(combo)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {combo.totalRooms} room{combo.totalRooms > 1 ? "s" : ""} · sleeps up to {combo.capacity}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold">₹{Math.round(combo.perNightTotal).toLocaleString()}</div>
+                    <div className="text-[11px] text-muted-foreground">per night · taxes extra</div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {combo.items.map((it) => (
+                    <Button
+                      key={it.room.id}
+                      size="sm"
+                      variant="outline"
+                      onClick={() => goCheckout(it.room.id, it.quantity)}
+                    >
+                      Book {it.room.room_type} ×{it.quantity}
+                    </Button>
+                  ))}
+                </div>
+                {combo.items.length > 1 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Mixed room types are booked one type at a time.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Nothing works */}
+      {quotesReady && bookableRooms.length === 0 && combinations.length === 0 && (
+        <Card className="p-8 text-center">
+          <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground">
+            No rooms available for the selected number of guests and dates.
+          </p>
+        </Card>
+      )}
+
+      {!quotesReady && fittingRooms.length === 0 && (
+        <Card className="p-8 text-center">
+          <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-muted-foreground">
+            No rooms available for the selected number of guests and dates.
+          </p>
+        </Card>
+      )}
+
+      {displayRooms.map((room) => {
+
         const q = quotes[room.id];
         const photos = (room.photos && room.photos.length > 0) ? room.photos : [FALLBACK_IMG];
         const idx = galleryIdx[room.id] ?? 0;
@@ -296,24 +417,11 @@ export default function HotelRoomList({
                   <Button
                     className="w-full"
                     disabled={!!soldOut}
-                    onClick={() => {
-                      if (!hasDates) {
-                        toast.info("Please select check-in and check-out dates first");
-                        return;
-                      }
-                      const params = new URLSearchParams({
-                        room: room.id,
-                        checkin: checkIn!,
-                        checkout: checkOut!,
-                        adults: String(adults ?? 2),
-                        children: String(children ?? 0),
-                        rooms: String(roomsWanted ?? 1),
-                      });
-                      navigate(`/hotels/${hotelId}/checkout?${params.toString()}`);
-                    }}
+                    onClick={() => goCheckout(room.id, roomsWanted ?? 1)}
                   >
                     {soldOut ? "Sold out" : hasDates ? "Book now" : "Select dates"}
                   </Button>
+
                 </div>
               </div>
             </CardContent>

@@ -114,6 +114,15 @@ const HotelCheckout = () => {
       const resolvedHotel = h ? { ...h, images: await resolveHotelImages((h as any).images) } : null;
       setHotel(resolvedHotel as any); setRoom(r as any);
 
+      // Occupancy guard — never allow a booking the room type cannot host.
+      const capacity = (Number((r as any)?.max_occupancy) || 0) * numRooms;
+      if (r && capacity > 0 && capacity < adults + children) {
+        toast.error("This room type cannot accommodate the selected number of guests.");
+        navigate(`/hotels/${hotelId}`);
+        return;
+      }
+
+
       const { data: q } = await supabase.functions.invoke("booking-engine-quote", {
         body: { hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut, guests: adults + children },
       });
