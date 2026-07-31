@@ -837,7 +837,7 @@ export default function AgentDashboard() {
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={() => navigate(`/agent/${agentProfile.id}`)} size="sm">
                       <Eye className="h-4 w-4 mr-2" />
-                      View Public Profile
+                      View Profile
                     </Button>
                   </div>
                 </div>
