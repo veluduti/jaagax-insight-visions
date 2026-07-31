@@ -119,7 +119,7 @@ export default function Auth() {
     { key: "builder", label: "Builder", desc: "Showcase projects" },
   ];
 
-  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel") => {
+  const toggleRole = (r: "buyer" | "seller" | "agent" | "builder") => {
     setSelectedRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
   };
 
