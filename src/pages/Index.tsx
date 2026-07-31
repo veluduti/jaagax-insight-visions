@@ -40,7 +40,7 @@ const Index = () => {
   const showAgents = canSee(role, "agents");
   const showCommunities = canSee(role, "communities");
   const showMarketIndex = canSee(role, "marketIndex");
-  const showSellerSearch = role !== "seller";
+  const showSellerSearch = true;
 
   return (
     <div className="min-h-screen bg-background">
