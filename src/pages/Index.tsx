@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
-import ClientBannerHero from "@/components/ClientBannerHero";
+import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 
 import NewProjects from "@/components/NewProjects";
@@ -51,7 +51,7 @@ const Index = () => {
         type="website"
       />
       <Navigation />
-      <ClientBannerHero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
+      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
       {/* Promoted Listings Carousel */}
       <PromotedListings />
