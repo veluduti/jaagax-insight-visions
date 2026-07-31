@@ -6,7 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, Building2, Home, Shield, Eye, EyeOff, Loader2, Mail, Lock, UserCircle, Phone, Tag, Landmark, Hotel } from "lucide-react";
+import {
+  User,
+  Building2,
+  Home,
+  Shield,
+  Eye,
+  EyeOff,
+  Loader2,
+  Mail,
+  Lock,
+  UserCircle,
+  Phone,
+  Tag,
+  Landmark,
+  Hotel,
+} from "lucide-react";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ResetPasswordModal from "@/components/auth/ResetPasswordModal";
@@ -68,7 +83,6 @@ const roleConfig = {
   },
 };
 
-
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -82,7 +96,9 @@ export default function Auth() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [locationMeta, setLocationMeta] = useState<NormalizedLocation | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Array<"buyer" | "seller" | "agent" | "builder" | "financial" | "hotel">>(["buyer"]);
+  const [selectedRoles, setSelectedRoles] = useState<
+    Array<"buyer" | "seller" | "agent" | "builder" | "financial" | "hotel">
+  >(["buyer"]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -94,19 +110,20 @@ export default function Auth() {
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
 
   const isPasswordReset = searchParams.get("reset") === "true";
-  const profileRoles: Array<{ key: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel"; label: string; desc: string }> = [
-    { key: "buyer",     label: "Buyer",     desc: "Browse & book" },
-    { key: "seller",    label: "Seller",    desc: "Sell property" },
-    { key: "agent",     label: "Agent",     desc: "List & earn" },
-    { key: "builder",   label: "Builder",   desc: "Showcase projects" },
-    { key: "financial", label: "Financial", desc: "Loans & legal" },
-    { key: "hotel",     label: "Hotel",     desc: "Manage bookings" },
+  const profileRoles: Array<{
+    key: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel";
+    label: string;
+    desc: string;
+  }> = [
+    { key: "buyer", label: "Buyer", desc: "Browse & book" },
+    { key: "seller", label: "Seller", desc: "Sell property" },
+    { key: "agent", label: "Agent", desc: "List & earn" },
+    { key: "builder", label: "Builder", desc: "Showcase projects" },
   ];
 
   const toggleRole = (r: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel") => {
-    setSelectedRoles((prev) => prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
+    setSelectedRoles((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
   };
-
 
   useEffect(() => {
     // Do NOT auto-redirect while in the password-reset flow. The recovery
@@ -121,9 +138,15 @@ export default function Auth() {
       }
       // Decide redirect based on profiles count
       (async () => {
-        const dashPath = (t: string) => (t === "hotel" || t === "hotel_manager" ? "/partners/dashboard" : `/dashboard/${t}`);
-        const { data } = await supabase.from("profiles" as any).select("id, type, status").eq("user_id", user.id);
-        const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter((p) => p.status === "active");
+        const dashPath = (t: string) =>
+          t === "hotel" || t === "hotel_manager" ? "/partners/dashboard" : `/dashboard/${t}`;
+        const { data } = await supabase
+          .from("profiles" as any)
+          .select("id, type, status")
+          .eq("user_id", user.id);
+        const list = ((data ?? []) as Array<{ id: string; type: string; status: string }>).filter(
+          (p) => p.status === "active",
+        );
         if (list.length === 0) {
           if (role) redirectToDashboard();
         } else if (list.length === 1) {
@@ -140,7 +163,6 @@ export default function Auth() {
       })();
     }
   }, [user, role, authLoading, redirectToDashboard, navigate, isPasswordReset]);
-
 
   // Handle ?reset=true: parse recovery token (hash OR PKCE ?code=), validate, open modal.
   useEffect(() => {
@@ -159,7 +181,10 @@ export default function Auth() {
 
     (async () => {
       try {
-        if (hashError) { setResetLinkValid(false); return; }
+        if (hashError) {
+          setResetLinkValid(false);
+          return;
+        }
 
         // PKCE flow: ?code=...
         if (code) {
@@ -171,7 +196,10 @@ export default function Auth() {
 
         // Implicit flow: #access_token=...&type=recovery
         if (accessToken) {
-          if (type && type !== "recovery") { setResetLinkValid(false); return; }
+          if (type && type !== "recovery") {
+            setResetLinkValid(false);
+            return;
+          }
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken ?? "",
@@ -182,7 +210,9 @@ export default function Auth() {
         }
 
         // No token in URL — fall back to existing session (SDK may have auto-applied it).
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setResetLinkValid(!!session);
       } catch (e) {
         console.error("Reset link validation failed:", e);
@@ -190,7 +220,6 @@ export default function Auth() {
       }
     })();
   }, [isPasswordReset]);
-
 
   // Prevent auto-login right after OTP verification: if newSignup flag was set,
   // sign the user out (defense in depth) and stay on /auth.
@@ -203,7 +232,6 @@ export default function Auth() {
     }
   }, [navigate]);
 
-
   // Detect if the login identifier is an email or phone number.
   const isEmailIdentifier = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   const isPhoneIdentifier = (val: string) => {
@@ -213,30 +241,65 @@ export default function Auth() {
 
   const validateForm = () => {
     if (!isLogin) {
-      if (!name.trim()) { toast.error("Name is required"); return false; }
-      if (!phone.trim() || phone.replace(/\D/g, "").length < 10) { toast.error("Enter a valid phone number"); return false; }
-      const pwOk = password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password);
-      if (!pwOk) { toast.error("Password must be 8+ chars with upper, lower, number & special character"); return false; }
-      if (selectedRoles.length === 0) { toast.error("Pick at least one role"); return false; }
-      if (!city.trim()) { toast.error("Please select your city"); return false; }
+      if (!name.trim()) {
+        toast.error("Name is required");
+        return false;
+      }
+      if (!phone.trim() || phone.replace(/\D/g, "").length < 10) {
+        toast.error("Enter a valid phone number");
+        return false;
+      }
+      const pwOk =
+        password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /\d/.test(password) &&
+        /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password);
+      if (!pwOk) {
+        toast.error("Password must be 8+ chars with upper, lower, number & special character");
+        return false;
+      }
+      if (selectedRoles.length === 0) {
+        toast.error("Pick at least one role");
+        return false;
+      }
+      if (!city.trim()) {
+        toast.error("Please select your city");
+        return false;
+      }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) { toast.error("Please enter a valid email"); return false; }
+      if (!emailRegex.test(email)) {
+        toast.error("Please enter a valid email");
+        return false;
+      }
     }
     return true;
   };
 
   // After a successful sign-in (email or phone), figure out where to send the user.
   const routeAfterLogin = async () => {
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) { navigate("/dashboard"); return; }
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+    if (!currentUser) {
+      navigate("/dashboard");
+      return;
+    }
 
     const { data: roleRows } = await supabase
-      .from("user_roles" as any).select("role").eq("user_id", currentUser.id);
+      .from("user_roles" as any)
+      .select("role")
+      .eq("user_id", currentUser.id);
     const roles = ((roleRows ?? []) as Array<{ role: string }>).map((r) => r.role);
-    if (roles.includes("admin")) { navigate("/dashboard/admin"); return; }
+    if (roles.includes("admin")) {
+      navigate("/dashboard/admin");
+      return;
+    }
 
     const { data: profileRows } = await supabase
-      .from("profiles" as any).select("id, type, status").eq("user_id", currentUser.id);
+      .from("profiles" as any)
+      .select("id, type, status")
+      .eq("user_id", currentUser.id);
     const profs = (profileRows ?? []) as Array<{ id: string; type: string; status: string }>;
     const active = profs.filter((p) => p.status === "active");
     const dashPath = (t: string) =>
@@ -246,19 +309,24 @@ export default function Auth() {
       const stored = storedId ? active.find((p) => p.id === storedId) : null;
       const target = stored ?? active[0];
       localStorage.setItem("jaagax.activeProfileId", target.id);
-      navigate(dashPath(target.type)); return;
+      navigate(dashPath(target.type));
+      return;
     }
     if (active.length === 1) {
       localStorage.setItem("jaagax.activeProfileId", active[0].id);
       void supabase.from("user_settings" as any).upsert({
-        user_id: currentUser.id, active_profile_id: active[0].id, updated_at: new Date().toISOString()
+        user_id: currentUser.id,
+        active_profile_id: active[0].id,
+        updated_at: new Date().toISOString(),
       });
-      navigate(dashPath(active[0].type)); return;
+      navigate(dashPath(active[0].type));
+      return;
     }
     if (roles.length > 0) {
       const r = roles[0];
       const target = r === "customer" ? "buyer" : r === "hotel_manager" ? "hotel-manager" : r;
-      navigate(`/dashboard/${target}`); return;
+      navigate(`/dashboard/${target}`);
+      return;
     }
     navigate("/dashboard");
   };
@@ -284,7 +352,10 @@ export default function Auth() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{6}$/.test(otpCode)) { toast.error("Enter the 6-digit OTP"); return; }
+    if (!/^\d{6}$/.test(otpCode)) {
+      toast.error("Enter the 6-digit OTP");
+      return;
+    }
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("phone-otp-login", {
@@ -296,11 +367,17 @@ export default function Auth() {
       }
       const { token_hash } = data as { email: string; token_hash: string };
       const { error: vErr } = await supabase.auth.verifyOtp({
-        type: "magiclink", token_hash,
+        type: "magiclink",
+        token_hash,
       } as any);
-      if (vErr) { toast.error(vErr.message); return; }
+      if (vErr) {
+        toast.error(vErr.message);
+        return;
+      }
       toast.success("Welcome back!");
-      setOtpSent(false); setOtpCode(""); setOtpPhone("");
+      setOtpSent(false);
+      setOtpCode("");
+      setOtpPhone("");
       await routeAfterLogin();
     } finally {
       setLoading(false);
@@ -326,7 +403,11 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        if (password.length < 6) { toast.error("Password must be at least 6 characters"); setLoading(false); return; }
+        if (password.length < 6) {
+          toast.error("Password must be at least 6 characters");
+          setLoading(false);
+          return;
+        }
         const { error } = await signIn(loginIdentifier.trim(), password);
         if (error) {
           if (error.message.includes("Email not confirmed")) {
@@ -375,7 +456,6 @@ export default function Auth() {
         navigate("/verify-otp", { state: { email } });
         return;
       }
-
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
     } finally {
@@ -387,7 +467,10 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
       </div>
 
       <div className="absolute top-8 left-8 z-20">
@@ -396,20 +479,29 @@ export default function Auth() {
           className="hover:opacity-80 transition-opacity"
           aria-label="JAAGA X - Home"
         >
-          <img
-            src={jaagaxLogo}
-            alt="JAAGA X"
-            className="h-10 w-auto object-contain"
-           loading="lazy" decoding="async" />
+          <img src={jaagaxLogo} alt="JAAGA X" className="h-10 w-auto object-contain" loading="lazy" decoding="async" />
         </button>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-6xl mx-auto relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-6xl mx-auto relative z-10"
+      >
         <div className="grid md:grid-cols-2 gap-8 items-center">
           {/* Left Side */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="hidden md:block">
-            <h1 className="text-5xl font-bold mb-6">Welcome to <span className="text-gradient">JaagaX</span></h1>
-            <p className="text-muted-foreground text-xl mb-8">India's most intelligent real estate platform powered by AI</p>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="hidden md:block"
+          >
+            <h1 className="text-5xl font-bold mb-6">
+              Welcome to <span className="text-gradient">JaagaX</span>
+            </h1>
+            <p className="text-muted-foreground text-xl mb-8">
+              India's most intelligent real estate platform powered by AI
+            </p>
             <div className="space-y-4">
               {[
                 { icon: Shield, title: "Verified Properties", desc: "AI-verified listings you can trust" },
@@ -433,31 +525,70 @@ export default function Auth() {
           <Card className="glass-panel border-primary/20 p-8">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-2">{isLogin ? "Sign In" : "Create Account"}</h2>
-              <p className="text-muted-foreground">{isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}</p>
+              <p className="text-muted-foreground">
+                {isLogin ? "Access your personalized dashboard" : "Join thousands of users on JaagaX"}
+              </p>
             </div>
 
             <form onSubmit={handleAuth} className="space-y-5">
               <AnimatePresence mode="wait">
                 {!isLogin ? (
-                  <motion.div key="signup" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                  <motion.div
+                    key="signup"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-5"
+                  >
                     {/* 1. Name */}
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="flex items-center gap-2"><UserCircle className="h-4 w-4" />Full Name</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" />
+                      <Label htmlFor="name" className="flex items-center gap-2">
+                        <UserCircle className="h-4 w-4" />
+                        Full Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your full name"
+                      />
                     </div>
 
                     {/* 2. Phone */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4" />Phone Number</Label>
-                      <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
+                      <Label htmlFor="phone" className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+91 9876543210"
+                      />
                     </div>
 
                     {/* 3. Password */}
                     <div className="space-y-2">
-                      <Label htmlFor="password-signup" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                      <Label htmlFor="password-signup" className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        Password
+                      </Label>
                       <div className="relative">
-                        <Input id="password-signup" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8+ chars, upper, lower, number, special" className="pr-10" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <Input
+                          id="password-signup"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="8+ chars, upper, lower, number, special"
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
@@ -486,9 +617,13 @@ export default function Auth() {
                               }`}
                             >
                               {checked && (
-                                <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">✓</span>
+                                <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                                  ✓
+                                </span>
                               )}
-                              <Icon className={`w-5 h-5 mx-auto mb-1.5 ${checked ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <Icon
+                                className={`w-5 h-5 mx-auto mb-1.5 ${checked ? "text-primary" : "text-muted-foreground"}`}
+                              />
                               <p className="text-xs font-medium leading-tight">{r.label}</p>
                               <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{r.desc}</p>
                             </button>
@@ -497,7 +632,9 @@ export default function Auth() {
                       </div>
                       <p className="text-[11px] text-emerald-500/90 flex items-start gap-1.5 leading-tight">
                         <span>✓</span>
-                        <span>Sign up once and start using all selected roles immediately after email verification.</span>
+                        <span>
+                          Sign up once and start using all selected roles immediately after email verification.
+                        </span>
                       </p>
                     </div>
 
@@ -520,19 +657,35 @@ export default function Auth() {
                     {/* 6. Email (used for verification — required, not optional) */}
                     <div className="space-y-2">
                       <Label htmlFor="email-signup" className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />Email
+                        <Mail className="h-4 w-4" />
+                        Email
                         <span className="text-[10px] text-muted-foreground font-normal">(for OTP verification)</span>
                       </Label>
-                      <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                      <Input
+                        id="email-signup"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                      />
                     </div>
                   </motion.div>
                 ) : otpSent ? (
-                  <motion.div key="otp" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                  <motion.div
+                    key="otp"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-5"
+                  >
                     <div className="text-sm text-muted-foreground">
                       OTP sent to <span className="font-medium text-foreground">{otpPhone}</span>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="otp" className="flex items-center gap-2"><Lock className="h-4 w-4" />Enter 6-digit OTP</Label>
+                      <Label htmlFor="otp" className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" />
+                        Enter 6-digit OTP
+                      </Label>
                       <Input
                         id="otp"
                         type="text"
@@ -546,18 +699,39 @@ export default function Auth() {
                       />
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <button type="button" onClick={() => { setOtpSent(false); setOtpCode(""); }} className="text-muted-foreground hover:text-foreground">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpCode("");
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
                         ← Change number
                       </button>
-                      <button type="button" onClick={() => handleRequestOtp(otpPhone)} disabled={loading} className="text-primary hover:underline font-medium">
+                      <button
+                        type="button"
+                        onClick={() => handleRequestOtp(otpPhone)}
+                        disabled={loading}
+                        className="text-primary hover:underline font-medium"
+                      >
                         Resend OTP
                       </button>
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key="login" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-5">
+                  <motion.div
+                    key="login"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-5"
+                  >
                     <div className="space-y-2">
-                      <Label htmlFor="login-id" className="flex items-center gap-2"><Mail className="h-4 w-4" />Email Address or Mobile Number</Label>
+                      <Label htmlFor="login-id" className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Email Address or Mobile Number
+                      </Label>
                       <Input
                         id="login-id"
                         type="text"
@@ -572,14 +746,32 @@ export default function Auth() {
                     </div>
                     {(!loginIdentifier || isEmailIdentifier(loginIdentifier)) && (
                       <div className="space-y-2">
-                        <Label htmlFor="password" className="flex items-center gap-2"><Lock className="h-4 w-4" />Password</Label>
+                        <Label htmlFor="password" className="flex items-center gap-2">
+                          <Lock className="h-4 w-4" />
+                          Password
+                        </Label>
                         <div className="relative">
-                          <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="pr-10" />
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
-                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-primary hover:underline font-medium mt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPassword(true)}
+                          className="text-xs text-primary hover:underline font-medium mt-1"
+                        >
                           Forgot password?
                         </button>
                       </div>
@@ -590,15 +782,38 @@ export default function Auth() {
 
               {otpSent ? (
                 <Button type="button" onClick={handleVerifyOtp} className="w-full" disabled={loading} size="lg">
-                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</>) : "Verify & Login"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify & Login"
+                  )}
                 </Button>
               ) : (
                 <Button type="submit" className="w-full" disabled={loading} size="lg">
-                  {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Sending OTP..." : "Signing in...") : "Creating account..."}</>) : (isLogin ? (isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? "Send OTP" : "Sign In") : "Create Account")}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {isLogin
+                        ? isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier)
+                          ? "Sending OTP..."
+                          : "Signing in..."
+                        : "Creating account..."}
+                    </>
+                  ) : isLogin ? (
+                    isPhoneIdentifier(loginIdentifier) && !isEmailIdentifier(loginIdentifier) ? (
+                      "Send OTP"
+                    ) : (
+                      "Sign In"
+                    )
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
               )}
             </form>
-
 
             <div className="mt-6 text-center">
               <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline text-sm font-medium">
@@ -609,7 +824,11 @@ export default function Auth() {
         </div>
       </motion.div>
 
-      <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} defaultEmail={isEmailIdentifier(loginIdentifier) ? loginIdentifier : email} />
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        defaultEmail={isEmailIdentifier(loginIdentifier) ? loginIdentifier : email}
+      />
 
       <ResetPasswordModal
         isOpen={showResetPassword}
@@ -638,7 +857,6 @@ export default function Auth() {
           navigate("/auth", { replace: true });
         }}
       />
-
     </div>
   );
 }
