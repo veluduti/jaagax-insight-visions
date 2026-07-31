@@ -117,6 +117,13 @@ const Navigation = () => {
       icon: TrendingUp,
       description: "Real estate market insights",
     },
+    {
+      key: "always",
+      label: "Smart Financing",
+      path: "/smart-financing",
+      icon: DollarSign,
+      description: "Home loans & EMI planning",
+    },
     { key: "always", label: "Promotions", path: "/promotions", icon: Sparkles, description: "Special offers & deals" },
     { key: "always", label: "Innovation Hub", path: "/innovation", icon: Zap, description: "AI-powered features" },
   ];
