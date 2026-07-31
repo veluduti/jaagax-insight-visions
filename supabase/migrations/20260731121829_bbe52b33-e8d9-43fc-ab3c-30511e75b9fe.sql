@@ -1,0 +1,1 @@
+CREATE POLICY "Agents can view own record" ON public.agents FOR SELECT TO authenticated USING (auth.uid() = user_id);

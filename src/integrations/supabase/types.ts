@@ -857,15 +857,18 @@ export type Database = {
           country: string | null
           country_id: string | null
           created_at: string
+          date_of_birth: string | null
           district: string | null
           district_id: string | null
           email: string | null
           experience_years: number | null
+          gender: string | null
           id: string
           languages: string | null
           localities_served: string | null
           locality_id: string | null
           name: string
+          office_address: string | null
           phone: string
           photo_url: string | null
           sales_count: number | null
@@ -877,6 +880,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           verified: boolean | null
+          whatsapp_number: string | null
         }
         Insert: {
           agency_name?: string | null
@@ -888,15 +892,18 @@ export type Database = {
           country?: string | null
           country_id?: string | null
           created_at?: string
+          date_of_birth?: string | null
           district?: string | null
           district_id?: string | null
           email?: string | null
           experience_years?: number | null
+          gender?: string | null
           id?: string
           languages?: string | null
           localities_served?: string | null
           locality_id?: string | null
           name: string
+          office_address?: string | null
           phone: string
           photo_url?: string | null
           sales_count?: number | null
@@ -908,6 +915,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           verified?: boolean | null
+          whatsapp_number?: string | null
         }
         Update: {
           agency_name?: string | null
@@ -919,15 +927,18 @@ export type Database = {
           country?: string | null
           country_id?: string | null
           created_at?: string
+          date_of_birth?: string | null
           district?: string | null
           district_id?: string | null
           email?: string | null
           experience_years?: number | null
+          gender?: string | null
           id?: string
           languages?: string | null
           localities_served?: string | null
           locality_id?: string | null
           name?: string
+          office_address?: string | null
           phone?: string
           photo_url?: string | null
           sales_count?: number | null
@@ -939,6 +950,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           verified?: boolean | null
+          whatsapp_number?: string | null
         }
         Relationships: [
           {
