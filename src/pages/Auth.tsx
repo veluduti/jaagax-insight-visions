@@ -109,7 +109,7 @@ export default function Auth() {
 
   const isPasswordReset = searchParams.get("reset") === "true";
   const profileRoles: Array<{
-    key: "buyer" | "seller" | "agent" | "builder" | "financial" | "hotel";
+    key: "buyer" | "seller" | "agent" | "builder";
     label: string;
     desc: string;
   }> = [
