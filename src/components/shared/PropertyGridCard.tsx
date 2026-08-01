@@ -79,7 +79,12 @@ function PropertyGridCardImpl({
             </button>
           )}
         </div>
-      ) : null}
+      ) : (
+        <div className="relative h-48 flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-muted via-muted/60 to-primary/10 text-foreground/40">
+          <ImageIcon className="h-8 w-8 opacity-60" />
+          <span className="text-xs tracking-wide">Image coming soon</span>
+        </div>
+      )}
 
       <div className="p-md">
         <div className="flex items-start justify-between mb-sm gap-sm">
