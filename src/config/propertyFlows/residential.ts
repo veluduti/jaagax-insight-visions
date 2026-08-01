@@ -222,7 +222,7 @@ export const residentialFlow = {
 
       question: "Do you want to Sell or Rent this property?",
 
-      options: ["Buy", "Rent"],
+      options: ["Sell", "Rent"],
 
       invalidateOnChange: [
         "property_condition",
