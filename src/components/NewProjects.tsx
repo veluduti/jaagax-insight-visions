@@ -23,12 +23,28 @@ interface Project {
   builder_name: string;
   city: string;
   locality: string;
-  avg_price: number;
+  avg_price: number | null;
+  price_min?: number | null;
+  price_max?: number | null;
+  price_per_sqft?: number | null;
   image: string | null;
   verified: boolean | null;
   rera_id: string | null;
   trust_score: number | null;
 }
+
+const formatINR = (value: number) => {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(2)} Lakh`;
+  return `₹${value.toLocaleString("en-IN")}`;
+};
+
+const formatProjectPrice = (p: Project) => {
+  const value = [p.price_min, p.avg_price, p.price_max].find(
+    (v) => typeof v === "number" && v > 0,
+  ) as number | undefined;
+  return value ? formatINR(value) : "Price on Request";
+};
 
 const openProject = (p: { slug?: string | null; id: string }) => {
   window.open(`/project/${p.slug || p.id}`, "_blank", "noopener,noreferrer");
@@ -192,8 +208,8 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
 
                       {/* Verified Badge */}
                       {project.verified && (
-                        <Badge className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm border-primary/50">
-                          <TrendingUp className="h-3 w-3 mr-1" />
+                        <Badge className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm border border-primary/50 text-foreground hover:bg-background">
+                          <TrendingUp className="h-3 w-3 mr-1 text-primary" />
                           Verified
                         </Badge>
                       )}
@@ -220,7 +236,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Starting From</span>
                           <span className="font-semibold text-primary">
-                            ₹{(project.avg_price / 10000000).toFixed(2)} Cr
+                            {formatProjectPrice(project)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">

@@ -13,8 +13,7 @@ interface LazyImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   eager?: boolean;
 }
 
-const DEFAULT_FALLBACK =
-  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=70";
+const DEFAULT_FALLBACK = "";
 
 /**
  * Drop-in <img loading="lazy" decoding="async" /> replacement that:
