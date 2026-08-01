@@ -1,4 +1,5 @@
 import { memo, useState, type ImgHTMLAttributes, type SyntheticEvent } from "react";
+import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LazyImageProps extends ImgHTMLAttributes<HTMLImageElement> {
@@ -13,8 +14,7 @@ interface LazyImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   eager?: boolean;
 }
 
-const DEFAULT_FALLBACK =
-  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=70";
+const DEFAULT_FALLBACK = "";
 
 /**
  * Drop-in <img loading="lazy" decoding="async" /> replacement that:
@@ -51,6 +51,23 @@ const LazyImageBase = ({
   };
 
   const finalSrc = errored ? fallback : src || fallback;
+
+  // No usable image → premium "coming soon" placeholder instead of a stock photo.
+  if (!finalSrc) {
+    return (
+      <div
+        role="img"
+        aria-label={alt || "Image coming soon"}
+        className={cn(
+          "flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-muted via-muted/60 to-primary/10 text-foreground/40",
+          className,
+        )}
+      >
+        <ImageIcon className="h-8 w-8 opacity-60" />
+        <span className="text-xs tracking-wide">Image coming soon</span>
+      </div>
+    );
+  }
 
   return (
     <img

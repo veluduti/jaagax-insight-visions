@@ -47,14 +47,14 @@ export const roleAccess: Record<AccessRole, Record<FeatureKey, AccessValue>> = {
     marketIndex: true,
   },
   builder: {
-    buyRent: false,
+    buyRent: true,
     newProjects: true,
     sellProperty: true,
-    searchFilters: false,
+    searchFilters: true,
     transactions: true,
-    agents: false,
-    communities: false,
-    marketIndex: "optional",
+    agents: true,
+    communities: true,
+    marketIndex: true,
   },
 };
 
