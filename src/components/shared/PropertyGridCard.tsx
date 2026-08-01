@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Bed, Bath, Maximize, MapPin, Shield } from "lucide-react";
+import { Heart, Bed, Bath, Maximize, MapPin, Shield, ImageIcon } from "lucide-react";
 import type { PropertyRow } from "@/services/types";
 
 export interface PropertyGridCardProps {
