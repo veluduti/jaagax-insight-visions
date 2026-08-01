@@ -156,29 +156,31 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-4 items-stretch">
             {projects.map((project, index) => (
-              <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3 flex h-full">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  className="h-full w-full"
                 >
                   <Card 
-                    className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full"
+                    className="glass-panel border-border/50 overflow-hidden group cursor-pointer hover:border-primary/50 transition-all duration-300 h-full flex flex-col"
                     onClick={() => openProject(project)}
                   >
-                    {/* Image — hidden when no image */}
-                    {project.image ? (
-                    <div className="relative h-56 overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          e.currentTarget.parentElement?.classList.add("hidden");
-                        }} loading="lazy" decoding="async" />
+                    {/* Image — fixed height for uniform card sizing */}
+                    <div className="relative h-56 overflow-hidden flex-shrink-0 bg-muted">
+                      {project.image ? (
+                        <img
+                          src={project.image}
+                          alt={project.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }} loading="lazy" decoding="async" />
+                      ) : null}
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                       
                       {/* RERA Badge */}
@@ -196,10 +198,9 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
                         </Badge>
                       )}
                     </div>
-                    ) : null}
 
-                    {/* Content */}
-                    <div className="p-5">
+                    {/* Content — flex column so button pins to bottom */}
+                    <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
                           <Building2 className="h-6 w-6 text-primary-foreground" />
@@ -212,7 +213,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
 
                       <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
                         <MapPin className="h-4 w-4 flex-shrink-0" />
-                        {project.locality}, {project.city}
+                        <span className="line-clamp-1">{project.locality}, {project.city}</span>
                       </div>
 
                       <div className="space-y-2 mb-4">
@@ -239,7 +240,7 @@ const NewProjects = ({ detectedCity }: NewProjectsProps) => {
 
                       <Button 
                         variant="outline" 
-                        className="w-full border-primary/50 hover:bg-primary/10"
+                        className="w-full border-primary/50 hover:bg-primary/10 mt-auto"
                         onClick={(e) => {
                           e.stopPropagation();
                           openProject(project);
