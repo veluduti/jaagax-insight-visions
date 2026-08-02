@@ -27,6 +27,10 @@ interface AgentCardProps {
     verified: boolean | null;
     avg_rating?: number | null;
     total_ratings?: number | null;
+    city?: string | null;
+    district?: string | null;
+    state?: string | null;
+
   };
   index: number;
 }
