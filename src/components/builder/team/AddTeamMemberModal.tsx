@@ -95,14 +95,14 @@ export const AddTeamMemberModal = ({ open, onOpenChange, builderProfileId, onAdd
     }
     setSaving(true);
     try {
-      // FIXED: Use auth.users to find user by email
-      const { data: userData, error: userErr } = await supabase
-        .from("auth.users")
-        .select("id, email")
-        .eq("email", email.trim().toLowerCase())
-        .maybeSingle();
+      // Look up the account via a secure server-side function (auth.users is not
+      // reachable from the client).
+      const { data: foundUserId, error: userErr } = await (supabase as any).rpc("find_user_id_by_email", {
+        _email: email.trim().toLowerCase(),
+      });
 
       if (userErr) throw userErr;
+      const userData = foundUserId ? { id: foundUserId as string } : null;
       if (!userData?.id) {
         toast({
           title: "User not found",
