@@ -186,6 +186,16 @@ export default function FinancialEnquiries() {
         </Tabs>
       </div>
 
+      {builderProfileId && user?.id && (
+        <CreateEnquiryModal
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          builderProfileId={builderProfileId}
+          userId={user.id}
+          onCreated={() => load(builderProfileId)}
+        />
+      )}
+
       {selected && (
         <EnquiryDetail
           enquiry={selected}
