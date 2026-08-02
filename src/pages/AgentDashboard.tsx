@@ -786,9 +786,16 @@ export default function AgentDashboard() {
     );
   }
 
-  const cities = Array.isArray(agentProfile.cities_served)
-    ? agentProfile.cities_served.join(", ")
-    : (agentProfile.cities_served as any) || "—";
+  const ap: any = agentProfile;
+  const servedList = Array.isArray(ap.cities_served)
+    ? ap.cities_served.filter(Boolean).join(", ")
+    : (ap.cities_served as any) || "";
+  const cities =
+    servedList ||
+    [ap.city, ap.district, ap.state].filter(Boolean).join(", ") ||
+    ap.office_address ||
+    "Location not set";
+
   const langs = Array.isArray(agentProfile.languages)
     ? agentProfile.languages.join(", ")
     : (agentProfile.languages as any) || "English";
