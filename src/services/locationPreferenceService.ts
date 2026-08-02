@@ -52,7 +52,13 @@ export const locationPreferenceService = {
   // ---- Add a preferred location ----
   async addPreferredLocation(builderProfileId: string, data: NewLocationInput): Promise<PreferredLocation> {
     try {
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+      if (!userId) throw new Error("Not authenticated");
+
       const payload = {
+        user_id: userId,
+        location_name: [data.locality, data.city].filter(Boolean).join(", ") || data.city,
         builder_profile_id: builderProfileId,
         city: data.city,
         locality: data.locality ?? null,

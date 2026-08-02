@@ -9946,6 +9946,7 @@ export type Database = {
         }[]
       }
       expire_featured_boosts: { Args: never; Returns: number }
+      find_user_id_by_email: { Args: { _email: string }; Returns: string }
       generate_unique_builder_slug: {
         Args: { _id: string; _name: string }
         Returns: string
