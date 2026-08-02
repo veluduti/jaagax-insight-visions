@@ -27,6 +27,10 @@ interface AgentCardProps {
     verified: boolean | null;
     avg_rating?: number | null;
     total_ratings?: number | null;
+    city?: string | null;
+    district?: string | null;
+    state?: string | null;
+
   };
   index: number;
 }
@@ -100,7 +104,12 @@ const AgentCard = ({ agent, index }: AgentCardProps) => {
         <div className="flex items-center gap-2 mb-4 text-sm">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground line-clamp-1">
-            {Array.isArray(agent.cities_served) ? agent.cities_served.join(", ") : (agent.cities_served || "N/A")}
+            {(Array.isArray(agent.cities_served)
+              ? agent.cities_served.filter(Boolean).join(", ")
+              : agent.cities_served || "") ||
+              [agent.city, agent.district, agent.state].filter(Boolean).join(", ") ||
+              "Location not set"}
+
           </span>
         </div>
 

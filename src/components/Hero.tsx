@@ -44,8 +44,8 @@ const Hero = ({
             .eq("verified", true),
           (supabase as any)
             .from("agents")
-            .select("id", { count: "exact", head: true })
-            .eq("verified", true),
+            .select("id", { count: "exact", head: true }),
+
         ]);
 
         if (cancelled) return;

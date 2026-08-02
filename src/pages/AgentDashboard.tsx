@@ -346,21 +346,42 @@ export default function AgentDashboard() {
       }
 
       if (!agentData) {
-        setAgentProfile({
-          id: authenticatedUser.id,
-          name: authenticatedUser.email?.split("@")[0] || "Agent",
-          email: authenticatedUser.email,
-          photo_url: null,
-          agency_name: null,
-          cities_served: null,
-          languages: null,
-          sales_count: 0,
+        // Auto-provision an agent profile from signup details so the new agent
+        // is immediately discoverable (agent count, Find My Agent, listings).
+        const meta: any = authenticatedUser.user_metadata || {};
+        const { data: profileRow } = await (supabase as any)
+          .from("profiles")
+          .select("city, state, district, country")
+          .eq("user_id", authenticatedUser.id)
+          .maybeSingle();
+
+        const seed = {
+          user_id: authenticatedUser.id,
+          name: meta.name || meta.full_name || authenticatedUser.email?.split("@")[0] || "Agent",
+          email: authenticatedUser.email ?? null,
+          phone: meta.phone || authenticatedUser.phone || null,
+          city: profileRow?.city || meta.city || null,
+          state: profileRow?.state || null,
+          district: profileRow?.district || null,
+          country: profileRow?.country || null,
+          cities_served: profileRow?.city || meta.city || null,
+          languages: "English",
           trust_score: 75,
+          sales_count: 0,
           verified: true,
-        });
+        };
+
+        const { data: created } = await (supabase as any)
+          .from("agents")
+          .insert(seed)
+          .select("*")
+          .maybeSingle();
+
+        setAgentProfile((created || { id: authenticatedUser.id, ...seed }) as AgentProfile);
         await fetchNotifications(authenticatedUser.id);
         return;
       }
+
 
       setAgentProfile(agentData as AgentProfile);
       await Promise.allSettled([
@@ -765,9 +786,16 @@ export default function AgentDashboard() {
     );
   }
 
-  const cities = Array.isArray(agentProfile.cities_served)
-    ? agentProfile.cities_served.join(", ")
-    : (agentProfile.cities_served as any) || "—";
+  const ap: any = agentProfile;
+  const servedList = Array.isArray(ap.cities_served)
+    ? ap.cities_served.filter(Boolean).join(", ")
+    : (ap.cities_served as any) || "";
+  const cities =
+    servedList ||
+    [ap.city, ap.district, ap.state].filter(Boolean).join(", ") ||
+    ap.office_address ||
+    "Location not set";
+
   const langs = Array.isArray(agentProfile.languages)
     ? agentProfile.languages.join(", ")
     : (agentProfile.languages as any) || "English";

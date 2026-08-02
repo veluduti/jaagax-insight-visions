@@ -2099,10 +2099,14 @@ export type Database = {
           advisor_notes: string | null
           amount_requested: number | null
           builder_profile_id: string | null
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
           contact_date: string | null
           created_at: string
           deactivated_reason: string | null
           documents: Json
+          employment_type: string | null
           enquiry_type: string | null
           follow_up_date: string | null
           id: string
@@ -2111,7 +2115,9 @@ export type Database = {
           loan_tenure_years: number | null
           loan_type: string
           monthly_emi: number | null
+          monthly_income: number | null
           notes: string | null
+          property_address: string | null
           property_id: string | null
           status: string
           updated_at: string
@@ -2124,10 +2130,14 @@ export type Database = {
           advisor_notes?: string | null
           amount_requested?: number | null
           builder_profile_id?: string | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
           contact_date?: string | null
           created_at?: string
           deactivated_reason?: string | null
           documents?: Json
+          employment_type?: string | null
           enquiry_type?: string | null
           follow_up_date?: string | null
           id?: string
@@ -2136,7 +2146,9 @@ export type Database = {
           loan_tenure_years?: number | null
           loan_type: string
           monthly_emi?: number | null
+          monthly_income?: number | null
           notes?: string | null
+          property_address?: string | null
           property_id?: string | null
           status?: string
           updated_at?: string
@@ -2149,10 +2161,14 @@ export type Database = {
           advisor_notes?: string | null
           amount_requested?: number | null
           builder_profile_id?: string | null
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
           contact_date?: string | null
           created_at?: string
           deactivated_reason?: string | null
           documents?: Json
+          employment_type?: string | null
           enquiry_type?: string | null
           follow_up_date?: string | null
           id?: string
@@ -2161,7 +2177,9 @@ export type Database = {
           loan_tenure_years?: number | null
           loan_type?: string
           monthly_emi?: number | null
+          monthly_income?: number | null
           notes?: string | null
+          property_address?: string | null
           property_id?: string | null
           status?: string
           updated_at?: string
