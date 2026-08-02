@@ -78,6 +78,20 @@ const empty: Form = {
   rera_id: "", rera_document_url: "", layout_plan_url: "", brochure_url: "", environmental_clearance_url: "",
 };
 
+// Defined at module scope so it is NOT remounted on every render
+// (a component defined inside the page caused inputs to lose focus while typing).
+const Section = ({ icon: Icon, title, desc, children }: any) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-lg">
+        <Icon className="h-5 w-5 text-primary" /> {title}
+      </CardTitle>
+      {desc && <CardDescription>{desc}</CardDescription>}
+    </CardHeader>
+    <CardContent className="space-y-4">{children}</CardContent>
+  </Card>
+);
+
 export default function AddProject() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
