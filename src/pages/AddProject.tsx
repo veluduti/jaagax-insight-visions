@@ -211,17 +211,8 @@ export default function AddProject() {
     }
   };
 
-  const Section = ({ icon: Icon, title, desc, children }: any) => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Icon className="h-5 w-5 text-primary" /> {title}
-        </CardTitle>
-        {desc && <CardDescription>{desc}</CardDescription>}
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
-  );
+
+
 
   return (
     <div className="min-h-screen bg-background">
