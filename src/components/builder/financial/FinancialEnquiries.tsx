@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { financialService, type FinancialEnquiry } from "@/services/financialService";
 import EnquiryDetail from "./EnquiryDetail";
+import CreateEnquiryModal from "./CreateEnquiryModal";
 import { Banknote, Eye, Loader2, Plus, Building2 } from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function FinancialEnquiries() {
   const [stats, setStats] = useState({ total: 0, new: 0, under_review: 0, approved: 0, rejected: 0 });
   const [activeTab, setActiveTab] = useState("all");
   const [selected, setSelected] = useState<FinancialEnquiry | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const load = async (bpId: string) => {
     setLoading(true);
@@ -106,7 +108,7 @@ export default function FinancialEnquiries() {
             <p className="text-muted-foreground">Manage loan enquiries, documents, EMI discussions and advisors.</p>
           </div>
           <Button
-            onClick={() => toast.info("Create Enquiry modal coming soon!")}
+            onClick={() => setCreateOpen(true)}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4 mr-2" /> Create New Enquiry
