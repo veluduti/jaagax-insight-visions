@@ -866,6 +866,7 @@ export type Database = {
           id: string
           languages: string | null
           localities_served: string | null
+          locality: string | null
           locality_id: string | null
           name: string
           office_address: string | null
@@ -901,6 +902,7 @@ export type Database = {
           id?: string
           languages?: string | null
           localities_served?: string | null
+          locality?: string | null
           locality_id?: string | null
           name: string
           office_address?: string | null
@@ -936,6 +938,7 @@ export type Database = {
           id?: string
           languages?: string | null
           localities_served?: string | null
+          locality?: string | null
           locality_id?: string | null
           name?: string
           office_address?: string | null
