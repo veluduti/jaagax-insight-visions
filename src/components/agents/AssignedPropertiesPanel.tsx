@@ -21,7 +21,8 @@ import AgentEditPropertyDialog from "@/components/agents/AgentEditPropertyDialog
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { AgentAssignmentActions } from "@/components/agent/AgentAssignmentActions";
 import { useHiddenIds } from "@/hooks/useHiddenIds";
-import { Trash2 } from "lucide-react";
+import { Trash2, IndianRupee } from "lucide-react";
+import AgentMarkSoldDialog from "@/components/agents/AgentMarkSoldDialog";
 
 interface AssignedTask {
   // task
@@ -78,6 +79,9 @@ interface AssignedTask {
   reschedule_reason?: string | null;
   reschedule_preferred_date?: string | null;
   reschedule_preferred_time?: string | null;
+  is_sold?: boolean | null;
+  sold_at?: string | null;
+  sale_type?: string | null;
 }
 
 interface Props {
@@ -94,7 +98,8 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
   const [scheduleTarget, setScheduleTarget] = useState<AssignedTask | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
-  const [filter, setFilter] = useState<"active" | "completed" | "all">("active");
+  const [filter, setFilter] = useState<"active" | "completed" | "sold" | "all">("active");
+  const [soldTarget, setSoldTarget] = useState<AssignedTask | null>(null);
   const { hide, isHidden } = useHiddenIds("assigned_tasks", agentId);
 
   // Submit-verification dialog state
@@ -115,7 +120,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
     setLoading(true);
     const { data: props } = await supabase
       .from("properties")
-      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time")
+      .select("id, title, city, locality, address, description, price, area_sqft, bedrooms, bathrooms, bhk, type, listing_type, listed_by, rera_id, rera_document_url, pincode, furnishing, property_age, completion_stage, balconies, floor_number, total_floors, building_area_sqft, total_parking, maintenance_charges, booking_amount, price_negotiable, amenities, images, video_urls, verified, verification_status, lifecycle_status, submitted_by, agent_notes, agent_data, field_verification, original_snapshot, visit_scheduled_date, visit_scheduled_time, visit_scheduled_notes, reschedule_reason, reschedule_preferred_date, reschedule_preferred_time, is_sold, sold_at, sale_type")
       .eq("assigned_agent_id", agentId)
       .order("created_at", { ascending: false });
 
@@ -417,7 +422,10 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
 
   const filtered = tasks.filter((t) => {
     if (isHidden(t.id)) return false;
-    return filter === "all" ? true : filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed";
+    if (filter === "all") return true;
+    if (filter === "sold") return !!t.is_sold;
+    if (t.is_sold) return false;
+    return filter === "completed" ? t.task_status === "completed" : t.task_status !== "completed";
   });
 
   return (
@@ -434,7 +442,7 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           </p>
         </div>
         <div className="flex gap-1">
-          {(["active", "completed", "all"] as const).map((f) => (
+          {(["active", "completed", "sold", "all"] as const).map((f) => (
             <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} className="h-7 text-xs capitalize" onClick={() => setFilter(f)}>
               {f}
             </Button>
@@ -470,7 +478,11 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                 >
                   {/* Status badge */}
                   <div className="flex items-center gap-2 mb-2">
-                    {isCompleted ? (
+                    {p.is_sold ? (
+                      <Badge className="bg-rose-600 text-white text-[10px]">
+                        SOLD{p.sale_type ? ` · ${p.sale_type === "agency" ? "Agency" : "Individual"}` : ""}
+                      </Badge>
+                    ) : isCompleted ? (
                       <Badge className="bg-emerald-500 text-white text-[10px]"><CheckCircle2 className="h-3 w-3 mr-1" />Completed</Badge>
                     ) : p.scheduled_visit_at ? (
                       <Badge className="bg-blue-500 text-white text-[10px]"><Clock className="h-3 w-3 mr-1" />Visit {new Date(p.scheduled_visit_at).toLocaleDateString()}</Badge>
@@ -634,6 +646,16 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
                           ? "Awaiting visit confirmation"
                           : "Edit Property & Submit Verification"}
                       </Button>
+                      {!p.is_sold && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-[11px] col-span-2 sm:col-span-3 border-rose-500/40 text-rose-600 hover:bg-rose-500/10"
+                          onClick={() => setSoldTarget(p)}
+                        >
+                          <IndianRupee className="h-3 w-3 mr-1" />Mark as Sold
+                        </Button>
+                      )}
                     </div>
                   )}
 
@@ -650,6 +672,17 @@ export default function AssignedPropertiesPanel({ agentId, agentUserId, agentNam
           </div>
         )}
       </CardContent>
+
+      {soldTarget && (
+        <AgentMarkSoldDialog
+          open={!!soldTarget}
+          onOpenChange={(o) => !o && setSoldTarget(null)}
+          propertyId={soldTarget.id}
+          propertyTitle={soldTarget.title}
+          currentPrice={soldTarget.price}
+          onDone={() => { setSoldTarget(null); load(); }}
+        />
+      )}
 
       {chatTarget && chatTarget.submitted_by && (
         <PropertyChat
