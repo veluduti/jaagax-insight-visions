@@ -122,21 +122,8 @@ export default function WalletBalance({ userId }: { userId: string }) {
               </Button>
             </div>
           </div>
-          /* {/* Balance Section */}
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-4xl font-bold tracking-tight text-foreground">₹{balance.toLocaleString("en-IN")}</p>
-              <p className="text-xs text-muted-foreground mt-1">Available for boosts, postings & premium</p>
-            </div>
-            <Button
-              onClick={() => setOpen(true)}
-              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition-all duration-300"
-              size="default"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add Money
-            </Button>
-          </div>{" "}
-          */
+          {/* Balance Section */}
+
           {/* Auto-recharge Section */}
           <div className="mt-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
             <div className="flex items-center justify-between">
