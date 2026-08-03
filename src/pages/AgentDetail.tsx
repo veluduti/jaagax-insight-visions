@@ -329,13 +329,32 @@ const AgentDetail = () => {
           </CardContent>
         </Card>
 
-        {/* 4. KYC Verification */}
-        <AgentKycPanel
-          userId={agent.user_id}
-          kyc={kyc}
-          canEdit={canEdit}
-          onChange={(k) => setKyc(k)}
-        />
+        {/* 4. KYC Verification — owner only; visitors see status only */}
+        {canEdit ? (
+          <AgentKycPanel
+            userId={agent.user_id}
+            kyc={kyc}
+            canEdit
+            onChange={(k) => setKyc(k)}
+          />
+        ) : (
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Verification</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {kycVerified ? (
+                <Badge className="gap-1 bg-emerald-600 hover:bg-emerald-600">
+                  <BadgeCheck className="h-3.5 w-3.5" /> KYC Verified
+                </Badge>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  This agent has not completed KYC verification yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       <Footer />
