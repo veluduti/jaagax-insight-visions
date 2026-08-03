@@ -287,7 +287,7 @@ export default function FinancialDashboard() {
               <StatCard icon={IndianRupee} label="Disbursed" value={`₹${(stats.disbursed / 100000).toFixed(1)}L`} />
               <StatCard icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
               <StatCard icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
-              <StatCard icon={Wallet} label="Wallet Balance" value={`₹${stats.wallet.toLocaleString()}`} />
+
               <StatCard
                 icon={Crown}
                 label="Subscription"
