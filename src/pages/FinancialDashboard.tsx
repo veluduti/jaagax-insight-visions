@@ -256,19 +256,13 @@ export default function FinancialDashboard() {
         {provider && (
           <>
             {/* Quick actions */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <QuickAction to="/dashboard/financial/leads" icon={Search} label="Leads" sub="Purchase & Manage" />
               <QuickAction
                 to="/dashboard/financial/applications"
                 icon={FileCheck2}
                 label="Applications"
                 sub="Process Loans"
-              />
-              <QuickAction
-                to="/dashboard/financial/wallet"
-                icon={CreditCard}
-                label="Wallet"
-                sub={`₹${stats.wallet.toLocaleString()}`}
               />
               <QuickAction
                 to="/dashboard/financial/promotions"
@@ -287,7 +281,6 @@ export default function FinancialDashboard() {
               <StatCard icon={IndianRupee} label="Disbursed" value={`₹${(stats.disbursed / 100000).toFixed(1)}L`} />
               <StatCard icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
               <StatCard icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
-
               <StatCard
                 icon={Crown}
                 label="Subscription"
