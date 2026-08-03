@@ -21,7 +21,6 @@ import {
   FileText,
   AlertCircle,
   CalendarCheck,
-  Wallet,
   Users,
   ClipboardList,
   Bell,
@@ -36,8 +35,9 @@ import Navigation from "@/components/Navigation";
 import { motion } from "framer-motion";
 import { LazyMount, ChartSkeleton, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 import { Sparkles } from "lucide-react";
-import { WalletDashboard } from "@/features/buyer/wallet";
-import { useWallet, formatINR } from "@/contexts/WalletContext";
+// Remove wallet imports
+// import { WalletDashboard } from "@/features/buyer/wallet";
+// import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
 const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
@@ -60,11 +60,7 @@ function formatUserPrice(n: number | null | undefined): string {
 // Preserve the unit the user originally entered (cents, acres, sq.ft, etc.)
 function getAreaUnit(p: any): string {
   return (
-    p?.area_unit ||
-    p?.final_data?.area_unit ||
-    p?.agent_data?.area_unit ||
-    p?.original_snapshot?.area_unit ||
-    "sq.ft"
+    p?.area_unit || p?.final_data?.area_unit || p?.agent_data?.area_unit || p?.original_snapshot?.area_unit || "sq.ft"
   );
 }
 const RERAUploadModal = lazy(() => import("@/components/builder/RERAUploadModal"));
@@ -112,11 +108,13 @@ export default function BuilderDashboard() {
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [activeTab, setActiveTab] = useState("properties");
-  const { balance: liveWalletBalance } = useWallet();
+  // Remove wallet balance
+  // const { balance: liveWalletBalance } = useWallet();
   const [reraModalOpen, setReraModalOpen] = useState(false);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [samplePreviewOpen, setSamplePreviewOpen] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
+  // Remove walletBalance state
+  // const [walletBalance, setWalletBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -139,7 +137,8 @@ export default function BuilderDashboard() {
     fetchProperties();
     fetchPerformanceData();
     fetchPendingVisitsCount();
-    fetchWalletBalance();
+    // Remove wallet balance fetch
+    // fetchWalletBalance();
     fetchUnreadCount();
   }, []);
 
@@ -193,22 +192,23 @@ export default function BuilderDashboard() {
     }
   };
 
-  const fetchWalletBalance = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-
-    try {
-      const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
-
-      if (wallet) {
-        setWalletBalance(wallet.balance);
-      }
-    } catch (error) {
-      console.error("Error fetching wallet balance:", error);
-    }
-  };
+  // Remove fetchWalletBalance function
+  // const fetchWalletBalance = async () => {
+  //   const {
+  //     data: { user },
+  //   } = await supabase.auth.getUser();
+  //   if (!user) return;
+  //
+  //   try {
+  //     const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
+  //
+  //     if (wallet) {
+  //       setWalletBalance(wallet.balance);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching wallet balance:", error);
+  //   }
+  // };
 
   const fetchUnreadCount = async () => {
     const {
@@ -353,10 +353,7 @@ export default function BuilderDashboard() {
             <p className="text-muted-foreground mt-1">Manage your projects and properties</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setActiveTab("wallet")} className="gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
-              <span className="font-semibold">{formatINR(liveWalletBalance)}</span>
-            </Button>
+            {/* Remove wallet button */}
             <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
               <Sparkles className="h-4 w-4 mr-2" />
               View Sample Listings
@@ -480,7 +477,8 @@ export default function BuilderDashboard() {
             </Card>
           </motion.div>
 
-          {/* Wallet */}
+          {/* Remove Wallet quick action card */}
+          {/* 
           <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-emerald-500/40 group h-full"
@@ -497,6 +495,7 @@ export default function BuilderDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+          */}
         </div>
 
         {/* Quick Actions - Row 2 */}
@@ -671,14 +670,14 @@ export default function BuilderDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
             <TabsTrigger value="add-property">Add Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
+            {/* Remove Wallet tab trigger */}
           </TabsList>
 
           {/* My Profile Tab */}
@@ -774,7 +773,9 @@ export default function BuilderDashboard() {
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground">Area</p>
-                                <p className="font-semibold">{property.area_sqft} {getAreaUnit(property)}</p>
+                                <p className="font-semibold">
+                                  {property.area_sqft} {getAreaUnit(property)}
+                                </p>
                               </div>
                             </div>
                           </CardContent>
@@ -1029,9 +1030,12 @@ export default function BuilderDashboard() {
             </Card>
           </TabsContent>
 
+          {/* Remove Wallet TabsContent */}
+          {/* 
           <TabsContent value="wallet">
             <WalletDashboard />
           </TabsContent>
+          */}
         </Tabs>
 
         {/* Modals */}
@@ -1063,8 +1067,4 @@ export default function BuilderDashboard() {
       </div>
     </div>
   );
-};
-
-
-
-
+}
