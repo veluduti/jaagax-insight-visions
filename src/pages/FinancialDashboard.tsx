@@ -259,13 +259,7 @@ export default function FinancialDashboard() {
                 icon={FileCheck2}
                 label="Applications"
                 sub="Process Loans"
-              />
-              <QuickAction
-                to="/dashboard/financial/wallet"
-                icon={CreditCard}
-                label="Wallet"
-                sub={`₹${stats.wallet.toLocaleString()}`}
-              />
+
               <QuickAction
                 to="/dashboard/financial/promotions"
                 icon={Megaphone}
