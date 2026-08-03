@@ -48,7 +48,13 @@ const SERVICES = [
   "Investment Advisory",
   "Credit Score",
 ];
-const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--secondary))", "hsl(var(--muted))", "hsl(var(--destructive))"];
+const PIE_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--accent))",
+  "hsl(var(--secondary))",
+  "hsl(var(--muted))",
+  "hsl(var(--destructive))",
+];
 
 const monthlyTrend = [
   { m: "Jan", apps: 12 },
@@ -239,9 +245,7 @@ export default function FinancialDashboard() {
             <CardContent className="p-8 text-center">
               <Landmark className="h-12 w-12 text-primary mx-auto mb-3" />
               <h2 className="text-2xl font-bold mb-2">Set up your Financial Provider profile</h2>
-              <p className="text-muted-foreground mb-4">
-                Create your profile to start receiving loan enquiries.
-              </p>
+              <p className="text-muted-foreground mb-4">Create your profile to start receiving loan enquiries.</p>
               <Button onClick={handleRegister}>
                 <FilePlus2 className="h-4 w-4 mr-2" /> Create Provider Profile
               </Button>
@@ -259,7 +263,13 @@ export default function FinancialDashboard() {
                 icon={FileCheck2}
                 label="Applications"
                 sub="Process Loans"
-
+              />
+              <QuickAction
+                to="/dashboard/financial/wallet"
+                icon={CreditCard}
+                label="Wallet"
+                sub={`₹${stats.wallet.toLocaleString()}`}
+              />
               <QuickAction
                 to="/dashboard/financial/promotions"
                 icon={Megaphone}
@@ -274,11 +284,7 @@ export default function FinancialDashboard() {
               <StatCard icon={BellRing} label="New Enquiries" value={stats.enquiries} hint="this month" />
               <StatCard icon={FileCheck2} label="Active Applications" value={stats.active} />
               <StatCard icon={ShieldCheck} label="Approved Loans" value={stats.approved} />
-              <StatCard
-                icon={IndianRupee}
-                label="Disbursed"
-                value={`₹${(stats.disbursed / 100000).toFixed(1)}L`}
-              />
+              <StatCard icon={IndianRupee} label="Disbursed" value={`₹${(stats.disbursed / 100000).toFixed(1)}L`} />
               <StatCard icon={TrendingUp} label="Conversion Rate" value={`${stats.conversion}%`} />
               <StatCard icon={Sparkles} label="Revenue" value={`₹${(stats.revenue / 1000).toFixed(1)}K`} />
               <StatCard icon={Wallet} label="Wallet Balance" value={`₹${stats.wallet.toLocaleString()}`} />
