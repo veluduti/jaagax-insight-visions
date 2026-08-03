@@ -29,10 +29,10 @@ import {
   Hotel,
   ShieldCheck,
   PiggyBank,
-  Wallet as WalletIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useWallet, formatINR } from "@/contexts/WalletContext";
+// Remove WalletContext import
+// import { useWallet, formatINR } from "@/contexts/WalletContext";
 const WalletDashboard = lazy(() =>
   import("@/features/buyer/wallet/WalletDashboard").then((m) => ({ default: m.WalletDashboard })),
 );
@@ -73,7 +73,8 @@ interface Property {
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { balance: walletBalance } = useWallet();
+  // Remove wallet balance
+  // const { balance: walletBalance } = useWallet();
   const [user, setUser] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -216,10 +217,7 @@ const BuyerDashboard = () => {
             <p className="text-muted-foreground mt-1">Find your dream property</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSearchParams({ tab: "wallet" })} className="gap-2">
-              <WalletIcon className="h-4 w-4 text-primary" />
-              <span className="font-semibold">{formatINR(walletBalance)}</span>
-            </Button>
+            {/* Remove wallet button */}
             <Button onClick={handleSignOut} variant="outline">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
@@ -357,17 +355,7 @@ const BuyerDashboard = () => {
             </Card>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "wallet" })}
-            >
-              <CardContent className="p-6 text-center">
-                <WalletIcon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">Wallet</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
+          {/* Remove Wallet quick action card */}
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Card
@@ -427,10 +415,7 @@ const BuyerDashboard = () => {
                   <Bell className="h-4 w-4 mr-2" />
                   Alerts
                 </TabsTrigger>
-                <TabsTrigger value="wallet">
-                  <WalletIcon className="h-4 w-4 mr-2" />
-                  Wallet
-                </TabsTrigger>
+                {/* Remove Wallet tab trigger */}
                 <TabsTrigger value="calculator">
                   <Calculator className="h-4 w-4 mr-2" />
                   EMI
@@ -665,12 +650,7 @@ const BuyerDashboard = () => {
             </Suspense>
           </TabsContent>
 
-          {/* Wallet */}
-          <TabsContent value="wallet">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <WalletDashboard />
-            </Suspense>
-          </TabsContent>
+          {/* Remove Wallet TabsContent */}
 
           {/* My Postings */}
           <TabsContent value="postings">
