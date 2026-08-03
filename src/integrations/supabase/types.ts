@@ -7764,8 +7764,12 @@ export type Database = {
           reschedule_requested_at: string | null
           responsible_district_admin_id: string | null
           retail_centres: number | null
+          sale_type: string | null
           slug: string | null
           sold_at: string | null
+          sold_by_agent_id: string | null
+          sold_by_user_id: string | null
+          sold_price: number | null
           state: string | null
           state_id: string | null
           submitted_by: string | null
@@ -7875,8 +7879,12 @@ export type Database = {
           reschedule_requested_at?: string | null
           responsible_district_admin_id?: string | null
           retail_centres?: number | null
+          sale_type?: string | null
           slug?: string | null
           sold_at?: string | null
+          sold_by_agent_id?: string | null
+          sold_by_user_id?: string | null
+          sold_price?: number | null
           state?: string | null
           state_id?: string | null
           submitted_by?: string | null
@@ -7986,8 +7994,12 @@ export type Database = {
           reschedule_requested_at?: string | null
           responsible_district_admin_id?: string | null
           retail_centres?: number | null
+          sale_type?: string | null
           slug?: string | null
           sold_at?: string | null
+          sold_by_agent_id?: string | null
+          sold_by_user_id?: string | null
+          sold_price?: number | null
           state?: string | null
           state_id?: string | null
           submitted_by?: string | null
@@ -8043,6 +8055,13 @@ export type Database = {
             columns: ["locality_id"]
             isOneToOne: false
             referencedRelation: "loc_localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_sold_by_agent_id_fkey"
+            columns: ["sold_by_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
           {
@@ -10065,7 +10084,16 @@ export type Database = {
         Args: { _days?: number; _payment_ref?: string; _property_id: string }
         Returns: undefined
       }
-      mark_property_sold: { Args: { _property_id: string }; Returns: undefined }
+      mark_property_sold:
+        | { Args: { _property_id: string }; Returns: undefined }
+        | {
+            Args: {
+              _property_id: string
+              _sale_type?: string
+              _sold_price?: number
+            }
+            Returns: undefined
+          }
       move_to_dlq: {
         Args: {
           dlq_name: string
