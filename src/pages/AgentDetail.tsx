@@ -116,16 +116,14 @@ const Stat = ({
   icon: Icon,
   label,
   value,
-  tone = "primary",
 }: {
   icon: any;
   label: string;
   value: string | number;
-  tone?: string;
 }) => (
   <div className="rounded-xl border bg-card p-4">
     <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-      <Icon className={`h-4 w-4 text-${tone}`} />
+      <Icon className="h-4 w-4 text-primary" />
     </div>
     <p className="text-xl font-bold leading-none">{value}</p>
     <p className="mt-1 text-xs text-muted-foreground">{label}</p>
