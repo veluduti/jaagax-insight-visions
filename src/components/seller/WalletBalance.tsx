@@ -122,8 +122,7 @@ export default function WalletBalance({ userId }: { userId: string }) {
               </Button>
             </div>
           </div>
-
-          {/* Balance Section */}
+          /* {/* Balance Section */}
           <div className="flex items-end justify-between">
             <div>
               <p className="text-4xl font-bold tracking-tight text-foreground">₹{balance.toLocaleString("en-IN")}</p>
@@ -136,9 +135,8 @@ export default function WalletBalance({ userId }: { userId: string }) {
             >
               <Plus className="h-4 w-4 mr-1" /> Add Money
             </Button>
-          </div>
-
-
+          </div>{" "}
+          */
           {/* Auto-recharge Section */}
           <div className="mt-2 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
             <div className="flex items-center justify-between">

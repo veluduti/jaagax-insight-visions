@@ -1106,8 +1106,6 @@ export default function SellerDashboard() {
         {/* Seller Hub: AI, Activity, Visits, Referral */}
         {user?.id && (
           <>
-
-
             {/* Hotel Bookings */}
             <HotelBookings userId={user.id} />
 
