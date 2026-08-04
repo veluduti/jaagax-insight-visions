@@ -581,15 +581,17 @@ const App = () => (
 
                   {/* Role-based Dashboards */}
                   <Route
-                    path="/dashboard/buyer"
+                    path="/dashboard/customer"
                     element={
-                      <ProtectedRoute allowedRole="buyer">
+                      <ProtectedRoute allowedRole="customer">
                         <BuyerOnboardingGuard>
-                          <BuyerDashboard />
+                          <CustomerDashboard />
                         </BuyerOnboardingGuard>
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/dashboard/buyer" element={<Navigate to="/dashboard/customer?view=buying" replace />} />
+
                   <Route
                     path="/dashboard/agent"
                     element={
