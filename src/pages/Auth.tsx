@@ -106,6 +106,28 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn, signUp, user, role, loading: authLoading, redirectToDashboard } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if ((result as any)?.error) {
+        toast.error((result as any).error.message || "Google sign-in failed");
+        return;
+      }
+      if ((result as any)?.redirected) return;
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast.error(e?.message || "Google sign-in failed");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+
 
   const isPasswordReset = searchParams.get("reset") === "true";
   const profileRoles: Array<{
