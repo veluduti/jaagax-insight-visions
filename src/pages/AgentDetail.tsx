@@ -167,7 +167,9 @@ const AgentDetail = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<Partial<Agent> & { specializations_text?: string }>({});
+  const [form, setForm] = useState<Partial<Agent>>({});
+  const [projects, setProjects] = useState<AgentProjectExperience[]>([]);
+  const [projectDrafts, setProjectDrafts] = useState<ProjectDraft[]>([emptyDraft()]);
   const photoInput = useRef<HTMLInputElement | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
 
