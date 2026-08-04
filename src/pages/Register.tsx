@@ -208,7 +208,7 @@ export default function Register() {
       const { data, error } = await supabase.functions.invoke("register-otp", {
         body: { action: "verify", provider, phone: otpPhone, otp },
       });
-      const errMsg = (data as any)?.error || error?.message;
+      const errMsg = await readFnError(data, error);
       if (errMsg) {
         toast.error(errMsg);
         return;
