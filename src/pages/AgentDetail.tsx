@@ -45,6 +45,16 @@ import { toast } from "sonner";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 import AgentKycPanel, { AgentKyc } from "@/components/agents/AgentKycPanel";
+import ProjectExperienceEditor from "@/components/agents/ProjectExperienceEditor";
+import ProjectExperienceCards from "@/components/agents/ProjectExperienceCards";
+import {
+  emptyDraft,
+  fetchProjectExperience,
+  saveProjectExperience,
+  toDrafts,
+  type AgentProjectExperience,
+  type ProjectDraft,
+} from "@/components/agents/projectExperience";
 
 interface Agent {
   id: string;
@@ -157,7 +167,9 @@ const AgentDetail = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<Partial<Agent> & { specializations_text?: string }>({});
+  const [form, setForm] = useState<Partial<Agent>>({});
+  const [projects, setProjects] = useState<AgentProjectExperience[]>([]);
+  const [projectDrafts, setProjectDrafts] = useState<ProjectDraft[]>([emptyDraft()]);
   const photoInput = useRef<HTMLInputElement | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
 
@@ -182,7 +194,14 @@ const AgentDetail = () => {
         return;
       }
       setAgent(data as Agent);
-      setForm({ ...(data as Agent), specializations_text: (data.specializations || []).join(", ") });
+      setForm({ ...(data as Agent) });
+      try {
+        const rows = await fetchProjectExperience(data.id);
+        setProjects(rows);
+        setProjectDrafts(rows.length ? toDrafts(rows) : [emptyDraft()]);
+      } catch {
+        /* non-blocking */
+      }
 
       const [{ data: props }, { data: revs }, { data: bdgs }, visits] = await Promise.all([
         sb
@@ -264,10 +283,6 @@ const AgentDetail = () => {
     if (!(form.phone || "").trim()) return toast.error("Phone number is required");
     setSaving(true);
     try {
-      const specializations = (form.specializations_text || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
       const expRaw = form.experience_years as any;
       const exp = expRaw === "" || expRaw == null ? null : Number(expRaw);
 
@@ -287,7 +302,6 @@ const AgentDetail = () => {
         city: form.city?.trim() || null,
         cities_served: form.cities_served?.trim() || null,
         localities_served: form.localities_served?.trim() || null,
-        specializations: specializations.length ? specializations : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -300,8 +314,16 @@ const AgentDetail = () => {
       if (error) throw error;
       if (!data) throw new Error("You don't have permission to edit this profile.");
 
+      const rows = await saveProjectExperience(
+        agent.id,
+        projectDrafts,
+        projects.map((p) => p.id),
+      );
+      setProjects(rows);
+      setProjectDrafts(rows.length ? toDrafts(rows) : [emptyDraft()]);
+
       setAgent(data as Agent);
-      setForm({ ...(data as Agent), specializations_text: (data.specializations || []).join(", ") });
+      setForm({ ...(data as Agent) });
       setEditOpen(false);
       toast.success("Profile updated");
     } catch (e: any) {
@@ -364,7 +386,7 @@ const AgentDetail = () => {
     .filter(Boolean)
     .filter((v, i, arr) => arr.indexOf(v) === i);
 
-  const specializations = agent.specializations || [];
+  
   const shownReviews = showAllReviews ? reviews : reviews.slice(0, 3);
   const shownListings = showAllListings ? activeProperties : activeProperties.slice(0, 3);
   const shownSold = showAllSold ? soldProperties : soldProperties.slice(0, 3);
@@ -538,23 +560,8 @@ const AgentDetail = () => {
           </CardContent>
         </Card>
 
-        {/* 5. I Specialize In */}
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">I Specialize In</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {specializations.length ? (
-              specializations.map((s) => (
-                <Badge key={s} variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                  {s}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No specializations added yet.</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* 5. Project Experience */}
+        <ProjectExperienceCards projects={projects} />
 
         {/* 6. Areas I Serve */}
         <Card className="rounded-2xl shadow-sm">
@@ -801,14 +808,8 @@ const AgentDetail = () => {
               </div>
             ))}
 
-            <div className="space-y-1.5">
-              <Label>I Specialize In (comma separated)</Label>
-              <Input
-                placeholder="Apartments, Plots, Commercial"
-                value={form.specializations_text ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, specializations_text: e.target.value }))}
-              />
-            </div>
+            <ProjectExperienceEditor value={projectDrafts} onChange={setProjectDrafts} />
+
 
             <div className="space-y-1.5">
               <Label>Date of Birth</Label>

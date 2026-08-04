@@ -445,6 +445,50 @@ export type Database = {
           },
         ]
       }
+      agent_project_experience: {
+        Row: {
+          agent_id: string
+          created_at: string
+          experience_years: number
+          id: string
+          project_location: string | null
+          project_name: string
+          project_type: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          experience_years?: number
+          id?: string
+          project_location?: string | null
+          project_name: string
+          project_type: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          experience_years?: number
+          id?: string
+          project_location?: string | null
+          project_name?: string
+          project_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_project_experience_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_promotions: {
         Row: {
           agent_id: string | null
