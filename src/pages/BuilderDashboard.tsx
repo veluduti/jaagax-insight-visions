@@ -586,9 +586,10 @@ export default function BuilderDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+        </div>
 
-         
         {/* Main Content Tabs */}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
