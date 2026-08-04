@@ -34,7 +34,7 @@ import jaagaxLogo from "@/assets/jaagax-logo.png";
 const roleConfig = {
   buyer: {
     icon: Home,
-    title: "Buyer",
+    title: "Customer",
     description: "Browse & book properties",
     color: "from-blue-500/20 to-cyan-500/20",
     borderColor: "border-blue-500/50",
@@ -113,7 +113,7 @@ export default function Auth() {
     label: string;
     desc: string;
   }> = [
-    { key: "buyer", label: "Buyer", desc: "Browse & book" },
+    { key: "buyer", label: "Customer", desc: "Browse & book" },
     { key: "seller", label: "Seller", desc: "Sell property" },
     { key: "agent", label: "Agent", desc: "List & earn" },
     { key: "builder", label: "Builder", desc: "Showcase projects" },

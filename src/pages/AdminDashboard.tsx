@@ -213,7 +213,7 @@ const UserTable = ({ users, loading, onView, onDelete }: any) => {
       admin: { color: "bg-purple-500", label: "Admin" },
       agent: { color: "bg-blue-500", label: "Agent" },
       builder: { color: "bg-orange-500", label: "Builder" },
-      buyer: { color: "bg-green-500", label: "Buyer" },
+      buyer: { color: "bg-green-500", label: "Customer" },
       seller: { color: "bg-pink-500", label: "Seller" },
     };
     const v = variants[role?.toLowerCase()] || { color: "bg-gray-500", label: role || "User" };

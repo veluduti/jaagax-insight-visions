@@ -27,7 +27,7 @@ interface RoleMeta {
 
 const roleMeta: Record<ProfileType, RoleMeta> = {
   buyer: {
-    icon: Home, title: "Buyer", subtitle: "Discover dream homes & schedule visits",
+    icon: Home, title: "Customer", subtitle: "Discover dream homes & schedule visits",
     perks: ["AI property matches", "Site-visit booking", "Saved searches"],
     gradient: "from-sky-500/30 via-cyan-500/15 to-transparent",
     iconBg: "bg-gradient-to-br from-sky-500/30 to-cyan-500/20",

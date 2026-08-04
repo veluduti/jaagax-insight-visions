@@ -216,7 +216,7 @@ const BuyerDashboard = () => {
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Buyer"}!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Customer"}!</h1>
             <p className="text-muted-foreground mt-1">Find your dream property</p>
           </div>
           <div className="flex items-center gap-2">
