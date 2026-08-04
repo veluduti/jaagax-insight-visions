@@ -67,6 +67,7 @@ const EventDetail = lazy(() => import("./pages/EventDetail"));
 const Map = lazy(() => import("./pages/Map"));
 const BuyerDashboard = lazy(() => import("./pages/BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
+const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard"));
 const SellerAnalytics = lazy(() => import("./pages/SellerAnalytics"));
 const SellProperty = lazy(() => import("./pages/SellProperty"));
 const BuilderDashboard = lazy(() => import("./pages/BuilderDashboard"));
