@@ -71,7 +71,7 @@ interface Property {
   trust_score: number | null;
 }
 
-const BuyerDashboard = () => {
+const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Non-blocking live location capture on dashboard entry
@@ -209,27 +209,29 @@ const BuyerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <Navigation />
+    <div className={embedded ? "" : "min-h-screen bg-gradient-to-br from-background via-background to-primary/5"}>
+      {!embedded && <Navigation />}
 
       {/* Header */}
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Customer"}!</h1>
-            <p className="text-muted-foreground mt-1">Find your dream property</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Remove wallet button */}
-            <Button onClick={handleSignOut} variant="outline">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+      {!embedded && (
+        <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user?.name || "Customer"}!</h1>
+              <p className="text-muted-foreground mt-1">Find your dream property</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleSignOut} variant="outline">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-8">
+      <div className={embedded ? "space-y-8" : "container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-8"}>
+
         {/* Quick Actions - Row 1 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

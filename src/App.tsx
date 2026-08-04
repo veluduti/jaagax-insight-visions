@@ -65,8 +65,7 @@ const EventsNew = lazy(() => import("./pages/EventsNew"));
 const EventCreate = lazy(() => import("./pages/EventCreate"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
 const Map = lazy(() => import("./pages/Map"));
-const BuyerDashboard = lazy(() => import("./pages/BuyerDashboard"));
-const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
+const CustomerDashboard = lazy(() => import("./pages/CustomerDashboard"));
 const SellerAnalytics = lazy(() => import("./pages/SellerAnalytics"));
 const SellProperty = lazy(() => import("./pages/SellProperty"));
 const BuilderDashboard = lazy(() => import("./pages/BuilderDashboard"));
@@ -580,15 +579,17 @@ const App = () => (
 
                   {/* Role-based Dashboards */}
                   <Route
-                    path="/dashboard/buyer"
+                    path="/dashboard/customer"
                     element={
-                      <ProtectedRoute allowedRole="buyer">
+                      <ProtectedRoute allowedRole="customer">
                         <BuyerOnboardingGuard>
-                          <BuyerDashboard />
+                          <CustomerDashboard />
                         </BuyerOnboardingGuard>
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/dashboard/buyer" element={<Navigate to="/dashboard/customer?view=buying" replace />} />
+
                   <Route
                     path="/dashboard/agent"
                     element={
@@ -631,12 +632,9 @@ const App = () => (
                   />
                   <Route
                     path="/dashboard/seller"
-                    element={
-                      <ProtectedRoute allowedRole="seller">
-                        <SellerDashboard />
-                      </ProtectedRoute>
-                    }
+                    element={<Navigate to="/dashboard/customer?view=selling" replace />}
                   />
+
                   <Route
                     path="/dashboard/seller/analytics"
                     element={
