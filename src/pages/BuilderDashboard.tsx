@@ -500,22 +500,6 @@ export default function BuilderDashboard() {
 
         {/* Quick Actions - Row 2 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {/* Team */}
-          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-purple-500/40 group h-full"
-              onClick={() => navigate("/builder/team")}
-            >
-              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-                  <Users className="h-6 w-6 text-purple-500" />
-                </div>
-                <h3 className="font-semibold text-sm">Team</h3>
-                <p className="text-xs text-muted-foreground">Manage your team</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
           {/* Notifications */}
           <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
