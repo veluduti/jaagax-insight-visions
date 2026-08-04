@@ -302,7 +302,6 @@ const AgentDetail = () => {
         city: form.city?.trim() || null,
         cities_served: form.cities_served?.trim() || null,
         localities_served: form.localities_served?.trim() || null,
-        specializations: specializations.length ? specializations : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -315,8 +314,16 @@ const AgentDetail = () => {
       if (error) throw error;
       if (!data) throw new Error("You don't have permission to edit this profile.");
 
+      const rows = await saveProjectExperience(
+        agent.id,
+        projectDrafts,
+        projects.map((p) => p.id),
+      );
+      setProjects(rows);
+      setProjectDrafts(rows.length ? toDrafts(rows) : [emptyDraft()]);
+
       setAgent(data as Agent);
-      setForm({ ...(data as Agent), specializations_text: (data.specializations || []).join(", ") });
+      setForm({ ...(data as Agent) });
       setEditOpen(false);
       toast.success("Profile updated");
     } catch (e: any) {
