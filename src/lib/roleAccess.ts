@@ -13,9 +13,20 @@ export type FeatureKey =
 
 export type AccessValue = boolean | "optional";
 
-export type AccessRole = "buyer" | "seller" | "agent" | "builder";
+export type AccessRole = "customer" | "buyer" | "seller" | "agent" | "builder";
 
 export const roleAccess: Record<AccessRole, Record<FeatureKey, AccessValue>> = {
+  // Unified customer = union of every buyer + seller capability
+  customer: {
+    buyRent: true,
+    newProjects: true,
+    sellProperty: true,
+    searchFilters: true,
+    transactions: true,
+    agents: true,
+    communities: true,
+    marketIndex: true,
+  },
   buyer: {
     buyRent: true,
     newProjects: true,
@@ -74,14 +85,14 @@ export const optionalFlags: Record<FeatureKey, boolean> = {
  * Normalize an auth role to an AccessRole. Defaults to "buyer".
  */
 export const normalizeAccessRole = (role?: string | null): AccessRole => {
-  if (!role) return "buyer";
-  if (role === "customer" || role === "buyer") return "buyer";
-  if (role === "seller") return "seller";
+  if (!role) return "customer";
+  // Buyer & seller are merged into the single Customer experience
+  if (role === "customer" || role === "buyer" || role === "seller") return "customer";
   if (role === "agent") return "agent";
   if (role === "builder") return "builder";
   // admin, hotel_manager, etc → fall back to most permissive
   if (role === "admin") return "agent";
-  return "buyer";
+  return "customer";
 };
 
 /**
