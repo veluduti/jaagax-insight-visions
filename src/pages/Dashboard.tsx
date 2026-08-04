@@ -17,10 +17,8 @@ const Dashboard = () => {
         switch (role) {
           case "buyer":
           case "customer":
-            navigate("/dashboard/buyer");
-            break;
           case "seller":
-            navigate("/dashboard/seller");
+            navigate("/dashboard/customer");
             break;
           case "agent":
             navigate("/dashboard/agent");
