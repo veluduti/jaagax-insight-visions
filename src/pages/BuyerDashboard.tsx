@@ -71,7 +71,7 @@ interface Property {
   trust_score: number | null;
 }
 
-const BuyerDashboard = () => {
+const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // Non-blocking live location capture on dashboard entry
