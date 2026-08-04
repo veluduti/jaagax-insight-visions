@@ -73,6 +73,8 @@ interface Property {
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // Non-blocking live location capture on dashboard entry
+  useDashboardLocationCapture(true);
   // Remove wallet balance
   // const { balance: walletBalance } = useWallet();
   const [user, setUser] = useState<any>(null);
