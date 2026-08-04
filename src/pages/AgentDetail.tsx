@@ -816,14 +816,8 @@ const AgentDetail = () => {
               </div>
             ))}
 
-            <div className="space-y-1.5">
-              <Label>I Specialize In (comma separated)</Label>
-              <Input
-                placeholder="Apartments, Plots, Commercial"
-                value={form.specializations_text ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, specializations_text: e.target.value }))}
-              />
-            </div>
+            <ProjectExperienceEditor value={projectDrafts} onChange={setProjectDrafts} />
+
 
             <div className="space-y-1.5">
               <Label>Date of Birth</Label>
