@@ -291,7 +291,22 @@ export default function Register() {
                   </p>
                 </div>
 
+                {step === "google-details" && (
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <UserCircle className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-foreground">{fullName || "Google account"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      {email}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Provided by Google</p>
+                  </div>
+                )}
+
                 {step === "email-form" && (
+
                   <>
                     <div>
                       <Label htmlFor="fullName">Full Name</Label>
