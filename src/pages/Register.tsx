@@ -124,6 +124,22 @@ export default function Register() {
     return raw.startsWith("+") ? raw.replace(/\s/g, "") : `${dial}${raw.replace(/\D/g, "")}`;
   };
 
+  /** Edge functions return JSON errors with non-2xx codes; supabase-js hides the body in error.context. */
+  const readFnError = async (data: any, error: any): Promise<string | null> => {
+    if (data?.error) return String(data.error);
+    if (!error) return null;
+    try {
+      const res = (error as any)?.context;
+      if (res && typeof res.json === "function") {
+        const body = await res.clone().json();
+        if (body?.error) return String(body.error);
+      }
+    } catch {
+      /* fall through to generic message */
+    }
+    return error?.message || "Something went wrong. Please try again.";
+  };
+
   const sendOtp = async (mode: "email" | "google", action: "send" | "resend" = "send") => {
     if (action === "send" && !validate(mode)) return;
     setLoading(true);
@@ -139,11 +155,17 @@ export default function Register() {
           password: mode === "email" ? password : undefined,
         },
       });
-      const errMsg = (data as any)?.error || error?.message;
+      const errMsg = await readFnError(data, error);
       if (errMsg) {
         toast.error(errMsg);
+        if (/mobile number is already registered/i.test(errMsg)) {
+          setErrors((p) => ({ ...p, phone: "This mobile number is already registered." }));
+        } else if (/email is already registered/i.test(errMsg)) {
+          setErrors((p) => ({ ...p, email: "This email is already registered." }));
+        }
         return;
       }
+
       setOtpPhone((data as any)?.phone || fullPhone());
       setResendIn(30);
       setStep("otp");
@@ -186,7 +208,7 @@ export default function Register() {
       const { data, error } = await supabase.functions.invoke("register-otp", {
         body: { action: "verify", provider, phone: otpPhone, otp },
       });
-      const errMsg = (data as any)?.error || error?.message;
+      const errMsg = await readFnError(data, error);
       if (errMsg) {
         toast.error(errMsg);
         return;
