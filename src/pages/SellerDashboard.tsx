@@ -143,7 +143,7 @@ const getTaskPriority = (task: any) => {
   return hasSchedule + statusWeight + updatedWeight;
 };
 
-export default function SellerDashboard() {
+export default function SellerDashboard({ embedded = false }: { embedded?: boolean }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
