@@ -779,19 +779,27 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">
-      <Navigation />
+    <div className={embedded ? "" : "min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5"}>
+      {!embedded && <Navigation />}
 
       {/* Header */}
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6 flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-emerald-500" />
-            Seller Hub
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
-        </div>
-        <div className="flex gap-2 items-center">
+      <div
+        className={
+          embedded
+            ? "flex items-center justify-between flex-wrap gap-3 pb-2"
+            : "container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6 flex items-center justify-between flex-wrap gap-3"
+        }
+      >
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-emerald-500" />
+              Seller Hub
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
+          </div>
+        )}
+        <div className="flex gap-2 items-center ml-auto">
           <Button
             onClick={() => setTransactionsOpen(true)}
             variant="outline"
@@ -813,13 +821,16 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
           <Button variant="outline" size="icon" onClick={() => fetchProperties(user.id)}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {!embedded && (
+            <Button variant="outline" size="icon" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
+      <div className={embedded ? "space-y-6" : "container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-6"}>
+
         {/* Seller Hub upgrades — plan, KYC */}
         {user?.id && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
