@@ -634,12 +634,9 @@ const App = () => (
                   />
                   <Route
                     path="/dashboard/seller"
-                    element={
-                      <ProtectedRoute allowedRole="seller">
-                        <SellerDashboard />
-                      </ProtectedRoute>
-                    }
+                    element={<Navigate to="/dashboard/customer?view=selling" replace />}
                   />
+
                   <Route
                     path="/dashboard/seller/analytics"
                     element={
