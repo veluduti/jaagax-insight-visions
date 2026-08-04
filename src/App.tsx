@@ -38,6 +38,7 @@ const ContactUs = lazy(() => import("./pages/staticPages").then(m => ({ default:
 // Lazy-load all non-landing routes
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Register = lazy(() => import("./pages/Register"));
 const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 const Search = lazy(() => import("./pages/Search"));
 const AgentLeaderboard = lazy(() => import("./pages/AgentLeaderboard"));
