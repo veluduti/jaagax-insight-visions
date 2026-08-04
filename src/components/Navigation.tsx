@@ -284,10 +284,16 @@ const Navigation = () => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => navigate("/auth")} variant="outline" size="sm" className="text-sm">
-                  Sign up or Log in
-                </Button>
+                <>
+                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm" className="text-sm">
+                    Sign In
+                  </Button>
+                  <Button onClick={() => navigate("/register")} variant="default" size="sm" className="text-sm">
+                    Register
+                  </Button>
+                </>
               )}
+
             </div>
           </div>
         </div>
@@ -325,10 +331,16 @@ const Navigation = () => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
-                  Sign In
-                </Button>
+                <>
+                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                  <Button onClick={() => navigate("/register")} variant="default" size="sm">
+                    Register
+                  </Button>
+                </>
               )}
+
             </div>
           </div>
         </div>
