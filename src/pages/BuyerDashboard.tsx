@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useDashboardLocationCapture } from "@/hooks/useDashboardLocationCapture";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,6 +74,8 @@ interface Property {
 const BuyerDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // Non-blocking live location capture on dashboard entry
+  useDashboardLocationCapture(true);
   // Remove wallet balance
   // const { balance: walletBalance } = useWallet();
   const [user, setUser] = useState<any>(null);

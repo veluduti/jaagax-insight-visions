@@ -38,6 +38,7 @@ const ContactUs = lazy(() => import("./pages/staticPages").then(m => ({ default:
 // Lazy-load all non-landing routes
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Register = lazy(() => import("./pages/Register"));
 const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
 const Search = lazy(() => import("./pages/Search"));
 const AgentLeaderboard = lazy(() => import("./pages/AgentLeaderboard"));
@@ -259,6 +260,8 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/signup" element={<Navigate to="/register" replace />} />
                   <Route path="/verify-otp" element={<VerifyOtp />} />
                   <Route path="/select-profile" element={<SelectProfile />} />
                   <Route path="/onboarding/buyer" element={<BuyerOnboarding />} />

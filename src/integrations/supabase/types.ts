@@ -6930,6 +6930,63 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_registrations: {
+        Row: {
+          attempt_count: number
+          auth_provider: string
+          consumed_at: string | null
+          country: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string | null
+          google_user_id: string | null
+          id: string
+          last_sent_at: string
+          otp_hash: string
+          password: string | null
+          phone: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          auth_provider?: string
+          consumed_at?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          full_name?: string | null
+          google_user_id?: string | null
+          id?: string
+          last_sent_at?: string
+          otp_hash: string
+          password?: string | null
+          phone: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          auth_provider?: string
+          consumed_at?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          google_user_id?: string | null
+          id?: string
+          last_sent_at?: string
+          otp_hash?: string
+          password?: string | null
+          phone?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           action: string
