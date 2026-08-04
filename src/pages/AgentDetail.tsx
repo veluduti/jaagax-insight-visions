@@ -560,23 +560,8 @@ const AgentDetail = () => {
           </CardContent>
         </Card>
 
-        {/* 5. I Specialize In */}
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">I Specialize In</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {specializations.length ? (
-              specializations.map((s) => (
-                <Badge key={s} variant="secondary" className="rounded-full px-3 py-1 text-xs">
-                  {s}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No specializations added yet.</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* 5. Project Experience */}
+        <ProjectExperienceCards projects={projects} />
 
         {/* 6. Areas I Serve */}
         <Card className="rounded-2xl shadow-sm">
