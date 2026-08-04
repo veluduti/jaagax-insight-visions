@@ -194,7 +194,14 @@ const AgentDetail = () => {
         return;
       }
       setAgent(data as Agent);
-      setForm({ ...(data as Agent), specializations_text: (data.specializations || []).join(", ") });
+      setForm({ ...(data as Agent) });
+      try {
+        const rows = await fetchProjectExperience(data.id);
+        setProjects(rows);
+        setProjectDrafts(rows.length ? toDrafts(rows) : [emptyDraft()]);
+      } catch {
+        /* non-blocking */
+      }
 
       const [{ data: props }, { data: revs }, { data: bdgs }, visits] = await Promise.all([
         sb
