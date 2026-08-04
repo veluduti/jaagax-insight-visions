@@ -283,10 +283,6 @@ const AgentDetail = () => {
     if (!(form.phone || "").trim()) return toast.error("Phone number is required");
     setSaving(true);
     try {
-      const specializations = (form.specializations_text || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
       const expRaw = form.experience_years as any;
       const exp = expRaw === "" || expRaw == null ? null : Number(expRaw);
 
