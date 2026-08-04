@@ -587,23 +587,7 @@ export default function BuilderDashboard() {
             </Card>
           </motion.div>
 
-          {/* Success Score */}
-          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-yellow-500/40 group h-full"
-              onClick={() => navigate("/builder/success-score")}
-            >
-              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
-                  <Trophy className="h-6 w-6 text-yellow-500" />
-                </div>
-                <h3 className="font-semibold text-sm">Success Score</h3>
-                <p className="text-xs text-muted-foreground">Performance metrics</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
+         
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
