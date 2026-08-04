@@ -386,7 +386,7 @@ const AgentDetail = () => {
     .filter(Boolean)
     .filter((v, i, arr) => arr.indexOf(v) === i);
 
-  const specializations = agent.specializations || [];
+  
   const shownReviews = showAllReviews ? reviews : reviews.slice(0, 3);
   const shownListings = showAllListings ? activeProperties : activeProperties.slice(0, 3);
   const shownSold = showAllSold ? soldProperties : soldProperties.slice(0, 3);
