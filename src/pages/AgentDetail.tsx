@@ -45,6 +45,16 @@ import { toast } from "sonner";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/hooks/useAuth";
 import AgentKycPanel, { AgentKyc } from "@/components/agents/AgentKycPanel";
+import ProjectExperienceEditor from "@/components/agents/ProjectExperienceEditor";
+import ProjectExperienceCards from "@/components/agents/ProjectExperienceCards";
+import {
+  emptyDraft,
+  fetchProjectExperience,
+  saveProjectExperience,
+  toDrafts,
+  type AgentProjectExperience,
+  type ProjectDraft,
+} from "@/components/agents/projectExperience";
 
 interface Agent {
   id: string;
