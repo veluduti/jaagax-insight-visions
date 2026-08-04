@@ -331,10 +331,16 @@ const Navigation = () => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
-                  Sign In
-                </Button>
+                <>
+                  <Button onClick={() => navigate("/auth")} variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                  <Button onClick={() => navigate("/register")} variant="default" size="sm">
+                    Register
+                  </Button>
+                </>
               )}
+
             </div>
           </div>
         </div>
