@@ -31,6 +31,22 @@ export default function FinancialRegistration() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
+  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (u) {
+        setSignedInEmail(u.email ?? "");
+        setEmail(u.email ?? "");
+        const meta: any = u.user_metadata ?? {};
+        setFullName((prev) => prev || meta.full_name || "");
+        setMobile((prev) => prev || meta.phone || "");
+      }
+    });
+  }, []);
 
   // Step 2
   const [entityType, setEntityType] = useState("individual");
@@ -54,15 +70,91 @@ export default function FinancialRegistration() {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   }
 
-  function next() {
+  async function handleSignIn() {
+    if (!email || !password) {
+      toast.error("Enter your email and password");
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error || !data.session) throw new Error(error?.message || "Sign in failed");
+      setSignedInEmail(data.session.user.email ?? email);
+      const meta: any = data.session.user.user_metadata ?? {};
+      setFullName((prev) => prev || meta.full_name || "");
+      setMobile((prev) => prev || meta.phone || "");
+      toast.success("Signed in. Continue your registration.");
+      setStep(2);
+    } catch (e: any) {
+      toast.error(e.message ?? "Invalid email or password");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function next() {
     if (step === 1) {
+      if (signedInEmail) {
+        if (!fullName || !mobile) {
+          toast.error("Full name and mobile are required");
+          return;
+        }
+        setStep(2);
+        return;
+      }
+      if (authMode === "signin") {
+        await handleSignIn();
+        return;
+      }
       if (!fullName || !mobile || !email || password.length < 6 || password !== confirm) {
         toast.error("Fill all fields. Password ≥ 6 chars and matching.");
         return;
       }
+      // Create the account now so "email already registered" is caught early.
+      setAuthBusy(true);
+      try {
+        const { data: sign, error: signErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: { full_name: fullName, role: "financial", phone: mobile },
+            emailRedirectTo: `${window.location.origin}/dashboard/financial`,
+          },
+        });
+        if (signErr) {
+          if (/already|registered|exists/i.test(signErr.message)) {
+            setAuthMode("signin");
+            setConfirm("");
+            toast.error("This email already has a JaagaX account. Sign in below to continue.");
+            return;
+          }
+          throw signErr;
+        }
+        if (sign.session) {
+          setSignedInEmail(sign.session.user.email ?? email);
+        } else {
+          const { data: si, error: siErr } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+          if (siErr || !si.session) {
+            setAuthMode("signin");
+            toast.error("Account exists. Please sign in below to continue.");
+            return;
+          }
+          setSignedInEmail(si.session.user.email ?? email);
+        }
+        setStep(2);
+      } catch (e: any) {
+        toast.error(e.message ?? "Could not create account");
+      } finally {
+        setAuthBusy(false);
+      }
+      return;
     }
     setStep(step + 1);
   }
+
 
   async function uploadFile(userId: string, key: string): Promise<string | null> {
     const f = files[key];
