@@ -450,7 +450,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
           <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-primary/40 group h-full"
-              onClick={() => setActiveTab("add-property")}
+              onClick={() => navigate("/sell-property")}
             >
               <CardContent className="p-6 text-center flex flex-col items-center gap-2">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
