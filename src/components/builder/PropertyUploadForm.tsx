@@ -432,7 +432,7 @@ const ALLOWED_UPLOAD_ROLES = ["builder", "customer", "buyer", "seller", "agent",
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5" /> Add New Property
+          <Building2 className="h-5 w-5" /> Sell Your Property
         </CardTitle>
         <CardDescription>
           Fill what you have — we'll save the rest. Provide title, type, status, location, price, BHK, area and 5+ images to qualify as a <strong>Featured</strong> listing.
