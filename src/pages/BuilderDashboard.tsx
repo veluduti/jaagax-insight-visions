@@ -40,7 +40,7 @@ import { Sparkles } from "lucide-react";
 // import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
-const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
+
 
 // Format price in user-friendly units (Lakhs/Crores) without forcing conversion
 function formatUserPrice(n: number | null | undefined): string {
