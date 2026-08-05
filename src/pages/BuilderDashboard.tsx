@@ -40,7 +40,7 @@ import { Sparkles } from "lucide-react";
 // import { useWallet, formatINR } from "@/contexts/WalletContext";
 
 // Lazy-loaded heavy widgets
-const PropertyUploadForm = lazy(() => import("@/components/builder/PropertyUploadForm"));
+
 
 // Format price in user-friendly units (Lakhs/Crores) without forcing conversion
 function formatUserPrice(n: number | null | undefined): string {
@@ -450,7 +450,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
           <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
             <Card
               className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-primary/40 group h-full"
-              onClick={() => setActiveTab("add-property")}
+              onClick={() => navigate("/sell-property")}
             >
               <CardContent className="p-6 text-center flex flex-col items-center gap-2">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -592,10 +592,10 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
         {/* Main Content Tabs */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
-            <TabsTrigger value="add-property">Sell Your Property</TabsTrigger>
+
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -626,10 +626,11 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                       Add your first property or preview sample listings to see the format
                     </p>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <Button onClick={() => setActiveTab("add-property")}>
+                      <Button onClick={() => navigate("/sell-property")}>
                         <Plus className="h-4 w-4 mr-2" />
                         Sell Your Property
                       </Button>
+
 
                       <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
                         <Sparkles className="h-4 w-4 mr-2" />
@@ -711,19 +712,6 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
             </Card>
           </TabsContent>
 
-          {/* Add Property Tab */}
-          <TabsContent value="add-property" className="space-y-6">
-            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={500}>
-              <Suspense fallback={<ListSkeleton rows={6} />}>
-                <PropertyUploadForm
-                  onSuccess={() => {
-                    fetchProjects();
-                    fetchProperties();
-                  }}
-                />
-              </Suspense>
-            </LazyMount>
-          </TabsContent>
 
           {/* Projects */}
           <TabsContent value="projects" className="space-y-6">
