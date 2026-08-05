@@ -403,7 +403,8 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
           <Alert>
             <Lock className="h-4 w-4" />
             <AlertTitle>Sign in required</AlertTitle>
-            <AlertDescription>You must be signed in with a Builder account to add properties.</AlertDescription>
+            <AlertDescription>Please sign in to your Customer account to add properties.</AlertDescription>
+
           </Alert>
         </CardContent>
       </Card>
@@ -419,7 +420,7 @@ const ALLOWED_UPLOAD_ROLES = ["builder", "customer", "buyer", "seller", "agent",
             <Lock className="h-4 w-4" />
             <AlertTitle>Access restricted</AlertTitle>
             <AlertDescription>
-              This role cannot list properties here. Your current role is <strong>{role}</strong>.
+              This account type cannot list properties here.
             </AlertDescription>
           </Alert>
         </CardContent>
