@@ -498,9 +498,18 @@ export default function FinancialRegistration() {
                 Back
               </Button>
               {step < 4 ? (
-                <Button onClick={next} className="bg-primary text-primary-foreground font-semibold">
-                  Next
-                  <ArrowRight className="h-4 w-4 ml-1" />
+                <Button onClick={next} disabled={authBusy} className="bg-primary text-primary-foreground font-semibold">
+                  {authBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Please wait...
+                    </>
+                  ) : (
+                    <>
+                      {step === 1 && !signedInEmail && authMode === "signin" ? "Sign In & Continue" : "Next"}
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button
