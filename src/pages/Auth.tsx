@@ -120,7 +120,10 @@ export default function Auth() {
         },
       });
       if (error) {
-        toast.error(error.message || "Google sign-in failed");
+        const msg = /missing oauth secret|unsupported provider/i.test(error.message || "")
+          ? "Google sign-in isn't configured for this domain yet. Please contact support."
+          : error.message || "Google sign-in failed";
+        toast.error(msg);
         return;
       }
       // Browser redirects to Google; session is restored on return.
