@@ -160,6 +160,12 @@ export default function FinancialRegistration() {
         website: website || null,
       });
 
+      // Register a separate "financial" profile for this account (independent of any
+      // hotel/customer profile the same user may already have).
+      await (supabase as any)
+        .from("profiles")
+        .upsert({ user_id: uid, type: "financial", city: serviceAreas[0] ?? null }, { onConflict: "user_id,type" });
+
       await (supabase as any).rpc("submit_signup_request", {
         _user_id: uid,
         _email: email,

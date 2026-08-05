@@ -212,6 +212,13 @@ export default function HotelPartnerOnboarding() {
         .select("id")
         .single();
       if (error) throw error;
+      // Register a separate "hotel" profile for this account (kept independent of
+      // any financial/customer profile the same user may already have).
+      if (userId) {
+        await (supabase as any)
+          .from("profiles")
+          .upsert({ user_id: userId, type: "hotel" }, { onConflict: "user_id,type" });
+      }
       // Persist application id locally so anonymous applicants can track status
       try {
         const existing = JSON.parse(localStorage.getItem("hotel_partner_applications") || "[]");
