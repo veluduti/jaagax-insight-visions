@@ -626,10 +626,11 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                       Add your first property or preview sample listings to see the format
                     </p>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <Button onClick={() => setActiveTab("add-property")}>
+                      <Button onClick={() => navigate("/sell-property")}>
                         <Plus className="h-4 w-4 mr-2" />
                         Sell Your Property
                       </Button>
+
 
                       <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
                         <Sparkles className="h-4 w-4 mr-2" />
