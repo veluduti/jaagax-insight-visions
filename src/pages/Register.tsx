@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const COUNTRIES = [
@@ -66,21 +67,11 @@ export default function Register() {
   useEffect(() => {
     (async () => {
       try {
-        // After the Google redirect the URL carries ?code= (PKCE) or #access_token.
-        // supabase-js exchanges it asynchronously, so poll briefly for the session.
-        const hasAuthPayload =
-          /[?&]code=/.test(window.location.search) || /access_token=/.test(window.location.hash);
-
-        let session = (await supabase.auth.getSession()).data.session;
-        if (!session && hasAuthPayload) {
-          for (let i = 0; i < 10 && !session; i++) {
-            await new Promise((r) => setTimeout(r, 300));
-            session = (await supabase.auth.getSession()).data.session;
-          }
-        }
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const user = session?.user;
         if (!user) return;
-
 
         const { data: profiles } = await supabase
           .from("profiles" as any)
@@ -189,21 +180,16 @@ export default function Register() {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/register`,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/register`,
       });
-      if (error) {
-        const msg = /missing oauth secret|unsupported provider/i.test(error.message || "")
-          ? "Google sign-in isn't configured for this domain yet. Please contact support."
-          : "Google sign-in was cancelled or failed. Please try again.";
-        toast.error(msg);
+      if ((result as any)?.error) {
+        toast.error("Google sign-in was cancelled or failed. Please try again.");
         return;
       }
-      // Browser redirects to Google and returns to /register with a session.
+      if ((result as any)?.redirected) return;
+      // Session set in-place (popup flow): reload state.
+      window.location.href = "/register";
     } catch {
       toast.error("Google sign-in was cancelled or failed. Please try again.");
     } finally {
