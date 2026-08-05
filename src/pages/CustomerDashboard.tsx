@@ -6,15 +6,16 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2, LayoutDashboard } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2, LayoutDashboard, Banknote } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
 import CustomerOverview from "@/features/customer/CustomerOverview";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
 const BuilderDashboard = lazy(() => import("./BuilderDashboard"));
+const MyLoanApplications = lazy(() => import("@/features/customer/MyLoanApplications"));
 
-const VALID_VIEWS = ["overview", "buying", "selling", "builder"];
+const VALID_VIEWS = ["overview", "buying", "selling", "builder", "loans"];
 const LAST_VIEW_KEY = "jaagax.customerDashboardView";
 
 /**
