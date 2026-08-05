@@ -6,15 +6,16 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2, LayoutDashboard } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2, LayoutDashboard, Banknote } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
 import CustomerOverview from "@/features/customer/CustomerOverview";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
 const BuilderDashboard = lazy(() => import("./BuilderDashboard"));
+const MyLoanApplications = lazy(() => import("@/features/customer/MyLoanApplications"));
 
-const VALID_VIEWS = ["overview", "buying", "selling", "builder"];
+const VALID_VIEWS = ["overview", "buying", "selling", "builder", "loans"];
 const LAST_VIEW_KEY = "jaagax.customerDashboardView";
 
 /**
@@ -95,7 +96,12 @@ export default function CustomerDashboard() {
               <Building2 className="h-4 w-4 mr-2" />
               Builder
             </TabsTrigger>
+            <TabsTrigger value="loans" className="px-6 py-2">
+              <Banknote className="h-4 w-4 mr-2" />
+              Loans
+            </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="overview" className="mt-0">
             <CustomerOverview onNavigateTab={setView} />
@@ -119,6 +125,13 @@ export default function CustomerDashboard() {
               <BuilderDashboard embedded />
             </Suspense>
           </TabsContent>
+
+          <TabsContent value="loans" className="mt-0">
+            <Suspense fallback={<CardGridSkeleton />}>
+              <MyLoanApplications />
+            </Suspense>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>

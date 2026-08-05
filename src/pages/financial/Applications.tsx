@@ -18,6 +18,7 @@ type App = any;
 const STATUS_COLOR: Record<string, string> = {
   new: "bg-blue-500/20 text-blue-300 border-blue-500/40",
   documents_pending: "bg-primary/10 text-primary border-border",
+  accepted: "bg-primary/10 text-primary border-border",
   under_review: "bg-purple-500/20 text-purple-300 border-purple-500/40",
   approved: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
   rejected: "bg-red-500/20 text-red-300 border-red-500/40",
@@ -60,6 +61,7 @@ export default function FinancialApplications() {
   async function setStatus(status: string, extra: any = {}) {
     if (!selected) return;
     const upd: any = { status, ...extra, updated_at: new Date().toISOString() };
+    if (status === "accepted") upd.accepted_at = new Date().toISOString();
     if (status === "approved") upd.approved_at = new Date().toISOString();
     if (status === "rejected") upd.rejected_at = new Date().toISOString();
     if (status === "disbursed") upd.disbursed_at = new Date().toISOString();
@@ -69,8 +71,14 @@ export default function FinancialApplications() {
       provider_id: providerId, title: `Application ${status}`,
       message: `${selected.buyer_name ?? "Customer"}'s application is now ${status}`, link: "/dashboard/financial/applications",
     });
-    toast.success(`Marked ${status}`); setSelected(null); load();
+    try {
+      await supabase.functions.invoke("notify-loan-status", {
+        body: { application_id: selected.id, status },
+      });
+    } catch { /* email is best effort */ }
+    toast.success(`Marked ${status} — customer notified`); setSelected(null); load();
   }
+
 
   async function assignRM(rmId: string) {
     if (!selected) return;
@@ -201,10 +209,14 @@ export default function FinancialApplications() {
                     </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
+                    {selected.status === "new" && (
+                      <Button onClick={() => setStatus("accepted")} className="col-span-2">Accept Request</Button>
+                    )}
                     <Button onClick={() => setStatus("under_review")} variant="outline">Mark Under Review</Button>
                     <Button onClick={() => setStatus("documents_pending")} variant="outline">Request Documents</Button>
-                    <Button onClick={() => setStatus("approved")} className="bg-emerald-600 hover:bg-emerald-700">Approve</Button>
+                    <Button onClick={() => setStatus("approved")} className="col-span-2 bg-emerald-600 hover:bg-emerald-700">Approve</Button>
                   </div>
+
                   <div className="space-y-2">
                     <Textarea placeholder="Rejection reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
                       className="bg-card border-border" />

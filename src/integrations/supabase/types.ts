@@ -2324,6 +2324,7 @@ export type Database = {
       }
       financial_loan_applications: {
         Row: {
+          accepted_at: string | null
           approved_at: string | null
           assigned_rm_id: string | null
           assigned_rm_name: string | null
@@ -2350,6 +2351,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           approved_at?: string | null
           assigned_rm_id?: string | null
           assigned_rm_name?: string | null
@@ -2376,6 +2378,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           approved_at?: string | null
           assigned_rm_id?: string | null
           assigned_rm_name?: string | null
