@@ -18,14 +18,13 @@ const Dashboard = () => {
           case "buyer":
           case "customer":
           case "seller":
+          case "builder":
             navigate("/dashboard/customer");
             break;
           case "agent":
             navigate("/dashboard/agent");
             break;
-          case "builder":
-            navigate("/dashboard/customer?view=builder");
-            break;
+
           case "admin":
             navigate("/dashboard/admin");
             break;
