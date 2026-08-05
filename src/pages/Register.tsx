@@ -197,7 +197,10 @@ export default function Register() {
         },
       });
       if (error) {
-        toast.error("Google sign-in was cancelled or failed. Please try again.");
+        const msg = /missing oauth secret|unsupported provider/i.test(error.message || "")
+          ? "Google sign-in isn't configured for this domain yet. Please contact support."
+          : "Google sign-in was cancelled or failed. Please try again.";
+        toast.error(msg);
         return;
       }
       // Browser redirects to Google and returns to /register with a session.
