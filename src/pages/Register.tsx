@@ -179,19 +179,19 @@ export default function Register() {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/register`,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/register`,
+        extraParams: { prompt: "select_account" },
       });
-      if (error) {
-        toast.error(error.message || "Google sign-in was cancelled or failed. Please try again.");
+      if (result.error) {
+        toast.error(result.error.message || "Google sign-in was cancelled or failed. Please try again.");
         setGoogleLoading(false);
         return;
       }
-      // On success the browser redirects to Google.
+      if (result.redirected) return;
+      setProvider("google");
+      setStep("google-details");
+      setGoogleLoading(false);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Google sign-in was cancelled or failed. Please try again.";
       toast.error(message);

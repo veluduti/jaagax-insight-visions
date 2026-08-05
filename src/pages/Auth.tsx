@@ -113,18 +113,18 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth`,
+        extraParams: { prompt: "select_account" },
       });
-      if (error) {
-        toast.error(error.message || "Google sign-in failed");
+      if (result.error) {
+        toast.error(result.error.message || "Google sign-in failed");
         setGoogleLoading(false);
+        return;
       }
-      // On success the browser redirects to Google.
+      if (result.redirected) return;
+      // Session already set by the helper.
+      redirectToDashboard?.();
     } catch (e: any) {
       toast.error(e?.message || "Google sign-in failed");
       setGoogleLoading(false);
