@@ -100,10 +100,12 @@ export default function FinancialRegistration() {
             emailRedirectTo: `${window.location.origin}/dashboard/financial`,
           },
         });
-        if (signErr) throw signErr;
-        uid = sign.session?.user?.id ?? null;
 
-        // Email confirmation flows return no session — sign in explicitly.
+        // Existing account? Just sign in with the provided password.
+        if (signErr && !/already/i.test(signErr.message)) throw signErr;
+
+        uid = sign?.session?.user?.id ?? null;
+
         if (!uid) {
           const { data: signedIn, error: signInErr } = await supabase.auth.signInWithPassword({
             email,
@@ -111,12 +113,15 @@ export default function FinancialRegistration() {
           });
           if (signInErr || !signedIn.session) {
             throw new Error(
-              "Account created. Please confirm your email, sign in, and complete this registration.",
+              signErr
+                ? "This email is already registered. Please sign in with your existing password, then complete this registration."
+                : "Could not start your session. Please try signing in and complete this registration.",
             );
           }
           uid = signedIn.session.user.id;
         }
       }
+
       if (!uid) throw new Error("Signup failed");
 
 
