@@ -75,7 +75,11 @@ export default function CustomerDashboard() {
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12">
         <Tabs value={view} onValueChange={setView} className="space-y-8">
-          <TabsList className="h-auto p-1 gap-1">
+          <TabsList className="h-auto p-1 gap-1 flex-wrap">
+            <TabsTrigger value="overview" className="px-6 py-2">
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="buying" className="px-6 py-2">
               <Search className="h-4 w-4 mr-2" />
               Buying
@@ -90,7 +94,12 @@ export default function CustomerDashboard() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview" className="mt-0">
+            <CustomerOverview onNavigateTab={setView} />
+          </TabsContent>
+
           <TabsContent value="buying" className="mt-0">
+
             <Suspense fallback={<CardGridSkeleton />}>
               <BuyerDashboard embedded />
             </Suspense>
