@@ -15,7 +15,7 @@ interface ProtectedRouteProps {
 const isAuthorizedForRole = (role: AppRole | null, allowedRole: AppRole) => {
   if (!role) return false;
   // Unified customer dashboard: buyer, customer and seller all share it
-  if (allowedRole === "customer") return role === "buyer" || role === "customer" || role === "seller";
+  if (allowedRole === "customer") return role === "buyer" || role === "customer" || role === "seller" || role === "builder";
   if (allowedRole === "buyer") return role === "buyer" || role === "customer";
   if (allowedRole === "seller") return role === "seller" || role === "buyer" || role === "customer";
   if (allowedRole === "admin") return role === "admin";
