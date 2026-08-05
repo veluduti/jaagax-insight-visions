@@ -208,10 +208,14 @@ export default function FinancialApplications() {
                     </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
+                    {selected.status === "new" && (
+                      <Button onClick={() => setStatus("accepted")} className="col-span-2">Accept Request</Button>
+                    )}
                     <Button onClick={() => setStatus("under_review")} variant="outline">Mark Under Review</Button>
                     <Button onClick={() => setStatus("documents_pending")} variant="outline">Request Documents</Button>
-                    <Button onClick={() => setStatus("approved")} className="bg-emerald-600 hover:bg-emerald-700">Approve</Button>
+                    <Button onClick={() => setStatus("approved")} className="col-span-2 bg-emerald-600 hover:bg-emerald-700">Approve</Button>
                   </div>
+
                   <div className="space-y-2">
                     <Textarea placeholder="Rejection reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
                       className="bg-card border-border" />
