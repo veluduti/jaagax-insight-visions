@@ -83,21 +83,42 @@ export default function FinancialRegistration() {
     }
     setLoading(true);
     try {
-      const { data: sign, error: signErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: "financial",
-            phone: mobile,
+      // Use the existing session when already signed in, otherwise create the account.
+      let { data: sessionData } = await supabase.auth.getSession();
+      let uid = sessionData.session?.user?.id ?? null;
+
+      if (!uid) {
+        const { data: sign, error: signErr } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: "financial",
+              phone: mobile,
+            },
+            emailRedirectTo: `${window.location.origin}/dashboard/financial`,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard/financial`,
-        },
-      });
-      if (signErr) throw signErr;
-      const uid = sign.user?.id;
+        });
+        if (signErr) throw signErr;
+        uid = sign.session?.user?.id ?? null;
+
+        // Email confirmation flows return no session — sign in explicitly.
+        if (!uid) {
+          const { data: signedIn, error: signInErr } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (signInErr || !signedIn.session) {
+            throw new Error(
+              "Account created. Please confirm your email, sign in, and complete this registration.",
+            );
+          }
+          uid = signedIn.session.user.id;
+        }
+      }
       if (!uid) throw new Error("Signup failed");
+
 
       const [pan_url, gst_url, company_reg_cert_url, signatory_id_url, logo_url] = await Promise.all([
         uploadFile(uid, "pan"),
