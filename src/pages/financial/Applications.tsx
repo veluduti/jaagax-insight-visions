@@ -60,6 +60,7 @@ export default function FinancialApplications() {
   async function setStatus(status: string, extra: any = {}) {
     if (!selected) return;
     const upd: any = { status, ...extra, updated_at: new Date().toISOString() };
+    if (status === "accepted") upd.accepted_at = new Date().toISOString();
     if (status === "approved") upd.approved_at = new Date().toISOString();
     if (status === "rejected") upd.rejected_at = new Date().toISOString();
     if (status === "disbursed") upd.disbursed_at = new Date().toISOString();
@@ -69,8 +70,14 @@ export default function FinancialApplications() {
       provider_id: providerId, title: `Application ${status}`,
       message: `${selected.buyer_name ?? "Customer"}'s application is now ${status}`, link: "/dashboard/financial/applications",
     });
-    toast.success(`Marked ${status}`); setSelected(null); load();
+    try {
+      await supabase.functions.invoke("notify-loan-status", {
+        body: { application_id: selected.id, status },
+      });
+    } catch { /* email is best effort */ }
+    toast.success(`Marked ${status} — customer notified`); setSelected(null); load();
   }
+
 
   async function assignRM(rmId: string) {
     if (!selected) return;
