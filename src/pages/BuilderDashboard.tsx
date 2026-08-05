@@ -456,8 +456,8 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Plus className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold text-sm">Add Property</h3>
-                <p className="text-xs text-muted-foreground">List a new property</p>
+                <h3 className="font-semibold text-sm">Sell Your Property</h3>
+                <p className="text-xs text-muted-foreground">List a property for sale</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -595,7 +595,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
-            <TabsTrigger value="add-property">List Property</TabsTrigger>
+            <TabsTrigger value="add-property">Sell Your Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -628,7 +628,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       <Button onClick={() => setActiveTab("add-property")}>
                         <Plus className="h-4 w-4 mr-2" />
-                        List Property
+                        Sell Your Property
                       </Button>
 
                       <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
