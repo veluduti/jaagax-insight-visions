@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -6,12 +6,16 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2 } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2, LayoutDashboard } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
+import CustomerOverview from "@/features/customer/CustomerOverview";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
 const BuilderDashboard = lazy(() => import("./BuilderDashboard"));
+
+const VALID_VIEWS = ["overview", "buying", "selling", "builder"];
+const LAST_VIEW_KEY = "jaagax.customerDashboardView";
 
 /**
  * Unified Customer Dashboard — merges the former Buyer, Seller and Builder
@@ -22,7 +26,19 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const viewParam = searchParams.get("view");
-  const view = viewParam === "selling" || viewParam === "builder" ? viewParam : "buying";
+
+  const remembered =
+    typeof window !== "undefined" ? localStorage.getItem(LAST_VIEW_KEY) : null;
+
+  const view = viewParam && VALID_VIEWS.includes(viewParam)
+    ? viewParam
+    : remembered && VALID_VIEWS.includes(remembered)
+      ? remembered
+      : "overview";
+
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem(LAST_VIEW_KEY, view);
+  }, [view]);
 
   const setView = (v: string) => {
     const next = new URLSearchParams(searchParams);
@@ -36,6 +52,7 @@ export default function CustomerDashboard() {
     toast.success("Signed out successfully");
     navigate("/");
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
