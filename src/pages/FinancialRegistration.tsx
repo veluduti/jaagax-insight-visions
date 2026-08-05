@@ -270,42 +270,92 @@ export default function FinancialRegistration() {
           <CardContent className="space-y-4">
             {step === 1 && (
               <>
-                <Field label="Full Name *">
-                  <Input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Mobile Number *">
-                  <Input value={mobile} onChange={(e) => setMobile(e.target.value)} className="bg-card border-border" />
-                </Field>
-                <Field label="Email Address *">
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Password *">
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Confirm Password *">
-                  <Input
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
+                {signedInEmail ? (
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+                    Signed in as <span className="font-semibold">{signedInEmail}</span>. Your financial profile will be
+                    added to this account.
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={authMode === "signup" ? "default" : "outline"}
+                      onClick={() => setAuthMode("signup")}
+                    >
+                      Create new account
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={authMode === "signin" ? "default" : "outline"}
+                      onClick={() => setAuthMode("signin")}
+                    >
+                      I already have an account
+                    </Button>
+                  </div>
+                )}
+
+                {(signedInEmail || authMode === "signup") && (
+                  <>
+                    <Field label="Full Name *">
+                      <Input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    <Field label="Mobile Number *">
+                      <Input
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                  </>
+                )}
+
+                {!signedInEmail && (
+                  <>
+                    <Field label="Email Address *">
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    <Field label="Password *">
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    {authMode === "signup" ? (
+                      <Field label="Confirm Password *">
+                        <Input
+                          type="password"
+                          value={confirm}
+                          onChange={(e) => setConfirm(e.target.value)}
+                          className="bg-card border-border"
+                        />
+                      </Field>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => nav("/auth?reset=1")}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </>
+                )}
               </>
             )}
+
 
             {step === 2 && (
               <>
