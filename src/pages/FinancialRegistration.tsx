@@ -175,44 +175,14 @@ export default function FinancialRegistration() {
     }
     setLoading(true);
     try {
-      // Use the existing session when already signed in, otherwise create the account.
-      let { data: sessionData } = await supabase.auth.getSession();
-      let uid = sessionData.session?.user?.id ?? null;
-
+      // The account is created/signed-in in step 1, so a session must exist here.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id ?? null;
       if (!uid) {
-        const { data: sign, error: signErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: "financial",
-              phone: mobile,
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard/financial`,
-          },
-        });
-
-        // Existing account? Just sign in with the provided password.
-        if (signErr && !/already/i.test(signErr.message)) throw signErr;
-
-        uid = sign?.session?.user?.id ?? null;
-
-        if (!uid) {
-          const { data: signedIn, error: signInErr } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          if (signInErr || !signedIn.session) {
-            throw new Error(
-              signErr
-                ? "This email is already registered. Please sign in with your existing password, then complete this registration."
-                : "Could not start your session. Please try signing in and complete this registration.",
-            );
-          }
-          uid = signedIn.session.user.id;
-        }
+        setStep(1);
+        throw new Error("Your session expired. Please sign in again to submit.");
       }
+
 
       if (!uid) throw new Error("Signup failed");
 
