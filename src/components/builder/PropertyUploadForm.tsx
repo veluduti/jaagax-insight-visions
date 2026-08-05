@@ -232,8 +232,8 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       toast.error("You must be logged in to submit a property");
       return;
     }
-    if (role !== "builder") {
-      toast.error("Only Builder accounts can submit properties");
+    if (role === "hotel_manager" || role === "hotel" || role === "financial") {
+      toast.error("This role cannot submit properties");
       return;
     }
     if (imageFiles.length === 0) {
