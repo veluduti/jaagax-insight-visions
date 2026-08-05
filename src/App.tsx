@@ -280,15 +280,8 @@ const App = () => (
                       BUILDER ROUTES (Protected)
                       ============================================ */}
 
-                  {/* Builder Dashboard */}
-                  <Route
-                    path="/dashboard/builder"
-                    element={
-                      <ProtectedRoute allowedRole="builder">
-                        <BuilderDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                  {/* Builder Dashboard — merged into the unified Customer dashboard */}
+                  <Route path="/dashboard/builder" element={<Navigate to="/dashboard/customer?view=builder" replace />} />
 
                   {/* Builder Profile - accessible to builder, agent, admin */}
                   <Route path="/add-builder-profile" element={<AddBuilderProfile />} />
