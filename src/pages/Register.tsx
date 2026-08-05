@@ -1,4 +1,3 @@
-import { lovable } from "@/integrations/lovable/index";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const COUNTRIES = [
@@ -182,20 +182,17 @@ export default function Register() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/register`,
-        extraParams: { prompt: "select_account" },
       });
-      if (result.error) {
-        toast.error(result.error.message || "Google sign-in was cancelled or failed. Please try again.");
-        setGoogleLoading(false);
+      if ((result as any)?.error) {
+        toast.error("Google sign-in was cancelled or failed. Please try again.");
         return;
       }
-      if (result.redirected) return;
-      setProvider("google");
-      setStep("google-details");
-      setGoogleLoading(false);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Google sign-in was cancelled or failed. Please try again.";
-      toast.error(message);
+      if ((result as any)?.redirected) return;
+      // Session set in-place (popup flow): reload state.
+      window.location.href = "/register";
+    } catch {
+      toast.error("Google sign-in was cancelled or failed. Please try again.");
+    } finally {
       setGoogleLoading(false);
     }
   };

@@ -1,4 +1,3 @@
-import { lovable } from "@/integrations/lovable/index";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,7 +29,7 @@ import PasswordResetSuccess from "@/components/auth/PasswordResetSuccess";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
-
+import { lovable } from "@/integrations/lovable/index";
 
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
@@ -115,19 +114,17 @@ export default function Auth() {
     setGoogleLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth`,
-        extraParams: { prompt: "select_account" },
+        redirect_uri: window.location.origin,
       });
-      if (result.error) {
-        toast.error(result.error.message || "Google sign-in failed");
-        setGoogleLoading(false);
+      if ((result as any)?.error) {
+        toast.error((result as any).error.message || "Google sign-in failed");
         return;
       }
-      if (result.redirected) return;
-      // Session already set by the helper.
-      redirectToDashboard?.();
+      if ((result as any)?.redirected) return;
+      navigate("/dashboard");
     } catch (e: any) {
       toast.error(e?.message || "Google sign-in failed");
+    } finally {
       setGoogleLoading(false);
     }
   };
