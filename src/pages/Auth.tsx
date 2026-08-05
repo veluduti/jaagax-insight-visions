@@ -29,7 +29,7 @@ import PasswordResetSuccess from "@/components/auth/PasswordResetSuccess";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+
 
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
