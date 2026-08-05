@@ -184,7 +184,7 @@ export default function FinancialRegistration() {
       }
 
 
-      if (!uid) throw new Error("Signup failed");
+
 
 
       const [pan_url, gst_url, company_reg_cert_url, signatory_id_url, logo_url] = await Promise.all([
