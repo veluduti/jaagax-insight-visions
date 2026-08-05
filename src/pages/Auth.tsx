@@ -29,6 +29,7 @@ import PasswordResetSuccess from "@/components/auth/PasswordResetSuccess";
 import PlacesAutocompleteInput from "@/components/location/PlacesAutocompleteInput";
 import type { NormalizedLocation } from "@/lib/googleMaps";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
@@ -112,24 +113,21 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
-      if (error) {
-        toast.error(error.message || "Google sign-in failed");
-        setGoogleLoading(false);
+      if ((result as any)?.error) {
+        toast.error((result as any).error.message || "Google sign-in failed");
+        return;
       }
-      // On success the browser redirects to Google.
+      if ((result as any)?.redirected) return;
+      navigate("/dashboard");
     } catch (e: any) {
       toast.error(e?.message || "Google sign-in failed");
+    } finally {
       setGoogleLoading(false);
     }
   };
-
 
 
 

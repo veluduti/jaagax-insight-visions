@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const COUNTRIES = [
@@ -179,24 +180,22 @@ export default function Register() {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/register`,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/register`,
       });
-      if (error) {
-        toast.error(error.message || "Google sign-in was cancelled or failed. Please try again.");
-        setGoogleLoading(false);
+      if ((result as any)?.error) {
+        toast.error("Google sign-in was cancelled or failed. Please try again.");
+        return;
       }
-      // On success the browser redirects to Google.
+      if ((result as any)?.redirected) return;
+      // Session set in-place (popup flow): reload state.
+      window.location.href = "/register";
     } catch {
       toast.error("Google sign-in was cancelled or failed. Please try again.");
+    } finally {
       setGoogleLoading(false);
     }
   };
-
 
   const verifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
