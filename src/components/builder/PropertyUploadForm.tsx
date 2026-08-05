@@ -410,15 +410,16 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
     );
   }
 
-  if (role !== "builder") {
+const ALLOWED_UPLOAD_ROLES = ["builder", "customer", "buyer", "seller", "agent", "admin"];
+  if (role && !ALLOWED_UPLOAD_ROLES.includes(role)) {
     return (
       <Card>
         <CardContent className="py-12">
           <Alert variant="destructive">
             <Lock className="h-4 w-4" />
-            <AlertTitle>Builder access only</AlertTitle>
+            <AlertTitle>Access restricted</AlertTitle>
             <AlertDescription>
-              Only verified Builder accounts can list properties here. Your current role is <strong>{role || "guest"}</strong>.
+              This role cannot list properties here. Your current role is <strong>{role}</strong>.
             </AlertDescription>
           </Alert>
         </CardContent>
