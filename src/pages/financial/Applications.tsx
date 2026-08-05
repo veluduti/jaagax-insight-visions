@@ -18,6 +18,7 @@ type App = any;
 const STATUS_COLOR: Record<string, string> = {
   new: "bg-blue-500/20 text-blue-300 border-blue-500/40",
   documents_pending: "bg-primary/10 text-primary border-border",
+  accepted: "bg-primary/10 text-primary border-border",
   under_review: "bg-purple-500/20 text-purple-300 border-purple-500/40",
   approved: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
   rejected: "bg-red-500/20 text-red-300 border-red-500/40",

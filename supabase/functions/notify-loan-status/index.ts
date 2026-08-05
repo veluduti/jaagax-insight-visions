@@ -24,7 +24,7 @@ function shell(title: string, bodyHtml: string, cta?: { label: string; link: str
 
 function build(status: string, app: any, lender: string) {
   const amount = `₹${Number(app.loan_amount || 0).toLocaleString("en-IN")}`;
-  const link = `${APP_BASE}/dashboard/customer?tab=loans`;
+  const link = `${APP_BASE}/dashboard/customer?view=loans`;
   const cta = { label: "Track application", link };
   switch (status) {
     case "accepted":
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         title: content.subject,
         message: `Your loan application with ${lender} is now "${status.replace("_", " ")}".`,
         type: "loan_status",
-        link: "/dashboard/customer?tab=loans",
+        link: "/dashboard/customer?view=loans",
       }).then(() => {}, () => {});
     }
 
