@@ -67,6 +67,10 @@ export default function CustomerDashboard() {
               <Sparkles className="h-4 w-4 mr-2" />
               Selling
             </TabsTrigger>
+            <TabsTrigger value="builder" className="px-6 py-2">
+              <Building2 className="h-4 w-4 mr-2" />
+              Builder
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="buying" className="mt-0">
@@ -78,6 +82,12 @@ export default function CustomerDashboard() {
           <TabsContent value="selling" className="mt-0">
             <Suspense fallback={<CardGridSkeleton />}>
               <SellerDashboard embedded />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="builder" className="mt-0">
+            <Suspense fallback={<CardGridSkeleton />}>
+              <BuilderDashboard embedded />
             </Suspense>
           </TabsContent>
         </Tabs>
