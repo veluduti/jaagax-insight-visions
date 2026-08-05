@@ -595,7 +595,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
-            <TabsTrigger value="add-property">Add Property</TabsTrigger>
+            <TabsTrigger value="add-property">List Property</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -628,8 +628,9 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       <Button onClick={() => setActiveTab("add-property")}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Property
+                        List Property
                       </Button>
+
                       <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         View Sample Listings

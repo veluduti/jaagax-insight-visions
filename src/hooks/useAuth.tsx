@@ -71,7 +71,7 @@ export const useAuth = () => {
             const stored = storedId ? list.find((p) => p.id === storedId && p.status === "active") : null;
             const fallback = list.find((p) => p.status === "active") ?? list[0];
             const active = stored ?? fallback;
-            if (active) resolvedRole = active.type as UserRole;
+            if (active) resolvedRole = (normalizeDbRole(active.type) ?? active.type) as UserRole;
           }
         } catch (e) {
           // Profiles table may not exist yet for some users — fall back silently.
@@ -164,18 +164,15 @@ export const useAuth = () => {
     if (!role) return;
     switch (role) {
       case "buyer":
-      case "customer":
-        navigate("/dashboard/buyer");
-        break;
       case "seller":
-        navigate("/dashboard/seller");
+      case "builder":
+      case "customer":
+        navigate("/dashboard/customer");
         break;
       case "agent":
         navigate("/dashboard/agent");
         break;
-      case "builder":
-        navigate("/dashboard/customer?view=builder");
-        break;
+
       case "admin":
         navigate("/dashboard/admin");
         break;

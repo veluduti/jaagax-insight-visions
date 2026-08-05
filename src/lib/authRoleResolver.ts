@@ -15,23 +15,22 @@ export type AccessResolution = {
   hasAssignedRole: boolean;
 };
 
-const ROLE_PRIORITY = ["admin", "country_admin", "state_admin", "district_admin", "hotel_manager", "builder", "agent", "financial", "customer", "buyer", "driver"] as const;
-const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer", "agent", "builder", "financial", "hotel_manager"]);
+const ROLE_PRIORITY = ["admin", "country_admin", "state_admin", "district_admin", "hotel_manager", "agent", "financial", "customer", "driver"] as const;
+const SELF_ASSIGNABLE_DB_ROLES = new Set(["customer"]);
 
-export const mapDbRoleToAppRole = (dbRole: string, requestedRole?: string | null): AppUserRole => {
-  if (dbRole === "customer") {
-    if (requestedRole === "seller") return "seller";
-    return "buyer";
-  }
+// Buyer / Seller / Builder no longer exist as identities — everything is "customer".
+export const mapDbRoleToAppRole = (dbRole: string, _requestedRole?: string | null): AppUserRole => {
+  if (dbRole === "customer" || dbRole === "buyer" || dbRole === "seller" || dbRole === "builder") return "customer";
   return dbRole as AppUserRole;
 };
 
 export const normalizeDbRole = (role?: string | null) => {
   if (!role) return null;
-  if (role === "buyer" || role === "seller") return "customer";
+  if (role === "buyer" || role === "seller" || role === "builder") return "customer";
   if (role === "hotel") return "hotel_manager";
   return role;
 };
+
 
 const pickPreferredDbRole = (roles: Array<string | null | undefined>) => {
   const cleanRoles = roles.filter((role): role is string => Boolean(role));

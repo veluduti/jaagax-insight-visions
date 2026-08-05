@@ -13,60 +13,23 @@ export type FeatureKey =
 
 export type AccessValue = boolean | "optional";
 
-export type AccessRole = "customer" | "buyer" | "seller" | "agent" | "builder";
+export type AccessRole = "customer" | "agent";
+
+const FULL_ACCESS: Record<FeatureKey, AccessValue> = {
+  buyRent: true,
+  newProjects: true,
+  sellProperty: true,
+  searchFilters: true,
+  transactions: true,
+  agents: true,
+  communities: true,
+  marketIndex: true,
+};
 
 export const roleAccess: Record<AccessRole, Record<FeatureKey, AccessValue>> = {
-  // Unified customer = union of every buyer + seller capability
-  customer: {
-    buyRent: true,
-    newProjects: true,
-    sellProperty: true,
-    searchFilters: true,
-    transactions: true,
-    agents: true,
-    communities: true,
-    marketIndex: true,
-  },
-  buyer: {
-    buyRent: true,
-    newProjects: true,
-    sellProperty: true,
-    searchFilters: true,
-    transactions: false,
-    agents: "optional",
-    communities: true,
-    marketIndex: false,
-  },
-  seller: {
-    buyRent: true,
-    newProjects: true,
-    sellProperty: true,
-    searchFilters: true,
-    transactions: true,
-    agents: true,
-    communities: true,
-    marketIndex: true,
-  },
-  agent: {
-    buyRent: true,
-    newProjects: true,
-    sellProperty: true,
-    searchFilters: true,
-    transactions: true,
-    agents: true,
-    communities: true,
-    marketIndex: true,
-  },
-  builder: {
-    buyRent: true,
-    newProjects: true,
-    sellProperty: true,
-    searchFilters: true,
-    transactions: true,
-    agents: true,
-    communities: true,
-    marketIndex: true,
-  },
+  // Single unified identity — buying, selling and building capabilities in one
+  customer: FULL_ACCESS,
+  agent: FULL_ACCESS,
 };
 
 // Flags for "optional" features — flip to false to hide later
@@ -82,18 +45,13 @@ export const optionalFlags: Record<FeatureKey, boolean> = {
 };
 
 /**
- * Normalize an auth role to an AccessRole. Defaults to "buyer".
+ * Normalize an auth role to an AccessRole. Defaults to "customer".
  */
 export const normalizeAccessRole = (role?: string | null): AccessRole => {
-  if (!role) return "customer";
-  // Buyer & seller are merged into the single Customer experience
-  if (role === "customer" || role === "buyer" || role === "seller") return "customer";
-  if (role === "agent") return "agent";
-  if (role === "builder") return "builder";
-  // admin, hotel_manager, etc → fall back to most permissive
-  if (role === "admin") return "agent";
+  if (role === "agent" || role === "admin") return "agent";
   return "customer";
 };
+
 
 /**
  * Returns true if the feature should render for the given role.
