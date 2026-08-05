@@ -125,6 +125,13 @@ export default function CustomerDashboard() {
               <BuilderDashboard embedded />
             </Suspense>
           </TabsContent>
+
+          <TabsContent value="loans" className="mt-0">
+            <Suspense fallback={<CardGridSkeleton />}>
+              <MyLoanApplications />
+            </Suspense>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>
