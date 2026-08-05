@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
 const COUNTRIES = [
