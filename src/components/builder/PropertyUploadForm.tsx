@@ -232,7 +232,7 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       toast.error("You must be logged in to submit a property");
       return;
     }
-    if (role === "hotel_manager" || role === "hotel" || role === "financial") {
+    if (role === "financial") {
       toast.error("This role cannot submit properties");
       return;
     }
