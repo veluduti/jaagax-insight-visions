@@ -711,19 +711,6 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
             </Card>
           </TabsContent>
 
-          {/* Add Property Tab */}
-          <TabsContent value="add-property" className="space-y-6">
-            <LazyMount fallback={<ListSkeleton rows={6} />} minHeight={500}>
-              <Suspense fallback={<ListSkeleton rows={6} />}>
-                <PropertyUploadForm
-                  onSuccess={() => {
-                    fetchProjects();
-                    fetchProperties();
-                  }}
-                />
-              </Suspense>
-            </LazyMount>
-          </TabsContent>
 
           {/* Projects */}
           <TabsContent value="projects" className="space-y-6">
