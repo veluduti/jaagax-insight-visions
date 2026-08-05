@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -31,6 +31,22 @@ export default function FinancialRegistration() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
+  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (u) {
+        setSignedInEmail(u.email ?? "");
+        setEmail(u.email ?? "");
+        const meta: any = u.user_metadata ?? {};
+        setFullName((prev) => prev || meta.full_name || "");
+        setMobile((prev) => prev || meta.phone || "");
+      }
+    });
+  }, []);
 
   // Step 2
   const [entityType, setEntityType] = useState("individual");
@@ -54,15 +70,91 @@ export default function FinancialRegistration() {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   }
 
-  function next() {
+  async function handleSignIn() {
+    if (!email || !password) {
+      toast.error("Enter your email and password");
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error || !data.session) throw new Error(error?.message || "Sign in failed");
+      setSignedInEmail(data.session.user.email ?? email);
+      const meta: any = data.session.user.user_metadata ?? {};
+      setFullName((prev) => prev || meta.full_name || "");
+      setMobile((prev) => prev || meta.phone || "");
+      toast.success("Signed in. Continue your registration.");
+      setStep(2);
+    } catch (e: any) {
+      toast.error(e.message ?? "Invalid email or password");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function next() {
     if (step === 1) {
+      if (signedInEmail) {
+        if (!fullName || !mobile) {
+          toast.error("Full name and mobile are required");
+          return;
+        }
+        setStep(2);
+        return;
+      }
+      if (authMode === "signin") {
+        await handleSignIn();
+        return;
+      }
       if (!fullName || !mobile || !email || password.length < 6 || password !== confirm) {
         toast.error("Fill all fields. Password ≥ 6 chars and matching.");
         return;
       }
+      // Create the account now so "email already registered" is caught early.
+      setAuthBusy(true);
+      try {
+        const { data: sign, error: signErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: { full_name: fullName, role: "financial", phone: mobile },
+            emailRedirectTo: `${window.location.origin}/dashboard/financial`,
+          },
+        });
+        if (signErr) {
+          if (/already|registered|exists/i.test(signErr.message)) {
+            setAuthMode("signin");
+            setConfirm("");
+            toast.error("This email already has a JaagaX account. Sign in below to continue.");
+            return;
+          }
+          throw signErr;
+        }
+        if (sign.session) {
+          setSignedInEmail(sign.session.user.email ?? email);
+        } else {
+          const { data: si, error: siErr } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+          if (siErr || !si.session) {
+            setAuthMode("signin");
+            toast.error("Account exists. Please sign in below to continue.");
+            return;
+          }
+          setSignedInEmail(si.session.user.email ?? email);
+        }
+        setStep(2);
+      } catch (e: any) {
+        toast.error(e.message ?? "Could not create account");
+      } finally {
+        setAuthBusy(false);
+      }
+      return;
     }
     setStep(step + 1);
   }
+
 
   async function uploadFile(userId: string, key: string): Promise<string | null> {
     const f = files[key];
@@ -83,46 +175,16 @@ export default function FinancialRegistration() {
     }
     setLoading(true);
     try {
-      // Use the existing session when already signed in, otherwise create the account.
-      let { data: sessionData } = await supabase.auth.getSession();
-      let uid = sessionData.session?.user?.id ?? null;
-
+      // The account is created/signed-in in step 1, so a session must exist here.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user?.id ?? null;
       if (!uid) {
-        const { data: sign, error: signErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: "financial",
-              phone: mobile,
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard/financial`,
-          },
-        });
-
-        // Existing account? Just sign in with the provided password.
-        if (signErr && !/already/i.test(signErr.message)) throw signErr;
-
-        uid = sign?.session?.user?.id ?? null;
-
-        if (!uid) {
-          const { data: signedIn, error: signInErr } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          if (signInErr || !signedIn.session) {
-            throw new Error(
-              signErr
-                ? "This email is already registered. Please sign in with your existing password, then complete this registration."
-                : "Could not start your session. Please try signing in and complete this registration.",
-            );
-          }
-          uid = signedIn.session.user.id;
-        }
+        setStep(1);
+        throw new Error("Your session expired. Please sign in again to submit.");
       }
 
-      if (!uid) throw new Error("Signup failed");
+
+
 
 
       const [pan_url, gst_url, company_reg_cert_url, signatory_id_url, logo_url] = await Promise.all([
@@ -208,42 +270,92 @@ export default function FinancialRegistration() {
           <CardContent className="space-y-4">
             {step === 1 && (
               <>
-                <Field label="Full Name *">
-                  <Input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Mobile Number *">
-                  <Input value={mobile} onChange={(e) => setMobile(e.target.value)} className="bg-card border-border" />
-                </Field>
-                <Field label="Email Address *">
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Password *">
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
-                <Field label="Confirm Password *">
-                  <Input
-                    type="password"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </Field>
+                {signedInEmail ? (
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+                    Signed in as <span className="font-semibold">{signedInEmail}</span>. Your financial profile will be
+                    added to this account.
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={authMode === "signup" ? "default" : "outline"}
+                      onClick={() => setAuthMode("signup")}
+                    >
+                      Create new account
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={authMode === "signin" ? "default" : "outline"}
+                      onClick={() => setAuthMode("signin")}
+                    >
+                      I already have an account
+                    </Button>
+                  </div>
+                )}
+
+                {(signedInEmail || authMode === "signup") && (
+                  <>
+                    <Field label="Full Name *">
+                      <Input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    <Field label="Mobile Number *">
+                      <Input
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                  </>
+                )}
+
+                {!signedInEmail && (
+                  <>
+                    <Field label="Email Address *">
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    <Field label="Password *">
+                      <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </Field>
+                    {authMode === "signup" ? (
+                      <Field label="Confirm Password *">
+                        <Input
+                          type="password"
+                          value={confirm}
+                          onChange={(e) => setConfirm(e.target.value)}
+                          className="bg-card border-border"
+                        />
+                      </Field>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => nav("/auth?reset=1")}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </>
+                )}
               </>
             )}
+
 
             {step === 2 && (
               <>
@@ -386,9 +498,18 @@ export default function FinancialRegistration() {
                 Back
               </Button>
               {step < 4 ? (
-                <Button onClick={next} className="bg-primary text-primary-foreground font-semibold">
-                  Next
-                  <ArrowRight className="h-4 w-4 ml-1" />
+                <Button onClick={next} disabled={authBusy} className="bg-primary text-primary-foreground font-semibold">
+                  {authBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Please wait...
+                    </>
+                  ) : (
+                    <>
+                      {step === 1 && !signedInEmail && authMode === "signin" ? "Sign In & Continue" : "Next"}
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button
