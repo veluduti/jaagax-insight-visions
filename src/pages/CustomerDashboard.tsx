@@ -96,7 +96,12 @@ export default function CustomerDashboard() {
               <Building2 className="h-4 w-4 mr-2" />
               Builder
             </TabsTrigger>
+            <TabsTrigger value="loans" className="px-6 py-2">
+              <Banknote className="h-4 w-4 mr-2" />
+              Loans
+            </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="overview" className="mt-0">
             <CustomerOverview onNavigateTab={setView} />
