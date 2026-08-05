@@ -6,21 +6,23 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles } from "lucide-react";
+import { LogOut, Search, Sparkles, Building2 } from "lucide-react";
 import { CardGridSkeleton } from "@/components/shared";
 
 const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
 const SellerDashboard = lazy(() => import("./SellerDashboard"));
+const BuilderDashboard = lazy(() => import("./BuilderDashboard"));
 
 /**
- * Unified Customer Dashboard — merges the former Buyer and Seller dashboards
- * into a single destination with "Buying" and "Selling" sections.
+ * Unified Customer Dashboard — merges the former Buyer, Seller and Builder
+ * dashboards into a single destination.
  */
 export default function CustomerDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const view = searchParams.get("view") === "selling" ? "selling" : "buying";
+  const viewParam = searchParams.get("view");
+  const view = viewParam === "selling" || viewParam === "builder" ? viewParam : "buying";
 
   const setView = (v: string) => {
     const next = new URLSearchParams(searchParams);
@@ -65,6 +67,10 @@ export default function CustomerDashboard() {
               <Sparkles className="h-4 w-4 mr-2" />
               Selling
             </TabsTrigger>
+            <TabsTrigger value="builder" className="px-6 py-2">
+              <Building2 className="h-4 w-4 mr-2" />
+              Builder
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="buying" className="mt-0">
@@ -76,6 +82,12 @@ export default function CustomerDashboard() {
           <TabsContent value="selling" className="mt-0">
             <Suspense fallback={<CardGridSkeleton />}>
               <SellerDashboard embedded />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="builder" className="mt-0">
+            <Suspense fallback={<CardGridSkeleton />}>
+              <BuilderDashboard embedded />
             </Suspense>
           </TabsContent>
         </Tabs>

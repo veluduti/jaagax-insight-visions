@@ -24,7 +24,7 @@ const Dashboard = () => {
             navigate("/dashboard/agent");
             break;
           case "builder":
-            navigate("/dashboard/builder");
+            navigate("/dashboard/customer?view=builder");
             break;
           case "admin":
             navigate("/dashboard/admin");
