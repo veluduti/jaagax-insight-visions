@@ -32,9 +32,12 @@ export default function CustomerDashboard() {
 
   const view = viewParam && VALID_VIEWS.includes(viewParam)
     ? viewParam
-    : remembered && VALID_VIEWS.includes(remembered)
-      ? remembered
-      : "overview";
+    : searchParams.get("tab")
+      ? "buying"
+      : remembered && VALID_VIEWS.includes(remembered)
+        ? remembered
+        : "overview";
+
 
   useEffect(() => {
     if (typeof window !== "undefined") localStorage.setItem(LAST_VIEW_KEY, view);
