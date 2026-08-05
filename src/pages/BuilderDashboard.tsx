@@ -628,8 +628,9 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       <Button onClick={() => setActiveTab("add-property")}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Property
+                        List Property
                       </Button>
+
                       <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         View Sample Listings
