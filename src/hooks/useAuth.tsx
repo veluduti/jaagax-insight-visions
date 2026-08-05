@@ -71,7 +71,7 @@ export const useAuth = () => {
             const stored = storedId ? list.find((p) => p.id === storedId && p.status === "active") : null;
             const fallback = list.find((p) => p.status === "active") ?? list[0];
             const active = stored ?? fallback;
-            if (active) resolvedRole = active.type as UserRole;
+            if (active) resolvedRole = (normalizeDbRole(active.type) ?? active.type) as UserRole;
           }
         } catch (e) {
           // Profiles table may not exist yet for some users — fall back silently.
