@@ -232,8 +232,8 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
       toast.error("You must be logged in to submit a property");
       return;
     }
-    if (role !== "builder") {
-      toast.error("Only Builder accounts can submit properties");
+    if (role === "financial") {
+      toast.error("This role cannot submit properties");
       return;
     }
     if (imageFiles.length === 0) {
@@ -410,15 +410,16 @@ export default function PropertyUploadForm({ onSuccess }: PropertyUploadFormProp
     );
   }
 
-  if (role !== "builder") {
+const ALLOWED_UPLOAD_ROLES = ["builder", "customer", "buyer", "seller", "agent", "admin"];
+  if (role && !ALLOWED_UPLOAD_ROLES.includes(role)) {
     return (
       <Card>
         <CardContent className="py-12">
           <Alert variant="destructive">
             <Lock className="h-4 w-4" />
-            <AlertTitle>Builder access only</AlertTitle>
+            <AlertTitle>Access restricted</AlertTitle>
             <AlertDescription>
-              Only verified Builder accounts can list properties here. Your current role is <strong>{role || "guest"}</strong>.
+              This role cannot list properties here. Your current role is <strong>{role}</strong>.
             </AlertDescription>
           </Alert>
         </CardContent>
