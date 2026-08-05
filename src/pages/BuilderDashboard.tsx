@@ -592,10 +592,10 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
         {/* Main Content Tabs */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="properties">My Properties</TabsTrigger>
-            <TabsTrigger value="add-property">Sell Your Property</TabsTrigger>
+
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
