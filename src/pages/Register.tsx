@@ -66,11 +66,21 @@ export default function Register() {
   useEffect(() => {
     (async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        // After the Google redirect the URL carries ?code= (PKCE) or #access_token.
+        // supabase-js exchanges it asynchronously, so poll briefly for the session.
+        const hasAuthPayload =
+          /[?&]code=/.test(window.location.search) || /access_token=/.test(window.location.hash);
+
+        let session = (await supabase.auth.getSession()).data.session;
+        if (!session && hasAuthPayload) {
+          for (let i = 0; i < 10 && !session; i++) {
+            await new Promise((r) => setTimeout(r, 300));
+            session = (await supabase.auth.getSession()).data.session;
+          }
+        }
         const user = session?.user;
         if (!user) return;
+
 
         const { data: profiles } = await supabase
           .from("profiles" as any)
