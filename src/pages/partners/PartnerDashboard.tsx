@@ -30,7 +30,6 @@ import {
   ChevronRight,
   Phone,
   Ban,
-  UserX,
   CheckCircle2,
   Wrench,
 } from "lucide-react";
@@ -692,5 +691,3 @@ function safeDate(v: string) {
   const d = new Date(v);
   return isNaN(d.getTime()) ? "—" : format(d, "dd MMM yyyy");
 }
-
-const _unused = { UserX };
