@@ -41,7 +41,7 @@ function SectionHeader({
   return (
     <div id={`customer-${id}`} className="scroll-mt-24 border-b pb-4">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </span>
         <div>
@@ -78,7 +78,7 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-blue-500/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navigation />
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
@@ -91,11 +91,7 @@ export default function CustomerDashboard() {
               One customer space — buy, sell, build and finance in a single view
             </p>
           </div>
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            className="border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-          >
+          <Button onClick={handleSignOut} variant="outline">
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
@@ -103,13 +99,7 @@ export default function CustomerDashboard() {
 
         <div className="mt-6 flex flex-wrap gap-2">
           {SECTIONS.map((s) => (
-            <Button
-              key={s.id}
-              variant="outline"
-              size="sm"
-              className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-              onClick={() => scrollToSection(s.id)}
-            >
+            <Button key={s.id} variant="outline" size="sm" className="gap-2" onClick={() => scrollToSection(s.id)}>
               <s.icon className="h-4 w-4" />
               {s.label}
             </Button>
