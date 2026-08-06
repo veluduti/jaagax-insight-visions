@@ -219,13 +219,10 @@ export default function PartnerDashboard() {
     return {
       checkinsToday,
       checkoutsToday,
-      occupancy,
-      occupiedRooms,
       todayRevenue,
       weekRevenue,
       monthRevenue,
       todaysBookings,
-      pendingConfirmations,
       pendingPayments,
       rev30,
       upcoming30,
