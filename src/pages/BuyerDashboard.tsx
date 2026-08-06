@@ -320,6 +320,9 @@ const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
               </CardContent>
             </Card>
           </motion.div>
+        </div>
+
+
 
 
         {/* Quick Actions - Row 3 */}
