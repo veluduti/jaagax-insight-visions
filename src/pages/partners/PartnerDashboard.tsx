@@ -482,12 +482,6 @@ export default function PartnerDashboard() {
                   count={kpis.pendingPayments.length}
                   onClick={() => setDrill({ title: "Pending payments", rows: kpis.pendingPayments })}
                 />
-                <TaskRow
-                  icon={<Clock className="h-4 w-4" />}
-                  label="Booking requests"
-                  count={kpis.pendingConfirmations.length}
-                  onClick={() => setDrill({ title: "Booking requests", rows: kpis.pendingConfirmations })}
-                />
               </div>
             </CardContent>
           </Card>
