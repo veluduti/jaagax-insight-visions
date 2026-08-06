@@ -62,8 +62,6 @@ import PriceDropDialog from "@/components/seller/PriceDropDialog";
 import RecentTransactions from "@/components/seller/RecentTransactions";
 import SwitchAgentDialog from "@/components/seller/SwitchAgentDialog";
 import AgentRating from "@/components/seller/AgentRating";
-import HotelBookings from "@/components/seller/HotelBookings";
-import FinancialEnquiries from "@/components/seller/FinancialEnquiries";
 import AlertChannelsSettings from "@/components/seller/AlertChannelsSettings";
 import LoanOffersAlert from "@/components/seller/LoanOffersAlert";
 import ActivityTimelineEnhanced from "@/components/seller/ActivityTimelineEnhanced";
@@ -1114,12 +1112,6 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
         {/* Seller Hub: AI, Activity, Visits, Referral */}
         {user?.id && (
           <>
-            {/* Hotel Bookings */}
-            <HotelBookings userId={user.id} />
-
-            {/* Financial Enquiries */}
-            <FinancialEnquiries userId={user.id} />
-
             {/* Alert Channels and Activity Timeline side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <AlertChannelsSettings userId={user.id} />
