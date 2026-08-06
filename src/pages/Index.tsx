@@ -1,163 +1,126 @@
-import { lazy, Suspense, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
-import { Button } from "@/components/ui/button";
+import Hero from "@/components/Hero";
+import FeaturedProperties from "@/components/FeaturedProperties";
+
+import NewProjects from "@/components/NewProjects";
+import AISpotlight from "@/components/AISpotlight";
+import AIInsightStrip from "@/components/AIInsightStrip";
+import MarketIntelligence from "@/components/MarketIntelligence";
+import FindMyAgent from "@/components/FindMyAgent";
+import TruValue from "@/components/TruValue";
+import FeaturedCommunities from "@/components/FeaturedCommunities";
+import Footer from "@/components/Footer";
+import { useLocation } from "@/contexts/LocationContext";
+import VisitStayTeaser from "@/components/home/VisitStayTeaser";
+import TrustStatements from "@/components/home/TrustStatements";
+import PromotedListings from "@/components/home/PromotedListings";
+import SneakPeekListings from "@/components/home/SneakPeekListings";
+import FeaturedBuilderProfiles from "@/components/home/FeaturedBuilderProfiles";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Search, Sparkles, Building2, Banknote } from "lucide-react";
-import { CardGridSkeleton } from "@/components/shared";
-import CustomerOverview from "@/features/customer/CustomerOverview";
+import { canSee } from "@/lib/roleAccess";
+import { LazyMount, AISectionSkeleton } from "@/components/shared";
+import SEO from "@/components/SEO";
 
-const BuyerDashboard = lazy(() => import("./BuyerDashboard"));
-const SellerDashboard = lazy(() => import("./SellerDashboard"));
-const BuilderDashboard = lazy(() => import("./BuilderDashboard"));
-const MyLoanApplications = lazy(() => import("@/features/customer/MyLoanApplications"));
+const Index = () => {
+  const { detectedLocation, isDetecting } = useLocation();
+  const { role } = useAuth();
+  const [activeTab, setActiveTab] = useState("properties");
 
-/** Section anchors inside the single unified Customer view. */
-const SECTIONS = [
-  { id: "buying", label: "Buy & Explore", icon: Search },
-  { id: "selling", label: "Sell & Track", icon: Sparkles },
-  { id: "builder", label: "Projects", icon: Building2 },
-  { id: "loans", label: "Loans", icon: Banknote },
-] as const;
+  // Hotel managers have their own dedicated Partner portal — send them there instead of the buyer/seller home.
+  if (role === "hotel_manager") {
+    return <Navigate to="/partners" replace />;
+  }
 
-function scrollToSection(id: string) {
-  const el = document.getElementById(`customer-${id}`);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function SectionHeader({
-  id,
-  title,
-  description,
-  icon: Icon,
-}: {
-  id: string;
-  title: string;
-  description: string;
-  icon: typeof Search;
-}) {
-  return (
-    <div id={`customer-${id}`} className="scroll-mt-24 border-b pb-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Unified Customer Dashboard — one single customer view containing every
- * service (buying, selling, projects, loans) as stacked sections.
- */
-export default function CustomerDashboard() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  // Legacy links used ?view=selling etc. — jump to the matching section.
-  const viewParam = searchParams.get("view");
-  useEffect(() => {
-    if (viewParam && SECTIONS.some((s) => s.id === viewParam)) {
-      const t = setTimeout(() => scrollToSection(viewParam), 350);
-      return () => clearTimeout(t);
-    }
-  }, [viewParam]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast.success("Signed out successfully");
-    navigate("/");
-  };
+  const showBuyRent = canSee(role, "buyRent");
+  const showNewProjects = canSee(role, "newProjects");
+  const showTransactions = canSee(role, "transactions");
+  const showAgents = canSee(role, "agents");
+  const showCommunities = canSee(role, "communities");
+  const showMarketIndex = canSee(role, "marketIndex");
+  const showSellerSearch = true;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-background">
+      <SEO
+        title="JAAGA X — AI-Powered Real Estate in Hyderabad & Vijayawada"
+        description="Discover verified properties, new projects, agents, and market insights across Hyderabad and Vijayawada with India's first AI-powered real estate platform."
+        canonicalPath="/"
+        type="website"
+      />
       <Navigation />
+      <Hero activeTab={activeTab} onTabChange={setActiveTab} showSearchBar={showSellerSearch} />
 
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              Welcome back, {user?.email?.split("@")[0] || "Customer"}!
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              One customer space — buy, sell, build and finance in a single view
-            </p>
-          </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
+      {/* Promoted Listings Carousel */}
+      <PromotedListings />
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {SECTIONS.map((s) => (
-            <Button key={s.id} variant="outline" size="sm" className="gap-2" onClick={() => scrollToSection(s.id)}>
-              <s.icon className="h-4 w-4" />
-              {s.label}
-            </Button>
-          ))}
-        </div>
-      </div>
+      {/* AI Insight Strip - Only shown to buyers with context. Lazy mount keeps initial paint fast. */}
+      {role === "buyer" && (
+        <LazyMount fallback={<AISectionSkeleton />} rootMargin="300px">
+          <AIInsightStrip />
+        </LazyMount>
+      )}
 
-      <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
-        <CustomerOverview onNavigateTab={scrollToSection} />
+      {/* Dynamic Content Based on Active Tab */}
+      {activeTab === "properties" && showBuyRent && (
+        <>
+          <FeaturedProperties detectedCity={detectedLocation?.city} />
+          <FeaturedBuilderProfiles />
+          <SneakPeekListings />
+          <VisitStayTeaser />
+          <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
+            <AISpotlight />
+          </LazyMount>
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
+        </>
+      )}
 
-        <section className="space-y-6">
-          <SectionHeader
-            id="buying"
-            title="Buy & Explore"
-            description="Search properties, saved homes, visits and hotel bookings"
-            icon={Search}
-          />
-          <Suspense fallback={<CardGridSkeleton />}>
-            <BuyerDashboard embedded />
-          </Suspense>
-        </section>
+      {activeTab === "new-projects" && showNewProjects && (
+        <>
+          <NewProjects detectedCity={detectedLocation?.city} />
+          <VisitStayTeaser />
+          {showBuyRent && <FeaturedProperties detectedCity={detectedLocation?.city} />}
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
+          <TruValue />
+        </>
+      )}
 
-        <section className="space-y-6">
-          <SectionHeader
-            id="selling"
-            title="Sell & Track"
-            description="Your listings, enquiries and selling activity"
-            icon={Sparkles}
-          />
-          <Suspense fallback={<CardGridSkeleton />}>
-            <SellerDashboard embedded />
-          </Suspense>
-        </section>
+      {activeTab === "transactions" && showTransactions && (
+        <>
+          {showCommunities && <FeaturedCommunities />}
+          {showMarketIndex && (
+            <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={400}>
+              <MarketIntelligence />
+            </LazyMount>
+          )}
+          <TruValue />
+        </>
+      )}
 
-        <section className="space-y-6">
-          <SectionHeader
-            id="builder"
-            title="Projects"
-            description="Projects, builder profile and leads"
-            icon={Building2}
-          />
-          <Suspense fallback={<CardGridSkeleton />}>
-            <BuilderDashboard embedded />
-          </Suspense>
-        </section>
+      {activeTab === "agents" && showAgents && (
+        <>
+          <FindMyAgent />
+          <LazyMount fallback={<AISectionSkeleton />} rootMargin="200px" minHeight={300}>
+            <AISpotlight />
+          </LazyMount>
+          <TruValue />
+        </>
+      )}
 
-        <section className="space-y-6">
-          <SectionHeader
-            id="loans"
-            title="Loans"
-            description="Home loan applications and their live status"
-            icon={Banknote}
-          />
-          <Suspense fallback={<CardGridSkeleton />}>
-            <MyLoanApplications />
-          </Suspense>
-        </section>
-      </div>
+      {/* Trust Statements above Footer */}
+      <TrustStatements />
+      <Footer />
     </div>
   );
-}
+};
+
+export default Index;
