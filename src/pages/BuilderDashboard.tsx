@@ -107,7 +107,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
-  const [activeTab, setActiveTab] = useState("properties");
+  const [activeTab, setActiveTab] = useState("projects");
   // Remove wallet balance
   // const { balance: liveWalletBalance } = useWallet();
   const [reraModalOpen, setReraModalOpen] = useState(false);
@@ -556,45 +556,13 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
             </Card>
           </motion.div>
 
-          {/* Hotels */}
-          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-amber-500/40 group h-full"
-              onClick={() => navigate("/builder/hotels")}
-            >
-              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-                  <Hotel className="h-6 w-6 text-amber-500" />
-                </div>
-                <h3 className="font-semibold text-sm">Hotels</h3>
-                <p className="text-xs text-muted-foreground">Stays for site visits</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Financial */}
-          <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }} transition={{ duration: 0.2 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all border border-border hover:border-indigo-500/40 group h-full"
-              onClick={() => navigate("/builder/financial")}
-            >
-              <CardContent className="p-6 text-center flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
-                  <Banknote className="h-6 w-6 text-indigo-500" />
-                </div>
-                <h3 className="font-semibold text-sm">Financial</h3>
-                <p className="text-xs text-muted-foreground">Loan enquiries & EMI</p>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
 
         {/* Main Content Tabs */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
-            <TabsTrigger value="properties">My Properties</TabsTrigger>
 
             <TabsTrigger value="projects">My Projects</TabsTrigger>
             <TabsTrigger value="verification">RERA Status</TabsTrigger>
@@ -608,110 +576,6 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
               <BuilderMyProfileCard />
             </Suspense>
           </TabsContent>
-
-          {/* My Properties Tab */}
-          <TabsContent value="properties" className="space-y-6">
-            <OwnerPropertyStatusPanel />
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Properties</CardTitle>
-                <CardDescription>Properties you've submitted for verification</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {properties.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Home className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Add your first property or preview sample listings to see the format
-                    </p>
-                    <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <Button onClick={() => navigate("/sell-property")}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Sell Your Property
-                      </Button>
-
-
-                      <Button variant="outline" onClick={() => setSamplePreviewOpen(true)}>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        View Sample Listings
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {properties.map((property) => (
-                      <motion.div
-                        key={property.id}
-                        whileHover={{ y: -5 }}
-                        className="cursor-pointer"
-                        onClick={() => navigate(`/property/${property.id}`)}
-                      >
-                        <Card className="overflow-hidden h-full hover:shadow-xl transition-all">
-                          <div className="relative">
-                            {property.images?.[0] ? (
-                              <img
-                                src={property.images[0]}
-                                alt={property.title}
-                                className="w-full h-48 object-cover"
-                                loading="lazy"
-                                decoding="async"
-                              />
-                            ) : (
-                              <div className="w-full h-48 flex flex-col items-center justify-center bg-muted/40 border-b border-dashed">
-                                <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
-                                <p className="text-xs font-medium text-muted-foreground">No image uploaded</p>
-                              </div>
-                            )}
-                            {property.verification_status === "approved" && property.verified ? (
-                              <Badge className="absolute top-2 right-2 bg-green-600">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Approved
-                              </Badge>
-                            ) : property.verification_status === "rejected" ? (
-                              <Badge className="absolute top-2 right-2 bg-red-600">
-                                <AlertCircle className="h-3 w-3 mr-1" />
-                                Rejected
-                              </Badge>
-                            ) : (
-                              <Badge className="absolute top-2 right-2 bg-orange-500">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Pending
-                              </Badge>
-                            )}
-                          </div>
-                          <CardContent className="p-4">
-                            <h3 className="font-semibold text-lg mb-1 line-clamp-1">{property.title}</h3>
-                            <div className="flex items-center text-sm text-muted-foreground mb-2">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {property.locality}, {property.city}
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-muted-foreground">Price</p>
-                                <p className="font-bold text-primary">{formatUserPrice(property.price)}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Config</p>
-                                <p className="font-semibold">{property.bhk} BHK</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Area</p>
-                                <p className="font-semibold">
-                                  {property.area_sqft} {getAreaUnit(property)}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
 
           {/* Projects */}
           <TabsContent value="projects" className="space-y-6">
