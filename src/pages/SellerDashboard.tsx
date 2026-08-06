@@ -910,7 +910,7 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
         </div>
 
         {/* Quick action cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
             <Card
               className="cursor-pointer border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent hover:shadow-lg h-full"
@@ -927,32 +927,7 @@ export default function SellerDashboard({ embedded = false }: { embedded?: boole
               </CardContent>
             </Card>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
-            <Card className="cursor-pointer border-2 hover:shadow-lg h-full" onClick={() => navigate("/valuation")}>
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-blue-500/15">
-                  <IndianRupee className="h-6 w-6 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Get Valuation</h3>
-                  <p className="text-xs text-muted-foreground">AI price estimate</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
-            <Card className="cursor-pointer border-2 hover:shadow-lg h-full" onClick={() => navigate("/agents")}>
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-purple-500/15">
-                  <MessageSquare className="h-6 w-6 text-purple-500" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Find Agent</h3>
-                  <p className="text-xs text-muted-foreground">Get expert help</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="h-full">
             <Card
               className="cursor-pointer border-2 hover:shadow-lg h-full"
