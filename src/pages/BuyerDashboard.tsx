@@ -321,30 +321,6 @@ const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
             </Card>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "postings" })}
-            >
-              <CardContent className="p-6 text-center">
-                <Home className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">My Postings</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => setSearchParams({ tab: "kyc" })}
-            >
-              <CardContent className="p-6 text-center">
-                <ShieldCheck className="h-8 w-8 mx-auto mb-2 text-primary" />
-                <h3 className="font-semibold text-sm">KYC</h3>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
 
         {/* Quick Actions - Row 3 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -403,14 +379,6 @@ const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
                 <TabsTrigger value="favorites">
                   <Heart className="h-4 w-4 mr-2" />
                   Favorites
-                </TabsTrigger>
-                <TabsTrigger value="postings">
-                  <Home className="h-4 w-4 mr-2" />
-                  My Postings
-                </TabsTrigger>
-                <TabsTrigger value="kyc">
-                  <ShieldCheck className="h-4 w-4 mr-2" />
-                  KYC
                 </TabsTrigger>
                 <TabsTrigger value="financial">
                   <PiggyBank className="h-4 w-4 mr-2" />
@@ -657,21 +625,6 @@ const BuyerDashboard = ({ embedded = false }: { embedded?: boolean }) => {
 
           {/* Remove Wallet TabsContent */}
 
-          {/* My Postings */}
-          <TabsContent value="postings">
-            <Suspense fallback={<CardGridSkeleton count={3} />}>
-              <MyPostings />
-            </Suspense>
-          </TabsContent>
-
-          {/* KYC */}
-          <TabsContent value="kyc">
-            <Suspense fallback={<ListSkeleton rows={4} />}>
-              <KYCVerification />
-            </Suspense>
-          </TabsContent>
-
-          {/* Financial */}
           <TabsContent value="financial">
             <Suspense fallback={<ListSkeleton rows={4} />}>
               <FinancialEnquiries />
