@@ -262,13 +262,7 @@ export default function FinancialLeads() {
                       Sold to another provider
                     </Badge>
                   ) : (
-                    <Button
-                      onClick={() => buy(l.id, Number(l.price))}
-                      className="w-full bg-primary text-primary-foreground font-semibold"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Purchase Lead for ₹{Number(l.price).toFixed(0)}
-                    </Button>
+                    
                   )}
                 </CardContent>
               </Card>
