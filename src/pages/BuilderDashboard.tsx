@@ -107,7 +107,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [forecast, setForecast] = useState<any>(null);
   const [loadingForecast, setLoadingForecast] = useState(false);
-  const [activeTab, setActiveTab] = useState("properties");
+  const [activeTab, setActiveTab] = useState("projects");
   // Remove wallet balance
   // const { balance: liveWalletBalance } = useWallet();
   const [reraModalOpen, setReraModalOpen] = useState(false);
@@ -561,7 +561,7 @@ export default function BuilderDashboard({ embedded = false }: { embedded?: bool
         {/* Main Content Tabs */}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="profile">My Profile</TabsTrigger>
 
             <TabsTrigger value="projects">My Projects</TabsTrigger>
