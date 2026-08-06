@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import {
   Loader2, TrendingUp, IndianRupee, CalendarDays, BedDouble, Users,
   RefreshCw, AlertTriangle, CheckCircle2, Plug, Settings, Plus, ArrowUpRight,
-  Activity, Zap, Clock, Mail, Phone, Sparkles, ChevronRight, MapPin, BrushCleaning,
+  Activity, Zap, Clock, Mail, Phone, Sparkles, ChevronRight, MapPin, Sparkle,
 } from "lucide-react";
 import { format, addDays, differenceInDays, startOfWeek, startOfMonth } from "date-fns";
 
@@ -321,7 +321,7 @@ export default function PartnerDashboard() {
                   onClick={() => setDrill({ title: "Check-ins today", rows: kpis.checkinsToday })} />
                 <TaskRow icon={<ArrowUpRight className="h-4 w-4" />} label="Check-outs" count={kpis.checkoutsToday.length}
                   onClick={() => setDrill({ title: "Check-outs today", rows: kpis.checkoutsToday })} />
-                <TaskRow icon={<BrushCleaning className="h-4 w-4" />} label="Rooms to clean" count={roomsToClean}
+                <TaskRow icon={<Sparkle className="h-4 w-4" />} label="Rooms to clean" count={roomsToClean}
                   onClick={() => setDrill({ title: "Rooms to clean (today's check-outs)", rows: kpis.checkoutsToday })} />
                 <TaskRow icon={<IndianRupee className="h-4 w-4" />} label="Pending payments" count={kpis.pendingPayments.length}
                   onClick={() => setDrill({ title: "Pending payments", rows: kpis.pendingPayments })} />
