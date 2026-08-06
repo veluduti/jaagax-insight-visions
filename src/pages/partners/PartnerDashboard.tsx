@@ -211,9 +211,6 @@ export default function PartnerDashboard() {
     const bookedToday = active.filter((b) => b.created_at && sameDay(new Date(b.created_at), today));
     const todaysBookings = bookedToday.length > 0 ? bookedToday : todayRows;
 
-    const pendingConfirmations = bookings.filter((b) =>
-      ["pending", "requested", "on_hold"].includes(String(b.status || "").toLowerCase()),
-    );
     const pendingPayments = active.filter((b) => String(b.payment_status || "").toLowerCase() === "pending");
 
     const rev30 = sum(active.filter((b) => new Date(b.check_in) >= past30 && new Date(b.check_in) <= today));
