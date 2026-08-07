@@ -140,74 +140,6 @@ type LoanApplication = {
   priority: "low" | "medium" | "high" | "urgent";
 };
 
-type Task = {
-  id: string;
-  title: string;
-  description: string;
-  due_date: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  type: "follow_up" | "call" | "document_verification" | "meeting" | "bank_visit" | "signature";
-  assigned_to: string;
-  customer_id: string | null;
-  customer_name: string | null;
-  created_at: string;
-};
-
-type Meeting = {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  duration: number;
-  type: "customer_visit" | "document_collection" | "bank_appointment" | "disbursement" | "review" | "other";
-  status: "scheduled" | "completed" | "cancelled";
-  customer_name: string;
-  customer_phone: string;
-  location: string;
-  notes: string;
-};
-
-type Activity = {
-  id: string;
-  type:
-    | "loan_approved"
-    | "new_application"
-    | "document_uploaded"
-    | "disbursed"
-    | "status_changed"
-    | "payment_received"
-    | "lead_purchased"
-    | "meeting_scheduled";
-  message: string;
-  created_at: string;
-  user_name: string; // Changed from 'user' to 'user_name'
-  metadata: any;
-};
-
-type TeamMember = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  applications_count: number;
-  approvals_count: number;
-  revenue: number;
-  pending_count: number;
-  avatar: string | null;
-};
-
-type WalletTransaction = {
-  id: string;
-  type: "credit" | "debit";
-  amount: number;
-  description: string;
-  category: "lead_purchase" | "promotion" | "recharge" | "commission" | "refund" | "other";
-  created_at: string;
-  balance: number;
-};
-
 type Notification = {
   id: string;
   type: "urgent" | "approval" | "document" | "payment" | "lead" | "promotion" | "system";
@@ -245,13 +177,6 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-500/20 text-red-400",
   disbursed: "bg-green-600/20 text-green-400",
   closed: "bg-gray-500/20 text-gray-400",
-};
-
-const TASK_PRIORITY_COLORS: Record<string, string> = {
-  low: "bg-blue-500/20 text-blue-400",
-  medium: "bg-yellow-500/20 text-yellow-400",
-  high: "bg-orange-500/20 text-orange-400",
-  urgent: "bg-red-500/20 text-red-400",
 };
 
 const PIE_COLORS = [
@@ -317,109 +242,12 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className={`${colorClass} capitalize`}>{statusObj?.label || status.replace(/_/g, " ")}</Badge>;
 }
 
-function PriorityBadge({ priority }: { priority: string }) {
-  const color = TASK_PRIORITY_COLORS[priority] || "bg-gray-500/20 text-gray-400";
-  return <Badge className={`${color} capitalize text-xs`}>{priority}</Badge>;
-}
-
-function TaskItem({ task, onComplete }: { task: Task; onComplete?: (id: string) => void }) {
-  return (
-    <div className="flex items-center justify-between p-3 border-b border-border/40 hover:bg-muted/20 transition-colors">
-      <div className="flex items-start gap-3 flex-1">
-        <div className="mt-1">
-          <input
-            type="checkbox"
-            checked={task.status === "completed"}
-            onChange={() => onComplete?.(task.id)}
-            className="h-4 w-4 rounded border-border text-primary"
-          />
-        </div>
-        <div className="flex-1">
-          <p className={`text-sm ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-            {task.title}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
-            <PriorityBadge priority={task.priority} />
-            <span className="text-xs text-muted-foreground">{task.customer_name}</span>
-            <span className="text-xs text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {new Date(task.due_date).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      </div>
-      <Button variant="ghost" size="sm">
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-}
-
-function MeetingItem({ meeting }: { meeting: Meeting }) {
-  return (
-    <div className="flex items-center gap-3 p-3 border-b border-border/40 hover:bg-muted/20 transition-colors">
-      <div className="w-12 text-center">
-        <div className="text-sm font-semibold">{new Date(meeting.date).getDate()}</div>
-        <div className="text-xs text-muted-foreground">
-          {new Date(meeting.date).toLocaleString("default", { month: "short" })}
-        </div>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium">{meeting.title}</p>
-        <p className="text-xs text-muted-foreground flex items-center gap-2">
-          <Clock className="h-3 w-3" />
-          {meeting.time} • {meeting.customer_name}
-        </p>
-      </div>
-      <Badge variant="outline" className="text-xs">
-        {meeting.status}
-      </Badge>
-    </div>
-  );
-}
-
-function ActivityItem({ activity }: { activity: Activity }) {
-  const icons: Record<string, any> = {
-    loan_approved: CheckCircle2,
-    new_application: FilePlus2,
-    document_uploaded: FileText,
-    disbursed: DollarSign,
-    status_changed: RefreshCw,
-    payment_received: CreditCard,
-    lead_purchased: Users,
-    meeting_scheduled: Calendar,
-  };
-  const Icon = icons[activity.type] || Activity;
-
-  return (
-    <div className="flex items-start gap-3 p-3 border-b border-border/40 hover:bg-muted/20 transition-colors">
-      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="h-4 w-4 text-primary" />
-      </div>
-      <div className="flex-1">
-        <p className="text-sm">{activity.message}</p>
-        <p className="text-xs text-muted-foreground">
-          {activity.user_name && `By ${activity.user_name} • `}
-          {new Date(activity.created_at).toLocaleString()}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function FinancialDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [provider, setProvider] = useState<any>(null);
   const [applications, setApplications] = useState<LoanApplication[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -430,12 +258,8 @@ export default function FinancialDashboard() {
     disbursed: 0,
     conversion: 0,
     revenue: 0,
-    wallet: 0,
     pendingDocuments: 0,
-    urgentTasks: 0,
-    todayMeetings: 0,
   });
-  const [leadsBreakdown, setLeadsBreakdown] = useState<any[]>([]);
   const [monthlyTrend, setMonthlyTrend] = useState<any[]>([]);
 
   useEffect(() => {
@@ -468,74 +292,6 @@ export default function FinancialDashboard() {
       const appsArr = (apps as any[]) || [];
       setApplications(appsArr as LoanApplication[]);
 
-      // Load tasks
-      const { data: tasksData } = await supabase
-        .from("financial_tasks" as any)
-        .select("*")
-        .eq("provider_id", prov.id)
-        .order("due_date", { ascending: true })
-        .limit(20);
-
-      setTasks((tasksData || []) as Task[]);
-
-      // Load meetings
-      const { data: meetingsData } = await supabase
-        .from("financial_meetings" as any)
-        .select("*")
-        .eq("provider_id", prov.id)
-        .gte("date", new Date().toISOString().split("T")[0])
-        .order("date", { ascending: true })
-        .limit(10);
-
-      setMeetings((meetingsData || []) as Meeting[]);
-
-      // Load activities
-      const { data: activitiesData } = await supabase
-        .from("financial_activities" as any)
-        .select("*")
-        .eq("provider_id", prov.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      // Map the data to ensure user_name is set
-      setActivities(
-        (activitiesData || []).map((act: any) => ({
-          ...act,
-          user_name: act.user_name || act.user || "System",
-        })) as Activity[],
-      );
-
-      // Load team members
-      const { data: teamData } = await supabase
-        .from("financial_team_members" as any)
-        .select("*")
-        .eq("provider_id", prov.id)
-        .eq("is_active", true);
-
-      setTeamMembers((teamData || []) as TeamMember[]);
-
-      // Load wallet
-      const { data: wallet } = await supabase
-        .from("wallet_transactions" as any)
-        .select("balance")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const balance = Number(wallet?.balance || 0);
-      setWalletBalance(balance);
-
-      // Load wallet transactions
-      const { data: transactions } = await supabase
-        .from("wallet_transactions" as any)
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      setWalletTransactions((transactions || []) as WalletTransaction[]);
-
       // Load notifications
       const { data: notifs } = await supabase
         .from("financial_notifications" as any)
@@ -565,12 +321,6 @@ export default function FinancialDashboard() {
       const enquiries = appsArr.length;
       const conversion = appsArr.length ? Math.round((approved / appsArr.length) * 100) : 0;
       const pendingDocuments = appsArr.filter((a: any) => a.status === "documents_pending").length;
-      const urgentTasks = (tasksData || []).filter(
-        (t: any) => t.priority === "urgent" && t.status !== "completed",
-      ).length;
-      const todayMeetings = (meetingsData || []).filter(
-        (m: any) => m.date === new Date().toISOString().split("T")[0] && m.status === "scheduled",
-      ).length;
 
       setStats({
         enquiries,
@@ -579,28 +329,8 @@ export default function FinancialDashboard() {
         disbursed,
         conversion,
         revenue,
-        wallet: balance,
         pendingDocuments,
-        urgentTasks,
-        todayMeetings,
       });
-
-      // Lead breakdown
-      const { data: leads } = await supabase
-        .from("financial_leads" as any)
-        .select("lead_type")
-        .eq("purchased_by_provider_id", prov.id);
-
-      const groups: Record<string, number> = {};
-      ((leads as any[]) || []).forEach((l) => {
-        groups[l.lead_type] = (groups[l.lead_type] || 0) + 1;
-      });
-      setLeadsBreakdown(
-        Object.entries(groups).map(([name, value]) => ({
-          name: name.replace(/_/g, " "),
-          value,
-        })),
-      );
 
       // Monthly trend
       const monthlyData = appsArr.reduce((acc: any, app: any) => {
@@ -648,21 +378,6 @@ export default function FinancialDashboard() {
     location.reload();
   };
 
-  const handleTaskComplete = async (taskId: string) => {
-    const { error } = await supabase
-      .from("financial_tasks" as any)
-      .update({ status: "completed" })
-      .eq("id", taskId);
-
-    if (error) {
-      toast.error("Failed to update task");
-      return;
-    }
-
-    toast.success("Task completed!");
-    loadDashboard();
-  };
-
   const handleMarkNotificationRead = async (notificationId: string) => {
     const { error } = await supabase
       .from("financial_notifications" as any)
@@ -695,8 +410,6 @@ export default function FinancialDashboard() {
 
     return filtered.slice(0, 10);
   }, [applications, searchQuery, selectedStatus]);
-
-  const urgentNotifications = notifications.filter((n) => !n.read && n.type === "urgent").slice(0, 5);
 
   if (loading) {
     return (
@@ -798,15 +511,8 @@ export default function FinancialDashboard() {
 
         {provider && (
           <>
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <QuickAction
-                to="/dashboard/financial/leads"
-                icon={Users}
-                label="Leads"
-                sub="Purchase & Manage"
-                badge={stats.enquiries}
-              />
+            {/* Quick Actions - Removed Leads, Wallet, Calendar */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <QuickAction
                 to="/dashboard/financial/applications"
                 icon={FileCheck2}
@@ -816,22 +522,10 @@ export default function FinancialDashboard() {
               />
               <QuickAction to="/dashboard/financial/customers" icon={User} label="Customers" sub="Manage Clients" />
               <QuickAction to="/dashboard/financial/reports" icon={BarChart3} label="Reports" sub="View Analytics" />
-              <QuickAction
-                to="/dashboard/financial/wallet"
-                icon={Wallet}
-                label="Wallet"
-                sub={`₹${walletBalance.toFixed(0)}`}
-              />
-              <QuickAction
-                to="/dashboard/financial/calendar"
-                icon={Calendar}
-                label="Calendar"
-                sub={stats.todayMeetings > 0 ? `${stats.todayMeetings} meetings today` : "Schedule"}
-              />
             </div>
 
             {/* Today's Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard
                 icon={FilePlus2}
                 label="New Applications"
@@ -867,14 +561,6 @@ export default function FinancialDashboard() {
                 label="Disbursed"
                 value={`₹${(stats.disbursed / 100000).toFixed(1)}L`}
                 hint="Total loans disbursed"
-              />
-              <StatCard
-                icon={IndianRupee}
-                label="Revenue"
-                value={`₹${(stats.revenue / 1000).toFixed(1)}K`}
-                hint="Commission earned"
-                trend="up"
-                trendValue="+5% vs last month"
               />
             </div>
 
@@ -914,411 +600,54 @@ export default function FinancialDashboard() {
               </CardContent>
             </Card>
 
-            {/* Search and Recent Applications */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      Recent Applications
-                    </CardTitle>
-                    <Link to="/dashboard/financial/applications">
-                      <Button variant="ghost" size="sm">
-                        View all
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 mt-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search by name, ID, phone, email..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
+            {/* Monthly Applications Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Monthly Applications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthlyTrend}>
+                      <defs>
+                        <linearGradient id="primaryFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="m" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: 8,
+                        }}
                       />
-                    </div>
-                    <select
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="all">All Status</option>
-                      {LOAN_STATUSES.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border/40 text-left text-xs text-muted-foreground">
-                          <th className="pb-2 font-medium">Application ID</th>
-                          <th className="pb-2 font-medium">Customer</th>
-                          <th className="pb-2 font-medium">Amount</th>
-                          <th className="pb-2 font-medium">Status</th>
-                          <th className="pb-2 font-medium">Last Updated</th>
-                          <th className="pb-2 font-medium text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredApplications.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                              No applications found
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredApplications.map((app) => (
-                            <tr key={app.id} className="border-b border-border/40 hover:bg-muted/20 transition-colors">
-                              <td className="py-3 font-medium text-primary">
-                                <Link to={`/dashboard/financial/applications/${app.id}`}>
-                                  {app.id.slice(0, 8).toUpperCase()}
-                                </Link>
-                              </td>
-                              <td className="py-3">
-                                <div>
-                                  <p className="font-medium">{app.customer_name}</p>
-                                  <p className="text-xs text-muted-foreground">{app.customer_phone}</p>
-                                </div>
-                              </td>
-                              <td className="py-3 font-medium">₹{app.loan_amount.toLocaleString()}</td>
-                              <td className="py-3">
-                                <StatusBadge status={app.status} />
-                              </td>
-                              <td className="py-3 text-xs text-muted-foreground">
-                                {new Date(app.updated_at).toLocaleString()}
-                              </td>
-                              <td className="py-3 text-right">
-                                <Link to={`/dashboard/financial/applications/${app.id}`}>
-                                  <Button variant="ghost" size="sm">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+                      <Area
+                        type="monotone"
+                        dataKey="apps"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        fill="url(#primaryFill)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Today's Tasks */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      Today's Tasks
-                    </CardTitle>
-                    <Badge variant="destructive" className="text-xs">
-                      {tasks.filter((t) => t.status === "pending" && t.priority === "urgent").length} urgent
-                    </Badge>
-                  </div>
-                  <CardDescription>Priority tasks for today</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px]">
-                    {tasks
-                      .filter((t) => t.status !== "completed")
-                      .slice(0, 10)
-                      .map((task) => (
-                        <TaskItem key={task.id} task={task} onComplete={handleTaskComplete} />
-                      ))}
-                    {tasks.filter((t) => t.status !== "completed").length === 0 && (
-                      <div className="py-8 text-center text-muted-foreground text-sm">
-                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-emerald-500" />
-                        All tasks completed! 🎉
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Second Row */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Meetings */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Upcoming Meetings
-                    </CardTitle>
-                    <Link to="/dashboard/financial/calendar">
-                      <Button variant="ghost" size="sm">
-                        Calendar
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {meetings.length === 0 ? (
-                      <div className="py-8 text-center text-muted-foreground text-sm">No upcoming meetings</div>
-                    ) : (
-                      meetings.map((meeting) => <MeetingItem key={meeting.id} meeting={meeting} />)
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Recent Activities */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-primary" />
-                      Recent Activity
-                    </CardTitle>
-                    <Link to="/dashboard/financial/activities">
-                      <Button variant="ghost" size="sm">
-                        View all
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {activities.length === 0 ? (
-                      <div className="py-8 text-center text-muted-foreground text-sm">No recent activity</div>
-                    ) : (
-                      activities.map((activity) => <ActivityItem key={activity.id} activity={activity} />)
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Charts */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Monthly Applications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={monthlyTrend}>
-                        <defs>
-                          <linearGradient id="primaryFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="m" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <Tooltip
-                          contentStyle={{
-                            background: "hsl(var(--popover))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: 8,
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="apps"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          fill="url(#primaryFill)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Third Row - Team Performance & Wallet */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Team Performance */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <UsersIcon className="h-5 w-5 text-primary" />
-                      Team Performance
-                    </CardTitle>
-                    <Link to="/dashboard/financial/team">
-                      <Button variant="ghost" size="sm">
-                        Manage
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {teamMembers.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground text-sm">No team members added yet</div>
-                  ) : (
-                    <div className="space-y-3">
-                      {teamMembers.map((member) => (
-                        <div
-                          key={member.id}
-                          className="flex items-center justify-between p-3 border border-border/40 rounded-lg hover:bg-muted/20 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">{member.name}</p>
-                              <p className="text-xs text-muted-foreground">{member.role}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs">
-                            <div>
-                              <p className="text-muted-foreground">Applications</p>
-                              <p className="font-semibold">{member.applications_count}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Approved</p>
-                              <p className="font-semibold">{member.approvals_count}</p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground">Revenue</p>
-                              <p className="font-semibold">₹{(member.revenue / 1000).toFixed(1)}K</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Wallet */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Wallet className="h-5 w-5 text-primary" />
-                      Wallet
-                    </CardTitle>
-                    <Link to="/dashboard/financial/wallet">
-                      <Button variant="ghost" size="sm">
-                        Manage
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-primary/5 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-muted-foreground">Available Balance</p>
-                    <p className="text-3xl font-bold">₹{walletBalance.toLocaleString()}</p>
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <CreditCard className="h-4 w-4 mr-1" /> Add Funds
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <TrendingUp className="h-4 w-4 mr-1" /> History
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    <p className="text-xs font-semibold text-muted-foreground">Recent Transactions</p>
-                    {walletTransactions.slice(0, 5).map((txn) => (
-                      <div key={txn.id} className="flex items-center justify-between p-2 border-b border-border/40">
-                        <div className="flex items-center gap-2">
-                          {txn.type === "credit" ? (
-                            <ArrowUpRight className="h-4 w-4 text-emerald-500" />
-                          ) : (
-                            <ArrowDownRight className="h-4 w-4 text-red-500" />
-                          )}
-                          <div>
-                            <p className="text-xs font-medium">{txn.description}</p>
-                            <p className="text-xs text-muted-foreground">{txn.category}</p>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-xs font-semibold ${txn.type === "credit" ? "text-emerald-500" : "text-red-500"}`}
-                        >
-                          {txn.type === "credit" ? "+" : "-"}₹{txn.amount.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Tabs for detailed views */}
-            <Tabs defaultValue="services" className="w-full">
+            {/* Tabs for detailed views - Removed Services, Leads tabs */}
+            <Tabs defaultValue="apps" className="w-full">
               <TabsList className="flex-wrap h-auto">
-                <TabsTrigger value="services">Services</TabsTrigger>
-                <TabsTrigger value="leads">Leads</TabsTrigger>
                 <TabsTrigger value="apps">Applications</TabsTrigger>
                 <TabsTrigger value="reports">Reports</TabsTrigger>
                 <TabsTrigger value="customers">Customers</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="services" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Services Offered</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "Home Loan",
-                        "Mortgage",
-                        "NBFC",
-                        "Legal Services",
-                        "Valuation",
-                        "Investment Advisory",
-                        "Credit Score",
-                      ].map((s) => {
-                        const enabled = (provider?.services_offered || []).includes(s);
-                        return (
-                          <Badge key={s} variant={enabled ? "default" : "outline"}>
-                            {s}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-6 pt-4 border-t">
-                      <Link to="/dashboard/financial/settings">
-                        <Button variant="outline">
-                          <Settings className="h-4 w-4 mr-2" /> Edit Services & Profile
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="leads" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="h-5 w-5" /> Lead Marketplace
-                      </CardTitle>
-                      <Badge variant={provider?.kyc_status === "verified" ? "default" : "secondary"}>
-                        {provider?.kyc_status === "verified" ? "KYC Verified - Ready" : "Verify KYC First"}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      Browse buyer/investor leads and unlock contact details by purchasing from your wallet.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Link to="/dashboard/financial/leads">
-                      <Button disabled={provider?.kyc_status !== "verified"}>Browse Leads</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </TabsContent>
 
               <TabsContent value="apps" className="mt-4">
                 <Card>
@@ -1332,9 +661,67 @@ export default function FinancialDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Link to="/dashboard/financial/applications">
-                      <Button variant="outline">View All Applications</Button>
-                    </Link>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border/40 text-left text-xs text-muted-foreground">
+                            <th className="pb-2 font-medium">Application ID</th>
+                            <th className="pb-2 font-medium">Customer</th>
+                            <th className="pb-2 font-medium">Amount</th>
+                            <th className="pb-2 font-medium">Status</th>
+                            <th className="pb-2 font-medium">Last Updated</th>
+                            <th className="pb-2 font-medium text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredApplications.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                                No applications found
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredApplications.map((app) => (
+                              <tr
+                                key={app.id}
+                                className="border-b border-border/40 hover:bg-muted/20 transition-colors"
+                              >
+                                <td className="py-3 font-medium text-primary">
+                                  <Link to={`/dashboard/financial/applications/${app.id}`}>
+                                    {app.id.slice(0, 8).toUpperCase()}
+                                  </Link>
+                                </td>
+                                <td className="py-3">
+                                  <div>
+                                    <p className="font-medium">{app.customer_name}</p>
+                                    <p className="text-xs text-muted-foreground">{app.customer_phone}</p>
+                                  </div>
+                                </td>
+                                <td className="py-3 font-medium">₹{app.loan_amount.toLocaleString()}</td>
+                                <td className="py-3">
+                                  <StatusBadge status={app.status} />
+                                </td>
+                                <td className="py-3 text-xs text-muted-foreground">
+                                  {new Date(app.updated_at).toLocaleString()}
+                                </td>
+                                <td className="py-3 text-right">
+                                  <Link to={`/dashboard/financial/applications/${app.id}`}>
+                                    <Button variant="ghost" size="sm">
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="mt-4">
+                      <Link to="/dashboard/financial/applications">
+                        <Button variant="outline">View All Applications</Button>
+                      </Link>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
