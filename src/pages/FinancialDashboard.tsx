@@ -551,8 +551,6 @@ export default function FinancialDashboard() {
                 label="Pending Documents"
                 value={stats.pendingDocuments}
                 hint="Waiting for customer"
-                trend={stats.pendingDocuments > 0 ? "down" : "neutral"}
-                trendValue={stats.pendingDocuments > 0 ? `${stats.pendingDocuments}` : "All clear"}
               />
               <StatCard
                 icon={ShieldCheck}
