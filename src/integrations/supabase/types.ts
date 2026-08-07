@@ -2094,6 +2094,44 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_activities: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          provider_id: string | null
+          type: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          provider_id?: string | null
+          type?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          provider_id?: string | null
+          type?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_activities_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "financial_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_branches: {
         Row: {
           branch_locations: Json | null
@@ -2128,15 +2166,7 @@ export type Database = {
           updated_at?: string
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "financial_branches_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "financial_providers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financial_enquiries: {
         Row: {
@@ -2312,106 +2342,61 @@ export type Database = {
           source_user_id?: string | null
           state?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "financial_leads_purchased_by_provider_id_fkey"
-            columns: ["purchased_by_provider_id"]
-            isOneToOne: false
-            referencedRelation: "financial_providers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financial_loan_applications: {
         Row: {
-          accepted_at: string | null
-          approved_at: string | null
-          assigned_rm_id: string | null
-          assigned_rm_name: string | null
-          buyer_email: string | null
-          buyer_id: string | null
-          buyer_name: string | null
-          buyer_phone: string | null
-          created_at: string
+          assigned_rm: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
           disbursed_amount: number | null
-          disbursed_at: string | null
-          employment_type: string | null
+          documents: Json | null
           id: string
-          loan_amount: number
-          monthly_income: number | null
-          property_id: string | null
-          property_title: string | null
-          property_value: number | null
-          provider_id: string
-          rejected_at: string | null
-          rejection_reason: string | null
-          sanction_letter_url: string | null
-          status: string
-          tenure_months: number | null
-          updated_at: string
+          loan_amount: number | null
+          loan_type: string | null
+          notes: string | null
+          priority: string | null
+          provider_id: string | null
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          accepted_at?: string | null
-          approved_at?: string | null
-          assigned_rm_id?: string | null
-          assigned_rm_name?: string | null
-          buyer_email?: string | null
-          buyer_id?: string | null
-          buyer_name?: string | null
-          buyer_phone?: string | null
-          created_at?: string
+          assigned_rm?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           disbursed_amount?: number | null
-          disbursed_at?: string | null
-          employment_type?: string | null
+          documents?: Json | null
           id?: string
-          loan_amount: number
-          monthly_income?: number | null
-          property_id?: string | null
-          property_title?: string | null
-          property_value?: number | null
-          provider_id: string
-          rejected_at?: string | null
-          rejection_reason?: string | null
-          sanction_letter_url?: string | null
-          status?: string
-          tenure_months?: number | null
-          updated_at?: string
+          loan_amount?: number | null
+          loan_type?: string | null
+          notes?: string | null
+          priority?: string | null
+          provider_id?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          accepted_at?: string | null
-          approved_at?: string | null
-          assigned_rm_id?: string | null
-          assigned_rm_name?: string | null
-          buyer_email?: string | null
-          buyer_id?: string | null
-          buyer_name?: string | null
-          buyer_phone?: string | null
-          created_at?: string
+          assigned_rm?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           disbursed_amount?: number | null
-          disbursed_at?: string | null
-          employment_type?: string | null
+          documents?: Json | null
           id?: string
-          loan_amount?: number
-          monthly_income?: number | null
-          property_id?: string | null
-          property_title?: string | null
-          property_value?: number | null
-          provider_id?: string
-          rejected_at?: string | null
-          rejection_reason?: string | null
-          sanction_letter_url?: string | null
-          status?: string
-          tenure_months?: number | null
-          updated_at?: string
+          loan_amount?: number | null
+          loan_type?: string | null
+          notes?: string | null
+          priority?: string | null
+          provider_id?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "financial_loan_applications_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "financial_loan_applications_provider_id_fkey"
             columns: ["provider_id"]
@@ -2455,46 +2440,97 @@ export type Database = {
           verified_by?: string | null
           verified_status?: string
         }
+        Relationships: []
+      }
+      financial_meetings: {
+        Row: {
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          date: string | null
+          description: string | null
+          duration: number | null
+          id: string
+          location: string | null
+          notes: string | null
+          provider_id: string | null
+          status: string | null
+          time: string | null
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          provider_id?: string | null
+          status?: string | null
+          time?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          date?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          provider_id?: string | null
+          status?: string | null
+          time?: string | null
+          title?: string | null
+          type?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "financial_loan_documents_application_id_fkey"
-            columns: ["application_id"]
+            foreignKeyName: "financial_meetings_provider_id_fkey"
+            columns: ["provider_id"]
             isOneToOne: false
-            referencedRelation: "financial_loan_applications"
+            referencedRelation: "financial_providers"
             referencedColumns: ["id"]
           },
         ]
       }
       financial_notifications: {
         Row: {
-          channel: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          is_read: boolean
           link: string | null
           message: string | null
-          provider_id: string
-          title: string
+          provider_id: string | null
+          read: boolean | null
+          title: string | null
+          type: string | null
         }
         Insert: {
-          channel?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          is_read?: boolean
           link?: string | null
           message?: string | null
-          provider_id: string
-          title: string
+          provider_id?: string | null
+          read?: boolean | null
+          title?: string | null
+          type?: string | null
         }
         Update: {
-          channel?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          is_read?: boolean
           link?: string | null
           message?: string | null
-          provider_id?: string
-          title?: string
+          provider_id?: string | null
+          read?: boolean | null
+          title?: string | null
+          type?: string | null
         }
         Relationships: [
           {
@@ -2540,9 +2576,87 @@ export type Database = {
           provider_id?: string
           start_date?: string
         }
+        Relationships: []
+      }
+      financial_providers: {
+        Row: {
+          company_name: string | null
+          created_at: string | null
+          entity_type: string | null
+          id: string
+          kyc_status: string | null
+          services_offered: string[] | null
+          subscription_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string | null
+          entity_type?: string | null
+          id?: string
+          kyc_status?: string | null
+          services_offered?: string[] | null
+          subscription_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string | null
+          entity_type?: string | null
+          id?: string
+          kyc_status?: string | null
+          services_offered?: string[] | null
+          subscription_status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      financial_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          provider_id: string | null
+          status: string | null
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          provider_id?: string | null
+          status?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          provider_id?: string | null
+          status?: string | null
+          title?: string | null
+          type?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "financial_promotions_provider_id_fkey"
+            foreignKeyName: "financial_tasks_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "financial_providers"
@@ -2550,120 +2664,48 @@ export type Database = {
           },
         ]
       }
-      financial_providers: {
-        Row: {
-          company_name: string | null
-          company_reg_cert_url: string | null
-          created_at: string
-          entity_type: string | null
-          featured_until: string | null
-          gst_url: string | null
-          id: string
-          is_featured: boolean | null
-          kyc_rejection_reason: string | null
-          kyc_status: string
-          logo_url: string | null
-          notification_preferences: Json
-          pan_url: string | null
-          rating: number | null
-          rbi_registration: string | null
-          services_offered: string[] | null
-          signatory_id_url: string | null
-          subscription_expires_at: string | null
-          subscription_status: string
-          total_reviews: number | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_name?: string | null
-          company_reg_cert_url?: string | null
-          created_at?: string
-          entity_type?: string | null
-          featured_until?: string | null
-          gst_url?: string | null
-          id?: string
-          is_featured?: boolean | null
-          kyc_rejection_reason?: string | null
-          kyc_status?: string
-          logo_url?: string | null
-          notification_preferences?: Json
-          pan_url?: string | null
-          rating?: number | null
-          rbi_registration?: string | null
-          services_offered?: string[] | null
-          signatory_id_url?: string | null
-          subscription_expires_at?: string | null
-          subscription_status?: string
-          total_reviews?: number | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_name?: string | null
-          company_reg_cert_url?: string | null
-          created_at?: string
-          entity_type?: string | null
-          featured_until?: string | null
-          gst_url?: string | null
-          id?: string
-          is_featured?: boolean | null
-          kyc_rejection_reason?: string | null
-          kyc_status?: string
-          logo_url?: string | null
-          notification_preferences?: Json
-          pan_url?: string | null
-          rating?: number | null
-          rbi_registration?: string | null
-          services_offered?: string[] | null
-          signatory_id_url?: string | null
-          subscription_expires_at?: string | null
-          subscription_status?: string
-          total_reviews?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       financial_team_members: {
         Row: {
-          created_at: string
+          applications_count: number | null
+          approvals_count: number | null
+          avatar: string | null
+          created_at: string | null
           email: string | null
           id: string
-          is_active: boolean
-          member_user_id: string | null
-          name: string
-          performance: Json | null
-          phone: string | null
-          provider_id: string
-          team_role: string
-          updated_at: string
+          is_active: boolean | null
+          name: string | null
+          pending_count: number | null
+          provider_id: string | null
+          revenue: number | null
+          role: string | null
         }
         Insert: {
-          created_at?: string
+          applications_count?: number | null
+          approvals_count?: number | null
+          avatar?: string | null
+          created_at?: string | null
           email?: string | null
           id?: string
-          is_active?: boolean
-          member_user_id?: string | null
-          name: string
-          performance?: Json | null
-          phone?: string | null
-          provider_id: string
-          team_role: string
-          updated_at?: string
+          is_active?: boolean | null
+          name?: string | null
+          pending_count?: number | null
+          provider_id?: string | null
+          revenue?: number | null
+          role?: string | null
         }
         Update: {
-          created_at?: string
+          applications_count?: number | null
+          approvals_count?: number | null
+          avatar?: string | null
+          created_at?: string | null
           email?: string | null
           id?: string
-          is_active?: boolean
-          member_user_id?: string | null
-          name?: string
-          performance?: Json | null
-          phone?: string | null
-          provider_id?: string
-          team_role?: string
-          updated_at?: string
+          is_active?: boolean | null
+          name?: string | null
+          pending_count?: number | null
+          provider_id?: string | null
+          revenue?: number | null
+          role?: string | null
         }
         Relationships: [
           {
@@ -9574,56 +9616,36 @@ export type Database = {
       }
       wallet_transactions: {
         Row: {
-          amount: number
+          amount: number | null
+          balance: number | null
           category: string | null
-          created_at: string
+          created_at: string | null
           description: string | null
           id: string
-          metadata: Json | null
-          reference: string | null
-          reference_id: string | null
-          status: string
-          type: string
-          user_id: string
-          wallet_id: string | null
+          type: string | null
+          user_id: string | null
         }
         Insert: {
-          amount: number
+          amount?: number | null
+          balance?: number | null
           category?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          metadata?: Json | null
-          reference?: string | null
-          reference_id?: string | null
-          status?: string
-          type: string
-          user_id: string
-          wallet_id?: string | null
+          type?: string | null
+          user_id?: string | null
         }
         Update: {
-          amount?: number
+          amount?: number | null
+          balance?: number | null
           category?: string | null
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
-          metadata?: Json | null
-          reference?: string | null
-          reference_id?: string | null
-          status?: string
-          type?: string
-          user_id?: string
-          wallet_id?: string | null
+          type?: string | null
+          user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_transactions_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       wallets: {
         Row: {
