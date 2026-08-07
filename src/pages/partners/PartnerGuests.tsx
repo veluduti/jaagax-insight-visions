@@ -34,13 +34,13 @@ import {
   Calendar as CalendarIcon,
   Filter,
   Star,
-  Briefcase,
   Clock,
-  TrendingUp,
   UserCheck,
   UserX,
   ChevronDown,
   X,
+  MapPin,
+  Briefcase,
 } from "lucide-react";
 import { format, parseISO, isToday, isThisWeek, isThisMonth } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -52,14 +52,12 @@ type Guest = {
   name: string;
   email: string | null;
   phone: string | null;
-  tags: string[];
   total_bookings: number;
   total_spent: number;
   last_stay_at: string | null;
   next_stay_at: string | null;
   notes: string | null;
   created_at: string;
-  loyalty_points?: number;
   preferred_room_type?: string;
 };
 
@@ -75,7 +73,6 @@ type Booking = {
   room_type: string;
 };
 
-const TAG_OPTIONS = ["VIP", "Repeat", "Corporate", "Blacklist", "Frequent", "New"];
 const DATE_FILTERS = [
   { value: "all", label: "All Guests" },
   { value: "today", label: "Today" },
@@ -88,7 +85,6 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
   { value: "most_stays", label: "Most Stays" },
-  { value: "highest_spent", label: "Highest Spent" },
   { value: "last_stay", label: "Last Stay" },
 ];
 
@@ -105,7 +101,6 @@ export default function PartnerGuests() {
   const [sortBy, setSortBy] = useState("newest");
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [showGuestDetails, setShowGuestDetails] = useState(false);
-  const [tagFilter, setTagFilter] = useState<string[]>([]);
 
   // Load data
   useEffect(() => {
@@ -145,14 +140,12 @@ export default function PartnerGuests() {
               name: b.guest_name,
               email: b.guest_email,
               phone: b.guest_phone,
-              tags: [],
               total_bookings: 0,
               total_spent: 0,
               last_stay_at: null,
               next_stay_at: null,
               notes: null,
               created_at: new Date().toISOString(),
-              loyalty_points: 0,
               preferred_room_type: b.room_type,
             };
           }
@@ -210,18 +203,11 @@ export default function PartnerGuests() {
     // Search
     if (searchQuery.trim()) {
       const term = searchQuery.trim().toLowerCase();
-      result = result.filter((g) =>
-        `${g.name} ${g.email || ""} ${g.phone || ""} ${g.tags.join(" ")}`.toLowerCase().includes(term),
-      );
+      result = result.filter((g) => `${g.name} ${g.email || ""} ${g.phone || ""}`.toLowerCase().includes(term));
     }
 
     // Date filter
     result = result.filter(filterByDate);
-
-    // Tag filter
-    if (tagFilter.length > 0) {
-      result = result.filter((g) => g.tags.some((t) => tagFilter.includes(t)));
-    }
 
     // Sort
     switch (sortBy) {
@@ -233,9 +219,6 @@ export default function PartnerGuests() {
         break;
       case "most_stays":
         result.sort((a, b) => b.total_bookings - a.total_bookings);
-        break;
-      case "highest_spent":
-        result.sort((a, b) => b.total_spent - a.total_spent);
         break;
       case "last_stay":
         result.sort((a, b) => {
@@ -249,7 +232,7 @@ export default function PartnerGuests() {
     }
 
     return result;
-  }, [guests, searchQuery, dateFilter, customDate, tagFilter, sortBy]);
+  }, [guests, searchQuery, dateFilter, customDate, sortBy]);
 
   // Get guest bookings for details view
   const getGuestBookings = (guestId: string) => {
@@ -275,9 +258,7 @@ export default function PartnerGuests() {
         name: editing.name,
         email: editing.email || null,
         phone: editing.phone || null,
-        tags: editing.tags || [],
         notes: editing.notes || null,
-        loyalty_points: editing.loyalty_points || 0,
         preferred_room_type: editing.preferred_room_type || null,
       };
 
@@ -316,33 +297,7 @@ export default function PartnerGuests() {
     }
   };
 
-  const toggleTag = (tag: string) => {
-    if (!editing) return;
-    const cur = editing.tags || [];
-    setEditing({
-      ...editing,
-      tags: cur.includes(tag) ? cur.filter((t) => t !== tag) : [...cur, tag],
-    });
-  };
-
-  const toggleTagFilter = (tag: string) => {
-    setTagFilter((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
-  };
-
-  const getTagColor = (tag: string) => {
-    const colors: Record<string, string> = {
-      VIP: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-      Repeat: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-      Corporate: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-      Blacklist: "bg-red-500/15 text-red-400 border-red-500/30",
-      Frequent: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-      New: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
-    };
-    return colors[tag] || "bg-muted text-muted-foreground";
-  };
-
   const getGuestStatus = (guest: Guest) => {
-    if (guest.tags.includes("Blacklist")) return "blacklisted";
     if (guest.total_bookings > 5) return "loyal";
     if (guest.total_bookings > 2) return "regular";
     return "new";
@@ -354,8 +309,6 @@ export default function PartnerGuests() {
         return <Star className="h-4 w-4 text-amber-400" />;
       case "regular":
         return <UserCheck className="h-4 w-4 text-emerald-400" />;
-      case "blacklisted":
-        return <UserX className="h-4 w-4 text-red-400" />;
       default:
         return <Users className="h-4 w-4 text-muted-foreground" />;
     }
@@ -391,7 +344,7 @@ export default function PartnerGuests() {
             </div>
             <div className="flex gap-2">
               <Button
-                onClick={() => setEditing({ name: "", tags: [] })}
+                onClick={() => setEditing({ name: "" })}
                 className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
               >
                 <Plus className="mr-1.5 h-4 w-4" />
@@ -411,8 +364,8 @@ export default function PartnerGuests() {
           </Card>
           <Card className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-amber-500/20">
             <CardContent className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground">VIP Guests</p>
-              <p className="text-2xl font-bold">{guests.filter((g) => g.tags.includes("VIP")).length}</p>
+              <p className="text-xs font-medium text-muted-foreground">Loyal Guests</p>
+              <p className="text-2xl font-bold">{guests.filter((g) => g.total_bookings > 5).length}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20">
@@ -437,7 +390,7 @@ export default function PartnerGuests() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Search guests by name, email, phone, or tags..."
+              placeholder="Search guests by name, email, or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -496,46 +449,6 @@ export default function PartnerGuests() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* Tag Filter */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Filter className="h-4 w-4" />
-                  Tags
-                  {tagFilter.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">
-                      {tagFilter.length}
-                    </Badge>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2" align="end">
-                <div className="space-y-1">
-                  {TAG_OPTIONS.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => toggleTagFilter(tag)}
-                      className={cn(
-                        "w-full rounded-md px-3 py-2 text-sm text-left transition-colors flex items-center justify-between",
-                        tagFilter.includes(tag) ? "bg-primary/10 text-primary" : "hover:bg-muted",
-                      )}
-                    >
-                      {tag}
-                      {tagFilter.includes(tag) && <X className="h-3 w-3" />}
-                    </button>
-                  ))}
-                  {tagFilter.length > 0 && (
-                    <button
-                      onClick={() => setTagFilter([])}
-                      className="w-full rounded-md px-3 py-2 text-sm text-center text-muted-foreground hover:bg-muted transition-colors"
-                    >
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
           </div>
         </div>
 
@@ -548,7 +461,7 @@ export default function PartnerGuests() {
               </div>
               <h3 className="text-lg font-semibold mb-2">No guests found</h3>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
-                {searchQuery || tagFilter.length > 0 || dateFilter !== "all"
+                {searchQuery || dateFilter !== "all"
                   ? "Try adjusting your filters to see more results"
                   : "Guests will appear here as they check in"}
               </p>
@@ -562,14 +475,7 @@ export default function PartnerGuests() {
               const upcomingStay = guestBookings.find((b) => b.check_in && new Date(b.check_in) > new Date());
 
               return (
-                <Card
-                  key={guest.id}
-                  className={cn(
-                    "group relative overflow-hidden transition-all hover:shadow-lg border",
-                    guest.tags.includes("Blacklist") && "border-red-500/20 bg-red-500/5",
-                    guest.tags.includes("VIP") && "border-amber-500/20 bg-amber-500/5",
-                  )}
-                >
+                <Card key={guest.id} className="group relative overflow-hidden transition-all hover:shadow-lg border">
                   <CardContent
                     className="p-4 cursor-pointer"
                     onClick={() => {
@@ -582,14 +488,6 @@ export default function PartnerGuests() {
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold truncate">{guest.name}</h4>
                           {getGuestStatusIcon(status)}
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {guest.tags.map((tag) => (
-                            <Badge key={tag} className={cn("text-xs border", getTagColor(tag))}>
-                              {tag}
-                            </Badge>
-                          ))}
-                          {guest.tags.length === 0 && <span className="text-xs text-muted-foreground">No tags</span>}
                         </div>
                       </div>
                       <div className="flex gap-1 ml-2">
@@ -679,11 +577,6 @@ export default function PartnerGuests() {
                       <Badge variant="outline" className="text-xs">
                         {selectedGuest.total_bookings} bookings
                       </Badge>
-                      {selectedGuest.tags.map((tag) => (
-                        <Badge key={tag} className={cn("text-xs", getTagColor(tag))}>
-                          {tag}
-                        </Badge>
-                      ))}
                     </DialogDescription>
                   </div>
                   <Button
@@ -819,45 +712,11 @@ export default function PartnerGuests() {
               </div>
 
               <div>
-                <Label>Tags</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {TAG_OPTIONS.map((tag) => {
-                    const isSelected = (editing.tags || []).includes(tag);
-                    return (
-                      <button
-                        type="button"
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        className={cn(
-                          "rounded-full border px-3 py-1 text-xs transition-all",
-                          isSelected
-                            ? "border-emerald-400 bg-emerald-500/15 text-emerald-300"
-                            : "border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/20",
-                        )}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
                 <Label>Preferred Room Type</Label>
                 <Input
                   value={editing.preferred_room_type || ""}
                   onChange={(e) => setEditing({ ...editing, preferred_room_type: e.target.value })}
                   placeholder="e.g., Deluxe Suite, Ocean View"
-                />
-              </div>
-
-              <div>
-                <Label>Loyalty Points</Label>
-                <Input
-                  type="number"
-                  value={editing.loyalty_points || 0}
-                  onChange={(e) => setEditing({ ...editing, loyalty_points: Number(e.target.value) })}
-                  placeholder="0"
                 />
               </div>
 
