@@ -546,7 +546,7 @@ export default function FinancialDashboard() {
                 value={applications.filter((a) => a.status === "new").length}
                 hint="Requires review"
                 trend="up"
-                trendValue="+12% vs last week"
+                trendValue="+12%"
               />
               <StatCard
                 icon={FileText}
@@ -554,7 +554,7 @@ export default function FinancialDashboard() {
                 value={stats.pendingDocuments}
                 hint="Waiting for customer"
                 trend={stats.pendingDocuments > 0 ? "down" : "neutral"}
-                trendValue={stats.pendingDocuments > 0 ? `${stats.pendingDocuments} pending` : "All clear"}
+                trendValue={stats.pendingDocuments > 0 ? `${stats.pendingDocuments}` : "All clear"}
               />
               <StatCard
                 icon={ShieldCheck}
@@ -568,7 +568,7 @@ export default function FinancialDashboard() {
                 value={stats.approved}
                 hint="Ready for disbursement"
                 trend="up"
-                trendValue="+8% vs last month"
+                trendValue="+8%"
               />
               <StatCard
                 icon={DollarSign}
