@@ -132,7 +132,10 @@ export default function FinancialLeads() {
   }
 
   return (
-    
+    <FinancialLayout
+      title="Lead Marketplace"
+      subtitle={`Wallet balance: ₹${walletBalance.toLocaleString("en-IN")}`}
+    >
       <Card className="border-border bg-card backdrop-blur-md">
         <CardContent className="p-4 grid md:grid-cols-3 gap-4">
           <div className="relative">
