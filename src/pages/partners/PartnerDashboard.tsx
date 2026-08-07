@@ -1315,3 +1315,12 @@ function PayBadge({ b }: { b: Booking }) {
           : "bg-amber-500/15 text-amber-400";
   return <Badge className={`${cls} capitalize hover:${cls}`}>{s}</Badge>;
 }
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-medium">{value}</span>
+    </div>
+  );
+}
