@@ -2922,6 +2922,7 @@ export type Database = {
           actual_check_in_at: string | null
           actual_check_out_at: string | null
           addon_total: number
+          amount_paid: number
           booked_by_agent_id: string | null
           booking_reference: string | null
           booking_type: string | null
@@ -2938,6 +2939,7 @@ export type Database = {
           currency: string
           district: string | null
           district_admin_id: string | null
+          extra_charges: number
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
@@ -2945,6 +2947,8 @@ export type Database = {
           hotel_address: string | null
           hotel_id: string
           hotel_name: string | null
+          housekeeping_staff: string | null
+          housekeeping_status: string | null
           id: string
           invoice_url: string | null
           num_guests: number | null
@@ -2961,6 +2965,8 @@ export type Database = {
           razorpay_signature: string | null
           refunded_amount: number | null
           refunded_at: string | null
+          room_cleaned_at: string | null
+          room_number: string | null
           room_type: string | null
           source: string
           special_requests: string | null
@@ -2974,6 +2980,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          amount_paid?: number
           booked_by_agent_id?: string | null
           booking_reference?: string | null
           booking_type?: string | null
@@ -2990,6 +2997,7 @@ export type Database = {
           currency?: string
           district?: string | null
           district_admin_id?: string | null
+          extra_charges?: number
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
@@ -2997,6 +3005,8 @@ export type Database = {
           hotel_address?: string | null
           hotel_id: string
           hotel_name?: string | null
+          housekeeping_staff?: string | null
+          housekeeping_status?: string | null
           id?: string
           invoice_url?: string | null
           num_guests?: number | null
@@ -3013,6 +3023,8 @@ export type Database = {
           razorpay_signature?: string | null
           refunded_amount?: number | null
           refunded_at?: string | null
+          room_cleaned_at?: string | null
+          room_number?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
@@ -3026,6 +3038,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          amount_paid?: number
           booked_by_agent_id?: string | null
           booking_reference?: string | null
           booking_type?: string | null
@@ -3042,6 +3055,7 @@ export type Database = {
           currency?: string
           district?: string | null
           district_admin_id?: string | null
+          extra_charges?: number
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
@@ -3049,6 +3063,8 @@ export type Database = {
           hotel_address?: string | null
           hotel_id?: string
           hotel_name?: string | null
+          housekeeping_staff?: string | null
+          housekeeping_status?: string | null
           id?: string
           invoice_url?: string | null
           num_guests?: number | null
@@ -3065,6 +3081,8 @@ export type Database = {
           razorpay_signature?: string | null
           refunded_amount?: number | null
           refunded_at?: string | null
+          room_cleaned_at?: string | null
+          room_number?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
