@@ -192,24 +192,38 @@ const PIE_COLORS = [
 // Components
 function StatCard({ icon: Icon, label, value, hint, trend, trendValue }: any) {
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className="h-4 w-4 text-primary" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
-        {trend && (
-          <div
-            className={`flex items-center gap-1 mt-1 text-xs ${trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-500" : "text-muted-foreground"}`}
-          >
-            {trend === "up" && <ArrowUpRight className="h-3 w-3" />}
-            {trend === "down" && <ArrowDownRight className="h-3 w-3" />}
-            {trend === "neutral" && <Minus className="h-3 w-3" />}
-            {trendValue}
+    <Card className="hover:shadow-lg transition-all duration-300 border border-border/50 overflow-hidden group">
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">{label}</span>
           </div>
-        )}
+          {trend && (
+            <div
+              className={`flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
+                trend === "up"
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : trend === "down"
+                    ? "bg-red-500/10 text-red-500"
+                    : "bg-gray-500/10 text-muted-foreground"
+              }`}
+            >
+              {trend === "up" && <ArrowUpRight className="h-3 w-3" />}
+              {trend === "down" && <ArrowDownRight className="h-3 w-3" />}
+              {trend === "neutral" && <Minus className="h-3 w-3" />}
+              <span>{trendValue}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="text-3xl font-bold tracking-tight">{value}</div>
+            {hint && <div className="text-xs text-muted-foreground mt-0.5">{hint}</div>}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
