@@ -545,8 +545,6 @@ export default function FinancialDashboard() {
                 label="New Applications"
                 value={applications.filter((a) => a.status === "new").length}
                 hint="Requires review"
-                trend="up"
-                trendValue="+12%"
               />
               <StatCard
                 icon={FileText}
@@ -562,14 +560,7 @@ export default function FinancialDashboard() {
                 value={applications.filter((a) => ["under_verification", "credit_check"].includes(a.status)).length}
                 hint="In progress"
               />
-              <StatCard
-                icon={CheckCircle2}
-                label="Approved"
-                value={stats.approved}
-                hint="Ready for disbursement"
-                trend="up"
-                trendValue="+8%"
-              />
+              <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} hint="Ready for disbursement" />
               <StatCard
                 icon={DollarSign}
                 label="Disbursed"
