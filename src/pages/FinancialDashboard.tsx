@@ -532,7 +532,6 @@ export default function FinancialDashboard() {
                 icon={FileCheck2}
                 label="Applications"
                 sub="Process Loans"
-                badge={stats.active}
               />
               <QuickAction to="/dashboard/financial/customers" icon={User} label="Customers" sub="Manage Clients" />
               <QuickAction to="/dashboard/financial/reports" icon={BarChart3} label="Reports" sub="View Analytics" />
