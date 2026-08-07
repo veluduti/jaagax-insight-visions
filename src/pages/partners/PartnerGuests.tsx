@@ -32,17 +32,13 @@ import {
   Phone,
   Mail,
   Calendar as CalendarIcon,
-  Filter,
   Star,
   Clock,
   UserCheck,
-  UserX,
   ChevronDown,
-  X,
-  MapPin,
-  Briefcase,
+  Filter,
 } from "lucide-react";
-import { format, parseISO, isToday, isThisWeek, isThisMonth } from "date-fns";
+import { format, parseISO, isToday, isThisWeek, isThisMonth, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 
 // Types
@@ -82,10 +78,9 @@ const DATE_FILTERS = [
 ];
 
 const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
-  { value: "oldest", label: "Oldest First" },
   { value: "most_stays", label: "Most Stays" },
   { value: "last_stay", label: "Last Stay" },
+  { value: "alphabetical", label: "A-Z" },
 ];
 
 export default function PartnerGuests() {
@@ -98,9 +93,10 @@ export default function PartnerGuests() {
   const [saving, setSaving] = useState(false);
   const [dateFilter, setDateFilter] = useState("all");
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("most_stays");
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [showGuestDetails, setShowGuestDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "upcoming">("all");
 
   // Load data
   useEffect(() => {
@@ -112,11 +108,7 @@ export default function PartnerGuests() {
     setLoading(true);
     try {
       // Load guests
-      const { data: guestData } = await supabase
-        .from("hotel_guests")
-        .select("*")
-        .eq("hotel_id", hotelId)
-        .order("created_at", { ascending: false });
+      const { data: guestData } = await supabase.from("hotel_guests").select("*").eq("hotel_id", hotelId);
 
       // Load bookings for calendar
       const { data: bookingData } = await supabase
@@ -172,11 +164,22 @@ export default function PartnerGuests() {
   // Filter guests by date
   const filterByDate = (guest: Guest) => {
     if (dateFilter === "all") return true;
-    if (!guest.last_stay_at && !guest.next_stay_at) return false;
 
     const lastStay = guest.last_stay_at ? parseISO(guest.last_stay_at) : null;
     const nextStay = guest.next_stay_at ? parseISO(guest.next_stay_at) : null;
 
+    // For custom date, check if guest has any stay on that date
+    if (dateFilter === "custom" && customDate) {
+      const dateStr = format(customDate, "yyyy-MM-dd");
+      // Check if guest has a stay on this date (either last stay or next stay matches)
+      const hasStayOnDate =
+        (guest.last_stay_at && format(parseISO(guest.last_stay_at), "yyyy-MM-dd") === dateStr) ||
+        (guest.next_stay_at && format(parseISO(guest.next_stay_at), "yyyy-MM-dd") === dateStr);
+
+      return hasStayOnDate;
+    }
+
+    // For preset filters
     switch (dateFilter) {
       case "today":
         return (lastStay && isToday(lastStay)) || (nextStay && isToday(nextStay));
@@ -184,16 +187,28 @@ export default function PartnerGuests() {
         return (lastStay && isThisWeek(lastStay)) || (nextStay && isThisWeek(nextStay));
       case "month":
         return (lastStay && isThisMonth(lastStay)) || (nextStay && isThisMonth(nextStay));
-      case "custom":
-        if (!customDate) return true;
-        const checkDate = customDate;
-        return (
-          (lastStay && format(lastStay, "yyyy-MM-dd") === format(checkDate, "yyyy-MM-dd")) ||
-          (nextStay && format(nextStay, "yyyy-MM-dd") === format(checkDate, "yyyy-MM-dd"))
-        );
       default:
         return true;
     }
+  };
+
+  // Additional tab filtering
+  const filterByTab = (guest: Guest) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "active") {
+      // Guest has stayed in the last 30 days or has upcoming stay
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const lastStay = guest.last_stay_at ? parseISO(guest.last_stay_at) : null;
+      const nextStay = guest.next_stay_at ? parseISO(guest.next_stay_at) : null;
+      return (lastStay && lastStay > thirtyDaysAgo) || (nextStay && nextStay > new Date());
+    }
+    if (activeTab === "upcoming") {
+      // Guest has upcoming stay
+      const nextStay = guest.next_stay_at ? parseISO(guest.next_stay_at) : null;
+      return nextStay && nextStay > new Date();
+    }
+    return true;
   };
 
   // Search and filter guests
@@ -209,38 +224,39 @@ export default function PartnerGuests() {
     // Date filter
     result = result.filter(filterByDate);
 
+    // Tab filter
+    result = result.filter(filterByTab);
+
     // Sort
     switch (sortBy) {
-      case "newest":
-        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        break;
-      case "oldest":
-        result.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        break;
       case "most_stays":
         result.sort((a, b) => b.total_bookings - a.total_bookings);
         break;
       case "last_stay":
         result.sort((a, b) => {
+          if (!a.last_stay_at && !b.last_stay_at) return 0;
           if (!a.last_stay_at) return 1;
           if (!b.last_stay_at) return -1;
           return new Date(b.last_stay_at).getTime() - new Date(a.last_stay_at).getTime();
         });
+        break;
+      case "alphabetical":
+        result.sort((a, b) => a.name.localeCompare(b.name));
         break;
       default:
         break;
     }
 
     return result;
-  }, [guests, searchQuery, dateFilter, customDate, sortBy]);
+  }, [guests, searchQuery, dateFilter, customDate, sortBy, activeTab]);
 
   // Get guest bookings for details view
   const getGuestBookings = (guestId: string) => {
+    const guest = guests.find((g) => g.id === guestId);
+    if (!guest) return [];
+
     return bookings.filter(
-      (b) =>
-        b.guest_phone === guests.find((g) => g.id === guestId)?.phone ||
-        b.guest_email === guests.find((g) => g.id === guestId)?.email ||
-        b.guest_name === guests.find((g) => g.id === guestId)?.name,
+      (b) => b.guest_phone === guest.phone || b.guest_email === guest.email || b.guest_name === guest.name,
     );
   };
 
@@ -314,6 +330,17 @@ export default function PartnerGuests() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "loyal":
+        return "Loyal";
+      case "regular":
+        return "Regular";
+      default:
+        return "New";
+    }
+  };
+
   if (gate || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -382,6 +409,34 @@ export default function PartnerGuests() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={activeTab === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("all")}
+            className={activeTab === "all" ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+          >
+            All Guests
+          </Button>
+          <Button
+            variant={activeTab === "active" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("active")}
+            className={activeTab === "active" ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+          >
+            Active
+          </Button>
+          <Button
+            variant={activeTab === "upcoming" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("upcoming")}
+            className={activeTab === "upcoming" ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+          >
+            Upcoming Stays
+          </Button>
         </div>
 
         {/* Filters */}
@@ -461,7 +516,7 @@ export default function PartnerGuests() {
               </div>
               <h3 className="text-lg font-semibold mb-2">No guests found</h3>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
-                {searchQuery || dateFilter !== "all"
+                {searchQuery || dateFilter !== "all" || activeTab !== "all"
                   ? "Try adjusting your filters to see more results"
                   : "Guests will appear here as they check in"}
               </p>
@@ -489,6 +544,9 @@ export default function PartnerGuests() {
                           <h4 className="font-semibold truncate">{guest.name}</h4>
                           {getGuestStatusIcon(status)}
                         </div>
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          {getStatusLabel(status)}
+                        </Badge>
                       </div>
                       <div className="flex gap-1 ml-2">
                         <Button
@@ -577,6 +635,9 @@ export default function PartnerGuests() {
                       <Badge variant="outline" className="text-xs">
                         {selectedGuest.total_bookings} bookings
                       </Badge>
+                      {selectedGuest.total_bookings > 5 && (
+                        <Badge className="bg-amber-500/15 text-amber-400 text-xs">Loyal Guest</Badge>
+                      )}
                     </DialogDescription>
                   </div>
                   <Button
@@ -637,25 +698,27 @@ export default function PartnerGuests() {
                     {getGuestBookings(selectedGuest.id).length === 0 ? (
                       <p className="text-sm text-muted-foreground">No bookings found</p>
                     ) : (
-                      getGuestBookings(selectedGuest.id).map((booking, idx) => (
-                        <div key={idx} className="rounded-md border p-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium">
-                                {format(parseISO(booking.check_in), "dd MMM yyyy")} -
-                                {format(parseISO(booking.check_out), "dd MMM yyyy")}
-                              </p>
-                              <p className="text-sm text-muted-foreground">{booking.room_type || "Standard"}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold">₹{booking.total_amount.toLocaleString()}</p>
-                              <Badge variant="outline" className="text-xs">
-                                {booking.status}
-                              </Badge>
+                      getGuestBookings(selectedGuest.id)
+                        .sort((a, b) => new Date(b.check_in).getTime() - new Date(a.check_in).getTime())
+                        .map((booking, idx) => (
+                          <div key={idx} className="rounded-md border p-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium">
+                                  {format(parseISO(booking.check_in), "dd MMM yyyy")} -
+                                  {format(parseISO(booking.check_out), "dd MMM yyyy")}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{booking.room_type || "Standard"}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">₹{booking.total_amount.toLocaleString()}</p>
+                                <Badge variant="outline" className="text-xs">
+                                  {booking.status}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     )}
                   </div>
                 </div>
