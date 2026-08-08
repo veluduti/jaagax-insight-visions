@@ -300,7 +300,7 @@ export default function PartnerDashboard() {
       b.id,
       {
         actual_check_out_at: new Date().toISOString(),
-        status: "completed",
+        status: "checked_out",
         housekeeping_status: "cleaning",
       },
       `${b.guest_name || "Guest"} checked out · room sent to housekeeping`,
