@@ -1048,10 +1048,6 @@ export default function PartnerPayouts() {
   );
 }
 
-// Helper function to get date without leading zero
-function getDate(date: Date) {
-  return date.getDate().toString();
-}
 
 // Settings icon component
 const Settings = ({ className }: { className?: string }) => (
