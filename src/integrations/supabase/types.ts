@@ -2132,6 +2132,85 @@ export type Database = {
           },
         ]
       }
+      financial_application_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string | null
+          application_id: string
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          message: string | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string | null
+          application_id: string
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          message?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string | null
+          application_id?: string
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          message?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_application_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financial_loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_application_notes: {
+        Row: {
+          application_id: string
+          author_id: string | null
+          author_name: string | null
+          created_at: string
+          id: string
+          note: string
+        }
+        Insert: {
+          application_id: string
+          author_id?: string | null
+          author_name?: string | null
+          created_at?: string
+          id?: string
+          note: string
+        }
+        Update: {
+          application_id?: string
+          author_id?: string | null
+          author_name?: string | null
+          created_at?: string
+          id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financial_loan_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_branches: {
         Row: {
           branch_locations: Json | null
@@ -2346,54 +2425,120 @@ export type Database = {
       }
       financial_loan_applications: {
         Row: {
+          accepted_at: string | null
+          approved_at: string | null
           assigned_rm: string | null
+          assigned_rm_id: string | null
+          assigned_rm_name: string | null
+          buyer_email: string | null
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          closed_at: string | null
           created_at: string | null
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
           disbursed_amount: number | null
+          disbursed_at: string | null
           documents: Json | null
+          documents_request_reason: string | null
+          emi_amount: number | null
           id: string
+          interest_rate: number | null
           loan_amount: number | null
           loan_type: string | null
+          monthly_income: number | null
           notes: string | null
           priority: string | null
+          processing_fee: number | null
+          property_id: string | null
+          property_title: string | null
+          property_value: number | null
           provider_id: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          sanction_amount: number | null
           status: string | null
+          tenure_months: number | null
           updated_at: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          approved_at?: string | null
           assigned_rm?: string | null
+          assigned_rm_id?: string | null
+          assigned_rm_name?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          closed_at?: string | null
           created_at?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           disbursed_amount?: number | null
+          disbursed_at?: string | null
           documents?: Json | null
+          documents_request_reason?: string | null
+          emi_amount?: number | null
           id?: string
+          interest_rate?: number | null
           loan_amount?: number | null
           loan_type?: string | null
+          monthly_income?: number | null
           notes?: string | null
           priority?: string | null
+          processing_fee?: number | null
+          property_id?: string | null
+          property_title?: string | null
+          property_value?: number | null
           provider_id?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sanction_amount?: number | null
           status?: string | null
+          tenure_months?: number | null
           updated_at?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          approved_at?: string | null
           assigned_rm?: string | null
+          assigned_rm_id?: string | null
+          assigned_rm_name?: string | null
+          buyer_email?: string | null
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          closed_at?: string | null
           created_at?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           disbursed_amount?: number | null
+          disbursed_at?: string | null
           documents?: Json | null
+          documents_request_reason?: string | null
+          emi_amount?: number | null
           id?: string
+          interest_rate?: number | null
           loan_amount?: number | null
           loan_type?: string | null
+          monthly_income?: number | null
           notes?: string | null
           priority?: string | null
+          processing_fee?: number | null
+          property_id?: string | null
+          property_title?: string | null
+          property_value?: number | null
           provider_id?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sanction_amount?: number | null
           status?: string | null
+          tenure_months?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2410,33 +2555,45 @@ export type Database = {
         Row: {
           application_id: string
           document_type: string
+          file_name: string | null
           file_path: string | null
+          file_url: string | null
           id: string
           notes: string | null
+          request_reason: string | null
           updated_at: string
           uploaded_at: string
+          uploaded_by: string | null
           verified_by: string | null
           verified_status: string
         }
         Insert: {
           application_id: string
           document_type: string
+          file_name?: string | null
           file_path?: string | null
+          file_url?: string | null
           id?: string
           notes?: string | null
+          request_reason?: string | null
           updated_at?: string
           uploaded_at?: string
+          uploaded_by?: string | null
           verified_by?: string | null
           verified_status?: string
         }
         Update: {
           application_id?: string
           document_type?: string
+          file_name?: string | null
           file_path?: string | null
+          file_url?: string | null
           id?: string
           notes?: string | null
+          request_reason?: string | null
           updated_at?: string
           uploaded_at?: string
+          uploaded_by?: string | null
           verified_by?: string | null
           verified_status?: string
         }
@@ -2580,34 +2737,79 @@ export type Database = {
       }
       financial_providers: {
         Row: {
+          address: string | null
+          city: string | null
           company_name: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
+          description: string | null
           entity_type: string | null
           id: string
+          interest_rate: number | null
+          is_active: boolean
           kyc_status: string | null
+          loan_products: Json
+          logo_url: string | null
+          notification_prefs: Json
+          processing_fee_percent: number | null
+          rating: number
+          rbi_registration: string | null
           services_offered: string[] | null
           subscription_status: string | null
+          updated_at: string
           user_id: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
           company_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           entity_type?: string | null
           id?: string
+          interest_rate?: number | null
+          is_active?: boolean
           kyc_status?: string | null
+          loan_products?: Json
+          logo_url?: string | null
+          notification_prefs?: Json
+          processing_fee_percent?: number | null
+          rating?: number
+          rbi_registration?: string | null
           services_offered?: string[] | null
           subscription_status?: string | null
+          updated_at?: string
           user_id?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
           company_name?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           entity_type?: string | null
           id?: string
+          interest_rate?: number | null
+          is_active?: boolean
           kyc_status?: string | null
+          loan_products?: Json
+          logo_url?: string | null
+          notification_prefs?: Json
+          processing_fee_percent?: number | null
+          rating?: number
+          rbi_registration?: string | null
           services_offered?: string[] | null
           subscription_status?: string | null
+          updated_at?: string
           user_id?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -10200,6 +10402,14 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_financial_buyer: {
+        Args: { _application_id: string }
+        Returns: boolean
+      }
+      is_financial_owner: {
+        Args: { _application_id: string }
+        Returns: boolean
+      }
       is_property_operator: {
         Args: {
           _country: string
