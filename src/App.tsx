@@ -169,6 +169,9 @@ const FinancialDashboard = lazy(() => import("./pages/FinancialDashboard"));
 const FinancialRegistration = lazy(() => import("./pages/FinancialRegistration"));
 const FinancialLeads = lazy(() => import("./pages/financial/Leads"));
 const FinancialApplications = lazy(() => import("./pages/financial/Applications"));
+const FinancialApplicationDetail = lazy(() => import("./pages/financial/ApplicationDetail"));
+const FinancialCustomers = lazy(() => import("./pages/financial/Customers"));
+const FinancialReports = lazy(() => import("./pages/financial/Reports"));
 const FinancialWallet = lazy(() => import("./pages/financial/Wallet"));
 const FinancialPromotions = lazy(() => import("./pages/financial/Promotions"));
 const FinancialNotifications = lazy(() => import("./pages/financial/Notifications"));
@@ -761,6 +764,30 @@ const App = () => (
                     element={
                       <ProtectedRoute allowedRole="financial">
                         <FinancialApplications />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/applications/:id"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialApplicationDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/customers"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialCustomers />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard/financial/reports"
+                    element={
+                      <ProtectedRoute allowedRole="financial">
+                        <FinancialReports />
                       </ProtectedRoute>
                     }
                   />

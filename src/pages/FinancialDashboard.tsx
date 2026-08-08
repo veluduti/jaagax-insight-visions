@@ -190,8 +190,8 @@ const PIE_COLORS = [
 ];
 
 // Components
-function StatCard({ icon: Icon, label, value, hint, trend, trendValue }: any) {
-  return (
+function StatCard({ icon: Icon, label, value, hint, trend, trendValue, to }: any) {
+  const card = (
     <Card className="hover:shadow-lg transition-all duration-300 border border-border/50 overflow-hidden group">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-2">
@@ -227,6 +227,7 @@ function StatCard({ icon: Icon, label, value, hint, trend, trendValue }: any) {
       </CardContent>
     </Card>
   );
+  return to ? <Link to={to} className="block h-full">{card}</Link> : card;
 }
 
 function QuickAction({ to, icon: Icon, label, sub, badge }: any) {
@@ -542,23 +543,27 @@ export default function FinancialDashboard() {
               <StatCard
                 icon={FilePlus2}
                 label="New Applications"
+                to="/dashboard/financial/applications?status=new"
                 value={applications.filter((a) => a.status === "new").length}
                 hint="Requires review"
               />
               <StatCard
                 icon={FileText}
                 label="Pending Documents"
+                to="/dashboard/financial/applications?status=documents_pending"
                 value={stats.pendingDocuments}
                 hint="Waiting for customer"
               />
               <StatCard
                 icon={ShieldCheck}
                 label="Under Verification"
+                to="/dashboard/financial/applications?status=under_verification"
                 value={applications.filter((a) => ["under_verification", "credit_check"].includes(a.status)).length}
                 hint="In progress"
               />
-              <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} hint="Ready for disbursement" />
+              <StatCard to="/dashboard/financial/applications?status=approved" icon={CheckCircle2} label="Approved" value={stats.approved} hint="Ready for disbursement" />
               <StatCard
+                to="/dashboard/financial/applications?status=disbursed"
                 icon={DollarSign}
                 label="Disbursed"
                 value={`₹${(stats.disbursed / 100000).toFixed(1)}L`}
@@ -584,7 +589,7 @@ export default function FinancialDashboard() {
                       const isActive = count > 0;
                       return (
                         <div key={status} className="flex items-center gap-2 w-full md:w-auto">
-                          <div
+                          <Link to={`/dashboard/financial/applications?status=${status}`}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isActive ? "border-primary/40 bg-primary/5" : "border-border/40"}`}
                           >
                             <div className={`h-2 w-2 rounded-full ${statusObj?.color || "bg-gray-400"}`} />
@@ -592,7 +597,7 @@ export default function FinancialDashboard() {
                             <Badge variant={isActive ? "default" : "outline"} className="text-xs">
                               {count}
                             </Badge>
-                          </div>
+                          </Link>
                           {index < 5 && <ChevronRight className="h-4 w-4 text-muted-foreground hidden md:block" />}
                         </div>
                       );

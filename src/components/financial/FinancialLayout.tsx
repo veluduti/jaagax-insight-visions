@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import {
-  LayoutDashboard, Users, FileText, Wallet, Megaphone, Bell, Settings,
+  LayoutDashboard, Users, FileText, Wallet, Megaphone, Bell, Settings, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,8 @@ const NAV = [
   { to: "/dashboard/financial", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/dashboard/financial/leads", label: "Leads", icon: Users },
   { to: "/dashboard/financial/applications", label: "Applications", icon: FileText },
+  { to: "/dashboard/financial/customers", label: "Customers", icon: Users },
+  { to: "/dashboard/financial/reports", label: "Reports", icon: BarChart3 },
   { to: "/dashboard/financial/wallet", label: "Wallet", icon: Wallet },
   { to: "/dashboard/financial/promotions", label: "Promotions", icon: Megaphone },
   { to: "/dashboard/financial/notifications", label: "Notifications", icon: Bell },
