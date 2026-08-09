@@ -259,22 +259,58 @@ export default function PartnerRooms() {
         min_nights: Number(editing.min_nights) || 1,
         pms_room_code: editing.pms_room_code || null,
         pms_room_id: editing.pms_room_id || null,
+        max_adults: Number(editing.max_adults) || 1,
+        max_children: Number(editing.max_children) || 0,
+        max_extra_beds: Number(editing.max_extra_beds) || 0,
+        child_free_age_to: Number(editing.child_free_age_to ?? 5),
+        child_age_to: Number(editing.child_age_to ?? 11),
       };
+      // Occupancy sanity: total guests must cover adults + children.
+      if (payload.max_occupancy < payload.max_adults) {
+        payload.max_occupancy = payload.max_adults;
+      }
+
+      let roomId = editing.id;
       if (editing.id) {
         const { error } = await (supabase as any).from("hotel_rooms").update(payload).eq("id", editing.id);
         if (error) throw error;
         setRooms(rs => rs.map(r => r.id === editing.id ? { ...r, ...payload } : r));
-        toast.success("Room updated");
       } else {
         const { data, error } = await (supabase as any).from("hotel_rooms").insert(payload).select().single();
         if (error) throw error;
+        roomId = data.id;
         setRooms(rs => [...rs, data as Room]);
-        toast.success("Room added");
       }
+
+      // Meal configuration (room-level)
+      const mealRows = MEAL_TYPES.map(t => ({
+        hotel_id: hotelId,
+        room_id: roomId,
+        meal_type: t,
+        pricing_mode: meals[t].pricing_mode,
+        adult_price: Number(meals[t].adult_price) || 0,
+        child_price: Number(meals[t].child_price) || 0,
+        is_available: !!meals[t].is_available,
+        is_active: true,
+      }));
+      const { error: mErr } = await (supabase as any).from("hotel_meals")
+        .upsert(mealRows, { onConflict: "hotel_id,room_id,meal_type" });
+      if (mErr) {
+        // Fallback when the partial unique index cannot be used as a conflict target.
+        for (const row of mealRows) {
+          const existing = allMeals.find(m => m.room_id === roomId && m.meal_type === row.meal_type);
+          if (existing?.id) await (supabase as any).from("hotel_meals").update(row).eq("id", existing.id);
+          else await (supabase as any).from("hotel_meals").insert(row);
+        }
+      }
+      await loadMeals();
+
+      toast.success(editing.id ? "Room updated" : "Room added");
       setEditing(null);
     } catch (e: any) { toast.error(e?.message || "Failed to save"); }
     finally { setSaving(false); }
   };
+
 
   const deleteRoom = async (id: string) => {
     if (!confirm("Delete this room? All rate calendar entries and channel mappings will also be removed.")) return;
