@@ -411,9 +411,28 @@ export default function PartnerRooms() {
                     <Stat icon={<Users className="h-3.5 w-3.5" />} label="Max" value={r.max_occupancy} />
                     <Stat icon={<BedDouble className="h-3.5 w-3.5" />} label="Units" value={r.total_units} />
                   </div>
+                  <div className="mb-3 space-y-1 rounded-md border border-border/60 bg-muted/10 p-2 text-xs">
+                    <p className="text-muted-foreground">
+                      Occupancy: {r.max_adults ?? 2} adult{(r.max_adults ?? 2) !== 1 ? "s" : ""} + {r.max_children ?? 0} child · Bed: {r.bed_type || "—"}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {mealsForRoom(r.id).length === 0 && <span className="text-muted-foreground">No meals configured</span>}
+                      {mealsForRoom(r.id).map(m => (
+                        <Badge key={m.meal_type} variant="outline">
+                          {MEAL_LABEL[m.meal_type]} {m.pricing_mode === "included" ? "Included" : `₹${Number(m.adult_price)}`}
+                        </Badge>
+                      ))}
+                    </div>
+                    {r.extra_bed_allowed && Number(r.max_extra_beds) > 0 && (
+                      <p className="text-muted-foreground">
+                        Extra bed: ₹{Number(r.extra_bed_price || 0)} / night · max {r.max_extra_beds}
+                      </p>
+                    )}
+                  </div>
                   {r.pms_room_code && (
                     <p className="mb-2 text-xs text-muted-foreground">PMS code: <span className="text-foreground">{r.pms_room_code}</span></p>
                   )}
+
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" className="flex-1" onClick={() => openRates(r)}>
                       Rates & availability
