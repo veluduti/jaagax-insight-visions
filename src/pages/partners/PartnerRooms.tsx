@@ -18,6 +18,7 @@ import {
   Image as ImageIcon, Upload, X, Link2, RefreshCw,
 } from "lucide-react";
 import { addDays, format } from "date-fns";
+import { MEAL_TYPES, MEAL_LABEL, type MealType } from "@/lib/hotelPricing";
 
 type Room = {
   id: string; hotel_id: string; room_type: string; category: string | null;
@@ -28,6 +29,15 @@ type Room = {
   extra_bed_allowed: boolean; extra_bed_price: number | null;
   cancellation_policy: string | null; min_nights: number;
   pms_room_code: string | null; pms_room_id: string | null;
+  max_adults: number; max_children: number; max_extra_beds: number;
+  child_free_age_to: number; child_age_to: number;
+};
+
+type MealRow = {
+  id?: string; hotel_id?: string; room_id?: string | null; meal_type: MealType;
+  pricing_mode: "optional_paid" | "included";
+  adult_price: number; child_price: number;
+  is_available: boolean; is_active: boolean;
 };
 
 type RateRow = {
@@ -41,12 +51,19 @@ type ChannelMap = {
   sync_enabled: boolean; commission_percent: number | null; notes: string | null;
 };
 
+const defaultMeals = (): Record<MealType, MealRow> => ({
+  breakfast: { meal_type: "breakfast", pricing_mode: "optional_paid", adult_price: 150, child_price: 100, is_available: false, is_active: true },
+  lunch: { meal_type: "lunch", pricing_mode: "optional_paid", adult_price: 300, child_price: 200, is_available: false, is_active: true },
+  dinner: { meal_type: "dinner", pricing_mode: "optional_paid", adult_price: 350, child_price: 250, is_available: false, is_active: true },
+});
+
 const emptyRoom: Partial<Room> = {
   room_type: "", category: "Deluxe", description: "", base_price: 2500,
-  max_occupancy: 2, total_units: 1, amenities: [], photos: [], is_active: true,
+  max_occupancy: 3, total_units: 1, amenities: [], photos: [], is_active: true,
   bed_type: "King", size_sqft: null, view_type: "", smoking_allowed: false,
   breakfast_included: false, extra_bed_allowed: false, extra_bed_price: null,
   cancellation_policy: "", min_nights: 1, pms_room_code: "", pms_room_id: "",
+  max_adults: 2, max_children: 1, max_extra_beds: 0, child_free_age_to: 5, child_age_to: 11,
 };
 
 const BED_TYPES = ["King", "Queen", "Double", "Twin", "Single", "Bunk", "Sofa Bed"];
@@ -56,6 +73,7 @@ const AMENITY_PRESETS = [
   "Rain shower", "Work desk", "Iron", "Hairdryer", "Room service", "Slippers",
 ];
 const CHANNELS = ["Booking.com", "MakeMyTrip", "Goibibo", "Agoda", "Expedia", "Airbnb", "Direct"];
+
 
 export default function PartnerRooms() {
   const { loading: gate, hotelId } = usePartnerHotel();
