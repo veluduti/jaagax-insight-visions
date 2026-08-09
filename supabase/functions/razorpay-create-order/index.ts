@@ -1,6 +1,8 @@
 // Creates a pending hotel booking + a Razorpay order for it.
-// Client then opens Razorpay Checkout with the returned order_id.
+// The final amount is ALWAYS recalculated server-side from the hotel's own
+// room rates, meal configuration, extra-bed rules, add-ons and GST settings.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { buildServerQuote, saveBookingItems, bookingPriceColumns } from "../_shared/hotelQuote.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +22,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       hotel_id, room_id, check_in, check_out,
-      adults = 1, children = 0, num_rooms = 1,
+      adults = 1, children = 0, num_rooms = 1, extra_beds = 0, meals = [],
       guest_name, guest_email, guest_phone,
       special_requests, addons = [], promo_code, user_id,
       booked_by_agent_id = null,
@@ -39,8 +41,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // If user_id given, resolve the agents.id server-side so agent-booked
-    // stays always surface in the agent dashboard, regardless of client RLS.
     let resolvedAgentId: string | null = booked_by_agent_id;
     if (!resolvedAgentId && user_id) {
       const { data: agentRow } = await supabase
@@ -48,80 +48,52 @@ Deno.serve(async (req) => {
       if (agentRow?.id) resolvedAgentId = agentRow.id as string;
     }
 
-    // Server-authoritative quote
-    const quoteRes = await fetch(
-      new URL("/functions/v1/booking-engine-quote", Deno.env.get("SUPABASE_URL")!),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: JSON.stringify({
-          hotel_id, room_id, check_in, check_out,
-          guests: adults + children, addons, promo_code,
-        }),
-      },
-    );
-    const quote = await quoteRes.json();
-    if (quote.error) return json({ error: quote.error }, 400);
+    // Prevent duplicate pending payment attempts for the same selection.
+    const { data: existingPending } = await supabase.from("hotel_bookings")
+      .select("id, razorpay_order_id, total_amount, booking_reference")
+      .eq("hotel_id", hotel_id).eq("room_id", room_id)
+      .eq("check_in", check_in).eq("check_out", check_out)
+      .eq("guest_email", guest_email).eq("payment_status", "pending")
+      .gte("payment_attempted_at", new Date(Date.now() - 10 * 60 * 1000).toISOString())
+      .maybeSingle();
 
-    // Verify occupancy (server-authoritative, guards against race/tampering)
-    const { data: roomOcc } = await supabase
-      .from("hotel_rooms").select("max_occupancy, is_active").eq("id", room_id).maybeSingle();
-    if (!roomOcc || roomOcc.is_active === false) {
-      return json({ error: "Room not available" }, 404);
-    }
-    const totalGuests = Number(adults) + Number(children);
-    const capacity = (Number(roomOcc.max_occupancy) || 0) * Number(num_rooms);
-    if (capacity > 0 && capacity < totalGuests) {
-      return json({
-        error: `This room type accommodates up to ${roomOcc.max_occupancy} guest(s) per room. Please select more rooms or a larger room type.`,
-      }, 400);
-    }
-
-    // Verify availability
-    const { data: avail } = await supabase.rpc("check_room_availability", {
-      _room_id: room_id, _check_in: check_in, _check_out: check_out,
+    // Server-authoritative quote + full validation (availability, occupancy,
+    // extra beds, meals, stop-sell, min nights).
+    const q = await buildServerQuote(supabase, {
+      hotel_id, room_id, check_in, check_out, adults, children,
+      child_ages: body.child_ages, num_rooms, extra_beds, meals, addons, promo_code,
     });
-    if ((avail ?? 0) < num_rooms) {
-      return json({ error: "Not enough rooms available for the selected dates" }, 409);
+    if (q.error || !q.result) return json({ error: q.error }, q.status || 400);
+    const result = q.result;
+    const grandTotal = result.grandTotal;
+
+    let bookingId: string;
+    let bookingRef: string | null = null;
+
+    if (existingPending?.id && Number(existingPending.total_amount) === grandTotal && existingPending.razorpay_order_id) {
+      // Reuse the in-flight order instead of creating a duplicate booking.
+      return json({
+        booking_id: existingPending.id,
+        booking_reference: existingPending.booking_reference,
+        order_id: existingPending.razorpay_order_id,
+        amount: Math.round(grandTotal * 100),
+        currency: "INR",
+        key_id: RZP_KEY,
+        breakdown: breakdownOf(result, num_rooms),
+        hotel: q.hotel ?? null,
+        reused: true,
+      });
     }
 
-
-    // Multiply per-room totals by num_rooms
-    const nights = Math.max(1, Math.round(
-      (+new Date(check_out) - +new Date(check_in)) / 86400000,
-    ));
-    const roomSubtotal = Number(quote.total || 0) * num_rooms;
-    const addonSubtotal = Number(quote.addon_total || 0);
-    const gstRate = (Number(quote.perNight ?? quote.per_night ?? 0)) < 7500 ? 0.12 : 0.18;
-    // Quote already includes taxes for a single room? booking-engine-quote returns total pre-tax.
-    // We conservatively add GST on the room portion here.
-    const taxes = Math.round(roomSubtotal * gstRate);
-    const grandTotal = roomSubtotal + addonSubtotal + taxes;
-
-    // Hotel context
-    const { data: hotel } = await supabase
-      .from("partner_hotels")
-      .select("name, address, locality, city")
-      .eq("id", hotel_id).maybeSingle();
-
-    const { data: room } = await supabase
-      .from("hotel_rooms").select("room_type").eq("id", room_id).maybeSingle();
-
-    // Insert PENDING booking
     const { data: booking, error: bErr } = await supabase.from("hotel_bookings").insert({
-      hotel_id,
+      hotel_id, room_id,
       user_id: user_id || null,
       booked_by_agent_id: resolvedAgentId,
       guest_name, guest_email, guest_phone,
       check_in, check_out,
-      room_type: room?.room_type ?? "Standard",
-      num_guests: adults + children,
-      num_rooms,
-      total_amount: grandTotal,
-      addon_total: addonSubtotal,
+      room_type: q.room?.room_type ?? "Standard",
+      num_guests: Number(adults) + Number(children),
+      adults, children, num_rooms, extra_beds,
       status: "pending",
       payment_status: "pending",
       payment_method: "razorpay",
@@ -129,25 +101,30 @@ Deno.serve(async (req) => {
       booking_type: "hotel_only",
       source: resolvedAgentId ? "agent" : "direct",
       currency: "INR",
-      hotel_name: hotel?.name ?? null,
-      hotel_address: [hotel?.address, hotel?.locality, hotel?.city].filter(Boolean).join(", "),
+      hotel_name: q.hotel?.name ?? null,
+      hotel_address: [q.hotel?.address, q.hotel?.locality, q.hotel?.city].filter(Boolean).join(", "),
       promo_code: promo_code || null,
       payment_attempted_at: new Date().toISOString(),
+      ...bookingPriceColumns(result, meals),
     }).select().single();
 
     if (bErr) return json({ error: bErr.message }, 400);
+    bookingId = booking.id;
+    bookingRef = booking.booking_reference ?? null;
 
-    // Persist add-ons (best effort)
-    if (Array.isArray(quote.addons) && quote.addons.length) {
-      await supabase.from("hotel_booking_addons").insert(
-        quote.addons.filter((a: any) => a.quantity > 0).map((a: any) => ({
-          booking_id: booking.id, addon_id: a.addon_id, quantity: a.quantity,
-          unit_price: a.unit_price, total_price: a.total_price,
-        })),
-      );
+    // Persist every billing component with its price snapshot.
+    await saveBookingItems(supabase, bookingId, hotel_id, result);
+
+    const addonItems = result.lineItems.filter((li) => li.item_type === "addon");
+    if (addonItems.length) {
+      const rows = addonItems.map((a) => ({
+        booking_id: bookingId,
+        addon_id: (a.price_snapshot as any)?.addon_id ?? null,
+        quantity: a.quantity, unit_price: a.unit_price, total_price: a.subtotal,
+      })).filter((r) => r.addon_id);
+      if (rows.length) await supabase.from("hotel_booking_addons").insert(rows);
     }
 
-    // Create Razorpay order
     const amountPaise = Math.round(grandTotal * 100);
     const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
@@ -158,11 +135,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         amount: amountPaise,
         currency: "INR",
-        receipt: booking.booking_reference || booking.id,
-        notes: {
-          booking_id: booking.id,
-          hotel_id, room_id, check_in, check_out,
-        },
+        receipt: bookingRef || bookingId,
+        notes: { booking_id: bookingId, hotel_id, room_id, check_in, check_out },
       }),
     });
     const order = await rzpRes.json();
@@ -171,32 +145,44 @@ Deno.serve(async (req) => {
         status: "cancelled",
         payment_status: "failed",
         cancellation_reason: "Razorpay order creation failed",
-      }).eq("id", booking.id);
+      }).eq("id", bookingId);
       return json({ error: order?.error?.description || "Failed to create payment order" }, 502);
     }
 
     await supabase.from("hotel_bookings")
       .update({ razorpay_order_id: order.id })
-      .eq("id", booking.id);
+      .eq("id", bookingId);
 
     return json({
-      booking_id: booking.id,
-      booking_reference: booking.booking_reference,
+      booking_id: bookingId,
+      booking_reference: bookingRef,
       order_id: order.id,
       amount: amountPaise,
       currency: "INR",
       key_id: RZP_KEY,
-      breakdown: {
-        room_subtotal: roomSubtotal,
-        addon_subtotal: addonSubtotal,
-        taxes,
-        total: grandTotal,
-        nights,
-        num_rooms,
-      },
-      hotel: hotel ?? null,
+      breakdown: breakdownOf(result, num_rooms),
+      hotel: q.hotel ?? null,
     });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
 });
+
+function breakdownOf(result: any, num_rooms: number) {
+  return {
+    nights: result.nights,
+    num_rooms,
+    per_night: result.perNight,
+    room_subtotal: result.roomCharges,
+    meal_total: result.mealTotal,
+    meals: result.mealBreakdown,
+    extra_bed_total: result.extraBedTotal,
+    addon_subtotal: result.addonTotal,
+    discount: result.discount,
+    taxable_subtotal: result.taxableSubtotal,
+    gst_rate: result.gstRate,
+    taxes: result.taxAmount,
+    total: result.grandTotal,
+    line_items: result.lineItems,
+  };
+}

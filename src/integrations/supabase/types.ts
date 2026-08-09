@@ -3077,6 +3077,75 @@ export type Database = {
           },
         ]
       }
+      hotel_booking_items: {
+        Row: {
+          adult_count: number
+          booking_id: string
+          child_count: number
+          created_at: string
+          hotel_id: string | null
+          id: string
+          item_name: string
+          item_type: string
+          price_snapshot: Json | null
+          quantity: number
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          unit_price: number
+          units: number
+        }
+        Insert: {
+          adult_count?: number
+          booking_id: string
+          child_count?: number
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          item_name: string
+          item_type: string
+          price_snapshot?: Json | null
+          quantity?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          unit_price?: number
+          units?: number
+        }
+        Update: {
+          adult_count?: number
+          booking_id?: string
+          child_count?: number
+          created_at?: string
+          hotel_id?: string | null
+          id?: string
+          item_name?: string
+          item_type?: string
+          price_snapshot?: Json | null
+          quantity?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          unit_price?: number
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_booking_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_booking_items_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_booking_notes: {
         Row: {
           author_id: string | null
@@ -3124,6 +3193,7 @@ export type Database = {
           actual_check_in_at: string | null
           actual_check_out_at: string | null
           addon_total: number
+          adults: number
           amount_paid: number
           booked_by_agent_id: string | null
           booking_reference: string | null
@@ -3136,12 +3206,17 @@ export type Database = {
           check_out: string
           checked_in_at: string | null
           checkin_info: Json | null
+          children: number
           country: string | null
           created_at: string | null
           currency: string
+          discount_total: number
           district: string | null
           district_admin_id: string | null
+          extra_bed_total: number
+          extra_beds: number
           extra_charges: number
+          gst_rate: number | null
           guest_email: string | null
           guest_name: string
           guest_phone: string | null
@@ -3153,12 +3228,15 @@ export type Database = {
           housekeeping_status: string | null
           id: string
           invoice_url: string | null
+          meal_total: number
+          meals: Json
           num_guests: number | null
           num_rooms: number | null
           package_id: string | null
           payment_attempted_at: string | null
           payment_method: string | null
           payment_status: string
+          price_snapshot: Json | null
           promo_code: string | null
           property_id: string | null
           razorpay_order_id: string | null
@@ -3167,13 +3245,17 @@ export type Database = {
           razorpay_signature: string | null
           refunded_amount: number | null
           refunded_at: string | null
+          room_charges: number
           room_cleaned_at: string | null
+          room_id: string | null
           room_number: string | null
           room_type: string | null
           source: string
           special_requests: string | null
           state: string | null
           status: string
+          tax_amount: number
+          taxable_subtotal: number
           total_amount: number
           updated_at: string | null
           user_id: string | null
@@ -3182,6 +3264,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          adults?: number
           amount_paid?: number
           booked_by_agent_id?: string | null
           booking_reference?: string | null
@@ -3194,12 +3277,17 @@ export type Database = {
           check_out: string
           checked_in_at?: string | null
           checkin_info?: Json | null
+          children?: number
           country?: string | null
           created_at?: string | null
           currency?: string
+          discount_total?: number
           district?: string | null
           district_admin_id?: string | null
+          extra_bed_total?: number
+          extra_beds?: number
           extra_charges?: number
+          gst_rate?: number | null
           guest_email?: string | null
           guest_name: string
           guest_phone?: string | null
@@ -3211,12 +3299,15 @@ export type Database = {
           housekeeping_status?: string | null
           id?: string
           invoice_url?: string | null
+          meal_total?: number
+          meals?: Json
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
           payment_attempted_at?: string | null
           payment_method?: string | null
           payment_status?: string
+          price_snapshot?: Json | null
           promo_code?: string | null
           property_id?: string | null
           razorpay_order_id?: string | null
@@ -3225,13 +3316,17 @@ export type Database = {
           razorpay_signature?: string | null
           refunded_amount?: number | null
           refunded_at?: string | null
+          room_charges?: number
           room_cleaned_at?: string | null
+          room_id?: string | null
           room_number?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
           state?: string | null
           status?: string
+          tax_amount?: number
+          taxable_subtotal?: number
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null
@@ -3240,6 +3335,7 @@ export type Database = {
           actual_check_in_at?: string | null
           actual_check_out_at?: string | null
           addon_total?: number
+          adults?: number
           amount_paid?: number
           booked_by_agent_id?: string | null
           booking_reference?: string | null
@@ -3252,12 +3348,17 @@ export type Database = {
           check_out?: string
           checked_in_at?: string | null
           checkin_info?: Json | null
+          children?: number
           country?: string | null
           created_at?: string | null
           currency?: string
+          discount_total?: number
           district?: string | null
           district_admin_id?: string | null
+          extra_bed_total?: number
+          extra_beds?: number
           extra_charges?: number
+          gst_rate?: number | null
           guest_email?: string | null
           guest_name?: string
           guest_phone?: string | null
@@ -3269,12 +3370,15 @@ export type Database = {
           housekeeping_status?: string | null
           id?: string
           invoice_url?: string | null
+          meal_total?: number
+          meals?: Json
           num_guests?: number | null
           num_rooms?: number | null
           package_id?: string | null
           payment_attempted_at?: string | null
           payment_method?: string | null
           payment_status?: string
+          price_snapshot?: Json | null
           promo_code?: string | null
           property_id?: string | null
           razorpay_order_id?: string | null
@@ -3283,13 +3387,17 @@ export type Database = {
           razorpay_signature?: string | null
           refunded_amount?: number | null
           refunded_at?: string | null
+          room_charges?: number
           room_cleaned_at?: string | null
+          room_id?: string | null
           room_number?: string | null
           room_type?: string | null
           source?: string
           special_requests?: string | null
           state?: string | null
           status?: string
+          tax_amount?: number
+          taxable_subtotal?: number
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null
@@ -3321,6 +3429,13 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "visit_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_bookings_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -3535,6 +3650,63 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotel_meals: {
+        Row: {
+          adult_price: number
+          child_price: number
+          created_at: string
+          hotel_id: string
+          id: string
+          is_active: boolean
+          is_available: boolean
+          meal_type: string
+          pricing_mode: string
+          room_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          adult_price?: number
+          child_price?: number
+          created_at?: string
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          meal_type: string
+          pricing_mode?: string
+          room_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          adult_price?: number
+          child_price?: number
+          created_at?: string
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          is_available?: boolean
+          meal_type?: string
+          pricing_mode?: string
+          room_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_meals_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "partner_hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_meals_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -4313,6 +4485,8 @@ export type Database = {
           breakfast_included: boolean
           cancellation_policy: string | null
           category: string | null
+          child_age_to: number
+          child_free_age_to: number
           created_at: string
           description: string | null
           extra_bed_allowed: boolean
@@ -4320,6 +4494,9 @@ export type Database = {
           hotel_id: string
           id: string
           is_active: boolean
+          max_adults: number
+          max_children: number
+          max_extra_beds: number
           max_occupancy: number
           min_nights: number
           photos: string[] | null
@@ -4339,6 +4516,8 @@ export type Database = {
           breakfast_included?: boolean
           cancellation_policy?: string | null
           category?: string | null
+          child_age_to?: number
+          child_free_age_to?: number
           created_at?: string
           description?: string | null
           extra_bed_allowed?: boolean
@@ -4346,6 +4525,9 @@ export type Database = {
           hotel_id: string
           id?: string
           is_active?: boolean
+          max_adults?: number
+          max_children?: number
+          max_extra_beds?: number
           max_occupancy?: number
           min_nights?: number
           photos?: string[] | null
@@ -4365,6 +4547,8 @@ export type Database = {
           breakfast_included?: boolean
           cancellation_policy?: string | null
           category?: string | null
+          child_age_to?: number
+          child_free_age_to?: number
           created_at?: string
           description?: string | null
           extra_bed_allowed?: boolean
@@ -4372,6 +4556,9 @@ export type Database = {
           hotel_id?: string
           id?: string
           is_active?: boolean
+          max_adults?: number
+          max_children?: number
+          max_extra_beds?: number
           max_occupancy?: number
           min_nights?: number
           photos?: string[] | null
@@ -7114,6 +7301,7 @@ export type Database = {
           discount_percentage: number | null
           district: string | null
           district_admin_id: string | null
+          gst_rate: number | null
           id: string
           images: string[] | null
           is_active: boolean | null
@@ -7145,6 +7333,7 @@ export type Database = {
           discount_percentage?: number | null
           district?: string | null
           district_admin_id?: string | null
+          gst_rate?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -7176,6 +7365,7 @@ export type Database = {
           discount_percentage?: number | null
           district?: string | null
           district_admin_id?: string | null
+          gst_rate?: number | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null

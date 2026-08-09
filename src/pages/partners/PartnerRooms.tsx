@@ -18,6 +18,7 @@ import {
   Image as ImageIcon, Upload, X, Link2, RefreshCw,
 } from "lucide-react";
 import { addDays, format } from "date-fns";
+import { MEAL_TYPES, MEAL_LABEL, type MealType } from "@/lib/hotelPricing";
 
 type Room = {
   id: string; hotel_id: string; room_type: string; category: string | null;
@@ -28,6 +29,15 @@ type Room = {
   extra_bed_allowed: boolean; extra_bed_price: number | null;
   cancellation_policy: string | null; min_nights: number;
   pms_room_code: string | null; pms_room_id: string | null;
+  max_adults: number; max_children: number; max_extra_beds: number;
+  child_free_age_to: number; child_age_to: number;
+};
+
+type MealRow = {
+  id?: string; hotel_id?: string; room_id?: string | null; meal_type: MealType;
+  pricing_mode: "optional_paid" | "included";
+  adult_price: number; child_price: number;
+  is_available: boolean; is_active: boolean;
 };
 
 type RateRow = {
@@ -41,12 +51,19 @@ type ChannelMap = {
   sync_enabled: boolean; commission_percent: number | null; notes: string | null;
 };
 
+const defaultMeals = (): Record<MealType, MealRow> => ({
+  breakfast: { meal_type: "breakfast", pricing_mode: "optional_paid", adult_price: 150, child_price: 100, is_available: false, is_active: true },
+  lunch: { meal_type: "lunch", pricing_mode: "optional_paid", adult_price: 300, child_price: 200, is_available: false, is_active: true },
+  dinner: { meal_type: "dinner", pricing_mode: "optional_paid", adult_price: 350, child_price: 250, is_available: false, is_active: true },
+});
+
 const emptyRoom: Partial<Room> = {
   room_type: "", category: "Deluxe", description: "", base_price: 2500,
-  max_occupancy: 2, total_units: 1, amenities: [], photos: [], is_active: true,
+  max_occupancy: 3, total_units: 1, amenities: [], photos: [], is_active: true,
   bed_type: "King", size_sqft: null, view_type: "", smoking_allowed: false,
   breakfast_included: false, extra_bed_allowed: false, extra_bed_price: null,
   cancellation_policy: "", min_nights: 1, pms_room_code: "", pms_room_id: "",
+  max_adults: 2, max_children: 1, max_extra_beds: 0, child_free_age_to: 5, child_age_to: 11,
 };
 
 const BED_TYPES = ["King", "Queen", "Double", "Twin", "Single", "Bunk", "Sofa Bed"];
@@ -56,6 +73,7 @@ const AMENITY_PRESETS = [
   "Rain shower", "Work desk", "Iron", "Hairdryer", "Room service", "Slippers",
 ];
 const CHANNELS = ["Booking.com", "MakeMyTrip", "Goibibo", "Agoda", "Expedia", "Airbnb", "Direct"];
+
 
 export default function PartnerRooms() {
   const { loading: gate, hotelId } = usePartnerHotel();
@@ -70,8 +88,17 @@ export default function PartnerRooms() {
   const [channelMaps, setChannelMaps] = useState<ChannelMap[]>([]);
   const [channelSaving, setChannelSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [meals, setMeals] = useState<Record<MealType, MealRow>>(defaultMeals());
+  const [allMeals, setAllMeals] = useState<MealRow[]>([]);
 
   const days = useMemo(() => Array.from({ length: 30 }).map((_, i) => addDays(new Date(), i)), []);
+
+  const loadMeals = async () => {
+    if (!hotelId) return [];
+    const { data } = await (supabase as any).from("hotel_meals").select("*").eq("hotel_id", hotelId);
+    setAllMeals(data || []);
+    return (data || []) as MealRow[];
+  };
 
   useEffect(() => {
     if (!hotelId) return;
@@ -79,9 +106,37 @@ export default function PartnerRooms() {
       const { data } = await (supabase as any).from("hotel_rooms")
         .select("*").eq("hotel_id", hotelId).order("created_at", { ascending: true });
       setRooms(data || []);
+      await loadMeals();
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotelId]);
+
+  /** Meals applying to a room: room-level override, else hotel default. */
+  const mealsForRoom = (roomId?: string): MealRow[] => {
+    const map = new Map<string, MealRow>();
+    for (const m of allMeals) {
+      if (m.room_id && m.room_id !== roomId) continue;
+      const cur = map.get(m.meal_type);
+      if (!cur || (m.room_id && !cur.room_id)) map.set(m.meal_type, m);
+    }
+    return Array.from(map.values()).filter(m => m.is_available && m.is_active);
+  };
+
+  const openEditor = (room: Partial<Room> | null) => {
+    const next = defaultMeals();
+    if (room?.id) {
+      for (const m of mealsForRoom(room.id)) next[m.meal_type] = { ...next[m.meal_type], ...m };
+      // include unavailable rows too so toggles reflect saved state
+      for (const m of allMeals) {
+        if (m.room_id && m.room_id !== room.id) continue;
+        if (!next[m.meal_type].id || m.room_id) next[m.meal_type] = { ...next[m.meal_type], ...m };
+      }
+    }
+    setMeals(next);
+    setEditing(room);
+  };
+
 
   const openRates = async (room: Room) => {
     setRateRoomId(room.id);
@@ -204,22 +259,58 @@ export default function PartnerRooms() {
         min_nights: Number(editing.min_nights) || 1,
         pms_room_code: editing.pms_room_code || null,
         pms_room_id: editing.pms_room_id || null,
+        max_adults: Number(editing.max_adults) || 1,
+        max_children: Number(editing.max_children) || 0,
+        max_extra_beds: Number(editing.max_extra_beds) || 0,
+        child_free_age_to: Number(editing.child_free_age_to ?? 5),
+        child_age_to: Number(editing.child_age_to ?? 11),
       };
+      // Occupancy sanity: total guests must cover adults + children.
+      if (payload.max_occupancy < payload.max_adults) {
+        payload.max_occupancy = payload.max_adults;
+      }
+
+      let roomId = editing.id;
       if (editing.id) {
         const { error } = await (supabase as any).from("hotel_rooms").update(payload).eq("id", editing.id);
         if (error) throw error;
         setRooms(rs => rs.map(r => r.id === editing.id ? { ...r, ...payload } : r));
-        toast.success("Room updated");
       } else {
         const { data, error } = await (supabase as any).from("hotel_rooms").insert(payload).select().single();
         if (error) throw error;
+        roomId = data.id;
         setRooms(rs => [...rs, data as Room]);
-        toast.success("Room added");
       }
+
+      // Meal configuration (room-level)
+      const mealRows = MEAL_TYPES.map(t => ({
+        hotel_id: hotelId,
+        room_id: roomId,
+        meal_type: t,
+        pricing_mode: meals[t].pricing_mode,
+        adult_price: Number(meals[t].adult_price) || 0,
+        child_price: Number(meals[t].child_price) || 0,
+        is_available: !!meals[t].is_available,
+        is_active: true,
+      }));
+      const { error: mErr } = await (supabase as any).from("hotel_meals")
+        .upsert(mealRows, { onConflict: "hotel_id,room_id,meal_type" });
+      if (mErr) {
+        // Fallback when the partial unique index cannot be used as a conflict target.
+        for (const row of mealRows) {
+          const existing = allMeals.find(m => m.room_id === roomId && m.meal_type === row.meal_type);
+          if (existing?.id) await (supabase as any).from("hotel_meals").update(row).eq("id", existing.id);
+          else await (supabase as any).from("hotel_meals").insert(row);
+        }
+      }
+      await loadMeals();
+
+      toast.success(editing.id ? "Room updated" : "Room added");
       setEditing(null);
     } catch (e: any) { toast.error(e?.message || "Failed to save"); }
     finally { setSaving(false); }
   };
+
 
   const deleteRoom = async (id: string) => {
     if (!confirm("Delete this room? All rate calendar entries and channel mappings will also be removed.")) return;
@@ -273,7 +364,7 @@ export default function PartnerRooms() {
             <h1 className="text-3xl font-bold tracking-tight">Manage your inventory</h1>
             <p className="mt-1 text-sm text-muted-foreground">Set attributes, upload photos, and map rooms to your PMS and OTA channels.</p>
           </div>
-          <Button onClick={() => setEditing(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
+          <Button onClick={() => openEditor(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
             <Plus className="mr-1.5 h-4 w-4" /> Add room
           </Button>
         </div>
@@ -286,7 +377,7 @@ export default function PartnerRooms() {
               <p className="max-w-md text-sm text-muted-foreground">
                 Add your first room type to start managing inventory, rates, and availability.
               </p>
-              <Button onClick={() => setEditing(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
+              <Button onClick={() => openEditor(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
                 <Plus className="mr-1.5 h-4 w-4" /> Add your first room
               </Button>
             </CardContent>
@@ -320,9 +411,28 @@ export default function PartnerRooms() {
                     <Stat icon={<Users className="h-3.5 w-3.5" />} label="Max" value={r.max_occupancy} />
                     <Stat icon={<BedDouble className="h-3.5 w-3.5" />} label="Units" value={r.total_units} />
                   </div>
+                  <div className="mb-3 space-y-1 rounded-md border border-border/60 bg-muted/10 p-2 text-xs">
+                    <p className="text-muted-foreground">
+                      Occupancy: {r.max_adults ?? 2} adult{(r.max_adults ?? 2) !== 1 ? "s" : ""} + {r.max_children ?? 0} child · Bed: {r.bed_type || "—"}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {mealsForRoom(r.id).length === 0 && <span className="text-muted-foreground">No meals configured</span>}
+                      {mealsForRoom(r.id).map(m => (
+                        <Badge key={m.meal_type} variant="outline">
+                          {MEAL_LABEL[m.meal_type]} {m.pricing_mode === "included" ? "Included" : `₹${Number(m.adult_price)}`}
+                        </Badge>
+                      ))}
+                    </div>
+                    {r.extra_bed_allowed && Number(r.max_extra_beds) > 0 && (
+                      <p className="text-muted-foreground">
+                        Extra bed: ₹{Number(r.extra_bed_price || 0)} / night · max {r.max_extra_beds}
+                      </p>
+                    )}
+                  </div>
                   {r.pms_room_code && (
                     <p className="mb-2 text-xs text-muted-foreground">PMS code: <span className="text-foreground">{r.pms_room_code}</span></p>
                   )}
+
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" className="flex-1" onClick={() => openRates(r)}>
                       Rates & availability
@@ -330,7 +440,7 @@ export default function PartnerRooms() {
                     <Button size="sm" variant="outline" onClick={() => openChannels(r)}>
                       <Link2 className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => openEditor(r)}><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => deleteRoom(r.id)}><Trash2 className="h-3.5 w-3.5 text-red-400" /></Button>
                   </div>
                 </CardContent>
@@ -348,12 +458,105 @@ export default function PartnerRooms() {
           </DialogHeader>
           {editing && (
             <Tabs defaultValue="basics">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="basics">Basics</TabsTrigger>
+                <TabsTrigger value="beds">Beds & Meals</TabsTrigger>
                 <TabsTrigger value="attributes">Attributes</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="pms">PMS</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="beds" className="space-y-4 pt-4">
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-2 text-sm font-semibold">Bed configuration</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Bed type</Label>
+                      <select
+                        className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={editing.bed_type || ""}
+                        onChange={e => setEditing({ ...editing, bed_type: e.target.value })}
+                      >
+                        <option value="">Select…</option>
+                        {BED_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
+                      </select>
+                    </div>
+                    <ToggleRow label="Extra bed available" checked={!!editing.extra_bed_allowed} onChange={v => setEditing({ ...editing, extra_bed_allowed: v, max_extra_beds: v ? Math.max(1, Number(editing.max_extra_beds) || 1) : 0 })} />
+                    <div>
+                      <Label>Extra bed price ₹ / night</Label>
+                      <Input type="number" min={0} disabled={!editing.extra_bed_allowed}
+                        value={editing.extra_bed_price ?? ""}
+                        onChange={e => setEditing({ ...editing, extra_bed_price: e.target.value === "" ? null : Number(e.target.value) })} />
+                    </div>
+                    <div>
+                      <Label>Maximum extra beds</Label>
+                      <Input type="number" min={0} disabled={!editing.extra_bed_allowed}
+                        value={editing.max_extra_beds ?? 0}
+                        onChange={e => setEditing({ ...editing, max_extra_beds: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-1 text-sm font-semibold">Child age rules</p>
+                  <p className="mb-2 text-xs text-muted-foreground">Children up to the free age stay free; up to the child age they pay child prices; older children are billed as adults.</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Free up to age</Label>
+                      <Input type="number" min={0} value={editing.child_free_age_to ?? 5} onChange={e => setEditing({ ...editing, child_free_age_to: Number(e.target.value) })} />
+                    </div>
+                    <div>
+                      <Label>Child price up to age</Label>
+                      <Input type="number" min={0} value={editing.child_age_to ?? 11} onChange={e => setEditing({ ...editing, child_age_to: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-2 text-sm font-semibold">Meal plans (per person, per day)</p>
+                  <div className="space-y-3">
+                    {MEAL_TYPES.map(t => (
+                      <div key={t} className="rounded-md border border-border/50 p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-medium">{MEAL_LABEL[t]}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            Available
+                            <Switch checked={meals[t].is_available} onCheckedChange={v => setMeals(m => ({ ...m, [t]: { ...m[t], is_available: v } }))} />
+                          </div>
+                        </div>
+                        {meals[t].is_available && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Pricing mode</Label>
+                              <select
+                                className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                                value={meals[t].pricing_mode}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], pricing_mode: e.target.value as any } }))}
+                              >
+                                <option value="optional_paid">Optional paid</option>
+                                <option value="included">Included in room price</option>
+                              </select>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Adult ₹ / day</Label>
+                              <Input className="h-9" type="number" min={0} disabled={meals[t].pricing_mode === "included"}
+                                value={meals[t].adult_price}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], adult_price: Number(e.target.value) } }))} />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Child ₹ / day</Label>
+                              <Input className="h-9" type="number" min={0} disabled={meals[t].pricing_mode === "included"}
+                                value={meals[t].child_price}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], child_price: Number(e.target.value) } }))} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
 
               <TabsContent value="basics" className="space-y-3 pt-4">
                 <div>
@@ -387,6 +590,17 @@ export default function PartnerRooms() {
                     <Label>Total units</Label>
                     <Input type="number" value={editing.total_units ?? 1} onChange={e => setEditing({ ...editing, total_units: Number(e.target.value) })} />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Maximum adults</Label>
+                    <Input type="number" min={1} value={editing.max_adults ?? 2} onChange={e => setEditing({ ...editing, max_adults: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label>Maximum children</Label>
+                    <Input type="number" min={0} value={editing.max_children ?? 1} onChange={e => setEditing({ ...editing, max_children: Number(e.target.value) })} />
+                  </div>
+
                 </div>
                 <div className="flex items-center justify-between rounded-md border border-border/60 p-3">
                   <div>
