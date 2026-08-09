@@ -364,7 +364,7 @@ export default function PartnerRooms() {
             <h1 className="text-3xl font-bold tracking-tight">Manage your inventory</h1>
             <p className="mt-1 text-sm text-muted-foreground">Set attributes, upload photos, and map rooms to your PMS and OTA channels.</p>
           </div>
-          <Button onClick={() => setEditing(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
+          <Button onClick={() => openEditor(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
             <Plus className="mr-1.5 h-4 w-4" /> Add room
           </Button>
         </div>
@@ -377,7 +377,7 @@ export default function PartnerRooms() {
               <p className="max-w-md text-sm text-muted-foreground">
                 Add your first room type to start managing inventory, rates, and availability.
               </p>
-              <Button onClick={() => setEditing(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
+              <Button onClick={() => openEditor(emptyRoom)} className="bg-emerald-500 hover:bg-emerald-600">
                 <Plus className="mr-1.5 h-4 w-4" /> Add your first room
               </Button>
             </CardContent>
@@ -440,7 +440,7 @@ export default function PartnerRooms() {
                     <Button size="sm" variant="outline" onClick={() => openChannels(r)}>
                       <Link2 className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="outline" onClick={() => openEditor(r)}><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button size="sm" variant="outline" onClick={() => deleteRoom(r.id)}><Trash2 className="h-3.5 w-3.5 text-red-400" /></Button>
                   </div>
                 </CardContent>
