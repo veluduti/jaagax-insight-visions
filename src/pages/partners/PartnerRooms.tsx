@@ -591,6 +591,17 @@ export default function PartnerRooms() {
                     <Input type="number" value={editing.total_units ?? 1} onChange={e => setEditing({ ...editing, total_units: Number(e.target.value) })} />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Maximum adults</Label>
+                    <Input type="number" min={1} value={editing.max_adults ?? 2} onChange={e => setEditing({ ...editing, max_adults: Number(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label>Maximum children</Label>
+                    <Input type="number" min={0} value={editing.max_children ?? 1} onChange={e => setEditing({ ...editing, max_children: Number(e.target.value) })} />
+                  </div>
+
+                </div>
                 <div className="flex items-center justify-between rounded-md border border-border/60 p-3">
                   <div>
                     <p className="text-sm font-semibold">Active</p>
