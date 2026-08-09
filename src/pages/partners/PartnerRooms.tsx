@@ -88,8 +88,17 @@ export default function PartnerRooms() {
   const [channelMaps, setChannelMaps] = useState<ChannelMap[]>([]);
   const [channelSaving, setChannelSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [meals, setMeals] = useState<Record<MealType, MealRow>>(defaultMeals());
+  const [allMeals, setAllMeals] = useState<MealRow[]>([]);
 
   const days = useMemo(() => Array.from({ length: 30 }).map((_, i) => addDays(new Date(), i)), []);
+
+  const loadMeals = async () => {
+    if (!hotelId) return [];
+    const { data } = await (supabase as any).from("hotel_meals").select("*").eq("hotel_id", hotelId);
+    setAllMeals(data || []);
+    return (data || []) as MealRow[];
+  };
 
   useEffect(() => {
     if (!hotelId) return;
@@ -97,9 +106,37 @@ export default function PartnerRooms() {
       const { data } = await (supabase as any).from("hotel_rooms")
         .select("*").eq("hotel_id", hotelId).order("created_at", { ascending: true });
       setRooms(data || []);
+      await loadMeals();
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotelId]);
+
+  /** Meals applying to a room: room-level override, else hotel default. */
+  const mealsForRoom = (roomId?: string): MealRow[] => {
+    const map = new Map<string, MealRow>();
+    for (const m of allMeals) {
+      if (m.room_id && m.room_id !== roomId) continue;
+      const cur = map.get(m.meal_type);
+      if (!cur || (m.room_id && !cur.room_id)) map.set(m.meal_type, m);
+    }
+    return Array.from(map.values()).filter(m => m.is_available && m.is_active);
+  };
+
+  const openEditor = (room: Partial<Room> | null) => {
+    const next = defaultMeals();
+    if (room?.id) {
+      for (const m of mealsForRoom(room.id)) next[m.meal_type] = { ...next[m.meal_type], ...m };
+      // include unavailable rows too so toggles reflect saved state
+      for (const m of allMeals) {
+        if (m.room_id && m.room_id !== room.id) continue;
+        if (!next[m.meal_type].id || m.room_id) next[m.meal_type] = { ...next[m.meal_type], ...m };
+      }
+    }
+    setMeals(next);
+    setEditing(room);
+  };
+
 
   const openRates = async (room: Room) => {
     setRateRoomId(room.id);
