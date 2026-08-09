@@ -458,12 +458,105 @@ export default function PartnerRooms() {
           </DialogHeader>
           {editing && (
             <Tabs defaultValue="basics">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="basics">Basics</TabsTrigger>
+                <TabsTrigger value="beds">Beds & Meals</TabsTrigger>
                 <TabsTrigger value="attributes">Attributes</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="pms">PMS</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="beds" className="space-y-4 pt-4">
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-2 text-sm font-semibold">Bed configuration</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Bed type</Label>
+                      <select
+                        className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        value={editing.bed_type || ""}
+                        onChange={e => setEditing({ ...editing, bed_type: e.target.value })}
+                      >
+                        <option value="">Select…</option>
+                        {BED_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
+                      </select>
+                    </div>
+                    <ToggleRow label="Extra bed available" checked={!!editing.extra_bed_allowed} onChange={v => setEditing({ ...editing, extra_bed_allowed: v, max_extra_beds: v ? Math.max(1, Number(editing.max_extra_beds) || 1) : 0 })} />
+                    <div>
+                      <Label>Extra bed price ₹ / night</Label>
+                      <Input type="number" min={0} disabled={!editing.extra_bed_allowed}
+                        value={editing.extra_bed_price ?? ""}
+                        onChange={e => setEditing({ ...editing, extra_bed_price: e.target.value === "" ? null : Number(e.target.value) })} />
+                    </div>
+                    <div>
+                      <Label>Maximum extra beds</Label>
+                      <Input type="number" min={0} disabled={!editing.extra_bed_allowed}
+                        value={editing.max_extra_beds ?? 0}
+                        onChange={e => setEditing({ ...editing, max_extra_beds: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-1 text-sm font-semibold">Child age rules</p>
+                  <p className="mb-2 text-xs text-muted-foreground">Children up to the free age stay free; up to the child age they pay child prices; older children are billed as adults.</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Free up to age</Label>
+                      <Input type="number" min={0} value={editing.child_free_age_to ?? 5} onChange={e => setEditing({ ...editing, child_free_age_to: Number(e.target.value) })} />
+                    </div>
+                    <div>
+                      <Label>Child price up to age</Label>
+                      <Input type="number" min={0} value={editing.child_age_to ?? 11} onChange={e => setEditing({ ...editing, child_age_to: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-md border border-border/60 p-3">
+                  <p className="mb-2 text-sm font-semibold">Meal plans (per person, per day)</p>
+                  <div className="space-y-3">
+                    {MEAL_TYPES.map(t => (
+                      <div key={t} className="rounded-md border border-border/50 p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-medium">{MEAL_LABEL[t]}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            Available
+                            <Switch checked={meals[t].is_available} onCheckedChange={v => setMeals(m => ({ ...m, [t]: { ...m[t], is_available: v } }))} />
+                          </div>
+                        </div>
+                        {meals[t].is_available && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Pricing mode</Label>
+                              <select
+                                className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                                value={meals[t].pricing_mode}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], pricing_mode: e.target.value as any } }))}
+                              >
+                                <option value="optional_paid">Optional paid</option>
+                                <option value="included">Included in room price</option>
+                              </select>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Adult ₹ / day</Label>
+                              <Input className="h-9" type="number" min={0} disabled={meals[t].pricing_mode === "included"}
+                                value={meals[t].adult_price}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], adult_price: Number(e.target.value) } }))} />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Child ₹ / day</Label>
+                              <Input className="h-9" type="number" min={0} disabled={meals[t].pricing_mode === "included"}
+                                value={meals[t].child_price}
+                                onChange={e => setMeals(m => ({ ...m, [t]: { ...m[t], child_price: Number(e.target.value) } }))} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
 
               <TabsContent value="basics" className="space-y-3 pt-4">
                 <div>
