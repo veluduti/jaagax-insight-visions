@@ -77,6 +77,7 @@ export default function PublishPaymentDialog({
     const res = await startWalletTopUp(shortfall, userInfo);
     setWallet(Number(res.new_balance || wallet + shortfall));
     window.dispatchEvent(new Event("walletUpdated"));
+      window.dispatchEvent(new Event("entitlementsUpdated"));
     return true;
   };
 
@@ -122,6 +123,7 @@ export default function PublishPaymentDialog({
         if (!data?.ok) throw new Error(data?.reason === "insufficient_funds" ? "Insufficient balance" : "Subscription failed");
         toast.success("Agent subscription activated", { description: `Invoice ${data.invoice_number}` });
         window.dispatchEvent(new Event("walletUpdated"));
+      window.dispatchEvent(new Event("entitlementsUpdated"));
         onEntitlementChanged?.();
       }
       onOpenChange(false);
