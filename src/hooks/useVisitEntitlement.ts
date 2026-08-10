@@ -49,7 +49,11 @@ export function useVisitEntitlement() {
     refresh();
     const onUpdate = () => refresh();
     window.addEventListener("entitlementsUpdated", onUpdate);
-    return () => window.removeEventListener("entitlementsUpdated", onUpdate);
+    window.addEventListener("walletUpdated", onUpdate);
+    return () => {
+      window.removeEventListener("entitlementsUpdated", onUpdate);
+      window.removeEventListener("walletUpdated", onUpdate);
+    };
   }, [refresh]);
 
   return { entitlement, loading, refresh };
