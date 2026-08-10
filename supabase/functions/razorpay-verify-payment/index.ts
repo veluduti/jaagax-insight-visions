@@ -1,6 +1,7 @@
 // Verifies a Razorpay payment signature and confirms the booking.
 // Also fires notifications to guest, hotel manager, and admins.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendBookingConfirmationEmail } from "../_shared/bookingEmail.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
