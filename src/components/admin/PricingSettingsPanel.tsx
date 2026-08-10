@@ -319,7 +319,6 @@ export default function PricingSettingsPanel() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }
