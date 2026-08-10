@@ -14,6 +14,7 @@ export default function AgentTrialStatusCard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { entitlement, loading } = usePostingEntitlement();
+  const { entitlement: visits } = useVisitEntitlement();
   const [settings, setSettings] = useState<any>(null);
   const [drafts, setDrafts] = useState(0);
 
