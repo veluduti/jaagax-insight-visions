@@ -55,6 +55,7 @@ import { createConversationEngine, type ConversationEngine } from "@/engines/con
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
 import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
+import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
@@ -1050,6 +1051,23 @@ export default function SellProperty() {
   const { processPendingPayment, hasPending } = usePendingPayment();
   // Admin-configured posting entitlement (free posts / pay-per-post / agent subscription)
   const { entitlement, refresh: refreshEntitlement } = usePostingEntitlement();
+  // Pre-publish payment options (free trial / property posting / agent subscription)
+  const [payOpen, setPayOpen] = useState(false);
+  const [payUser, setPayUser] = useState<{ id: string; name?: string | null; email?: string | null; contact?: string | null } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const u = data?.user;
+      if (!u) return;
+      setPayUser({
+        id: u.id,
+        name: (u.user_metadata as any)?.full_name ?? null,
+        email: u.email ?? null,
+        contact: (u.user_metadata as any)?.phone ?? null,
+      });
+    })();
+  }, []);
+
 
   useEffect(() => {
     if (!field) return;
@@ -4791,7 +4809,13 @@ export default function SellProperty() {
                             <Pencil className="h-4 w-4 mr-1" /> Edit details
                           </Button>
                           <Button
-                            onClick={onSubmit}
+                            onClick={() => {
+                              if (isFinancial || !entitlement || entitlement.has_agent_subscription) {
+                                onSubmit();
+                              } else {
+                                setPayOpen(true);
+                              }
+                            }}
                             disabled={!canPublish}
                             className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95 disabled:opacity-50"
                           >
@@ -4801,6 +4825,17 @@ export default function SellProperty() {
                         </div>
                       </div>
                     </div>
+
+                    <PublishPaymentDialog
+                      open={payOpen}
+                      onOpenChange={setPayOpen}
+                      entitlement={entitlement}
+                      userId={payUser?.id ?? null}
+                      userInfo={payUser ?? undefined}
+                      onProceed={() => onSubmit()}
+                      onEntitlementChanged={refreshEntitlement}
+                    />
+
 
                     {/* EDIT DRAWER — dynamic, only filled fields */}
                     <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
