@@ -50,13 +50,26 @@ export default function PartnerReservations() {
 
   useEffect(() => {
     if (!hotelId) return;
-    (async () => {
+    const load = async () => {
       const { data } = await (supabase as any).from("hotel_bookings")
         .select("*").eq("hotel_id", hotelId).order("check_in", { ascending: true });
       setBookings(data || []);
       setLoading(false);
-    })();
+    };
+    load();
+
+    // Live-update the list as new bookings/payments come in
+    const channel = supabase
+      .channel(`reservations-${hotelId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "hotel_bookings", filter: `hotel_id=eq.${hotelId}` },
+        () => load(),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [hotelId]);
+
 
   const filtered = useMemo(() => {
     const today = new Date();
