@@ -55,6 +55,7 @@ Return ONLY through the tool.`;
 
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(12000),
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
