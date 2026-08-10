@@ -13,6 +13,12 @@ export interface PostingEntitlement {
   gst_amount: number;
   total: number;
   currency: string;
+  is_agent?: boolean;
+  agent_application_status?: string | null;
+  trial_active?: boolean;
+  trial_days_remaining?: number;
+  trial_posts_remaining?: number;
+  requires_subscription?: boolean;
 }
 
 export async function fetchPostingEntitlement(userId: string): Promise<PostingEntitlement | null> {
