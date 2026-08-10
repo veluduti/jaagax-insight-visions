@@ -191,6 +191,31 @@ const HotelCheckout = () => {
 
   const total = Number(quote?.grand_total ?? livePrice?.grandTotal ?? 0);
 
+  // Server quote wins; the local engine only fills the gap while it is in flight.
+  const displayPrice = useMemo(() => {
+    if (quote?.grand_total != null) {
+      return {
+        nights: quote.nights ?? nights,
+        nightly: quote.nightly ?? [],
+        perNight: quote.per_night ?? 0,
+        roomCharges: quote.room_charges ?? quote.room_total ?? 0,
+        mealBreakdown: quote.meals ?? [],
+        mealTotal: quote.meal_total ?? 0,
+        extraBedTotal: quote.extra_bed_total ?? 0,
+        addonTotal: quote.addon_total ?? 0,
+        discount: quote.discount ?? 0,
+        taxableSubtotal: quote.taxable_subtotal ?? 0,
+        gstRate: quote.gst_rate ?? 0,
+        taxAmount: quote.tax_amount ?? 0,
+        grandTotal: quote.grand_total ?? 0,
+        lineItems: quote.line_items ?? [],
+        freeChildren: 0,
+      } as any;
+    }
+    return livePrice;
+  }, [quote, livePrice, nights]);
+
+
 
   const validateGuest = () => {
     if (!guestName.trim() || guestName.trim().length < 2) return "Please enter your name";
