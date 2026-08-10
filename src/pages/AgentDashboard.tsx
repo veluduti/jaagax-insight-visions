@@ -198,6 +198,8 @@ const lsSet = (uid: string, k: string, v: any) => {
 export default function AgentDashboard() {
   const navigate = useNavigate();
   const { user: authUser, role, loading: authLoading, signOut } = useAuth();
+  const { entitlement: postingEntitlement, loading: postingEntitlementLoading } = usePostingEntitlement();
+  const { entitlement: visitEntitlement, loading: visitEntitlementLoading } = useVisitEntitlement();
   const [user, setUser] = useState<any>(null);
   const [agentProfile, setAgentProfile] = useState<AgentProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
