@@ -45,6 +45,7 @@ import {
   UserPlus,
   Activity,
   BellRing,
+  IndianRupee,
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
