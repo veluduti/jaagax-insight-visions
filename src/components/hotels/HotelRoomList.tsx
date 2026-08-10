@@ -378,11 +378,15 @@ export default function HotelRoomList({
                   )}
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                    {room.breakfast_included && (
-                      <span className="flex items-center gap-1 text-emerald-600 font-medium">
-                        <Coffee className="h-3.5 w-3.5" /> Free breakfast
+                    {mealsForRoom(room.id).map((m) => (
+                      <span key={m.meal_type} className="flex items-center gap-1 text-emerald-600 font-medium capitalize">
+                        <Coffee className="h-3.5 w-3.5" />
+                        {m.pricing_mode === "included"
+                          ? `${m.meal_type} included`
+                          : `${m.meal_type} ₹${Number(m.adult_price).toLocaleString()}/adult`}
                       </span>
-                    )}
+                    ))}
+
                     {room.cancellation_policy && (
                       <span className="flex items-center gap-1 text-emerald-600 font-medium">
                         <ShieldCheck className="h-3.5 w-3.5" /> {room.cancellation_policy}
