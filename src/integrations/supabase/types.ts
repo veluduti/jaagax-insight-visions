@@ -286,6 +286,120 @@ export type Database = {
           },
         ]
       }
+      agent_applications: {
+        Row: {
+          aadhaar_back_url: string | null
+          aadhaar_front_url: string | null
+          aadhaar_number: string | null
+          account_holder_name: string | null
+          account_number: string | null
+          address: string | null
+          admin_remarks: string | null
+          agency_name: string | null
+          bank_name: string | null
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string | null
+          experience_years: number | null
+          full_name: string
+          id: string
+          ifsc_code: string | null
+          languages: string | null
+          mobile: string
+          operating_locations: string | null
+          pan_card_url: string | null
+          pan_number: string | null
+          pincode: string | null
+          profile_photo_url: string | null
+          rera_number: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          state: string | null
+          status: string
+          terms_accepted: boolean
+          trial_started_at: string | null
+          updated_at: string
+          upi_id: string | null
+          user_id: string
+        }
+        Insert: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          aadhaar_number?: string | null
+          account_holder_name?: string | null
+          account_number?: string | null
+          address?: string | null
+          admin_remarks?: string | null
+          agency_name?: string | null
+          bank_name?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          experience_years?: number | null
+          full_name: string
+          id?: string
+          ifsc_code?: string | null
+          languages?: string | null
+          mobile: string
+          operating_locations?: string | null
+          pan_card_url?: string | null
+          pan_number?: string | null
+          pincode?: string | null
+          profile_photo_url?: string | null
+          rera_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          state?: string | null
+          status?: string
+          terms_accepted?: boolean
+          trial_started_at?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          user_id: string
+        }
+        Update: {
+          aadhaar_back_url?: string | null
+          aadhaar_front_url?: string | null
+          aadhaar_number?: string | null
+          account_holder_name?: string | null
+          account_number?: string | null
+          address?: string | null
+          admin_remarks?: string | null
+          agency_name?: string | null
+          bank_name?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          experience_years?: number | null
+          full_name?: string
+          id?: string
+          ifsc_code?: string | null
+          languages?: string | null
+          mobile?: string
+          operating_locations?: string | null
+          pan_card_url?: string | null
+          pan_number?: string | null
+          pincode?: string | null
+          profile_photo_url?: string | null
+          rera_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          state?: string | null
+          status?: string
+          terms_accepted?: boolean
+          trial_started_at?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_badges: {
         Row: {
           achieved_at: string | null
@@ -7642,9 +7756,12 @@ export type Database = {
       platform_pricing_settings: {
         Row: {
           agent_billing_cycle: string
+          agent_subscription_duration_days: number
           agent_subscription_enabled: boolean
           agent_subscription_gst_percent: number
           agent_subscription_price: number
+          agent_trial_days: number
+          agent_trial_free_posts: number
           created_at: string
           currency: string
           free_posts_limit: number
@@ -7657,9 +7774,12 @@ export type Database = {
         }
         Insert: {
           agent_billing_cycle?: string
+          agent_subscription_duration_days?: number
           agent_subscription_enabled?: boolean
           agent_subscription_gst_percent?: number
           agent_subscription_price?: number
+          agent_trial_days?: number
+          agent_trial_free_posts?: number
           created_at?: string
           currency?: string
           free_posts_limit?: number
@@ -7672,9 +7792,12 @@ export type Database = {
         }
         Update: {
           agent_billing_cycle?: string
+          agent_subscription_duration_days?: number
           agent_subscription_enabled?: boolean
           agent_subscription_gst_percent?: number
           agent_subscription_price?: number
+          agent_trial_days?: number
+          agent_trial_free_posts?: number
           created_at?: string
           currency?: string
           free_posts_limit?: number
@@ -10841,6 +10964,10 @@ export type Database = {
         }[]
       }
       resolve_roles: { Args: { _user_id: string }; Returns: string[] }
+      review_agent_application: {
+        Args: { _app_id: string; _approve: boolean; _remarks?: string }
+        Returns: Json
+      }
       review_kyc: {
         Args: { _decision: string; _reason?: string; _user_id: string }
         Returns: undefined

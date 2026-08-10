@@ -61,6 +61,7 @@ import RegisteredUsersPanel from "@/components/admin/RegisteredUsersPanel";
 import ReportedListingsPanel from "@/components/admin/ReportedListingsPanel";
 import AllListingsPanel from "@/components/admin/AllListingsPanel";
 import KYCReviewQueue from "@/components/admin/KYCReviewQueue";
+import AgentApplicationsPanel from "@/components/admin/AgentApplicationsPanel";
 import AdminNLKycReview from "@/pages/AdminNLKycReview";
 import AdminLandRegistrations from "@/pages/AdminLandRegistrations";
 import PriceDropQueue from "@/components/admin/PriceDropQueue";
@@ -165,6 +166,7 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
         { value: "rera", label: "RERA Verifications", icon: Shield },
         { value: "documents", label: "Documents", icon: FileText },
         { value: "kyc", label: "KYC", icon: FileCheck },
+        { value: "agent-applications", label: "Agent Applications", icon: Briefcase },
         { value: "nl-kyc", label: "Natural Living KYC", icon: FileCheck },
         { value: "nl-land", label: "Land Registrations", icon: MapPinned },
         { value: "price-drops", label: "Price Drops", icon: TrendingDown },
@@ -627,6 +629,11 @@ function AdminPanelInner({ title, subtitle, readOnly = false }: { title?: string
           {/* KYC */}
           <TabsContent value="kyc" className="mt-4">
             <KYCReviewQueue />
+          </TabsContent>
+
+          {/* Agent Applications */}
+          <TabsContent value="agent-applications" className="mt-4">
+            <AgentApplicationsPanel />
           </TabsContent>
 
           {/* Natural Living KYC */}

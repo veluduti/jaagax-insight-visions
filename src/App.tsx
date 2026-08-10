@@ -75,6 +75,7 @@ const BuilderPromotions = lazy(() => import("./pages/BuilderPromotions"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const AgentAddProperty = lazy(() => import("./pages/AgentAddProperty"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const AgentRegistration = lazy(() => import("./pages/AgentRegistration"));
 const CountryAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.CountryAdminDashboard })));
 const StateAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.StateAdminDashboard })));
 const DistrictAdminDashboard = lazy(() => import("./pages/SubAdminDashboard").then(m => ({ default: m.DistrictAdminDashboard })));
@@ -586,6 +587,8 @@ const App = () => (
                     }
                   />
                   <Route path="/dashboard/buyer" element={<Navigate to="/dashboard/customer?view=buying" replace />} />
+
+                  <Route path="/agent/register" element={<AgentRegistration />} />
 
                   <Route
                     path="/dashboard/agent"

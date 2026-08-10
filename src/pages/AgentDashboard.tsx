@@ -62,6 +62,7 @@ import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
 // Phase 1 Agent Components
 import AgentKYCVerification from "@/components/agent/AgentKYCVerification";
 import AgentSubscriptionManager from "@/components/agent/AgentSubscriptionManager";
+import AgentTrialStatusCard from "@/components/agent/AgentTrialStatusCard";
 import AgentBadgeLevel from "@/components/agent/AgentBadgeLevel";
 import AgentSuccessScore from "@/components/agent/AgentSuccessScore";
 import AgentReferralProgram from "@/components/agent/AgentReferralProgram";
@@ -878,6 +879,7 @@ export default function AgentDashboard() {
         {agentProfile.id && user?.id && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <AgentKYCVerification />
+            <AgentTrialStatusCard />
             <AgentSubscriptionManager />
           </div>
         )}
