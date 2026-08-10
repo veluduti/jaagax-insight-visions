@@ -22,6 +22,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { usePostingEntitlement } from "@/hooks/usePostingEntitlement";
+import { useVisitEntitlement } from "@/hooks/useVisitEntitlement";
 import Navigation from "@/components/Navigation";
 import CreatedBuilderProfilesSection from "@/components/builder/CreatedBuilderProfilesSection";
 
