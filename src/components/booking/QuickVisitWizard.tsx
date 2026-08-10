@@ -518,8 +518,15 @@ export const QuickVisitWizard = ({
                     <Row label="City" value={propertyCity} />
                     <div className="border-t pt-2 flex items-center justify-between">
                       <span className="text-muted-foreground">Total today</span>
-                      <span className="text-lg font-semibold flex items-center gap-0.5"><IndianRupee className="h-4 w-4" />{QUICK_VISIT_FEE}</span>
+                      {visitFee > 0 ? (
+                        <span className="text-lg font-semibold flex items-center gap-0.5"><IndianRupee className="h-4 w-4" />{visitFee.toLocaleString("en-IN")}</span>
+                      ) : (
+                        <span className="text-lg font-semibold text-emerald-600">Free</span>
+                      )}
                     </div>
+                    {freeVisitsLeft > 0 && (
+                      <p className="text-xs text-emerald-600">{freeVisitsLeft} free visit booking{freeVisitsLeft === 1 ? "" : "s"} left on your account.</p>
+                    )}
                   </CardContent></Card>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
