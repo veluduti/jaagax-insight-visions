@@ -149,12 +149,44 @@ const HotelCheckout = () => {
     })();
   }, [hotelId, roomId, checkIn, checkOut, adults, children, navigate]);
 
-  const perNight = Number(quote?.perNight ?? quote?.per_night ?? room?.base_price ?? 0);
-  const roomSubtotal = perNight * nights * numRooms;
-  const addonSubtotal = Number(quote?.addon_total || 0);
-  const gstRate = perNight < 7500 ? 0.12 : 0.18;
-  const taxes = Math.round(roomSubtotal * gstRate);
-  const total = roomSubtotal + addonSubtotal + taxes;
+  // Hotel meal / extra-bed / rate configuration for this room.
+  const config = useHotelPricingConfig(hotelId, roomId);
+  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
+  const [extraBeds, setExtraBeds] = useState(0);
+
+  const { price: livePrice, error: liveError } = useLivePrice({
+    room: config.room,
+    meals: config.meals,
+    rateCalendar: config.rateCalendar,
+    gstRate: config.gstRate,
+    checkIn, checkOut, adults, children, numRooms, extraBeds,
+    selectedMeals,
+    addons: [],
+    discount: 0,
+  });
+
+  const toggleMeal = (m: MealType) =>
+    setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+
+  // Re-quote from the server whenever the selection changes — backend stays authoritative.
+  useEffect(() => {
+    if (!hotelId || !roomId || !checkIn || !checkOut) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.functions.invoke("booking-engine-quote", {
+        body: {
+          hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut,
+          adults, children, guests: adults + children, num_rooms: numRooms,
+          extra_beds: extraBeds, meals: selectedMeals,
+        },
+      });
+      if (!cancelled && data && !(data as any).error) setQuote(data);
+    })();
+    return () => { cancelled = true; };
+  }, [hotelId, roomId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+
+  const total = Number(quote?.grand_total ?? livePrice?.grandTotal ?? 0);
+
 
   const validateGuest = () => {
     if (!guestName.trim() || guestName.trim().length < 2) return "Please enter your name";
