@@ -133,6 +133,16 @@ export default function AgentSubscriptionManager() {
             {money(price, currency)} + {gstPct}% GST ({money(gst, currency)})
           </p>
         </div>
+        <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            One subscription covers both services
+          </p>
+          {COVERED_SERVICES.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-2 text-sm">
+              <Icon className="h-4 w-4 text-primary shrink-0" /> {label}
+            </div>
+          ))}
+        </div>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {BENEFITS.map((b) => (
             <li key={b} className="flex items-center gap-2 text-sm">
@@ -141,13 +151,11 @@ export default function AgentSubscriptionManager() {
           ))}
         </ul>
         <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-sm text-muted-foreground">
-            Wallet Balance: <strong className="text-foreground">{money(wallet, currency)}</strong>
-          </span>
+          <span className="text-xs text-muted-foreground">Secure payment via Razorpay</span>
           {!active && (
             <Button variant="premium" onClick={subscribe} disabled={subscribing || !enabled}>
               {subscribing && <Loader2 className="h-4 w-4 animate-spin" />}
-              {enabled ? "Subscribe Now" : "Unavailable"}
+              {enabled ? `Pay ${money(total, currency)} & Subscribe` : "Unavailable"}
             </Button>
           )}
         </div>
