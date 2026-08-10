@@ -81,6 +81,13 @@ export default function PricingSettingsPanel() {
         agent_subscription_price: s.agent_subscription_price,
         agent_subscription_gst_percent: s.agent_subscription_gst_percent,
         agent_billing_cycle: s.agent_billing_cycle,
+        agent_trial_days: Math.round(s.agent_trial_days ?? 0),
+        agent_trial_free_posts: Math.round(s.agent_trial_free_posts ?? 0),
+        agent_subscription_duration_days: Math.round(s.agent_subscription_duration_days ?? 30),
+        free_visits_limit: Math.round(s.free_visits_limit ?? 0),
+        visit_booking_paid_enabled: s.visit_booking_paid_enabled,
+        visit_fee: s.visit_fee,
+        visit_gst_percent: s.visit_gst_percent,
       })
       .eq("id", s.id);
     setSaving(false);
