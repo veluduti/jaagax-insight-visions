@@ -304,6 +304,7 @@ export const QuickVisitWizard = ({
   const TIME_SLOTS = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0">
         <div className="relative bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 px-6 pt-5 pb-4 border-b">
