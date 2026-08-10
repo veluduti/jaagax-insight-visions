@@ -85,7 +85,7 @@ export default function CustomerOverview({ onNavigateTab }: { onNavigateTab: (vi
     { label: "Saved properties", value: String(counts.favorites), hint: "Your shortlist", icon: Heart, onClick: () => onNavigateTab("buying") },
     { label: "Scheduled visits", value: String(counts.visits), hint: "Site visits booked", icon: CalendarCheck, onClick: () => onNavigateTab("buying") },
     { label: "Hotel bookings", value: String(counts.bookings), hint: "Stays booked", icon: Hotel, onClick: () => onNavigateTab("buying") },
-    { label: "Wallet", value: `₹${counts.wallet.toLocaleString("en-IN")}`, hint: "Available balance", icon: Wallet, onClick: () => navigate("/wallet") },
+    { label: "Wallet", value: `₹${counts.wallet.toLocaleString("en-IN")}`, hint: "Available balance", icon: Wallet, onClick: () => onNavigateTab("selling") },
   ];
 
   const actions = [
