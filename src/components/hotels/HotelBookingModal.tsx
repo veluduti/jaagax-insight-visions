@@ -19,6 +19,8 @@ import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
 import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
 import { MealSelector, ExtraBedSelector, PriceBreakdown, inr } from "@/components/hotels/BookingPricingControls";
+import { payForHotelBooking } from "@/lib/hotelPay";
+import { Input } from "@/components/ui/input";
 import type { MealType } from "@/lib/hotelPricing";
 
 interface HotelBookingModalProps {
@@ -89,6 +91,10 @@ const HotelBookingModal = ({
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
@@ -124,6 +130,27 @@ const HotelBookingModal = ({
     if (initialRooms) setNumRooms(initialRooms);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCheckIn?.getTime(), initialCheckOut?.getTime(), initialGuests, initialRooms]);
+
+  // --- Pre-fill guest details from the signed-in account ---
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const meta: any = user.user_metadata || {};
+      setGuestEmail((v) => v || user.email || "");
+      setGuestName((v) => v || meta.full_name || meta.name || "");
+      setGuestPhone((v) => v || user.phone || meta.phone || "");
+      const { data: profile } = await (supabase as any)
+        .from("profiles").select("full_name, phone, email").eq("id", user.id).maybeSingle();
+      if (cancelled || !profile) return;
+      if (profile.full_name) setGuestName((v) => v || profile.full_name);
+      if (profile.phone) setGuestPhone((v) => v || profile.phone);
+      if (profile.email) setGuestEmail((v) => v || profile.email);
+    })();
+    return () => { cancelled = true; };
+  }, [open]);
 
   // --- Load the hotel manager's actual active rooms ---
   useEffect(() => {
@@ -233,9 +260,13 @@ const HotelBookingModal = ({
     setStep("room");
   };
 
-  const continueToCheckout = async () => {
+  const handlePayment = async () => {
     if (!selectedRoomId || !checkIn || !checkOut) return;
     if (liveError) return toast.error(liveError);
+    if (!guestName.trim() || guestName.trim().length < 2) return toast.error("Please enter your name");
+    if (!/^\S+@\S+\.\S+$/.test(guestEmail.trim())) return toast.error("Please enter a valid email");
+    if (!/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) return toast.error("Please enter a valid phone number");
+
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -245,21 +276,39 @@ const HotelBookingModal = ({
         navigate("/auth");
         return;
       }
-      const params = new URLSearchParams({
-        room: selectedRoomId,
-        checkin: checkInStr,
-        checkout: checkOutStr,
-        adults: String(adults),
-        children: String(numChildren),
-        rooms: String(numRooms),
-        beds: String(extraBeds),
-        type: bookingType,
+
+      let bookedByAgentId: string | null = null;
+      const { data: agentRow } = await (supabase as any)
+        .from("agents").select("id").eq("user_id", user.id).maybeSingle();
+      if (agentRow?.id) bookedByAgentId = agentRow.id;
+
+      const bookingId = await payForHotelBooking({
+        hotel_id: hotel.id,
+        hotel_name: hotel.name,
+        room_id: selectedRoomId,
+        check_in: checkInStr,
+        check_out: checkOutStr,
+        adults,
+        children: numChildren,
+        num_rooms: numRooms,
+        extra_beds: extraBeds,
+        meals: selectedMeals,
+        guest_name: guestName.trim(),
+        guest_email: guestEmail.trim(),
+        guest_phone: guestPhone.trim(),
+        user_id: user.id,
+        booked_by_agent_id: bookedByAgentId,
       });
-      if (selectedMeals.length) params.set("meals", selectedMeals.join(","));
+
+      toast.success("Payment successful — booking confirmed!", {
+        description: "A confirmation email is on its way.",
+      });
       onClose();
-      navigate(`/hotels/${hotel.id}/checkout?${params.toString()}`);
+      navigate(`/hotels/booking/${bookingId}/confirmed`);
     } catch (err: any) {
-      toast.error("Could not start booking", { description: err?.message || "Please try again" });
+      const msg = err?.message || "Please try again";
+      if (msg === "Payment cancelled") toast.info("Payment cancelled");
+      else toast.error("Payment failed", { description: msg });
     } finally {
       setSubmitting(false);
     }
@@ -521,18 +570,31 @@ const HotelBookingModal = ({
             )}
 
             <Separator />
+
+            {/* Guest details (pre-filled from the signed-in account) */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Guest details</Label>
+              <Input placeholder="Full name" value={guestName} onChange={(e) => setGuestName(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input type="email" placeholder="Email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
+                <Input type="tel" placeholder="Phone" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} />
+              </div>
+            </div>
+
+            <Separator />
             {liveError && <p className="text-xs text-destructive">{liveError}</p>}
             <PriceBreakdown price={livePrice} />
 
-            <Button className="w-full h-12" onClick={continueToCheckout} disabled={submitting || !!liveError || !livePrice}>
+            <Button className="w-full h-12" onClick={handlePayment} disabled={submitting || !!liveError || !livePrice}>
               {submitting ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting...</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing payment...</>
               ) : (
-                `Continue to Checkout · ${inr(livePrice?.grandTotal || 0)}`
+                `Payment · ${inr(livePrice?.grandTotal || 0)}`
               )}
             </Button>
             <p className="text-[11px] text-center text-muted-foreground">
-              Final amount is recalculated and confirmed by our servers before payment.
+              Secure payment via Razorpay · UPI, Cards, Netbanking. Final amount is
+              recalculated and confirmed by our servers before payment.
             </p>
           </div>
         )}

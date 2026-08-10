@@ -1,6 +1,7 @@
 // Verifies a Razorpay payment signature and confirms the booking.
 // Also fires notifications to guest, hotel manager, and admins.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { sendBookingConfirmationEmail } from "../_shared/bookingEmail.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,18 +110,8 @@ Deno.serve(async (req) => {
         })));
       }
 
-      // 4) Email confirmation (reuse existing)
-      await fetch(
-        new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-          },
-          body: JSON.stringify({ booking_id: booking.id }),
-        },
-      ).catch(() => {});
+      // 4) Guest email confirmation (queued via Lovable email infra)
+      await sendBookingConfirmationEmail(supabase, booking);
     } catch (e) {
       console.error("notification error", e);
     }
