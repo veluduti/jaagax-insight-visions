@@ -47,6 +47,9 @@ export function useVisitEntitlement() {
 
   useEffect(() => {
     refresh();
+    const onUpdate = () => refresh();
+    window.addEventListener("entitlementsUpdated", onUpdate);
+    return () => window.removeEventListener("entitlementsUpdated", onUpdate);
   }, [refresh]);
 
   return { entitlement, loading, refresh };
