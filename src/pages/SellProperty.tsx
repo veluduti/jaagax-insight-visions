@@ -4724,6 +4724,33 @@ export default function SellProperty() {
                             {titlesLoading ? "Generating title…" : "Pick or write a title to enable publish"}
                           </div>
                         )}
+                        {!isFinancial && entitlement && (
+                          <div
+                            className={`rounded-xl border p-2.5 mb-1 text-xs ${
+                              entitlement.has_agent_subscription
+                                ? "border-yellow-500/30 bg-yellow-500/5"
+                                : entitlement.requires_payment
+                                  ? "border-amber-500/30 bg-amber-500/5"
+                                  : "border-emerald-500/30 bg-emerald-500/5"
+                            }`}
+                          >
+                            {entitlement.has_agent_subscription ? (
+                              <span>Agent subscription active — unlimited property postings.</span>
+                            ) : entitlement.requires_payment ? (
+                              <span>
+                                Free posts used ({entitlement.free_used}/{entitlement.free_limit}). This listing costs{" "}
+                                <strong>₹{Number(entitlement.total).toLocaleString("en-IN")}</strong> (₹
+                                {Number(entitlement.fee).toLocaleString("en-IN")} + {entitlement.gst_percent}% GST),
+                                debited from your wallet on publish.
+                              </span>
+                            ) : (
+                              <span>
+                                <strong>{entitlement.free_remaining}</strong> of {entitlement.free_limit} free posts
+                                remaining — this listing is free.
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {!isFinancial && (
                           <div className="rounded-xl border border-border bg-card p-3 mb-1">
                             <div className="text-sm font-semibold mb-1">
