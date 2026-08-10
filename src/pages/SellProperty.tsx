@@ -3508,13 +3508,10 @@ export default function SellProperty() {
         });
         navigate("/dashboard/agent");
       } else {
-        toast.success("Your property is submitted ✅", {
-          description: hasPending
-            ? "Payment processed. We're assigning a verification agent now."
-            : "We're assigning a verification agent now. You'll be notified shortly.",
-        });
-        navigate("/dashboard/seller");
+        toast.success("Your property is submitted ✅", { description: assignmentMessage });
+        navigate("/dashboard/customer");
       }
+
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Could not submit listing");
