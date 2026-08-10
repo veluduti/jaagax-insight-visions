@@ -118,20 +118,21 @@ export default function BookingEngine() {
 
   const confirm = async () => {
     if (!quote || !guest.name || !guest.email || !guest.phone) return toast.error("Please fill guest details");
+    if (liveError) return toast.error(liveError);
     setConfirming(true);
     const { data, error } = await supabase.functions.invoke("booking-engine-confirm", {
       body: {
-        hotel_id: hotelId, room_id: selectedRoom.id,
-        check_in: checkIn, check_out: checkOut, guests,
+        ...orderPayload(),
         guest_name: guest.name, guest_email: guest.email, guest_phone: guest.phone,
-        addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
-        promo_code: promo || null, source: "direct",
+        source: "direct",
       },
     });
     setConfirming(false);
     if (error) return toast.error(error.message);
+    if ((data as any)?.error) return toast.error((data as any).error);
     setConfirmed(data);
   };
+
 
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-6 w-6" /></div>;
   if (!hotel) return <div className="p-8 text-center">Hotel not found.</div>;
