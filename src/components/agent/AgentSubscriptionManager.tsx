@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Loader2 } from "lucide-react";
+import { CalendarCheck, Check, Crown, Home, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
 import { toast } from "sonner";
 
+const COVERED_SERVICES = [
+  { icon: Home, label: "Property Posting — unlimited listings, no per-post charges" },
+  { icon: CalendarCheck, label: "Visit Schedule Booking — unlimited visits, no per-visit charges" },
+];
+
 const BENEFITS = [
-  "Unlimited Listings",
   "Premium Visibility",
   "AI Lead Recommendations",
   "Featured Properties",
