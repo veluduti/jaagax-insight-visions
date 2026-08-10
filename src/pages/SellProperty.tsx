@@ -3513,8 +3513,24 @@ export default function SellProperty() {
       }
 
     } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Could not submit listing");
+      console.error("Property submit failed", e);
+      const raw = String(e?.message || "");
+      let friendly = "Could not submit your listing. Please try again.";
+      if (/row-level security|permission denied/i.test(raw)) {
+        friendly = "You don't have permission to publish this listing. Please sign in again.";
+      } else if (/violates not-null|null value in column/i.test(raw)) {
+        friendly = "Some required details are missing. Please review the highlighted fields and retry.";
+      } else if (/duplicate key/i.test(raw)) {
+        friendly = "This listing looks like a duplicate — it may already be published.";
+      } else if (/ambiguous|column .* does not exist/i.test(raw)) {
+        friendly = "We hit a technical issue saving your location details. Our team has been notified.";
+      } else if (/network|fetch/i.test(raw)) {
+        friendly = "Network problem — check your connection and try again.";
+      } else if (raw) {
+        friendly = raw;
+      }
+      toast.error("Publishing failed", { description: friendly });
+
     } finally {
       setSubmitting(false);
     }
