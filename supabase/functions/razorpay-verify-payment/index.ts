@@ -109,18 +109,8 @@ Deno.serve(async (req) => {
         })));
       }
 
-      // 4) Email confirmation (reuse existing)
-      await fetch(
-        new URL("/functions/v1/send-booking-confirmation", Deno.env.get("SUPABASE_URL")!),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-          },
-          body: JSON.stringify({ booking_id: booking.id }),
-        },
-      ).catch(() => {});
+      // 4) Guest email confirmation (queued via Lovable email infra)
+      await sendBookingConfirmationEmail(supabase, booking);
     } catch (e) {
       console.error("notification error", e);
     }
