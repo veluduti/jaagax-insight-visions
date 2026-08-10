@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export default function PublishPaymentDialog({
   const [wallet, setWallet] = useState(0);
   const [settings, setSettings] = useState<any>(null);
   const [busy, setBusy] = useState<Choice | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!open || !userId) return;
@@ -63,6 +65,9 @@ export default function PublishPaymentDialog({
   const agentCycle = settings?.agent_billing_cycle || "monthly";
   const agentEnabled = settings?.agent_subscription_enabled !== false && agentTotal > 0;
   const hasAgentSub = !!entitlement?.has_agent_subscription;
+  const isAgent = !!entitlement?.is_agent;
+  const appStatus = entitlement?.agent_application_status ?? null;
+  const trialActive = !!entitlement?.trial_active;
 
   /** Ensures wallet has at least `amount`; tops up via Razorpay otherwise. */
   const ensureBalance = async (amount: number) => {
@@ -95,6 +100,17 @@ export default function PublishPaymentDialog({
 
   const handleAgentSubscription = async () => {
     if (!userId) return;
+    if (!isAgent) {
+      // Not an agent yet — route through KYC verification instead of instant activation.
+      onOpenChange(false);
+      navigate("/agent/register");
+      return;
+    }
+    if (trialActive) {
+      onOpenChange(false);
+      onProceed();
+      return;
+    }
     setBusy("agent");
     try {
       if (!hasAgentSub) {
@@ -185,20 +201,45 @@ export default function PublishPaymentDialog({
               <span className="text-xs font-normal text-muted-foreground">/{agentCycle}</span>
             </div>
             <ul className="text-xs text-muted-foreground mt-1 space-y-1 flex-1">
-              {["Unlimited listings", "Premium visibility", "Priority leads"].map((b) => (
+              {(isAgent
+                ? ["Unlimited listings", "Premium visibility", "Priority leads"]
+                : ["Verify KYC (Aadhaar + PAN)", "Admin approval required", "Free trial after approval"]
+              ).map((b) => (
                 <li key={b} className="flex items-center gap-1.5">
                   <Check className="h-3 w-3 text-emerald-600" /> {b}
                 </li>
               ))}
             </ul>
+            {!isAgent && appStatus === "pending" && (
+              <p className="text-[11px] text-yellow-600 mt-1">
+                Application under review — this listing will be saved as a draft.
+              </p>
+            )}
+            {isAgent && trialActive && (
+              <p className="text-[11px] text-emerald-600 mt-1">
+                Free trial active — {entitlement?.trial_posts_remaining ?? 0} posts / {entitlement?.trial_days_remaining ?? 0} days left.
+              </p>
+            )}
             <Button
               variant="outline"
               className="mt-3 w-full border-yellow-500/60"
-              disabled={busy !== null || (!agentEnabled && !hasAgentSub)}
+              disabled={busy !== null || (isAgent && !agentEnabled && !hasAgentSub && !trialActive)}
               onClick={handleAgentSubscription}
             >
               {busy === "agent" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {hasAgentSub ? "Publish (subscribed)" : agentEnabled ? "Subscribe & publish" : "Unavailable"}
+              {!isAgent
+                ? appStatus === "pending"
+                  ? "View application"
+                  : appStatus === "rejected"
+                  ? "Update application"
+                  : "Become an Agent (KYC)"
+                : trialActive
+                ? "Publish (free trial)"
+                : hasAgentSub
+                ? "Publish (subscribed)"
+                : agentEnabled
+                ? "Subscribe & publish"
+                : "Unavailable"}
             </Button>
           </div>
         </div>
