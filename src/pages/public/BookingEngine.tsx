@@ -26,6 +26,8 @@ export default function BookingEngine() {
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
+  const [hotelMeals, setHotelMeals] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const today = new Date().toISOString().slice(0, 10);
   const tmr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
