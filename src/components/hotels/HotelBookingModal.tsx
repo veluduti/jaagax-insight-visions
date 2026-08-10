@@ -91,6 +91,10 @@ const HotelBookingModal = ({
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
