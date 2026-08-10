@@ -88,6 +88,8 @@ export const QuickVisitWizard = ({
   const [notes, setNotes] = useState("");
 
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [visitEntitlement, setVisitEntitlement] = useState<VisitEntitlement | null>(null);
 
   useEffect(() => {
     if (!open) return;
