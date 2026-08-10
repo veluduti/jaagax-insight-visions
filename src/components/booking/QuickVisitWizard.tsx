@@ -221,6 +221,24 @@ export const QuickVisitWizard = ({
 
       if (error || !booking) throw error || new Error("Failed to create booking");
 
+      // Charge the visit: free allowance or wallet debit + invoice (admin-configured)
+      const { data: charge } = await (supabase as any).rpc("charge_visit_booking", {
+        _user_id: user.id,
+        _booking_id: booking.id,
+      });
+      if (charge && charge.ok === false) {
+        toast.error(
+          charge.reason === "insufficient_funds"
+            ? "Payment could not be completed — please top up your wallet."
+            : "Visit payment could not be completed.",
+        );
+      } else if (charge?.invoice_number) {
+        window.dispatchEvent(new Event("walletUpdated"));
+        toast.success(charge.free ? "Free visit applied" : `Payment successful — invoice ${charge.invoice_number}`);
+      }
+
+
+
       await logWeekendActivity({
         bookingId: booking.id,
         actorId: user.id,
