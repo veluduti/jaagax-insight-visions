@@ -67,6 +67,7 @@ export default function HotelRoomList({
   checkIn, checkOut, adults = 2, children = 0, roomsWanted = 1,
 }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [meals, setMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Record<string, RoomQuote>>({});
   const [galleryIdx, setGalleryIdx] = useState<Record<string, number>>({});
@@ -85,6 +86,28 @@ export default function HotelRoomList({
       setLoading(false);
     })();
   }, [hotelId]);
+
+  // Meal plans — `hotel_meals` is the single source of truth for meals.
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("hotel_meals").select("*")
+        .eq("hotel_id", hotelId).eq("is_active", true);
+      setMeals(data || []);
+    })();
+  }, [hotelId]);
+
+  /** Room-level meal config overrides the hotel-level default. */
+  const mealsForRoom = (roomId: string) => {
+    const map = new Map<string, any>();
+    for (const m of meals) {
+      if (m.room_id && m.room_id !== roomId) continue;
+      const cur = map.get(m.meal_type);
+      if (!cur || (m.room_id && !cur.room_id)) map.set(m.meal_type, m);
+    }
+    return Array.from(map.values()).filter((m) => m.is_available !== false);
+  };
+
 
   // Quote each room once we have dates
   useEffect(() => {
