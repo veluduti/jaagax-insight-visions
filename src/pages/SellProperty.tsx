@@ -1051,6 +1051,23 @@ export default function SellProperty() {
   const { processPendingPayment, hasPending } = usePendingPayment();
   // Admin-configured posting entitlement (free posts / pay-per-post / agent subscription)
   const { entitlement, refresh: refreshEntitlement } = usePostingEntitlement();
+  // Pre-publish payment options (free trial / property posting / agent subscription)
+  const [payOpen, setPayOpen] = useState(false);
+  const [payUser, setPayUser] = useState<{ id: string; name?: string | null; email?: string | null; contact?: string | null } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const u = data?.user;
+      if (!u) return;
+      setPayUser({
+        id: u.id,
+        name: (u.user_metadata as any)?.full_name ?? null,
+        email: u.email ?? null,
+        contact: (u.user_metadata as any)?.phone ?? null,
+      });
+    })();
+  }, []);
+
 
   useEffect(() => {
     if (!field) return;
