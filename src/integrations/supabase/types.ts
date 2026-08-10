@@ -10628,7 +10628,7 @@ export type Database = {
         Returns: string
       }
       generate_unique_property_slug: {
-        Args: { _id: string; _title: string }
+        Args: { _id?: string; _title: string }
         Returns: string
       }
       get_active_profile_type: { Args: { _user_id: string }; Returns: string }
