@@ -376,7 +376,7 @@ export default function PartnerRooms() {
         size_sqft: editing.size_sqft ? Number(editing.size_sqft) : null,
         view_type: editing.view_type || null,
         smoking_allowed: editing.smoking_allowed ?? false,
-        breakfast_included: editing.breakfast_included ?? false,
+        // NOTE: `breakfast_included` is legacy — meals live in `hotel_meals`.
         extra_bed_allowed: editing.extra_bed_allowed ?? false,
         extra_bed_price: editing.extra_bed_price ? Number(editing.extra_bed_price) : null,
         cancellation_policy: editing.cancellation_policy || null,
@@ -909,15 +909,6 @@ export default function PartnerRooms() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label>Breakfast included</Label>
-                    <div className="mt-2">
-                      <Switch
-                        checked={!!editing.breakfast_included}
-                        onCheckedChange={(v) => setEditing({ ...editing, breakfast_included: v })}
-                      />
-                    </div>
-                  </div>
 
                   <div>
                     <Label>Amenities</Label>

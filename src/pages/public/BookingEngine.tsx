@@ -26,6 +26,8 @@ export default function BookingEngine() {
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
+  const [hotelMeals, setHotelMeals] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const today = new Date().toISOString().slice(0, 10);
   const tmr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
@@ -50,12 +52,14 @@ export default function BookingEngine() {
     (async () => {
       if (!hotelId) return;
       setLoading(true);
-      const [h, r, a] = await Promise.all([
+      const [h, r, a, m] = await Promise.all([
         (supabase as any).from("partner_hotels").select("*").eq("id", hotelId).maybeSingle(),
         (supabase as any).from("hotel_rooms").select("*").eq("hotel_id", hotelId).eq("is_active", true),
         (supabase as any).from("hotel_addons").select("*").eq("hotel_id", hotelId).eq("is_active", true),
+        (supabase as any).from("hotel_meals").select("*").eq("hotel_id", hotelId).eq("is_active", true),
       ]);
-      setHotel(h.data); setRooms(r.data || []); setAddons(a.data || []);
+      setHotel(h.data); setRooms(r.data || []); setAddons(a.data || []); setHotelMeals(m.data || []);
+
       setLoading(false);
     })();
   }, [hotelId]);
@@ -191,7 +195,14 @@ export default function BookingEngine() {
                     <div className="text-xs text-muted-foreground line-clamp-2">{r.description}</div>
                     <div className="mt-1 flex gap-2 flex-wrap text-xs">
                       <Badge variant="secondary">Sleeps {r.max_occupancy}</Badge>
-                      {r.breakfast_included && <Badge>Breakfast</Badge>}
+                      {hotelMeals
+                        .filter((m: any) => (!m.room_id || m.room_id === r.id) && m.is_available !== false)
+                        .map((m: any) => (
+                          <Badge key={`${r.id}-${m.meal_type}`} variant="secondary" className="capitalize">
+                            {m.pricing_mode === "included" ? `${m.meal_type} included` : `${m.meal_type} ₹${Number(m.adult_price).toLocaleString()}`}
+                          </Badge>
+                        ))}
+
                     </div>
                   </div>
                   <div className="text-right">
