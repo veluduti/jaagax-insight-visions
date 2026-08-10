@@ -549,18 +549,31 @@ const HotelBookingModal = ({
             )}
 
             <Separator />
+
+            {/* Guest details (pre-filled from the signed-in account) */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Guest details</Label>
+              <Input placeholder="Full name" value={guestName} onChange={(e) => setGuestName(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input type="email" placeholder="Email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} />
+                <Input type="tel" placeholder="Phone" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} />
+              </div>
+            </div>
+
+            <Separator />
             {liveError && <p className="text-xs text-destructive">{liveError}</p>}
             <PriceBreakdown price={livePrice} />
 
-            <Button className="w-full h-12" onClick={continueToCheckout} disabled={submitting || !!liveError || !livePrice}>
+            <Button className="w-full h-12" onClick={handlePayment} disabled={submitting || !!liveError || !livePrice}>
               {submitting ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Redirecting...</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing payment...</>
               ) : (
-                `Continue to Checkout · ${inr(livePrice?.grandTotal || 0)}`
+                `Payment · ${inr(livePrice?.grandTotal || 0)}`
               )}
             </Button>
             <p className="text-[11px] text-center text-muted-foreground">
-              Final amount is recalculated and confirmed by our servers before payment.
+              Secure payment via Razorpay · UPI, Cards, Netbanking. Final amount is
+              recalculated and confirmed by our servers before payment.
             </p>
           </div>
         )}
