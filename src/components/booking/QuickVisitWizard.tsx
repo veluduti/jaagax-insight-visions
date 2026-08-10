@@ -576,6 +576,16 @@ export const QuickVisitWizard = ({
         )}
       </DialogContent>
     </Dialog>
+
+    <VisitPaymentDialog
+      open={showPayment}
+      onOpenChange={setShowPayment}
+      entitlement={visitEntitlement}
+      userId={user?.id ?? null}
+      userInfo={{ name, email, contact: phone }}
+      onProceed={createBooking}
+    />
+    </>
   );
 };
 
