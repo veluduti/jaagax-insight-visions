@@ -50,12 +50,14 @@ export default function BookingEngine() {
     (async () => {
       if (!hotelId) return;
       setLoading(true);
-      const [h, r, a] = await Promise.all([
+      const [h, r, a, m] = await Promise.all([
         (supabase as any).from("partner_hotels").select("*").eq("id", hotelId).maybeSingle(),
         (supabase as any).from("hotel_rooms").select("*").eq("hotel_id", hotelId).eq("is_active", true),
         (supabase as any).from("hotel_addons").select("*").eq("hotel_id", hotelId).eq("is_active", true),
+        (supabase as any).from("hotel_meals").select("*").eq("hotel_id", hotelId).eq("is_active", true),
       ]);
-      setHotel(h.data); setRooms(r.data || []); setAddons(a.data || []);
+      setHotel(h.data); setRooms(r.data || []); setAddons(a.data || []); setHotelMeals(m.data || []);
+
       setLoading(false);
     })();
   }, [hotelId]);
