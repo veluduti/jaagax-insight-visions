@@ -10280,8 +10280,12 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          metadata: Json
+          reference_id: string | null
+          status: string
           type: string | null
           user_id: string | null
+          wallet_id: string | null
         }
         Insert: {
           amount?: number | null
@@ -10290,8 +10294,12 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          metadata?: Json
+          reference_id?: string | null
+          status?: string
           type?: string | null
           user_id?: string | null
+          wallet_id?: string | null
         }
         Update: {
           amount?: number | null
@@ -10300,10 +10308,22 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          metadata?: Json
+          reference_id?: string | null
+          status?: string
           type?: string | null
           user_id?: string | null
+          wallet_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallets: {
         Row: {
