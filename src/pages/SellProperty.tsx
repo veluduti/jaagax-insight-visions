@@ -55,6 +55,7 @@ import { createConversationEngine, type ConversationEngine } from "@/engines/con
 import type { FieldDefinition, NextQuestionResult, PropertyCategory } from "@/engines/types";
 import { getPriceSuggestions, getRentSuggestions, getUnitSuggestions, type PriceUnit } from "@/utils/suggestionEngine";
 import { mapExtractedToEngineFields } from "@/engines/extractedFieldMapper";
+import PublishPaymentDialog from "@/components/seller/PublishPaymentDialog";
 
 const CORRECTION_RE = /\b(actually|change|instead|it'?s|correction|update|rather|sorry)\b/i;
 
