@@ -91,6 +91,7 @@ export default function AgentSubscriptionManager() {
       }
       toast.success("Agent subscription activated!", { description: `Invoice ${data.invoice_number}` });
       window.dispatchEvent(new Event("walletUpdated"));
+      window.dispatchEvent(new Event("entitlementsUpdated"));
       await load();
     } catch (e: any) {
       toast.error(e.message || "Payment failed");

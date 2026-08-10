@@ -51,6 +51,50 @@ export default function AgentTrialStatusCard() {
   const active = !!entitlement.trial_active;
   const visitsLeft = Number(visits?.free_remaining || 0);
   const visitsLimit = Number(visits?.free_limit || 0);
+  const subscribed = !!entitlement.has_agent_subscription;
+
+
+  if (subscribed) {
+    return (
+      <Card className="border-yellow-500/30">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-yellow-500" /> Subscription Active
+            </CardTitle>
+            <Badge className="bg-yellow-600">Unlimited access</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border p-3 flex items-center gap-2 text-sm">
+              <FileStack className="h-4 w-4 text-yellow-500" />
+              <span>Property posting — unlimited, no per-post charges</span>
+            </div>
+            <div className="rounded-lg border p-3 flex items-center gap-2 text-sm">
+              <Ticket className="h-4 w-4 text-yellow-500" />
+              <span>Visit scheduling — unlimited, no per-visit charges</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 pt-2 border-t text-sm">
+            <span className="text-muted-foreground">
+              {drafts > 0 ? `${drafts} draft listing${drafts > 1 ? "s" : ""} ready to publish` : "No draft listings"}
+            </span>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => navigate("/sell-property")}>
+                Post property
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate("/properties")}>
+                Book a visit
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+
 
 
   return (

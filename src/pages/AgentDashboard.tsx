@@ -1021,21 +1021,39 @@ export default function AgentDashboard() {
             {!postingEntitlementLoading && !visitEntitlementLoading && postingEntitlement?.is_agent && (
               <div className="px-6 pb-4">
                 <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-emerald-500" />
-                    <span className="text-muted-foreground">Trial days left</span>
-                    <Badge variant="secondary" className="font-semibold">
-                      {Number(postingEntitlement.trial_days_remaining || 0)}
-                    </Badge>
-                  </div>
-                  <div className="hidden sm:block h-4 w-px bg-border" />
-                  <div className="flex items-center gap-2 text-sm">
-                    <Ticket className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">Free visits left</span>
-                    <Badge variant="secondary" className="font-semibold">
-                      {Number(visitEntitlement?.free_remaining || 0)}
-                    </Badge>
-                  </div>
+                  {postingEntitlement.has_agent_subscription ? (
+                    <>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Home className="h-4 w-4 text-yellow-500" />
+                        <span className="text-muted-foreground">Property posting</span>
+                        <Badge className="bg-yellow-600 font-semibold">Unlimited</Badge>
+                      </div>
+                      <div className="hidden sm:block h-4 w-px bg-border" />
+                      <div className="flex items-center gap-2 text-sm">
+                        <Ticket className="h-4 w-4 text-yellow-500" />
+                        <span className="text-muted-foreground">Visit bookings</span>
+                        <Badge className="bg-yellow-600 font-semibold">Unlimited</Badge>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-emerald-500" />
+                        <span className="text-muted-foreground">Trial days left</span>
+                        <Badge variant="secondary" className="font-semibold">
+                          {Number(postingEntitlement.trial_days_remaining || 0)}
+                        </Badge>
+                      </div>
+                      <div className="hidden sm:block h-4 w-px bg-border" />
+                      <div className="flex items-center gap-2 text-sm">
+                        <Ticket className="h-4 w-4 text-primary" />
+                        <span className="text-muted-foreground">Free visits left</span>
+                        <Badge variant="secondary" className="font-semibold">
+                          {Number(visitEntitlement?.free_remaining || 0)}
+                        </Badge>
+                      </div>
+                    </>
+                  )}
                   <div className="flex-1" />
                   <Button
                     size="sm"
@@ -1048,6 +1066,7 @@ export default function AgentDashboard() {
                 </div>
               </div>
             )}
+
 
             <CardContent>
               {properties.length === 0 ? (

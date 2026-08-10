@@ -47,6 +47,13 @@ export function useVisitEntitlement() {
 
   useEffect(() => {
     refresh();
+    const onUpdate = () => refresh();
+    window.addEventListener("entitlementsUpdated", onUpdate);
+    window.addEventListener("walletUpdated", onUpdate);
+    return () => {
+      window.removeEventListener("entitlementsUpdated", onUpdate);
+      window.removeEventListener("walletUpdated", onUpdate);
+    };
   }, [refresh]);
 
   return { entitlement, loading, refresh };
