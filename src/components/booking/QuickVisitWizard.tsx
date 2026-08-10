@@ -103,6 +103,14 @@ export const QuickVisitWizard = ({
     });
   }, [open]);
 
+  // Admin-configured visit pricing / free allowance
+  useEffect(() => {
+    if (!open) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) fetchVisitEntitlement(data.user.id).then(setVisitEntitlement);
+    });
+  }, [open]);
+
   // Fetch property options when picker is shown
   useEffect(() => {
     if (!open || !requiresPropertyPick) return;
