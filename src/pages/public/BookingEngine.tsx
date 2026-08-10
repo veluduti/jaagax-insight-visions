@@ -169,12 +169,15 @@ export default function BookingEngine() {
       <div className="container mx-auto max-w-5xl px-4 py-6 grid gap-6 md:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           <Card>
-            <CardContent className="p-4 grid grid-cols-3 gap-3">
+            <CardContent className="p-4 grid grid-cols-2 gap-3 md:grid-cols-5">
               <div><Label>Check-in</Label><Input type="date" min={new Date().toISOString().slice(0,10)} value={checkIn} onChange={e => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }} /></div>
               <div><Label>Check-out</Label><Input type="date" min={nextDayISO(checkIn)} value={checkOut} onChange={e => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }} /></div>
-              <div><Label>Guests</Label><Input type="number" min={1} value={guests} onChange={e => setGuests(Number(e.target.value))} /></div>
+              <div><Label>Adults</Label><Input type="number" min={1} value={adults} onChange={e => setAdults(Math.max(1, Number(e.target.value) || 1))} /></div>
+              <div><Label>Children</Label><Input type="number" min={0} value={children} onChange={e => setChildren(Math.max(0, Number(e.target.value) || 0))} /></div>
+              <div><Label>Rooms</Label><Input type="number" min={1} value={numRooms} onChange={e => setNumRooms(Math.max(1, Number(e.target.value) || 1))} /></div>
             </CardContent>
           </Card>
+
 
           <div className="space-y-3">
             {rooms.map(r => (
