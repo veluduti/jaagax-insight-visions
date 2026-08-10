@@ -1016,6 +1016,42 @@ export default function AgentDashboard() {
                 <Plus className="h-4 w-4 mr-1" /> Add Property
               </Button>
             </CardHeader>
+
+            {/* Agent credits / trial status placed directly below Post Property */}
+            {!postingEntitlementLoading && !visitEntitlementLoading && postingEntitlement?.is_agent && (
+              <div className="px-6 pb-4">
+                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-emerald-500" />
+                    <span className="text-muted-foreground">Trial days left</span>
+                    <Badge variant="secondary" className="font-semibold">
+                      {Number(postingEntitlement.trial_days_remaining || 0)} /{" "}
+                      {Number(postingEntitlement.trial_days_remaining || 0) +
+                        Number(postingEntitlement.trial_posts_remaining || 0)}
+                    </Badge>
+                  </div>
+                  <div className="hidden sm:block h-4 w-px bg-border" />
+                  <div className="flex items-center gap-2 text-sm">
+                    <Ticket className="h-4 w-4 text-primary" />
+                    <span className="text-muted-foreground">Free visits left</span>
+                    <Badge variant="secondary" className="font-semibold">
+                      {Number(visitEntitlement?.free_remaining || 0)} /{" "}
+                      {Number(visitEntitlement?.free_limit || 0)}
+                    </Badge>
+                  </div>
+                  <div className="flex-1" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={() => navigate("/agent/subscription")}
+                  >
+                    Manage Plan
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <CardContent>
               {properties.length === 0 ? (
                 <div className="text-center py-10 border-2 border-dashed rounded-xl">
