@@ -143,44 +143,111 @@ export default function VisitPaymentDialog({
         </DialogHeader>
 
         <div className="grid gap-3 md:grid-cols-2">
-          {/* 1. Free visit schedules (admin configured) */}
-          <div
-            className={`rounded-2xl border p-4 flex flex-col ${
-              freeRemaining > 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Gift className="h-4 w-4 text-emerald-500" />
-              <span className="font-semibold text-sm">Free Visit Schedules</span>
+          {/* 1. Free allowance — agents see their admin-configured agent trial */}
+          {isAgent ? (
+            <div
+              className={`rounded-2xl border p-4 flex flex-col ${
+                trialActive ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Gift className="h-4 w-4 text-emerald-500" />
+                <span className="font-semibold text-sm">Agent Free Trial</span>
+              </div>
+              <div className="text-2xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                {trialActive
+                  ? `${posting?.trial_days_remaining ?? 0} days left in your agent trial (set by admin) — visits are free.`
+                  : "Your agent trial has ended. Continue with the subscription plan."}
+              </p>
+              <Button className="mt-3 w-full" disabled={!trialActive || busy !== null} onClick={handleFree}>
+                {trialActive ? "Book free visit" : "Trial ended"}
+              </Button>
             </div>
-            <div className="text-2xl font-bold">Free</div>
-            <p className="text-xs text-muted-foreground mt-1 flex-1">
-              {freeRemaining > 0
-                ? `${freeRemaining} of ${entitlement?.free_limit ?? 0} free visit bookings left on your account.`
-                : `All ${entitlement?.free_limit ?? 0} free visit bookings used.`}
-            </p>
-            <Button className="mt-3 w-full" disabled={freeRemaining <= 0 || busy !== null} onClick={handleFree}>
-              {freeRemaining > 0 ? "Book free visit" : "Not available"}
-            </Button>
-          </div>
+          ) : (
+            <div
+              className={`rounded-2xl border p-4 flex flex-col ${
+                freeRemaining > 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Gift className="h-4 w-4 text-emerald-500" />
+                <span className="font-semibold text-sm">Free Visit Schedules</span>
+              </div>
+              <div className="text-2xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                {freeRemaining > 0
+                  ? `${freeRemaining} of ${entitlement?.free_limit ?? 0} free visit bookings left on your account.`
+                  : `All ${entitlement?.free_limit ?? 0} free visit bookings used.`}
+              </p>
+              <Button className="mt-3 w-full" disabled={freeRemaining <= 0 || busy !== null} onClick={handleFree}>
+                {freeRemaining > 0 ? "Book free visit" : "Not available"}
+              </Button>
+            </div>
+          )}
 
-          {/* 2. Paid visit booking */}
-          <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <CalendarCheck className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">Visit Booking</span>
+          {/* 2. Agents → subscription. Customers → paid visit booking. */}
+          {isAgent ? (
+            <div className="rounded-2xl border border-yellow-500/40 bg-yellow-500/5 p-4 flex flex-col">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-yellow-500" />
+                  <span className="font-semibold text-sm">Agent Subscription</span>
+                </div>
+                {hasAgentSub && <Badge className="bg-green-600">Active</Badge>}
+              </div>
+              <div className="text-2xl font-bold">
+                {inr(agentTotal)}
+                <span className="text-xs font-normal text-muted-foreground">/{agentCycle}</span>
+              </div>
+              <ul className="text-xs text-muted-foreground mt-1 space-y-1 flex-1">
+                {["Unlimited visit schedules", "Priority agent slots", "No per-visit charges"].map((b) => (
+                  <li key={b} className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3 text-emerald-600" /> {b}
+                  </li>
+                ))}
+              </ul>
+              {trialActive && (
+                <p className="text-[11px] text-emerald-600 mt-1">Starts automatically once your free trial ends.</p>
+              )}
+              {!trialActive && !hasAgentSub && (
+                <p className="text-[11px] text-yellow-600 mt-1">Trial complete — subscribe to keep booking visits.</p>
+              )}
+              <Button
+                variant="outline"
+                className="mt-3 w-full border-yellow-500/60"
+                disabled={busy !== null || (!agentEnabled && !hasAgentSub && !trialActive)}
+                onClick={handleAgentSubscription}
+              >
+                {busy === "agent" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {trialActive
+                  ? "Book (free trial)"
+                  : hasAgentSub
+                  ? "Book (subscribed)"
+                  : agentEnabled
+                  ? "Subscribe & book"
+                  : "Unavailable"}
+              </Button>
             </div>
-            <div className="text-2xl font-bold">{inr(visitTotal)}</div>
-            <p className="text-xs text-muted-foreground mt-1 flex-1">
-              One-time charge for this visit — {inr(entitlement?.fee ?? 0)} + {entitlement?.gst_percent ?? 0}% GST.
-              {wallet < visitTotal ? " Pay via Razorpay." : " Debited from your wallet."}
-            </p>
-            <Button className="mt-3 w-full gap-2" disabled={busy !== null || !paidEnabled} onClick={handlePaid}>
-              {busy === "paid" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-              {!paidEnabled ? "Unavailable" : wallet >= visitTotal ? `Pay ${inr(visitTotal)}` : "Pay with Razorpay"}
-            </Button>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 flex flex-col">
+              <div className="flex items-center gap-2 mb-1">
+                <CalendarCheck className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">Visit Booking</span>
+              </div>
+              <div className="text-2xl font-bold">{inr(visitTotal)}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                One-time charge for this visit — {inr(entitlement?.fee ?? 0)} + {entitlement?.gst_percent ?? 0}% GST.
+                {wallet < visitTotal ? " Pay via Razorpay." : " Debited from your wallet."}
+              </p>
+              <Button className="mt-3 w-full gap-2" disabled={busy !== null || !paidEnabled} onClick={handlePaid}>
+                {busy === "paid" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+                {!paidEnabled ? "Unavailable" : wallet >= visitTotal ? `Pay ${inr(visitTotal)}` : "Pay with Razorpay"}
+              </Button>
+            </div>
+          )}
         </div>
+
 
         <p className="text-[11px] text-muted-foreground text-center">
           Free visit allowance, visit fee and GST are configured by the admin.
