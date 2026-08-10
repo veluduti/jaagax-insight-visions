@@ -49,7 +49,10 @@ export default function AgentTrialStatusCard() {
   const daysLeft = Number(entitlement.trial_days_remaining || 0);
   const postsLeft = Number(entitlement.trial_posts_remaining || 0);
   const active = !!entitlement.trial_active;
+  const visitsLeft = Number(visits?.free_remaining || 0);
+  const visitsLimit = Number(visits?.free_limit || 0);
   const subscribed = !!entitlement.has_agent_subscription;
+
 
   if (subscribed) {
     return (
