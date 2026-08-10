@@ -498,7 +498,7 @@ export const QuickVisitWizard = ({
                     <CardContent className="p-3 space-y-1.5 text-sm">
                       <div className="flex items-center justify-between"><span className="text-muted-foreground">Visit date</span><span className="font-medium">{visitDate ? format(visitDate, "PPP") : "—"} · {visitTime}</span></div>
                       <div className="flex items-center justify-between"><span className="text-muted-foreground">Property</span><span className="font-medium truncate max-w-[240px]">{propertyTitle}</span></div>
-                      <div className="flex items-center justify-between border-t pt-1.5"><span className="text-muted-foreground">Concierge fee</span><span className="font-semibold">{formatINR(QUICK_VISIT_FEE)}</span></div>
+                      <div className="flex items-center justify-between border-t pt-1.5"><span className="text-muted-foreground">Visit fee</span><span className="font-semibold">{visitFee > 0 ? formatINR(visitFee) : "Free"}</span></div>
                     </CardContent>
                   </Card>
                 </motion.div>
