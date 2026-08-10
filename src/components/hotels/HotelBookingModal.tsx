@@ -131,6 +131,27 @@ const HotelBookingModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialCheckIn?.getTime(), initialCheckOut?.getTime(), initialGuests, initialRooms]);
 
+  // --- Pre-fill guest details from the signed-in account ---
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const meta: any = user.user_metadata || {};
+      setGuestEmail((v) => v || user.email || "");
+      setGuestName((v) => v || meta.full_name || meta.name || "");
+      setGuestPhone((v) => v || user.phone || meta.phone || "");
+      const { data: profile } = await (supabase as any)
+        .from("profiles").select("full_name, phone, email").eq("id", user.id).maybeSingle();
+      if (cancelled || !profile) return;
+      if (profile.full_name) setGuestName((v) => v || profile.full_name);
+      if (profile.phone) setGuestPhone((v) => v || profile.phone);
+      if (profile.email) setGuestEmail((v) => v || profile.email);
+    })();
+    return () => { cancelled = true; };
+  }, [open]);
+
   // --- Load the hotel manager's actual active rooms ---
   useEffect(() => {
     if (!open || !hotel.id) return;
