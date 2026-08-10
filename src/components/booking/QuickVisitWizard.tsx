@@ -155,6 +155,7 @@ export const QuickVisitWizard = ({
     }
   }, [step, propertyId, visitDate, visitTime, name, email, phone]);
 
+  /** Step 1: validate, then show the payment module (free allowance vs paid visit). */
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Please sign in to book a visit");
@@ -176,6 +177,17 @@ export const QuickVisitWizard = ({
       return;
     }
     if (!visitDate) return;
+
+    setSubmitting(true);
+    const ent = await fetchVisitEntitlement(user.id);
+    setVisitEntitlement(ent);
+    setSubmitting(false);
+    setShowPayment(true);
+  };
+
+  /** Step 2: actually create the booking once the visit is covered/paid. */
+  const createBooking = async () => {
+    if (!user || !visitDate) return;
     setSubmitting(true);
     try {
       const { data: booking, error } = await supabase
