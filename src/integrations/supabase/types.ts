@@ -7385,6 +7385,68 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_transactions: {
+        Row: {
+          base_amount: number
+          created_at: string
+          currency: string
+          gst_amount: number
+          gst_percent: number
+          id: string
+          invoice_number: string
+          metadata: Json
+          method: string
+          property_id: string | null
+          purpose: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_amount?: number
+          created_at?: string
+          currency?: string
+          gst_amount?: number
+          gst_percent?: number
+          id?: string
+          invoice_number?: string
+          metadata?: Json
+          method?: string
+          property_id?: string | null
+          purpose: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_amount?: number
+          created_at?: string
+          currency?: string
+          gst_amount?: number
+          gst_percent?: number
+          id?: string
+          invoice_number?: string
+          metadata?: Json
+          method?: string
+          property_id?: string | null
+          purpose?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_registrations: {
         Row: {
           attempt_count: number
@@ -7574,6 +7636,54 @@ export type Database = {
           owner_user_id?: string
           path?: string
           size_bytes?: number | null
+        }
+        Relationships: []
+      }
+      platform_pricing_settings: {
+        Row: {
+          agent_billing_cycle: string
+          agent_subscription_enabled: boolean
+          agent_subscription_gst_percent: number
+          agent_subscription_price: number
+          created_at: string
+          currency: string
+          free_posts_limit: number
+          id: string
+          pay_per_post_enabled: boolean
+          posting_fee: number
+          posting_gst_percent: number
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          agent_billing_cycle?: string
+          agent_subscription_enabled?: boolean
+          agent_subscription_gst_percent?: number
+          agent_subscription_price?: number
+          created_at?: string
+          currency?: string
+          free_posts_limit?: number
+          id?: string
+          pay_per_post_enabled?: boolean
+          posting_fee?: number
+          posting_gst_percent?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          agent_billing_cycle?: string
+          agent_subscription_enabled?: boolean
+          agent_subscription_gst_percent?: number
+          agent_subscription_price?: number
+          created_at?: string
+          currency?: string
+          free_posts_limit?: number
+          id?: string
+          pay_per_post_enabled?: boolean
+          posting_fee?: number
+          posting_gst_percent?: number
+          singleton?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -10441,6 +10551,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      charge_property_posting: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: Json
+      }
       check_and_consume_posting_quota: {
         Args: { _user_id: string }
         Returns: Json
@@ -10559,6 +10673,7 @@ export type Database = {
         }[]
       }
       get_or_create_referral_code: { Args: never; Returns: string }
+      get_posting_entitlement: { Args: { _user_id: string }; Returns: Json }
       get_posting_quota_status: { Args: { _user_id: string }; Returns: Json }
       get_seller_contacts: {
         Args: { _user_ids: string[] }
@@ -10658,6 +10773,7 @@ export type Database = {
         Args: { _property_id: string }
         Returns: undefined
       }
+      purchase_agent_subscription: { Args: { _user_id: string }; Returns: Json }
       purchase_financial_lead: { Args: { _lead_id: string }; Returns: Json }
       purchase_financial_promotion: {
         Args: { _amount: number; _duration_days: number; _package_type: string }
