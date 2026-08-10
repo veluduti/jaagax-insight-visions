@@ -28,7 +28,7 @@ interface Props {
   onProceed: () => void;
 }
 
-type Choice = "free" | "paid";
+type Choice = "free" | "paid" | "agent";
 
 export default function VisitPaymentDialog({
   open,
@@ -39,23 +39,37 @@ export default function VisitPaymentDialog({
   onProceed,
 }: Props) {
   const [wallet, setWallet] = useState(0);
+  const [settings, setSettings] = useState<any>(null);
+  const [posting, setPosting] = useState<PostingEntitlement | null>(null);
   const [busy, setBusy] = useState<Choice | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!open || !userId) return;
     (async () => {
-      const { data: w } = await (supabase as any)
-        .from("wallets")
-        .select("balance")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const [{ data: w }, { data: cfg }, pe] = await Promise.all([
+        (supabase as any).from("wallets").select("balance").eq("user_id", userId).maybeSingle(),
+        (supabase as any).from("platform_pricing_settings").select("*").limit(1).maybeSingle(),
+        fetchPostingEntitlement(userId),
+      ]);
       setWallet(Number(w?.balance || 0));
+      setSettings(cfg);
+      setPosting(pe);
     })();
   }, [open, userId]);
 
   const freeRemaining = entitlement?.free_remaining ?? 0;
   const visitTotal = Number(entitlement?.total || 0);
   const paidEnabled = entitlement?.paid_enabled !== false && visitTotal > 0;
+
+  const agentPrice = Number(settings?.agent_subscription_price || 0);
+  const agentGstPct = Number(settings?.agent_subscription_gst_percent || 0);
+  const agentTotal = agentPrice + Math.round(agentPrice * agentGstPct) / 100;
+  const agentCycle = settings?.agent_billing_cycle || "monthly";
+  const agentEnabled = settings?.agent_subscription_enabled !== false && agentTotal > 0;
+  const isAgent = !!posting?.is_agent;
+  const hasAgentSub = !!posting?.has_agent_subscription;
+  const trialActive = !!posting?.trial_active;
 
   const ensureBalance = async (amount: number) => {
     if (wallet >= amount) return true;
@@ -80,6 +94,38 @@ export default function VisitPaymentDialog({
       onProceed(); // booking flow debits the wallet + issues the invoice
     } catch (e: any) {
       toast.error(e?.message || "Payment failed");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleAgentSubscription = async () => {
+    if (!userId) return;
+    if (!isAgent) {
+      onOpenChange(false);
+      navigate("/agent/register");
+      return;
+    }
+    if (trialActive || hasAgentSub) {
+      onOpenChange(false);
+      onProceed();
+      return;
+    }
+    setBusy("agent");
+    try {
+      await ensureBalance(agentTotal);
+      const { data, error } = await (supabase as any).rpc("purchase_agent_subscription", {
+        _user_id: userId,
+      });
+      if (error) throw error;
+      if (!data?.ok)
+        throw new Error(data?.reason === "insufficient_funds" ? "Insufficient balance" : "Subscription failed");
+      toast.success("Agent subscription activated", { description: `Invoice ${data.invoice_number}` });
+      window.dispatchEvent(new Event("walletUpdated"));
+      onOpenChange(false);
+      onProceed();
+    } catch (e: any) {
+      toast.error(e?.message || "Subscription failed");
     } finally {
       setBusy(null);
     }
