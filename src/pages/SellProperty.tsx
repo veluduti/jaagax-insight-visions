@@ -14,7 +14,7 @@ import SmartLocationWidget from "@/components/ai/widgets/SmartLocationWidget";
 import PlotMeasurementWidget from "@/components/widgets/PlotMeasurementWidget";
 import WorkspaceConfigurationWidget from "@/components/widgets/WorkspaceConfigurationWidget";
 import { usePendingPayment } from "@/hooks/usePendingPayment";
-import { usePostingEntitlement } from "@/hooks/usePostingEntitlement";
+import { usePostingEntitlement, fetchPostingEntitlement } from "@/hooks/usePostingEntitlement";
 import {
   Sparkles,
   ChevronLeft,
