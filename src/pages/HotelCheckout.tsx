@@ -346,6 +346,15 @@ const HotelCheckout = () => {
                     <Textarea rows={3} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
                       placeholder="Early check-in, high floor, etc. (subject to availability)" /></div>
                 </div>
+
+                {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
+                  <div className="space-y-4 rounded-lg border border-border/60 p-4">
+                    <h3 className="text-sm font-semibold">Meals & extra beds</h3>
+                    <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
+                    <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
+                  </div>
+                )}
+
                 <Button className="w-full" onClick={() => {
                   const err = validateGuest();
                   if (err) return toast.error(err);
