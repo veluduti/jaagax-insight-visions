@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { startWalletTopUp } from "@/lib/razorpayCheckout";
 import { toast } from "sonner";
-import { CalendarCheck, Gift, Loader2, Wallet } from "lucide-react";
+import { CalendarCheck, Check, Crown, Gift, Loader2, Wallet } from "lucide-react";
 import type { VisitEntitlement } from "@/hooks/useVisitEntitlement";
+import { fetchPostingEntitlement, type PostingEntitlement } from "@/hooks/usePostingEntitlement";
 
 const inr = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
