@@ -233,16 +233,14 @@ export default function BookingEngine() {
             <CardContent className="p-4 space-y-3">
               <div className="font-medium">Booking summary</div>
               <div className="text-xs text-muted-foreground">{nights} night{nights !== 1 && "s"} · {guests} guest{guests !== 1 && "s"}</div>
-              {selectedRoom && quote && (
-                <>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between"><span>Room ({nights} × ₹{quote.per_night})</span><span>₹{quote.room_total}</span></div>
-                    {quote.addon_total > 0 && <div className="flex justify-between"><span>Add-ons</span><span>₹{quote.addon_total}</span></div>}
-                    {quote.discount > 0 && <div className="flex justify-between text-emerald-400"><span>Discount</span><span>−₹{quote.discount}</span></div>}
-                    <div className="flex justify-between font-semibold border-t border-border/60 pt-2"><span>Total</span><span>₹{quote.total}</span></div>
-                  </div>
-                </>
+              {liveError && <p className="text-xs text-destructive">{liveError}</p>}
+              {selectedRoom && livePrice && <PriceBreakdown price={livePrice} />}
+              {selectedRoom && quote?.grand_total != null && (
+                <p className="text-[11px] text-muted-foreground">
+                  Confirmed price (server): ₹{Number(quote.grand_total).toLocaleString("en-IN")}
+                </p>
               )}
+
               <div><Label>Promo code</Label><Input value={promo} onChange={e => setPromo(e.target.value.toUpperCase())} placeholder="MONSOON10" /></div>
               <div className="pt-2 border-t border-border/60 space-y-2">
                 <div><Label>Full name</Label><Input value={guest.name} onChange={e => setGuest({ ...guest, name: e.target.value })} /></div>
