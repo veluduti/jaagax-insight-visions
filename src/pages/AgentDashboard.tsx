@@ -55,6 +55,7 @@ import {
   Megaphone,
   Rocket,
   Trash2,
+  Ticket,
 } from "lucide-react";
 import SectionErrorBoundary from "@/components/ui/SectionErrorBoundary";
 import { LazyMount, ListSkeleton, CardGridSkeleton } from "@/components/shared";
