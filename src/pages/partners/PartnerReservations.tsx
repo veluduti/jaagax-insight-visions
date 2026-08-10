@@ -206,9 +206,20 @@ export default function PartnerReservations() {
                   <Card className="border border-border/60 bg-background/60 backdrop-blur transition hover:border-emerald-500/40">
                     <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="truncate font-semibold">{b.guest_name}</p>
                           <Badge className={s.cls}>{s.label}</Badge>
+                          <Badge
+                            className={
+                              b.payment_status === "paid"
+                                ? "bg-emerald-500/15 text-emerald-400"
+                                : b.payment_status === "refunded"
+                                  ? "bg-blue-500/15 text-blue-400"
+                                  : "bg-amber-500/15 text-amber-400"
+                            }
+                          >
+                            {b.payment_status === "paid" ? "Paid" : b.payment_status === "refunded" ? "Refunded" : "Payment pending"}
+                          </Badge>
                           {b.booking_reference && <span className="text-xs text-muted-foreground">#{b.booking_reference}</span>}
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
