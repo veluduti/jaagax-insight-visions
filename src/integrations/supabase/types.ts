@@ -7502,6 +7502,7 @@ export type Database = {
       payment_transactions: {
         Row: {
           base_amount: number
+          booking_id: string | null
           created_at: string
           currency: string
           gst_amount: number
@@ -7519,6 +7520,7 @@ export type Database = {
         }
         Insert: {
           base_amount?: number
+          booking_id?: string | null
           created_at?: string
           currency?: string
           gst_amount?: number
@@ -7536,6 +7538,7 @@ export type Database = {
         }
         Update: {
           base_amount?: number
+          booking_id?: string | null
           created_at?: string
           currency?: string
           gst_amount?: number
@@ -7765,12 +7768,16 @@ export type Database = {
           created_at: string
           currency: string
           free_posts_limit: number
+          free_visits_limit: number
           id: string
           pay_per_post_enabled: boolean
           posting_fee: number
           posting_gst_percent: number
           singleton: boolean
           updated_at: string
+          visit_booking_paid_enabled: boolean
+          visit_fee: number
+          visit_gst_percent: number
         }
         Insert: {
           agent_billing_cycle?: string
@@ -7783,12 +7790,16 @@ export type Database = {
           created_at?: string
           currency?: string
           free_posts_limit?: number
+          free_visits_limit?: number
           id?: string
           pay_per_post_enabled?: boolean
           posting_fee?: number
           posting_gst_percent?: number
           singleton?: boolean
           updated_at?: string
+          visit_booking_paid_enabled?: boolean
+          visit_fee?: number
+          visit_gst_percent?: number
         }
         Update: {
           agent_billing_cycle?: string
@@ -7801,12 +7812,16 @@ export type Database = {
           created_at?: string
           currency?: string
           free_posts_limit?: number
+          free_visits_limit?: number
           id?: string
           pay_per_post_enabled?: boolean
           posting_fee?: number
           posting_gst_percent?: number
           singleton?: boolean
           updated_at?: string
+          visit_booking_paid_enabled?: boolean
+          visit_fee?: number
+          visit_gst_percent?: number
         }
         Relationships: []
       }
@@ -10678,6 +10693,10 @@ export type Database = {
         Args: { _property_id: string; _user_id: string }
         Returns: Json
       }
+      charge_visit_booking: {
+        Args: { _booking_id: string; _user_id: string }
+        Returns: Json
+      }
       check_and_consume_posting_quota: {
         Args: { _user_id: string }
         Returns: Json
@@ -10807,6 +10826,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_visit_entitlement: { Args: { _user_id: string }; Returns: Json }
       get_wallet_balance: { Args: { _user_id: string }; Returns: number }
       has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }

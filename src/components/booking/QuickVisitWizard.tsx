@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logWeekendActivity, formatINR } from "@/lib/weekendBookingHelpers";
+import VisitPaymentDialog from "@/components/booking/VisitPaymentDialog";
+import { fetchVisitEntitlement, type VisitEntitlement } from "@/hooks/useVisitEntitlement";
 import {
   Zap, Building2, MapPin, CalendarIcon, ClipboardCheck,
   User, Check, ArrowRight, ArrowLeft, ShieldCheck, Loader2,
@@ -86,6 +88,8 @@ export const QuickVisitWizard = ({
   const [notes, setNotes] = useState("");
 
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [visitEntitlement, setVisitEntitlement] = useState<VisitEntitlement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -96,6 +100,14 @@ export const QuickVisitWizard = ({
         setName(data.user.user_metadata?.full_name || data.user.user_metadata?.name || "");
         setPhone(data.user.user_metadata?.phone || "");
       }
+    });
+  }, [open]);
+
+  // Admin-configured visit pricing / free allowance
+  useEffect(() => {
+    if (!open) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) fetchVisitEntitlement(data.user.id).then(setVisitEntitlement);
     });
   }, [open]);
 
@@ -132,8 +144,15 @@ export const QuickVisitWizard = ({
     }
   }, [open, requiresPropertyPick]);
 
-  const estimatedTotal = QUICK_VISIT_FEE;
-  const bookingAmount = QUICK_VISIT_FEE;
+  // Fee comes from admin settings; free allowance makes this visit ₹0
+  const visitFee = visitEntitlement
+    ? visitEntitlement.requires_payment
+      ? Number(visitEntitlement.total || 0)
+      : 0
+    : QUICK_VISIT_FEE;
+  const freeVisitsLeft = visitEntitlement?.free_remaining ?? 0;
+  const estimatedTotal = visitFee;
+  const bookingAmount = visitFee;
 
   const filteredProps = useMemo(() => {
     const q = propertySearch.trim().toLowerCase();
@@ -155,6 +174,7 @@ export const QuickVisitWizard = ({
     }
   }, [step, propertyId, visitDate, visitTime, name, email, phone]);
 
+  /** Step 1: validate, then show the payment module (free allowance vs paid visit). */
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Please sign in to book a visit");
@@ -176,6 +196,17 @@ export const QuickVisitWizard = ({
       return;
     }
     if (!visitDate) return;
+
+    setSubmitting(true);
+    const ent = await fetchVisitEntitlement(user.id);
+    setVisitEntitlement(ent);
+    setSubmitting(false);
+    setShowPayment(true);
+  };
+
+  /** Step 2: actually create the booking once the visit is covered/paid. */
+  const createBooking = async () => {
+    if (!user || !visitDate) return;
     setSubmitting(true);
     try {
       const { data: booking, error } = await supabase
@@ -208,6 +239,24 @@ export const QuickVisitWizard = ({
         .select().single();
 
       if (error || !booking) throw error || new Error("Failed to create booking");
+
+      // Charge the visit: free allowance or wallet debit + invoice (admin-configured)
+      const { data: charge } = await (supabase as any).rpc("charge_visit_booking", {
+        _user_id: user.id,
+        _booking_id: booking.id,
+      });
+      if (charge && charge.ok === false) {
+        toast.error(
+          charge.reason === "insufficient_funds"
+            ? "Payment could not be completed — please top up your wallet."
+            : "Visit payment could not be completed.",
+        );
+      } else if (charge?.invoice_number) {
+        window.dispatchEvent(new Event("walletUpdated"));
+        toast.success(charge.free ? "Free visit applied" : `Payment successful — invoice ${charge.invoice_number}`);
+      }
+
+
 
       await logWeekendActivity({
         bookingId: booking.id,
@@ -255,6 +304,7 @@ export const QuickVisitWizard = ({
   const TIME_SLOTS = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0">
         <div className="relative bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 px-6 pt-5 pb-4 border-b">
@@ -449,7 +499,7 @@ export const QuickVisitWizard = ({
                     <CardContent className="p-3 space-y-1.5 text-sm">
                       <div className="flex items-center justify-between"><span className="text-muted-foreground">Visit date</span><span className="font-medium">{visitDate ? format(visitDate, "PPP") : "—"} · {visitTime}</span></div>
                       <div className="flex items-center justify-between"><span className="text-muted-foreground">Property</span><span className="font-medium truncate max-w-[240px]">{propertyTitle}</span></div>
-                      <div className="flex items-center justify-between border-t pt-1.5"><span className="text-muted-foreground">Concierge fee</span><span className="font-semibold">{formatINR(QUICK_VISIT_FEE)}</span></div>
+                      <div className="flex items-center justify-between border-t pt-1.5"><span className="text-muted-foreground">Visit fee</span><span className="font-semibold">{visitFee > 0 ? formatINR(visitFee) : "Free"}</span></div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -469,8 +519,15 @@ export const QuickVisitWizard = ({
                     <Row label="City" value={propertyCity} />
                     <div className="border-t pt-2 flex items-center justify-between">
                       <span className="text-muted-foreground">Total today</span>
-                      <span className="text-lg font-semibold flex items-center gap-0.5"><IndianRupee className="h-4 w-4" />{QUICK_VISIT_FEE}</span>
+                      {visitFee > 0 ? (
+                        <span className="text-lg font-semibold flex items-center gap-0.5"><IndianRupee className="h-4 w-4" />{visitFee.toLocaleString("en-IN")}</span>
+                      ) : (
+                        <span className="text-lg font-semibold text-emerald-600">Free</span>
+                      )}
                     </div>
+                    {freeVisitsLeft > 0 && (
+                      <p className="text-xs text-emerald-600">{freeVisitsLeft} free visit booking{freeVisitsLeft === 1 ? "" : "s"} left on your account.</p>
+                    )}
                   </CardContent></Card>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
@@ -519,6 +576,16 @@ export const QuickVisitWizard = ({
         )}
       </DialogContent>
     </Dialog>
+
+    <VisitPaymentDialog
+      open={showPayment}
+      onOpenChange={setShowPayment}
+      entitlement={visitEntitlement}
+      userId={user?.id ?? null}
+      userInfo={{ name, email, contact: phone }}
+      onProceed={createBooking}
+    />
+    </>
   );
 };
 

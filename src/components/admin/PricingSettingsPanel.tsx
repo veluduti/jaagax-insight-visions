@@ -25,6 +25,10 @@ interface Settings {
   agent_trial_days: number;
   agent_trial_free_posts: number;
   agent_subscription_duration_days: number;
+  free_visits_limit: number;
+  visit_booking_paid_enabled: boolean;
+  visit_fee: number;
+  visit_gst_percent: number;
 }
 
 const money = (n: number, c = "INR") =>
@@ -77,6 +81,13 @@ export default function PricingSettingsPanel() {
         agent_subscription_price: s.agent_subscription_price,
         agent_subscription_gst_percent: s.agent_subscription_gst_percent,
         agent_billing_cycle: s.agent_billing_cycle,
+        agent_trial_days: Math.round(s.agent_trial_days ?? 0),
+        agent_trial_free_posts: Math.round(s.agent_trial_free_posts ?? 0),
+        agent_subscription_duration_days: Math.round(s.agent_subscription_duration_days ?? 30),
+        free_visits_limit: Math.round(s.free_visits_limit ?? 0),
+        visit_booking_paid_enabled: s.visit_booking_paid_enabled,
+        visit_fee: s.visit_fee,
+        visit_gst_percent: s.visit_gst_percent,
       })
       .eq("id", s.id);
     setSaving(false);
@@ -300,6 +311,71 @@ export default function PricingSettingsPanel() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Module 4 — Visit Booking */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Visit Booking (Schedule a Visit)</CardTitle>
+                    <CardDescription>Free visit allowance per user, then a paid visit fee.</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="vpe" className="text-sm text-muted-foreground">Paid visits</Label>
+                    <Switch
+                      id="vpe"
+                      checked={!!s.visit_booking_paid_enabled}
+                      onCheckedChange={(v) => set({ visit_booking_paid_enabled: v })}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fvl">Free Visit Schedules</Label>
+                  <Input
+                    id="fvl"
+                    type="number"
+                    min={0}
+                    value={s.free_visits_limit ?? 0}
+                    onChange={(e) => set({ free_visits_limit: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="vf">Visit Fee ({s.currency})</Label>
+                  <Input
+                    id="vf"
+                    type="number"
+                    min={0}
+                    value={s.visit_fee ?? 0}
+                    onChange={(e) => set({ visit_fee: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="vg">GST %</Label>
+                  <Input
+                    id="vg"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={s.visit_gst_percent ?? 0}
+                    onChange={(e) => set({ visit_gst_percent: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="sm:col-span-3 text-sm text-muted-foreground">
+                  Every user gets {s.free_visits_limit ?? 0} free visit booking(s). After that a visit costs{" "}
+                  <strong className="text-foreground">
+                    {money(
+                      Number(s.visit_fee || 0) * (1 + Number(s.visit_gst_percent || 0) / 100),
+                      s.currency,
+                    )}
+                  </strong>{" "}
+                  (fee + GST).
+                </div>
+              </CardContent>
+            </Card>
+
+
 
             <div className="flex justify-end">
               <Button onClick={save} disabled={saving} className="gap-2">
