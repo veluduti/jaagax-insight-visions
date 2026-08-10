@@ -30,14 +30,13 @@ const money = (n: number, c = "INR") =>
 export default function AgentSubscriptionManager() {
   const { user } = useAuth();
   const [sub, setSub] = useState<any>(null);
-  const [wallet, setWallet] = useState<number>(0);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
 
   const load = async () => {
     if (!user) return;
-    const [{ data: s }, { data: w }, { data: cfg }] = await Promise.all([
+    const [{ data: s }, { data: cfg }] = await Promise.all([
       (supabase as any)
         .from("agent_subscriptions")
         .select("*")
@@ -46,11 +45,9 @@ export default function AgentSubscriptionManager() {
         .order("start_date", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      (supabase as any).from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       (supabase as any).from("platform_pricing_settings").select("*").limit(1).maybeSingle(),
     ]);
     setSub(s);
-    setWallet(Number(w?.balance || 0));
     setSettings(cfg);
     setLoading(false);
   };
