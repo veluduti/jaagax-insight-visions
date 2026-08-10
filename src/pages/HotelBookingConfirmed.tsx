@@ -9,21 +9,28 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, CalendarDays, MapPin, Loader2, Download, Home, Mail } from "lucide-react";
 
+const inr = (n: any) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
+
 const HotelBookingConfirmed = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!bookingId) return;
     (async () => {
-      const { data } = await supabase.from("hotel_bookings")
-        .select("*").eq("id", bookingId).maybeSingle();
+      const [{ data }, { data: li }] = await Promise.all([
+        supabase.from("hotel_bookings").select("*").eq("id", bookingId).maybeSingle(),
+        (supabase as any).from("hotel_booking_items").select("*").eq("booking_id", bookingId),
+      ]);
       setBooking(data);
+      setItems(li || []);
       setLoading(false);
     })();
   }, [bookingId]);
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
