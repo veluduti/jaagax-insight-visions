@@ -3404,6 +3404,16 @@ export default function SellProperty() {
         if (PROPERTIES_COLUMNS.has(k)) cleanPayload[k] = payload[k];
       }
 
+      // ✅ STEP 0: Entitlement pre-check (free posts → pay-per-post → agent subscription)
+      const ent = await fetchPostingEntitlement(user.id);
+      if (ent && ent.requires_payment && !ent.pay_per_post_enabled) {
+        toast.error("Free posting limit reached", {
+          description: "Paid posting is currently disabled. Please contact support.",
+        });
+        setSubmitting(false);
+        return;
+      }
+
       // ✅ STEP 1: Save property FIRST (no payment yet)
       const { data: inserted, error: insErr } = await (supabase.from as any)("properties")
         .insert(cleanPayload)
@@ -3413,11 +3423,39 @@ export default function SellProperty() {
 
       const propertyId = inserted?.id;
 
-      // ✅ STEP 2: Process payment if there's a pending payment (pay-per-post or subscription)
+      // ✅ STEP 2: Charge for the listing (free post, or wallet debit + invoice)
+      if (propertyId) {
+        const { data: charge, error: chargeErr } = await (supabase as any).rpc("charge_property_posting", {
+          _user_id: user.id,
+          _property_id: propertyId,
+        });
+        if (chargeErr || !charge?.ok) {
+          await (supabase.from as any)("properties").delete().eq("id", propertyId);
+          const reason = charge?.reason;
+          if (reason === "insufficient_funds") {
+            toast.error(`Payment failed — add ₹${Number(charge.amount || 0).toLocaleString("en-IN")} to your wallet`, {
+              description: "Your free posts are used up. Top up your wallet and publish again.",
+            });
+          } else if (reason === "pay_per_post_disabled") {
+            toast.error("Paid posting is currently disabled. Please contact support.");
+          } else {
+            toast.error(chargeErr?.message || "Could not process the posting fee. Please try again.");
+          }
+          setSubmitting(false);
+          return;
+        }
+        if (charge.charged > 0) {
+          toast.success(`₹${Number(charge.charged).toLocaleString("en-IN")} paid`, {
+            description: `Invoice ${charge.invoice_number}`,
+          });
+          window.dispatchEvent(new Event("walletUpdated"));
+        }
+      }
+
+      // Legacy pending-payment flow (promotions / upgrades started elsewhere)
       if (hasPending && propertyId) {
         const paymentSuccess = await processPendingPayment(propertyId);
         if (!paymentSuccess) {
-          // Property already deleted in the function if payment failed
           setSubmitting(false);
           return;
         }
@@ -3437,20 +3475,27 @@ export default function SellProperty() {
         }
       }
 
-      // Auto-assign agent only if owner asked for verification AND not a trusted agent flow
+      // ✅ STEP 4: Nearby verification agent — only when the owner said "Yes, verify"
+      let assignmentMessage = "Listed without verification. You can request verification later from your dashboard.";
       if (propertyId && verificationRequested && !(isAgentMode && isTrustedAgent)) {
         try {
-          await supabase.functions.invoke("auto-assign-agent", { body: { property_id: propertyId } });
+          const { data: assignRes, error: assignErr } = await supabase.functions.invoke("auto-assign-agent", {
+            body: { property_id: propertyId },
+          });
+          if (assignErr) throw assignErr;
+          if (assignRes?.assigned === false) {
+            assignmentMessage =
+              "No nearby agent was free right now — our admin team will assign one and keep you posted.";
+          } else {
+            assignmentMessage = "A nearby JAAGA verification agent has been assigned. You'll be notified shortly.";
+          }
         } catch (e) {
           console.warn("auto-assign failed", e);
+          assignmentMessage = "We couldn't reach an agent automatically — our admin team will assign one shortly.";
         }
       }
+      await refreshEntitlement();
 
-      // ✅ STEP 4: Update posting count (if free post was used)
-      if (!hasPending) {
-        // Free post was used - increment count
-        await supabase.rpc("increment_posting_count", { _user_id: user.id });
-      }
 
       if (isAgentMode && isTrustedAgent) {
         toast.success("Property submitted ✅", {
