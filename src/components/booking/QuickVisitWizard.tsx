@@ -144,8 +144,15 @@ export const QuickVisitWizard = ({
     }
   }, [open, requiresPropertyPick]);
 
-  const estimatedTotal = QUICK_VISIT_FEE;
-  const bookingAmount = QUICK_VISIT_FEE;
+  // Fee comes from admin settings; free allowance makes this visit ₹0
+  const visitFee = visitEntitlement
+    ? visitEntitlement.requires_payment
+      ? Number(visitEntitlement.total || 0)
+      : 0
+    : QUICK_VISIT_FEE;
+  const freeVisitsLeft = visitEntitlement?.free_remaining ?? 0;
+  const estimatedTotal = visitFee;
+  const bookingAmount = visitFee;
 
   const filteredProps = useMemo(() => {
     const q = propertySearch.trim().toLowerCase();
