@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logWeekendActivity, formatINR } from "@/lib/weekendBookingHelpers";
+import VisitPaymentDialog from "@/components/booking/VisitPaymentDialog";
+import { fetchVisitEntitlement, type VisitEntitlement } from "@/hooks/useVisitEntitlement";
 import {
   Zap, Building2, MapPin, CalendarIcon, ClipboardCheck,
   User, Check, ArrowRight, ArrowLeft, ShieldCheck, Loader2,
