@@ -25,6 +25,10 @@ interface Settings {
   agent_trial_days: number;
   agent_trial_free_posts: number;
   agent_subscription_duration_days: number;
+  free_visits_limit: number;
+  visit_booking_paid_enabled: boolean;
+  visit_fee: number;
+  visit_gst_percent: number;
 }
 
 const money = (n: number, c = "INR") =>
