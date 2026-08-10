@@ -205,6 +205,17 @@ export default function BookingEngine() {
             {rooms.length === 0 && <p className="text-sm text-muted-foreground">No rooms available.</p>}
           </div>
 
+          {selectedRoom && (config.meals.length > 0 || config.room?.extra_bed_allowed) && (
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
+                <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
+              </CardContent>
+            </Card>
+          )}
+
+
+
           {addons.length > 0 && selectedRoom && (
             <Card>
               <CardContent className="p-4">
