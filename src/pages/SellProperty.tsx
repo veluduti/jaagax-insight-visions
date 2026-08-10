@@ -1047,6 +1047,8 @@ export default function SellProperty() {
 
   // Add the pending payment hook
   const { processPendingPayment, hasPending } = usePendingPayment();
+  // Admin-configured posting entitlement (free posts / pay-per-post / agent subscription)
+  const { entitlement, refresh: refreshEntitlement } = usePostingEntitlement();
 
   useEffect(() => {
     if (!field) return;
