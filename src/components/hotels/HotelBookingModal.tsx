@@ -233,9 +233,13 @@ const HotelBookingModal = ({
     setStep("room");
   };
 
-  const continueToCheckout = async () => {
+  const handlePayment = async () => {
     if (!selectedRoomId || !checkIn || !checkOut) return;
     if (liveError) return toast.error(liveError);
+    if (!guestName.trim() || guestName.trim().length < 2) return toast.error("Please enter your name");
+    if (!/^\S+@\S+\.\S+$/.test(guestEmail.trim())) return toast.error("Please enter a valid email");
+    if (!/^[+\d][\d\s-]{7,}$/.test(guestPhone.trim())) return toast.error("Please enter a valid phone number");
+
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -245,21 +249,39 @@ const HotelBookingModal = ({
         navigate("/auth");
         return;
       }
-      const params = new URLSearchParams({
-        room: selectedRoomId,
-        checkin: checkInStr,
-        checkout: checkOutStr,
-        adults: String(adults),
-        children: String(numChildren),
-        rooms: String(numRooms),
-        beds: String(extraBeds),
-        type: bookingType,
+
+      let bookedByAgentId: string | null = null;
+      const { data: agentRow } = await (supabase as any)
+        .from("agents").select("id").eq("user_id", user.id).maybeSingle();
+      if (agentRow?.id) bookedByAgentId = agentRow.id;
+
+      const bookingId = await payForHotelBooking({
+        hotel_id: hotel.id,
+        hotel_name: hotel.name,
+        room_id: selectedRoomId,
+        check_in: checkInStr,
+        check_out: checkOutStr,
+        adults,
+        children: numChildren,
+        num_rooms: numRooms,
+        extra_beds: extraBeds,
+        meals: selectedMeals,
+        guest_name: guestName.trim(),
+        guest_email: guestEmail.trim(),
+        guest_phone: guestPhone.trim(),
+        user_id: user.id,
+        booked_by_agent_id: bookedByAgentId,
       });
-      if (selectedMeals.length) params.set("meals", selectedMeals.join(","));
+
+      toast.success("Payment successful — booking confirmed!", {
+        description: "A confirmation email is on its way.",
+      });
       onClose();
-      navigate(`/hotels/${hotel.id}/checkout?${params.toString()}`);
+      navigate(`/hotels/booking/${bookingId}/confirmed`);
     } catch (err: any) {
-      toast.error("Could not start booking", { description: err?.message || "Please try again" });
+      const msg = err?.message || "Please try again";
+      if (msg === "Payment cancelled") toast.info("Payment cancelled");
+      else toast.error("Payment failed", { description: msg });
     } finally {
       setSubmitting(false);
     }
