@@ -22,6 +22,9 @@ interface Settings {
   agent_subscription_price: number;
   agent_subscription_gst_percent: number;
   agent_billing_cycle: string;
+  agent_trial_days: number;
+  agent_trial_free_posts: number;
+  agent_subscription_duration_days: number;
 }
 
 const money = (n: number, c = "INR") =>
@@ -260,8 +263,39 @@ export default function PricingSettingsPanel() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="td">Trial Days</Label>
+                  <Input
+                    id="td"
+                    type="number"
+                    min={0}
+                    value={s.agent_trial_days ?? 0}
+                    onChange={(e) => set({ agent_trial_days: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="tfp">Free Property Posts (trial)</Label>
+                  <Input
+                    id="tfp"
+                    type="number"
+                    min={0}
+                    value={s.agent_trial_free_posts ?? 0}
+                    onChange={(e) => set({ agent_trial_free_posts: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sdd">Subscription Duration (days)</Label>
+                  <Input
+                    id="sdd"
+                    type="number"
+                    min={1}
+                    value={s.agent_subscription_duration_days ?? 30}
+                    onChange={(e) => set({ agent_subscription_duration_days: Number(e.target.value) })}
+                  />
+                </div>
                 <div className="sm:col-span-3 text-sm text-muted-foreground">
-                  Agents pay <strong className="text-foreground">{money(subTotal, s.currency)}</strong> per{" "}
+                  New agents get {s.agent_trial_days ?? 0} days or {s.agent_trial_free_posts ?? 0} free listings, then
+                  pay <strong className="text-foreground">{money(subTotal, s.currency)}</strong> per{" "}
                   {s.agent_billing_cycle} cycle (price + GST).
                 </div>
               </CardContent>
