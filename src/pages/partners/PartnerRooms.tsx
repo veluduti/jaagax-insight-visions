@@ -909,15 +909,6 @@ export default function PartnerRooms() {
                     </div>
                   </div>
 
-                  <div>
-                    <Label>Breakfast included</Label>
-                    <div className="mt-2">
-                      <Switch
-                        checked={!!editing.breakfast_included}
-                        onCheckedChange={(v) => setEditing({ ...editing, breakfast_included: v })}
-                      />
-                    </div>
-                  </div>
 
                   <div>
                     <Label>Amenities</Label>
