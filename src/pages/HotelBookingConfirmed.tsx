@@ -9,21 +9,28 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, CalendarDays, MapPin, Loader2, Download, Home, Mail } from "lucide-react";
 
+const inr = (n: any) => `₹${Math.round(Number(n) || 0).toLocaleString("en-IN")}`;
+
 const HotelBookingConfirmed = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!bookingId) return;
     (async () => {
-      const { data } = await supabase.from("hotel_bookings")
-        .select("*").eq("id", bookingId).maybeSingle();
+      const [{ data }, { data: li }] = await Promise.all([
+        supabase.from("hotel_bookings").select("*").eq("id", bookingId).maybeSingle(),
+        (supabase as any).from("hotel_booking_items").select("*").eq("booking_id", bookingId),
+      ]);
       setBooking(data);
+      setItems(li || []);
       setLoading(false);
     })();
   }, [bookingId]);
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
@@ -82,10 +89,42 @@ const HotelBookingConfirmed = () => {
             <Cell label="Guest" value={booking.guest_name} />
           </div>
           <Separator />
+          {items.length > 0 ? (
+            <div className="space-y-2 text-sm">
+              <div className="font-medium">Charges</div>
+              {items.filter((i) => i.item_type !== "tax").map((i) => (
+                <div key={i.id} className="flex items-start justify-between gap-3">
+                  <div>
+                    <div>{i.item_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {inr(i.unit_price)} × {i.quantity}{Number(i.units) > 1 ? ` × ${i.units}` : ""}
+                    </div>
+                  </div>
+                  <span>{inr(i.subtotal)}</span>
+                </div>
+              ))}
+              {Number(booking.discount_total) > 0 && (
+                <div className="flex items-center justify-between text-emerald-500">
+                  <span>Discount</span><span>− {inr(booking.discount_total)}</span>
+                </div>
+              )}
+              <Separator />
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{inr(booking.taxable_subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">GST ({booking.gst_rate ?? 0}%)</span>
+                <span>{inr(booking.tax_amount)}</span>
+              </div>
+            </div>
+          ) : null}
+          <Separator />
           <div className="flex items-center justify-between text-base">
-            <span className="text-muted-foreground">Amount paid</span>
-            <span className="font-semibold">₹{Number(booking.total_amount).toLocaleString()}</span>
+            <span className="text-muted-foreground">{booking.payment_status === "paid" ? "Amount paid" : "Grand total"}</span>
+            <span className="font-semibold">{inr(booking.total_amount)}</span>
           </div>
+
           {booking.razorpay_payment_id && (
             <div className="text-xs text-muted-foreground">Payment ID: {booking.razorpay_payment_id}</div>
           )}

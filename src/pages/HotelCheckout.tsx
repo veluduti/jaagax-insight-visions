@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, ShieldCheck, CalendarDays, Users, BedDouble, CreditCard, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
+import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
+import type { MealType } from "@/lib/hotelPricing";
+
 
 declare global {
   interface Window { Razorpay?: any }
@@ -149,12 +153,69 @@ const HotelCheckout = () => {
     })();
   }, [hotelId, roomId, checkIn, checkOut, adults, children, navigate]);
 
-  const perNight = Number(quote?.perNight ?? quote?.per_night ?? room?.base_price ?? 0);
-  const roomSubtotal = perNight * nights * numRooms;
-  const addonSubtotal = Number(quote?.addon_total || 0);
-  const gstRate = perNight < 7500 ? 0.12 : 0.18;
-  const taxes = Math.round(roomSubtotal * gstRate);
-  const total = roomSubtotal + addonSubtotal + taxes;
+  // Hotel meal / extra-bed / rate configuration for this room.
+  const config = useHotelPricingConfig(hotelId, roomId);
+  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
+  const [extraBeds, setExtraBeds] = useState(0);
+
+  const { price: livePrice, error: liveError } = useLivePrice({
+    room: config.room,
+    meals: config.meals,
+    rateCalendar: config.rateCalendar,
+    gstRate: config.gstRate,
+    checkIn, checkOut, adults, children, numRooms, extraBeds,
+    selectedMeals,
+    addons: [],
+    discount: 0,
+  });
+
+  const toggleMeal = (m: MealType) =>
+    setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+
+  // Re-quote from the server whenever the selection changes — backend stays authoritative.
+  useEffect(() => {
+    if (!hotelId || !roomId || !checkIn || !checkOut) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.functions.invoke("booking-engine-quote", {
+        body: {
+          hotel_id: hotelId, room_id: roomId, check_in: checkIn, check_out: checkOut,
+          adults, children, guests: adults + children, num_rooms: numRooms,
+          extra_beds: extraBeds, meals: selectedMeals,
+        },
+      });
+      if (!cancelled && data && !(data as any).error) setQuote(data);
+    })();
+    return () => { cancelled = true; };
+  }, [hotelId, roomId, checkIn, checkOut, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+
+  const total = Number(quote?.grand_total ?? livePrice?.grandTotal ?? 0);
+
+  // Server quote wins; the local engine only fills the gap while it is in flight.
+  const displayPrice = useMemo(() => {
+    if (quote?.grand_total != null) {
+      return {
+        nights: quote.nights ?? nights,
+        nightly: quote.nightly ?? [],
+        perNight: quote.per_night ?? 0,
+        roomCharges: quote.room_charges ?? quote.room_total ?? 0,
+        mealBreakdown: quote.meals ?? [],
+        mealTotal: quote.meal_total ?? 0,
+        extraBedTotal: quote.extra_bed_total ?? 0,
+        addonTotal: quote.addon_total ?? 0,
+        discount: quote.discount ?? 0,
+        taxableSubtotal: quote.taxable_subtotal ?? 0,
+        gstRate: quote.gst_rate ?? 0,
+        taxAmount: quote.tax_amount ?? 0,
+        grandTotal: quote.grand_total ?? 0,
+        lineItems: quote.line_items ?? [],
+        freeChildren: 0,
+      } as any;
+    }
+    return livePrice;
+  }, [quote, livePrice, nights]);
+
+
 
   const validateGuest = () => {
     if (!guestName.trim() || guestName.trim().length < 2) return "Please enter your name";
@@ -164,7 +225,9 @@ const HotelCheckout = () => {
   };
 
   const handlePay = async () => {
+    if (liveError) return toast.error(liveError);
     setSubmitting(true);
+
     try {
       const ok = await loadRazorpay();
       if (!ok) { toast.error("Failed to load payment gateway"); return; }
@@ -184,6 +247,8 @@ const HotelCheckout = () => {
           hotel_id: hotelId, room_id: roomId,
           check_in: checkIn, check_out: checkOut,
           adults, children, num_rooms: numRooms,
+          extra_beds: extraBeds, meals: selectedMeals,
+
           guest_name: guestName.trim(),
           guest_email: guestEmail.trim(),
           guest_phone: guestPhone.trim(),
@@ -283,6 +348,15 @@ const HotelCheckout = () => {
                     <Textarea rows={3} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
                       placeholder="Early check-in, high floor, etc. (subject to availability)" /></div>
                 </div>
+
+                {(config.meals.length > 0 || config.room?.extra_bed_allowed) && (
+                  <div className="space-y-4 rounded-lg border border-border/60 p-4">
+                    <h3 className="text-sm font-semibold">Meals & extra beds</h3>
+                    <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
+                    <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
+                  </div>
+                )}
+
                 <Button className="w-full" onClick={() => {
                   const err = validateGuest();
                   if (err) return toast.error(err);
@@ -352,21 +426,9 @@ const HotelCheckout = () => {
                 </div>
               </div>
               <Separator />
-              <div className="text-sm space-y-1">
-                <Row icon={<CalendarDays className="w-4 h-4" />} label="Dates" value={`${checkIn} → ${checkOut}`} />
-                <Row icon={<Users className="w-4 h-4" />} label="Guests" value={`${adults + children}`} />
-                <Row icon={<BedDouble className="w-4 h-4" />} label="Rooms × Nights" value={`${numRooms} × ${nights}`} />
-              </div>
-              <Separator />
-              <div className="text-sm space-y-1">
-                <Row label={`Room (${nights} night${nights>1?"s":""} × ${numRooms})`} value={`₹${roomSubtotal.toLocaleString()}`} />
-                {addonSubtotal > 0 && <Row label="Add-ons" value={`₹${addonSubtotal.toLocaleString()}`} />}
-                <Row label={`Taxes & fees (${Math.round(gstRate*100)}%)`} value={`₹${taxes.toLocaleString()}`} />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between font-semibold text-base">
-                <span>Total</span><span>₹{total.toLocaleString()}</span>
-              </div>
+              {liveError && <p className="text-xs text-destructive">{liveError}</p>}
+              <PriceBreakdown price={displayPrice} />
+
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" /> Instant confirmation on successful payment
               </div>

@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, IndianRupee, BedDouble, Check } from "lucide-react";
 import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
+import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
+import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
+import type { MealType } from "@/lib/hotelPricing";
 
 type Hotel = any;
 type Room = any;
@@ -28,14 +31,20 @@ export default function BookingEngine() {
   const tmr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(tmr);
-  const [guests, setGuests] = useState(2);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [numRooms, setNumRooms] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
+  const [extraBeds, setExtraBeds] = useState(0);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>({});
   const [promo, setPromo] = useState("");
   const [guest, setGuest] = useState({ name: "", email: "", phone: "" });
   const [quote, setQuote] = useState<any>(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState<any>(null);
+
+  const guests = adults + children;
 
   useEffect(() => {
     (async () => {
@@ -53,38 +62,77 @@ export default function BookingEngine() {
 
   const nights = useMemo(() => nightsBetween(checkIn, checkOut), [checkIn, checkOut]);
 
+  // Hotel meal / extra-bed / rate configuration for the selected room.
+  const config = useHotelPricingConfig(hotelId, selectedRoom?.id);
+
+  // Reset meal / extra-bed selection when the room changes.
+  useEffect(() => { setSelectedMeals([]); setExtraBeds(0); }, [selectedRoom?.id]);
+
+  const addonSelections = useMemo(
+    () => Object.entries(selectedAddons)
+      .filter(([, q]) => q > 0)
+      .map(([id, q]) => {
+        const row = addons.find((a) => a.id === id);
+        const units = row?.unit === "per_night" ? nights : row?.unit === "per_guest" ? guests : 1;
+        return { addon_id: id, title: row?.title || "Add-on", unit_price: Number(row?.price) || 0, quantity: q, units };
+      }),
+    [selectedAddons, addons, nights, guests],
+  );
+
+  const { price: livePrice, error: liveError } = useLivePrice({
+    room: config.room,
+    meals: config.meals,
+    rateCalendar: config.rateCalendar,
+    gstRate: config.gstRate,
+    checkIn, checkOut,
+    adults, children,
+    numRooms, extraBeds,
+    selectedMeals,
+    addons: addonSelections,
+    discount: Number(quote?.discount || 0),
+  });
+
+  const toggleMeal = (m: MealType) =>
+    setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+
+  const orderPayload = () => ({
+    hotel_id: hotelId, room_id: selectedRoom?.id,
+    check_in: checkIn, check_out: checkOut,
+    adults, children, guests, num_rooms: numRooms,
+    extra_beds: extraBeds, meals: selectedMeals,
+    addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
+    promo_code: promo || null,
+  });
+
   const getQuote = async () => {
     if (!selectedRoom || nights < 1) return;
-    const { data, error } = await supabase.functions.invoke("booking-engine-quote", {
-      body: {
-        hotel_id: hotelId, room_id: selectedRoom.id,
-        check_in: checkIn, check_out: checkOut, guests,
-        addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
-        promo_code: promo || null,
-      },
-    });
+    const { data, error } = await supabase.functions.invoke("booking-engine-quote", { body: orderPayload() });
     if (error) return toast.error(error.message);
+    if ((data as any)?.error) { setQuote(null); return toast.error((data as any).error); }
     setQuote(data);
   };
 
-  useEffect(() => { if (selectedRoom) getQuote(); /* eslint-disable-next-line */ }, [selectedRoom, checkIn, checkOut, selectedAddons, promo, guests]);
+  useEffect(() => { if (selectedRoom) getQuote(); /* eslint-disable-next-line */ },
+    [selectedRoom, checkIn, checkOut, selectedAddons, promo, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+
 
   const confirm = async () => {
     if (!quote || !guest.name || !guest.email || !guest.phone) return toast.error("Please fill guest details");
+    if (liveError) return toast.error(liveError);
     setConfirming(true);
     const { data, error } = await supabase.functions.invoke("booking-engine-confirm", {
       body: {
-        hotel_id: hotelId, room_id: selectedRoom.id,
-        check_in: checkIn, check_out: checkOut, guests,
+        ...orderPayload(),
         guest_name: guest.name, guest_email: guest.email, guest_phone: guest.phone,
-        addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
-        promo_code: promo || null, source: "direct",
+        source: "direct",
       },
     });
     setConfirming(false);
     if (error) return toast.error(error.message);
+    if ((data as any)?.error) return toast.error((data as any).error);
     setConfirmed(data);
   };
+
 
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin h-6 w-6" /></div>;
   if (!hotel) return <div className="p-8 text-center">Hotel not found.</div>;
@@ -121,12 +169,15 @@ export default function BookingEngine() {
       <div className="container mx-auto max-w-5xl px-4 py-6 grid gap-6 md:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           <Card>
-            <CardContent className="p-4 grid grid-cols-3 gap-3">
+            <CardContent className="p-4 grid grid-cols-2 gap-3 md:grid-cols-5">
               <div><Label>Check-in</Label><Input type="date" min={new Date().toISOString().slice(0,10)} value={checkIn} onChange={e => { const v = e.target.value; setCheckIn(v); if (v && checkOut && new Date(checkOut) <= new Date(v)) setCheckOut(nextDayISO(v)); }} /></div>
               <div><Label>Check-out</Label><Input type="date" min={nextDayISO(checkIn)} value={checkOut} onChange={e => { const v = e.target.value; if (v && checkIn && !isValidDateRangeISO(checkIn, v)) { toast.error(CHECKOUT_AFTER_CHECKIN_MSG); return; } setCheckOut(v); }} /></div>
-              <div><Label>Guests</Label><Input type="number" min={1} value={guests} onChange={e => setGuests(Number(e.target.value))} /></div>
+              <div><Label>Adults</Label><Input type="number" min={1} value={adults} onChange={e => setAdults(Math.max(1, Number(e.target.value) || 1))} /></div>
+              <div><Label>Children</Label><Input type="number" min={0} value={children} onChange={e => setChildren(Math.max(0, Number(e.target.value) || 0))} /></div>
+              <div><Label>Rooms</Label><Input type="number" min={1} value={numRooms} onChange={e => setNumRooms(Math.max(1, Number(e.target.value) || 1))} /></div>
             </CardContent>
           </Card>
+
 
           <div className="space-y-3">
             {rooms.map(r => (
@@ -153,6 +204,17 @@ export default function BookingEngine() {
             ))}
             {rooms.length === 0 && <p className="text-sm text-muted-foreground">No rooms available.</p>}
           </div>
+
+          {selectedRoom && (config.meals.length > 0 || config.room?.extra_bed_allowed) && (
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <MealSelector meals={config.meals} selected={selectedMeals} onToggle={toggleMeal} />
+                <ExtraBedSelector room={config.room} value={extraBeds} onChange={setExtraBeds} numRooms={numRooms} />
+              </CardContent>
+            </Card>
+          )}
+
+
 
           {addons.length > 0 && selectedRoom && (
             <Card>
@@ -182,16 +244,14 @@ export default function BookingEngine() {
             <CardContent className="p-4 space-y-3">
               <div className="font-medium">Booking summary</div>
               <div className="text-xs text-muted-foreground">{nights} night{nights !== 1 && "s"} · {guests} guest{guests !== 1 && "s"}</div>
-              {selectedRoom && quote && (
-                <>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between"><span>Room ({nights} × ₹{quote.per_night})</span><span>₹{quote.room_total}</span></div>
-                    {quote.addon_total > 0 && <div className="flex justify-between"><span>Add-ons</span><span>₹{quote.addon_total}</span></div>}
-                    {quote.discount > 0 && <div className="flex justify-between text-emerald-400"><span>Discount</span><span>−₹{quote.discount}</span></div>}
-                    <div className="flex justify-between font-semibold border-t border-border/60 pt-2"><span>Total</span><span>₹{quote.total}</span></div>
-                  </div>
-                </>
+              {liveError && <p className="text-xs text-destructive">{liveError}</p>}
+              {selectedRoom && livePrice && <PriceBreakdown price={livePrice} />}
+              {selectedRoom && quote?.grand_total != null && (
+                <p className="text-[11px] text-muted-foreground">
+                  Confirmed price (server): ₹{Number(quote.grand_total).toLocaleString("en-IN")}
+                </p>
               )}
+
               <div><Label>Promo code</Label><Input value={promo} onChange={e => setPromo(e.target.value.toUpperCase())} placeholder="MONSOON10" /></div>
               <div className="pt-2 border-t border-border/60 space-y-2">
                 <div><Label>Full name</Label><Input value={guest.name} onChange={e => setGuest({ ...guest, name: e.target.value })} /></div>
