@@ -4809,7 +4809,13 @@ export default function SellProperty() {
                             <Pencil className="h-4 w-4 mr-1" /> Edit details
                           </Button>
                           <Button
-                            onClick={onSubmit}
+                            onClick={() => {
+                              if (isFinancial || !entitlement || entitlement.has_agent_subscription) {
+                                onSubmit();
+                              } else {
+                                setPayOpen(true);
+                              }
+                            }}
                             disabled={!canPublish}
                             className="flex-1 bg-gradient-to-r from-primary to-emerald-500 text-white hover:opacity-95 disabled:opacity-50"
                           >
@@ -4819,6 +4825,17 @@ export default function SellProperty() {
                         </div>
                       </div>
                     </div>
+
+                    <PublishPaymentDialog
+                      open={payOpen}
+                      onOpenChange={setPayOpen}
+                      entitlement={entitlement}
+                      userId={payUser?.id ?? null}
+                      userInfo={payUser ?? undefined}
+                      onProceed={() => onSubmit()}
+                      onEntitlementChanged={refreshEntitlement}
+                    />
+
 
                     {/* EDIT DRAWER — dynamic, only filled fields */}
                     <Sheet open={showEditSheet} onOpenChange={setShowEditSheet}>
