@@ -1025,9 +1025,7 @@ export default function AgentDashboard() {
                     <Calendar className="h-4 w-4 text-emerald-500" />
                     <span className="text-muted-foreground">Trial days left</span>
                     <Badge variant="secondary" className="font-semibold">
-                      {Number(postingEntitlement.trial_days_remaining || 0)} /{" "}
-                      {Number(postingEntitlement.trial_days_remaining || 0) +
-                        Number(postingEntitlement.trial_posts_remaining || 0)}
+                      {Number(postingEntitlement.trial_days_remaining || 0)}
                     </Badge>
                   </div>
                   <div className="hidden sm:block h-4 w-px bg-border" />
@@ -1035,8 +1033,7 @@ export default function AgentDashboard() {
                     <Ticket className="h-4 w-4 text-primary" />
                     <span className="text-muted-foreground">Free visits left</span>
                     <Badge variant="secondary" className="font-semibold">
-                      {Number(visitEntitlement?.free_remaining || 0)} /{" "}
-                      {Number(visitEntitlement?.free_limit || 0)}
+                      {Number(visitEntitlement?.free_remaining || 0)}
                     </Badge>
                   </div>
                   <div className="flex-1" />
