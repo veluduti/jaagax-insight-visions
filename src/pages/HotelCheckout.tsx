@@ -155,8 +155,11 @@ const HotelCheckout = () => {
 
   // Hotel meal / extra-bed / rate configuration for this room.
   const config = useHotelPricingConfig(hotelId, roomId);
-  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
-  const [extraBeds, setExtraBeds] = useState(0);
+  // Selections carried over from the booking modal (never a hard-coded default).
+  const [selectedMeals, setSelectedMeals] = useState<MealType[]>(
+    (params.get("meals") || "").split(",").filter(Boolean) as MealType[],
+  );
+  const [extraBeds, setExtraBeds] = useState(Math.max(0, Number(params.get("beds") || 0)));
 
   const { price: livePrice, error: liveError } = useLivePrice({
     room: config.room,
