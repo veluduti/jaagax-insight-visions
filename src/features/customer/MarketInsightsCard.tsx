@@ -41,7 +41,7 @@ export default function MarketInsightsCard() {
           <TrendingUp className="h-4 w-4 text-primary" />
           Market Insights
         </CardTitle>
-        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => navigate("/market-insights")}>
+        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => navigate("/valuation/detailed")}>
           Details
         </Button>
       </CardHeader>
