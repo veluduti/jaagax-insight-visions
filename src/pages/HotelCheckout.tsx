@@ -225,7 +225,9 @@ const HotelCheckout = () => {
   };
 
   const handlePay = async () => {
+    if (liveError) return toast.error(liveError);
     setSubmitting(true);
+
     try {
       const ok = await loadRazorpay();
       if (!ok) { toast.error("Failed to load payment gateway"); return; }
