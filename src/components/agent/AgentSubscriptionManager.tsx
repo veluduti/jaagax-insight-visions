@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Loader2 } from "lucide-react";
+import { CalendarCheck, Check, Crown, Home, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { startWalletTopUp } from "@/lib/razorpayCheckout";
 import { toast } from "sonner";
 
+const COVERED_SERVICES = [
+  { icon: Home, label: "Property Posting — unlimited listings, no per-post charges" },
+  { icon: CalendarCheck, label: "Visit Schedule Booking — unlimited visits, no per-visit charges" },
+];
+
 const BENEFITS = [
-  "Unlimited Listings",
   "Premium Visibility",
   "AI Lead Recommendations",
   "Featured Properties",
@@ -25,14 +30,13 @@ const money = (n: number, c = "INR") =>
 export default function AgentSubscriptionManager() {
   const { user } = useAuth();
   const [sub, setSub] = useState<any>(null);
-  const [wallet, setWallet] = useState<number>(0);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
 
   const load = async () => {
     if (!user) return;
-    const [{ data: s }, { data: w }, { data: cfg }] = await Promise.all([
+    const [{ data: s }, { data: cfg }] = await Promise.all([
       (supabase as any)
         .from("agent_subscriptions")
         .select("*")
@@ -41,11 +45,9 @@ export default function AgentSubscriptionManager() {
         .order("start_date", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      (supabase as any).from("wallets").select("balance").eq("user_id", user.id).maybeSingle(),
       (supabase as any).from("platform_pricing_settings").select("*").limit(1).maybeSingle(),
     ]);
     setSub(s);
-    setWallet(Number(w?.balance || 0));
     setSettings(cfg);
     setLoading(false);
   };
@@ -64,17 +66,23 @@ export default function AgentSubscriptionManager() {
 
   const subscribe = async () => {
     if (!user) return;
-    if (wallet < total) {
-      toast.error(`Insufficient wallet balance. Need ${money(total, currency)}, have ${money(wallet, currency)}`);
+    if (!(total > 0)) {
+      toast.error("Subscription price is not configured yet.");
       return;
     }
     setSubscribing(true);
     try {
+      // Direct Razorpay payment for the exact subscription amount
+      await startWalletTopUp(Math.max(Math.ceil(total), 500), {
+        name: (user as any)?.user_metadata?.full_name,
+        email: user.email,
+        contact: (user as any)?.user_metadata?.phone,
+      });
       const { data, error } = await (supabase as any).rpc("purchase_agent_subscription", { _user_id: user.id });
       if (error) throw error;
       if (!data?.ok) {
         const reasons: Record<string, string> = {
-          insufficient_funds: "Not enough wallet balance. Please top up and try again.",
+          insufficient_funds: "Payment received but subscription could not be activated. Please contact support.",
           subscription_disabled: "Agent subscriptions are currently disabled by the admin.",
           forbidden: "You are not allowed to perform this action.",
         };
@@ -85,7 +93,7 @@ export default function AgentSubscriptionManager() {
       window.dispatchEvent(new Event("walletUpdated"));
       await load();
     } catch (e: any) {
-      toast.error(e.message || "Subscription failed");
+      toast.error(e.message || "Payment failed");
     } finally {
       setSubscribing(false);
     }
@@ -125,6 +133,16 @@ export default function AgentSubscriptionManager() {
             {money(price, currency)} + {gstPct}% GST ({money(gst, currency)})
           </p>
         </div>
+        <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            One subscription covers both services
+          </p>
+          {COVERED_SERVICES.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-2 text-sm">
+              <Icon className="h-4 w-4 text-primary shrink-0" /> {label}
+            </div>
+          ))}
+        </div>
         <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {BENEFITS.map((b) => (
             <li key={b} className="flex items-center gap-2 text-sm">
@@ -133,13 +151,11 @@ export default function AgentSubscriptionManager() {
           ))}
         </ul>
         <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-sm text-muted-foreground">
-            Wallet Balance: <strong className="text-foreground">{money(wallet, currency)}</strong>
-          </span>
+          <span className="text-xs text-muted-foreground">Secure payment via Razorpay</span>
           {!active && (
             <Button variant="premium" onClick={subscribe} disabled={subscribing || !enabled}>
               {subscribing && <Loader2 className="h-4 w-4 animate-spin" />}
-              {enabled ? "Subscribe Now" : "Unavailable"}
+              {enabled ? `Pay ${money(total, currency)} & Subscribe` : "Unavailable"}
             </Button>
           )}
         </div>
