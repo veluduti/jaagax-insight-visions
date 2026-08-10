@@ -82,30 +82,38 @@ export default function CustomerDashboard() {
       <Navigation />
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pt-10 md:pt-12 pb-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
-              Welcome back, {user?.email?.split("@")[0] || "Customer"}!
+              Welcome back,{" "}
+              <span className="text-primary">{user?.email?.split("@")[0] || "Customer"}!</span>
             </h1>
             <p className="text-muted-foreground mt-1">
               One customer space — buy, sell, build and finance in a single view
             </p>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {SECTIONS.map((s) => (
-            <Button key={s.id} variant="outline" size="sm" className="gap-2" onClick={() => scrollToSection(s.id)}>
-              <s.icon className="h-4 w-4" />
-              {s.label}
+          <div className="flex flex-wrap items-center gap-2">
+            {SECTIONS.map((s, i) => (
+              <Button
+                key={s.id}
+                variant={i === SECTIONS.length - 1 ? "default" : "outline"}
+                size="sm"
+                className="gap-2 rounded-full"
+                onClick={() => scrollToSection(s.id)}
+              >
+                <s.icon className="h-4 w-4" />
+                {s.label}
+              </Button>
+            ))}
+            <Button onClick={handleSignOut} variant="ghost" size="sm" className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Sign Out
             </Button>
-          ))}
+          </div>
         </div>
       </div>
+
 
       <div className="container mx-auto max-w-7xl 3xl:max-w-[1680px] px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
         <CustomerOverview onNavigateTab={scrollToSection} />
