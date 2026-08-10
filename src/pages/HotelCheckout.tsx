@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, ShieldCheck, CalendarDays, Users, BedDouble, CreditCard, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { resolveHotelImages } from "@/lib/hotelImage";
+import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
+import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
+import type { MealType } from "@/lib/hotelPricing";
+
 
 declare global {
   interface Window { Razorpay?: any }
