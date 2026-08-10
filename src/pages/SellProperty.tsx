@@ -3424,7 +3424,27 @@ export default function SellProperty() {
 
       // ✅ STEP 0: Entitlement pre-check (free posts → pay-per-post → agent subscription)
       const ent = await fetchPostingEntitlement(user.id);
-      if (ent && ent.requires_payment && !ent.pay_per_post_enabled) {
+
+      // Agent applicant awaiting KYC approval → save as draft, never publish.
+      const pendingAgentApplicant = !!ent && !ent.is_agent && ent.agent_application_status === "pending";
+      if (pendingAgentApplicant) {
+        cleanPayload.is_draft = true;
+        cleanPayload.is_live = false;
+        cleanPayload.listing_status = "draft";
+      }
+
+      // Approved agents on an active free trial post for free; expired trial without a
+      // subscription must subscribe first.
+      const agentTrialFree = !!ent?.is_agent && !!ent.trial_active;
+      if (ent?.is_agent && ent.requires_subscription && !pendingAgentApplicant) {
+        toast.error("Agent trial ended", {
+          description: "Please activate your agent subscription to publish more properties.",
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      if (ent && !ent.is_agent && !pendingAgentApplicant && ent.requires_payment && !ent.pay_per_post_enabled) {
         toast.error("Free posting limit reached", {
           description: "Paid posting is currently disabled. Please contact support.",
         });
@@ -3442,7 +3462,7 @@ export default function SellProperty() {
       const propertyId = inserted?.id;
 
       // ✅ STEP 2: Charge for the listing (free post, or wallet debit + invoice)
-      if (propertyId) {
+      if (propertyId && !pendingAgentApplicant && !agentTrialFree) {
         const { data: charge, error: chargeErr } = await (supabase as any).rpc("charge_property_posting", {
           _user_id: user.id,
           _property_id: propertyId,
