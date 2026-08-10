@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, IndianRupee, BedDouble, Check } from "lucide-react";
 import { toast } from "sonner";
 import { nextDayISO, CHECKOUT_AFTER_CHECKIN_MSG, isValidDateRangeISO } from "@/lib/dateRange";
+import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
+import { MealSelector, ExtraBedSelector, PriceBreakdown } from "@/components/hotels/BookingPricingControls";
+import type { MealType } from "@/lib/hotelPricing";
 
 type Hotel = any;
 type Room = any;
@@ -28,14 +31,20 @@ export default function BookingEngine() {
   const tmr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(tmr);
-  const [guests, setGuests] = useState(2);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [numRooms, setNumRooms] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedMeals, setSelectedMeals] = useState<MealType[]>([]);
+  const [extraBeds, setExtraBeds] = useState(0);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>({});
   const [promo, setPromo] = useState("");
   const [guest, setGuest] = useState({ name: "", email: "", phone: "" });
   const [quote, setQuote] = useState<any>(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState<any>(null);
+
+  const guests = adults + children;
 
   useEffect(() => {
     (async () => {
@@ -53,21 +62,59 @@ export default function BookingEngine() {
 
   const nights = useMemo(() => nightsBetween(checkIn, checkOut), [checkIn, checkOut]);
 
+  // Hotel meal / extra-bed / rate configuration for the selected room.
+  const config = useHotelPricingConfig(hotelId, selectedRoom?.id);
+
+  // Reset meal / extra-bed selection when the room changes.
+  useEffect(() => { setSelectedMeals([]); setExtraBeds(0); }, [selectedRoom?.id]);
+
+  const addonSelections = useMemo(
+    () => Object.entries(selectedAddons)
+      .filter(([, q]) => q > 0)
+      .map(([id, q]) => {
+        const row = addons.find((a) => a.id === id);
+        const units = row?.unit === "per_night" ? nights : row?.unit === "per_guest" ? guests : 1;
+        return { addon_id: id, title: row?.title || "Add-on", unit_price: Number(row?.price) || 0, quantity: q, units };
+      }),
+    [selectedAddons, addons, nights, guests],
+  );
+
+  const { price: livePrice, error: liveError } = useLivePrice({
+    room: config.room,
+    meals: config.meals,
+    rateCalendar: config.rateCalendar,
+    gstRate: config.gstRate,
+    checkIn, checkOut,
+    adults, children,
+    numRooms, extraBeds,
+    selectedMeals,
+    addons: addonSelections,
+    discount: Number(quote?.discount || 0),
+  });
+
+  const toggleMeal = (m: MealType) =>
+    setSelectedMeals((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+
+  const orderPayload = () => ({
+    hotel_id: hotelId, room_id: selectedRoom?.id,
+    check_in: checkIn, check_out: checkOut,
+    adults, children, guests, num_rooms: numRooms,
+    extra_beds: extraBeds, meals: selectedMeals,
+    addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
+    promo_code: promo || null,
+  });
+
   const getQuote = async () => {
     if (!selectedRoom || nights < 1) return;
-    const { data, error } = await supabase.functions.invoke("booking-engine-quote", {
-      body: {
-        hotel_id: hotelId, room_id: selectedRoom.id,
-        check_in: checkIn, check_out: checkOut, guests,
-        addons: Object.entries(selectedAddons).filter(([, q]) => q > 0).map(([id, q]) => ({ addon_id: id, quantity: q })),
-        promo_code: promo || null,
-      },
-    });
+    const { data, error } = await supabase.functions.invoke("booking-engine-quote", { body: orderPayload() });
     if (error) return toast.error(error.message);
+    if ((data as any)?.error) { setQuote(null); return toast.error((data as any).error); }
     setQuote(data);
   };
 
-  useEffect(() => { if (selectedRoom) getQuote(); /* eslint-disable-next-line */ }, [selectedRoom, checkIn, checkOut, selectedAddons, promo, guests]);
+  useEffect(() => { if (selectedRoom) getQuote(); /* eslint-disable-next-line */ },
+    [selectedRoom, checkIn, checkOut, selectedAddons, promo, adults, children, numRooms, extraBeds, selectedMeals.join(",")]);
+
 
   const confirm = async () => {
     if (!quote || !guest.name || !guest.email || !guest.phone) return toast.error("Please fill guest details");
