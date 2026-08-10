@@ -67,7 +67,7 @@ export default function AgentTrialStatusCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -90,6 +90,17 @@ export default function AgentTrialStatusCard() {
             </div>
             <Progress value={trialPosts ? (postsLeft / trialPosts) * 100 : 0} />
           </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <Ticket className="h-4 w-4" /> Free visits left
+              </span>
+              <span className="font-semibold">
+                {visitsLeft} / {visitsLimit}
+              </span>
+            </div>
+            <Progress value={visitsLimit ? (visitsLeft / visitsLimit) * 100 : 0} />
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 pt-2 border-t text-sm">
@@ -100,10 +111,21 @@ export default function AgentTrialStatusCard() {
             <Button size="sm" variant="outline" onClick={() => navigate("/sell-property")}>
               Post property
             </Button>
+            <Button size="sm" variant="outline" onClick={() => navigate("/properties")}>
+              Book a visit
+            </Button>
           </div>
         </div>
 
+        {visitsLeft === 0 && (visits?.paid_enabled ?? false) && (
+          <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+            Free visit bookings used. Each additional visit costs ₹
+            {Number(visits?.total || 0).toLocaleString("en-IN")} (fee + GST).
+          </div>
+        )}
+
         {!active && !entitlement.has_agent_subscription && (
+
           <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm">
             Your free trial has ended. Subscribe below to continue posting properties.
           </div>
