@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { canSee } from "@/lib/roleAccess";
-import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 import LocationPill from "@/components/location/LocationPill";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
