@@ -277,7 +277,6 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  {!isAdminRole && <ProfileSwitcher />}
                   <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-sm">
                     Dashboard
                   </Button>
@@ -324,7 +323,6 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  {!isAdminRole && <ProfileSwitcher />}
                   <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm">
                     Dashboard
                   </Button>
