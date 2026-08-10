@@ -84,10 +84,12 @@ Return ONLY through the tool.`;
     });
 
     if (!r.ok) {
+      await r.text().catch(() => "");
       return new Response(JSON.stringify({ hint: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
     const j = await r.json();
     const args = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const parsed = args ? JSON.parse(args) : { hint: null };
