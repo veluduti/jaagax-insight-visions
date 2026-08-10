@@ -690,6 +690,15 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/dashboard/admin/pricing"
+                    element={
+                      <ProtectedRoute allowedRole="admin">
+                        <AdminPricingSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
                     path="/admin/properties-pipeline"
                     element={
                       <ProtectedRoute allowedRole="admin">
