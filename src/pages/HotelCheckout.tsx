@@ -388,21 +388,9 @@ const HotelCheckout = () => {
                 </div>
               </div>
               <Separator />
-              <div className="text-sm space-y-1">
-                <Row icon={<CalendarDays className="w-4 h-4" />} label="Dates" value={`${checkIn} → ${checkOut}`} />
-                <Row icon={<Users className="w-4 h-4" />} label="Guests" value={`${adults + children}`} />
-                <Row icon={<BedDouble className="w-4 h-4" />} label="Rooms × Nights" value={`${numRooms} × ${nights}`} />
-              </div>
-              <Separator />
-              <div className="text-sm space-y-1">
-                <Row label={`Room (${nights} night${nights>1?"s":""} × ${numRooms})`} value={`₹${roomSubtotal.toLocaleString()}`} />
-                {addonSubtotal > 0 && <Row label="Add-ons" value={`₹${addonSubtotal.toLocaleString()}`} />}
-                <Row label={`Taxes & fees (${Math.round(gstRate*100)}%)`} value={`₹${taxes.toLocaleString()}`} />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between font-semibold text-base">
-                <span>Total</span><span>₹{total.toLocaleString()}</span>
-              </div>
+              {liveError && <p className="text-xs text-destructive">{liveError}</p>}
+              <PriceBreakdown price={displayPrice} />
+
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-500" /> Instant confirmation on successful payment
               </div>
