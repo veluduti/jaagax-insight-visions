@@ -52,6 +52,7 @@ export async function buildServerQuote(supabase: any, body: QuoteRequest): Promi
     supabase.from("partner_hotels").select("*").eq("id", hotel_id).maybeSingle(),
   ]);
   if (!hotel) return { error: "Hotel not found", status: 404 };
+  if (hotel.is_active === false) return { error: "This hotel is not accepting bookings right now", status: 400 };
   if (!room || room.hotel_id !== hotel_id) return { error: "Room not found", status: 404 };
   if (room.is_active === false) return { error: "This room is not currently bookable", status: 400 };
 
