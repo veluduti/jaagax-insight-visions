@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Sparkles, CalendarClock, FileStack } from "lucide-react";
+import { Loader2, Sparkles, CalendarClock, FileStack, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePostingEntitlement } from "@/hooks/usePostingEntitlement";
+import { useVisitEntitlement } from "@/hooks/useVisitEntitlement";
 
 export default function AgentTrialStatusCard() {
   const { user } = useAuth();
