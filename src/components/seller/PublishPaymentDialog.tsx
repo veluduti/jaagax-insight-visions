@@ -144,48 +144,70 @@ export default function PublishPaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 md:grid-cols-3">
-          {/* 1. Free trial */}
-          <div
-            className={`rounded-2xl border p-4 flex flex-col ${
-              freeRemaining > 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <Gift className="h-4 w-4 text-emerald-500" />
-              <span className="font-semibold text-sm">Free Trial</span>
-            </div>
-            <div className="text-2xl font-bold">Free</div>
-            <p className="text-xs text-muted-foreground mt-1 flex-1">
-              {freeRemaining > 0
-                ? `${freeRemaining} of ${entitlement?.free_limit ?? 0} free posts left this month.`
-                : `All ${entitlement?.free_limit ?? 0} free posts used this month.`}
-            </p>
-            <Button className="mt-3 w-full" disabled={freeRemaining <= 0 || busy !== null} onClick={handleFree}>
-              {freeRemaining > 0 ? "Publish free" : "Not available"}
-            </Button>
-          </div>
-
-          {/* 2. Customer property posting */}
-          <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <Wallet className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-sm">Property Posting</span>
-            </div>
-            <div className="text-2xl font-bold">{inr(postTotal)}</div>
-            <p className="text-xs text-muted-foreground mt-1 flex-1">
-              One-time charge for this listing — {inr(entitlement?.fee ?? 0)} + {entitlement?.gst_percent ?? 0}% GST.
-              {wallet < postTotal ? " Pay via Razorpay." : " Debited from your wallet."}
-            </p>
-            <Button
-              className="mt-3 w-full"
-              disabled={busy !== null || postTotal <= 0}
-              onClick={handlePayPerPost}
+        <div className={`grid gap-3 ${isAgent ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+          {/* 1. Free trial — agents see their admin-configured agent trial */}
+          {isAgent ? (
+            <div
+              className={`rounded-2xl border p-4 flex flex-col ${
+                trialActive ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
+              }`}
             >
-              {busy === "post" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {wallet >= postTotal ? `Pay ${inr(postTotal)}` : `Pay with Razorpay`}
-            </Button>
-          </div>
+              <div className="flex items-center gap-2 mb-1">
+                <Gift className="h-4 w-4 text-emerald-500" />
+                <span className="font-semibold text-sm">Agent Free Trial</span>
+              </div>
+              <div className="text-2xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                {trialActive
+                  ? `${entitlement?.trial_posts_remaining ?? 0} free listings and ${
+                      entitlement?.trial_days_remaining ?? 0
+                    } days left in your trial (set by admin).`
+                  : "Your agent trial has ended. Continue with the subscription plan."}
+              </p>
+              <Button className="mt-3 w-full" disabled={!trialActive || busy !== null} onClick={handleFree}>
+                {trialActive ? "Publish free" : "Trial ended"}
+              </Button>
+            </div>
+          ) : (
+            <div
+              className={`rounded-2xl border p-4 flex flex-col ${
+                freeRemaining > 0 ? "border-emerald-500/40 bg-emerald-500/5" : "border-border opacity-70"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Gift className="h-4 w-4 text-emerald-500" />
+                <span className="font-semibold text-sm">Free Trial</span>
+              </div>
+              <div className="text-2xl font-bold">Free</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                {freeRemaining > 0
+                  ? `${freeRemaining} of ${entitlement?.free_limit ?? 0} free posts left this month.`
+                  : `All ${entitlement?.free_limit ?? 0} free posts used this month.`}
+              </p>
+              <Button className="mt-3 w-full" disabled={freeRemaining <= 0 || busy !== null} onClick={handleFree}>
+                {freeRemaining > 0 ? "Publish free" : "Not available"}
+              </Button>
+            </div>
+          )}
+
+          {/* 2. Customer property posting — customers only */}
+          {!isAgent && (
+            <div className="rounded-2xl border border-primary/40 bg-primary/5 p-4 flex flex-col">
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-sm">Property Posting</span>
+              </div>
+              <div className="text-2xl font-bold">{inr(postTotal)}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex-1">
+                One-time charge for this listing — {inr(entitlement?.fee ?? 0)} + {entitlement?.gst_percent ?? 0}% GST.
+                {wallet < postTotal ? " Pay via Razorpay." : " Debited from your wallet."}
+              </p>
+              <Button className="mt-3 w-full" disabled={busy !== null || postTotal <= 0} onClick={handlePayPerPost}>
+                {busy === "post" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {wallet >= postTotal ? `Pay ${inr(postTotal)}` : `Pay with Razorpay`}
+              </Button>
+            </div>
+          )}
 
           {/* 3. Agent subscription */}
           <div className="rounded-2xl border border-yellow-500/40 bg-yellow-500/5 p-4 flex flex-col">
@@ -217,7 +239,12 @@ export default function PublishPaymentDialog({
             )}
             {isAgent && trialActive && (
               <p className="text-[11px] text-emerald-600 mt-1">
-                Free trial active — {entitlement?.trial_posts_remaining ?? 0} posts / {entitlement?.trial_days_remaining ?? 0} days left.
+                Starts automatically once your free trial ends.
+              </p>
+            )}
+            {isAgent && !trialActive && !hasAgentSub && (
+              <p className="text-[11px] text-yellow-600 mt-1">
+                Trial complete — subscribe to keep publishing listings.
               </p>
             )}
             <Button
@@ -243,6 +270,7 @@ export default function PublishPaymentDialog({
             </Button>
           </div>
         </div>
+
 
         <div className="text-[11px] text-muted-foreground">
           Payments are collected through Razorpay and credited to your JAAGA X wallet, then applied to this listing
