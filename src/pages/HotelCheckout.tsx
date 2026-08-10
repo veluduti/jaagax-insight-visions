@@ -245,6 +245,8 @@ const HotelCheckout = () => {
           hotel_id: hotelId, room_id: roomId,
           check_in: checkIn, check_out: checkOut,
           adults, children, num_rooms: numRooms,
+          extra_beds: extraBeds, meals: selectedMeals,
+
           guest_name: guestName.trim(),
           guest_email: guestEmail.trim(),
           guest_phone: guestPhone.trim(),
