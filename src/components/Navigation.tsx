@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { canSee } from "@/lib/roleAccess";
-import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 import LocationPill from "@/components/location/LocationPill";
 import jaagaxLogo from "@/assets/jaagax-logo.png";
 
@@ -278,7 +277,6 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  {!isAdminRole && <ProfileSwitcher />}
                   <Button onClick={() => navigate(dashboardPath)} variant="default" size="sm" className="text-sm">
                     Dashboard
                   </Button>
@@ -325,7 +323,6 @@ const Navigation = () => {
 
               {session ? (
                 <>
-                  {!isAdminRole && <ProfileSwitcher />}
                   <Button onClick={() => navigate(dashboardPath)} variant="ghost" size="sm">
                     Dashboard
                   </Button>
