@@ -19,6 +19,8 @@ import { CHECKOUT_AFTER_CHECKIN_MSG } from "@/lib/dateRange";
 import { useNavigate } from "react-router-dom";
 import { useHotelPricingConfig, useLivePrice } from "@/hooks/useHotelPricing";
 import { MealSelector, ExtraBedSelector, PriceBreakdown, inr } from "@/components/hotels/BookingPricingControls";
+import { payForHotelBooking } from "@/lib/hotelPay";
+import { Input } from "@/components/ui/input";
 import type { MealType } from "@/lib/hotelPricing";
 
 interface HotelBookingModalProps {
